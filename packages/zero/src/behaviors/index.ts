@@ -24,3 +24,6 @@ export type { TypeaheadOptions } from './typeahead.js';
 
 export { createAnchorPosition, fixedPositionStrategy } from './position.js';
 export type { Placement, PositionOptions, PositionStrategy, AnchorPositionInput } from './position.js';
+
+export { useFieldContext, provideFieldContext } from './field.js';
+export type { FieldContext } from './field.js';

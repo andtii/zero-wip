@@ -1,7 +1,7 @@
 {
     "name": "@sigx/zero",
     "version": "0.1.0",
-    "description": "SignalX Zero — unstyled, accessible component primitives with a machine-readable anatomy. The design-system-neutral foundation every sigx design system builds on.",
+    "description": "SignalX Zero \u2014 unstyled, accessible component primitives with a machine-readable anatomy. The design-system-neutral foundation every sigx design system builds on.",
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -55,7 +55,35 @@
             "import": "./dist/components/menu/index.js"
         },
         "./css": "./css/base.css",
-        "./manifest.json": "./dist/manifest.json"
+        "./manifest.json": "./dist/manifest.json",
+        "./field": {
+            "types": "./dist/components/field/index.d.ts",
+            "import": "./dist/components/field/index.js"
+        },
+        "./checkbox": {
+            "types": "./dist/components/checkbox/index.d.ts",
+            "import": "./dist/components/checkbox/index.js"
+        },
+        "./radio-group": {
+            "types": "./dist/components/radio-group/index.d.ts",
+            "import": "./dist/components/radio-group/index.js"
+        },
+        "./progress": {
+            "types": "./dist/components/progress/index.d.ts",
+            "import": "./dist/components/progress/index.js"
+        },
+        "./slider": {
+            "types": "./dist/components/slider/index.d.ts",
+            "import": "./dist/components/slider/index.js"
+        },
+        "./accordion": {
+            "types": "./dist/components/accordion/index.d.ts",
+            "import": "./dist/components/accordion/index.js"
+        },
+        "./select": {
+            "types": "./dist/components/select/index.d.ts",
+            "import": "./dist/components/select/index.js"
+        }
     },
     "files": [
         "dist",

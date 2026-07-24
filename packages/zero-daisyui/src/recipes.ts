@@ -400,4 +400,322 @@ export const menu: RecipeInput = {
     },
 };
 
-export const recipes: RecipeInput[] = [tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu];
+export const field: RecipeInput = {
+    component: 'field',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: '0.375rem' },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: '600' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            selectors: {
+                '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' },
+            },
+        },
+        description: {
+            base: { margin: '0', fontSize: 'var(--text-xs)', opacity: '0.6' },
+        },
+        error: {
+            base: { margin: '0', fontSize: 'var(--text-xs)', color: 'var(--color-error)', fontWeight: '500' },
+        },
+    },
+};
+
+export const checkbox: RecipeInput = {
+    component: 'checkbox',
+    tokens: { '--checkbox-size': 'calc(var(--size-selector) * 6)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', alignItems: 'center', gap: '0.625rem', cursor: 'pointer' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {}, indeterminate: {},
+            },
+        },
+        control: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 'var(--checkbox-size)',
+                height: 'var(--checkbox-size)',
+                border: 'var(--border) solid var(--color-base-content)',
+                borderRadius: 'calc(var(--radius-selector) / 3)',
+                background: 'var(--color-base-100)',
+                boxShadow: 'inset 0 1px 1px oklch(0% 0 0 / 0.1)',
+                transition: 'background 0.2s ease, border-color 0.2s ease',
+            },
+            states: {
+                checked: { background: 'var(--color-primary)', borderColor: 'var(--color-primary)' },
+                indeterminate: { background: 'var(--color-primary)', borderColor: 'var(--color-primary)' },
+                unchecked: {},
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
+                invalid: { borderColor: 'var(--color-error)' },
+                disabled: {},
+            },
+        },
+        indicator: {
+            base: { color: 'var(--color-primary-content)', lineHeight: '1', fontSize: 'var(--text-xs)', fontWeight: '700' },
+            states: { checked: {}, unchecked: {}, indeterminate: {} },
+            selectors: {
+                '&[data-state="checked"]::after': { content: '"✓"' },
+                '&[data-state="indeterminate"]::after': { content: '"−"' },
+            },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: '500' },
+            states: { checked: {}, unchecked: {}, indeterminate: {}, disabled: {} },
+        },
+    },
+};
+
+export const radioGroup: RecipeInput = {
+    component: 'radio-group',
+    tokens: { '--radio-size': 'calc(var(--size-selector) * 6)' },
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: '0.625rem' },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: '600' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        item: {
+            base: { display: 'inline-flex', alignItems: 'center', gap: '0.625rem', cursor: 'pointer' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+            },
+        },
+        'item-control': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 'var(--radio-size)',
+                height: 'var(--radio-size)',
+                border: 'var(--border) solid var(--color-base-content)',
+                borderRadius: '9999px',
+                background: 'var(--color-base-100)',
+                transition: 'border-color 0.2s ease',
+            },
+            states: {
+                checked: { borderColor: 'var(--color-primary)', borderWidth: 'calc(var(--border) * 2)' },
+                unchecked: {},
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
+                disabled: {},
+            },
+        },
+        'item-indicator': {
+            base: {
+                width: 'calc(var(--radio-size) * 0.55)',
+                height: 'calc(var(--radio-size) * 0.55)',
+                borderRadius: '9999px',
+                background: 'transparent',
+                transition: 'background 0.2s ease, transform 0.2s ease',
+                transform: 'scale(0.5)',
+            },
+            states: {
+                checked: { background: 'var(--color-primary)', transform: 'scale(1)' },
+                unchecked: {},
+            },
+        },
+        'item-label': {
+            base: { fontSize: 'var(--text-sm)', fontWeight: '500' },
+            states: { checked: {}, unchecked: {}, disabled: {} },
+        },
+    },
+};
+
+export const progress: RecipeInput = {
+    component: 'progress',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: '0.375rem', width: '100%' },
+            states: { loading: {}, complete: {}, indeterminate: {} },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: '600' },
+        },
+        track: {
+            base: {
+                width: '100%',
+                height: 'calc(var(--size-selector) * 2.5)',
+                background: 'var(--color-base-300)',
+                borderRadius: 'var(--radius-selector)',
+                overflow: 'hidden',
+            },
+        },
+        range: {
+            base: {
+                height: '100%',
+                background: 'var(--color-primary)',
+                borderRadius: 'var(--radius-selector)',
+                transition: 'width 0.3s ease',
+            },
+            states: {
+                complete: { background: 'var(--color-success)' },
+                loading: {},
+                indeterminate: { width: '40%', animation: 'zero-daisy-indeterminate 1.2s ease-in-out infinite' },
+            },
+        },
+        'value-text': {
+            base: { fontSize: 'var(--text-xs)', opacity: '0.6' },
+        },
+    },
+    keyframes: {
+        'zero-daisy-indeterminate': 'from { margin-left: -40%; } to { margin-left: 100%; }',
+    },
+};
+
+export const slider: RecipeInput = {
+    component: 'slider',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: '0.375rem', width: '100%' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: '600' },
+            states: { disabled: {} },
+        },
+        input: {
+            base: { width: '100%', accentColor: 'var(--color-primary)', cursor: 'pointer' },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
+                invalid: { accentColor: 'var(--color-error)' },
+            },
+        },
+        'value-text': {
+            base: { fontSize: 'var(--text-xs)', opacity: '0.6' },
+        },
+    },
+    skipStates: { root: ['invalid', 'focus-visible'] },
+};
+
+export const accordion: RecipeInput = {
+    component: 'accordion',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
+        },
+        item: {
+            base: {
+                border: 'var(--border) solid var(--color-base-300)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                overflow: 'hidden',
+            },
+            states: { open: {}, closed: {} },
+        },
+        trigger: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '1rem 1.25rem',
+                fontSize: 'var(--text-md)',
+                fontWeight: '600',
+                cursor: 'pointer',
+                listStyle: 'none',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                open: {},
+                closed: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&::after': {
+                    content: '""',
+                    width: '0.5rem',
+                    height: '0.5rem',
+                    border: '2px solid currentColor',
+                    borderTop: 'none',
+                    borderLeft: 'none',
+                    transform: 'rotate(45deg)',
+                    transition: 'transform 0.2s ease',
+                    opacity: '0.6',
+                },
+                '&[data-state="open"]::after': { transform: 'rotate(225deg)' },
+            },
+        },
+        panel: {
+            base: { padding: '0 1.25rem 1rem', fontSize: 'var(--text-md)' },
+            states: { open: {}, closed: {} },
+        },
+    },
+};
+
+export const select: RecipeInput = {
+    component: 'select',
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column' },
+        },
+        trigger: {
+            base: {
+                ...btn,
+                justifyContent: 'space-between',
+                gap: '0.75rem',
+                minWidth: '13rem',
+                fontWeight: '500',
+                background: 'var(--color-base-100)',
+            },
+            states: {
+                hover: { borderColor: 'var(--color-base-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                open: { borderColor: 'var(--color-primary)' },
+                closed: {},
+                invalid: { borderColor: 'var(--color-error)' },
+                placeholder: {},
+                ...focusRing,
+            },
+        },
+        value: {
+            base: {},
+            states: {
+                placeholder: { opacity: '0.5' },
+            },
+        },
+        indicator: {
+            base: { opacity: '0.6', transition: 'transform 0.2s ease' },
+            states: { open: { transform: 'rotate(180deg)' }, closed: {} },
+        },
+        popup: {
+            base: { ...floatingPanel, padding: '0.5rem', minWidth: '13rem' },
+            states: { open: {}, closed: {} },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '0.625rem',
+                padding: '0.5rem 0.75rem',
+                fontSize: 'var(--text-sm)',
+                fontWeight: '500',
+                borderRadius: 'var(--radius-field)',
+                cursor: 'pointer',
+                transition: 'background 0.15s ease',
+            },
+            states: {
+                highlighted: { background: 'var(--color-base-200)' },
+                selected: { color: 'var(--color-primary)', fontWeight: '700' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        'item-indicator': {
+            base: { fontSize: 'var(--text-xs)', color: 'var(--color-primary)' },
+            states: { selected: {} },
+        },
+    },
+};
+
+export const recipes: RecipeInput[] = [
+    tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
+    field, checkbox, radioGroup, progress, slider, accordion, select,
+];

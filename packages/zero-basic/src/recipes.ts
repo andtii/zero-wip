@@ -392,4 +392,326 @@ export const menu: RecipeInput = {
     },
 };
 
-export const recipes: RecipeInput[] = [tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu];
+export const field: RecipeInput = {
+    component: 'field',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: '0.375rem' },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: '600' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            selectors: {
+                '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' },
+            },
+        },
+        description: {
+            base: {
+                margin: '0',
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklab, var(--color-base-content) 65%, transparent)',
+            },
+        },
+        error: {
+            base: { margin: '0', fontSize: 'var(--text-xs)', color: 'var(--color-error)' },
+        },
+    },
+    skipStates: { label: ['invalid', 'required'], error: ['invalid'] },
+};
+
+export const checkbox: RecipeInput = {
+    component: 'checkbox',
+    tokens: { '--checkbox-size': 'calc(var(--size-selector) * 5)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {}, indeterminate: {},
+            },
+        },
+        control: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 'var(--checkbox-size)',
+                height: 'var(--checkbox-size)',
+                border: 'calc(var(--border) * 2) solid var(--color-base-300)',
+                borderRadius: 'var(--radius-selector)',
+                background: 'var(--color-base-100)',
+                transition: 'background 0.15s ease, border-color 0.15s ease',
+            },
+            states: {
+                checked: { background: 'var(--color-primary)', borderColor: 'var(--color-primary)' },
+                indeterminate: { background: 'var(--color-primary)', borderColor: 'var(--color-primary)' },
+                unchecked: {},
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
+                invalid: { borderColor: 'var(--color-error)' },
+                disabled: {},
+            },
+        },
+        indicator: {
+            base: { color: 'var(--color-primary-content)', lineHeight: '1', fontSize: 'var(--text-xs)' },
+            states: { checked: {}, unchecked: {}, indeterminate: {} },
+            selectors: {
+                '&[data-state="checked"]::after': { content: '"✓"' },
+                '&[data-state="indeterminate"]::after': { content: '"−"' },
+            },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)' },
+            states: { checked: {}, unchecked: {}, indeterminate: {}, disabled: {} },
+        },
+    },
+};
+
+export const radioGroup: RecipeInput = {
+    component: 'radio-group',
+    tokens: { '--radio-size': 'calc(var(--size-selector) * 5)' },
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: '600' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        item: {
+            base: { display: 'inline-flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+            },
+        },
+        'item-control': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 'var(--radio-size)',
+                height: 'var(--radio-size)',
+                border: 'calc(var(--border) * 2) solid var(--color-base-300)',
+                borderRadius: '9999px',
+                background: 'var(--color-base-100)',
+                transition: 'border-color 0.15s ease',
+            },
+            states: {
+                checked: { borderColor: 'var(--color-primary)' },
+                unchecked: {},
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
+                disabled: {},
+            },
+        },
+        'item-indicator': {
+            base: {
+                width: 'calc(var(--radio-size) / 2)',
+                height: 'calc(var(--radio-size) / 2)',
+                borderRadius: '9999px',
+                background: 'transparent',
+                transition: 'background 0.15s ease',
+            },
+            states: {
+                checked: { background: 'var(--color-primary)' },
+                unchecked: {},
+            },
+        },
+        'item-label': {
+            base: { fontSize: 'var(--text-sm)' },
+            states: { checked: {}, unchecked: {}, disabled: {} },
+        },
+    },
+    skipStates: { root: [], label: ['invalid', 'required'] },
+};
+
+export const progress: RecipeInput = {
+    component: 'progress',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: '0.25rem', width: '100%' },
+            states: { loading: {}, complete: {}, indeterminate: {} },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: '500' },
+        },
+        track: {
+            base: {
+                width: '100%',
+                height: 'calc(var(--size-selector) * 2)',
+                background: 'var(--color-base-300)',
+                borderRadius: '9999px',
+                overflow: 'hidden',
+            },
+        },
+        range: {
+            base: {
+                height: '100%',
+                background: 'var(--color-primary)',
+                borderRadius: '9999px',
+                transition: 'width 0.2s ease',
+            },
+            states: {
+                complete: { background: 'var(--color-success)' },
+                loading: {},
+                indeterminate: { width: '40%', animation: 'zero-basic-indeterminate 1.2s ease-in-out infinite' },
+            },
+        },
+        'value-text': {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklab, var(--color-base-content) 65%, transparent)',
+            },
+        },
+    },
+    keyframes: {
+        'zero-basic-indeterminate': 'from { margin-left: -40%; } to { margin-left: 100%; }',
+    },
+};
+
+export const slider: RecipeInput = {
+    component: 'slider',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: '0.375rem', width: '100%' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: '600' },
+            states: { disabled: {} },
+        },
+        input: {
+            base: { width: '100%', accentColor: 'var(--color-primary)', cursor: 'pointer' },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
+                invalid: { accentColor: 'var(--color-error)' },
+            },
+        },
+        'value-text': {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklab, var(--color-base-content) 65%, transparent)',
+            },
+        },
+    },
+    skipStates: { root: ['invalid', 'focus-visible'] },
+};
+
+export const accordion: RecipeInput = {
+    component: 'accordion',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                border: 'var(--border) solid var(--color-base-300)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                overflow: 'hidden',
+            },
+        },
+        item: {
+            base: { borderBottom: 'var(--border) solid var(--color-base-300)' },
+            states: { open: {}, closed: {} },
+            selectors: {
+                '&:last-child': { borderBottom: 'none' },
+            },
+        },
+        trigger: {
+            base: {
+                display: 'block',
+                padding: '0.75rem 1rem',
+                fontSize: 'var(--text-md)',
+                fontWeight: '500',
+                cursor: 'pointer',
+                listStyle: 'none',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                open: {},
+                closed: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+        panel: {
+            base: { padding: '0 1rem 0.75rem', fontSize: 'var(--text-md)' },
+            states: { open: {}, closed: {} },
+        },
+    },
+};
+
+export const select: RecipeInput = {
+    component: 'select',
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column' },
+        },
+        trigger: {
+            base: {
+                ...buttonBase,
+                justifyContent: 'space-between',
+                gap: '0.75rem',
+                minWidth: '12rem',
+                background: 'var(--color-base-100)',
+            },
+            states: {
+                hover: { borderColor: 'var(--color-base-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                open: { borderColor: 'var(--color-primary)' },
+                closed: {},
+                invalid: { borderColor: 'var(--color-error)' },
+                placeholder: {},
+                ...focusRing,
+            },
+        },
+        value: {
+            base: {},
+            states: {
+                placeholder: { color: 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' },
+            },
+        },
+        indicator: {
+            base: { opacity: '0.6', transition: 'transform 0.15s ease' },
+            states: { open: { transform: 'rotate(180deg)' }, closed: {} },
+        },
+        popup: {
+            base: {
+                padding: '0.375rem',
+                minWidth: '12rem',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--color-base-300)',
+                borderRadius: 'var(--radius-box)',
+                boxShadow: '0 10px 30px -10px oklch(0% 0 0 / 0.3)',
+            },
+            states: { open: {}, closed: {} },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '0.5rem',
+                padding: '0.375rem 0.625rem',
+                fontSize: 'var(--text-sm)',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+            },
+            states: {
+                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                selected: { fontWeight: '600' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        'item-indicator': {
+            base: { fontSize: 'var(--text-xs)' },
+            states: { selected: {} },
+        },
+    },
+};
+
+export const recipes: RecipeInput[] = [
+    tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
+    field, checkbox, radioGroup, progress, slider, accordion, select,
+];

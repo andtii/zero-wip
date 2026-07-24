@@ -15,8 +15,18 @@ import { dialogAnatomy } from './components/dialog/anatomy.js';
 import { popoverAnatomy } from './components/popover/anatomy.js';
 import { tooltipAnatomy } from './components/tooltip/anatomy.js';
 import { menuAnatomy } from './components/menu/anatomy.js';
+import { fieldAnatomy } from './components/field/anatomy.js';
+import { checkboxAnatomy } from './components/checkbox/anatomy.js';
+import { radioGroupAnatomy } from './components/radio-group/anatomy.js';
+import { progressAnatomy } from './components/progress/anatomy.js';
+import { sliderAnatomy } from './components/slider/anatomy.js';
+import { accordionAnatomy } from './components/accordion/anatomy.js';
+import { selectAnatomy } from './components/select/anatomy.js';
 
-export { tabsAnatomy, collapsibleAnatomy, switchAnatomy, dialogAnatomy, popoverAnatomy, tooltipAnatomy, menuAnatomy };
+export {
+    tabsAnatomy, collapsibleAnatomy, switchAnatomy, dialogAnatomy, popoverAnatomy, tooltipAnatomy, menuAnatomy,
+    fieldAnatomy, checkboxAnatomy, radioGroupAnatomy, progressAnatomy, sliderAnatomy, accordionAnatomy, selectAnatomy,
+};
 
 export const anatomies: Record<string, Anatomy> = {
     tabs: tabsAnatomy,
@@ -26,4 +36,11 @@ export const anatomies: Record<string, Anatomy> = {
     popover: popoverAnatomy,
     tooltip: tooltipAnatomy,
     menu: menuAnatomy,
+    field: fieldAnatomy,
+    checkbox: checkboxAnatomy,
+    'radio-group': radioGroupAnatomy,
+    progress: progressAnatomy,
+    slider: sliderAnatomy,
+    accordion: accordionAnatomy,
+    select: selectAnatomy,
 };

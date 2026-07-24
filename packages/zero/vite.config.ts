@@ -16,7 +16,14 @@ export default defineLibConfig({
         'components/dialog/index': 'src/components/dialog/index.ts',
         'components/popover/index': 'src/components/popover/index.ts',
         'components/tooltip/index': 'src/components/tooltip/index.ts',
-        'components/menu/index': 'src/components/menu/index.ts'
+        'components/menu/index': 'src/components/menu/index.ts',
+        'components/field/index': 'src/components/field/index.ts',
+        'components/checkbox/index': 'src/components/checkbox/index.ts',
+        'components/radio-group/index': 'src/components/radio-group/index.ts',
+        'components/progress/index': 'src/components/progress/index.ts',
+        'components/slider/index': 'src/components/slider/index.ts',
+        'components/accordion/index': 'src/components/accordion/index.ts',
+        'components/select/index': 'src/components/select/index.ts'
     },
     external: ['sigx', 'sigx/jsx-runtime', 'sigx/jsx-dev-runtime'],
     jsx: true

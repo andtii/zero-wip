@@ -1,8 +1,18 @@
 import { component, signal } from 'sigx';
-import { Collapsible, Dialog, Menu, Popover, Switch, Tabs, Tooltip, themeController, listThemes } from '@sigx/zero';
+import {
+    Accordion, Checkbox, Collapsible, Dialog, Field, Menu, Popover, Progress,
+    RadioGroup, Select, Slider, Switch, Tabs, Tooltip, themeController, listThemes,
+} from '@sigx/zero';
 
 export const App = component(() => {
-    const state = signal({ tab: 'components', switchOn: true, dialogOpen: false });
+    const state = signal({
+        tab: 'components',
+        switchOn: true,
+        dialogOpen: false,
+        plan: 'free',
+        fruit: '',
+        volume: 40,
+    });
 
     return () => (
         <main style={{ maxWidth: '40rem', margin: '2rem auto', fontFamily: 'system-ui, sans-serif', padding: '0 1rem' }}>
@@ -19,6 +29,7 @@ export const App = component(() => {
             <Tabs.Root model={[state, 'tab']}>
                 <Tabs.List>
                     <Tabs.Tab value="components">Components</Tabs.Tab>
+                    <Tabs.Tab value="forms">Forms</Tabs.Tab>
                     <Tabs.Tab value="about">About</Tabs.Tab>
                     <Tabs.Tab value="disabled" disabled>Disabled</Tabs.Tab>
                 </Tabs.List>
@@ -82,6 +93,60 @@ export const App = component(() => {
                             <Dialog.Close>Got it</Dialog.Close>
                         </Dialog.Popup>
                     </Dialog.Root>
+                </Tabs.Panel>
+
+                <Tabs.Panel value="forms">
+                    <h2>Field + Checkbox</h2>
+                    <Field.Root required>
+                        <Field.Label>Subscription</Field.Label>
+                        <Checkbox.Root defaultChecked>Weekly newsletter</Checkbox.Root>
+                        <Field.Description>Wired label, description and required flag — automatically.</Field.Description>
+                    </Field.Root>
+
+                    <h2>RadioGroup</h2>
+                    <RadioGroup.Root model={[state, 'plan']}>
+                        <RadioGroup.Label>Plan</RadioGroup.Label>
+                        <RadioGroup.Item value="free">Free</RadioGroup.Item>
+                        <RadioGroup.Item value="pro">Pro</RadioGroup.Item>
+                        <RadioGroup.Item value="team">Team</RadioGroup.Item>
+                    </RadioGroup.Root>
+
+                    <h2>Select</h2>
+                    <Select.Root model={[state, 'fruit']} placeholder="Pick a fruit…">
+                        <Select.Trigger>
+                            <Select.Value />
+                            <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popup>
+                            <Select.Item value="apple">Apple</Select.Item>
+                            <Select.Item value="banana">Banana</Select.Item>
+                            <Select.Item value="cherry">Cherry</Select.Item>
+                        </Select.Popup>
+                    </Select.Root>
+
+                    <h2>Slider + Progress</h2>
+                    <Slider.Root model={[state, 'volume']}>
+                        <Slider.Label>Volume</Slider.Label>
+                        <Slider.Input />
+                        <Slider.ValueText />
+                    </Slider.Root>
+                    <Progress.Root value={state.volume}>
+                        <Progress.Label>Mirrors the slider</Progress.Label>
+                        <Progress.Track><Progress.Range /></Progress.Track>
+                        <Progress.ValueText />
+                    </Progress.Root>
+
+                    <h2>Accordion</h2>
+                    <Accordion.Root defaultValue={['one']}>
+                        <Accordion.Item value="one">
+                            <Accordion.Trigger>Native details</Accordion.Trigger>
+                            <Accordion.Panel>Exclusive by default, `multiple` for many.</Accordion.Panel>
+                        </Accordion.Item>
+                        <Accordion.Item value="two">
+                            <Accordion.Trigger>Second section</Accordion.Trigger>
+                            <Accordion.Panel>Hello.</Accordion.Panel>
+                        </Accordion.Item>
+                    </Accordion.Root>
                 </Tabs.Panel>
 
                 <Tabs.Panel value="about">
