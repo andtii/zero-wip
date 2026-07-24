@@ -15,7 +15,7 @@ import { Dialog } from '@sigx/zero/dialog';
 import '@sigx/zero/css';               // layer order + token fallbacks
 import '@sigx/zero-basic/css';         // ← the design system (swappable)
 
-<Dialog.Root model={isOpen}>
+<Dialog.Root model={() => state.open}>
     <Dialog.Trigger>Open</Dialog.Trigger>
     <Dialog.Popup>
         <Dialog.Title>Native top layer</Dialog.Title>
@@ -29,8 +29,10 @@ import '@sigx/zero-basic/css';         // ← the design system (swappable)
 Tabs · Collapsible · Accordion · Dialog · Popover · Tooltip · Menu · Select ·
 Switch · Checkbox · RadioGroup · Slider · Progress · Field
 
-All state is one two-way `model` prop (sigx `Define.Model`) — no
-controlled/uncontrolled prop triplets. Native-platform first: `<dialog>` +
+All state is one two-way `model` prop (sigx `Define.Model`) — bind a signal
+property with `model={() => state.open}`, or leave it uncontrolled with
+`defaultOpen` / `defaultValue`. No controlled/uncontrolled prop triplets.
+Native-platform first: `<dialog>` +
 top layer (no Portal), the `popover` attribute, `<details>`, real form
 inputs. SSR-safe ids via `app.use(zeroPlugin())` per request.
 

@@ -2,7 +2,7 @@
  * Select — a single-value listbox (WAI-ARIA select-only combobox pattern).
  *
  * ```tsx
- * <Select.Root model={fruit} placeholder="Pick a fruit…">
+ * <Select.Root model={() => state.fruit} placeholder="Pick a fruit…">
  *     <Select.Trigger>
  *         <Select.Value />
  *         <Select.Indicator>▾</Select.Indicator>

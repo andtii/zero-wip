@@ -2,7 +2,7 @@
  * Collapsible — a disclosure built on native `<details>`/`<summary>`.
  *
  * ```tsx
- * <Collapsible.Root model={open}>
+ * <Collapsible.Root model={() => state.open}>
  *     <Collapsible.Trigger>Details</Collapsible.Trigger>
  *     <Collapsible.Panel>…</Collapsible.Panel>
  * </Collapsible.Root>

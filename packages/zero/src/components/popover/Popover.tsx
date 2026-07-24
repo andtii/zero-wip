@@ -2,7 +2,7 @@
  * Popover — anchor-positioned, non-modal overlay on the `popover` attribute.
  *
  * ```tsx
- * <Popover.Root model={open} placement="bottom-start">
+ * <Popover.Root model={() => state.open} placement="bottom-start">
  *     <Popover.Trigger>Filters</Popover.Trigger>
  *     <Popover.Popup>
  *         <Popover.Title>Filters</Popover.Title>

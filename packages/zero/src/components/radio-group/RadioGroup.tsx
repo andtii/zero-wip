@@ -2,7 +2,7 @@
  * RadioGroup — native radios (shared generated `name`) under a value model.
  *
  * ```tsx
- * <RadioGroup.Root model={plan}>
+ * <RadioGroup.Root model={() => state.plan}>
  *     <RadioGroup.Item value="free">Free</RadioGroup.Item>
  *     <RadioGroup.Item value="pro">Pro</RadioGroup.Item>
  * </RadioGroup.Root>

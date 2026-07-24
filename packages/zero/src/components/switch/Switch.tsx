@@ -5,7 +5,7 @@
  * styling surfaces.
  *
  * ```tsx
- * <Switch.Root model={enabled} color="primary">Notifications</Switch.Root>
+ * <Switch.Root model={() => state.enabled} color="primary">Notifications</Switch.Root>
  * ```
  */
 import { component, compound } from 'sigx';

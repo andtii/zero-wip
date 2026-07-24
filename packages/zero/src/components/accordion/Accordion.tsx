@@ -2,7 +2,7 @@
  * Accordion — exclusive or multiple disclosure over native `<details>`.
  *
  * ```tsx
- * <Accordion.Root model={openItems} multiple>
+ * <Accordion.Root model={() => state.openItems} multiple>
  *     <Accordion.Item value="a">
  *         <Accordion.Trigger>Section A</Accordion.Trigger>
  *         <Accordion.Panel>…</Accordion.Panel>

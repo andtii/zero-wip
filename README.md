@@ -8,7 +8,7 @@ Zero splits UI into two artifacts that evolve independently:
    first: `<dialog>`, `<details>`, real inputs) that render a stable,
    machine-readable anatomy: `data-scope` / `data-part` / `data-state`
    attributes and nothing else. State is one two-way `model` prop
-   (`<Dialog.Root model={isOpen}>`) — no controlled/uncontrolled prop triplets.
+   (`<Dialog.Root model={() => state.open}>`) — no controlled/uncontrolled prop triplets.
 2. **A design system** — pure data: typed tokens + per-part recipes compiled
    to plain, layered CSS by **`@sigx/zero-kit`**. Swapping the app's whole
    look is an import swap; generating a *new* look is something an AI (or a
@@ -17,7 +17,7 @@ Zero splits UI into two artifacts that evolve independently:
    coverage.
 
 ```tsx
-<Tabs.Root model={active}>
+<Tabs.Root model={() => state.tab}>
     <Tabs.List>
         <Tabs.Tab value="a">First</Tabs.Tab>
         <Tabs.Tab value="b">Second</Tabs.Tab>

@@ -2,7 +2,7 @@
  * Tabs — WAI-ARIA APG Tabs pattern, unstyled.
  *
  * ```tsx
- * <Tabs.Root model={active} orientation="horizontal">
+ * <Tabs.Root model={() => state.tab} orientation="horizontal">
  *     <Tabs.List>
  *         <Tabs.Tab value="a">First</Tabs.Tab>
  *         <Tabs.Tab value="b">Second</Tabs.Tab>

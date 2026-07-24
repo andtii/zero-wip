@@ -2,7 +2,7 @@
  * Slider — a native `<input type="range">` under a number model.
  *
  * ```tsx
- * <Slider.Root model={volume} min={0} max={100}>
+ * <Slider.Root model={() => state.volume} min={0} max={100}>
  *     <Slider.Label>Volume</Slider.Label>
  *     <Slider.Input />
  *     <Slider.ValueText />

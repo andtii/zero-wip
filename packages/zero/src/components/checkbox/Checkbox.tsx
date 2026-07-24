@@ -2,7 +2,7 @@
  * Checkbox — tri-state over a visually-hidden native checkbox.
  *
  * ```tsx
- * <Checkbox.Root model={agreed} color="primary">Accept the terms</Checkbox.Root>
+ * <Checkbox.Root model={() => state.agreed} color="primary">Accept the terms</Checkbox.Root>
  * ```
  *
  * Inside a `Field.Root`, the input adopts the field's control id and

@@ -26,7 +26,7 @@ export const App = component(() => {
                 <button onClick={() => themeController().setTheme(null)}>follow system</button>
             </p>
 
-            <Tabs.Root model={[state, 'tab']}>
+            <Tabs.Root model={() => state.tab}>
                 <Tabs.List>
                     <Tabs.Tab value="components">Components</Tabs.Tab>
                     <Tabs.Tab value="forms">Forms</Tabs.Tab>
@@ -36,7 +36,7 @@ export const App = component(() => {
 
                 <Tabs.Panel value="components">
                     <h2>Switch</h2>
-                    <Switch.Root model={[state, 'switchOn']}>Notifications</Switch.Root>
+                    <Switch.Root model={() => state.switchOn}>Notifications</Switch.Root>
                     {' '}
                     <Switch.Root color="success" defaultChecked>Autosave</Switch.Root>
                     {' '}
@@ -82,7 +82,7 @@ export const App = component(() => {
                     </Menu.Root>
 
                     <h2>Dialog</h2>
-                    <Dialog.Root model={[state, 'dialogOpen']}>
+                    <Dialog.Root model={() => state.dialogOpen}>
                         <Dialog.Trigger>Open dialog</Dialog.Trigger>
                         <Dialog.Popup>
                             <Dialog.Title>Native top layer</Dialog.Title>
@@ -104,7 +104,7 @@ export const App = component(() => {
                     </Field.Root>
 
                     <h2>RadioGroup</h2>
-                    <RadioGroup.Root model={[state, 'plan']}>
+                    <RadioGroup.Root model={() => state.plan}>
                         <RadioGroup.Label>Plan</RadioGroup.Label>
                         <RadioGroup.Item value="free">Free</RadioGroup.Item>
                         <RadioGroup.Item value="pro">Pro</RadioGroup.Item>
@@ -112,7 +112,7 @@ export const App = component(() => {
                     </RadioGroup.Root>
 
                     <h2>Select</h2>
-                    <Select.Root model={[state, 'fruit']} placeholder="Pick a fruit…">
+                    <Select.Root model={() => state.fruit} placeholder="Pick a fruit…">
                         <Select.Trigger>
                             <Select.Value />
                             <Select.Indicator />
@@ -125,7 +125,7 @@ export const App = component(() => {
                     </Select.Root>
 
                     <h2>Slider + Progress</h2>
-                    <Slider.Root model={[state, 'volume']}>
+                    <Slider.Root model={() => state.volume}>
                         <Slider.Label>Volume</Slider.Label>
                         <Slider.Input />
                         <Slider.ValueText />

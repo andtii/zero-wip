@@ -2,7 +2,7 @@
  * Dialog — modal (and non-modal) overlay on the native `<dialog>` element.
  *
  * ```tsx
- * <Dialog.Root model={isOpen}>
+ * <Dialog.Root model={() => state.open}>
  *     <Dialog.Trigger>Open</Dialog.Trigger>
  *     <Dialog.Popup>
  *         <Dialog.Title>Title</Dialog.Title>

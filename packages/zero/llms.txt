@@ -35,6 +35,11 @@
 
 ## Components (state via one two-way `model` prop, sigx Define.Model)
 
+Bind a signal property with a getter: `model={() => state.open}` (sigx tracks
+the read to write back — two-way, no onChange needed). Or stay uncontrolled
+with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
+signal property directly, not a transformed expression.
+
 - Tabs: Root(model=value)/List/Tab(value,asChild)/Panel(value). APG tabs,
   roving arrows, automatic|manual activation.
 - Collapsible: Root(model=open)/Trigger/Panel on native <details>.

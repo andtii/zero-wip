@@ -5,7 +5,7 @@
  * controlled/uncontrolled `value`/`defaultValue`/`onChange` triplet:
  *
  * - `model` present → the parent's signal is the source of truth
- *   (`<Dialog.Root model={isOpen}>` is fully controlled, zero wiring).
+ *   (`<Dialog.Root model={() => state.open}>` is fully controlled, zero wiring).
  * - `model` absent → an internal signal seeded from the `default*` prop.
  * - Every actual change fires `onChange` (→ the component's change event),
  *   in both modes.
