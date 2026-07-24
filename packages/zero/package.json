@@ -42,6 +42,18 @@
             "types": "./dist/components/dialog/index.d.ts",
             "import": "./dist/components/dialog/index.js"
         },
+        "./popover": {
+            "types": "./dist/components/popover/index.d.ts",
+            "import": "./dist/components/popover/index.js"
+        },
+        "./tooltip": {
+            "types": "./dist/components/tooltip/index.d.ts",
+            "import": "./dist/components/tooltip/index.js"
+        },
+        "./menu": {
+            "types": "./dist/components/menu/index.d.ts",
+            "import": "./dist/components/menu/index.js"
+        },
         "./css": "./css/base.css",
         "./manifest.json": "./dist/manifest.json"
     },

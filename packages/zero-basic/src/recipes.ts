@@ -253,4 +253,143 @@ export const dialog: RecipeInput = {
     },
 };
 
-export const recipes: RecipeInput[] = [tabs, collapsible, switchRecipe, dialog];
+const buttonBase: NonNullable<PartStyles['base']> = {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.5em',
+    padding: '0.5rem 1rem',
+    fontSize: 'var(--text-sm)',
+    fontWeight: '500',
+    color: 'var(--color-base-content)',
+    background: 'var(--color-base-200)',
+    border: 'var(--border) solid var(--color-base-300)',
+    borderRadius: 'var(--radius-field)',
+    cursor: 'pointer',
+};
+
+export const popover: RecipeInput = {
+    component: 'popover',
+    parts: {
+        trigger: {
+            base: buttonBase,
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                open: { background: 'var(--color-base-300)' },
+                closed: {},
+                ...focusRing,
+            },
+        },
+        popup: {
+            base: {
+                padding: '1rem',
+                minWidth: '14rem',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--color-base-300)',
+                borderRadius: 'var(--radius-box)',
+                boxShadow: '0 10px 30px -10px oklch(0% 0 0 / 0.3)',
+            },
+            states: { open: {}, closed: {} },
+        },
+        title: {
+            base: { margin: '0 0 0.5rem', fontSize: 'var(--text-md)', fontWeight: '600' },
+        },
+        close: {
+            base: { ...buttonBase, padding: '0.25rem 0.75rem', fontSize: 'var(--text-xs)' },
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                ...focusRing,
+            },
+        },
+    },
+};
+
+export const tooltip: RecipeInput = {
+    component: 'tooltip',
+    parts: {
+        trigger: {
+            base: {},
+            states: { open: {}, closed: {}, disabled: {} },
+        },
+        popup: {
+            base: {
+                padding: '0.375rem 0.625rem',
+                maxWidth: '18rem',
+                fontSize: 'var(--text-xs)',
+                background: 'var(--color-neutral)',
+                color: 'var(--color-neutral-content)',
+                border: 'none',
+                borderRadius: 'var(--radius-field)',
+                boxShadow: '0 4px 12px oklch(0% 0 0 / 0.25)',
+            },
+            states: { open: {}, closed: {} },
+        },
+    },
+};
+
+export const menu: RecipeInput = {
+    component: 'menu',
+    parts: {
+        trigger: {
+            base: buttonBase,
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                open: { background: 'var(--color-base-300)' },
+                closed: {},
+                ...focusRing,
+            },
+        },
+        popup: {
+            base: {
+                padding: '0.375rem',
+                minWidth: '12rem',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--color-base-300)',
+                borderRadius: 'var(--radius-box)',
+                boxShadow: '0 10px 30px -10px oklch(0% 0 0 / 0.3)',
+            },
+            states: { open: {}, closed: {} },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.375rem 0.625rem',
+                fontSize: 'var(--text-sm)',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+                outline: 'none',
+            },
+            states: {
+                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        group: { base: {} },
+        'group-label': {
+            base: {
+                padding: '0.375rem 0.625rem',
+                fontSize: 'var(--text-xs)',
+                fontWeight: '600',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                color: 'color-mix(in oklab, var(--color-base-content) 55%, transparent)',
+            },
+        },
+        separator: {
+            base: {
+                height: 'var(--border)',
+                margin: '0.375rem 0',
+                background: 'var(--color-base-300)',
+            },
+        },
+    },
+};
+
+export const recipes: RecipeInput[] = [tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu];

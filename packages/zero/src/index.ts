@@ -27,3 +27,26 @@ export type {
     DialogDescriptionProps,
     DialogCloseProps,
 } from './components/dialog/index.js';
+
+export { Popover, popoverAnatomy, usePopoverContext } from './components/popover/index.js';
+export type {
+    PopoverRootProps,
+    PopoverTriggerProps,
+    PopoverPopupProps,
+    PopoverTitleProps,
+    PopoverCloseProps,
+} from './components/popover/index.js';
+
+export { Tooltip, tooltipAnatomy, useTooltipContext } from './components/tooltip/index.js';
+export type { TooltipRootProps, TooltipTriggerProps, TooltipPopupProps } from './components/tooltip/index.js';
+
+export { Menu, menuAnatomy, useMenuContext } from './components/menu/index.js';
+export type {
+    MenuRootProps,
+    MenuTriggerProps,
+    MenuPopupProps,
+    MenuItemProps,
+    MenuGroupProps,
+    MenuGroupLabelProps,
+    MenuSeparatorProps,
+} from './components/menu/index.js';

@@ -89,7 +89,9 @@ describe('the shipped design systems', () => {
         const result = validateDesignSystem(ds as DesignSystemInput, manifest);
         expect(result.errors).toEqual([]);
         const compiled = compileDesignSystem(ds as DesignSystemInput, manifest);
-        expect(Object.keys(compiled.componentCss).sort()).toEqual(['collapsible', 'dialog', 'switch', 'tabs']);
+        expect(Object.keys(compiled.componentCss).sort()).toEqual([
+            'collapsible', 'dialog', 'menu', 'popover', 'switch', 'tabs', 'tooltip',
+        ]);
         expect(compiled.indexCss).toContain('@layer zero.tokens');
         expect(compiled.themes.length).toBe(2);
     });

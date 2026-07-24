@@ -1,0 +1,140 @@
+/**
+ * Anchor positioning for top-layer popups.
+ *
+ * The `popover` attribute lifts an element into the top layer but does NOT
+ * position it — that is this behavior's job. The strategy is pluggable: the
+ * built-in one computes fixed coordinates from the anchor rect (placement +
+ * offset + viewport flip) and tracks scroll/resize; apps can substitute a
+ * richer engine (e.g. @floating-ui/dom) through the same interface without
+ * zero depending on it.
+ */
+import { watch } from 'sigx';
+
+export type Placement =
+    | 'top' | 'top-start' | 'top-end'
+    | 'bottom' | 'bottom-start' | 'bottom-end'
+    | 'left' | 'left-start' | 'left-end'
+    | 'right' | 'right-start' | 'right-end';
+
+export interface PositionOptions {
+    placement: Placement;
+    /** Gap between anchor and floating element, px. */
+    offset: number;
+    /** Flip to the opposite side when there is no room (default true). */
+    flip: boolean;
+}
+
+export interface PositionStrategy {
+    /**
+     * Position `floating` relative to `anchor` and keep it positioned until
+     * the returned cleanup runs.
+     */
+    apply(anchor: HTMLElement, floating: HTMLElement, opts: PositionOptions): () => void;
+}
+
+function computeCoords(
+    anchor: DOMRect,
+    floating: { width: number; height: number },
+    placement: Placement,
+    offset: number,
+): { top: number; left: number } {
+    const [side, align = 'center'] = placement.split('-') as [string, string?];
+    let top = 0;
+    let left = 0;
+
+    if (side === 'top' || side === 'bottom') {
+        top = side === 'top' ? anchor.top - floating.height - offset : anchor.bottom + offset;
+        if (align === 'start') left = anchor.left;
+        else if (align === 'end') left = anchor.right - floating.width;
+        else left = anchor.left + anchor.width / 2 - floating.width / 2;
+    } else {
+        left = side === 'left' ? anchor.left - floating.width - offset : anchor.right + offset;
+        if (align === 'start') top = anchor.top;
+        else if (align === 'end') top = anchor.bottom - floating.height;
+        else top = anchor.top + anchor.height / 2 - floating.height / 2;
+    }
+    return { top, left };
+}
+
+const OPPOSITE: Record<string, string> = { top: 'bottom', bottom: 'top', left: 'right', right: 'left' };
+
+function overflows(coords: { top: number; left: number }, size: { width: number; height: number }): boolean {
+    return (
+        coords.top < 0 ||
+        coords.left < 0 ||
+        coords.top + size.height > window.innerHeight ||
+        coords.left + size.width > window.innerWidth
+    );
+}
+
+/** The built-in strategy: fixed coordinates + scroll/resize tracking. */
+export const fixedPositionStrategy: PositionStrategy = {
+    apply(anchor, floating, opts) {
+        const update = () => {
+            const anchorRect = anchor.getBoundingClientRect();
+            const size = { width: floating.offsetWidth, height: floating.offsetHeight };
+
+            let placement = opts.placement;
+            let coords = computeCoords(anchorRect, size, placement, opts.offset);
+            if (opts.flip && overflows(coords, size)) {
+                const [side, align] = placement.split('-') as [string, string?];
+                const flipped = `${OPPOSITE[side]}${align ? `-${align}` : ''}` as Placement;
+                const flippedCoords = computeCoords(anchorRect, size, flipped, opts.offset);
+                if (!overflows(flippedCoords, size)) {
+                    placement = flipped;
+                    coords = flippedCoords;
+                }
+            }
+
+            floating.style.position = 'fixed';
+            floating.style.top = `${Math.round(coords.top)}px`;
+            floating.style.left = `${Math.round(coords.left)}px`;
+            floating.style.margin = '0';
+            floating.setAttribute('data-placement', placement);
+        };
+
+        update();
+        window.addEventListener('scroll', update, { capture: true, passive: true });
+        window.addEventListener('resize', update, { passive: true });
+        return () => {
+            window.removeEventListener('scroll', update, { capture: true });
+            window.removeEventListener('resize', update);
+        };
+    },
+};
+
+export interface AnchorPositionInput {
+    getAnchor(): HTMLElement | null;
+    getFloating(): HTMLElement | null;
+    isOpen(): boolean;
+    placement?: () => Placement;
+    offset?: () => number;
+    flip?: () => boolean;
+    strategy?: PositionStrategy;
+}
+
+/**
+ * Keep a floating element positioned against its anchor while open. Call
+ * from component setup; SSR-inert.
+ */
+export function createAnchorPosition(input: AnchorPositionInput): void {
+    if (typeof document === 'undefined') return;
+
+    watch(
+        () => input.isOpen(),
+        (open, _prev, onCleanup) => {
+            if (!open) return;
+            const anchor = input.getAnchor();
+            const floating = input.getFloating();
+            if (!anchor || !floating) return;
+            const strategy = input.strategy ?? fixedPositionStrategy;
+            const cleanup = strategy.apply(anchor, floating, {
+                placement: input.placement?.() ?? 'bottom',
+                offset: input.offset?.() ?? 6,
+                flip: input.flip?.() ?? true,
+            });
+            onCleanup(cleanup);
+        },
+        { immediate: true },
+    );
+}

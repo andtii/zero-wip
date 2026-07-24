@@ -1,5 +1,5 @@
 import { component, signal } from 'sigx';
-import { Collapsible, Dialog, Switch, Tabs, themeController, listThemes } from '@sigx/zero';
+import { Collapsible, Dialog, Menu, Popover, Switch, Tabs, Tooltip, themeController, listThemes } from '@sigx/zero';
 
 export const App = component(() => {
     const state = signal({ tab: 'components', switchOn: true, dialogOpen: false });
@@ -40,6 +40,35 @@ export const App = component(() => {
                             separate, generatable artifact.
                         </Collapsible.Panel>
                     </Collapsible.Root>
+
+                    <h2>Popover, Tooltip, Menu</h2>
+                    <Popover.Root placement="bottom-start">
+                        <Popover.Trigger>Filters</Popover.Trigger>
+                        <Popover.Popup>
+                            <Popover.Title>Filters</Popover.Title>
+                            <Switch.Root defaultChecked>Only mine</Switch.Root>
+                            <br />
+                            <Popover.Close>Done</Popover.Close>
+                        </Popover.Popup>
+                    </Popover.Root>
+                    {' '}
+                    <Tooltip.Root>
+                        <Tooltip.Trigger>Hover me</Tooltip.Trigger>
+                        <Tooltip.Popup>Tooltips ride the top layer via popover="manual"</Tooltip.Popup>
+                    </Tooltip.Root>
+                    {' '}
+                    <Menu.Root onSelect={(v) => console.log('menu select:', v)}>
+                        <Menu.Trigger>Actions</Menu.Trigger>
+                        <Menu.Popup>
+                            <Menu.Group>
+                                <Menu.GroupLabel>File</Menu.GroupLabel>
+                                <Menu.Item value="rename">Rename</Menu.Item>
+                                <Menu.Item value="duplicate">Duplicate</Menu.Item>
+                            </Menu.Group>
+                            <Menu.Separator />
+                            <Menu.Item value="delete">Delete…</Menu.Item>
+                        </Menu.Popup>
+                    </Menu.Root>
 
                     <h2>Dialog</h2>
                     <Dialog.Root model={[state, 'dialogOpen']}>

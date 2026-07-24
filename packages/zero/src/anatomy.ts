@@ -12,12 +12,18 @@ import { tabsAnatomy } from './components/tabs/anatomy.js';
 import { collapsibleAnatomy } from './components/collapsible/anatomy.js';
 import { switchAnatomy } from './components/switch/anatomy.js';
 import { dialogAnatomy } from './components/dialog/anatomy.js';
+import { popoverAnatomy } from './components/popover/anatomy.js';
+import { tooltipAnatomy } from './components/tooltip/anatomy.js';
+import { menuAnatomy } from './components/menu/anatomy.js';
 
-export { tabsAnatomy, collapsibleAnatomy, switchAnatomy, dialogAnatomy };
+export { tabsAnatomy, collapsibleAnatomy, switchAnatomy, dialogAnatomy, popoverAnatomy, tooltipAnatomy, menuAnatomy };
 
 export const anatomies: Record<string, Anatomy> = {
     tabs: tabsAnatomy,
     collapsible: collapsibleAnatomy,
     switch: switchAnatomy,
     dialog: dialogAnatomy,
+    popover: popoverAnatomy,
+    tooltip: tooltipAnatomy,
+    menu: menuAnatomy,
 };

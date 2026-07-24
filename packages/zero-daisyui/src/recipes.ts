@@ -282,4 +282,122 @@ export const dialog: RecipeInput = {
     },
 };
 
-export const recipes: RecipeInput[] = [tabs, collapsible, switchRecipe, dialog];
+// daisy "dropdown-content"/card look for floating panels.
+const floatingPanel: NonNullable<PartStyles['base']> = {
+    background: 'var(--color-base-100)',
+    color: 'var(--color-base-content)',
+    border: 'var(--border) solid var(--color-base-300)',
+    borderRadius: 'var(--radius-box)',
+    boxShadow: '0 12px 32px -8px oklch(0% 0 0 / 0.3)',
+};
+
+export const popover: RecipeInput = {
+    component: 'popover',
+    parts: {
+        trigger: {
+            base: btn,
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                open: { background: 'var(--color-base-300)' },
+                closed: {},
+                ...focusRing,
+            },
+        },
+        popup: {
+            base: { ...floatingPanel, padding: '1.25rem', minWidth: '15rem' },
+            states: { open: {}, closed: {} },
+        },
+        title: {
+            base: { margin: '0 0 0.5rem', fontSize: 'var(--text-md)', fontWeight: '700' },
+        },
+        close: {
+            base: { ...btn, height: 'calc(var(--size-field) * 8)', paddingInline: 'calc(var(--size-field) * 3)', fontSize: 'var(--text-xs)' },
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                ...focusRing,
+            },
+        },
+    },
+};
+
+export const tooltip: RecipeInput = {
+    component: 'tooltip',
+    parts: {
+        trigger: {
+            base: {},
+            states: { open: {}, closed: {}, disabled: {} },
+        },
+        popup: {
+            base: {
+                padding: '0.25rem 0.75rem',
+                maxWidth: '18rem',
+                fontSize: 'var(--text-xs)',
+                fontWeight: '500',
+                background: 'var(--color-neutral)',
+                color: 'var(--color-neutral-content)',
+                border: 'none',
+                borderRadius: 'var(--radius-field)',
+            },
+            states: { open: {}, closed: {} },
+        },
+    },
+};
+
+// daisy "menu in a dropdown" look.
+export const menu: RecipeInput = {
+    component: 'menu',
+    parts: {
+        trigger: {
+            base: btn,
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                open: { background: 'var(--color-base-300)' },
+                closed: {},
+                ...focusRing,
+            },
+        },
+        popup: {
+            base: { ...floatingPanel, padding: '0.5rem', minWidth: '13rem' },
+            states: { open: {}, closed: {} },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.625rem',
+                padding: '0.5rem 0.75rem',
+                fontSize: 'var(--text-sm)',
+                fontWeight: '500',
+                borderRadius: 'var(--radius-field)',
+                cursor: 'pointer',
+                outline: 'none',
+                transition: 'background 0.15s ease',
+            },
+            states: {
+                highlighted: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        group: { base: {} },
+        'group-label': {
+            base: {
+                padding: '0.5rem 0.75rem 0.25rem',
+                fontSize: 'var(--text-xs)',
+                fontWeight: '700',
+                opacity: '0.6',
+            },
+        },
+        separator: {
+            base: {
+                height: 'var(--border)',
+                margin: '0.375rem 0.5rem',
+                background: 'var(--color-base-300)',
+            },
+        },
+    },
+};
+
+export const recipes: RecipeInput[] = [tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu];

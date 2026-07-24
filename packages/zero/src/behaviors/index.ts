@@ -18,3 +18,9 @@ export { createDismissable } from './dismiss.js';
 export type { DismissableOptions } from './dismiss.js';
 
 export { createFocusRestore, focusFirst, getTabbables } from './focus.js';
+
+export { createTypeahead } from './typeahead.js';
+export type { TypeaheadOptions } from './typeahead.js';
+
+export { createAnchorPosition, fixedPositionStrategy } from './position.js';
+export type { Placement, PositionOptions, PositionStrategy, AnchorPositionInput } from './position.js';

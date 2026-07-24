@@ -13,7 +13,10 @@ export default defineLibConfig({
         'components/tabs/index': 'src/components/tabs/index.ts',
         'components/collapsible/index': 'src/components/collapsible/index.ts',
         'components/switch/index': 'src/components/switch/index.ts',
-        'components/dialog/index': 'src/components/dialog/index.ts'
+        'components/dialog/index': 'src/components/dialog/index.ts',
+        'components/popover/index': 'src/components/popover/index.ts',
+        'components/tooltip/index': 'src/components/tooltip/index.ts',
+        'components/menu/index': 'src/components/menu/index.ts'
     },
     external: ['sigx', 'sigx/jsx-runtime', 'sigx/jsx-dev-runtime'],
     jsx: true

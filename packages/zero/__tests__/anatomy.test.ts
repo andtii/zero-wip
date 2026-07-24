@@ -27,7 +27,9 @@ describe('defineAnatomy', () => {
 
 describe('anatomy registry', () => {
     it('contains every component', () => {
-        expect(Object.keys(anatomies).sort()).toEqual(['collapsible', 'dialog', 'switch', 'tabs']);
+        expect(Object.keys(anatomies).sort()).toEqual([
+            'collapsible', 'dialog', 'menu', 'popover', 'switch', 'tabs', 'tooltip',
+        ]);
     });
 
     it('all part names and scopes are kebab-case', () => {
