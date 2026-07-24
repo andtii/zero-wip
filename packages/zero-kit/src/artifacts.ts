@@ -6,7 +6,7 @@
  * dist/css/tokens.css
  * dist/css/components/<scope>.css
  * dist/css/index.css
- * dist/manifest.json        (DS-level: name, themes, styled components)
+ * dist/manifest.json        (DS-level: name, themes, declared tokens, styled components)
  * ```
  */
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -35,6 +35,7 @@ export async function writeArtifacts(compiled: CompiledDesignSystem, outDir: str
             {
                 name: compiled.name,
                 themes: compiled.themes,
+                tokens: compiled.tokens,
                 components: Object.keys(compiled.componentCss),
             },
             null,

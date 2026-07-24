@@ -2,17 +2,28 @@
  * Design-system validation — the check half of the AI-generate → validate →
  * iterate loop.
  *
- * - Token completeness: every core contract token present and parseable per
- *   theme.
- * - Contrast: WCAG ratio on every `x` / `x-content` pair (error < 3:1,
- *   warning < 4.5:1).
+ * - Role declaration: names are kebab-case identifiers outside the reserved
+ *   `base-*` namespace; custom-token names stay outside `--color-*`.
+ * - Token completeness: every declared role (+ `-content` where declared),
+ *   every base surface, and every declared custom token present per theme;
+ *   colors parseable. Color keys a theme defines but the DS never declared
+ *   are errors — declare the role or drop the value.
+ * - Contrast: WCAG ratio on every declared `role` / `role-content` pair and
+ *   the base pairs (error < 3:1, warning < 4.5:1).
  * - Recipe coverage: recipes only touch known components/parts/states
  *   (compile already hard-errors); every declared machine state of a styled
  *   part is addressed or explicitly listed in `skipStates`.
  */
 import { parse, wcagContrast } from 'culori';
 import type { ZeroManifest } from './contract.js';
-import { CONTRAST_PAIRS, CORE_COLOR_TOKEN_LIST } from './contract.js';
+import {
+    BASE_SURFACE_TOKEN_LIST,
+    ROLE_NAME_PATTERN,
+    contrastPairs,
+    requiredColorTokens,
+    resolveRoles,
+} from './contract.js';
+import type { RolesDecl } from './tokens.js';
 import type { DesignSystemInput } from './design-system.js';
 import { compileDesignSystem } from './design-system.js';
 
@@ -28,8 +39,8 @@ export interface ValidationResult {
     warnings: ValidationIssue[];
 }
 
-export function validateDesignSystem(
-    ds: DesignSystemInput,
+export function validateDesignSystem<R extends RolesDecl>(
+    ds: DesignSystemInput<R>,
     manifest: Pick<ZeroManifest, 'components'>,
 ): ValidationResult {
     const errors: ValidationIssue[] = [];
@@ -37,26 +48,68 @@ export function validateDesignSystem(
     const error = (where: string, message: string) => errors.push({ level: 'error', where, message });
     const warn = (where: string, message: string) => warnings.push({ level: 'warning', where, message });
 
-    // ── Tokens ──
+    // ── Role + custom-token declarations ──
+    const roles = resolveRoles(ds.tokens.roles);
+    for (const name of Object.keys(roles)) {
+        if (!ROLE_NAME_PATTERN.test(name)) {
+            error('tokens.roles', `role "${name}" is not a kebab-case identifier`);
+        }
+        if (name === 'base' || name.startsWith('base-')) {
+            error('tokens.roles', `role "${name}" collides with the reserved base surfaces`);
+        }
+    }
+    const customDecls = ds.tokens.custom ?? {};
+    for (const name of Object.keys(customDecls)) {
+        if (name.replace(/^--/, '').startsWith('color-')) {
+            error('tokens.custom', `custom token "${name}" is inside the --color-* namespace — declare a role instead`);
+        }
+    }
+
+    // ── Token completeness + contrast, per theme ──
+    const required = requiredColorTokens(roles);
+    const declared = new Set<string>([
+        ...required,
+        ...Object.entries(roles).flatMap(([name, decl]) => (decl.soft === false ? [] : [`${name}-soft`])),
+    ]);
+    const pairs = contrastPairs(roles);
     for (const [themeName, theme] of Object.entries(ds.tokens.themes)) {
-        for (const token of CORE_COLOR_TOKEN_LIST) {
-            const value = theme.colors[token];
+        const colors = theme.colors as Record<string, string>;
+        for (const token of required) {
+            const value = colors[token];
             if (!value) {
-                error(`themes.${themeName}`, `missing core color token "${token}"`);
+                error(`themes.${themeName}`, `missing color token "${token}" (declared by the design system)`);
             } else if (!parse(value)) {
                 error(`themes.${themeName}`, `color token "${token}" is not a parseable color: "${value}"`);
             }
         }
-        for (const [fg, bg] of CONTRAST_PAIRS) {
-            const a = theme.colors[fg];
-            const b = theme.colors[bg];
+        for (const token of Object.keys(colors)) {
+            if (!declared.has(token)) {
+                error(`themes.${themeName}`, `color token "${token}" is not in the declared vocabulary — add it to tokens.roles or remove it`);
+            }
+        }
+        for (const [bg, fg] of pairs) {
+            const a = colors[bg];
+            const b = colors[fg];
             if (!a || !b || !parse(a) || !parse(b)) continue;
             const ratio = wcagContrast(a, b);
             if (ratio < 3) {
-                error(`themes.${themeName}`, `contrast ${fg} vs ${bg} is ${ratio.toFixed(2)}:1 (< 3:1)`);
+                error(`themes.${themeName}`, `contrast ${bg} vs ${fg} is ${ratio.toFixed(2)}:1 (< 3:1)`);
             } else if (ratio < 4.5) {
-                warn(`themes.${themeName}`, `contrast ${fg} vs ${bg} is ${ratio.toFixed(2)}:1 (< 4.5:1 AA)`);
+                warn(`themes.${themeName}`, `contrast ${bg} vs ${fg} is ${ratio.toFixed(2)}:1 (< 4.5:1 AA)`);
             }
+        }
+        for (const name of Object.keys(customDecls)) {
+            if (!theme.custom?.[name]) {
+                error(`themes.${themeName}`, `missing value for declared custom token "${name}"`);
+            }
+        }
+        for (const name of Object.keys(theme.custom ?? {})) {
+            if (!customDecls[name]) {
+                error(`themes.${themeName}`, `custom token "${name}" is not declared in tokens.custom`);
+            }
+        }
+        if (theme.extra && Object.keys(theme.extra).length > 0) {
+            warn(`themes.${themeName}`, `uses ${Object.keys(theme.extra).length} undeclared extra token(s) — declare them in tokens.custom so they surface in the manifest`);
         }
         if (theme.pair && !ds.tokens.themes[theme.pair]) {
             error(`themes.${themeName}`, `pair "${theme.pair}" is not a defined theme`);
@@ -68,6 +121,11 @@ export function validateDesignSystem(
     if (ds.tokens.defaultDark && !ds.tokens.themes[ds.tokens.defaultDark]) {
         error('tokens', `defaultDark "${ds.tokens.defaultDark}" is not a defined theme`);
     }
+    for (const name of ds.tokens.swatch ?? []) {
+        if (!roles[name] && !(BASE_SURFACE_TOKEN_LIST as readonly string[]).includes(name)) {
+            error('tokens.swatch', `swatch entry "${name}" is not a declared role or base surface`);
+        }
+    }
 
     // ── Recipes: unknown parts/states are hard compile errors — surface
     //    them as validation errors rather than throwing. ──
@@ -75,6 +133,15 @@ export function validateDesignSystem(
         compileDesignSystem(ds, manifest);
     } catch (e) {
         error('recipes', (e as Error).message);
+    }
+
+    // ── Recipe color variants should reference declared roles ──
+    for (const recipe of ds.recipes) {
+        for (const value of Object.keys(recipe.variants?.color ?? {})) {
+            if (!roles[value]) {
+                warn(`recipes.${recipe.component}`, `color variant "${value}" is not a declared role`);
+            }
+        }
     }
 
     // ── Recipe state coverage ──

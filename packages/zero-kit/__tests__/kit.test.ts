@@ -3,6 +3,7 @@ import {
     compileDesignSystem,
     compileRecipeCss,
     compileTokensCss,
+    defineTokens,
     validateDesignSystem,
 } from '@sigx/zero-kit';
 import type { ManifestComponent, TokensInput, RecipeInput, DesignSystemInput } from '@sigx/zero-kit';
@@ -15,7 +16,7 @@ const manifest = { components: Object.values(anatomies).map((a) => a.toJSON()) a
 const tabsComponent = manifest.components.find((c) => c.scope === 'tabs')!;
 
 describe('compileTokensCss', () => {
-    const css = compileTokensCss(basicTokens as TokensInput);
+    const css = compileTokensCss(basicTokens);
 
     it('emits the tokens layer with :root light-dark pairs', () => {
         expect(css).toContain('@layer zero.tokens');
@@ -90,9 +91,9 @@ describe('the shipped design systems', () => {
         ['basic', basicDS],
         ['daisyui', daisyDS],
     ] as const)('%s validates cleanly and compiles', (_name, ds) => {
-        const result = validateDesignSystem(ds as DesignSystemInput, manifest);
+        const result = validateDesignSystem(ds, manifest);
         expect(result.errors).toEqual([]);
-        const compiled = compileDesignSystem(ds as DesignSystemInput, manifest);
+        const compiled = compileDesignSystem(ds, manifest);
         expect(Object.keys(compiled.componentCss).sort()).toEqual([
             'accordion', 'checkbox', 'collapsible', 'dialog', 'field', 'menu', 'popover',
             'progress', 'radio-group', 'select', 'slider', 'switch', 'tabs', 'tooltip',
@@ -123,7 +124,89 @@ describe('the shipped design systems', () => {
         };
         const result = validateDesignSystem(broken, manifest);
         expect(result.ok).toBe(false);
-        expect(result.errors.some((e) => e.message.includes('missing core color token'))).toBe(true);
+        expect(result.errors.some((e) => e.message.includes('missing color token'))).toBe(true);
         expect(result.errors.some((e) => e.message.includes('contrast'))).toBe(true);
+    });
+});
+
+describe('extensible color roles', () => {
+    const brandTokens = defineTokens({
+        roles: {
+            brand: { description: 'the product color' },
+            danger: {},
+            surface: { content: false, soft: false },
+        },
+        custom: { 'glass-blur': { description: 'backdrop blur radius', syntax: '<length>' } },
+        breakpoints: { sm: '640px', md: '768px' },
+        themes: {
+            day: {
+                colorScheme: 'light',
+                colors: {
+                    'base-100': 'oklch(100% 0 0)',
+                    'base-200': 'oklch(96% 0 0)',
+                    'base-300': 'oklch(92% 0 0)',
+                    'base-content': 'oklch(22% 0.01 285)',
+                    brand: 'oklch(45% 0.2 300)',
+                    'brand-content': 'oklch(97% 0.01 300)',
+                    danger: 'oklch(50% 0.19 27)',
+                    'danger-content': 'oklch(97% 0.012 27)',
+                    surface: 'oklch(98% 0.002 285)',
+                },
+                custom: { 'glass-blur': '12px' },
+            },
+        },
+        defaultLight: 'day',
+    });
+    const brandDS: DesignSystemInput<NonNullable<typeof brandTokens.roles>> = {
+        name: 'brand',
+        tokens: brandTokens,
+        recipes: [],
+    };
+
+    it('emits declared roles, respecting content/soft opt-outs', () => {
+        const css = compileTokensCss(brandTokens);
+        expect(css).toContain('--color-brand: oklch(45% 0.2 300);');
+        expect(css).toContain('--color-brand-content:');
+        expect(css).toMatch(/--color-brand-soft: color-mix\(in oklab, var\(--color-brand\)/);
+        expect(css).toContain('--color-surface: oklch(98% 0.002 285);');
+        expect(css).not.toContain('--color-surface-content');
+        expect(css).not.toContain('--color-surface-soft');
+    });
+
+    it('registers declared roles and typed custom tokens via @property', () => {
+        const css = compileTokensCss(brandTokens);
+        expect(css).toContain("@property --color-brand { syntax: '<color>'; inherits: true; initial-value: oklch(45% 0.2 300); }");
+        expect(css).toContain("@property --glass-blur { syntax: '<length>'; inherits: true; initial-value: 12px; }");
+    });
+
+    it('emits declared custom token values per theme', () => {
+        const css = compileTokensCss(brandTokens);
+        expect(css).toContain('--glass-blur: 12px;');
+    });
+
+    it('validates cleanly and derives swatch/manifest metadata from the declaration', () => {
+        const result = validateDesignSystem(brandDS, manifest);
+        expect(result.errors).toEqual([]);
+        const compiled = compileDesignSystem(brandDS, manifest);
+        expect(Object.keys(compiled.tokens.roles)).toEqual(['brand', 'danger', 'surface']);
+        expect(compiled.tokens.breakpoints).toEqual({ sm: '640px', md: '768px' });
+        expect(compiled.tokens.custom['glass-blur']?.syntax).toBe('<length>');
+        expect(Object.keys(compiled.themes[0]!.swatch)).toEqual(['brand', 'danger', 'surface', 'base-100', 'base-content']);
+    });
+
+    it('errors when a theme omits a declared role or defines an undeclared one', () => {
+        const missing = structuredClone(brandTokens);
+        delete (missing.themes.day!.colors as unknown as Record<string, string>)['danger'];
+        (missing.themes.day!.colors as unknown as Record<string, string>)['mystery'] = '#123456';
+        const result = validateDesignSystem({ name: 'x', tokens: missing, recipes: [] }, manifest);
+        expect(result.errors.some((e) => e.message.includes('missing color token "danger"'))).toBe(true);
+        expect(result.errors.some((e) => e.message.includes('"mystery" is not in the declared vocabulary'))).toBe(true);
+    });
+
+    it('errors when a declared custom token has no theme value', () => {
+        const missing = structuredClone(brandTokens);
+        delete missing.themes.day!.custom!['glass-blur'];
+        const result = validateDesignSystem({ name: 'x', tokens: missing, recipes: [] }, manifest);
+        expect(result.errors.some((e) => e.message.includes('missing value for declared custom token "glass-blur"'))).toBe(true);
     });
 });

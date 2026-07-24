@@ -147,6 +147,44 @@ export const App = component(() => {
                             <Accordion.Panel>Hello.</Accordion.Panel>
                         </Accordion.Item>
                     </Accordion.Root>
+
+                    <h2>Extensible roles</h2>
+                    <p>
+                        The <code>brand</code> role below is in no built-in vocabulary —
+                        a scoped theme declares it (<code>scripts/gen-brand-theme.mjs</code>,
+                        compiled by zero-kit like any design system).
+                    </p>
+                    <div
+                        data-theme="brand"
+                        style={{
+                            padding: '1rem',
+                            borderRadius: '0.5rem',
+                            background: 'var(--color-base-100)',
+                            color: 'var(--color-base-content)',
+                        }}
+                    >
+                        <span
+                            style={{
+                                background: 'var(--color-brand)',
+                                color: 'var(--color-brand-content)',
+                                boxShadow: '0 0 14px var(--brand-glow)',
+                                padding: '0.25rem 0.75rem',
+                                borderRadius: '999px',
+                            }}
+                        >
+                            brand
+                        </span>
+                        {' '}
+                        <span
+                            style={{
+                                background: 'var(--color-brand-soft)',
+                                padding: '0.25rem 0.75rem',
+                                borderRadius: '999px',
+                            }}
+                        >
+                            brand-soft (derived)
+                        </span>
+                    </div>
                 </Tabs.Panel>
 
                 <Tabs.Panel value="about">

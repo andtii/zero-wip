@@ -2,24 +2,14 @@
  * @sigx/zero base stylesheet — structural, design-system-neutral.
  *
  * Declares the cascade layer order (app CSS stays unlayered and therefore
- * always wins), registers contract tokens as typed custom properties so
- * theme switches can animate, and provides structural fallback values so
- * zero primitives are usable before any design system loads.
+ * always wins) and provides structural fallback values so zero primitives
+ * are usable before any design system loads. Color roles are DS-declared,
+ * so their typed `@property` registrations live in each design system's
+ * compiled tokens.css, not here.
  *
  * NO visual design lives here — that is the design system's job.
  */
 @layer zero.tokens, zero.recipes;
-
-/* Typed, animatable color tokens (progressive enhancement — @property is
-   ignored by engines without it and nothing depends on registration). */
-@property --color-primary { syntax: '<color>'; inherits: true; initial-value: oklch(50% 0 0); }
-@property --color-secondary { syntax: '<color>'; inherits: true; initial-value: oklch(50% 0 0); }
-@property --color-accent { syntax: '<color>'; inherits: true; initial-value: oklch(50% 0 0); }
-@property --color-neutral { syntax: '<color>'; inherits: true; initial-value: oklch(40% 0 0); }
-@property --color-info { syntax: '<color>'; inherits: true; initial-value: oklch(60% 0.1 230); }
-@property --color-success { syntax: '<color>'; inherits: true; initial-value: oklch(60% 0.12 150); }
-@property --color-warning { syntax: '<color>'; inherits: true; initial-value: oklch(75% 0.15 80); }
-@property --color-error { syntax: '<color>'; inherits: true; initial-value: oklch(55% 0.18 25); }
 
 @layer zero.tokens {
     :root {
