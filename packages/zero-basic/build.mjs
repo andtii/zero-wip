@@ -1,5 +1,6 @@
 // Compile the design system to CSS artifacts. Runs after tsgo has emitted
 // dist/*.js (the design-system module) — see the package build script.
+import { fileURLToPath } from 'node:url';
 import { anatomies } from '@sigx/zero/anatomy';
 import { compileDesignSystem, validateDesignSystem, writeArtifacts } from '@sigx/zero-kit';
 import { designSystem } from './dist/design-system.js';
@@ -13,5 +14,6 @@ for (const issue of [...result.errors, ...result.warnings]) {
 if (!result.ok) process.exit(1);
 
 const compiled = compileDesignSystem(designSystem, manifest);
-const written = await writeArtifacts(compiled, new URL('./dist', import.meta.url).pathname);
+// fileURLToPath (not .pathname): on Windows .pathname is `/C:/…`, which fs rejects.
+const written = await writeArtifacts(compiled, fileURLToPath(new URL('./dist', import.meta.url)));
 console.log(`[zero-basic] built ${written.length} artifacts`);
