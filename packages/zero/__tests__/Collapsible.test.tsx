@@ -1,0 +1,64 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { render } from '@sigx/runtime-dom';
+import { signal } from 'sigx';
+import { Collapsible, collapsibleAnatomy } from '@sigx/zero';
+import { expectAnatomy } from './helpers';
+
+describe('Collapsible', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    function mount(state: { open: boolean }) {
+        render(
+            <Collapsible.Root model={[state, 'open']}>
+                <Collapsible.Trigger>Toggle</Collapsible.Trigger>
+                <Collapsible.Panel>Content</Collapsible.Panel>
+            </Collapsible.Root>,
+            container,
+        );
+    }
+
+    it('renders a valid anatomy on a native details element', () => {
+        mount(signal({ open: false }));
+        expectAnatomy(container, collapsibleAnatomy);
+        expect(container.querySelector('details')).not.toBeNull();
+        expect(container.querySelector('summary')?.getAttribute('data-part')).toBe('trigger');
+    });
+
+    it('clicking the trigger toggles state and model', () => {
+        const state = signal({ open: false });
+        mount(state);
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        expect(trigger.getAttribute('data-state')).toBe('closed');
+        trigger.click();
+        expect(state.open).toBe(true);
+        expect(trigger.getAttribute('data-state')).toBe('open');
+        expect(container.querySelector('[data-part="root"]')!.hasAttribute('open')).toBe(true);
+        trigger.click();
+        expect(state.open).toBe(false);
+    });
+
+    it('model writes flow into the DOM', () => {
+        const state = signal({ open: false });
+        mount(state);
+        state.open = true;
+        expect(container.querySelector('[data-part="panel"]')!.getAttribute('data-state')).toBe('open');
+    });
+
+    it('disabled root blocks toggling', () => {
+        render(
+            <Collapsible.Root disabled>
+                <Collapsible.Trigger>Toggle</Collapsible.Trigger>
+                <Collapsible.Panel>Content</Collapsible.Panel>
+            </Collapsible.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.click();
+        expect(trigger.getAttribute('data-state')).toBe('closed');
+        expect(trigger.getAttribute('data-disabled')).toBe('');
+    });
+});

@@ -1,0 +1,58 @@
+{
+    "name": "@sigx/zero-kit",
+    "version": "0.1.0",
+    "description": "Design-system authoring kit for SignalX Zero — typed tokens and recipes compiled to plain CSS, plus a validate/build/init CLI closing the AI-generate → validate → iterate loop.",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "bin": {
+        "zero-kit": "./dist/cli.js"
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        }
+    },
+    "files": [
+        "dist",
+        "skills"
+    ],
+    "sideEffects": false,
+    "scripts": {
+        "build": "tsgo -p tsconfig.build.json",
+        "typecheck": "tsgo --noEmit"
+    },
+    "keywords": [
+        "SignalX",
+        "sigx",
+        "design-system",
+        "design-tokens",
+        "css",
+        "recipes",
+        "codegen"
+    ],
+    "author": "Andreas Ekdahl",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/signalxjs/zero.git",
+        "directory": "packages/zero-kit"
+    },
+    "homepage": "https://sigx.dev/zero/",
+    "bugs": {
+        "url": "https://github.com/signalxjs/zero/issues"
+    },
+    "dependencies": {
+        "culori": "^4.0.1"
+    },
+    "devDependencies": {
+        "@sigx/zero": "workspace:^",
+        "@types/culori": "^4.0.1",
+        "@types/node": "^22.10.0",
+        "typescript": "^6.0.3"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

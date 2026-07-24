@@ -1,0 +1,59 @@
+{
+  "name": "sigx-zero",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.4",
+  "description": "SignalX Zero — unstyled, accessible component foundation and design-system authoring kit",
+  "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "sync:core": "node scripts/sync-core.mjs",
+    "verify:catalog": "node scripts/check-catalog.mjs",
+    "wt": "node scripts/worktree.mjs",
+    "build": "pnpm -r --filter './packages/*' run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsgo --noEmit",
+    "lint": "oxlint packages/zero/src packages/zero-kit/src packages/zero-basic/src packages/zero-daisyui/src",
+    "lint:fix": "oxlint --fix packages/zero/src packages/zero-kit/src packages/zero-basic/src packages/zero-daisyui/src",
+    "publish:dry": "node scripts/publish.js --dry-run",
+    "publish:all": "node scripts/publish.js",
+    "verify:pack": "node scripts/verify-pack.js",
+    "version:set": "node scripts/bump-version.js",
+    "version:patch": "node scripts/bump-version.js patch",
+    "version:minor": "node scripts/bump-version.js minor",
+    "version:major": "node scripts/bump-version.js major"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "@typescript/native-preview": "7.0.0-dev.20260511.1",
+    "@vitest/coverage-v8": "^4.1.5",
+    "happy-dom": "^20.9.0",
+    "oxlint": "^1.63.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.11",
+    "vitest": "^4.1.5"
+  },
+  "keywords": [
+    "SignalX",
+    "sigx",
+    "headless",
+    "unstyled",
+    "components",
+    "design-system",
+    "design-tokens"
+  ],
+  "author": "Andreas Ekdahl",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/signalxjs/zero.git"
+  },
+  "homepage": "https://sigx.dev/zero/",
+  "bugs": {
+    "url": "https://github.com/signalxjs/zero/issues"
+  }
+}

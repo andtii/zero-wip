@@ -1,0 +1,74 @@
+# SignalX Zero
+
+**Unstyled components + generatable design systems for [SignalX](https://sigx.dev).**
+
+Zero splits UI into two artifacts that evolve independently:
+
+1. **`@sigx/zero`** — headless, accessible compound components (native-element
+   first: `<dialog>`, `<details>`, real inputs) that render a stable,
+   machine-readable anatomy: `data-scope` / `data-part` / `data-state`
+   attributes and nothing else. State is one two-way `model` prop
+   (`<Dialog.Root model={isOpen}>`) — no controlled/uncontrolled prop triplets.
+2. **A design system** — pure data: typed tokens + per-part recipes compiled
+   to plain, layered CSS by **`@sigx/zero-kit`**. Swapping the app's whole
+   look is an import swap; generating a *new* look is something an AI (or a
+   human afternoon) can do against the published anatomy manifest, with
+   `zero-kit validate` checking token completeness, WCAG contrast and state
+   coverage.
+
+```tsx
+<Tabs.Root model={active}>
+    <Tabs.List>
+        <Tabs.Tab value="a">First</Tabs.Tab>
+        <Tabs.Tab value="b">Second</Tabs.Tab>
+    </Tabs.List>
+    <Tabs.Panel value="a">…</Tabs.Panel>
+    <Tabs.Panel value="b">…</Tabs.Panel>
+</Tabs.Root>
+```
+
+```ts
+// The entire skin of the app:
+import '@sigx/zero-daisyui/css';           // ← or '@sigx/zero-basic/css', or yours
+import { installThemes } from '@sigx/zero-daisyui';
+installThemes();
+```
+
+## Packages
+
+| Package | What it is |
+|---|---|
+| [`@sigx/zero`](packages/zero) | The runtime foundation: anatomy contract, headless behaviors (controllable models, SSR-safe ids, roving focus, dismissal), unstyled components (Tabs, Collapsible, Switch, Dialog — more coming), theme engine, `manifest.json` + `llms.txt` |
+| [`@sigx/zero-kit`](packages/zero-kit) | Node-only authoring kit: `defineTokens` / `defineRecipe` / `defineDesignSystem`, the CSS compiler, the `zero-kit` CLI (`build` / `validate`), and the design-system generation agent skill |
+| [`@sigx/zero-basic`](packages/zero-basic) | Neutral starter design system — readable defaults, and the reference input for the AI skill |
+| [`@sigx/zero-daisyui`](packages/zero-daisyui) | daisyUI-flavored skin — daisy's tokens and component look as pure data, no Tailwind required |
+
+`examples/playground` is the kitchen sink — `pnpm --filter zero-playground dev`.
+
+## Why zero is different
+
+- **Models, not prop triplets.** sigx two-way binding replaces
+  `value`/`defaultValue`/`onValueChange` with one optional `model`.
+- **Native platform first.** `<dialog>` + top layer means no Portal, free
+  focus trapping and Escape; `<details>` disclosure works with zero JS under
+  `@sigx/resume`; form controls are real inputs that post forms pre-hydration.
+- **The anatomy is a contract.** Every component ships parts × states × token
+  hints as JSON. Recipes typecheck against it, tests assert against it, and
+  AI generates against it. A part rename is a breaking change, and the build
+  says so.
+- **One token vocabulary across web, Lynx and terminal** — shared verbatim
+  with `@sigx/lynx-zero`, so one design-system source can skin every sigx
+  target.
+
+## Development
+
+```bash
+pnpm install
+pnpm build && pnpm test && pnpm typecheck && pnpm lint
+```
+
+See [AGENTS.md](AGENTS.md) for the contribution workflow.
+
+## License
+
+MIT © Andreas Ekdahl

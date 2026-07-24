@@ -1,0 +1,22 @@
+{
+    "name": "zero-playground",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@sigx/zero": "workspace:^",
+        "@sigx/zero-basic": "workspace:^",
+        "@sigx/zero-daisyui": "workspace:^",
+        "sigx": "catalog:"
+    },
+    "devDependencies": {
+        "@sigx/vite": "catalog:",
+        "typescript": "^6.0.3",
+        "vite": "^8.0.3"
+    }
+}

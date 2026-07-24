@@ -1,0 +1,66 @@
+/**
+ * @sigx/zero base stylesheet — structural, design-system-neutral.
+ *
+ * Declares the cascade layer order (app CSS stays unlayered and therefore
+ * always wins), registers contract tokens as typed custom properties so
+ * theme switches can animate, and provides structural fallback values so
+ * zero primitives are usable before any design system loads.
+ *
+ * NO visual design lives here — that is the design system's job.
+ */
+@layer zero.tokens, zero.recipes;
+
+/* Typed, animatable color tokens (progressive enhancement — @property is
+   ignored by engines without it and nothing depends on registration). */
+@property --color-primary { syntax: '<color>'; inherits: true; initial-value: oklch(50% 0 0); }
+@property --color-secondary { syntax: '<color>'; inherits: true; initial-value: oklch(50% 0 0); }
+@property --color-accent { syntax: '<color>'; inherits: true; initial-value: oklch(50% 0 0); }
+@property --color-neutral { syntax: '<color>'; inherits: true; initial-value: oklch(40% 0 0); }
+@property --color-info { syntax: '<color>'; inherits: true; initial-value: oklch(60% 0.1 230); }
+@property --color-success { syntax: '<color>'; inherits: true; initial-value: oklch(60% 0.12 150); }
+@property --color-warning { syntax: '<color>'; inherits: true; initial-value: oklch(75% 0.15 80); }
+@property --color-error { syntax: '<color>'; inherits: true; initial-value: oklch(55% 0.18 25); }
+
+@layer zero.tokens {
+    :root {
+        /* Structural fallbacks — a DS's tokens.css overrides all of these. */
+        --radius-selector: 0.25rem;
+        --radius-field: 0.25rem;
+        --radius-box: 0.5rem;
+        --size-selector: 0.25rem;
+        --size-field: 0.25rem;
+        --text-xs: 0.75rem;
+        --text-sm: 0.875rem;
+        --text-md: 1rem;
+        --text-lg: 1.125rem;
+        --text-xl: 1.25rem;
+        --text-2xl: 1.5rem;
+        --text-3xl: 1.875rem;
+        --border: 1px;
+        --disabled-opacity: 0.4;
+    }
+}
+
+@layer zero.recipes {
+    /* Structural necessities only. */
+
+    /* Collapsible/Accordion: the summary is the whole trigger surface;
+       hide the default disclosure marker so the DS owns the affordance. */
+    [data-scope="collapsible"][data-part="trigger"] {
+        list-style: none;
+        cursor: pointer;
+    }
+    [data-scope="collapsible"][data-part="trigger"]::-webkit-details-marker {
+        display: none;
+    }
+
+    /* Native dialog: closed popups are display:none by the UA already;
+       keep the top-layer margin reset structural. */
+    [data-scope="dialog"][data-part="popup"]:not([open]) {
+        display: none;
+    }
+
+    [data-disabled] {
+        cursor: not-allowed;
+    }
+}

@@ -1,0 +1,75 @@
+/**
+ * zero-daisyui tokens — daisyUI's "light" and "dark" theme values on the
+ * zero contract. Values match the daisy presets `@sigx/daisyui` ships, so a
+ * zero app skinned with this package sits visually next to a daisy app.
+ */
+import type { TokensInput } from '@sigx/zero-kit';
+
+export const tokens: TokensInput = {
+    defaultLight: 'light',
+    defaultDark: 'dark',
+    themes: {
+        light: {
+            colorScheme: 'light',
+            pair: 'dark',
+            softMix: 0.12,
+            colors: {
+                'base-100': 'oklch(100% 0 0)',
+                'base-200': 'oklch(96.1% 0 0)',
+                'base-300': 'oklch(92.4% 0 0)',
+                'base-content': 'oklch(21% 0.006 285.88)',
+                primary: 'oklch(49.12% 0.3096 275.75)',
+                'primary-content': 'oklch(89.824% 0.06192 275.75)',
+                secondary: 'oklch(69.71% 0.329 342.55)',
+                'secondary-content': 'oklch(98.71% 0.0106 342.55)',
+                accent: 'oklch(76.76% 0.184 183.61)',
+                'accent-content': 'oklch(15.352% 0.0368 183.61)',
+                neutral: 'oklch(32.17% 0.02 277.58)',
+                'neutral-content': 'oklch(89.434% 0.004 277.58)',
+                info: 'oklch(72.06% 0.191 231.6)',
+                'info-content': 'oklch(14.412% 0.0382 231.6)',
+                success: 'oklch(64.8% 0.15 160)',
+                'success-content': 'oklch(12.96% 0.03 160)',
+                warning: 'oklch(84.71% 0.199 83.87)',
+                'warning-content': 'oklch(16.942% 0.0398 83.87)',
+                error: 'oklch(63.72% 0.237 25.33)',
+                'error-content': 'oklch(12.744% 0.0474 25.33)',
+            },
+            radius: { selector: '1.5rem', field: '0.5rem', box: '1rem' },
+            size: { selector: '0.25rem', field: '0.25rem' },
+            border: '1px',
+            disabledOpacity: '0.3',
+        },
+        dark: {
+            colorScheme: 'dark',
+            pair: 'light',
+            softMix: 0.16,
+            colors: {
+                'base-100': 'oklch(25.33% 0.016 252.42)',
+                'base-200': 'oklch(23.26% 0.014 253.1)',
+                'base-300': 'oklch(21.15% 0.012 254.09)',
+                'base-content': 'oklch(97.807% 0.003 252.42)',
+                primary: 'oklch(65.69% 0.196 275.75)',
+                'primary-content': 'oklch(13.138% 0.0392 275.75)',
+                secondary: 'oklch(74.8% 0.26 342.55)',
+                'secondary-content': 'oklch(14.96% 0.052 342.55)',
+                accent: 'oklch(74.51% 0.167 183.61)',
+                'accent-content': 'oklch(14.902% 0.0334 183.61)',
+                neutral: 'oklch(31.3% 0.021 264.53)',
+                'neutral-content': 'oklch(90.26% 0.0042 264.53)',
+                info: 'oklch(72.06% 0.191 231.6)',
+                'info-content': 'oklch(14.412% 0.0382 231.6)',
+                success: 'oklch(64.8% 0.15 160)',
+                'success-content': 'oklch(12.96% 0.03 160)',
+                warning: 'oklch(84.71% 0.199 83.87)',
+                'warning-content': 'oklch(16.942% 0.0398 83.87)',
+                error: 'oklch(63.72% 0.237 25.33)',
+                'error-content': 'oklch(12.744% 0.0474 25.33)',
+            },
+            radius: { selector: '1.5rem', field: '0.5rem', box: '1rem' },
+            size: { selector: '0.25rem', field: '0.25rem' },
+            border: '1px',
+            disabledOpacity: '0.3',
+        },
+    },
+};

@@ -1,0 +1,34 @@
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+    // Vite 8 uses Oxc for JSX transforms
+    oxc: {
+        jsx: {
+            runtime: 'automatic',
+            importSource: 'sigx'
+        }
+    },
+    resolve: {
+        alias: {
+            '@sigx/zero/anatomy': new URL('./packages/zero/src/anatomy.ts', import.meta.url).pathname,
+            '@sigx/zero': new URL('./packages/zero/src/index.ts', import.meta.url).pathname,
+            '@sigx/zero-kit': new URL('./packages/zero-kit/src/index.ts', import.meta.url).pathname,
+            '@sigx/zero-basic': new URL('./packages/zero-basic/src/index.ts', import.meta.url).pathname,
+            '@sigx/zero-daisyui': new URL('./packages/zero-daisyui/src/index.ts', import.meta.url).pathname
+        }
+    },
+    test: {
+        environment: 'happy-dom',
+        include: [
+            'packages/**/__tests__/**/*.test.{ts,tsx}',
+            'packages/**/src/**/*.test.{ts,tsx}'
+        ],
+        globals: true,
+        coverage: {
+            provider: 'v8',
+            reporter: ['text', 'json', 'html'],
+            include: ['packages/*/src/**/*.{ts,tsx}'],
+            exclude: ['**/*.d.ts', '**/index.ts']
+        }
+    }
+});

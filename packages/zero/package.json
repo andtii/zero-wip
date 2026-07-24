@@ -1,0 +1,100 @@
+{
+    "name": "@sigx/zero",
+    "version": "0.1.0",
+    "description": "SignalX Zero — unstyled, accessible component primitives with a machine-readable anatomy. The design-system-neutral foundation every sigx design system builds on.",
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./anatomy": {
+            "types": "./dist/anatomy.d.ts",
+            "import": "./dist/anatomy.js"
+        },
+        "./theme": {
+            "types": "./dist/theme/index.d.ts",
+            "import": "./dist/theme/index.js"
+        },
+        "./contract": {
+            "types": "./dist/contract/index.d.ts",
+            "import": "./dist/contract/index.js"
+        },
+        "./behaviors": {
+            "types": "./dist/behaviors/index.d.ts",
+            "import": "./dist/behaviors/index.js"
+        },
+        "./tabs": {
+            "types": "./dist/components/tabs/index.d.ts",
+            "import": "./dist/components/tabs/index.js"
+        },
+        "./collapsible": {
+            "types": "./dist/components/collapsible/index.d.ts",
+            "import": "./dist/components/collapsible/index.js"
+        },
+        "./switch": {
+            "types": "./dist/components/switch/index.d.ts",
+            "import": "./dist/components/switch/index.js"
+        },
+        "./dialog": {
+            "types": "./dist/components/dialog/index.d.ts",
+            "import": "./dist/components/dialog/index.js"
+        },
+        "./css": "./css/base.css",
+        "./manifest.json": "./dist/manifest.json"
+    },
+    "files": [
+        "dist",
+        "css",
+        "llms.txt"
+    ],
+    "sideEffects": false,
+    "scripts": {
+        "build": "vite build && tsgo --emitDeclarationOnly && node scripts/gen-manifest.mjs",
+        "build:types": "tsgo --emitDeclarationOnly",
+        "typecheck": "tsgo --noEmit"
+    },
+    "keywords": [
+        "SignalX",
+        "sigx",
+        "headless",
+        "unstyled",
+        "components",
+        "accessibility",
+        "design-system"
+    ],
+    "author": "Andreas Ekdahl",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/signalxjs/zero.git",
+        "directory": "packages/zero"
+    },
+    "homepage": "https://sigx.dev/zero/",
+    "bugs": {
+        "url": "https://github.com/signalxjs/zero/issues"
+    },
+    "peerDependencies": {
+        "sigx": "catalog:",
+        "@sigx/reactivity": "catalog:",
+        "@sigx/runtime-core": "catalog:",
+        "@sigx/runtime-dom": "catalog:"
+    },
+    "devDependencies": {
+        "@sigx/reactivity": "catalog:",
+        "@sigx/runtime-core": "catalog:",
+        "@sigx/runtime-dom": "catalog:",
+        "@sigx/server-renderer": "catalog:",
+        "@sigx/vite": "catalog:",
+        "happy-dom": "^20.0.11",
+        "sigx": "catalog:",
+        "typescript": "^6.0.3",
+        "vite": "^8.0.3",
+        "vitest": "^4.1.1"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

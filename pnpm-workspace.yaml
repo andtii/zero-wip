@@ -1,0 +1,21 @@
+packages:
+  - packages/*
+  - examples/*
+
+onlyBuiltDependencies:
+  - esbuild
+
+# Single source of truth for the SignalX core version this repo builds against.
+# `^0.13.0` == `>=0.13.0 <0.14.0` (ONE minor). @sigx/reactivity keeps reactive
+# state in module-local variables, so two physical copies of core silently
+# split its singletons and break reactivity; the single-minor range forces pnpm
+# to hoist ONE copy. Bump this one block to move the whole repo to a new core
+# minor. Consumed via `"catalog:"` in package.json (peerDeps + devDeps);
+# `pnpm pack` rewrites `catalog:` to the concrete range in the published manifest.
+catalog:
+  "@sigx/reactivity": ^0.13.0
+  "@sigx/runtime-core": ^0.13.0
+  "@sigx/runtime-dom": ^0.13.0
+  "@sigx/server-renderer": ^0.13.0
+  "@sigx/vite": ^0.13.0
+  sigx: ^0.13.0
