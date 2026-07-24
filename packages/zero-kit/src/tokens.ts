@@ -192,12 +192,18 @@ function propertyRegistrations(input: TokensInput<any>, roles: RolesDecl, light:
         if (!initial) continue;
         rules.push(`@property --color-${name} { syntax: '<color>'; inherits: true; initial-value: ${initial}; }`);
     }
+    // Custom names may be spelled with or without the leading `--`; compare
+    // through the normalized property name so spellings can't drift apart.
+    const customValues = Object.fromEntries(
+        Object.entries(light.custom ?? {}).map(([n, v]) => [customProp(n), v]),
+    );
     for (const [name, decl] of Object.entries(input.custom ?? {})) {
         if (!decl.syntax) continue;
-        const initial = light.custom?.[name];
+        const prop = customProp(name);
+        const initial = customValues[prop];
         if (!initial && decl.syntax !== '*') continue;
         rules.push(
-            `@property ${customProp(name)} { syntax: '${decl.syntax}'; inherits: true;${initial ? ` initial-value: ${initial};` : ''} }`,
+            `@property ${prop} { syntax: '${decl.syntax}'; inherits: true;${initial ? ` initial-value: ${initial};` : ''} }`,
         );
     }
     return rules;

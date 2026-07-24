@@ -62,10 +62,21 @@ export function validateDesignSystem<R extends RolesDecl>(
             error('tokens.roles', `role "${name}" is a CSS keyword — resolveColorToken would never resolve it to var(--color-${name})`);
         }
     }
+    // Custom names may be spelled with or without the leading `--` — compare
+    // through the normalized property name everywhere.
+    const normProp = (name: string) => (name.startsWith('--') ? name : `--${name}`);
     const customDecls = ds.tokens.custom ?? {};
+    const declaredCustom = new Map<string, string>();
     for (const name of Object.keys(customDecls)) {
         if (name.replace(/^--/, '').startsWith('color-')) {
             error('tokens.custom', `custom token "${name}" is inside the --color-* namespace — declare a role instead`);
+        }
+        const prop = normProp(name);
+        const clash = declaredCustom.get(prop);
+        if (clash) {
+            error('tokens.custom', `custom tokens "${clash}" and "${name}" both emit ${prop} — declare one spelling`);
+        } else {
+            declaredCustom.set(prop, name);
         }
     }
 
@@ -102,13 +113,14 @@ export function validateDesignSystem<R extends RolesDecl>(
                 warn(`themes.${themeName}`, `contrast ${bg} vs ${fg} is ${ratio.toFixed(2)}:1 (< 4.5:1 AA)`);
             }
         }
+        const themeCustom = new Set(Object.keys(theme.custom ?? {}).map(normProp));
         for (const name of Object.keys(customDecls)) {
-            if (!theme.custom?.[name]) {
+            if (!themeCustom.has(normProp(name))) {
                 error(`themes.${themeName}`, `missing value for declared custom token "${name}"`);
             }
         }
         for (const name of Object.keys(theme.custom ?? {})) {
-            if (!customDecls[name]) {
+            if (!declaredCustom.has(normProp(name))) {
                 error(`themes.${themeName}`, `custom token "${name}" is not declared in tokens.custom`);
             }
         }

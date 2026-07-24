@@ -203,6 +203,27 @@ describe('extensible color roles', () => {
         expect(result.errors.some((e) => e.message.includes('"mystery" is not in the declared vocabulary'))).toBe(true);
     });
 
+    it('matches custom-token spellings with and without the -- prefix', () => {
+        const mixed = defineTokens({
+            roles: { brand: {} },
+            custom: { '--glass-blur': { syntax: '<length>' } },
+            themes: {
+                day: {
+                    colorScheme: 'light',
+                    colors: {
+                        'base-100': 'white', 'base-200': 'white', 'base-300': 'white', 'base-content': 'black',
+                        brand: 'black', 'brand-content': 'white',
+                    },
+                    custom: { 'glass-blur': '8px' },
+                },
+            },
+            defaultLight: 'day',
+        });
+        const result = validateDesignSystem({ name: 'x', tokens: mixed, recipes: [] }, manifest);
+        expect(result.errors).toEqual([]);
+        expect(compileTokensCss(mixed)).toContain("@property --glass-blur { syntax: '<length>'; inherits: true; initial-value: 8px; }");
+    });
+
     it('rejects role names that collide with CSS keywords or base surfaces', () => {
         const bad = defineTokens({
             roles: { transparent: {}, 'base-500': {} },
