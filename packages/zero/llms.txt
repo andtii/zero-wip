@@ -15,17 +15,22 @@
   Vocabulary: disabled, highlighted, selected, invalid, required, readonly,
   placeholder, focus-visible, pressed.
 - Variant axes pass through as data-color / data-size / data-variant
-  (values: color = primary|secondary|accent|neutral|info|success|warning|error,
+  (values: color = any DS-declared role — recommended vocabulary
+  primary|secondary|accent|neutral|info|success|warning|error,
   size = xs|sm|md|lg|xl, variant = design-system-defined).
 - The full machine-readable registry ships as `@sigx/zero/manifest.json`:
   every component, part, state (as a ready-made CSS selector), flag and
   token hint.
 
-## The token contract (shared with @sigx/lynx-zero)
+## The token contract
 
-- Colors: `--color-<token>` for primary/secondary/accent/neutral/info/success/
-  warning/error, each with `-content` and derived `-soft`, plus
-  base-100/base-200/base-300/base-content.
+- Colors are a naming GRAMMAR, not a fixed vocabulary: each design system
+  declares its own roles, emitted as `--color-<role>` with optional
+  `--color-<role>-content` (readable foreground, contrast-validated) and
+  `--color-<role>-soft` (derived tint). Only the base surfaces are fixed:
+  base-100/base-200/base-300/base-content. A DS that declares nothing gets
+  the recommended roles: primary/secondary/accent/neutral/info/success/
+  warning/error.
 - Structure: `--radius-selector|field|box`, `--size-selector|field`,
   `--text-xs…3xl`, `--border`, `--disabled-opacity`.
 - Themes are selected via `data-theme` on any ancestor; the default
@@ -50,12 +55,17 @@ signal property directly, not a transformed expression.
 
 ## Authoring a design system (@sigx/zero-kit)
 
-defineTokens({themes, defaultLight, defaultDark}) + defineRecipe({component,
-parts: {part: {base, states, selectors}}, variants, defaultVariants}) +
-defineDesignSystem({name, tokens, recipes}). Compile with `zero-kit build`;
-check with `zero-kit validate` (token completeness, WCAG contrast on every
-x/x-content pair, state coverage). Reference implementation: @sigx/zero-basic;
-daisyUI-flavored skin: @sigx/zero-daisyui.
+defineTokens({roles?, custom?, breakpoints?, themes, defaultLight,
+defaultDark}) + defineRecipe({component, parts: {part: {base, states,
+selectors}}, variants, defaultVariants}) + defineDesignSystem({name, tokens,
+recipes}). `roles` declares the color vocabulary ({brand: {}, surface:
+{content: false, soft: false}, …}; omitted → the recommended eight);
+`custom` declares DS-specific tokens (name → {description, syntax?}) valued
+per-theme in `custom` — both surface in the DS's dist/manifest.json.
+Compile with `zero-kit build`; check with `zero-kit validate` (declared-role
+completeness, WCAG contrast on every declared role/-content pair, state
+coverage). Reference implementation: @sigx/zero-basic; daisyUI-flavored
+skin: @sigx/zero-daisyui.
 
 ## Docs
 

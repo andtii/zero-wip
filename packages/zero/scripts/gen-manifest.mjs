@@ -15,7 +15,10 @@ const distAnatomy = new URL('../dist/anatomy.js', import.meta.url).href;
 const distContract = new URL('../dist/contract/index.js', import.meta.url).href;
 
 const { anatomies } = await import(distAnatomy);
-const { COLOR_TOKEN_LIST, STRUCTURAL_TOKEN_LIST, SIZE_SCALE_LIST, FLAG_VOCABULARY } = await import(distContract);
+const {
+    RECOMMENDED_ROLE_LIST, BASE_SURFACE_TOKEN_LIST,
+    STRUCTURAL_TOKEN_LIST, SIZE_SCALE_LIST, FLAG_VOCABULARY,
+} = await import(distContract);
 
 const manifest = {
     $schema: 'https://signalxjs.github.io/zero/schemas/manifest.schema.json',
@@ -33,7 +36,13 @@ const manifest = {
         },
     },
     tokens: {
-        colors: COLOR_TOKEN_LIST.map((t) => `--color-${t}`),
+        // The color contract is a grammar, not a vocabulary: design systems
+        // declare their own role names; only the base surfaces are fixed.
+        colors: {
+            convention: { prefix: '--color-', contentSuffix: '-content', softSuffix: '-soft' },
+            required: BASE_SURFACE_TOKEN_LIST.map((t) => `--color-${t}`),
+            recommendedRoles: [...RECOMMENDED_ROLE_LIST],
+        },
         structural: [...STRUCTURAL_TOKEN_LIST],
         sizeScale: [...SIZE_SCALE_LIST],
     },

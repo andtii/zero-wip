@@ -3,9 +3,16 @@
  * zero contract. Values match the daisy presets `@sigx/daisyui` ships, so a
  * zero app skinned with this package sits visually next to a daisy app.
  */
-import type { TokensInput } from '@sigx/zero-kit';
+import type { RoleDecl, TokensInput } from '@sigx/zero-kit';
 
-export const tokens: TokensInput = {
+/** daisyUI's color vocabulary — the recommended eight roles, declared explicitly. */
+export const roles = {
+    primary: {}, secondary: {}, accent: {}, neutral: {},
+    info: {}, success: {}, warning: {}, error: {},
+} as const satisfies Record<string, RoleDecl>;
+
+export const tokens: TokensInput<typeof roles> = {
+    roles,
     defaultLight: 'light',
     defaultDark: 'dark',
     themes: {

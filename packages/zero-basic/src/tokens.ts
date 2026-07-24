@@ -5,9 +5,21 @@
  * runtime bundle (installThemes derives registry metadata from it), so it
  * must not pull the Node-only kit at runtime.
  */
-import type { TokensInput } from '@sigx/zero-kit';
+import type { RoleDecl, TokensInput } from '@sigx/zero-kit';
 
-export const tokens: TokensInput = {
+/**
+ * zero-basic's color vocabulary — exactly the recommended eight roles.
+ * Declared explicitly (rather than relying on the kit default) so the DS
+ * manifest documents the vocabulary and so this file shows the pattern a
+ * DS with a different vocabulary follows.
+ */
+export const roles = {
+    primary: {}, secondary: {}, accent: {}, neutral: {},
+    info: {}, success: {}, warning: {}, error: {},
+} as const satisfies Record<string, RoleDecl>;
+
+export const tokens: TokensInput<typeof roles> = {
+    roles,
     defaultLight: 'basic',
     defaultDark: 'basic-dark',
     themes: {

@@ -1,8 +1,8 @@
 import type { DesignSystemInput } from '@sigx/zero-kit';
-import { tokens } from './tokens.js';
+import { roles, tokens } from './tokens.js';
 import { recipes } from './recipes.js';
 
-export const designSystem: DesignSystemInput = {
+export const designSystem: DesignSystemInput<typeof roles> = {
     name: 'daisyui',
     tokens,
     recipes,

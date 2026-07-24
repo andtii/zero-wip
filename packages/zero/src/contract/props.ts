@@ -3,7 +3,7 @@
  * redeclaring the conventions, so the vocabulary can't drift.
  */
 import type { Define } from 'sigx';
-import type { ColorVariant, SizeScale } from './tokens.js';
+import type { ColorValue, SizeScale } from './tokens.js';
 import type { Orientation } from './data-attrs.js';
 
 /** Arbitrary extra classes appended to the part's root element. */
@@ -12,8 +12,11 @@ export type WithClass = Define.Prop<'class', string, false>;
 /** Disabled: non-interactive + `data-disabled` on every part. */
 export type WithDisabled = Define.Prop<'disabled', boolean, false>;
 
-/** Semantic color of the component — passes through as `data-color`. */
-export type WithColor = Define.Prop<'color', ColorVariant, false>;
+/**
+ * Semantic color of the component — passes through as `data-color`.
+ * Recommended roles autocomplete; any DS-declared role name is valid.
+ */
+export type WithColor = Define.Prop<'color', ColorValue, false>;
 
 /** Component size on the shared scale — passes through as `data-size`. */
 export type WithSize = Define.Prop<'size', SizeScale, false>;
@@ -81,7 +84,7 @@ export interface PartProps {
  * Returns only the attributes whose props are set.
  */
 export function variantAttrs(props: {
-    color?: ColorVariant;
+    color?: ColorValue;
     size?: SizeScale;
     variant?: string;
 }): { 'data-color'?: string; 'data-size'?: string; 'data-variant'?: string } {

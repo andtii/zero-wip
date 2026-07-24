@@ -3,29 +3,36 @@
  *
  * `@sigx/zero` is the design-system-neutral foundation that DS packages
  * (`@sigx/zero-basic`, `@sigx/zero-daisyui`, …) build on. This module is the
- * *vocabulary* they agree on — size scales, semantic colors and theme token
- * names — so that switching an app from one design system to another is an
- * import swap, not a rewrite.
- *
- * The token NAMES here are shared verbatim with `@sigx/lynx-zero` (and the
- * terminal contract): one design-system source can target web, Lynx and
- * terminal because all three resolve the same custom-property names.
+ * *grammar* they agree on — size scales, color naming conventions and
+ * structural theme token names — so that switching an app from one design
+ * system to another is an import swap, not a rewrite.
  *
  * Rules of the contract:
  *
- * - DS packages **extend** these types, they never redeclare them. Drift
- *   fails `pnpm typecheck`.
+ * - The color contract is a naming GRAMMAR, not a vocabulary: each design
+ *   system declares its own role names (via `@sigx/zero-kit`), and every
+ *   color token is `--color-<role>`, optionally paired with
+ *   `--color-<role>-content` (readable foreground on the role color) and
+ *   `--color-<role>-soft` (tinted surface derived against `base-100`).
+ *   Zero itself knows no role names — only the convention.
+ * - The base surfaces (`base-100/200/300/base-content`) are the one fixed
+ *   color vocabulary: they anchor soft derivation, `light-dark()` root
+ *   emission and theme swatches, and every DS must provide them.
+ * - `RECOMMENDED_ROLE_LIST` is the default vocabulary a DS gets when it
+ *   declares nothing — shared recipes and the generation skill reference
+ *   these names, but nothing in zero requires them.
  * - `variant` (fill style: outline, soft, ghost, …) is intentionally NOT in
  *   the contract — it is design-system chrome and differs per DS. Zero passes
  *   it through as `data-variant` without interpreting it.
- * - Theme CSS custom-property NAMES are part of the contract; the *values*
+ * - Structural custom-property NAMES are part of the contract; the *values*
  *   come from each DS's compiled themes.
  *
  * ## Structural token-name contract
  *
  * Every DS theme resolves against the same custom-property names:
  *
- * - Colors:    `--color-<ColorToken>` (e.g. `--color-primary`, `--color-base-100`)
+ * - Colors:    `--color-<role>[-content|-soft]` per the DS's declaration,
+ *              plus the fixed `--color-base-100/200/300` / `--color-base-content`
  * - Roundness: `--radius-selector` | `--radius-field` | `--radius-box`
  * - Sizing:    `--size-selector` | `--size-field`
  * - Text ramp: `--text-xs` … `--text-3xl`
@@ -39,56 +46,30 @@ export type SizeScale = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export const SIZE_SCALE_LIST = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
 
 /**
- * Semantic color names — the shared `color` prop vocabulary. A DS maps each
- * onto its palette.
- *
- * Single source of truth: the `ColorVariant` union, the `-content` / `-soft`
- * token derivations, and the runtime `COLOR_TOKENS` Set all derive from this
- * tuple.
+ * The recommended color roles — the default vocabulary a design system gets
+ * when it declares no `roles` of its own. Used for prop autocomplete and
+ * structural defaults; any DS-declared role name is equally valid everywhere
+ * these appear.
  */
-export const COLOR_VARIANT_LIST = [
+export const RECOMMENDED_ROLE_LIST = [
     'primary', 'secondary', 'accent', 'neutral',
     'info', 'success', 'warning', 'error',
 ] as const;
 
-export type ColorVariant = typeof COLOR_VARIANT_LIST[number];
+export type RecommendedRole = typeof RECOMMENDED_ROLE_LIST[number];
+
+/** The fixed base surfaces every design system provides. */
+export const BASE_SURFACE_TOKEN_LIST = ['base-100', 'base-200', 'base-300', 'base-content'] as const;
+
+export type BaseSurfaceToken = typeof BASE_SURFACE_TOKEN_LIST[number];
 
 /**
- * Tokens authored by every theme: each variant + its `-content` pairing,
- * plus the base surfaces.
+ * A value for the semantic `color` axis: a role name — recommended roles
+ * autocompleted, any DS-declared role equally valid. Base surfaces are not
+ * part of the axis.
  */
-export type CoreColorToken =
-    | ColorVariant
-    | `${ColorVariant}-content`
-    | 'base-100' | 'base-200' | 'base-300' | 'base-content';
-
-/**
- * Soft (tinted-surface) tokens — one per variant, exposed as
- * `--color-<variant>-soft`. On the web these are *live CSS*, not
- * materialized values: the kit emits
- * `color-mix(in oklab, var(--color-primary) N%, var(--color-base-100))`
- * so an app overriding `--color-primary` gets correct tints for free.
- * (Lynx materializes the same `softMix` at theme registration instead.)
- */
-export type SoftColorToken = `${ColorVariant}-soft`;
-
-/**
- * The full set of semantic color tokens every compiled theme carries,
- * exposed as `--color-<token>` CSS custom properties.
- */
-export type ColorToken = CoreColorToken | SoftColorToken;
-
-export const CORE_COLOR_TOKEN_LIST: readonly CoreColorToken[] = [
-    ...COLOR_VARIANT_LIST.flatMap((v): CoreColorToken[] => [v, `${v}-content`]),
-    'base-100', 'base-200', 'base-300', 'base-content',
-];
-
-export const COLOR_TOKEN_LIST: readonly ColorToken[] = [
-    ...COLOR_VARIANT_LIST.flatMap((v): ColorToken[] => [v, `${v}-content`, `${v}-soft`]),
-    'base-100', 'base-200', 'base-300', 'base-content',
-];
-
-const COLOR_TOKENS: ReadonlySet<string> = new Set(COLOR_TOKEN_LIST);
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export type ColorValue = RecommendedRole | (string & {});
 
 /**
  * Structural (non-color) custom-property names in the contract.
@@ -103,20 +84,36 @@ export const STRUCTURAL_TOKEN_LIST = [
 
 export type StructuralToken = typeof STRUCTURAL_TOKEN_LIST[number];
 
+/** Values `resolveColorToken` must never rewrite into `var(--color-*)`. */
+const CSS_KEYWORDS: ReadonlySet<string> = new Set([
+    'inherit', 'initial', 'unset', 'revert', 'revert-layer',
+    'currentcolor', 'transparent', 'none',
+]);
+
+const TOKEN_NAME = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
+
 /**
- * Resolve a color value to a CSS color string.
+ * Resolve a color value to a CSS color string — by convention, not by
+ * vocabulary (zero doesn't know which roles a design system declared).
  *
- * - Known semantic tokens (e.g. `'base-100'`) → `var(--color-base-100)`.
- * - Anything else (`'#ffaa00'`, `'rgb(…)'`, `'var(--my-custom)'`) passes
- *   through unchanged.
+ * - `--anything`                    → `var(--anything)`
+ * - bare kebab-case identifier
+ *   (`'primary'`, `'base-100'`, any DS-declared role) → `var(--color-<name>)`
+ * - CSS-wide keywords, `transparent`, `currentcolor`, `none` → unchanged
+ * - anything else (`'#ffaa00'`, `'rgb(…)'`, `'oklch(…)'`) → unchanged
+ *
+ * Note the convention makes named CSS colors like `'red'` resolve as token
+ * names — write them as `#f00` / `rgb()` when a literal color is meant.
  */
 export function resolveColorToken(value: string): string {
-    return COLOR_TOKENS.has(value) ? `var(--color-${value})` : value;
+    if (value.startsWith('--')) return `var(${value})`;
+    if (CSS_KEYWORDS.has(value)) return value;
+    return TOKEN_NAME.test(value) ? `var(--color-${value})` : value;
 }
 
 /**
- * Accepts a semantic color token (autocompleted) OR any raw CSS color
+ * Accepts a color token name — roles or base surfaces (recommended names
+ * autocompleted; DS-declared names equally valid) — OR any raw CSS color
  * string (`'#fff'`, `'rgb(…)'`, `'var(--foo)'`).
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export type BackgroundValue = ColorToken | (string & {});
+export type BackgroundValue = ColorValue | BaseSurfaceToken;

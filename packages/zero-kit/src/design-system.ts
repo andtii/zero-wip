@@ -3,22 +3,25 @@
  * into the artifacts a DS package ships — per-component CSS files, a
  * combined index, and theme metadata for the runtime registry.
  */
-import type { ManifestComponent, ZeroManifest } from './contract.js';
-import type { TokensInput } from './tokens.js';
+import type { ManifestComponent, RoleDecl, ZeroManifest } from './contract.js';
+import { DEFAULT_ROLES, resolveRoles } from './contract.js';
+import type { CustomTokenDecl, RolesDecl, TokensInput } from './tokens.js';
 import { compileTokensCss } from './tokens.js';
 import type { RecipeInput } from './recipes.js';
 import { compileRecipeCss } from './recipes.js';
 
-export interface DesignSystemInput {
+export interface DesignSystemInput<R extends RolesDecl = RolesDecl> {
     name: string;
-    tokens: TokensInput;
+    tokens: TokensInput<R>;
     recipes: RecipeInput[];
     /** Raw CSS appended verbatim after the compiled recipes (escape hatch). */
     css?: string[];
 }
 
 /** Identity with typing — the authoring entry point. */
-export function defineDesignSystem(input: DesignSystemInput): DesignSystemInput {
+export function defineDesignSystem<const R extends RolesDecl = typeof DEFAULT_ROLES>(
+    input: DesignSystemInput<R>,
+): DesignSystemInput<R> {
     return input;
 }
 
@@ -37,12 +40,21 @@ export interface CompiledDesignSystem {
     /** tokens + all components + raw css, in order. */
     indexCss: string;
     themes: CompiledTheme[];
+    /** The DS's declared token vocabulary — emitted into the DS manifest. */
+    tokens: {
+        roles: Record<string, RoleDecl>;
+        custom: Record<string, CustomTokenDecl>;
+        breakpoints: Record<string, string>;
+    };
 }
 
-const SWATCH_TOKENS = ['primary', 'secondary', 'accent', 'neutral', 'base-100', 'base-content'] as const;
+/** Default swatch: the first four declared roles plus the base surfaces. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- variance-erased internal plumbing
+const swatchTokens = (tokens: TokensInput<any>, roles: Record<string, RoleDecl>): string[] =>
+    tokens.swatch ?? [...Object.keys(roles).slice(0, 4), 'base-100', 'base-content'];
 
-export function compileDesignSystem(
-    ds: DesignSystemInput,
+export function compileDesignSystem<R extends RolesDecl>(
+    ds: DesignSystemInput<R>,
     manifest: Pick<ZeroManifest, 'components'>,
 ): CompiledDesignSystem {
     const byScope = new Map<string, ManifestComponent>(
@@ -74,14 +86,30 @@ export function compileDesignSystem(
         ...(rawCss ? [`@layer zero.recipes {\n${rawCss}\n}`] : []),
     ].join('\n');
 
-    const themes: CompiledTheme[] = Object.entries(ds.tokens.themes).map(([name, theme]) => ({
-        name,
-        colorScheme: theme.colorScheme,
-        ...(theme.pair ? { pair: theme.pair } : {}),
-        swatch: Object.fromEntries(
-            SWATCH_TOKENS.flatMap((t) => (theme.colors[t] ? [[t, theme.colors[t]]] : [])),
-        ),
-    }));
+    const roles = resolveRoles(ds.tokens.roles);
+    const swatch = swatchTokens(ds.tokens, roles);
+    const themes: CompiledTheme[] = Object.entries(ds.tokens.themes).map(([name, theme]) => {
+        const colors = theme.colors as Record<string, string>;
+        return {
+            name,
+            colorScheme: theme.colorScheme,
+            ...(theme.pair ? { pair: theme.pair } : {}),
+            swatch: Object.fromEntries(
+                swatch.flatMap((t) => (colors[t] ? [[t, colors[t]]] : [])),
+            ),
+        };
+    });
 
-    return { name: ds.name, tokensCss, componentCss, indexCss, themes };
+    return {
+        name: ds.name,
+        tokensCss,
+        componentCss,
+        indexCss,
+        themes,
+        tokens: {
+            roles,
+            custom: ds.tokens.custom ?? {},
+            breakpoints: ds.tokens.breakpoints ?? {},
+        },
+    };
 }

@@ -3,17 +3,15 @@
 
 export type {
     SizeScale,
-    ColorVariant,
-    ColorToken,
-    CoreColorToken,
-    SoftColorToken,
+    RecommendedRole,
+    BaseSurfaceToken,
+    ColorValue,
     StructuralToken,
     BackgroundValue,
 } from './tokens.js';
 export {
-    COLOR_VARIANT_LIST,
-    CORE_COLOR_TOKEN_LIST,
-    COLOR_TOKEN_LIST,
+    RECOMMENDED_ROLE_LIST,
+    BASE_SURFACE_TOKEN_LIST,
     STRUCTURAL_TOKEN_LIST,
     SIZE_SCALE_LIST,
     resolveColorToken,
