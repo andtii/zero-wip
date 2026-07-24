@@ -18,6 +18,7 @@ import { parse, wcagContrast } from 'culori';
 import type { ZeroManifest } from './contract.js';
 import {
     BASE_SURFACE_TOKEN_LIST,
+    RESERVED_ROLE_NAMES,
     ROLE_NAME_PATTERN,
     contrastPairs,
     requiredColorTokens,
@@ -56,6 +57,9 @@ export function validateDesignSystem<R extends RolesDecl>(
         }
         if (name === 'base' || name.startsWith('base-')) {
             error('tokens.roles', `role "${name}" collides with the reserved base surfaces`);
+        }
+        if (RESERVED_ROLE_NAMES.has(name)) {
+            error('tokens.roles', `role "${name}" is a CSS keyword — resolveColorToken would never resolve it to var(--color-${name})`);
         }
     }
     const customDecls = ds.tokens.custom ?? {};

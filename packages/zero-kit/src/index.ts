@@ -35,6 +35,7 @@ export {
     DEFAULT_ROLES,
     BASE_SURFACE_TOKEN_LIST,
     ROLE_NAME_PATTERN,
+    RESERVED_ROLE_NAMES,
     resolveRoles,
     requiredColorTokens,
     contrastPairs,

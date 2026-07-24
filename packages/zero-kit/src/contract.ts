@@ -28,6 +28,17 @@ export interface RoleDecl {
 export const ROLE_NAME_PATTERN = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 
 /**
+ * Role names zero's `resolveColorToken` treats as CSS keywords and never
+ * resolves to `var(--color-<role>)` — declaring them would create tokens
+ * that can't be referenced by convention. Mirrors the keyword set in
+ * `@sigx/zero/contract` (parity-guarded duplication).
+ */
+export const RESERVED_ROLE_NAMES: ReadonlySet<string> = new Set([
+    'inherit', 'initial', 'unset', 'revert', 'revert-layer',
+    'currentcolor', 'transparent', 'none',
+]);
+
+/**
  * The recommended role vocabulary — the default `roles` declaration when a
  * design system doesn't provide one. Shared component recipes and the
  * generation skill reference these names; declaring more (or fewer) roles is

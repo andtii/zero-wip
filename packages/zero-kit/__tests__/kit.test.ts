@@ -203,6 +203,26 @@ describe('extensible color roles', () => {
         expect(result.errors.some((e) => e.message.includes('"mystery" is not in the declared vocabulary'))).toBe(true);
     });
 
+    it('rejects role names that collide with CSS keywords or base surfaces', () => {
+        const bad = defineTokens({
+            roles: { transparent: {}, 'base-500': {} },
+            themes: {
+                day: {
+                    colorScheme: 'light',
+                    colors: {
+                        'base-100': 'white', 'base-200': 'white', 'base-300': 'white', 'base-content': 'black',
+                        transparent: 'white', 'transparent-content': 'black',
+                        'base-500': 'white', 'base-500-content': 'black',
+                    },
+                },
+            },
+            defaultLight: 'day',
+        });
+        const result = validateDesignSystem({ name: 'x', tokens: bad, recipes: [] }, manifest);
+        expect(result.errors.some((e) => e.message.includes('"transparent" is a CSS keyword'))).toBe(true);
+        expect(result.errors.some((e) => e.message.includes('"base-500" collides with the reserved base surfaces'))).toBe(true);
+    });
+
     it('errors when a declared custom token has no theme value', () => {
         const missing = structuredClone(brandTokens);
         delete missing.themes.day!.custom!['glass-blur'];
