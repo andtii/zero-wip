@@ -99,7 +99,7 @@ const TOKEN_NAME = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
  * - `--anything`                    → `var(--anything)`
  * - bare kebab-case identifier
  *   (`'primary'`, `'base-100'`, any DS-declared role) → `var(--color-<name>)`
- * - CSS-wide keywords, `transparent`, `currentcolor`  → unchanged
+ * - CSS-wide keywords, `transparent`, `currentcolor`, `none` → unchanged
  * - anything else (`'#ffaa00'`, `'rgb(…)'`, `'oklch(…)'`) → unchanged
  *
  * Note the convention makes named CSS colors like `'red'` resolve as token

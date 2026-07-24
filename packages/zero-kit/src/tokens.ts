@@ -179,9 +179,11 @@ function rootDecls(light: AnyTheme, dark: AnyTheme | undefined, roles: RolesDecl
 /**
  * `@property` registrations for declared roles (typed, animatable theme
  * switches) and for declared custom tokens that carry a `syntax`.
- * Initial values come from the default light theme; `-content`/`-soft`
- * derivatives are not registered (soft values are `color-mix()` expressions,
- * which `initial-value` cannot hold).
+ * Initial values come from the default light theme. Derivatives are not
+ * registered: `-soft` values can be `color-mix()` expressions (invalid as
+ * `initial-value`), and `-content` is deliberately kept off the registration
+ * surface to match the role-only registration zero's base.css previously
+ * shipped — roles are the tokens theme transitions animate.
  */
 function propertyRegistrations(input: TokensInput<any>, roles: RolesDecl, light: AnyTheme): string[] {
     const rules: string[] = [];
