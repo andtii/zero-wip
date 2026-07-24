@@ -64,12 +64,12 @@ export const BASE_SURFACE_TOKEN_LIST = ['base-100', 'base-200', 'base-300', 'bas
 export type BaseSurfaceToken = typeof BASE_SURFACE_TOKEN_LIST[number];
 
 /**
- * A color accepted by contract props: a token name from the recommended
- * vocabulary (autocompleted), any DS-declared token name, or a raw CSS
- * color string.
+ * A value for the semantic `color` axis: a role name — recommended roles
+ * autocompleted, any DS-declared role equally valid. Base surfaces are not
+ * part of the axis.
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export type ColorValue = RecommendedRole | BaseSurfaceToken | (string & {});
+export type ColorValue = RecommendedRole | (string & {});
 
 /**
  * Structural (non-color) custom-property names in the contract.
@@ -112,8 +112,8 @@ export function resolveColorToken(value: string): string {
 }
 
 /**
- * Accepts a color token name (recommended roles autocompleted; DS-declared
- * roles equally valid) OR any raw CSS color string (`'#fff'`, `'rgb(…)'`,
- * `'var(--foo)'`).
+ * Accepts a color token name — roles or base surfaces (recommended names
+ * autocompleted; DS-declared names equally valid) — OR any raw CSS color
+ * string (`'#fff'`, `'rgb(…)'`, `'var(--foo)'`).
  */
-export type BackgroundValue = ColorValue;
+export type BackgroundValue = ColorValue | BaseSurfaceToken;

@@ -56,7 +56,7 @@ export function validateDesignSystem<R extends RolesDecl>(
             error('tokens.roles', `role "${name}" is not a kebab-case identifier`);
         }
         if (name === 'base' || name.startsWith('base-')) {
-            error('tokens.roles', `role "${name}" collides with the reserved base surfaces`);
+            error('tokens.roles', `role "${name}" uses the reserved base-* namespace (the base surfaces are fixed, not declarable roles)`);
         }
         if (RESERVED_ROLE_NAMES.has(name)) {
             error('tokens.roles', `role "${name}" is a CSS keyword — resolveColorToken would never resolve it to var(--color-${name})`);

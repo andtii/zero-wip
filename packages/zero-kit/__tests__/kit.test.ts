@@ -241,7 +241,7 @@ describe('extensible color roles', () => {
         });
         const result = validateDesignSystem({ name: 'x', tokens: bad, recipes: [] }, manifest);
         expect(result.errors.some((e) => e.message.includes('"transparent" is a CSS keyword'))).toBe(true);
-        expect(result.errors.some((e) => e.message.includes('"base-500" collides with the reserved base surfaces'))).toBe(true);
+        expect(result.errors.some((e) => e.message.includes('"base-500" uses the reserved base-* namespace'))).toBe(true);
     });
 
     it('errors when a declared custom token has no theme value', () => {
