@@ -118,10 +118,16 @@ export function compileTokensCss(input: TokensInput): string {
         throw new Error(`[zero-kit] defaultDark theme "${input.defaultDark}" is not in themes`);
     }
 
-    const blocks: string[] = [block(':root', rootDecls(light, dark))];
+    // Specificity ladder inside `@layer zero.tokens`:
+    //   `:where(:root)` defaults      → (0,0,0)
+    //   `[data-theme="x"]` overrides  → (0,1,0)  — always beat the defaults
+    // so an explicit theme wins regardless of source order, and a nested
+    // `[data-theme]` element re-themes its subtree via inheritance. App CSS
+    // is unlayered, so it still wins over everything here.
+    const blocks: string[] = [block(':where(:root)', rootDecls(light, dark))];
     for (const [name, theme] of Object.entries(input.themes)) {
         blocks.push(block(
-            `:where([data-theme="${name}"])`,
+            `[data-theme="${name}"]`,
             [`color-scheme: ${theme.colorScheme};`, ...themeDecls(theme)],
         ));
     }

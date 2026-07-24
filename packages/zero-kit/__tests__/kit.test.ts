@@ -27,9 +27,13 @@ describe('compileTokensCss', () => {
         expect(css).toMatch(/--color-primary-soft: color-mix\(in oklab, var\(--color-primary\) \d+%, var\(--color-base-100\)\)/);
     });
 
-    it('emits every theme behind :where([data-theme])', () => {
-        expect(css).toContain(':where([data-theme="basic"])');
-        expect(css).toContain(':where([data-theme="basic-dark"])');
+    it('emits defaults at zero specificity and themes above them', () => {
+        // Defaults are :where(:root) (specificity 0); an explicit theme
+        // ([data-theme] = 0,1,0) must beat them so toggling actually applies.
+        expect(css).toContain(':where(:root)');
+        expect(css).toContain('[data-theme="basic"]');
+        expect(css).toContain('[data-theme="basic-dark"]');
+        expect(css).not.toContain(':where([data-theme');
     });
 });
 
