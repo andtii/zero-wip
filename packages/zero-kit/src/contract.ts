@@ -29,6 +29,108 @@ export interface RoleDecl {
 /** Role names must be bare kebab-case identifiers (they become `--color-<role>`). */
 export const ROLE_NAME_PATTERN = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 
+/** How a token category spells its custom properties. */
+export type TokenCategoryShape = 'scale' | 'scalar';
+
+/**
+ * CSS value grammar of a category. Published in the manifest so tooling and
+ * generators know what a category accepts. NOT currently used for `@property`
+ * registration: a registered `<length>` computes to an absolute value, which
+ * would break `em`-relative and inheritance-sensitive ramps. Categories that
+ * benefit from registration (animatable ones) opt in when they are added.
+ */
+export type TokenSyntax = '<length>' | '<time>' | '<number>' | '<color>' | '*';
+
+/**
+ * One token category: the naming GRAMMAR for a family of custom properties.
+ *
+ * Categories are closed and kit-curated; the KEYS inside are declared by each
+ * design system and open. This is the color model (`roles`) generalized to
+ * every other token family — colors themselves stay separate and stricter,
+ * because a role is a semantic contract whose completeness must be enforced,
+ * whereas a category is a value set with structural fallbacks in base.css.
+ *
+ * Mirrors `TOKEN_CATEGORIES` in `@sigx/zero/contract`; the parity test keeps
+ * the two identical.
+ */
+export interface TokenCategory {
+    readonly id: string;
+    readonly shape: TokenCategoryShape;
+    /** Custom-property prefix, including the leading `--`. */
+    readonly prefix: string;
+    /** Where the category lives in the authoring shape, under `system`. */
+    readonly path: readonly string[];
+    /** Keys base.css ships fallbacks for; open to any other key. */
+    readonly recommended: readonly string[];
+    readonly syntax: TokenSyntax;
+    readonly description: string;
+}
+
+export const TOKEN_CATEGORIES = [
+    {
+        id: 'radius', shape: 'scale', prefix: '--radius-', path: ['radius'],
+        recommended: ['selector', 'field', 'box'], syntax: '<length>',
+        description: 'Corner rounding per surface kind: selector (checkbox/radio), field (input/button), box (card/dialog).',
+    },
+    {
+        id: 'size', shape: 'scale', prefix: '--size-', path: ['size'],
+        recommended: ['selector', 'field'], syntax: '<length>',
+        description: 'Base unit control sizing multiplies — calc(var(--size-field) * 10).',
+    },
+    {
+        id: 'text', shape: 'scale', prefix: '--text-', path: ['text'],
+        recommended: ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'], syntax: '<length>',
+        description: 'Font-size ramp.',
+    },
+    {
+        id: 'border', shape: 'scalar', prefix: '--border', path: ['border'],
+        recommended: [], syntax: '<length>',
+        description: 'Default border width.',
+    },
+    {
+        id: 'disabled-opacity', shape: 'scalar', prefix: '--disabled-opacity', path: ['disabledOpacity'],
+        recommended: [], syntax: '<number>',
+        description: 'Opacity applied to disabled parts.',
+    },
+] as const satisfies readonly TokenCategory[];
+
+export type TokenCategoryId = typeof TOKEN_CATEGORIES[number]['id'];
+
+/**
+ * Token keys become the tail of a custom property, so unlike color roles they
+ * may start with a digit (`--text-2xl`).
+ */
+export const TOKEN_KEY_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+/**
+ * Read a category's node out of an authoring object, following the whole
+ * `path`. Categories added later nest (`['typography', 'sizes']`), so
+ * shortcutting to `path[0]` would silently resolve the wrong object.
+ */
+export function systemNodeAt(source: unknown, path: readonly string[]): unknown {
+    let node = source;
+    for (const segment of path) {
+        if (node === undefined || node === null || typeof node !== 'object') return undefined;
+        node = (node as Record<string, unknown>)[segment];
+    }
+    return node;
+}
+
+/**
+ * The custom-property name a category key emits.
+ *
+ * `scalar` categories hold a single value and take no key; `scale`
+ * categories require one — omitting it would silently produce
+ * `--radius-undefined`, so it throws instead.
+ */
+export function tokenProperty(category: TokenCategory, key?: string): string {
+    if (category.shape === 'scalar') return category.prefix;
+    if (key === undefined) {
+        throw new Error(`[zero-kit] token category "${category.id}" is a scale — tokenProperty needs a key`);
+    }
+    return `${category.prefix}${key}`;
+}
+
 /**
  * Role names zero's `resolveColorToken` treats as CSS keywords and never
  * resolves to `var(--color-<role>)` — declaring them would create tokens
@@ -131,7 +233,7 @@ export interface ZeroManifest {
             required: string[];
             recommendedRoles: string[];
         };
-        structural: string[];
+        categories: TokenCategory[];
         sizeScale: string[];
     };
     components: ManifestComponent[];

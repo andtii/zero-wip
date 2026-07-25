@@ -17,7 +17,7 @@ const distContract = new URL('../dist/contract/index.js', import.meta.url).href;
 const { anatomies } = await import(distAnatomy);
 const {
     RECOMMENDED_ROLE_LIST, BASE_SURFACE_TOKEN_LIST,
-    STRUCTURAL_TOKEN_LIST, SIZE_SCALE_LIST, FLAG_VOCABULARY,
+    TOKEN_CATEGORIES, SIZE_SCALE_LIST, FLAG_VOCABULARY,
 } = await import(distContract);
 
 const manifest = {
@@ -36,14 +36,17 @@ const manifest = {
         },
     },
     tokens: {
-        // The color contract is a grammar, not a vocabulary: design systems
-        // declare their own role names; only the base surfaces are fixed.
+        // Both halves of the token contract are grammars, not vocabularies:
+        // design systems declare their own color roles and their own keys
+        // within each category. Only the base surfaces are fixed.
         colors: {
             convention: { prefix: '--color-', contentSuffix: '-content', softSuffix: '-soft' },
             required: BASE_SURFACE_TOKEN_LIST.map((t) => `--color-${t}`),
             recommendedRoles: [...RECOMMENDED_ROLE_LIST],
         },
-        structural: [...STRUCTURAL_TOKEN_LIST],
+        // `recommended` are the keys @sigx/zero ships fallbacks for; a design
+        // system may declare any others, and they appear in ITS manifest.
+        categories: TOKEN_CATEGORIES.map((c) => ({ ...c, path: [...c.path], recommended: [...c.recommended] })),
         sizeScale: [...SIZE_SCALE_LIST],
     },
     components: Object.values(anatomies).map((a) => a.toJSON()),

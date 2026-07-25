@@ -6,16 +6,21 @@ export type {
     RecommendedRole,
     BaseSurfaceToken,
     ColorValue,
-    StructuralToken,
     BackgroundValue,
+    TokenCategory,
+    TokenCategoryId,
+    TokenCategoryShape,
+    TokenSyntax,
 } from './tokens.js';
 export {
     RECOMMENDED_ROLE_LIST,
     BASE_SURFACE_TOKEN_LIST,
-    STRUCTURAL_TOKEN_LIST,
     SIZE_SCALE_LIST,
+    TOKEN_CATEGORIES,
+    TOKEN_KEY_PATTERN,
     CSS_COLOR_KEYWORDS,
     ROLE_NAME_PATTERN,
+    tokenProperty,
     resolveColorToken,
 } from './tokens.js';
 

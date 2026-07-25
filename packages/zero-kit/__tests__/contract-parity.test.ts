@@ -17,6 +17,9 @@
  * 3. SEMANTIC parity — the claims the constants encode still hold against
  *    zero's actual behavior, not just against a copied literal.
  */
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import process from 'node:process';
 import { describe, it, expect } from 'vitest';
 import * as zero from '@sigx/zero/contract';
 import * as kit from '../src/contract.js';
@@ -31,14 +34,22 @@ const SHARED: Record<string, [unknown, unknown]> = {
     // Compared as RegExp objects, not `.source` — deep equality covers the
     // flags too, so adding `i` to one copy and not the other still fails.
     ROLE_NAME_PATTERN: [zero.ROLE_NAME_PATTERN, kit.ROLE_NAME_PATTERN],
+    TOKEN_KEY_PATTERN: [zero.TOKEN_KEY_PATTERN, kit.TOKEN_KEY_PATTERN],
+    // Deep-compared including order: the categories drive emission order, so
+    // a reordering in one copy is real drift, not cosmetic.
+    TOKEN_CATEGORIES: [zero.TOKEN_CATEGORIES, kit.TOKEN_CATEGORIES],
 };
 
 /**
- * Same-named exports that are deliberately NOT compared, with the reason.
- * Empty today; kept so layer 2 has an explicit place to record exemptions
- * instead of people widening the intersection filter.
+ * Same-named exports that are deliberately NOT value-compared, with the
+ * reason. Layer 2 checks this table is exhaustive, so an exemption has to be
+ * recorded here rather than by widening the intersection filter.
  */
-const KNOWN_UNSHARED: Record<string, string> = {};
+const KNOWN_UNSHARED: Record<string, string> = {
+    // Functions aren't meaningfully value-comparable; parity is asserted
+    // behaviorally in the semantic layer below instead.
+    tokenProperty: 'function — compared by behavior, not by value',
+};
 
 describe('kit ↔ zero contract parity', () => {
     // ── 1. value parity ──
@@ -90,6 +101,59 @@ describe('kit ↔ zero contract parity', () => {
         // they need a separate deny-list rather than a stricter pattern.
         expect(kit.ROLE_NAME_PATTERN.test('transparent')).toBe(true);
         expect(kit.RESERVED_ROLE_NAMES.has('transparent')).toBe(true);
+    });
+
+    it('tokenProperty spells identical names in both copies', () => {
+        for (const category of kit.TOKEN_CATEGORIES) {
+            const keys = category.recommended.length > 0 ? category.recommended : [undefined];
+            for (const key of keys) {
+                expect(kit.tokenProperty(category, key)).toBe(zero.tokenProperty(category, key));
+            }
+        }
+    });
+
+    it('category prefixes cannot collide with each other or with colors', () => {
+        // A `scale` prefix that prefixes another would make `--x-y-z`
+        // ambiguous between categories, and anything under `--color-` would
+        // collide with the role grammar.
+        const scales = kit.TOKEN_CATEGORIES.filter((c) => c.shape === 'scale');
+        for (const a of kit.TOKEN_CATEGORIES) {
+            expect(a.prefix.startsWith('--color-')).toBe(false);
+            for (const b of scales) {
+                if (a === b) continue;
+                expect(b.prefix.startsWith(a.prefix)).toBe(false);
+            }
+        }
+    });
+
+    it('category ids are unique and every recommended key is well-formed', () => {
+        const ids = kit.TOKEN_CATEGORIES.map((c) => c.id);
+        expect(new Set(ids).size).toBe(ids.length);
+        for (const category of kit.TOKEN_CATEGORIES) {
+            for (const key of category.recommended) {
+                expect(kit.TOKEN_KEY_PATTERN.test(key)).toBe(true);
+            }
+            // A scalar category holds one value, so recommended keys would
+            // have nothing to attach to.
+            if (category.shape === 'scalar') expect(category.recommended).toEqual([]);
+        }
+    });
+
+    it('base.css ships a fallback for every recommended key', () => {
+        // A category a design system never mentions must still resolve, which
+        // is what makes "absence is never a validation error" safe.
+        // Resolved from the vitest root (import.meta.url is a transform URL
+        // here, not a file: one).
+        const baseCss = readFileSync(
+            resolve(process.cwd(), 'packages/zero/css/base.css'),
+            'utf8',
+        );
+        for (const category of kit.TOKEN_CATEGORIES) {
+            const keys = category.recommended.length > 0 ? category.recommended : [undefined];
+            for (const key of keys) {
+                expect(baseCss).toContain(`${kit.tokenProperty(category, key)}:`);
+            }
+        }
     });
 
     it('the base-* namespace is reserved against role declarations', () => {

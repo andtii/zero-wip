@@ -26,6 +26,17 @@
   `BASE_SURFACE_TOKEN_LIST`, `RecommendedRole`, `BaseSurfaceToken`,
   `ColorValue`.
 
+- **Token categories replace the flat structural token list.**
+  `STRUCTURAL_TOKEN_LIST` / `StructuralToken` are removed in favor of
+  `TOKEN_CATEGORIES`, `TokenCategory`, `TokenCategoryId`, `TOKEN_KEY_PATTERN`
+  and `tokenProperty`. A flat closed array could not express the open,
+  design-system-declared keys the contract is built on — the same reason the
+  color vocabulary stopped being a fixed list.
+- `manifest.json` `tokens.structural` (a flat array of property names) is now
+  `tokens.categories`, publishing the grammar: prefix, recommended keys,
+  value syntax and intent per category. `cat.recommended.map(k => cat.prefix
+  + k)` reproduces the old array.
+
 ### Added
 
 - `CSS_COLOR_KEYWORDS` and `ROLE_NAME_PATTERN` are now exported from the

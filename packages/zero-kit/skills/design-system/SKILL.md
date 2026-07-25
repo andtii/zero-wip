@@ -28,11 +28,37 @@ component's anatomy). No component code is ever written or changed.
    - `x-content` must contrast with `x` at ≥ 4.5:1 (the validator errors < 3:1).
    - oklch() everywhere; keep hue families consistent between light and dark.
    - `softMix` (0.08–0.2) controls the derived `-soft` tinted surfaces.
-   - Structural feel lives in `radius` (selector/field/box) and `border` —
-     brutalist ⇒ radius 0 + thick border; soft/friendly ⇒ large radius.
+   - **Structural feel goes in `system`, declared once for the whole design
+     system — not repeated per theme.** Categories today: `radius`
+     (selector/field/box), `size` (selector/field), `text` (the xs…3xl ramp),
+     `border`, `disabledOpacity`. Brutalist ⇒ radius 0 + thick border;
+     soft/friendly ⇒ large radius.
+     ```ts
+     export const system = {
+         radius: { selector: '0', field: '0', box: '0' },
+         border: '3px',
+     } as const satisfies SystemTokens;
+
+     export const tokens: TokensInput<typeof roles, typeof system> = {
+         roles, system, defaultLight: 'brut', themes: { /* … */ },
+     };
+     ```
+     Annotate with `TokensInput<typeof roles, typeof system>` — that is what
+     narrows per-theme overrides to the keys you declared.
+   - The keys inside a category are **yours**: `recommended` is what
+     `@sigx/zero/css` ships fallbacks for, not a limit. Declare
+     `radius: { pill: '9999px' }` and it flows into your manifest.
+   - Omitting a category entirely is fine — the fallbacks apply. Absence is
+     never a validation error.
+   - Values that must differ by color scheme go in `systemDark` (applies to
+     every `colorScheme: 'dark'` theme); a single theme overrides via its own
+     `system` block. Resolution order: `system` → `systemDark` →
+     `theme.system`.
    - DS-specific tokens (a blur radius, a glow color…) go in `custom`
      declarations (name → `{ description, syntax? }`), valued per-theme in
      `custom` — never in `extra`, which the validator flags as undeclared.
+     A custom token inside a category namespace (`--radius-…`) is an error;
+     declare it in `system` instead.
 
 3. **Author recipes** (`src/recipes.ts`): for each component in the manifest,
    a `RecipeInput` with `parts.<name>.base` styles and `parts.<name>.states`.

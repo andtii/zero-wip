@@ -5,7 +5,7 @@
  * runtime bundle (installThemes derives registry metadata from it), so it
  * must not pull the Node-only kit at runtime.
  */
-import type { RoleDecl, TokensInput } from '@sigx/zero-kit';
+import type { RoleDecl, SystemTokens, TokensInput } from '@sigx/zero-kit';
 
 /**
  * zero-basic's color vocabulary — exactly the recommended eight roles.
@@ -18,8 +18,21 @@ export const roles = {
     info: {}, success: {}, warning: {}, error: {},
 } as const satisfies Record<string, RoleDecl>;
 
-export const tokens: TokensInput<typeof roles> = {
+/**
+ * zero-basic's non-color token values — declared once for the design system
+ * rather than restated per theme. Both themes share this structural feel;
+ * a theme that wanted its own would override via its `system` block.
+ */
+export const system = {
+    radius: { selector: '0.375rem', field: '0.375rem', box: '0.75rem' },
+    size: { selector: '0.25rem', field: '0.25rem' },
+    border: '1px',
+    disabledOpacity: '0.4',
+} as const satisfies SystemTokens;
+
+export const tokens: TokensInput<typeof roles, typeof system> = {
     roles,
+    system,
     defaultLight: 'basic',
     defaultDark: 'basic-dark',
     themes: {
@@ -49,10 +62,6 @@ export const tokens: TokensInput<typeof roles> = {
                 error: 'oklch(50% 0.19 27)',
                 'error-content': 'oklch(97% 0.012 27)',
             },
-            radius: { selector: '0.375rem', field: '0.375rem', box: '0.75rem' },
-            size: { selector: '0.25rem', field: '0.25rem' },
-            border: '1px',
-            disabledOpacity: '0.4',
         },
         'basic-dark': {
             colorScheme: 'dark',
@@ -80,10 +89,6 @@ export const tokens: TokensInput<typeof roles> = {
                 error: 'oklch(68% 0.17 27)',
                 'error-content': 'oklch(17% 0.04 27)',
             },
-            radius: { selector: '0.375rem', field: '0.375rem', box: '0.75rem' },
-            size: { selector: '0.25rem', field: '0.25rem' },
-            border: '1px',
-            disabledOpacity: '0.4',
         },
     },
 };

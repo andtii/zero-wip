@@ -27,17 +27,22 @@
  * - Structural custom-property NAMES are part of the contract; the *values*
  *   come from each DS's compiled themes.
  *
- * ## Structural token-name contract
+ * ## The token-category contract
  *
- * Every DS theme resolves against the same custom-property names:
+ * Non-color tokens follow the same shape as colors: a closed set of
+ * CATEGORIES (`TOKEN_CATEGORIES`), each fixing a `--prefix-` and the value
+ * grammar tooling needs, with fully OPEN keys inside that a design system
+ * declares and that flow into its manifest. `recommended` names the keys
+ * `css/base.css` ships fallbacks for, so a category a design system never
+ * mentions still resolves.
  *
  * - Colors:    `--color-<role>[-content|-soft]` per the DS's declaration,
  *              plus the fixed `--color-base-100/200/300` / `--color-base-content`
- * - Roundness: `--radius-selector` | `--radius-field` | `--radius-box`
- * - Sizing:    `--size-selector` | `--size-field`
- * - Text ramp: `--text-xs` … `--text-3xl`
- * - Border:    `--border` (web-only addition; daisy v5 compatible)
- * - Misc:      `--disabled-opacity`
+ * - Categories: `--radius-*`, `--size-*`, `--text-*`, `--border`,
+ *              `--disabled-opacity` — see `TOKEN_CATEGORIES`
+ *
+ * Colors stay a separate, stricter mechanism on purpose; the reasoning is on
+ * `TokenCategory`.
  */
 
 /** The shared component size scale. */
@@ -71,18 +76,108 @@ export type BaseSurfaceToken = typeof BASE_SURFACE_TOKEN_LIST[number];
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export type ColorValue = RecommendedRole | (string & {});
 
-/**
- * Structural (non-color) custom-property names in the contract.
- */
-export const STRUCTURAL_TOKEN_LIST = [
-    '--radius-selector', '--radius-field', '--radius-box',
-    '--size-selector', '--size-field',
-    '--text-xs', '--text-sm', '--text-md', '--text-lg', '--text-xl', '--text-2xl', '--text-3xl',
-    '--border',
-    '--disabled-opacity',
-] as const;
+/** How a token category spells its custom properties. */
+export type TokenCategoryShape =
+    /** `${prefix}${key}` — the keys are design-system-declared. */
+    | 'scale'
+    /** `prefix` verbatim; the category holds a single value, no keys. */
+    | 'scalar';
 
-export type StructuralToken = typeof STRUCTURAL_TOKEN_LIST[number];
+/**
+ * CSS value grammar of a category. Published in the manifest so tooling and
+ * generators know what a category accepts. NOT currently used for `@property`
+ * registration: a registered `<length>` computes to an absolute value, which
+ * would break `em`-relative and inheritance-sensitive ramps. Categories that
+ * benefit from registration (animatable ones) opt in when they are added.
+ */
+export type TokenSyntax = '<length>' | '<time>' | '<number>' | '<color>' | '*';
+
+/**
+ * One token category: the naming GRAMMAR for a family of custom properties.
+ *
+ * Categories are a closed, kit-curated set — each carries the semantics
+ * tooling needs to reason about that family (its value grammar, and later
+ * things like reduced-motion handling for durations).
+ * The KEYS inside a category are fully open: a design system declares its own
+ * (`shadow: { level1, …, level5 }`) and they flow into its manifest.
+ * `recommended` is guidance, autocomplete and the set `base.css` ships
+ * fallbacks for — never a constraint.
+ *
+ * This is the color contract's "declared vocabulary + naming grammar" model
+ * (see `RECOMMENDED_ROLE_LIST`) generalized to every other token family.
+ * Colors are deliberately NOT in this table: a role is a semantic contract
+ * whose completeness must be enforced (a missing role breaks contrast
+ * validation and leaves `var(--color-x)` unresolved), so they keep the
+ * stricter declare-then-require model. Categories are value sets with
+ * structural fallbacks, so absence is never an error.
+ */
+export interface TokenCategory {
+    /** Stable id — the key used in zero's and every design system's manifest. */
+    readonly id: string;
+    readonly shape: TokenCategoryShape;
+    /** Custom-property prefix, including the leading `--`. */
+    readonly prefix: string;
+    /** Where the category lives in the authoring shape, under `system`. */
+    readonly path: readonly string[];
+    /** Keys a design system gets fallbacks for; open to any other key. */
+    readonly recommended: readonly string[];
+    readonly syntax: TokenSyntax;
+    /** One-line intent — published in the manifest for tooling and AI. */
+    readonly description: string;
+}
+
+export const TOKEN_CATEGORIES = [
+    {
+        id: 'radius', shape: 'scale', prefix: '--radius-', path: ['radius'],
+        recommended: ['selector', 'field', 'box'], syntax: '<length>',
+        description: 'Corner rounding per surface kind: selector (checkbox/radio), field (input/button), box (card/dialog).',
+    },
+    {
+        id: 'size', shape: 'scale', prefix: '--size-', path: ['size'],
+        recommended: ['selector', 'field'], syntax: '<length>',
+        description: 'Base unit control sizing multiplies — calc(var(--size-field) * 10).',
+    },
+    {
+        id: 'text', shape: 'scale', prefix: '--text-', path: ['text'],
+        recommended: ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'], syntax: '<length>',
+        description: 'Font-size ramp.',
+    },
+    {
+        id: 'border', shape: 'scalar', prefix: '--border', path: ['border'],
+        recommended: [], syntax: '<length>',
+        description: 'Default border width.',
+    },
+    {
+        id: 'disabled-opacity', shape: 'scalar', prefix: '--disabled-opacity', path: ['disabledOpacity'],
+        recommended: [], syntax: '<number>',
+        description: 'Opacity applied to disabled parts.',
+    },
+] as const satisfies readonly TokenCategory[];
+
+export type TokenCategoryId = typeof TOKEN_CATEGORIES[number]['id'];
+
+/**
+ * Token keys become the tail of a custom property, so unlike color roles they
+ * may start with a digit (`--text-2xl`). Color roles keep the stricter
+ * `ROLE_NAME_PATTERN` because `resolveColorToken` has to resolve a bare
+ * identifier to `var(--color-<role>)`.
+ */
+export const TOKEN_KEY_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+/**
+ * The custom-property name a category key emits.
+ *
+ * `scalar` categories hold a single value and take no key; `scale`
+ * categories require one — omitting it would silently produce
+ * `--radius-undefined`, so it throws instead.
+ */
+export function tokenProperty(category: TokenCategory, key?: string): string {
+    if (category.shape === 'scalar') return category.prefix;
+    if (key === undefined) {
+        throw new Error(`[zero] token category "${category.id}" is a scale — tokenProperty needs a key`);
+    }
+    return `${category.prefix}${key}`;
+}
 
 /**
  * Values `resolveColorToken` must never rewrite into `var(--color-*)`.
