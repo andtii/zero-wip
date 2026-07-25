@@ -300,7 +300,10 @@ export function validateDesignSystem<R extends RolesDecl>(
      * single light/dark pair, so it is not something to rely on either. Either
      * way the fix is the same: declare the value under the theme.
      */
-    const roleRefPattern = /var\(\s*--color-([a-z0-9-]+)\s*\)/g;
+    // `[,)]` rather than `)`: a fallback does not save the reference here. The
+    // freeze happens because the property is registered, so
+    // `var(--color-primary, oklch(...))` resolves at :root just the same.
+    const roleRefPattern = /var\(\s*--color-([a-z0-9-]+)\s*[,)]/g;
     const checkFrozenRoleRefs = (where: string, source: unknown) => {
         if (!source) return;
         for (const category of TOKEN_CATEGORIES) {

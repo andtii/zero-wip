@@ -130,6 +130,20 @@ describe('the signature move of each brief survives compilation', () => {
             manifest,
         ).warnings.map((w) => w.message);
         expect(messages.some((m) => m.includes('resolves once at :root'))).toBe(true);
+        // A fallback does not save it — the freeze is caused by the role being
+        // @property-registered, not by the reference being unresolvable.
+        const withFallback = {
+            ...terminal.tokens,
+            system: {
+                ...terminal.system,
+                shadow: { ...terminal.system.shadow, md: '0 0 8px 0 var(--color-primary, oklch(50% 0 0))' },
+            },
+        };
+        const fallbackMessages = validateDesignSystem(
+            { name: 'fallback', tokens: withFallback, recipes: [] } as unknown as DesignSystemInput,
+            manifest,
+        ).warnings.map((m) => m.message);
+        expect(fallbackMessages.some((m) => m.includes('resolves once at :root'))).toBe(true);
         // A base surface is not registered, so it is not flagged — that is the
         // shape @sigx/zero-brutalist ships, and it was verified working.
         const inked = {
