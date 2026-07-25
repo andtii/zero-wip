@@ -35,6 +35,10 @@
 - `TokensInput.breakpoints` — reserved DS-level breakpoint declaration,
   surfaced in the DS manifest (consumed by the upcoming conditions support).
 
+- `@sigx/zero-material` is the acceptance test for the extensible token
+  vocabulary: a design language zero was not designed around, expressed
+  entirely as data. It validates with no errors and no warnings, styles all
+  fifteen components, and required no change to the kit.
 - Both shipped design systems implement the `size` and `variant` axes for
   the new Button. They were advertised by the contract and implemented
   nowhere -- three `variants` blocks existed across both systems, all

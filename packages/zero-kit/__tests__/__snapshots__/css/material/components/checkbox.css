@@ -1,0 +1,56 @@
+@layer zero.recipes {
+    [data-scope="checkbox"][data-part="root"] {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-sm);
+        cursor: pointer;
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="checkbox"][data-part="control"] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: calc(var(--size-selector) * 6);
+        height: calc(var(--size-selector) * 6);
+        border: 2px solid var(--color-outline);
+        background: transparent;
+        transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+        border-radius: var(--radius-selector);
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-state="checked"] {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-state="indeterminate"] {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="checkbox"][data-part="indicator"] {
+        color: var(--color-primary-content);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="checkbox"][data-part="label"] {
+        font-size: var(--text-md);
+    }
+
+    [data-scope="checkbox"][data-part="hidden-input"] {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+    }
+}

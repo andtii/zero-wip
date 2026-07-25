@@ -71,6 +71,9 @@ importers:
       '@sigx/zero-daisyui':
         specifier: workspace:^
         version: link:../../packages/zero-daisyui
+      '@sigx/zero-material':
+        specifier: workspace:^
+        version: link:../../packages/zero-material
       sigx:
         specifier: 'catalog:'
         version: 0.13.0
@@ -160,6 +163,18 @@ importers:
       '@types/node':
         specifier: ^22.10.0
         version: 22.20.1
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
+  packages/zero-material:
+    devDependencies:
+      '@sigx/zero':
+        specifier: workspace:^
+        version: link:../zero
+      '@sigx/zero-kit':
+        specifier: workspace:^
+        version: link:../zero-kit
       typescript:
         specifier: ^6.0.3
         version: 6.0.3

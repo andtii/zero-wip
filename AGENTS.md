@@ -138,8 +138,12 @@ To run the playground: `pnpm --filter zero-playground dev`.
 - `packages/zero-daisyui` → `@sigx/zero-daisyui` — daisyUI-flavored skin:
   daisy token values + recipes over zero anatomy. No Tailwind/daisyUI plugin
   required. The proof that a design system is data.
-- `examples/playground` — private kitchen-sink app; switches basic↔daisyui by
-  import swap.
+- `packages/zero-material` → `@sigx/zero-material` — Material-flavoured skin,
+  and the acceptance test for extensible vocabularies: thirteen colour roles,
+  a `level1`–`level5` elevation ramp, its own easings, its own breakpoints.
+  Private — it proves the contract rather than shipping a licensed token set.
+- `examples/playground` — private kitchen-sink app; switches between
+  basic / daisyui / material by a two-line import swap.
 
 **Lockstep versioning**: every publishable package shares one version. Never
 bump a single package's version — use `pnpm version:patch|minor|major`.

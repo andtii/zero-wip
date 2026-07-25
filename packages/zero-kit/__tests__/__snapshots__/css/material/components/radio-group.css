@@ -1,0 +1,71 @@
+@layer zero.recipes {
+    [data-scope="radio-group"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+
+    [data-scope="radio-group"][data-part="label"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-md);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+    }
+
+    [data-scope="radio-group"][data-part="item"] {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-sm);
+        cursor: pointer;
+    }
+
+    [data-scope="radio-group"][data-part="item"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="radio-group"][data-part="item-control"] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: calc(var(--size-selector) * 6);
+        height: calc(var(--size-selector) * 6);
+        border: 2px solid var(--color-outline);
+        background: transparent;
+        transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+        border-radius: 624rem;
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-state="checked"] {
+        border-color: var(--color-primary);
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="radio-group"][data-part="item-indicator"] {
+        width: calc(var(--size-selector) * 3);
+        height: calc(var(--size-selector) * 3);
+        border-radius: 624rem;
+        background: var(--color-primary-content);
+        transform: scale(0);
+        transition: transform var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="radio-group"][data-part="item-indicator"][data-state="checked"] {
+        transform: scale(1);
+    }
+
+    [data-scope="radio-group"][data-part="item-label"] {
+        font-size: var(--text-md);
+    }
+
+    [data-scope="radio-group"][data-part="hidden-input"] {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+    }
+}

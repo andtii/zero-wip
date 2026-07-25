@@ -1,0 +1,56 @@
+@layer zero.recipes {
+    [data-scope="popover"][data-part="trigger"] {
+        appearance: none;
+        border-radius: 624rem;
+        border: var(--border) solid var(--color-outline);
+        background: transparent;
+        color: var(--color-primary);
+        padding: var(--space-xs) var(--space-lg);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+        cursor: pointer;
+    }
+
+    [data-scope="popover"][data-part="trigger"]:hover:not([data-disabled]) {
+        background: var(--color-primary-soft);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="popover"][data-part="popup"] {
+        background: var(--color-surface-container-high);
+        color: var(--color-surface-container-high-content);
+        border: none;
+        border-radius: var(--radius-box);
+        box-shadow: var(--shadow-level2);
+        padding: var(--space-md);
+        max-width: 20rem;
+    }
+
+    [data-scope="popover"][data-part="title"] {
+        margin: 0 0 var(--space-xs);
+        font-weight: var(--weight-medium);
+    }
+
+    [data-scope="popover"][data-part="close"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: var(--color-primary);
+        cursor: pointer;
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+    }
+
+    [data-scope="popover"][data-part="close"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+}

@@ -1,0 +1,23 @@
+@layer zero.recipes {
+    [data-scope="tooltip"][data-part="trigger"] {
+        appearance: none;
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: help;
+    }
+
+    [data-scope="tooltip"][data-part="trigger"]:focus-visible {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="tooltip"][data-part="popup"] {
+        background: var(--color-neutral);
+        color: var(--color-neutral-content);
+        border-radius: var(--radius-selector);
+        padding: var(--space-2xs) var(--space-xs);
+        font-size: var(--text-xs);
+        box-shadow: var(--shadow-level1);
+    }
+}

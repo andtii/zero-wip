@@ -13,7 +13,8 @@
         "@sigx/zero": "workspace:^",
         "@sigx/zero-basic": "workspace:^",
         "@sigx/zero-daisyui": "workspace:^",
-        "sigx": "catalog:"
+        "sigx": "catalog:",
+        "@sigx/zero-material": "workspace:^"
     },
     "devDependencies": {
         "@sigx/vite": "catalog:",
