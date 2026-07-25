@@ -125,11 +125,14 @@ function packPackage(pkgPath) {
  */
 function assertPublishListMatches() {
     const source = readFileSync(join(rootDir, 'scripts/publish.js'), 'utf-8');
-    const block = /const PACKAGES = \[([\s\S]*?)\];/.exec(source);
+    // Tolerant of formatting — a reformat of publish.js (quote style, spacing,
+    // trailing comma) must not red CI when the package list itself is
+    // unchanged.
+    const block = /const\s+PACKAGES\s*=\s*\[([\s\S]*?)\]/.exec(source);
     if (!block) {
         throw new Error('Could not find the PACKAGES array in scripts/publish.js');
     }
-    const published = [...block[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
+    const published = [...block[1].matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1]);
     const same =
         published.length === PACKAGES.length &&
         published.every((p, i) => p === PACKAGES[i]);
