@@ -124,12 +124,15 @@ To run the playground: `pnpm --filter zero-playground dev`.
   token-name contract shared with `@sigx/lynx-zero`, and the theme engine
   (registry, `ThemeProvider`, headless `themeController`, `themeInitScript`).
   Peer-depends on `sigx` only; no CSS beyond `css/base.css` (@layer order +
-  @property registrations).
+  structural token fallbacks — `@property` registrations are emitted per
+  design system by the kit, since only it knows the declared role names).
 - `packages/zero-kit` → `@sigx/zero-kit` — Node-only authoring kit:
   `defineTokens` / `defineRecipe` / `defineDesignSystem`, the tokens/recipes →
-  plain-CSS compiler, the `zero-kit` CLI (`build | validate | init | eject`),
-  JSON schemas, and the design-system generation agent skill. devDependency of
-  DS packages; never a runtime dependency.
+  plain-CSS compiler, the `zero-kit` CLI (`build | validate`; `init` and
+  `eject` are planned — see issues #10/#11), and the design-system generation
+  agent skill. devDependency of DS packages; never a runtime dependency.
+  (JSON schemas are planned in #12; `manifest.json` already references the
+  not-yet-published schema URL.)
 - `packages/zero-basic` → `@sigx/zero-basic` — neutral starter design system
   (readable defaults). Dogfoods zero-kit; reference pair for the AI skill.
 - `packages/zero-daisyui` → `@sigx/zero-daisyui` — daisyUI-flavored skin:

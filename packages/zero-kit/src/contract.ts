@@ -2,9 +2,11 @@
  * Kit-side copy of the zero token contract vocabulary.
  *
  * Deliberately duplicated from `@sigx/zero/contract` so the kit stays a
- * pure Node tool with no runtime dependency on zero; `zero-kit validate`
- * cross-checks a consumer's installed `@sigx/zero` manifest against this
- * list, which is the parity guard for the duplication.
+ * pure Node tool with no runtime dependency on zero. The duplication is kept
+ * honest by `packages/zero-kit/__tests__/contract-parity.test.ts`, which
+ * compares every shared export by value, fails when a new shared export is
+ * added without a parity row, and re-derives the reserved-name claim from
+ * zero's actual `resolveColorToken` behavior.
  *
  * The color contract is a naming GRAMMAR, not a vocabulary: a design system
  * declares its own role names (`roles`), and every color token is
@@ -30,8 +32,9 @@ export const ROLE_NAME_PATTERN = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 /**
  * Role names zero's `resolveColorToken` treats as CSS keywords and never
  * resolves to `var(--color-<role>)` — declaring them would create tokens
- * that can't be referenced by convention. Mirrors the keyword set in
- * `@sigx/zero/contract` (parity-guarded duplication).
+ * that can't be referenced by convention. Mirrors `CSS_COLOR_KEYWORDS` in
+ * `@sigx/zero/contract`; the parity test asserts both that the sets match and
+ * that each name really does survive `resolveColorToken` unchanged.
  */
 export const RESERVED_ROLE_NAMES: ReadonlySet<string> = new Set([
     'inherit', 'initial', 'unset', 'revert', 'revert-layer',

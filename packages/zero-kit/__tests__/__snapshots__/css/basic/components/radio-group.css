@@ -1,0 +1,69 @@
+@layer zero.recipes {
+    [data-scope="radio-group"][data-part="root"] {
+        --radio-size: calc(var(--size-selector) * 5);
+    }
+
+    [data-scope="radio-group"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    [data-scope="radio-group"][data-part="label"] {
+        font-size: var(--text-sm);
+        font-weight: 600;
+    }
+
+    [data-scope="radio-group"][data-part="label"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="radio-group"][data-part="item"] {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+
+    [data-scope="radio-group"][data-part="item"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="radio-group"][data-part="item-control"] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--radio-size);
+        height: var(--radio-size);
+        border: calc(var(--border) * 2) solid var(--color-base-300);
+        border-radius: 9999px;
+        background: var(--color-base-100);
+        transition: border-color 0.15s ease;
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-state="checked"] {
+        border-color: var(--color-primary);
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="radio-group"][data-part="item-indicator"] {
+        width: calc(var(--radio-size) / 2);
+        height: calc(var(--radio-size) / 2);
+        border-radius: 9999px;
+        background: transparent;
+        transition: background 0.15s ease;
+    }
+
+    [data-scope="radio-group"][data-part="item-indicator"][data-state="checked"] {
+        background: var(--color-primary);
+    }
+
+    [data-scope="radio-group"][data-part="item-label"] {
+        font-size: var(--text-sm);
+    }
+}

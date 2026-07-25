@@ -84,13 +84,24 @@ export const STRUCTURAL_TOKEN_LIST = [
 
 export type StructuralToken = typeof STRUCTURAL_TOKEN_LIST[number];
 
-/** Values `resolveColorToken` must never rewrite into `var(--color-*)`. */
-const CSS_KEYWORDS: ReadonlySet<string> = new Set([
+/**
+ * Values `resolveColorToken` must never rewrite into `var(--color-*)`.
+ *
+ * Exported because `@sigx/zero-kit` keeps a mirror of this contract and
+ * rejects role declarations that use these names (a role named `transparent`
+ * could never be referenced by convention). The mirror is kept honest by
+ * `packages/zero-kit/__tests__/contract-parity.test.ts`.
+ */
+export const CSS_COLOR_KEYWORDS: ReadonlySet<string> = new Set([
     'inherit', 'initial', 'unset', 'revert', 'revert-layer',
     'currentcolor', 'transparent', 'none',
 ]);
 
-const TOKEN_NAME = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
+/**
+ * Role names must be bare kebab-case identifiers — they become
+ * `--color-<role>`, and `resolveColorToken` resolves them by that shape alone.
+ */
+export const ROLE_NAME_PATTERN = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 
 /**
  * Resolve a color value to a CSS color string — by convention, not by
@@ -107,8 +118,8 @@ const TOKEN_NAME = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
  */
 export function resolveColorToken(value: string): string {
     if (value.startsWith('--')) return `var(${value})`;
-    if (CSS_KEYWORDS.has(value)) return value;
-    return TOKEN_NAME.test(value) ? `var(--color-${value})` : value;
+    if (CSS_COLOR_KEYWORDS.has(value)) return value;
+    return ROLE_NAME_PATTERN.test(value) ? `var(--color-${value})` : value;
 }
 
 /**

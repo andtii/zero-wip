@@ -1,0 +1,45 @@
+@layer zero.recipes {
+    [data-scope="progress"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        width: 100%;
+    }
+
+    [data-scope="progress"][data-part="label"] {
+        font-size: var(--text-sm);
+        font-weight: 500;
+    }
+
+    [data-scope="progress"][data-part="track"] {
+        width: 100%;
+        height: calc(var(--size-selector) * 2);
+        background: var(--color-base-300);
+        border-radius: 9999px;
+        overflow: hidden;
+    }
+
+    [data-scope="progress"][data-part="range"] {
+        height: 100%;
+        background: var(--color-primary);
+        border-radius: 9999px;
+        transition: width 0.2s ease;
+    }
+
+    [data-scope="progress"][data-part="range"][data-state="complete"] {
+        background: var(--color-success);
+    }
+
+    [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
+        width: 40%;
+        animation: zero-basic-indeterminate 1.2s ease-in-out infinite;
+    }
+
+    [data-scope="progress"][data-part="value-text"] {
+        font-size: var(--text-xs);
+        color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
+    }
+}
+@keyframes zero-basic-indeterminate {
+    from { margin-left: -40%; } to { margin-left: 100%; }
+}

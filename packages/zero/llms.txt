@@ -45,13 +45,42 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
+Fourteen components ship today. Parts are listed in anatomy order; the
+authoritative machine-readable list (parts × states × flags × token hints) is
+`@sigx/zero/manifest.json` — generate design systems against that, not this
+summary.
+
 - Tabs: Root(model=value)/List/Tab(value,asChild)/Panel(value). APG tabs,
-  roving arrows, automatic|manual activation.
+  roving arrows, automatic|manual activation, orientation.
 - Collapsible: Root(model=open)/Trigger/Panel on native <details>.
-- Switch: Root(model=checked) over a hidden native checkbox, role=switch.
-- Dialog: Root(model=open)/Trigger/Popup/Title/Description/Close on native
-  <dialog> + top layer (no Portal). Style the backdrop via
+- Accordion: Root(model=string[])/Item/Trigger/Panel on native <details>;
+  `multiple` and `collapsible`.
+- Dialog: Trigger/Popup/Title/Description/Close on native <dialog> + top
+  layer (no Portal). Style the backdrop via
   [data-scope="dialog"][data-part="popup"]::backdrop.
+- Popover: Trigger/Popup/Title/Close on the popover attribute + anchor
+  positioning (placement, offset, positionStrategy).
+- Tooltip: Trigger/Popup with openDelay/closeDelay.
+- Menu: Trigger/Popup/Item(asChild)/Group/GroupLabel/Separator; `select`
+  event, closeOnSelect.
+- Select: Root(model=value)/Trigger/Value/Indicator/Popup/Item/ItemIndicator
+  + a hidden native input so it posts in forms.
+- Switch: Root(model=checked)/Control/Thumb/Label over a hidden native
+  checkbox, role=switch.
+- Checkbox: Root(model=checked)/Control/Indicator/Label; supports
+  `indeterminate`.
+- RadioGroup: Root(model=value)/Label/Item/ItemControl/ItemIndicator/ItemLabel;
+  orientation.
+- Slider: Root(model=number)/Label/Input/ValueText on a native
+  <input type=range> (single thumb).
+- Progress: Root/Label/Track/Range/ValueText; `value: number | null`
+  (null = indeterminate).
+- Field: Root/Label/Description/Error — wires ids and disabled/invalid/
+  required down to the control it wraps.
+
+Variant axes (`color`/`size`/`variant`) are accepted by Tabs, Switch,
+Checkbox, RadioGroup, Slider, Progress and Select; they pass through as
+data-* and zero attaches no styling to them.
 
 ## Authoring a design system (@sigx/zero-kit)
 
