@@ -35,7 +35,7 @@
   a `--prefix-` and a value grammar, with OPEN keys inside that the design
   system declares. Today: `--radius-*` (selector|field|box), `--size-*`
   (selector|field), `--text-*` (xs…3xl), `--space-*`
-  (2xs...2xl), `--shadow-*` (xs...xl), `--duration-*`
+  (2xs…2xl), `--shadow-*` (xs…xl), `--duration-*`
   (instant|fast|normal|slow), `--ease-*` (linear|standard|emphasized),
   `--border`, `--disabled-opacity`.
   The `recommended` keys are the ones `@sigx/zero/css` ships fallbacks for —

@@ -39,6 +39,10 @@
 
 ### Added
 
+- `css/base.css` ships fallbacks for the spacing and elevation categories
+  (`--space-2xs`…`--space-2xl`, `--shadow-xs`…`--shadow-xl`), so zero
+  primitives have sane density and elevation before any design system loads.
+  A design system's own keys come from its compiled `tokens.css`.
 - `css/base.css` ships fallbacks for the motion categories
   (`--duration-*`, `--ease-*`) and a global
   `@media (prefers-reduced-motion: reduce)` block neutralizing the

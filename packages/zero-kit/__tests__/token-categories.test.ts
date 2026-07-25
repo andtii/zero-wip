@@ -27,6 +27,19 @@ const colors = {
 
 const roles = { primary: {} } as const;
 
+/**
+ * The body of an at-rule block, bounded at its closing brace.
+ *
+ * Slicing to end-of-file instead would let a later theme block satisfy an
+ * assertion about what the media block emits — the values are often identical.
+ */
+function mediaBlock(css: string, condition: string): string {
+    const start = css.indexOf(`@media ${condition}`);
+    expect(start, `no "@media ${condition}" block emitted`).toBeGreaterThan(-1);
+    const end = css.indexOf('\n    }', start);
+    return css.slice(start, end === -1 ? undefined : end);
+}
+
 /** Declarations inside a given selector block, for order-independent asserts. */
 function blockOf(css: string, selector: string): string {
     const start = css.indexOf(`${selector} {`);
@@ -99,9 +112,7 @@ describe('token categories', () => {
         });
 
         it('emits the dark value under prefers-color-scheme: dark', () => {
-            const mediaStart = css.indexOf('@media (prefers-color-scheme: dark)');
-            expect(mediaStart, 'no prefers-color-scheme block emitted').toBeGreaterThan(-1);
-            expect(css.slice(mediaStart)).toContain('--border: 2px;');
+            expect(mediaBlock(css, '(prefers-color-scheme: dark)')).toContain('--border: 2px;');
         });
 
         it('the dark theme block carries the dark value', () => {
@@ -317,9 +328,7 @@ describe('per-scheme values apply to every token kind, not just colors', () => {
         },
     }));
 
-    const mediaStart = css.indexOf('@media (prefers-color-scheme: dark)');
-    expect(mediaStart, 'no prefers-color-scheme block emitted').toBeGreaterThan(-1);
-    const media = css.slice(mediaStart);
+    const media = mediaBlock(css, '(prefers-color-scheme: dark)');
 
     it.each([
         ['a token category', '--border', '1px', '3px'],
@@ -383,9 +392,7 @@ describe('motion', () => {
 
     it('collapses every declared duration under prefers-reduced-motion', () => {
         const css = withMotion({ durations: { fast: '120ms', slow: '400ms' } });
-        const start = css.indexOf('@media (prefers-reduced-motion: reduce)');
-        expect(start, 'no reduced-motion block emitted').toBeGreaterThan(-1);
-        const reduced = css.slice(start);
+        const reduced = mediaBlock(css, '(prefers-reduced-motion: reduce)');
         expect(reduced).toContain('--duration-fast: 0.01ms;');
         expect(reduced).toContain('--duration-slow: 0.01ms;');
     });
@@ -519,9 +526,7 @@ describe('spacing and shadow', () => {
             },
         }));
         expect(blockOf(css, ':where(:root)')).toContain('/ 0.3)');
-        const mediaStart = css.indexOf('@media (prefers-color-scheme: dark)');
-        expect(mediaStart, 'no prefers-color-scheme block').toBeGreaterThan(-1);
-        expect(css.slice(mediaStart)).toContain('/ 0.7)');
+        expect(mediaBlock(css, '(prefers-color-scheme: dark)')).toContain('/ 0.7)');
         // …and an explicitly-chosen light theme still gets the light ramp.
         expect(blockOf(css, '[data-theme="l"]')).toContain('/ 0.3)');
     });
