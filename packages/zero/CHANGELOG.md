@@ -25,3 +25,15 @@
   `CoreColorToken`, `SoftColorToken` in favor of `RECOMMENDED_ROLE_LIST`,
   `BASE_SURFACE_TOKEN_LIST`, `RecommendedRole`, `BaseSurfaceToken`,
   `ColorValue`.
+
+### Added
+
+- `CSS_COLOR_KEYWORDS` and `ROLE_NAME_PATTERN` are now exported from the
+  contract. `resolveColorToken` resolves through them rather than through
+  private constants, so `@sigx/zero-kit`'s mirrored copy of the contract can
+  be compared against them by an automated parity test.
+
+### Fixed
+
+- `llms.txt` documented 4 of the 14 shipped components; it now lists all
+  fourteen with their parts and notes which accept variant axes.

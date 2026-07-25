@@ -1,0 +1,73 @@
+@layer zero.recipes {
+    [data-scope="radio-group"][data-part="root"] {
+        --radio-size: calc(var(--size-selector) * 6);
+    }
+
+    [data-scope="radio-group"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+    }
+
+    [data-scope="radio-group"][data-part="label"] {
+        font-size: var(--text-sm);
+        font-weight: 600;
+    }
+
+    [data-scope="radio-group"][data-part="label"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="radio-group"][data-part="item"] {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.625rem;
+        cursor: pointer;
+    }
+
+    [data-scope="radio-group"][data-part="item"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="radio-group"][data-part="item-control"] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--radio-size);
+        height: var(--radio-size);
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 9999px;
+        background: var(--color-base-100);
+        transition: border-color 0.2s ease;
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-state="checked"] {
+        border-color: var(--color-primary);
+        border-width: calc(var(--border) * 2);
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="radio-group"][data-part="item-indicator"] {
+        width: calc(var(--radio-size) * 0.55);
+        height: calc(var(--radio-size) * 0.55);
+        border-radius: 9999px;
+        background: transparent;
+        transition: background 0.2s ease, transform 0.2s ease;
+        transform: scale(0.5);
+    }
+
+    [data-scope="radio-group"][data-part="item-indicator"][data-state="checked"] {
+        background: var(--color-primary);
+        transform: scale(1);
+    }
+
+    [data-scope="radio-group"][data-part="item-label"] {
+        font-size: var(--text-sm);
+        font-weight: 500;
+    }
+}

@@ -1,0 +1,50 @@
+@layer zero.recipes {
+    [data-scope="tabs"][data-part="root"] {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    [data-scope="tabs"][data-part="list"] {
+        display: flex;
+        gap: 0.25rem;
+        border-bottom: var(--border) solid var(--color-base-300);
+    }
+
+    [data-scope="tabs"][data-part="tab"] {
+        appearance: none;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        margin-bottom: calc(-1 * var(--border));
+        padding: 0.5rem 0.875rem;
+        font-size: var(--text-sm);
+        color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+        cursor: pointer;
+        border-radius: var(--radius-field) var(--radius-field) 0 0;
+    }
+
+    [data-scope="tabs"][data-part="tab"]:hover:not([data-disabled]) {
+        color: var(--color-base-content);
+        background: var(--color-base-200);
+    }
+
+    [data-scope="tabs"][data-part="tab"][data-state="active"] {
+        color: var(--color-primary);
+        border-bottom-color: var(--color-primary);
+    }
+
+    [data-scope="tabs"][data-part="tab"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="tabs"][data-part="tab"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="tabs"][data-part="panel"] {
+        font-size: var(--text-md);
+    }
+}

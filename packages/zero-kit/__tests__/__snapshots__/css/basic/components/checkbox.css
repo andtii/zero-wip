@@ -1,0 +1,66 @@
+@layer zero.recipes {
+    [data-scope="checkbox"][data-part="root"] {
+        --checkbox-size: calc(var(--size-selector) * 5);
+    }
+
+    [data-scope="checkbox"][data-part="root"] {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="checkbox"][data-part="control"] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--checkbox-size);
+        height: var(--checkbox-size);
+        border: calc(var(--border) * 2) solid var(--color-base-300);
+        border-radius: var(--radius-selector);
+        background: var(--color-base-100);
+        transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-state="checked"] {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-state="indeterminate"] {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-invalid] {
+        border-color: var(--color-error);
+    }
+
+    [data-scope="checkbox"][data-part="indicator"] {
+        color: var(--color-primary-content);
+        line-height: 1;
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="checkbox"][data-part="indicator"][data-state="checked"]::after {
+        content: "✓";
+    }
+
+    [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"]::after {
+        content: "−";
+    }
+
+    [data-scope="checkbox"][data-part="label"] {
+        font-size: var(--text-sm);
+    }
+}

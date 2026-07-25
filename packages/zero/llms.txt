@@ -45,13 +45,55 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
+Fourteen components ship today. Every part each renders is listed below, in
+anatomy order; the authoritative machine-readable list (parts × states × flags
+× token hints) is `@sigx/zero/manifest.json` — generate design systems against
+that, not this summary.
+
+`hidden-input` is a real, styleable part: form controls render an actual
+native input so they post pre-hydration. Design systems normally hide it
+visually while keeping it focusable, rather than `display: none`.
+
+Every component has a `Root` COMPONENT — it takes the `model` and the
+configuration props, and always wraps the others. For Dialog, Popover,
+Tooltip and Menu the root renders no DOM element of its own (it only provides
+context), so those four have no `root` PART and nothing to select with
+`[data-part="root"]`. Below, the slash-separated names are the parts a
+component renders; the root is called out separately where it carries props.
+
 - Tabs: Root(model=value)/List/Tab(value,asChild)/Panel(value). APG tabs,
-  roving arrows, automatic|manual activation.
+  roving arrows, automatic|manual activation, orientation.
 - Collapsible: Root(model=open)/Trigger/Panel on native <details>.
-- Switch: Root(model=checked) over a hidden native checkbox, role=switch.
-- Dialog: Root(model=open)/Trigger/Popup/Title/Description/Close on native
-  <dialog> + top layer (no Portal). Style the backdrop via
+- Accordion: Root(model=string[])/Item/Trigger/Panel on native <details>;
+  `multiple` and `collapsible`.
+- Dialog: Root(model=open, modal, dismissible — renders no element) then
+  Trigger/Popup/Title/Description/Close on native <dialog> + top layer (no
+  Portal). Style the backdrop via
   [data-scope="dialog"][data-part="popup"]::backdrop.
+- Popover: Root(model=open, placement, offset, positionStrategy — renders no
+  element) then Trigger/Popup/Title/Close, on the popover attribute + anchor
+  positioning.
+- Tooltip: Root(model=open, openDelay, closeDelay, placement — renders no
+  element) then Trigger/Popup.
+- Menu: Root(model=open, closeOnSelect, placement — renders no element) then
+  Trigger/Popup/Item(asChild)/Group/GroupLabel/Separator; `select` event.
+- Select: Root(model=value)/Trigger/Value/Indicator/Popup/Item/ItemIndicator/
+  HiddenInput.
+- Switch: Root(model=checked)/Control/Thumb/Label/HiddenInput, role=switch.
+- Checkbox: Root(model=checked)/Control/Indicator/Label/HiddenInput; supports
+  `indeterminate`.
+- RadioGroup: Root(model=value)/Label/Item/ItemControl/ItemIndicator/
+  ItemLabel/HiddenInput; orientation.
+- Slider: Root(model=number)/Label/Input/ValueText on a native
+  <input type=range> (single thumb).
+- Progress: Root/Label/Track/Range/ValueText; `value: number | null`
+  (null = indeterminate).
+- Field: Root/Label/Description/Error — wires ids and disabled/invalid/
+  required down to the control it wraps.
+
+Variant axes (`color`/`size`/`variant`) are accepted by Tabs, Switch,
+Checkbox, RadioGroup, Slider, Progress and Select; they pass through as
+data-* and zero attaches no styling to them.
 
 ## Authoring a design system (@sigx/zero-kit)
 

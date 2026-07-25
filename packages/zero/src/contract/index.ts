@@ -14,6 +14,8 @@ export {
     BASE_SURFACE_TOKEN_LIST,
     STRUCTURAL_TOKEN_LIST,
     SIZE_SCALE_LIST,
+    CSS_COLOR_KEYWORDS,
+    ROLE_NAME_PATTERN,
     resolveColorToken,
 } from './tokens.js';
 

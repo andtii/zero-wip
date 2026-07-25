@@ -34,3 +34,17 @@
   first four declared roles + base surfaces).
 - `TokensInput.breakpoints` — reserved DS-level breakpoint declaration,
   surfaced in the DS manifest (consumed by the upcoming conditions support).
+
+### Fixed
+
+- The kit's copy of zero's token contract is now genuinely parity-guarded.
+  `contract.ts` claimed `zero-kit validate` cross-checked the installed
+  `@sigx/zero` manifest — it never did, so the two copies could drift
+  undetected. A dedicated test now compares every shared export by value,
+  fails when a new shared export is added without a parity row, and
+  re-derives the reserved-role-name rule from zero's actual
+  `resolveColorToken` behavior. The misleading docstrings are corrected.
+- Golden CSS fixtures cover the full compiled output (tokens, every
+  component, and the combined index) of both shipped design systems, so
+  ordering, layering and specificity regressions in the compiler are caught
+  rather than assumed.
