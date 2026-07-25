@@ -155,8 +155,14 @@ describe('kit ↔ zero contract parity', () => {
         expect(layers.indexOf('zero.fallback')).toBeGreaterThan(-1);
         expect(layers.indexOf('zero.fallback')).toBeLessThan(layers.indexOf('zero.tokens'));
 
-        // …and the fallback values must actually live in that layer.
-        const fallbackBlock = baseCss.slice(baseCss.indexOf('@layer zero.fallback'));
+        // …and the fallback values must actually live in that layer. Bounded
+        // to the block itself: `indexOf('@layer zero.fallback')` would match
+        // the order declaration above, and slicing to EOF would pass even if
+        // the values had moved into a later layer.
+        const blockStart = baseCss.indexOf('@layer zero.fallback {');
+        expect(blockStart, 'no @layer zero.fallback block').toBeGreaterThan(-1);
+        const next = baseCss.indexOf('@layer', blockStart + 1);
+        const fallbackBlock = baseCss.slice(blockStart, next === -1 ? undefined : next);
         expect(fallbackBlock).toContain('--radius-box:');
     });
 
