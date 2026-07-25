@@ -72,6 +72,18 @@ export function generateTypeScale(
     const start = Number(magnitude);
     return Object.fromEntries(steps.map((step, i) => {
         const value = start * scale.ratio ** (i - originIndex);
-        return [step, `${trim(value.toFixed(precision))}${unit}`];
+        const rounded = trim(value.toFixed(precision));
+        // A step that rounds away to zero is invisible text, and nothing
+        // downstream would complain: `0rem` is valid CSS. Catch it here,
+        // where the cause (precision, or too many steps below the origin)
+        // is still obvious.
+        if (Number(rounded) === 0 && value !== 0) {
+            throw new Error(
+                `[zero-kit] typography.scale step "${step}" rounds to 0${unit} at precision ` +
+                `${precision} (exact value ${value}) — raise precision, raise base, or use ` +
+                'fewer steps below the origin',
+            );
+        }
+        return [step, `${rounded}${unit}`];
     }));
 }

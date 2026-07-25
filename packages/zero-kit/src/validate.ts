@@ -51,12 +51,26 @@ export interface ValidationResult {
     warnings: ValidationIssue[];
 }
 
+const FUNCTION_HEAD = /^\s*(?:var|calc|clamp|min|max|env|attr)\(/;
+
 /**
- * Values built from CSS functions are opaque here — accept them as-is.
- * Anchored: a CSS function forms the whole value, so `150 var(--x)` is still
- * a mistake and must not slip through on a substring match.
+ * True when the value is ENTIRELY one CSS function call.
+ *
+ * A prefix test isn't enough in either direction: `150 var(--x)` must not
+ * pass, and neither must `var(--x)junk` — both are invalid values CSS drops
+ * silently, which is exactly what this validation exists to catch. So the
+ * parens are balanced and the close has to land at the end of the string.
  */
-const FUNCTIONAL_VALUE = /^\s*(?:var|calc|clamp|min|max|env|attr)\(/;
+function isWhollyFunctional(text: string): boolean {
+    const head = FUNCTION_HEAD.exec(text);
+    if (!head) return false;
+    let depth = 0;
+    for (let i = head[0].length - 1; i < text.length; i++) {
+        if (text[i] === '(') depth++;
+        else if (text[i] === ')' && --depth === 0) return text.slice(i + 1).trim() === '';
+    }
+    return false; // unbalanced — not a value we can vouch for
+}
 const TIME_VALUE = /^-?(?:\d+\.?\d*|\.\d+)m?s$/;
 const NUMBER_VALUE = /^-?(?:\d+\.?\d*|\.\d+)$/;
 
@@ -72,7 +86,7 @@ const NUMBER_VALUE = /^-?(?:\d+\.?\d*|\.\d+)$/;
  */
 function badValue(syntax: string, value: unknown): string | undefined {
     const text = String(value);
-    if (FUNCTIONAL_VALUE.test(text)) return undefined;
+    if (isWhollyFunctional(text)) return undefined;
 
     if (syntax === '<time>' && !TIME_VALUE.test(text)) {
         return `"${text}" is not a valid <time> — CSS ignores a unitless duration, so this transition would never run (use "${text}ms" or "${text}s")`;

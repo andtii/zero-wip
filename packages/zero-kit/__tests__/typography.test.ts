@@ -155,3 +155,45 @@ describe('unitless token validation', () => {
         expect(errors({ tracking: { wide: '0.05em' } })).toEqual([]);
     });
 });
+
+describe('degenerate values', () => {
+    it('rejects a step that rounds away to zero', () => {
+        // `0rem` is valid CSS, so nothing downstream would complain about a
+        // ramp step that renders invisible text.
+        expect(() => generateTypeScale(
+            { base: '0.00001rem', ratio: 2, steps: ['a', 'b'], origin: 'a' },
+            RAMP,
+        )).toThrow(/rounds to 0rem at precision 4/);
+    });
+
+    it('trims trailing zeros without emptying the value', () => {
+        expect(generateTypeScale({ base: '1rem', ratio: 2, steps: ['a'], origin: 'a' }, RAMP))
+            .toEqual({ a: '1rem' });
+    });
+});
+
+describe('functional values must be the whole value', () => {
+    const ds = (typography: Record<string, unknown>): DesignSystemInput => ({
+        name: 'probe',
+        recipes: [],
+        tokens: {
+            roles, system: { typography }, defaultLight: 'l',
+            themes: { l: { colorScheme: 'light', colors } },
+        } as DesignSystemInput['tokens'],
+    });
+    const errors = (t: Record<string, unknown>) =>
+        validateDesignSystem(ds(t), manifest).errors.map((e) => e.message);
+
+    it.each([
+        ['trailing junk', 'var(--x)junk'],
+        ['leading value', '700 var(--x)'],
+        ['unbalanced', 'calc(1 + 2'],
+    ])('rejects %s', (_label, value) => {
+        expect(errors({ weights: { bold: value } }))
+            .toContainEqual(expect.stringContaining('not a valid <number>'));
+    });
+
+    it('accepts a whole functional value, including nested calls', () => {
+        expect(errors({ weights: { bold: 'calc(var(--base-weight) + max(100, 200))' } })).toEqual([]);
+    });
+});
