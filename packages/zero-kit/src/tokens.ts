@@ -23,6 +23,8 @@
  *   always wins without specificity fights.
  */
 import type { RoleDecl } from './contract.js';
+import type { TypeScale } from './scale.js';
+import { generateTypeScale } from './scale.js';
 import {
     BASE_SURFACE_TOKEN_LIST,
     DEFAULT_ROLES,
@@ -62,10 +64,32 @@ export type Scale<Recommended extends string> =
 export type RadiusKey = 'selector' | 'field' | 'box';
 export type SizeKey = 'selector' | 'field';
 export type TextKey = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
+export type FontKey = 'sans' | 'serif' | 'mono' | 'display';
+export type WeightKey = 'normal' | 'medium' | 'semibold' | 'bold';
+export type LeadingKey = 'none' | 'tight' | 'normal' | 'relaxed';
+export type TrackingKey = 'tight' | 'normal' | 'wide';
 export type SpaceKey = '2xs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 export type ShadowKey = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export type DurationKey = 'instant' | 'fast' | 'normal' | 'slow';
 export type EaseKey = 'linear' | 'standard' | 'emphasized';
+
+/**
+ * A design system's typographic voice.
+ *
+ * `fonts` is FAMILIES — `--font-sans` is a stack, never a size. Sizes are
+ * `--text-*`, generated from `scale` or listed in `sizes`, with `sizes`
+ * winning per key so a hand-tuned display size can sit on a generated ramp.
+ */
+export interface TypographyDecl {
+    fonts?: Scale<FontKey>;
+    weights?: Scale<WeightKey>;
+    leading?: Scale<LeadingKey>;
+    tracking?: Scale<TrackingKey>;
+    /** Explicit size ramp. Overrides `scale` per key. */
+    sizes?: Scale<TextKey>;
+    /** Modular scale the `--text-*` ramp is generated from. */
+    scale?: TypeScale;
+}
 
 /**
  * A design system's motion personality: how long things take, and the shape
@@ -94,7 +118,7 @@ export interface MotionDecl {
 export interface SystemTokens {
     radius?: Scale<RadiusKey>;
     size?: Scale<SizeKey>;
-    text?: Scale<TextKey>;
+    typography?: TypographyDecl;
     spacing?: Scale<SpaceKey>;
     shadow?: Scale<ShadowKey>;
     motion?: MotionDecl;
@@ -120,11 +144,28 @@ type OverrideOf<G> =
  */
 type ScalarOverrideOf<G> = [G] extends [never] ? never : TokenValue;
 
+/** Step names a `scale` generates, defaulting to the recommended ramp. */
+type ScaleSteps<C> = C extends { steps: readonly (infer S extends string)[] } ? S : TextKey;
+
+/** The `--text-*` keys this design system ends up with. */
+type TextKeysOf<T extends SystemTokens> =
+    | Extract<keyof Sub<Sub<T, 'typography'>, 'sizes'>, string>
+    | ([Sub<Sub<T, 'typography'>, 'scale'>] extends [never]
+        ? never
+        : ScaleSteps<Sub<Sub<T, 'typography'>, 'scale'>>);
+
 /** `SystemTokens`, narrowed to what this design system declared. */
 export interface ThemeSystem<T extends SystemTokens> {
     radius?: OverrideOf<Sub<T, 'radius'>>;
     size?: OverrideOf<Sub<T, 'size'>>;
-    text?: OverrideOf<Sub<T, 'text'>>;
+    typography?: {
+        fonts?: OverrideOf<Sub<Sub<T, 'typography'>, 'fonts'>>;
+        weights?: OverrideOf<Sub<Sub<T, 'typography'>, 'weights'>>;
+        leading?: OverrideOf<Sub<Sub<T, 'typography'>, 'leading'>>;
+        tracking?: OverrideOf<Sub<Sub<T, 'typography'>, 'tracking'>>;
+        /** Narrowed to the generated steps plus any explicit `sizes` keys. */
+        sizes?: Partial<Record<TextKeysOf<T>, TokenValue>>;
+    };
     spacing?: OverrideOf<Sub<T, 'spacing'>>;
     shadow?: OverrideOf<Sub<T, 'shadow'>>;
     motion?: {
@@ -225,10 +266,34 @@ const customProp = (name: string): string => (name.startsWith('--') ? name : `--
  *
  * Keys emit in declaration order — `recommended` is a hint, not an ordering.
  */
+/**
+ * Expand `typography.scale` into `typography.sizes` before the categories are
+ * read, so the generated ramp goes through exactly the same emission and
+ * override path as a hand-listed one. Explicit `sizes` win per key: a
+ * generated ramp with one hand-tuned display size is a normal thing to want.
+ */
+function expandScale(tier: AnySystem): AnySystem {
+    const typography = (tier as { typography?: TypographyDecl }).typography;
+    if (!typography?.scale) return tier;
+    const textCategory = TOKEN_CATEGORIES.find((c) => c.id === 'text')!;
+    const generated = generateTypeScale(typography.scale, textCategory.recommended);
+    return {
+        ...tier,
+        typography: { ...typography, sizes: { ...generated, ...typography.sizes } },
+    } as AnySystem;
+}
+
 function resolveSystem(...tiers: (AnySystem | undefined)[]): Record<string, string> {
     const props: Record<string, string> = {};
-    for (const tier of tiers) {
-        if (!tier) continue;
+    for (const [index, raw] of tiers.entries()) {
+        if (!raw) continue;
+        // Only the base tier expands a scale. `scale` is a DECLARATION — it
+        // mints `--text-*` keys — and declarations live in `system`;
+        // `ThemeSystem` has no `scale` field for exactly that reason. Expanding
+        // it in an override would let a theme introduce keys behind the
+        // "override only declared keys" rule. Validation reports it too, since
+        // `validate` runs against compiled JS where the type can't.
+        const tier = index === 0 ? expandScale(raw) : raw;
         for (const category of TOKEN_CATEGORIES) {
             const node = systemNodeAt(tier, category.path);
             if (node === undefined || node === null) continue;

@@ -37,7 +37,7 @@ export const tabs: RecipeInput = {
                 background: 'transparent',
                 padding: 'var(--space-sm) var(--space-xl)',
                 fontSize: 'var(--text-sm)',
-                fontWeight: '600',
+                fontWeight: 'var(--weight-semibold)',
                 color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
                 borderRadius: 'calc(var(--radius-field) - 0.25rem)',
                 cursor: 'pointer',
@@ -90,7 +90,7 @@ export const collapsible: RecipeInput = {
                 justifyContent: 'space-between',
                 padding: 'var(--space-xl) var(--space-2xl)',
                 fontSize: 'var(--text-md)',
-                fontWeight: '600',
+                fontWeight: 'var(--weight-semibold)',
             },
             states: {
                 open: {},
@@ -179,7 +179,7 @@ export const switchRecipe: RecipeInput = {
             },
         },
         label: {
-            base: { fontSize: 'var(--text-sm)', fontWeight: '500' },
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)' },
             states: { checked: {}, unchecked: {}, disabled: {} },
         },
     },
@@ -218,7 +218,7 @@ const btn: NonNullable<PartStyles['base']> = {
     height: 'calc(var(--size-field) * 12)',
     paddingInline: 'calc(var(--size-field) * 4)',
     fontSize: 'var(--text-sm)',
-    fontWeight: '600',
+    fontWeight: 'var(--weight-semibold)',
     color: 'var(--color-base-content)',
     background: 'var(--color-base-200)',
     border: 'var(--border) solid var(--color-base-300)',
@@ -266,7 +266,7 @@ export const dialog: RecipeInput = {
             },
         },
         title: {
-            base: { margin: '0 0 var(--space-md)', fontSize: 'var(--text-lg)', fontWeight: '700' },
+            base: { margin: '0 0 var(--space-md)', fontSize: 'var(--text-lg)', fontWeight: 'var(--weight-bold)' },
         },
         description: {
             base: {
@@ -313,7 +313,7 @@ export const popover: RecipeInput = {
             states: { open: {}, closed: {} },
         },
         title: {
-            base: { margin: '0 0 var(--space-md)', fontSize: 'var(--text-md)', fontWeight: '700' },
+            base: { margin: '0 0 var(--space-md)', fontSize: 'var(--text-md)', fontWeight: 'var(--weight-bold)' },
         },
         close: {
             base: { ...btn, height: 'calc(var(--size-field) * 8)', paddingInline: 'calc(var(--size-field) * 3)', fontSize: 'var(--text-xs)' },
@@ -338,7 +338,7 @@ export const tooltip: RecipeInput = {
                 padding: 'var(--space-xs) var(--space-lg)',
                 maxWidth: '18rem',
                 fontSize: 'var(--text-xs)',
-                fontWeight: '500',
+                fontWeight: 'var(--weight-medium)',
                 background: 'var(--color-neutral)',
                 color: 'var(--color-neutral-content)',
                 border: 'none',
@@ -374,7 +374,7 @@ export const menu: RecipeInput = {
                 gap: '0.625rem',
                 padding: 'var(--space-md) var(--space-lg)',
                 fontSize: 'var(--text-sm)',
-                fontWeight: '500',
+                fontWeight: 'var(--weight-medium)',
                 borderRadius: 'var(--radius-field)',
                 cursor: 'pointer',
                 outline: 'none',
@@ -390,7 +390,7 @@ export const menu: RecipeInput = {
             base: {
                 padding: 'var(--space-md) var(--space-lg) var(--space-xs)',
                 fontSize: 'var(--text-xs)',
-                fontWeight: '700',
+                fontWeight: 'var(--weight-bold)',
                 opacity: '0.6',
             },
         },
@@ -411,7 +411,7 @@ export const field: RecipeInput = {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' },
         },
         label: {
-            base: { fontSize: 'var(--text-sm)', fontWeight: '600' },
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
             selectors: {
                 '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' },
@@ -421,7 +421,7 @@ export const field: RecipeInput = {
             base: { margin: '0', fontSize: 'var(--text-xs)', opacity: '0.6' },
         },
         error: {
-            base: { margin: '0', fontSize: 'var(--text-xs)', color: 'var(--color-error)', fontWeight: '500' },
+            base: { margin: '0', fontSize: 'var(--text-xs)', color: 'var(--color-error)', fontWeight: 'var(--weight-medium)' },
         },
     },
 };
@@ -460,7 +460,7 @@ export const checkbox: RecipeInput = {
             },
         },
         indicator: {
-            base: { color: 'var(--color-primary-content)', lineHeight: '1', fontSize: 'var(--text-xs)', fontWeight: '700' },
+            base: { color: 'var(--color-primary-content)', lineHeight: 'var(--leading-none)', fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-bold)' },
             states: { checked: {}, unchecked: {}, indeterminate: {} },
             selectors: {
                 '&[data-state="checked"]::after': { content: '"✓"' },
@@ -468,7 +468,7 @@ export const checkbox: RecipeInput = {
             },
         },
         label: {
-            base: { fontSize: 'var(--text-sm)', fontWeight: '500' },
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)' },
             states: { checked: {}, unchecked: {}, indeterminate: {}, disabled: {} },
         },
     },
@@ -486,7 +486,7 @@ export const radioGroup: RecipeInput = {
             base: { display: 'flex', flexDirection: 'column', gap: '0.625rem' },
         },
         label: {
-            base: { fontSize: 'var(--text-sm)', fontWeight: '600' },
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
         },
         item: {
@@ -530,7 +530,7 @@ export const radioGroup: RecipeInput = {
             },
         },
         'item-label': {
-            base: { fontSize: 'var(--text-sm)', fontWeight: '500' },
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)' },
             states: { checked: {}, unchecked: {}, disabled: {} },
         },
     },
@@ -548,7 +548,7 @@ export const progress: RecipeInput = {
             states: { loading: {}, complete: {}, indeterminate: {} },
         },
         label: {
-            base: { fontSize: 'var(--text-sm)', fontWeight: '600' },
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
         },
         track: {
             base: {
@@ -597,7 +597,7 @@ export const slider: RecipeInput = {
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
         },
         label: {
-            base: { fontSize: 'var(--text-sm)', fontWeight: '600' },
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
             states: { disabled: {} },
         },
         input: {
@@ -637,7 +637,7 @@ export const accordion: RecipeInput = {
                 justifyContent: 'space-between',
                 padding: 'var(--space-xl) var(--space-2xl)',
                 fontSize: 'var(--text-md)',
-                fontWeight: '600',
+                fontWeight: 'var(--weight-semibold)',
                 cursor: 'pointer',
                 listStyle: 'none',
             },
@@ -682,7 +682,7 @@ export const select: RecipeInput = {
                 justifyContent: 'space-between',
                 gap: 'var(--space-lg)',
                 minWidth: '13rem',
-                fontWeight: '500',
+                fontWeight: 'var(--weight-medium)',
                 background: 'var(--color-base-100)',
             },
             states: {
@@ -717,14 +717,14 @@ export const select: RecipeInput = {
                 gap: '0.625rem',
                 padding: 'var(--space-md) var(--space-lg)',
                 fontSize: 'var(--text-sm)',
-                fontWeight: '500',
+                fontWeight: 'var(--weight-medium)',
                 borderRadius: 'var(--radius-field)',
                 cursor: 'pointer',
                 transition: 'background var(--duration-fast) var(--ease-standard)',
             },
             states: {
                 highlighted: { background: 'var(--color-base-200)' },
-                selected: { color: 'var(--color-primary)', fontWeight: '700' },
+                selected: { color: 'var(--color-primary)', fontWeight: 'var(--weight-bold)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
         },

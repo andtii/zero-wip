@@ -9,9 +9,14 @@ export type {
     DurationKey,
     EaseKey,
     MotionDecl,
+    FontKey,
+    LeadingKey,
     RadiusKey,
     ShadowKey,
     SpaceKey,
+    TrackingKey,
+    TypographyDecl,
+    WeightKey,
     RolesDecl,
     Scale,
     SizeKey,
@@ -24,6 +29,9 @@ export type {
     TokensInput,
 } from './tokens.js';
 export { defineTokens, compileTokensCss } from './tokens.js';
+
+export type { TypeScale } from './scale.js';
+export { generateTypeScale } from './scale.js';
 
 export type { CssProps, PartStyles, RecipeContext, RecipeInput } from './recipes.js';
 export { defineRecipe, compileRecipeCss, BUILTIN_CONDITIONS } from './recipes.js';

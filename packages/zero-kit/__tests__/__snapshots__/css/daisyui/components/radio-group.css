@@ -11,7 +11,7 @@
 
     [data-scope="radio-group"][data-part="label"] {
         font-size: var(--text-sm);
-        font-weight: 600;
+        font-weight: var(--weight-semibold);
     }
 
     [data-scope="radio-group"][data-part="label"][data-disabled] {
@@ -68,6 +68,6 @@
 
     [data-scope="radio-group"][data-part="item-label"] {
         font-size: var(--text-sm);
-        font-weight: 500;
+        font-weight: var(--weight-medium);
     }
 }

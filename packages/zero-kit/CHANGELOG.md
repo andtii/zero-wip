@@ -35,6 +35,24 @@
 - `TokensInput.breakpoints` — reserved DS-level breakpoint declaration,
   surfaced in the DS manifest (consumed by the upcoming conditions support).
 
+- **Typography in the token contract** -- `system.typography` declares
+  `fonts`, `weights`, `leading`, `tracking` and the `--text-*` ramp,
+  emitting `--font-*`, `--weight-*`, `--leading-*`, `--tracking-*`.
+  Previously only a font-SIZE ramp existed, so a design system could not
+  state its typographic voice at all: families and weights were reachable
+  only through `extra`, which the validator warns on and which never
+  reaches the manifest.
+- `typography.scale: { base, ratio }` generates the `--text-*` ramp as a
+  modular scale; explicit `typography.sizes` win per key, so a generated
+  ramp with one hand-tuned display size is expressible.
+- **`--font-*` means FAMILIES.** Sizes stay `--text-*`. This settles the
+  naming against `@sigx/lynx-zero`, which currently uses `--font-*` for a
+  control-label size ramp; that side renames when it is rewritten.
+- `ThemeInput.text` / `TokensInput.system.text` moved to
+  `system.typography.sizes` (breaking, pre-release).
+- The validator rejects a `<number>` token carrying a unit -- CSS drops
+  `font-weight: 700px` and a united `line-height` silently, the same
+  failure mode as a unitless duration.
 - **Recipe content validation.** Structure was already checked hard -- an
   unknown part or state fails the build -- but nothing looked inside a
   declaration, so a typo'd `var(--color-brnad)` compiled straight through

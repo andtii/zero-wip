@@ -138,9 +138,29 @@ export const TOKEN_CATEGORIES = [
         description: 'Base unit control sizing multiplies — calc(var(--size-field) * 10).',
     },
     {
-        id: 'text', shape: 'scale', prefix: '--text-', path: ['text'],
+        id: 'font', shape: 'scale', prefix: '--font-', path: ['typography', 'fonts'],
+        recommended: ['sans', 'serif', 'mono', 'display'], syntax: '*',
+        description: 'Font FAMILY stacks. Sizes live in --text-*; this namespace is families only.',
+    },
+    {
+        id: 'text', shape: 'scale', prefix: '--text-', path: ['typography', 'sizes'],
         recommended: ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'], syntax: '<length>',
-        description: 'Font-size ramp.',
+        description: 'Font-size ramp; may be generated from a modular typography.scale.',
+    },
+    {
+        id: 'weight', shape: 'scale', prefix: '--weight-', path: ['typography', 'weights'],
+        recommended: ['normal', 'medium', 'semibold', 'bold'], syntax: '<number>',
+        description: 'Font weights.',
+    },
+    {
+        id: 'leading', shape: 'scale', prefix: '--leading-', path: ['typography', 'leading'],
+        recommended: ['none', 'tight', 'normal', 'relaxed'], syntax: '<number>',
+        description: 'Unitless line-height multipliers.',
+    },
+    {
+        id: 'tracking', shape: 'scale', prefix: '--tracking-', path: ['typography', 'tracking'],
+        recommended: ['tight', 'normal', 'wide'], syntax: '<length>',
+        description: 'Letter spacing.',
     },
     {
         id: 'space', shape: 'scale', prefix: '--space-', path: ['spacing'],

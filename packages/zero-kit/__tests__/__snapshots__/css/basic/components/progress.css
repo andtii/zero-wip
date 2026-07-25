@@ -8,7 +8,7 @@
 
     [data-scope="progress"][data-part="label"] {
         font-size: var(--text-sm);
-        font-weight: 500;
+        font-weight: var(--weight-medium);
     }
 
     [data-scope="progress"][data-part="track"] {

@@ -12,7 +12,7 @@
 
     [data-scope="slider"][data-part="label"] {
         font-size: var(--text-sm);
-        font-weight: 600;
+        font-weight: var(--weight-semibold);
     }
 
     [data-scope="slider"][data-part="input"] {

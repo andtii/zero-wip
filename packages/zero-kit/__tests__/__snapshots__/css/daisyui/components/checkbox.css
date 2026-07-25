@@ -49,9 +49,9 @@
 
     [data-scope="checkbox"][data-part="indicator"] {
         color: var(--color-primary-content);
-        line-height: 1;
+        line-height: var(--leading-none);
         font-size: var(--text-xs);
-        font-weight: 700;
+        font-weight: var(--weight-bold);
     }
 
     [data-scope="checkbox"][data-part="indicator"][data-state="checked"]::after {
@@ -64,6 +64,6 @@
 
     [data-scope="checkbox"][data-part="label"] {
         font-size: var(--text-sm);
-        font-weight: 500;
+        font-weight: var(--weight-medium);
     }
 }

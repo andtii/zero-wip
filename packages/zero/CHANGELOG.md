@@ -39,6 +39,9 @@
 
 ### Added
 
+- `css/base.css` ships fallbacks for the typography categories
+  (`--font-*` families, `--weight-*`, `--leading-*`, `--tracking-*`).
+  `--font-*` is families only; sizes remain `--text-*`.
 - `css/base.css` ships fallbacks for the spacing and elevation categories
   (`--space-2xs`…`--space-2xl`, `--shadow-xs`…`--shadow-xl`), so zero
   primitives have sane density and elevation before any design system loads.

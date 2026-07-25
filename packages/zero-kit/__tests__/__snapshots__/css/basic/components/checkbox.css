@@ -48,7 +48,7 @@
 
     [data-scope="checkbox"][data-part="indicator"] {
         color: var(--color-primary-content);
-        line-height: 1;
+        line-height: var(--leading-none);
         font-size: var(--text-xs);
     }
 

@@ -19,6 +19,17 @@ export const roles = {
 export const system = {
     radius: { selector: '1.5rem', field: '0.5rem', box: '1rem' },
     size: { selector: '0.25rem', field: '0.25rem' },
+    // Typography. `fonts` is FAMILIES — sizes are the --text-* ramp, which
+    // this design system inherits from @sigx/zero's fallbacks.
+    typography: {
+        fonts: {
+            sans: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+            mono: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+        },
+        weights: { normal: 400, medium: 500, semibold: 600, bold: 700 },
+        leading: { none: 1, tight: 1.25, normal: 1.5 },
+        tracking: { normal: '0em', wide: '0.05em' },
+    },
     // daisy runs a slightly roomier ramp than basic — the `xl`/`2xl` steps
     // are where its cards and modals get their air.
     spacing: {

@@ -18,7 +18,7 @@
         justify-content: space-between;
         padding: var(--space-xl) var(--space-2xl);
         font-size: var(--text-md);
-        font-weight: 600;
+        font-weight: var(--weight-semibold);
         cursor: pointer;
         list-style: none;
     }
