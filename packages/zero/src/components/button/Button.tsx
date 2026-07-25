@@ -44,6 +44,16 @@ export type ButtonRootProps =
      * to mean "a thing you click".
      */
     & Define.Prop<'type', 'button' | 'submit' | 'reset', false>
+    /**
+     * Interaction handlers are declared rather than forwarded: sigx passes no
+     * rest props, so a `<Button.Root onClick={…}>` would otherwise be inert.
+     * They compose with the component's own focus tracking rather than
+     * replacing it.
+     */
+    & Define.Prop<'onClick', (e: MouseEvent) => void, false>
+    & Define.Prop<'onKeydown', (e: KeyboardEvent) => void, false>
+    & Define.Prop<'onFocus', (e: FocusEvent) => void, false>
+    & Define.Prop<'onBlur', (e: FocusEvent) => void, false>
     & Define.Slot<'default', PartProps>;
 
 const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal }) => {
@@ -55,10 +65,33 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal }) => {
         'data-part': 'root',
         'data-disabled': dataAttr(props.disabled),
         'data-focus-visible': dataAttr(focus.visible),
+        // A native <button disabled> is inert already; an asChild <a> is not,
+        // so disabled has to be conveyed and enforced by hand there.
+        // The literal string: ARIA is string-valued, and a boolean true
+        // serializes to an empty attribute, which reads as aria-disabled="".
+        'aria-disabled': props.asChild && props.disabled ? 'true' : undefined,
         ...variantAttrs(props),
         ref: (node: HTMLElement | null) => { el = node; },
-        onFocus: () => { focus.visible = isFocusVisible(el); },
-        onBlur: () => { focus.visible = false; },
+        onClick: (e: MouseEvent) => {
+            if (props.disabled) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+            props.onClick?.(e);
+        },
+        onKeydown: (e: KeyboardEvent) => {
+            if (props.disabled) return;
+            props.onKeydown?.(e);
+        },
+        onFocus: (e: FocusEvent) => {
+            focus.visible = isFocusVisible(el);
+            props.onFocus?.(e);
+        },
+        onBlur: (e: FocusEvent) => {
+            focus.visible = false;
+            props.onBlur?.(e);
+        },
     });
 
     return () => {

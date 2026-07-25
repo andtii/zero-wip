@@ -52,9 +52,13 @@ describe.each(['basic', 'daisyui'] as const)('%s button', (name) => {
         const fills = new Set((css.match(/\[data-variant="([a-z]+)"\]/g) ?? []));
         expect(colourRules.length).toBe(8);
         expect(fills.size).toBeGreaterThanOrEqual(4);
-        // …and the total stays near 8 + 4 + 5 rather than 8 × 4 + 5.
-        const ruleCount = (css.match(/\[data-scope="button"\]/g) ?? []).length;
-        expect(ruleCount).toBeLessThan(8 * 4);
+        // The property directly: no rule narrows on both axes at once. That
+        // is what a multiplied matrix looks like, and what the token
+        // indirection exists to avoid — asserted instead of a rule count,
+        // which any unrelated selector would perturb.
+        const selectors = css.match(/^\s*\[data-scope="button"\][^{]*/gm) ?? [];
+        const multiplied = selectors.filter((sel) => sel.includes('data-color') && sel.includes('data-variant'));
+        expect(multiplied).toEqual([]);
     });
 
     it('applies CSS-only defaults with no attributes present', () => {
