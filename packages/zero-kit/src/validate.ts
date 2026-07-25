@@ -36,6 +36,8 @@ import type { RolesDecl } from './tokens.js';
 import { BUILTIN_CONDITIONS } from './recipes.js';
 import type { DesignSystemInput } from './design-system.js';
 import { compileDesignSystem } from './design-system.js';
+import { validateRecipes } from './validate-recipes.js';
+import { tokenVocabulary } from './vocabulary.js';
 
 export interface ValidationIssue {
     level: 'error' | 'warning';
@@ -338,6 +340,11 @@ export function validateDesignSystem<R extends RolesDecl>(
                 warn(`recipes.${recipe.component}`, `color variant "${value}" is not a declared role`);
             }
         }
+    }
+
+    // ── Recipe CONTENT: token references, literals, coverage ──
+    for (const issue of validateRecipes(ds.recipes, manifest, tokenVocabulary(ds.tokens))) {
+        (issue.level === 'error' ? errors : warnings).push(issue);
     }
 
     // ── Recipe state coverage ──

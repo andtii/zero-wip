@@ -173,6 +173,10 @@ export const switchRecipe: RecipeInput = {
         ),
     },
     defaultVariants: { color: 'primary' },
+    // The visible ring lives on `control`/`item-control`; the label root
+    // only groups it. Declared rather than left implicit so the
+    // delegation reads as a decision.
+    skipStates: { root: ['focus-visible'] },
 };
 
 export const dialog: RecipeInput = {
@@ -484,6 +488,10 @@ export const checkbox: RecipeInput = {
             states: { checked: {}, unchecked: {}, indeterminate: {}, disabled: {} },
         },
     },
+    // The visible ring lives on `control`/`item-control`; the label root
+    // only groups it. Declared rather than left implicit so the
+    // delegation reads as a decision.
+    skipStates: { root: ['focus-visible'] },
 };
 
 export const radioGroup: RecipeInput = {
@@ -541,7 +549,7 @@ export const radioGroup: RecipeInput = {
             states: { checked: {}, unchecked: {}, disabled: {} },
         },
     },
-    skipStates: { root: [], label: ['invalid', 'required'] },
+    skipStates: { root: [], label: ['invalid', 'required'], item: ['focus-visible']},
 };
 
 export const progress: RecipeInput = {

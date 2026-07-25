@@ -38,6 +38,7 @@ const SHARED: Record<string, [unknown, unknown]> = {
     // Deep-compared including order: the categories drive emission order, so
     // a reordering in one copy is real drift, not cosmetic.
     TOKEN_CATEGORIES: [zero.TOKEN_CATEGORIES, kit.TOKEN_CATEGORIES],
+    SIZE_SCALE_LIST: [zero.SIZE_SCALE_LIST, kit.SIZE_SCALE_LIST],
 };
 
 /**

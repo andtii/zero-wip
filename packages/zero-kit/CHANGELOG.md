@@ -35,6 +35,25 @@
 - `TokensInput.breakpoints` — reserved DS-level breakpoint declaration,
   surfaced in the DS manifest (consumed by the upcoming conditions support).
 
+- **Recipe content validation.** Structure was already checked hard -- an
+  unknown part or state fails the build -- but nothing looked inside a
+  declaration, so a typo'd `var(--color-brnad)` compiled straight through
+  to the shipped stylesheet and resolved to nothing. Recipes are now checked
+  against a token vocabulary derived from the design system's own
+  declaration, so every category added to `TOKEN_CATEGORIES` is enforced
+  without touching the validator.
+- New errors: an undeclared `var()` reference (with a "did you mean"), a
+  component that styles `focus-visible` nowhere, a `skipStates` entry naming
+  neither a state nor a flag, and variants on a component with no `root`
+  part (the selectors could never match).
+- New warnings: hardcoded palette colours, literal `transition` durations
+  (which opt out of reduced motion), components with no recipe, and a part
+  that declares `focus-visible` without styling it.
+- `skipStates` now covers flags as well as machine states. Entries like
+  `skipStates: { label: ['invalid', 'required'] }` were dead config, since
+  those are flags -- they now mean what they always appeared to.
+- Exported `tokenVocabulary` and `validateRecipes` for tooling that wants
+  the vocabulary or the content pass on its own.
 - **Spacing and shadow token categories** -- `system.spacing` emits
   `--space-*` and `system.shadow` emits `--shadow-*`, so a design system
   states its density and elevation once instead of scattering rem literals

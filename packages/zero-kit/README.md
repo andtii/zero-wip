@@ -61,7 +61,7 @@ Omitting a category is fine — `@sigx/zero/css` ships fallbacks for the
 recommended keys, so absence is never a validation error.
 
 ```bash
-zero-kit validate   # declared-role completeness, WCAG contrast, state coverage
+zero-kit validate   # tokens, contrast, and recipe CONTENT
 zero-kit build      # dist/css/index.css + per-component files + manifest
 ```
 
@@ -74,6 +74,10 @@ need nothing extra. Author mobile-first — breakpoints are `min-width`, and
 declaration order is emission order.
 
 Unknown parts/states fail the build — the anatomy manifest is the contract.
+So do undeclared token references: a recipe that says `var(--color-brnad)`
+is an error naming the nearest declared token, not a stylesheet that silently
+renders nothing. The vocabulary is derived from your own declaration, so it
+grows with the design system rather than being a list to maintain.
 The `skills/design-system` folder ships an agent skill that generates a
 complete design system from a style brief and iterates against `validate`.
 
