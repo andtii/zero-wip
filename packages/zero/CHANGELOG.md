@@ -44,7 +44,6 @@
   design system is judged on; `data-variant` (outline / soft / ghost) had
   nothing to apply to.
 
-
 - `css/base.css` ships fallbacks for the typography categories
   (`--font-*` families, `--weight-*`, `--leading-*`, `--tracking-*`).
   `--font-*` is families only; sizes remain `--text-*`.
@@ -58,7 +57,6 @@
   recommended durations, so zero primitives honor the preference before any
   design system loads. A design system's own duration keys are neutralized by
   its compiled `tokens.css`.
-
 
 - `CSS_COLOR_KEYWORDS` and `ROLE_NAME_PATTERN` are now exported from the
   contract. `resolveColorToken` resolves through them rather than through

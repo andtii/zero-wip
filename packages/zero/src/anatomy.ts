@@ -25,6 +25,7 @@ import { buttonAnatomy } from './components/button/anatomy.js';
 import { selectAnatomy } from './components/select/anatomy.js';
 
 export {
+    buttonAnatomy,
     tabsAnatomy, collapsibleAnatomy, switchAnatomy, dialogAnatomy, popoverAnatomy, tooltipAnatomy, menuAnatomy,
     fieldAnatomy, checkboxAnatomy, radioGroupAnatomy, progressAnatomy, sliderAnatomy, accordionAnatomy, selectAnatomy,
 };
