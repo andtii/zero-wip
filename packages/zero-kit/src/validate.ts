@@ -78,11 +78,15 @@ const NUMBER_VALUE = /^[+-]?(?:\d+\.?\d*|\.\d+)$/;
  * Check a declared value against its category's grammar, for the grammars
  * where getting it wrong fails silently rather than loudly.
  *
- * `<time>` is the one that matters: CSS ignores a unitless `150`, so a
- * mistyped duration doesn't error — the transition simply never runs, and
- * `transitionend` never fires. `<length>` is deliberately not checked; `0`,
- * percentages, `em`-relative and functional values are all legitimate and the
- * false-positive risk outweighs the benefit.
+ * `<time>`: CSS ignores a unitless `150`, so a mistyped duration doesn't
+ * error — the transition simply never runs and `transitionend` never fires.
+ *
+ * `<number>`: a unit here is dropped the same way. `font-weight: 700px` and a
+ * `line-height` carrying a unit both misbehave silently rather than erroring.
+ *
+ * `<length>` is deliberately NOT checked: `0`, percentages, `em`-relative and
+ * functional values are all legitimate, and the false-positive risk outweighs
+ * the benefit — a rule that flags correct values gets switched off.
  */
 function badValue(syntax: string, value: unknown): string | undefined {
     const text = String(value);
@@ -200,6 +204,16 @@ export function validateDesignSystem<R extends RolesDecl>(
      */
     const checkOverride = (where: string, source: unknown) => {
         if (!source) return;
+        // `typography.scale` mints new `--text-*` keys, so it is a declaration
+        // and belongs in `tokens.system`. `ThemeSystem` has no such field;
+        // this is the runtime half, since `validate` sees compiled JS.
+        if (systemNodeAt(source, ['typography', 'scale']) !== undefined) {
+            error(
+                `${where}.typography`,
+                'declares a `scale` — a modular scale mints new --text-* keys, so it belongs in ' +
+                'tokens.system.typography. Override individual steps with `sizes` instead',
+            );
+        }
         for (const category of TOKEN_CATEGORIES) {
             const path = category.path.join('.');
             const declaredNode = systemNodeAt(declaredSystem, category.path);

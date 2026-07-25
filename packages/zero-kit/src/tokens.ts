@@ -285,9 +285,15 @@ function expandScale(tier: AnySystem): AnySystem {
 
 function resolveSystem(...tiers: (AnySystem | undefined)[]): Record<string, string> {
     const props: Record<string, string> = {};
-    for (const raw of tiers) {
+    for (const [index, raw] of tiers.entries()) {
         if (!raw) continue;
-        const tier = expandScale(raw);
+        // Only the base tier expands a scale. `scale` is a DECLARATION — it
+        // mints `--text-*` keys — and declarations live in `system`;
+        // `ThemeSystem` has no `scale` field for exactly that reason. Expanding
+        // it in an override would let a theme introduce keys behind the
+        // "override only declared keys" rule. Validation reports it too, since
+        // `validate` runs against compiled JS where the type can't.
+        const tier = index === 0 ? expandScale(raw) : raw;
         for (const category of TOKEN_CATEGORIES) {
             const node = systemNodeAt(tier, category.path);
             if (node === undefined || node === null) continue;

@@ -259,3 +259,33 @@ describe('value grammar accepts what CSS accepts', () => {
         expect(errors({ weights: { bold: 'VAR(--app-weight)' } })).toEqual([]);
     });
 });
+
+describe('scale belongs to the base tier', () => {
+    it('rejects a scale smuggled into a per-theme override', () => {
+        // A scale MINTS --text-* keys, so allowing it in an override would let
+        // a theme introduce keys behind the "override only declared keys"
+        // rule. ThemeSystem has no `scale` field; this is the runtime half.
+        const ds: DesignSystemInput = {
+            name: 'probe',
+            recipes: [],
+            tokens: {
+                roles,
+                system: { typography: { sizes: { md: '1rem' } } },
+                defaultLight: 'l',
+                themes: {
+                    l: { colorScheme: 'light', colors },
+                    big: {
+                        colorScheme: 'light',
+                        colors,
+                        system: { typography: { scale: { base: '2rem', ratio: 2 } } },
+                    },
+                },
+            } as DesignSystemInput['tokens'],
+        };
+        const r = validateDesignSystem(ds, manifest);
+        expect(r.errors.map((e) => e.message))
+            .toContainEqual(expect.stringContaining('belongs in tokens.system.typography'));
+        // …and the keys must not have been minted regardless.
+        expect(compileTokensCss(ds.tokens)).not.toContain('--text-xs');
+    });
+});
