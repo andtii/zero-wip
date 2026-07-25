@@ -48,8 +48,12 @@ export interface ValidationResult {
     warnings: ValidationIssue[];
 }
 
-/** Values built from CSS functions are opaque here — accept them as-is. */
-const FUNCTIONAL_VALUE = /(?:var|calc|clamp|min|max|env|attr)\(/;
+/**
+ * Values built from CSS functions are opaque here — accept them as-is.
+ * Anchored: a CSS function forms the whole value, so `150 var(--x)` is still
+ * a mistake and must not slip through on a substring match.
+ */
+const FUNCTIONAL_VALUE = /^\s*(?:var|calc|clamp|min|max|env|attr)\(/;
 const TIME_VALUE = /^-?(?:\d+\.?\d*|\.\d+)m?s$/;
 
 /**
@@ -176,23 +180,32 @@ export function validateDesignSystem<R extends RolesDecl>(
         for (const category of TOKEN_CATEGORIES) {
             const path = category.path.join('.');
             const declaredNode = systemNodeAt(declaredSystem, category.path);
+            const overrideNode = systemNodeAt(source, category.path);
             if (category.shape === 'scalar') {
-                if (systemNodeAt(source, category.path) !== undefined && declaredNode === undefined) {
+                if (overrideNode !== undefined && declaredNode === undefined) {
                     error(
                         `${where}.${path}`,
                         `overrides "${path}", which the design system never declares in tokens.system.${path} — declare a base value there first`,
                     );
                 }
+                // An override is a declaration site for the VALUE even when it
+                // isn't one for the key, so it needs the same value check.
+                const bad = overrideNode === undefined
+                    ? undefined
+                    : badValue(category.syntax, overrideNode);
+                if (bad) error(`${where}.${path}`, bad);
                 continue;
             }
             const declared = new Set(categoryKeys(declaredNode));
-            for (const key of categoryKeys(systemNodeAt(source, category.path))) {
+            for (const [key, value] of Object.entries((overrideNode ?? {}) as Record<string, unknown>)) {
                 if (!declared.has(key)) {
                     error(
                         `${where}.${path}`,
                         `overrides "${key}", which the design system never declares in tokens.system.${path} — declare a base value there first`,
                     );
                 }
+                const bad = badValue(category.syntax, value);
+                if (bad) error(`${where}.${path}`, `"${key}": ${bad}`);
             }
         }
     };

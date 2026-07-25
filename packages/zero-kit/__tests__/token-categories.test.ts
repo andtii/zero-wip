@@ -454,3 +454,35 @@ describe('duration value validation', () => {
         expect(withDurations({ a: '150ms', b: '0.3s', c: 'var(--app-speed)' })).toEqual([]);
     });
 });
+
+describe('duration values are checked wherever they are declared', () => {
+    const base = { motion: { durations: { fast: '150ms' } } } as never;
+
+    it('rejects a unitless duration in systemDark', () => {
+        expect(messages(ds({
+            system: base,
+            systemDark: { motion: { durations: { fast: '300' } } } as never,
+        }))).toContainEqual(expect.stringContaining('not a valid <time>'));
+    });
+
+    it('rejects a unitless duration in a per-theme override', () => {
+        expect(messages(ds({
+            system: base,
+            themes: {
+                l: { colorScheme: 'light', colors },
+                snappy: {
+                    colorScheme: 'light',
+                    colors,
+                    system: { motion: { durations: { fast: '80' } } } as never,
+                },
+            },
+        }))).toContainEqual(expect.stringContaining('not a valid <time>'));
+    });
+
+    it('does not accept a bad value just because it mentions a CSS function', () => {
+        // The functional-value escape is anchored: a CSS function forms the
+        // whole value, so `150 var(--x)` is still a mistake.
+        expect(messages(ds({ system: { motion: { durations: { fast: '150 var(--x)' } } } as never })))
+            .toContainEqual(expect.stringContaining('not a valid <time>'));
+    });
+});
