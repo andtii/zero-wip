@@ -9,6 +9,22 @@
 
 import { TOKEN_KEY_PATTERN } from './contract.js';
 
+/**
+ * CSS `<length>` units, plus `%`.
+ *
+ * Curated rather than "any letters": `base: '1rme'` would otherwise generate
+ * a whole ramp of `--text-*` values CSS drops on sight, and the failure would
+ * only show up as unstyled text much later. The viewport family is expanded
+ * programmatically because it is large and regular.
+ */
+const LENGTH_UNITS: ReadonlySet<string> = new Set([
+    '%',
+    'px', 'cm', 'mm', 'q', 'in', 'pt', 'pc',
+    'em', 'rem', 'ex', 'rex', 'ch', 'rch', 'cap', 'rcap', 'ic', 'ric', 'lh', 'rlh',
+    ...['', 's', 'l', 'd'].flatMap((p) =>
+        ['vw', 'vh', 'vi', 'vb', 'vmin', 'vmax'].map((v) => `${p}${v}`)),
+]);
+
 /** `1rem` → `{ magnitude: 1, unit: 'rem' }`. */
 const NUMERIC = /^\s*(-?(?:\d+\.?\d*|\.\d+))([a-z%]*)\s*$/i;
 
@@ -51,6 +67,12 @@ export function generateTypeScale(
     const [, magnitude, unit] = parsed as unknown as [string, string, string];
     if (!unit) {
         throw new Error(`[zero-kit] typography.scale.base "${scale.base}" has no unit`);
+    }
+    if (!LENGTH_UNITS.has(unit.toLowerCase())) {
+        throw new Error(
+            `[zero-kit] typography.scale.base "${scale.base}" uses "${unit}", which is not a CSS ` +
+            'length unit — every generated --text-* value would be dropped by the browser',
+        );
     }
     // Every input is design-system-authored, so each gets a targeted message
     // rather than a RangeError from toFixed or a ramp of NaN/-1rem sizes.

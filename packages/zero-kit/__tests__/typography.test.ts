@@ -289,3 +289,16 @@ describe('scale belongs to the base tier', () => {
         expect(compileTokensCss(ds.tokens)).not.toContain('--text-xs');
     });
 });
+
+describe('scale base units', () => {
+    it('rejects a mistyped unit', () => {
+        // `1rme` would generate a whole ramp the browser drops on sight, and
+        // the failure would surface much later as unstyled text.
+        expect(() => generateTypeScale({ base: '1rme', ratio: 2 }, RAMP))
+            .toThrow(/not a CSS length unit/);
+    });
+
+    it.each(['1rem', '16px', '1.5em', '2vw', '100%', '1DVH', '12pt'])('accepts %s', (base) => {
+        expect(() => generateTypeScale({ base, ratio: 1.25 }, RAMP)).not.toThrow();
+    });
+});
