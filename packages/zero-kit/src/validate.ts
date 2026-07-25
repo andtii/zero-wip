@@ -26,6 +26,7 @@ import {
     RESERVED_ROLE_NAMES,
     TOKEN_CATEGORIES,
     TOKEN_KEY_PATTERN,
+    systemNodeAt,
     ROLE_NAME_PATTERN,
     contrastPairs,
     requiredColorTokens,
@@ -108,19 +109,28 @@ export function validateDesignSystem<R extends RolesDecl>(
     // keys can be spelled as custom properties, and that a per-theme override
     // names a key the design system actually declared — the runtime mirror of
     // the type error, since `validate` runs against compiled JS.
-    const categoryKeys = (node: unknown): string[] =>
-        node && typeof node === 'object' ? Object.keys(node as object) : [];
+    const isKeyMap = (node: unknown): node is Record<string, unknown> =>
+        typeof node === 'object' && node !== null && !Array.isArray(node);
+    const categoryKeys = (node: unknown): string[] => (isKeyMap(node) ? Object.keys(node) : []);
 
-    const systemNode = (source: Record<string, unknown> | undefined, path: readonly string[]) =>
-        source?.[path[0]!];
-
-    const declaredSystem = (ds.tokens.system ?? {}) as Record<string, unknown>;
+    const declaredSystem = ds.tokens.system;
     for (const category of TOKEN_CATEGORIES) {
         if (category.shape === 'scalar') continue;
-        for (const key of categoryKeys(systemNode(declaredSystem, category.path))) {
+        const path = category.path.join('.');
+        const node = systemNodeAt(declaredSystem, category.path);
+        if (node !== undefined && !isKeyMap(node)) {
+            // Emission would otherwise spread a string into `--radius-0`,
+            // `--radius-1`, … or silently drop it.
+            error(
+                `tokens.system.${path}`,
+                `must be an object of key → value for the ${category.prefix}* category, got ${typeof node}`,
+            );
+            continue;
+        }
+        for (const key of categoryKeys(node)) {
             if (!TOKEN_KEY_PATTERN.test(key)) {
                 error(
-                    `tokens.system.${category.path.join('.')}`,
+                    `tokens.system.${path}`,
                     `key "${key}" is not a kebab-case identifier (it becomes ${category.prefix}${key})`,
                 );
             }
@@ -135,13 +145,13 @@ export function validateDesignSystem<R extends RolesDecl>(
      * theme block to restate, so explicitly selecting a light theme while the
      * OS is dark could never override the `prefers-color-scheme` block.
      */
-    const checkOverride = (where: string, source: Record<string, unknown> | undefined) => {
+    const checkOverride = (where: string, source: unknown) => {
         if (!source) return;
         for (const category of TOKEN_CATEGORIES) {
             const path = category.path.join('.');
-            const declaredNode = systemNode(declaredSystem, category.path);
+            const declaredNode = systemNodeAt(declaredSystem, category.path);
             if (category.shape === 'scalar') {
-                if (systemNode(source, category.path) !== undefined && declaredNode === undefined) {
+                if (systemNodeAt(source, category.path) !== undefined && declaredNode === undefined) {
                     error(
                         `${where}.${path}`,
                         `overrides "${path}", which the design system never declares in tokens.system.${path} — declare a base value there first`,
@@ -150,7 +160,7 @@ export function validateDesignSystem<R extends RolesDecl>(
                 continue;
             }
             const declared = new Set(categoryKeys(declaredNode));
-            for (const key of categoryKeys(systemNode(source, category.path))) {
+            for (const key of categoryKeys(systemNodeAt(source, category.path))) {
                 if (!declared.has(key)) {
                     error(
                         `${where}.${path}`,
@@ -160,7 +170,7 @@ export function validateDesignSystem<R extends RolesDecl>(
             }
         }
     };
-    checkOverride('tokens.systemDark', ds.tokens.systemDark as Record<string, unknown> | undefined);
+    checkOverride('tokens.systemDark', ds.tokens.systemDark);
 
     // ── Token completeness + contrast, per theme ──
     const required = requiredColorTokens(roles);
@@ -170,7 +180,7 @@ export function validateDesignSystem<R extends RolesDecl>(
     ]);
     const pairs = contrastPairs(roles);
     for (const [themeName, theme] of Object.entries(ds.tokens.themes)) {
-        checkOverride(`themes.${themeName}.system`, theme.system as Record<string, unknown> | undefined);
+        checkOverride(`themes.${themeName}.system`, theme.system);
         const colors = theme.colors as Record<string, string>;
         for (const token of required) {
             const value = colors[token];

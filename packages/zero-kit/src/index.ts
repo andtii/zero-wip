@@ -57,6 +57,7 @@ export {
     RESERVED_ROLE_NAMES,
     tokenProperty,
     resolveRoles,
+    systemNodeAt,
     requiredColorTokens,
     contrastPairs,
     INTERACTION_STATES,

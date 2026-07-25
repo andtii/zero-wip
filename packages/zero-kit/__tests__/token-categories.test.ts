@@ -8,6 +8,7 @@ import {
     compileDesignSystem,
     compileTokensCss,
     defineTokens,
+    systemNodeAt,
     tokenProperty,
     validateDesignSystem,
 } from '@sigx/zero-kit';
@@ -262,5 +263,26 @@ describe('compiled manifest properties', () => {
 
     it('publishes the declared system values', () => {
         expect(compiled.tokens.system).toEqual({ radius: { field: '0.5rem' }, border: '1px' });
+    });
+});
+
+describe('category node traversal', () => {
+    it('rejects a scale category given a non-object', () => {
+        // Emission would otherwise spread the string into --radius-0,
+        // --radius-1, … `system: { radius: '1rem' }` is a plausible mistake.
+        const errors = messages(ds({ system: { radius: '1rem' } as never }));
+        expect(errors).toContainEqual(expect.stringContaining('must be an object of key → value'));
+    });
+
+    it('reads a category node through its full path', () => {
+        // Every category is single-segment today, but the next ones nest
+        // (typography.sizes). Shortcutting to path[0] would silently resolve
+        // the wrong object, so the helper is exercised against a nested path
+        // directly rather than waiting for that to bite.
+        expect(systemNodeAt({ typography: { sizes: { md: '1rem' } } }, ['typography', 'sizes']))
+            .toEqual({ md: '1rem' });
+        expect(systemNodeAt({ typography: {} }, ['typography', 'sizes'])).toBeUndefined();
+        expect(systemNodeAt({ typography: 'oops' }, ['typography', 'sizes'])).toBeUndefined();
+        expect(systemNodeAt(undefined, ['radius'])).toBeUndefined();
     });
 });

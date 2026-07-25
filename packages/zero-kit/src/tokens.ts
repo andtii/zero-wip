@@ -22,6 +22,7 @@ import {
     DEFAULT_ROLES,
     TOKEN_CATEGORIES,
     resolveRoles,
+    systemNodeAt,
     tokenProperty,
 } from './contract.js';
 
@@ -85,13 +86,20 @@ type OverrideOf<G> =
     : [G] extends [object] ? Partial<Record<Extract<keyof G, string>, TokenValue>>
     : NoKeys;
 
+/**
+ * A scalar override is only available once the design system declares a base
+ * value — overriding something with no base leaves nothing for a theme to
+ * fall back to, and for scheme-divergent values it would be unresettable.
+ */
+type ScalarOverrideOf<G> = [G] extends [never] ? never : TokenValue;
+
 /** `SystemTokens`, narrowed to what this design system declared. */
 export interface ThemeSystem<T extends SystemTokens> {
     radius?: OverrideOf<Sub<T, 'radius'>>;
     size?: OverrideOf<Sub<T, 'size'>>;
     text?: OverrideOf<Sub<T, 'text'>>;
-    border?: TokenValue;
-    disabledOpacity?: TokenValue;
+    border?: ScalarOverrideOf<Sub<T, 'border'>>;
+    disabledOpacity?: ScalarOverrideOf<Sub<T, 'disabledOpacity'>>;
 }
 
 /** Metadata for a DS-declared custom token (values live per-theme). */
@@ -189,12 +197,15 @@ function resolveSystem(...tiers: (AnySystem | undefined)[]): Record<string, stri
     for (const tier of tiers) {
         if (!tier) continue;
         for (const category of TOKEN_CATEGORIES) {
-            const node = (tier as Record<string, unknown>)[category.path[0]!];
+            const node = systemNodeAt(tier, category.path);
             if (node === undefined || node === null) continue;
             if (category.shape === 'scalar') {
                 props[tokenProperty(category)] = String(node);
                 continue;
             }
+            // A non-object here would spread into `--radius-0`-style nonsense;
+            // `validateDesignSystem` reports it, and emission skips it.
+            if (typeof node !== 'object') continue;
             for (const [key, value] of Object.entries(node as Record<string, unknown>)) {
                 if (value === undefined || value === null) continue;
                 props[tokenProperty(category, key)] = String(value);

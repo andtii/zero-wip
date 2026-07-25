@@ -103,6 +103,20 @@ export type TokenCategoryId = typeof TOKEN_CATEGORIES[number]['id'];
 export const TOKEN_KEY_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 /**
+ * Read a category's node out of an authoring object, following the whole
+ * `path`. Categories added later nest (`['typography', 'sizes']`), so
+ * shortcutting to `path[0]` would silently resolve the wrong object.
+ */
+export function systemNodeAt(source: unknown, path: readonly string[]): unknown {
+    let node = source;
+    for (const segment of path) {
+        if (node === undefined || node === null || typeof node !== 'object') return undefined;
+        node = (node as Record<string, unknown>)[segment];
+    }
+    return node;
+}
+
+/**
  * The custom-property name a category key emits.
  *
  * `scalar` categories hold a single value and take no key; `scale`
