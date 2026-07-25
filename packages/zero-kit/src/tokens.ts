@@ -62,6 +62,22 @@ export type Scale<Recommended extends string> =
 export type RadiusKey = 'selector' | 'field' | 'box';
 export type SizeKey = 'selector' | 'field';
 export type TextKey = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
+export type DurationKey = 'instant' | 'fast' | 'normal' | 'slow';
+export type EaseKey = 'linear' | 'standard' | 'emphasized';
+
+/**
+ * A design system's motion personality: how long things take, and the shape
+ * of the movement. Split because the two vary independently — a snappy system
+ * shortens durations while keeping its easing curves.
+ *
+ * Declared durations are collapsed to ~0 under `prefers-reduced-motion`, so
+ * referencing `var(--duration-*)` in a recipe is what makes that recipe
+ * respect the preference.
+ */
+export interface MotionDecl {
+    durations?: Scale<DurationKey>;
+    easings?: Scale<EaseKey>;
+}
 
 /**
  * Design-system-level values for every non-color token category — the
@@ -77,6 +93,7 @@ export interface SystemTokens {
     radius?: Scale<RadiusKey>;
     size?: Scale<SizeKey>;
     text?: Scale<TextKey>;
+    motion?: MotionDecl;
     border?: TokenValue;
     disabledOpacity?: TokenValue;
 }
@@ -104,6 +121,10 @@ export interface ThemeSystem<T extends SystemTokens> {
     radius?: OverrideOf<Sub<T, 'radius'>>;
     size?: OverrideOf<Sub<T, 'size'>>;
     text?: OverrideOf<Sub<T, 'text'>>;
+    motion?: {
+        durations?: OverrideOf<Sub<Sub<T, 'motion'>, 'durations'>>;
+        easings?: OverrideOf<Sub<Sub<T, 'motion'>, 'easings'>>;
+    };
     border?: ScalarOverrideOf<Sub<T, 'border'>>;
     disabledOpacity?: ScalarOverrideOf<Sub<T, 'disabledOpacity'>>;
 }
@@ -384,6 +405,48 @@ function nonColorFor(input: TokensInput<any, any>, theme: AnyTheme): Record<stri
     };
 }
 
+/**
+ * Collapse every declared duration under `prefers-reduced-motion: reduce`.
+ *
+ * This cannot live in `@sigx/zero`'s `base.css` the way the structural
+ * fallbacks do: duration KEYS are design-system-declared, so base.css can
+ * only neutralize the recommended ones and would miss a DS's own
+ * `--duration-emphasized-decelerate`. Same reasoning that moved `@property`
+ * registration into the compiled tokens.css.
+ *
+ * Two details that look arbitrary and aren't:
+ *
+ * - `0.01ms`, not `0ms`. A zero duration suppresses `transitionend` /
+ *   `animationend` entirely, and the presence/exit-animation work (#29)
+ *   waits on those events to know when an overlay may close. 0.01ms is
+ *   visually instant and still fires them.
+ * - `:root, [data-theme]` — both branches are (0,1,0), the same specificity
+ *   as a `[data-theme="x"]` block. Emitted last inside the layer, it wins the
+ *   tie; `:where(:root)` at (0,0,0) would silently lose to every theme block,
+ *   so reduced motion would stop working the moment a theme was selected.
+ */
+function reducedMotionBlock(input: TokensInput<any, any>, light: AnyTheme): string | undefined {
+    const durations = TOKEN_CATEGORIES.find((c) => c.id === 'duration')!;
+    const declared = new Set<string>();
+    for (const tier of [input.system, input.systemDark, light.system]) {
+        for (const key of Object.keys((systemNodeAt(tier, durations.path) ?? {}) as object)) {
+            declared.add(tokenProperty(durations, key));
+        }
+    }
+    for (const theme of Object.values(input.themes)) {
+        for (const key of Object.keys((systemNodeAt(theme.system, durations.path) ?? {}) as object)) {
+            declared.add(tokenProperty(durations, key));
+        }
+    }
+    if (declared.size === 0) return undefined;
+    const decls = [...declared].map((prop) => `${prop}: 0.01ms;`);
+    return (
+        `    @media (prefers-reduced-motion: reduce) {\n` +
+        `${block(':root, [data-theme]', decls, '        ')}\n` +
+        `    }`
+    );
+}
+
 /** Compile a `TokensInput` to the design system's `tokens.css`. */
 export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
     input: TokensInput<R, T>,
@@ -457,6 +520,9 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
             ],
         ));
     }
+    const reduced = reducedMotionBlock(input, light);
+    if (reduced) blocks.push(reduced);
+
     const registrations = propertyRegistrations(input, roles, light);
     const preamble = registrations.length ? `${registrations.join('\n')}\n\n` : '';
     return `${preamble}@layer zero.tokens {\n${blocks.join('\n\n')}\n}\n`;

@@ -120,7 +120,7 @@ export const switchRecipe: RecipeInput = {
                 height: 'var(--switch-height)',
                 borderRadius: '9999px',
                 background: 'var(--color-base-300)',
-                transition: 'background 0.15s ease',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
             },
             states: {
                 checked: { background: 'var(--color-primary)' },
@@ -142,7 +142,7 @@ export const switchRecipe: RecipeInput = {
                 borderRadius: '9999px',
                 background: 'var(--color-base-100)',
                 boxShadow: '0 1px 2px oklch(0% 0 0 / 0.25)',
-                transition: 'transform 0.15s ease',
+                transition: 'transform var(--duration-fast) var(--ease-standard)',
             },
             states: {
                 checked: {
@@ -440,7 +440,7 @@ export const checkbox: RecipeInput = {
                 border: 'calc(var(--border) * 2) solid var(--color-base-300)',
                 borderRadius: 'var(--radius-selector)',
                 background: 'var(--color-base-100)',
-                transition: 'background 0.15s ease, border-color 0.15s ease',
+                transition: 'background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard)',
             },
             states: {
                 checked: { background: 'var(--color-primary)', borderColor: 'var(--color-primary)' },
@@ -494,7 +494,7 @@ export const radioGroup: RecipeInput = {
                 border: 'calc(var(--border) * 2) solid var(--color-base-300)',
                 borderRadius: '9999px',
                 background: 'var(--color-base-100)',
-                transition: 'border-color 0.15s ease',
+                transition: 'border-color var(--duration-fast) var(--ease-standard)',
             },
             states: {
                 checked: { borderColor: 'var(--color-primary)' },
@@ -509,7 +509,7 @@ export const radioGroup: RecipeInput = {
                 height: 'calc(var(--radio-size) / 2)',
                 borderRadius: '9999px',
                 background: 'transparent',
-                transition: 'background 0.15s ease',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
             },
             states: {
                 checked: { background: 'var(--color-primary)' },
@@ -548,7 +548,7 @@ export const progress: RecipeInput = {
                 height: '100%',
                 background: 'var(--color-primary)',
                 borderRadius: '9999px',
-                transition: 'width 0.2s ease',
+                transition: 'width var(--duration-normal) var(--ease-standard)',
             },
             states: {
                 complete: { background: 'var(--color-success)' },
@@ -672,7 +672,7 @@ export const select: RecipeInput = {
             },
         },
         indicator: {
-            base: { opacity: '0.6', transition: 'transform 0.15s ease' },
+            base: { opacity: '0.6', transition: 'transform var(--duration-fast) var(--ease-standard)' },
             states: { open: { transform: 'rotate(180deg)' }, closed: {} },
         },
         popup: {

@@ -39,7 +39,7 @@
         border: var(--border) solid var(--color-base-content);
         border-radius: 9999px;
         background: var(--color-base-100);
-        transition: border-color 0.2s ease;
+        transition: border-color var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="radio-group"][data-part="item-control"][data-state="checked"] {
@@ -57,7 +57,7 @@
         height: calc(var(--radio-size) * 0.55);
         border-radius: 9999px;
         background: transparent;
-        transition: background 0.2s ease, transform 0.2s ease;
+        transition: background var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard);
         transform: scale(0.5);
     }
 

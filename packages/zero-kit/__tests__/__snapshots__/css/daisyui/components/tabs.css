@@ -24,7 +24,7 @@
         color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
         border-radius: calc(var(--radius-field) - 0.25rem);
         cursor: pointer;
-        transition: background 0.2s ease, color 0.2s ease;
+        transition: background var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="tabs"][data-part="tab"]:hover:not([data-disabled]) {

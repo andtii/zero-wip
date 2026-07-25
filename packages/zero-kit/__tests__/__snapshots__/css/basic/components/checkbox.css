@@ -24,7 +24,7 @@
         border: calc(var(--border) * 2) solid var(--color-base-300);
         border-radius: var(--radius-selector);
         background: var(--color-base-100);
-        transition: background 0.15s ease, border-color 0.15s ease;
+        transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="checkbox"][data-part="control"][data-state="checked"] {

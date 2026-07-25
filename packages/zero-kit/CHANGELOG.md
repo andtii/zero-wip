@@ -35,6 +35,19 @@
 - `TokensInput.breakpoints` — reserved DS-level breakpoint declaration,
   surfaced in the DS manifest (consumed by the upcoming conditions support).
 
+- **Motion tokens** (`system.motion`) — `durations` and `easings` emit
+  `--duration-*` / `--ease-*`, so a design system states its motion
+  personality once instead of scattering `0.15s` through its recipes.
+- **`prefers-reduced-motion` is now honored.** The compiler emits a block
+  collapsing every *declared* duration to `0.01ms`. It has to be emitted per
+  design system rather than living in `@sigx/zero`'s `base.css`, because
+  duration keys are DS-declared and base.css cannot know a name like
+  `--duration-emphasized-decelerate` — the same reason `@property`
+  registration moved out of base.css. `0.01ms` rather than `0ms` keeps
+  `transitionend` / `animationend` firing, which presence and exit-animation
+  coordination depends on.
+- The validator rejects a unitless duration. CSS ignores `150` outright, so
+  the transition silently never runs and no event ever fires.
 - **Token categories** — the declared-vocabulary architecture, generalized
   beyond color. `TOKEN_CATEGORIES` is a closed, kit-curated table (each entry
   fixing a `--prefix-`, the keys `@sigx/zero/css` ships fallbacks for, and a

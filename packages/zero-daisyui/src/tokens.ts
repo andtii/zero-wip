@@ -19,6 +19,11 @@ export const roles = {
 export const system = {
     radius: { selector: '1.5rem', field: '0.5rem', box: '1rem' },
     size: { selector: '0.25rem', field: '0.25rem' },
+    // daisy's own timings, unchanged in value — 0.15s/0.2s/0.3s as authored.
+    motion: {
+        durations: { fast: '150ms', normal: '200ms', slow: '300ms' },
+        easings: { standard: 'ease' },
+    },
     border: '1px',
     disabledOpacity: '0.3',
 } as const satisfies SystemTokens;

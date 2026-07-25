@@ -26,6 +26,13 @@ export const roles = {
 export const system = {
     radius: { selector: '0.375rem', field: '0.375rem', box: '0.75rem' },
     size: { selector: '0.25rem', field: '0.25rem' },
+    // Durations match the literals these recipes used before tokenization,
+    // so the visual result is unchanged — what's new is that they can be
+    // retuned in one place, and that reduced motion now collapses them.
+    motion: {
+        durations: { fast: '150ms', normal: '200ms' },
+        easings: { standard: 'ease' },
+    },
     border: '1px',
     disabledOpacity: '0.4',
 } as const satisfies SystemTokens;

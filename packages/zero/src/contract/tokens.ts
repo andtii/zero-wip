@@ -143,6 +143,16 @@ export const TOKEN_CATEGORIES = [
         description: 'Font-size ramp.',
     },
     {
+        id: 'duration', shape: 'scale', prefix: '--duration-', path: ['motion', 'durations'],
+        recommended: ['instant', 'fast', 'normal', 'slow'], syntax: '<time>',
+        description: 'Transition and animation durations; collapsed to ~0 under prefers-reduced-motion.',
+    },
+    {
+        id: 'ease', shape: 'scale', prefix: '--ease-', path: ['motion', 'easings'],
+        recommended: ['linear', 'standard', 'emphasized'], syntax: '*',
+        description: 'Easing functions — the shape of a motion, independent of its duration.',
+    },
+    {
         id: 'border', shape: 'scalar', prefix: '--border', path: ['border'],
         recommended: [], syntax: '<length>',
         description: 'Default border width.',
