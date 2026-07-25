@@ -188,32 +188,34 @@ describe('RecipeInput.css', () => {
     });
 });
 
-describe('breakpoint declarations', () => {
-    const ds = (bp: Record<string, string>): DesignSystemInput => ({
-        name: 'probe',
-        recipes: [],
-        tokens: {
-            roles: { primary: {} },
-            breakpoints: bp,
-            defaultLight: 'l',
-            themes: {
-                l: {
-                    colorScheme: 'light',
-                    colors: {
-                        'base-100': 'oklch(100% 0 0)',
-                        'base-200': 'oklch(96% 0 0)',
-                        'base-300': 'oklch(92% 0 0)',
-                        'base-content': 'oklch(20% 0 0)',
-                        primary: 'oklch(50% 0.2 260)',
-                        'primary-content': 'oklch(98% 0.01 260)',
-                    },
+/** A minimal valid design system carrying only the breakpoints under test. */
+const dsWith = (bp: Record<string, string>): DesignSystemInput => ({
+    name: 'probe',
+    recipes: [],
+    tokens: {
+        roles: { primary: {} },
+        breakpoints: bp,
+        defaultLight: 'l',
+        themes: {
+            l: {
+                colorScheme: 'light',
+                colors: {
+                    'base-100': 'oklch(100% 0 0)',
+                    'base-200': 'oklch(96% 0 0)',
+                    'base-300': 'oklch(92% 0 0)',
+                    'base-content': 'oklch(20% 0 0)',
+                    primary: 'oklch(50% 0.2 260)',
+                    'primary-content': 'oklch(98% 0.01 260)',
                 },
             },
-        } as DesignSystemInput['tokens'],
-    });
-    const errors = (bp: Record<string, string>) =>
-        validateDesignSystem(ds(bp), manifest).errors.map((e) => e.message);
+        },
+    } as DesignSystemInput['tokens'],
+});
 
+const errors = (bp: Record<string, string>) =>
+    validateDesignSystem(dsWith(bp), manifest).errors.map((e) => e.message);
+
+describe('breakpoint declarations', () => {
     it('accepts an ascending mobile-first list', () => {
         expect(errors(breakpoints)).toEqual([]);
     });
@@ -236,5 +238,20 @@ describe('breakpoint declarations', () => {
         expect(errors({ sm: 'wide' })).toContainEqual(
             expect.stringContaining('is not a px/rem/em length'),
         );
+    });
+});
+
+describe('breakpoint units', () => {
+    it('rejects a mixed-unit list', () => {
+        // `30rem` is 480px at the default root size, so this reads as
+        // ascending numerically (30 < 400) while actually inverting. The
+        // comparison is only sound within one unit.
+        expect(errors({ sm: '30rem', md: '400px' })).toContainEqual(
+            expect.stringContaining('use one unit throughout'),
+        );
+    });
+
+    it('accepts an all-rem list', () => {
+        expect(errors({ sm: '40rem', md: '48rem', lg: '64rem' })).toEqual([]);
     });
 });
