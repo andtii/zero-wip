@@ -239,7 +239,7 @@ contract can express:
 | brutalist | 0 | 3px | shadows drawn in `var(--color-base-content)` with zero blur, and `steps()` easings | how far the standard categories stretch before you need a custom token |
 | glass | 1.25rem | 1px | `backdrop-filter: blur(var(--glass-blur))` on every floating surface | declared custom tokens, and translucency that survives both schemes |
 | corporate | 0.5rem | 1px | a two-part shadow ramp (contact + ambient) and a 1.2 type ratio | contrast discipline and declared breakpoints — the two things this brief is judged on |
-| terminal | 0 | 1px | every duration is 0ms, and `--shadow-*` is a per-theme phosphor glow | 0ms durations instead of `transition:none`, and where a theme-coloured token has to be declared |
+| terminal | 0 | 1px | every duration is 0ms, and `--shadow-*` is a glow in `var(--color-primary)` | 0ms durations instead of `transition:none`, and a glow built from theme colours |
 
 Typography carries a brief further than anything else: brutalist wants a
 mono or condensed stack with 800+ weights and wide tracking; editorial

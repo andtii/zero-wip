@@ -108,53 +108,17 @@ describe('the signature move of each brief survives compilation', () => {
         expect(button).not.toContain('transition: none');
     });
 
-    it('terminal declares its glow per theme, where the colour lives', () => {
-        // Writing it once as `0 0 16px var(--color-primary)` in `system` is
-        // the obvious thing and it is wrong: a role is @property-registered,
-        // so the reference resolves at :root and the glow stays green on the
-        // amber theme. Measured in a browser, then fixed here and guarded by
-        // the validator rule below.
+    it('terminal reaches each theme through a colour-referencing shadow', () => {
+        // Written once at design-system level and restated inside every theme
+        // block by the compiler, so the reference resolves against that
+        // theme's own colours instead of freezing at :root (#60). Verified in
+        // a browser: green glow on the console theme, amber on paper.
+        expect(Object.values(terminal.system.shadow).every((v) => v.includes('var(--color-primary)'))).toBe(true);
         const css = compile(terminal).tokensCss;
-        expect(Object.values(terminal.system.shadow).some((s) => s.includes('var(--color-'))).toBe(false);
-        expect(css).toMatch(/\[data-theme="terminal"\][\s\S]*?--shadow-lg: 0 0 16px 0 oklch\(82% 0\.19 145\)/);
-        expect(css).toMatch(/\[data-theme="paper"\][\s\S]*?--shadow-lg: 0 0 16px 0 oklch\(48% 0\.13 60 \/ 0\.5\)/);
-    });
-
-    it('warns when a design-system-level token reads a colour role', () => {
-        const frozen = {
-            ...terminal.tokens,
-            system: { ...terminal.system, shadow: { ...terminal.system.shadow, md: '0 0 8px 0 var(--color-primary)' } },
-        };
-        const messages = validateDesignSystem(
-            { name: 'frozen', tokens: frozen, recipes: [] } as unknown as DesignSystemInput,
-            manifest,
-        ).warnings.map((w) => w.message);
-        expect(messages.some((m) => m.includes('resolves once at :root'))).toBe(true);
-        // A fallback does not save it — the freeze is caused by the role being
-        // @property-registered, not by the reference being unresolvable.
-        const withFallback = {
-            ...terminal.tokens,
-            system: {
-                ...terminal.system,
-                shadow: { ...terminal.system.shadow, md: '0 0 8px 0 var(--color-primary, oklch(50% 0 0))' },
-            },
-        };
-        const fallbackMessages = validateDesignSystem(
-            { name: 'fallback', tokens: withFallback, recipes: [] } as unknown as DesignSystemInput,
-            manifest,
-        ).warnings.map((m) => m.message);
-        expect(fallbackMessages.some((m) => m.includes('resolves once at :root'))).toBe(true);
-        // A base surface is not registered, so it is not flagged — that is the
-        // shape @sigx/zero-brutalist ships, and it was verified working.
-        const inked = {
-            ...terminal.tokens,
-            system: { ...terminal.system, shadow: { ...terminal.system.shadow, md: '5px 5px 0 0 var(--color-base-content)' } },
-        };
-        const inkedMessages = validateDesignSystem(
-            { name: 'inked', tokens: inked, recipes: [] } as unknown as DesignSystemInput,
-            manifest,
-        ).warnings.map((w) => w.message);
-        expect(inkedMessages.some((m) => m.includes('resolves once at :root'))).toBe(false);
+        for (const theme of ['terminal', 'paper']) {
+            const block = css.slice(css.indexOf(`[data-theme="${theme}"]`));
+            expect(block.slice(0, block.indexOf('}'))).toContain('--shadow-lg: 0 0 16px 0 var(--color-primary);');
+        }
     });
 
     it('corporate layers a contact shadow under an ambient one', () => {

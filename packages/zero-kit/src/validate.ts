@@ -283,51 +283,6 @@ export function validateDesignSystem<R extends RolesDecl>(
     };
     checkOverride('tokens.systemDark', ds.tokens.systemDark);
 
-    /**
-     * A design-system-level token whose value reads a colour ROLE is frozen to
-     * the `:root` color scheme.
-     *
-     * Roles are `@property`-registered with `syntax: '<color>'`, so they are
-     * computed values: the `light-dark()` in a role collapses at `:root`, the
-     * surrounding token substitutes that one colour, and every `[data-theme]`
-     * block inherits it — a theme that redeclares the role does not redeclare
-     * the token built from it. Measured, not theorised: a phosphor glow
-     * written `0 0 16px var(--color-primary)` in `system.shadow` stayed green
-     * on the amber theme.
-     *
-     * The base surfaces are not registered, so a `light-dark()` survives
-     * substitution there and the same shape happens to work — but only for a
-     * single light/dark pair, so it is not something to rely on either. Either
-     * way the fix is the same: declare the value under the theme.
-     */
-    // `[,)]` rather than `)`: a fallback does not save the reference here. The
-    // freeze happens because the property is registered, so
-    // `var(--color-primary, oklch(...))` resolves at :root just the same.
-    const roleRefPattern = /var\(\s*--color-([a-z0-9-]+)\s*[,)]/g;
-    const checkFrozenRoleRefs = (where: string, source: unknown) => {
-        if (!source) return;
-        for (const category of TOKEN_CATEGORIES) {
-            const node = systemNodeAt(source, category.path);
-            if (node === undefined) continue;
-            const entries: [string, unknown][] = category.shape === 'scalar'
-                ? [[category.path.join('.'), node]]
-                : Object.entries((node ?? {}) as Record<string, unknown>);
-            for (const [key, value] of entries) {
-                if (typeof value !== 'string') continue;
-                for (const [, role] of value.matchAll(roleRefPattern)) {
-                    if (!Object.hasOwn(roles, role!)) continue;
-                    warn(
-                        `${where}.${category.path.join('.')}`,
-                        `"${key}" reads var(--color-${role}), a color role. Roles are @property-registered, so ` +
-                        `this resolves once at :root and keeps that value inside every [data-theme] block — ` +
-                        `declare the value under each theme's own \`system\` instead`,
-                    );
-                }
-            }
-        }
-    };
-    checkFrozenRoleRefs('tokens.system', declaredSystem);
-    checkFrozenRoleRefs('tokens.systemDark', ds.tokens.systemDark);
 
     // ── Token completeness + contrast, per theme ──
     const required = requiredColorTokens(roles);

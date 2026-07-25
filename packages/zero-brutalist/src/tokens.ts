@@ -88,9 +88,11 @@ export const system = {
 
 /**
  * On a dark page a black offset shadow is invisible, so the ramp is redrawn
- * in the foreground colour — which `--color-base-content` already is in both
- * schemes. The shadows themselves therefore need no dark counterpart; what
- * does change is the border weight, which reads thinner against dark.
+ * in the foreground colour, which `--color-base-content` already is in every
+ * theme — the compiler restates a colour-referencing token inside each theme
+ * block, so one declaration covers them all. The shadows therefore need no
+ * dark counterpart; what does change is the border weight, which reads
+ * thinner against dark.
  */
 export const systemDark = {
     border: '2px',

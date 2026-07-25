@@ -12,7 +12,7 @@ judged on and the only one where all three variant axes matter at once.
 | [`brutalist.ts`](brutalist.ts) | square, thick-ruled, hard-shadowed, shouted in mono | how far the standard categories stretch before you need a custom token |
 | [`glass.ts`](glass.ts) | frosted translucent surfaces over a soft field | declared `custom` tokens, and translucency that survives both schemes |
 | [`corporate.ts`](corporate.ts) | blue primary, grey ramp, modest and layered | contrast discipline and declared breakpoints |
-| [`terminal.ts`](terminal.ts) | phosphor console, monospace, one signal colour | `0ms` durations instead of `transition: none`, and where a theme-coloured token has to live |
+| [`terminal.ts`](terminal.ts) | phosphor console, monospace, one signal colour | `0ms` durations instead of `transition: none`, and a glow built from theme colours |
 
 They are deliberately not four palettes. Read all four and you have seen most
 of what the token contract can express — the four type ratios alone (1.414,
@@ -33,8 +33,10 @@ Two defects, both silent, both now guarded:
 - **`data-color` was invisible on the glass Button.** The frosted default fill
   never read `--btn-accent`, so the whole colour axis did nothing. Caught by
   rendering it, not by reading the CSS.
-- **A design-system-level token that reads a colour role freezes at `:root`.**
-  Colour roles are `@property`-registered, so `0 0 16px var(--color-primary)` in
-  `system.shadow` resolves once and every `[data-theme]` block inherits that one
-  colour — the terminal glow stayed green on the amber theme. The validator now
-  warns, and `terminal.ts` declares its glow under each theme instead.
+- **A design-system-level token that reads a colour was frozen at `:root`.**
+  CSS substitutes `var()` where a property is declared, so
+  `0 0 16px var(--color-primary)` in `system.shadow` captured the `:root`
+  colour and every `[data-theme]` block inherited it — the terminal glow stayed
+  green on the amber theme. Fixed in the compiler (#60): a colour-referencing
+  token is now restated inside each theme block, so `terminal.ts` states its
+  glow once and it resolves per theme.
