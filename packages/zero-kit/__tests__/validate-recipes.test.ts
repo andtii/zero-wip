@@ -264,3 +264,20 @@ describe('focus-visible must actually style something', () => {
         }).errors).toEqual([]);
     });
 });
+
+describe('var() stripping', () => {
+    it('handles a fallback that contains a function', () => {
+        // `var(--x, color-mix(…))` — scanning to the first ")" cuts this in
+        // half and leaves fragments that can read as literals.
+        const { warnings } = check(tabsWith({
+            background: 'var(--color-primary, color-mix(in oklab, var(--color-base-100) 50%, transparent))',
+        }));
+        expect(warnings).not.toContainEqual(expect.stringContaining('hardcodes the color'));
+    });
+
+    it('still sees a literal sitting outside the var()', () => {
+        expect(check(tabsWith({
+            background: 'linear-gradient(var(--color-primary), #3b82f6)',
+        })).warnings).toContainEqual(expect.stringContaining('#3b82f6'));
+    });
+});

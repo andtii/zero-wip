@@ -41,9 +41,33 @@ function isScrim(literal: string): boolean {
     return (toOklch(parsed)?.c ?? 0) < 0.02;
 }
 
+/**
+ * Remove every `var(…)` call, matching parens rather than scanning to the
+ * first `)`. A fallback can itself contain a function
+ * (`var(--x, color-mix(in oklab, …))`), which the naive form cuts in half and
+ * leaves fragments of behind.
+ */
+function stripVars(value: string): string {
+    let out = '';
+    for (let i = 0; i < value.length; i++) {
+        if (!value.startsWith('var(', i)) {
+            out += value[i];
+            continue;
+        }
+        let depth = 0;
+        let j = i + 3;
+        for (; j < value.length; j++) {
+            if (value[j] === '(') depth++;
+            else if (value[j] === ')' && --depth === 0) break;
+        }
+        i = j; // skip the whole call; an unbalanced tail drops entirely
+    }
+    return out;
+}
+
 /** Every color literal in a value, ignoring the contents of `var()`. */
 function colorLiterals(value: string): string[] {
-    const withoutVars = value.replace(/var\([^)]*\)/g, '');
+    const withoutVars = stripVars(value);
     const found = [...withoutVars.matchAll(HEX)].map((m) => m[0]);
     for (const m of withoutVars.matchAll(COLOR_FN)) {
         // Balance from the opening paren so nested functions come along.
@@ -242,7 +266,7 @@ export function validateRecipes(
             if (!Object.hasOwn(VARIANT_AXES, axis)) {
                 warn(
                     `${where}.variants`,
-                    `axis "${axis}" is not a contract axis (${Object.keys(VARIANT_AXES).join(', ')}) — zero never emits data-${axis}, so these rules can't match`,
+                    `axis "${axis}" is not a contract axis (${Object.keys(VARIANT_AXES).join(', ')}) — the data-${axis} selectors are emitted, but no zero component ever sets that attribute, so nothing can match them`,
                 );
             }
             if (axis === 'size') {
