@@ -127,15 +127,34 @@ export function validateDesignSystem<R extends RolesDecl>(
         }
     }
 
+    /**
+     * An override may only touch values the design system declares.
+     *
+     * Beyond catching typos, this is what keeps scheme-divergence resettable:
+     * a value that exists only under dark has no light counterpart for a
+     * theme block to restate, so explicitly selecting a light theme while the
+     * OS is dark could never override the `prefers-color-scheme` block.
+     */
     const checkOverride = (where: string, source: Record<string, unknown> | undefined) => {
+        if (!source) return;
         for (const category of TOKEN_CATEGORIES) {
-            if (category.shape === 'scalar') continue;
-            const declared = new Set(categoryKeys(systemNode(declaredSystem, category.path)));
+            const path = category.path.join('.');
+            const declaredNode = systemNode(declaredSystem, category.path);
+            if (category.shape === 'scalar') {
+                if (systemNode(source, category.path) !== undefined && declaredNode === undefined) {
+                    error(
+                        `${where}.${path}`,
+                        `overrides "${path}", which the design system never declares in tokens.system.${path} — declare a base value there first`,
+                    );
+                }
+                continue;
+            }
+            const declared = new Set(categoryKeys(declaredNode));
             for (const key of categoryKeys(systemNode(source, category.path))) {
                 if (!declared.has(key)) {
                     error(
-                        `${where}.${category.path.join('.')}`,
-                        `overrides "${key}", which the design system never declares in tokens.system.${category.path.join('.')}`,
+                        `${where}.${path}`,
+                        `overrides "${key}", which the design system never declares in tokens.system.${path} — declare a base value there first`,
                     );
                 }
             }

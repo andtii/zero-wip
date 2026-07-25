@@ -370,7 +370,16 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
     // `prefers-color-scheme` block below AND must be restated by every theme
     // block, or explicitly picking the light theme while the OS is dark would
     // strand the dark values (they'd still be winning from the media block).
-    const schemeDivergent = dark ? divergentProps(systemLight, systemDark) : new Set<string>();
+    //
+    // Restricted to properties the light side also defines: a dark-only value
+    // has nothing for a theme block to restate, so putting it in the media
+    // block would make it unresettable. `validateDesignSystem` reports that
+    // as an error; here the emission simply can't produce the trap.
+    const schemeDivergent = dark
+        ? new Set(
+            [...divergentProps(systemLight, systemDark)].filter((prop) => prop in systemLight),
+        )
+        : new Set<string>();
 
     // Specificity ladder inside `@layer zero.tokens`:
     //   `:where(:root)` defaults      → (0,0,0)

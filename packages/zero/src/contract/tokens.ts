@@ -83,14 +83,21 @@ export type TokenCategoryShape =
     /** `prefix` verbatim; the category holds a single value, no keys. */
     | 'scalar';
 
-/** CSS value grammar of a category — drives `@property` and value checking. */
+/**
+ * CSS value grammar of a category. Published in the manifest so tooling and
+ * generators know what a category accepts. NOT currently used for `@property`
+ * registration: a registered `<length>` computes to an absolute value, which
+ * would break `em`-relative and inheritance-sensitive ramps. Categories that
+ * benefit from registration (animatable ones) opt in when they are added.
+ */
 export type TokenSyntax = '<length>' | '<time>' | '<number>' | '<color>' | '*';
 
 /**
  * One token category: the naming GRAMMAR for a family of custom properties.
  *
- * Categories are a closed, kit-curated set — each carries semantics tooling
- * needs (value parsing, `@property` registration, reduced-motion handling).
+ * Categories are a closed, kit-curated set — each carries the semantics
+ * tooling needs to reason about that family (its value grammar, and later
+ * things like reduced-motion handling for durations).
  * The KEYS inside a category are fully open: a design system declares its own
  * (`shadow: { level1, …, level5 }`) and they flow into its manifest.
  * `recommended` is guidance, autocomplete and the set `base.css` ships
@@ -157,9 +164,19 @@ export type TokenCategoryId = typeof TOKEN_CATEGORIES[number]['id'];
  */
 export const TOKEN_KEY_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
-/** The custom-property name a category key emits. */
+/**
+ * The custom-property name a category key emits.
+ *
+ * `scalar` categories hold a single value and take no key; `scale`
+ * categories require one — omitting it would silently produce
+ * `--radius-undefined`, so it throws instead.
+ */
 export function tokenProperty(category: TokenCategory, key?: string): string {
-    return category.shape === 'scalar' ? category.prefix : `${category.prefix}${key}`;
+    if (category.shape === 'scalar') return category.prefix;
+    if (key === undefined) {
+        throw new Error(`[zero] token category "${category.id}" is a scale — tokenProperty needs a key`);
+    }
+    return `${category.prefix}${key}`;
 }
 
 /**

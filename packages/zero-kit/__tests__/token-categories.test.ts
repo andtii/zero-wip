@@ -3,7 +3,16 @@
  * and the three-tier resolution `system → systemDark → theme.system`.
  */
 import { describe, it, expect } from 'vitest';
-import { compileTokensCss, defineTokens } from '@sigx/zero-kit';
+import {
+    TOKEN_CATEGORIES,
+    compileDesignSystem,
+    compileTokensCss,
+    defineTokens,
+    tokenProperty,
+    validateDesignSystem,
+} from '@sigx/zero-kit';
+import type { DesignSystemInput, ManifestComponent } from '@sigx/zero-kit';
+import { anatomies } from '@sigx/zero/anatomy';
 
 /** Minimal complete palette — colors aren't what these tests are about. */
 const colors = {
@@ -124,6 +133,26 @@ describe('token categories', () => {
         expect(blockOf(css, '[data-theme="loud"]')).toContain('--border: 9px;');
     });
 
+    it('a dark-only value never reaches the media block', () => {
+        // It would be unresettable: no light counterpart exists for a theme
+        // block to restate, so explicitly picking a light theme under system
+        // dark could not override it. `validateDesignSystem` errors on this;
+        // the emission must not be able to produce the trap either.
+        const css = compileTokensCss(defineTokens({
+            roles,
+            systemDark: { border: '2px' },
+            defaultLight: 'l',
+            defaultDark: 'd',
+            themes: {
+                l: { colorScheme: 'light', colors },
+                d: { colorScheme: 'dark', colors },
+            },
+        }));
+        expect(css).not.toContain('@media (prefers-color-scheme: dark)');
+        // The dark theme still applies it when explicitly selected.
+        expect(blockOf(css, '[data-theme="d"]')).toContain('--border: 2px;');
+    });
+
     it('omitting a category entirely emits nothing for it', () => {
         // Absence is never an error — base.css carries the fallbacks.
         const css = compileTokensCss(defineTokens({
@@ -133,5 +162,105 @@ describe('token categories', () => {
         }));
         expect(css).not.toContain('--radius-');
         expect(css).not.toContain('--disabled-opacity');
+    });
+});
+
+const manifest = {
+    components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
+};
+
+/** A minimal valid design system, with `tokens` overridable per case. */
+const ds = (tokens: Partial<DesignSystemInput['tokens']>): DesignSystemInput => ({
+    name: 'probe',
+    recipes: [],
+    tokens: {
+        roles,
+        defaultLight: 'l',
+        themes: { l: { colorScheme: 'light', colors } },
+        ...tokens,
+    } as DesignSystemInput['tokens'],
+});
+
+const messages = (input: DesignSystemInput) =>
+    validateDesignSystem(input, manifest).errors.map((e) => `${e.where}: ${e.message}`);
+
+describe('token-category validation', () => {
+    it('rejects a declared key that cannot be spelled as a custom property', () => {
+        const errors = messages(ds({ system: { radius: { '2XL': '1rem' } } }));
+        expect(errors.some((m) => m.includes('"2XL"') && m.includes('--radius-2XL'))).toBe(true);
+        // …but a leading digit is fine, unlike a color role name.
+        expect(messages(ds({ system: { radius: { '2xl': '1rem' } } }))).toEqual([]);
+    });
+
+    it('rejects a systemDark override of an undeclared key', () => {
+        expect(messages(ds({ system: { radius: { field: '1rem' } }, systemDark: { radius: { box: '2rem' } } })))
+            .toContainEqual(expect.stringContaining('overrides "box"'));
+        // Scalar categories are covered too — this is what keeps a
+        // scheme-divergent value resettable by an explicit light theme.
+        expect(messages(ds({ systemDark: { border: '2px' } })))
+            .toContainEqual(expect.stringContaining('overrides "border"'));
+    });
+
+    it('rejects a per-theme override of an undeclared key', () => {
+        const input = ds({
+            system: { radius: { field: '1rem' } },
+            themes: {
+                l: { colorScheme: 'light', colors },
+                other: { colorScheme: 'light', colors, system: { radius: { nope: '0' } } },
+            },
+        });
+        expect(messages(input)).toContainEqual(
+            expect.stringContaining('themes.other.system.radius: overrides "nope"'),
+        );
+    });
+
+    it('rejects a custom token inside any category namespace', () => {
+        const errors = messages(ds({
+            custom: { 'radius-hero': { description: 'x' } },
+            themes: { l: { colorScheme: 'light', colors, custom: { 'radius-hero': '2rem' } } },
+        }));
+        expect(errors).toContainEqual(expect.stringContaining('--radius-* namespace'));
+    });
+
+    it('accepts a design system that declares no categories at all', () => {
+        expect(messages(ds({}))).toEqual([]);
+    });
+});
+
+describe('tokenProperty', () => {
+    it('throws rather than spelling --radius-undefined', () => {
+        const radius = TOKEN_CATEGORIES.find((c) => c.id === 'radius')!;
+        expect(() => tokenProperty(radius)).toThrow(/is a scale/);
+        expect(tokenProperty(radius, 'field')).toBe('--radius-field');
+    });
+
+    it('ignores a key for scalar categories', () => {
+        const border = TOKEN_CATEGORIES.find((c) => c.id === 'border')!;
+        expect(tokenProperty(border)).toBe('--border');
+    });
+});
+
+describe('compiled manifest properties', () => {
+    const compiled = compileDesignSystem(
+        ds({ system: { radius: { field: '0.5rem' }, border: '1px' } }),
+        manifest,
+    );
+
+    it('lists every emitted custom property, sorted and deduped', () => {
+        const { properties } = compiled.tokens;
+        expect(properties).toEqual([...new Set(properties)].sort());
+        expect(properties).toContain('--radius-field');
+        expect(properties).toContain('--border');
+    });
+
+    it('includes derived properties no declaration lists', () => {
+        // `--color-<role>-soft` is computed by the compiler, so a list derived
+        // from the declaration alone would miss it — which is why this is read
+        // back off the emitted CSS.
+        expect(compiled.tokens.properties).toContain('--color-primary-soft');
+    });
+
+    it('publishes the declared system values', () => {
+        expect(compiled.tokens.system).toEqual({ radius: { field: '0.5rem' }, border: '1px' });
     });
 });

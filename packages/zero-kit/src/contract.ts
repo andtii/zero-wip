@@ -32,7 +32,13 @@ export const ROLE_NAME_PATTERN = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 /** How a token category spells its custom properties. */
 export type TokenCategoryShape = 'scale' | 'scalar';
 
-/** CSS value grammar of a category — drives `@property` and value checking. */
+/**
+ * CSS value grammar of a category. Published in the manifest so tooling and
+ * generators know what a category accepts. NOT currently used for `@property`
+ * registration: a registered `<length>` computes to an absolute value, which
+ * would break `em`-relative and inheritance-sensitive ramps. Categories that
+ * benefit from registration (animatable ones) opt in when they are added.
+ */
 export type TokenSyntax = '<length>' | '<time>' | '<number>' | '<color>' | '*';
 
 /**
@@ -96,9 +102,19 @@ export type TokenCategoryId = typeof TOKEN_CATEGORIES[number]['id'];
  */
 export const TOKEN_KEY_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
-/** The custom-property name a category key emits. */
+/**
+ * The custom-property name a category key emits.
+ *
+ * `scalar` categories hold a single value and take no key; `scale`
+ * categories require one — omitting it would silently produce
+ * `--radius-undefined`, so it throws instead.
+ */
 export function tokenProperty(category: TokenCategory, key?: string): string {
-    return category.shape === 'scalar' ? category.prefix : `${category.prefix}${key}`;
+    if (category.shape === 'scalar') return category.prefix;
+    if (key === undefined) {
+        throw new Error(`[zero-kit] token category "${category.id}" is a scale — tokenProperty needs a key`);
+    }
+    return `${category.prefix}${key}`;
 }
 
 /**
