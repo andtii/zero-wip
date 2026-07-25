@@ -113,3 +113,22 @@ describe('the swatch follows the declaration', () => {
         }
     });
 });
+
+describe('the colour axis covers what the vocabulary declares', () => {
+    it('offers every action role as a button colour', () => {
+        // A role that is declared but missing from the variant axis falls
+        // back to the default accent, which reads as "the variant doesn't
+        // work" rather than "that role wasn't wired up".
+        const button = designSystem.recipes.find((r) => r.component === 'button')!;
+        const offered = new Set(Object.keys(button.variants?.color ?? {}));
+
+        // Fills and hairlines are excluded on purpose: they are surfaces, not
+        // things a button is coloured by.
+        const notActionColours = new Set([
+            'surface', 'surface-container', 'surface-container-high', 'outline',
+        ]);
+        const expected = Object.keys(tokens.roles ?? {}).filter((r) => !notActionColours.has(r));
+
+        expect([...offered].sort()).toEqual(expected.sort());
+    });
+});

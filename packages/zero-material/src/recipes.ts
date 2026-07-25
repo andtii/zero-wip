@@ -7,7 +7,17 @@
  */
 import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
 
-const ROLES = ['primary', 'secondary', 'tertiary', 'error', 'info', 'success', 'warning', 'neutral'] as const;
+/**
+ * Every role a consumer can pass as `color`. Must stay in step with the
+ * `roles` declaration: a role that is declared but missing here silently
+ * falls back to the default accent, which looks like the variant simply not
+ * working. `surface*` and `outline` are excluded deliberately — they are
+ * fills and hairlines, not action colours.
+ */
+const ROLES = [
+    'primary', 'secondary', 'tertiary', 'accent',
+    'error', 'info', 'success', 'warning', 'neutral',
+] as const;
 
 const focusRing: Record<string, CssProps> = {
     'focus-visible': {

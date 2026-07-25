@@ -279,6 +279,12 @@
         --btn-soft: var(--color-tertiary-soft);
     }
 
+    [data-scope="button"][data-part="root"][data-color="accent"] {
+        --btn-accent: var(--color-accent);
+        --btn-on-accent: var(--color-accent-content);
+        --btn-soft: var(--color-accent-soft);
+    }
+
     [data-scope="button"][data-part="root"][data-color="error"] {
         --btn-accent: var(--color-error);
         --btn-on-accent: var(--color-error-content);

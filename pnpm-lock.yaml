@@ -72,7 +72,7 @@ importers:
         specifier: workspace:^
         version: link:../../packages/zero-daisyui
       '@sigx/zero-material':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../../packages/zero-material
       sigx:
         specifier: 'catalog:'
