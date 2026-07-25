@@ -1044,6 +1044,7 @@
 
     [data-scope="radio-group"][data-part="item"][data-disabled] {
         opacity: var(--disabled-opacity);
+        cursor: not-allowed;
     }
 
     [data-scope="radio-group"][data-part="item-control"] {
@@ -1072,6 +1073,12 @@
         height: calc(var(--size-selector) * 3);
         border-radius: 624rem;
         background: var(--color-primary-content);
+        transform: scale(0);
+        transition: transform var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="radio-group"][data-part="item-indicator"][data-state="checked"] {
+        transform: scale(1);
     }
 
     [data-scope="radio-group"][data-part="item-label"] {

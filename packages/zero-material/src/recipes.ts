@@ -580,7 +580,10 @@ export const radioGroup: RecipeInput = {
     parts: {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' } },
         label: { base: { ...label, fontSize: 'var(--text-md)' } },
-        item: { base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' }, states: { disabled: { opacity: 'var(--disabled-opacity)' } } },
+        item: {
+            base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
+        },
         // Not `tickBox`: a radio has no indeterminate state, and reusing the
         // checkbox's styles smuggled one in — which the compiler rejected.
         'item-control': {
@@ -592,11 +595,19 @@ export const radioGroup: RecipeInput = {
             },
         },
         'item-indicator': {
+            // The dot is always in the DOM, so it has to be hidden when
+            // unchecked rather than left to the absence of a rule.
             base: {
                 width: 'calc(var(--size-selector) * 3)',
                 height: 'calc(var(--size-selector) * 3)',
                 borderRadius: '624rem',
                 background: 'var(--color-primary-content)',
+                transform: 'scale(0)',
+                transition: motion('transform'),
+            },
+            states: {
+                checked: { transform: 'scale(1)' },
+                unchecked: {},
             },
         },
         'item-label': { base: { fontSize: 'var(--text-md)' } },
@@ -606,7 +617,6 @@ export const radioGroup: RecipeInput = {
     // no appearance of their own that depends on it.
     skipStates: {
         item: ['focus-visible', 'checked', 'unchecked'],
-        'item-indicator': ['checked', 'unchecked'],
         'item-label': ['checked', 'unchecked'],
     },
 };
