@@ -18,7 +18,7 @@
 
     [data-scope="accordion"][data-part="trigger"] {
         display: block;
-        padding: 0.75rem 1rem;
+        padding: var(--space-lg) var(--space-xl);
         font-size: var(--text-md);
         font-weight: 500;
         cursor: pointer;
@@ -40,7 +40,7 @@
     }
 
     [data-scope="accordion"][data-part="panel"] {
-        padding: 0 1rem 0.75rem;
+        padding: 0 var(--space-xl) var(--space-lg);
         font-size: var(--text-md);
     }
 }

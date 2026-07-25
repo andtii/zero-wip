@@ -27,6 +27,19 @@ const colors = {
 
 const roles = { primary: {} } as const;
 
+/**
+ * The body of an at-rule block, bounded at its closing brace.
+ *
+ * Slicing to end-of-file instead would let a later theme block satisfy an
+ * assertion about what the media block emits — the values are often identical.
+ */
+function mediaBlock(css: string, condition: string): string {
+    const start = css.indexOf(`@media ${condition}`);
+    expect(start, `no "@media ${condition}" block emitted`).toBeGreaterThan(-1);
+    const end = css.indexOf('\n    }', start);
+    return css.slice(start, end === -1 ? undefined : end);
+}
+
 /** Declarations inside a given selector block, for order-independent asserts. */
 function blockOf(css: string, selector: string): string {
     const start = css.indexOf(`${selector} {`);
@@ -99,9 +112,7 @@ describe('token categories', () => {
         });
 
         it('emits the dark value under prefers-color-scheme: dark', () => {
-            const mediaStart = css.indexOf('@media (prefers-color-scheme: dark)');
-            expect(mediaStart, 'no prefers-color-scheme block emitted').toBeGreaterThan(-1);
-            expect(css.slice(mediaStart)).toContain('--border: 2px;');
+            expect(mediaBlock(css, '(prefers-color-scheme: dark)')).toContain('--border: 2px;');
         });
 
         it('the dark theme block carries the dark value', () => {
@@ -317,9 +328,7 @@ describe('per-scheme values apply to every token kind, not just colors', () => {
         },
     }));
 
-    const mediaStart = css.indexOf('@media (prefers-color-scheme: dark)');
-    expect(mediaStart, 'no prefers-color-scheme block emitted').toBeGreaterThan(-1);
-    const media = css.slice(mediaStart);
+    const media = mediaBlock(css, '(prefers-color-scheme: dark)');
 
     it.each([
         ['a token category', '--border', '1px', '3px'],
@@ -383,9 +392,7 @@ describe('motion', () => {
 
     it('collapses every declared duration under prefers-reduced-motion', () => {
         const css = withMotion({ durations: { fast: '120ms', slow: '400ms' } });
-        const start = css.indexOf('@media (prefers-reduced-motion: reduce)');
-        expect(start, 'no reduced-motion block emitted').toBeGreaterThan(-1);
-        const reduced = css.slice(start);
+        const reduced = mediaBlock(css, '(prefers-reduced-motion: reduce)');
         expect(reduced).toContain('--duration-fast: 0.01ms;');
         expect(reduced).toContain('--duration-slow: 0.01ms;');
     });
@@ -484,5 +491,56 @@ describe('duration values are checked wherever they are declared', () => {
         // whole value, so `150 var(--x)` is still a mistake.
         expect(messages(ds({ system: { motion: { durations: { fast: '150 var(--x)' } } } as never })))
             .toContainEqual(expect.stringContaining('not a valid <time>'));
+    });
+});
+
+describe('spacing and shadow', () => {
+    it('emits a density ramp and an elevation ramp', () => {
+        const css = compileTokensCss(defineTokens({
+            roles,
+            system: {
+                spacing: { md: '0.5rem', xl: '1rem' },
+                shadow: { md: '0 4px 12px oklch(0% 0 0 / 0.2)' },
+            },
+            defaultLight: 'l',
+            themes: { l: { colorScheme: 'light', colors } },
+        }));
+        expect(css).toContain('--space-md: 0.5rem;');
+        expect(css).toContain('--space-xl: 1rem;');
+        expect(css).toContain('--shadow-md: 0 4px 12px oklch(0% 0 0 / 0.2);');
+    });
+
+    it('carries a heavier elevation ramp under system dark', () => {
+        // The headline reason shadow is a category rather than a hardcoded
+        // literal: a shadow tuned for a white page is nearly invisible on a
+        // dark one, and light-dark() can't help — it only takes colors.
+        const css = compileTokensCss(defineTokens({
+            roles,
+            system: { shadow: { md: '0 10px 30px oklch(0% 0 0 / 0.3)' } },
+            systemDark: { shadow: { md: '0 10px 30px oklch(0% 0 0 / 0.7)' } },
+            defaultLight: 'l',
+            defaultDark: 'd',
+            themes: {
+                l: { colorScheme: 'light', colors },
+                d: { colorScheme: 'dark', colors },
+            },
+        }));
+        expect(blockOf(css, ':where(:root)')).toContain('/ 0.3)');
+        expect(mediaBlock(css, '(prefers-color-scheme: dark)')).toContain('/ 0.7)');
+        // …and an explicitly-chosen light theme still gets the light ramp.
+        expect(blockOf(css, '[data-theme="l"]')).toContain('/ 0.3)');
+    });
+
+    it('accepts elevation keys outside the recommended ramp', () => {
+        // Material names its elevations level1..level5 — #33's requirement
+        // that a foreign vocabulary needs no special-casing.
+        const css = compileTokensCss(defineTokens({
+            roles,
+            system: { shadow: { level1: '0 1px 2px #0001', level5: '0 12px 32px #0003' } },
+            defaultLight: 'l',
+            themes: { l: { colorScheme: 'light', colors } },
+        }));
+        expect(css).toContain('--shadow-level1: 0 1px 2px #0001;');
+        expect(css).toContain('--shadow-level5: 0 12px 32px #0003;');
     });
 });

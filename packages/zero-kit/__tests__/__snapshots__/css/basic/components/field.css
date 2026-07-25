@@ -2,7 +2,7 @@
     [data-scope="field"][data-part="root"] {
         display: flex;
         flex-direction: column;
-        gap: 0.375rem;
+        gap: var(--space-sm);
     }
 
     [data-scope="field"][data-part="label"] {

@@ -19,6 +19,25 @@ export const roles = {
 export const system = {
     radius: { selector: '1.5rem', field: '0.5rem', box: '1rem' },
     size: { selector: '0.25rem', field: '0.25rem' },
+    // daisy runs a slightly roomier ramp than basic — the `xl`/`2xl` steps
+    // are where its cards and modals get their air.
+    spacing: {
+        '2xs': '0.125rem',
+        xs: '0.25rem',
+        sm: '0.375rem',
+        md: '0.5rem',
+        lg: '0.75rem',
+        xl: '1rem',
+        '2xl': '1.25rem',
+    },
+    // daisy leans on many barely-separated low elevations; preserved exactly.
+    shadow: {
+        xs: '0 1px 2px oklch(0% 0 0 / 0.08)',
+        sm: '0 1px 2px oklch(0% 0 0 / 0.15)',
+        md: '0 1px 2px oklch(0% 0 0 / 0.2)',
+        lg: '0 12px 32px -8px oklch(0% 0 0 / 0.3)',
+        xl: '0 25px 50px -12px oklch(0% 0 0 / 0.4)',
+    },
     // daisy's own timings, unchanged in value — 0.15s/0.2s/0.3s as authored.
     motion: {
         durations: { fast: '150ms', normal: '200ms', slow: '300ms' },

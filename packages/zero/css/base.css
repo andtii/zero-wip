@@ -42,6 +42,23 @@
         --border: 1px;
         --disabled-opacity: 0.4;
 
+        --space-2xs: 0.125rem;
+        --space-xs: 0.25rem;
+        --space-sm: 0.375rem;
+        --space-md: 0.5rem;
+        --space-lg: 0.75rem;
+        --space-xl: 1rem;
+        --space-2xl: 1.5rem;
+
+        /* Achromatic so they read on any hue; a design system that cares
+           about shadow tint overrides them, and dark themes usually want
+           heavier ones via `systemDark.shadow`. */
+        --shadow-xs: 0 1px 2px oklch(0% 0 0 / 0.06);
+        --shadow-sm: 0 1px 3px oklch(0% 0 0 / 0.1);
+        --shadow-md: 0 4px 12px -2px oklch(0% 0 0 / 0.12);
+        --shadow-lg: 0 12px 32px -8px oklch(0% 0 0 / 0.18);
+        --shadow-xl: 0 24px 56px -12px oklch(0% 0 0 / 0.24);
+
         --duration-instant: 0ms;
         --duration-fast: 120ms;
         --duration-normal: 200ms;

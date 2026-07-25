@@ -8,7 +8,7 @@
     [data-scope="switch"][data-part="root"] {
         display: inline-flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: var(--space-lg);
         cursor: pointer;
     }
 
@@ -46,7 +46,7 @@
         height: calc(var(--switch-height) - var(--switch-pad) * 2 - var(--border) * 2);
         border-radius: var(--radius-selector);
         background: var(--color-base-100);
-        box-shadow: 0 1px 2px oklch(0% 0 0 / 0.2);
+        box-shadow: var(--shadow-md);
         transition: transform var(--duration-normal) var(--ease-standard), background var(--duration-normal) var(--ease-standard);
     }
 

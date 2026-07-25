@@ -8,7 +8,7 @@
 
     [data-scope="collapsible"][data-part="trigger"] {
         display: block;
-        padding: 0.75rem 1rem;
+        padding: var(--space-lg) var(--space-xl);
         font-size: var(--text-md);
         font-weight: 500;
         border-radius: var(--radius-box);
@@ -32,7 +32,7 @@
     }
 
     [data-scope="collapsible"][data-part="panel"] {
-        padding: 0.75rem 1rem;
+        padding: var(--space-lg) var(--space-xl);
         border-top: var(--border) solid var(--color-base-300);
         font-size: var(--text-md);
     }

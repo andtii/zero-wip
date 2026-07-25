@@ -7,6 +7,6 @@
         color: var(--color-neutral-content);
         border: none;
         border-radius: var(--radius-field);
-        box-shadow: 0 4px 12px oklch(0% 0 0 / 0.25);
+        box-shadow: var(--shadow-sm);
     }
 }

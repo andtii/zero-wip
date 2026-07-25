@@ -2,12 +2,12 @@
     [data-scope="tabs"][data-part="root"] {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: var(--space-md);
     }
 
     [data-scope="tabs"][data-part="list"] {
         display: flex;
-        gap: 0.25rem;
+        gap: var(--space-xs);
         border-bottom: var(--border) solid var(--color-base-300);
     }
 

@@ -10,6 +10,8 @@ export type {
     EaseKey,
     MotionDecl,
     RadiusKey,
+    ShadowKey,
+    SpaceKey,
     RolesDecl,
     Scale,
     SizeKey,
