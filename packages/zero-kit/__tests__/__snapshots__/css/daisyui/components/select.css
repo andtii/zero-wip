@@ -13,7 +13,7 @@
         height: calc(var(--size-field) * 12);
         padding-inline: calc(var(--size-field) * 4);
         font-size: var(--text-sm);
-        font-weight: 500;
+        font-weight: var(--weight-medium);
         color: var(--color-base-content);
         background: var(--color-base-100);
         border: var(--border) solid var(--color-base-300);
@@ -76,7 +76,7 @@
         gap: 0.625rem;
         padding: var(--space-md) var(--space-lg);
         font-size: var(--text-sm);
-        font-weight: 500;
+        font-weight: var(--weight-medium);
         border-radius: var(--radius-field);
         cursor: pointer;
         transition: background var(--duration-fast) var(--ease-standard);
@@ -88,7 +88,7 @@
 
     [data-scope="select"][data-part="item"][data-selected] {
         color: var(--color-primary);
-        font-weight: 700;
+        font-weight: var(--weight-bold);
     }
 
     [data-scope="select"][data-part="item"][data-disabled] {

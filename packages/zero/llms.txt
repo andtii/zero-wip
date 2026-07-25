@@ -35,7 +35,8 @@
   a `--prefix-` and a value grammar, with OPEN keys inside that the design
   system declares. Today: `--radius-*` (selector|field|box), `--size-*`
   (selector|field), `--text-*` (xs…3xl), `--space-*`
-  (2xs…2xl), `--shadow-*` (xs…xl), `--duration-*`
+  (2xs…2xl), `--shadow-*` (xs…xl), `--font-*` (FAMILIES: sans|serif|mono|
+  display), `--weight-*`, `--leading-*`, `--tracking-*`, `--duration-*`
   (instant|fast|normal|slow), `--ease-*` (linear|standard|emphasized),
   `--border`, `--disabled-opacity`.
   The `recommended` keys are the ones `@sigx/zero/css` ships fallbacks for —
@@ -45,6 +46,10 @@
   `tokens.system`, not repeated per theme. `tokens.systemDark` overrides them
   for dark-scheme themes, and a single theme can override via its own
   `system` block. Resolution: `system` → `systemDark` → `theme.system`.
+- `--font-*` is FAMILIES, never sizes; sizes are `--text-*`. The ramp is
+  either listed in `typography.sizes` or generated from
+  `typography.scale: { base, ratio }`, with `sizes` winning per key.
+  Weights and leading are unitless.
 - Motion: recipes write
   `transition: background var(--duration-fast) var(--ease-standard)`, never a
   literal duration. Every declared `--duration-*` collapses to 0.01ms under

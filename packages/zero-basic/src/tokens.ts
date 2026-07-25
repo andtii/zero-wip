@@ -26,6 +26,17 @@ export const roles = {
 export const system = {
     radius: { selector: '0.375rem', field: '0.375rem', box: '0.75rem' },
     size: { selector: '0.25rem', field: '0.25rem' },
+    // Typography. `fonts` is FAMILIES — sizes are the --text-* ramp, which
+    // this design system inherits from @sigx/zero's fallbacks.
+    typography: {
+        fonts: {
+            sans: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+            mono: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+        },
+        weights: { normal: 400, medium: 500, semibold: 600, bold: 700 },
+        leading: { none: 1, tight: 1.25, normal: 1.5 },
+        tracking: { normal: '0em', wide: '0.05em' },
+    },
     // Density ramp. The values are the ones these recipes already used, so
     // tokenizing changed nothing visually — what it buys is retuning density
     // in one place.

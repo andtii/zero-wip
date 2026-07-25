@@ -57,7 +57,7 @@
 
     [data-scope="switch"][data-part="label"] {
         font-size: var(--text-sm);
-        font-weight: 500;
+        font-weight: var(--weight-medium);
     }
 
     [data-scope="switch"][data-part="root"][data-color="primary"] [data-scope="switch"][data-part="control"][data-state="checked"] {

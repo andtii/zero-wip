@@ -20,7 +20,7 @@
         background: transparent;
         padding: var(--space-sm) var(--space-xl);
         font-size: var(--text-sm);
-        font-weight: 600;
+        font-weight: var(--weight-semibold);
         color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
         border-radius: calc(var(--radius-field) - 0.25rem);
         cursor: pointer;

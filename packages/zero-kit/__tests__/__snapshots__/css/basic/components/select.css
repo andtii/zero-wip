@@ -11,7 +11,7 @@
         gap: var(--space-lg);
         padding: var(--space-md) var(--space-xl);
         font-size: var(--text-sm);
-        font-weight: 500;
+        font-weight: var(--weight-medium);
         color: var(--color-base-content);
         background: var(--color-base-100);
         border: var(--border) solid var(--color-base-300);
@@ -83,7 +83,7 @@
     }
 
     [data-scope="select"][data-part="item"][data-selected] {
-        font-weight: 600;
+        font-weight: var(--weight-semibold);
     }
 
     [data-scope="select"][data-part="item"][data-disabled] {

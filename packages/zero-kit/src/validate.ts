@@ -58,6 +58,7 @@ export interface ValidationResult {
  */
 const FUNCTIONAL_VALUE = /^\s*(?:var|calc|clamp|min|max|env|attr)\(/;
 const TIME_VALUE = /^-?(?:\d+\.?\d*|\.\d+)m?s$/;
+const NUMBER_VALUE = /^-?(?:\d+\.?\d*|\.\d+)$/;
 
 /**
  * Check a declared value against its category's grammar, for the grammars
@@ -70,11 +71,16 @@ const TIME_VALUE = /^-?(?:\d+\.?\d*|\.\d+)m?s$/;
  * false-positive risk outweighs the benefit.
  */
 function badValue(syntax: string, value: unknown): string | undefined {
-    if (syntax !== '<time>') return undefined;
     const text = String(value);
     if (FUNCTIONAL_VALUE.test(text)) return undefined;
-    if (!TIME_VALUE.test(text)) {
+
+    if (syntax === '<time>' && !TIME_VALUE.test(text)) {
         return `"${text}" is not a valid <time> — CSS ignores a unitless duration, so this transition would never run (use "${text}ms" or "${text}s")`;
+    }
+    if (syntax === '<number>' && !NUMBER_VALUE.test(text)) {
+        // A unit here is silently dropped the same way: `font-weight: 600px`
+        // and `line-height` with a unit both misbehave rather than error.
+        return `"${text}" is not a valid <number> — this token is unitless (a weight, a multiplier or an opacity)`;
     }
     return undefined;
 }

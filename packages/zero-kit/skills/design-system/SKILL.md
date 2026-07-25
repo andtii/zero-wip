@@ -48,6 +48,26 @@ component's anatomy). No component code is ever written or changed.
    - The keys inside a category are **yours**: `recommended` is what
      `@sigx/zero/css` ships fallbacks for, not a limit. Declare
      `radius: { pill: '9999px' }` and it flows into your manifest.
+   - **Typography is the axis a style brief leans on hardest.**
+     `typography` declares `fonts` (FAMILIES — `--font-sans` is a stack, never
+     a size), `weights`, `leading`, `tracking`, and the `--text-*` size ramp.
+     Give the ramp either as explicit `sizes` or as a modular `scale`:
+     ```ts
+     typography: {
+         fonts: { sans: 'Inter, system-ui', mono: 'JetBrains Mono, monospace' },
+         weights: { normal: 400, medium: 500, semibold: 600, bold: 700 },
+         leading: { tight: 1.2, normal: 1.5 },
+         tracking: { tight: '-0.01em', normal: '0em', wide: '0.05em' },
+         scale: { base: '1rem', ratio: 1.25 },        // generates --text-*
+         sizes: { '3xl': 'clamp(2rem, 5vw, 4rem)' },  // …one step hand-tuned
+     }
+     ```
+     `sizes` wins per key, so a generated ramp with a hand-tuned display size
+     is a normal thing to write. `ratio` is the whole personality: 1.125 is
+     restrained, 1.5+ is dramatic. Weights and leading are **unitless** — the
+     validator rejects `700px` and `1.5rem`, because CSS drops both silently.
+     Fluid type belongs in `sizes` as a `clamp()`, not in the generator: the
+     bounds are a design decision, not a ratio.
    - **Density and elevation are personality axes too.** `spacing` emits
      `--space-*` (padding, gap, margin) and `shadow` emits `--shadow-*`.
      Recipes reference them instead of literal rems and box-shadows, so the
@@ -167,4 +187,9 @@ And these are warnings worth driving to zero:
 | brutalist | 0 | 2-3px solid | high-contrast, few hues | hard shadows (`4px 4px 0 0`), uppercase labels |
 | glass | 1rem+ | 1px translucent | low-chroma + one accent | `backdrop-filter: blur()`, translucent `base-100` |
 | corporate | 0.375rem | 1px | blue primary, gray ramp | subtle shadows, AA+ contrast everywhere |
-| terminal | 0 | 1px | dark base, green/amber content | monospace font token, no transitions |
+| terminal | 0 | 1px | dark base, green/amber content | `fonts.mono`, no transitions |
+
+Typography carries a brief further than anything else: brutalist wants a
+mono or condensed stack with 800+ weights and wide tracking; editorial
+wants a serif with generous `leading`; corporate wants a humanist sans and
+a restrained `ratio`.
