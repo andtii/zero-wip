@@ -18,14 +18,14 @@ export const tabs: RecipeInput = {
     component: 'tabs',
     parts: {
         root: {
-            base: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' },
         },
         list: {
             base: {
                 display: 'inline-flex',
                 alignSelf: 'flex-start',
-                padding: '0.25rem',
-                gap: '0.25rem',
+                padding: 'var(--space-xs)',
+                gap: 'var(--space-xs)',
                 background: 'var(--color-base-200)',
                 borderRadius: 'var(--radius-field)',
             },
@@ -35,7 +35,7 @@ export const tabs: RecipeInput = {
                 appearance: 'none',
                 border: 'none',
                 background: 'transparent',
-                padding: '0.375rem 1rem',
+                padding: 'var(--space-sm) var(--space-xl)',
                 fontSize: 'var(--text-sm)',
                 fontWeight: '600',
                 color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
@@ -48,7 +48,7 @@ export const tabs: RecipeInput = {
                 active: {
                     background: 'var(--color-base-100)',
                     color: 'var(--color-base-content)',
-                    boxShadow: '0 1px 2px oklch(0% 0 0 / 0.15)',
+                    boxShadow: 'var(--shadow-sm)',
                 },
                 inactive: {},
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
@@ -88,7 +88,7 @@ export const collapsible: RecipeInput = {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '1rem 1.25rem',
+                padding: 'var(--space-xl) var(--space-2xl)',
                 fontSize: 'var(--text-md)',
                 fontWeight: '600',
             },
@@ -117,7 +117,7 @@ export const collapsible: RecipeInput = {
             },
         },
         panel: {
-            base: { padding: '0 1.25rem 1rem', fontSize: 'var(--text-md)' },
+            base: { padding: '0 var(--space-2xl) var(--space-xl)', fontSize: 'var(--text-md)' },
             states: { open: {}, closed: {} },
         },
     },
@@ -133,7 +133,7 @@ export const switchRecipe: RecipeInput = {
     },
     parts: {
         root: {
-            base: { display: 'inline-flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' },
+            base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-lg)', cursor: 'pointer' },
             states: {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 checked: {},
@@ -167,7 +167,7 @@ export const switchRecipe: RecipeInput = {
                 height: 'calc(var(--switch-height) - var(--switch-pad) * 2 - var(--border) * 2)',
                 borderRadius: 'var(--radius-selector)',
                 background: 'var(--color-base-100)',
-                boxShadow: '0 1px 2px oklch(0% 0 0 / 0.2)',
+                boxShadow: 'var(--shadow-md)',
                 transition: 'transform var(--duration-normal) var(--ease-standard), background var(--duration-normal) var(--ease-standard)',
             },
             states: {
@@ -219,7 +219,7 @@ const btn: NonNullable<PartStyles['base']> = {
     background: 'var(--color-base-200)',
     border: 'var(--border) solid var(--color-base-300)',
     borderRadius: 'var(--radius-field)',
-    boxShadow: '0 1px 2px oklch(0% 0 0 / 0.08)',
+    boxShadow: 'var(--shadow-xs)',
     cursor: 'pointer',
     transition: 'background var(--duration-normal) var(--ease-standard)',
 };
@@ -249,7 +249,7 @@ export const dialog: RecipeInput = {
                 color: 'var(--color-base-content)',
                 border: 'none',
                 borderRadius: 'var(--radius-box)',
-                boxShadow: '0 25px 50px -12px oklch(0% 0 0 / 0.4)',
+                boxShadow: 'var(--shadow-xl)',
             },
             states: {
                 open: { animation: 'zero-daisy-pop var(--duration-normal) ease-out' },
@@ -262,11 +262,11 @@ export const dialog: RecipeInput = {
             },
         },
         title: {
-            base: { margin: '0 0 0.5rem', fontSize: 'var(--text-lg)', fontWeight: '700' },
+            base: { margin: '0 0 var(--space-md)', fontSize: 'var(--text-lg)', fontWeight: '700' },
         },
         description: {
             base: {
-                margin: '0 0 1.25rem',
+                margin: '0 0 var(--space-2xl)',
                 fontSize: 'var(--text-sm)',
                 color: 'color-mix(in oklab, var(--color-base-content) 75%, transparent)',
             },
@@ -288,7 +288,7 @@ const floatingPanel: NonNullable<PartStyles['base']> = {
     color: 'var(--color-base-content)',
     border: 'var(--border) solid var(--color-base-300)',
     borderRadius: 'var(--radius-box)',
-    boxShadow: '0 12px 32px -8px oklch(0% 0 0 / 0.3)',
+    boxShadow: 'var(--shadow-lg)',
 };
 
 export const popover: RecipeInput = {
@@ -305,11 +305,11 @@ export const popover: RecipeInput = {
             },
         },
         popup: {
-            base: { ...floatingPanel, padding: '1.25rem', minWidth: '15rem' },
+            base: { ...floatingPanel, padding: 'var(--space-2xl)', minWidth: '15rem' },
             states: { open: {}, closed: {} },
         },
         title: {
-            base: { margin: '0 0 0.5rem', fontSize: 'var(--text-md)', fontWeight: '700' },
+            base: { margin: '0 0 var(--space-md)', fontSize: 'var(--text-md)', fontWeight: '700' },
         },
         close: {
             base: { ...btn, height: 'calc(var(--size-field) * 8)', paddingInline: 'calc(var(--size-field) * 3)', fontSize: 'var(--text-xs)' },
@@ -331,7 +331,7 @@ export const tooltip: RecipeInput = {
         },
         popup: {
             base: {
-                padding: '0.25rem 0.75rem',
+                padding: 'var(--space-xs) var(--space-lg)',
                 maxWidth: '18rem',
                 fontSize: 'var(--text-xs)',
                 fontWeight: '500',
@@ -360,7 +360,7 @@ export const menu: RecipeInput = {
             },
         },
         popup: {
-            base: { ...floatingPanel, padding: '0.5rem', minWidth: '13rem' },
+            base: { ...floatingPanel, padding: 'var(--space-md)', minWidth: '13rem' },
             states: { open: {}, closed: {} },
         },
         item: {
@@ -368,7 +368,7 @@ export const menu: RecipeInput = {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.625rem',
-                padding: '0.5rem 0.75rem',
+                padding: 'var(--space-md) var(--space-lg)',
                 fontSize: 'var(--text-sm)',
                 fontWeight: '500',
                 borderRadius: 'var(--radius-field)',
@@ -384,7 +384,7 @@ export const menu: RecipeInput = {
         group: { base: {} },
         'group-label': {
             base: {
-                padding: '0.5rem 0.75rem 0.25rem',
+                padding: 'var(--space-md) var(--space-lg) var(--space-xs)',
                 fontSize: 'var(--text-xs)',
                 fontWeight: '700',
                 opacity: '0.6',
@@ -393,7 +393,7 @@ export const menu: RecipeInput = {
         separator: {
             base: {
                 height: 'var(--border)',
-                margin: '0.375rem 0.5rem',
+                margin: 'var(--space-sm) var(--space-md)',
                 background: 'var(--color-base-300)',
             },
         },
@@ -404,7 +404,7 @@ export const field: RecipeInput = {
     component: 'field',
     parts: {
         root: {
-            base: { display: 'flex', flexDirection: 'column', gap: '0.375rem' },
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' },
         },
         label: {
             base: { fontSize: 'var(--text-sm)', fontWeight: '600' },
@@ -532,7 +532,7 @@ export const progress: RecipeInput = {
     component: 'progress',
     parts: {
         root: {
-            base: { display: 'flex', flexDirection: 'column', gap: '0.375rem', width: '100%' },
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)', width: '100%' },
             states: { loading: {}, complete: {}, indeterminate: {} },
         },
         label: {
@@ -581,7 +581,7 @@ export const slider: RecipeInput = {
     component: 'slider',
     parts: {
         root: {
-            base: { display: 'flex', flexDirection: 'column', gap: '0.375rem', width: '100%' },
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)', width: '100%' },
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
         },
         label: {
@@ -607,7 +607,7 @@ export const accordion: RecipeInput = {
     component: 'accordion',
     parts: {
         root: {
-            base: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' },
         },
         item: {
             base: {
@@ -623,7 +623,7 @@ export const accordion: RecipeInput = {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '1rem 1.25rem',
+                padding: 'var(--space-xl) var(--space-2xl)',
                 fontSize: 'var(--text-md)',
                 fontWeight: '600',
                 cursor: 'pointer',
@@ -652,7 +652,7 @@ export const accordion: RecipeInput = {
             },
         },
         panel: {
-            base: { padding: '0 1.25rem 1rem', fontSize: 'var(--text-md)' },
+            base: { padding: '0 var(--space-2xl) var(--space-xl)', fontSize: 'var(--text-md)' },
             states: { open: {}, closed: {} },
         },
     },
@@ -668,7 +668,7 @@ export const select: RecipeInput = {
             base: {
                 ...btn,
                 justifyContent: 'space-between',
-                gap: '0.75rem',
+                gap: 'var(--space-lg)',
                 minWidth: '13rem',
                 fontWeight: '500',
                 background: 'var(--color-base-100)',
@@ -694,7 +694,7 @@ export const select: RecipeInput = {
             states: { open: { transform: 'rotate(180deg)' }, closed: {} },
         },
         popup: {
-            base: { ...floatingPanel, padding: '0.5rem', minWidth: '13rem' },
+            base: { ...floatingPanel, padding: 'var(--space-md)', minWidth: '13rem' },
             states: { open: {}, closed: {} },
         },
         item: {
@@ -703,7 +703,7 @@ export const select: RecipeInput = {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: '0.625rem',
-                padding: '0.5rem 0.75rem',
+                padding: 'var(--space-md) var(--space-lg)',
                 fontSize: 'var(--text-sm)',
                 fontWeight: '500',
                 borderRadius: 'var(--radius-field)',

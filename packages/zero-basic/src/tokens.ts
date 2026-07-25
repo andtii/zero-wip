@@ -5,7 +5,7 @@
  * runtime bundle (installThemes derives registry metadata from it), so it
  * must not pull the Node-only kit at runtime.
  */
-import type { RoleDecl, SystemTokens, TokensInput } from '@sigx/zero-kit';
+import type { RoleDecl, SystemTokens, ThemeSystem, TokensInput } from '@sigx/zero-kit';
 
 /**
  * zero-basic's color vocabulary — exactly the recommended eight roles.
@@ -26,6 +26,26 @@ export const roles = {
 export const system = {
     radius: { selector: '0.375rem', field: '0.375rem', box: '0.75rem' },
     size: { selector: '0.25rem', field: '0.25rem' },
+    // Density ramp. The values are the ones these recipes already used, so
+    // tokenizing changed nothing visually — what it buys is retuning density
+    // in one place.
+    spacing: {
+        '2xs': '0.125rem',
+        xs: '0.25rem',
+        sm: '0.375rem',
+        md: '0.5rem',
+        lg: '0.75rem',
+        xl: '1rem',
+        '2xl': '1.5rem',
+    },
+    // Elevation, light scheme. `systemDark` below carries the heavier set —
+    // the same shadow reads as almost nothing on a dark surface.
+    shadow: {
+        xs: '0 1px 2px oklch(0% 0 0 / 0.25)',
+        sm: '0 4px 12px oklch(0% 0 0 / 0.25)',
+        md: '0 10px 30px -10px oklch(0% 0 0 / 0.3)',
+        lg: '0 20px 50px -12px oklch(0% 0 0 / 0.35)',
+    },
     // Durations match the literals these recipes used before tokenization,
     // so the visual result is unchanged — what's new is that they can be
     // retuned in one place, and that reduced motion now collapses them.
@@ -37,9 +57,23 @@ export const system = {
     disabledOpacity: '0.4',
 } as const satisfies SystemTokens;
 
+/**
+ * Dark-scheme overrides. A shadow tuned for a white page is nearly invisible
+ * on a dark one, so the ramp gets deeper and more opaque.
+ */
+export const systemDark = {
+    shadow: {
+        xs: '0 1px 2px oklch(0% 0 0 / 0.6)',
+        sm: '0 4px 12px oklch(0% 0 0 / 0.6)',
+        md: '0 10px 30px -10px oklch(0% 0 0 / 0.7)',
+        lg: '0 20px 50px -12px oklch(0% 0 0 / 0.75)',
+    },
+} as const satisfies ThemeSystem<typeof system>;
+
 export const tokens: TokensInput<typeof roles, typeof system> = {
     roles,
     system,
+    systemDark,
     // Mobile-first min-widths. Declaration order is emission order, so these
     // must ascend — the validator enforces it.
     breakpoints: { sm: '640px', md: '768px', lg: '1024px' },

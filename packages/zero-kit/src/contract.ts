@@ -83,6 +83,16 @@ export const TOKEN_CATEGORIES = [
         description: 'Font-size ramp.',
     },
     {
+        id: 'space', shape: 'scale', prefix: '--space-', path: ['spacing'],
+        recommended: ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl'], syntax: '<length>',
+        description: 'Density ramp for padding, gap and margin — how tightly the system is packed.',
+    },
+    {
+        id: 'shadow', shape: 'scale', prefix: '--shadow-', path: ['shadow'],
+        recommended: ['xs', 'sm', 'md', 'lg', 'xl'], syntax: '*',
+        description: 'Elevation ramp. Commonly differs per color scheme — dark surfaces need heavier shadows to read.',
+    },
+    {
         id: 'duration', shape: 'scale', prefix: '--duration-', path: ['motion', 'durations'],
         recommended: ['instant', 'fast', 'normal', 'slow'], syntax: '<time>',
         description: 'Transition and animation durations; collapsed to ~0 under prefers-reduced-motion.',

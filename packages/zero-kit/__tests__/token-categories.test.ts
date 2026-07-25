@@ -486,3 +486,56 @@ describe('duration values are checked wherever they are declared', () => {
             .toContainEqual(expect.stringContaining('not a valid <time>'));
     });
 });
+
+describe('spacing and shadow', () => {
+    it('emits a density ramp and an elevation ramp', () => {
+        const css = compileTokensCss(defineTokens({
+            roles,
+            system: {
+                spacing: { md: '0.5rem', xl: '1rem' },
+                shadow: { md: '0 4px 12px oklch(0% 0 0 / 0.2)' },
+            },
+            defaultLight: 'l',
+            themes: { l: { colorScheme: 'light', colors } },
+        }));
+        expect(css).toContain('--space-md: 0.5rem;');
+        expect(css).toContain('--space-xl: 1rem;');
+        expect(css).toContain('--shadow-md: 0 4px 12px oklch(0% 0 0 / 0.2);');
+    });
+
+    it('carries a heavier elevation ramp under system dark', () => {
+        // The headline reason shadow is a category rather than a hardcoded
+        // literal: a shadow tuned for a white page is nearly invisible on a
+        // dark one, and light-dark() can't help — it only takes colors.
+        const css = compileTokensCss(defineTokens({
+            roles,
+            system: { shadow: { md: '0 10px 30px oklch(0% 0 0 / 0.3)' } },
+            systemDark: { shadow: { md: '0 10px 30px oklch(0% 0 0 / 0.7)' } },
+            defaultLight: 'l',
+            defaultDark: 'd',
+            themes: {
+                l: { colorScheme: 'light', colors },
+                d: { colorScheme: 'dark', colors },
+            },
+        }));
+        expect(blockOf(css, ':where(:root)')).toContain('/ 0.3)');
+        const mediaStart = css.indexOf('@media (prefers-color-scheme: dark)');
+        expect(mediaStart, 'no prefers-color-scheme block').toBeGreaterThan(-1);
+        expect(css.slice(mediaStart)).toContain('/ 0.7)');
+        // …and an explicitly-chosen light theme still gets the light ramp.
+        expect(blockOf(css, '[data-theme="l"]')).toContain('/ 0.3)');
+    });
+
+    it('accepts elevation keys outside the recommended ramp', () => {
+        // Material names its elevations level1..level5 — #33's requirement
+        // that a foreign vocabulary needs no special-casing.
+        const css = compileTokensCss(defineTokens({
+            roles,
+            system: { shadow: { level1: '0 1px 2px #0001', level5: '0 12px 32px #0003' } },
+            defaultLight: 'l',
+            themes: { l: { colorScheme: 'light', colors } },
+        }));
+        expect(css).toContain('--shadow-level1: 0 1px 2px #0001;');
+        expect(css).toContain('--shadow-level5: 0 12px 32px #0003;');
+    });
+});

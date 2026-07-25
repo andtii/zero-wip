@@ -48,6 +48,15 @@ component's anatomy). No component code is ever written or changed.
    - The keys inside a category are **yours**: `recommended` is what
      `@sigx/zero/css` ships fallbacks for, not a limit. Declare
      `radius: { pill: '9999px' }` and it flows into your manifest.
+   - **Density and elevation are personality axes too.** `spacing` emits
+     `--space-*` (padding, gap, margin) and `shadow` emits `--shadow-*`.
+     Recipes reference them instead of literal rems and box-shadows, so the
+     whole system can be tightened or flattened in one place. Airy ⇒ a wider
+     ramp; brutalist ⇒ hard offset shadows (`4px 4px 0 0`) and often no blur.
+     **Shadows usually need a dark counterpart** — one tuned for a white page
+     is nearly invisible on a dark surface, so put the heavier ramp in
+     `systemDark.shadow`. `light-dark()` cannot help here; it only takes
+     colors.
    - **Motion is a personality axis — declare it, don't inline it.**
      `motion: { durations, easings }` emits `--duration-*` / `--ease-*`;
      recipes then write

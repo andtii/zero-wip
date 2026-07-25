@@ -62,6 +62,8 @@ export type Scale<Recommended extends string> =
 export type RadiusKey = 'selector' | 'field' | 'box';
 export type SizeKey = 'selector' | 'field';
 export type TextKey = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
+export type SpaceKey = '2xs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+export type ShadowKey = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 export type DurationKey = 'instant' | 'fast' | 'normal' | 'slow';
 export type EaseKey = 'linear' | 'standard' | 'emphasized';
 
@@ -93,6 +95,8 @@ export interface SystemTokens {
     radius?: Scale<RadiusKey>;
     size?: Scale<SizeKey>;
     text?: Scale<TextKey>;
+    spacing?: Scale<SpaceKey>;
+    shadow?: Scale<ShadowKey>;
     motion?: MotionDecl;
     border?: TokenValue;
     disabledOpacity?: TokenValue;
@@ -121,6 +125,8 @@ export interface ThemeSystem<T extends SystemTokens> {
     radius?: OverrideOf<Sub<T, 'radius'>>;
     size?: OverrideOf<Sub<T, 'size'>>;
     text?: OverrideOf<Sub<T, 'text'>>;
+    spacing?: OverrideOf<Sub<T, 'spacing'>>;
+    shadow?: OverrideOf<Sub<T, 'shadow'>>;
     motion?: {
         durations?: OverrideOf<Sub<Sub<T, 'motion'>, 'durations'>>;
         easings?: OverrideOf<Sub<Sub<T, 'motion'>, 'easings'>>;

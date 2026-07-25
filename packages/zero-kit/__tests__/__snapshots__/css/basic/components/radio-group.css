@@ -6,7 +6,7 @@
     [data-scope="radio-group"][data-part="root"] {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: var(--space-md);
     }
 
     [data-scope="radio-group"][data-part="label"] {
@@ -21,7 +21,7 @@
     [data-scope="radio-group"][data-part="item"] {
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: var(--space-md);
         cursor: pointer;
     }
 

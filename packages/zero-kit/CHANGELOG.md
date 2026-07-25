@@ -35,6 +35,16 @@
 - `TokensInput.breakpoints` — reserved DS-level breakpoint declaration,
   surfaced in the DS manifest (consumed by the upcoming conditions support).
 
+- **Spacing and shadow token categories** -- `system.spacing` emits
+  `--space-*` and `system.shadow` emits `--shadow-*`, so a design system
+  states its density and elevation once instead of scattering rem literals
+  and box-shadows through its recipes. Keys are open, so an elevation ramp
+  named `level1`..`level5` needs no special-casing.
+- Both shipped design systems moved onto them: 76 spacing declarations and
+  11 shadows, verified to resolve to byte-identical CSS. zero-basic also
+  gains a heavier dark-scheme elevation ramp via `systemDark.shadow` -- a
+  shadow tuned for a white page is nearly invisible on a dark one, and
+  `light-dark()` cannot express it because it only takes colors.
 - **Conditional recipe styles** -- `PartStyles.at` maps a condition to the
   same shape, recursively. Keys resolve to a declared breakpoint's
   `@media (min-width: ...)`, a built-in preference query, or a raw `@`
