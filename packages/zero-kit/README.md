@@ -18,6 +18,15 @@ export const designSystem = defineDesignSystem({
         // The color vocabulary is YOURS: declare any roles (omit for the
         // recommended eight). Each emits --color-<role> (+ -content/-soft).
         roles: { primary: {}, surface: { content: false, soft: false } },
+        // Non-color tokens: declared ONCE for the design system, not per
+        // theme. Categories are closed; the keys inside them are yours.
+        system: {
+            radius: { selector: '0.375rem', field: '0.375rem', box: '0.75rem' },
+            border: '1px',
+        },
+        // Values that must differ by color scheme (light-dark() is a <color>
+        // function, so non-color tokens need this).
+        systemDark: { border: '2px' },
         // DS-specific tokens, declared → validated + in the manifest.
         custom: { 'glass-blur': { description: 'backdrop blur', syntax: '<length>' } },
         defaultLight: 'acme', defaultDark: 'acme-dark',
@@ -41,7 +50,15 @@ export const designSystem = defineDesignSystem({
 Only the base surfaces (`base-100/200/300/base-content`) are fixed — they
 anchor `-soft` derivation, `light-dark()` emission and theme swatches.
 Declared roles are `@property`-registered in the compiled CSS and surfaced,
-with `custom` and `breakpoints`, in the DS's `dist/manifest.json`.
+with `system`, `custom` and `breakpoints`, in the DS's `dist/manifest.json`
+(which also lists every custom property the design system emits).
+
+Both halves of the token contract work the same way: a **closed set of
+categories**, each fixing a `--prefix-` and a value grammar, with **open keys
+inside** that the design system declares. `zero-kit` curates the categories
+because they carry semantics tooling needs; the vocabulary within is yours.
+Omitting a category is fine — `@sigx/zero/css` ships fallbacks for the
+recommended keys, so absence is never a validation error.
 
 ```bash
 zero-kit validate   # declared-role completeness, WCAG contrast, state coverage

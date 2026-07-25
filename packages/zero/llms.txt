@@ -31,8 +31,17 @@
   base-100/base-200/base-300/base-content. A DS that declares nothing gets
   the recommended roles: primary/secondary/accent/neutral/info/success/
   warning/error.
-- Structure: `--radius-selector|field|box`, `--size-selector|field`,
-  `--text-xs…3xl`, `--border`, `--disabled-opacity`.
+- Non-color tokens work the same way: a closed set of CATEGORIES, each fixing
+  a `--prefix-` and a value grammar, with OPEN keys inside that the design
+  system declares. Today: `--radius-*` (selector|field|box), `--size-*`
+  (selector|field), `--text-*` (xs…3xl), `--border`, `--disabled-opacity`.
+  The `recommended` keys are the ones `@sigx/zero/css` ships fallbacks for —
+  declare any others you need and they flow into your manifest. The full
+  table is `tokens.categories` in manifest.json.
+- Category values are declared ONCE for the design system in
+  `tokens.system`, not repeated per theme. `tokens.systemDark` overrides them
+  for dark-scheme themes, and a single theme can override via its own
+  `system` block. Resolution: `system` → `systemDark` → `theme.system`.
 - Themes are selected via `data-theme` on any ancestor; the default
   light/dark pair uses CSS `light-dark()` so system scheme needs no JS.
 - Cascade layers: `@layer zero.tokens, zero.recipes;` — app CSS is unlayered
@@ -97,13 +106,16 @@ data-* and zero attaches no styling to them.
 
 ## Authoring a design system (@sigx/zero-kit)
 
-defineTokens({roles?, custom?, breakpoints?, themes, defaultLight,
-defaultDark}) + defineRecipe({component, parts: {part: {base, states,
-selectors}}, variants, defaultVariants}) + defineDesignSystem({name, tokens,
-recipes}). `roles` declares the color vocabulary ({brand: {}, surface:
+defineTokens({roles?, system?, systemDark?, custom?, breakpoints?, themes,
+defaultLight, defaultDark}) + defineRecipe({component, parts: {part: {base,
+states, selectors}}, variants, defaultVariants}) + defineDesignSystem({name,
+tokens, recipes}). `roles` declares the color vocabulary ({brand: {}, surface:
 {content: false, soft: false}, …}; omitted → the recommended eight);
+`system` declares the non-color token values per category ({radius: {field:
+'0.5rem'}, border: '1px'}), with `systemDark` for dark-scheme overrides;
 `custom` declares DS-specific tokens (name → {description, syntax?}) valued
-per-theme in `custom` — both surface in the DS's dist/manifest.json.
+per-theme in `custom` — all surface in the DS's dist/manifest.json, which
+also lists every custom property the DS emits under `tokens.properties`.
 Compile with `zero-kit build`; check with `zero-kit validate` (declared-role
 completeness, WCAG contrast on every declared role/-content pair, state
 coverage). Reference implementation: @sigx/zero-basic; daisyUI-flavored

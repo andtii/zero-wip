@@ -35,8 +35,46 @@
 - `TokensInput.breakpoints` — reserved DS-level breakpoint declaration,
   surfaced in the DS manifest (consumed by the upcoming conditions support).
 
+- **Token categories** — the declared-vocabulary architecture, generalized
+  beyond color. `TOKEN_CATEGORIES` is a closed, kit-curated table (each entry
+  fixing a `--prefix-`, the keys `@sigx/zero/css` ships fallbacks for, and a
+  value grammar); the keys inside each category are declared by the design
+  system and open, so a custom elevation ramp or type scale flows into the DS
+  manifest without special-casing.
+- `TokensInput.system` declares non-color token values **once for the design
+  system** instead of restating them in every theme, with `TokensInput.
+  systemDark` for dark-scheme overrides and `ThemeInput.system` for a single
+  theme. Resolution: `system` → `systemDark` → `theme.system`.
+  `defineTokens` / `defineDesignSystem` take a second `const` type parameter,
+  so per-theme overrides narrow to exactly the keys that were declared.
+- The DS `dist/manifest.json` gains `tokens.system`, `tokens.systemDark` and
+  `tokens.properties` — the flat, sorted list of every custom property the
+  design system emits, read back off the compiled CSS so it cannot drift
+  (it includes derived tokens like `--color-<role>-soft`).
+
+### Changed (breaking — pre-release)
+
+- `ThemeInput.radius` / `size` / `text` / `border` / `disabledOpacity` moved
+  to `TokensInput.system`. A theme keeps a `system` block for genuine
+  per-theme differences.
+- Compiled `tokens.css` no longer restates design-system-level token values
+  inside every `[data-theme]` block — they live on `:where(:root)` and are
+  inherited. Themes emit only what they actually change (plus any
+  scheme-divergent values, see below). Computed values are unchanged; both
+  shipped design systems lost 14 lines of pure duplication.
+
 ### Fixed
 
+- **Non-color tokens can now differ by color scheme.** `:where(:root)` took
+  *all* structural values from the light theme, so a dark theme's differing
+  radius or border silently never applied under system dark. `light-dark()`
+  can't help — it is a `<color>` function. Scheme-divergent values now emit a
+  `@media (prefers-color-scheme: dark)` block, and every theme restates them
+  so explicitly choosing the light theme while the OS is dark actually wins.
+- The validator's `--color-*` namespace check for custom tokens now applies
+  to every category namespace, and `systemDark` / per-theme overrides that
+  name an undeclared key are errors (the runtime mirror of the type error,
+  since `validate` runs against compiled JS).
 - The kit's copy of zero's token contract is now genuinely parity-guarded.
   `contract.ts` claimed `zero-kit validate` cross-checked the installed
   `@sigx/zero` manifest — it never did, so the two copies could drift

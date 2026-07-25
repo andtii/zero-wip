@@ -5,23 +5,27 @@
  */
 import type { ManifestComponent, RoleDecl, ZeroManifest } from './contract.js';
 import { DEFAULT_ROLES, resolveRoles } from './contract.js';
-import type { CustomTokenDecl, RolesDecl, TokensInput } from './tokens.js';
+import type { CustomTokenDecl, RolesDecl, SystemTokens, TokensInput } from './tokens.js';
 import { compileTokensCss } from './tokens.js';
 import type { RecipeInput } from './recipes.js';
 import { compileRecipeCss } from './recipes.js';
 
-export interface DesignSystemInput<R extends RolesDecl = RolesDecl> {
+export interface DesignSystemInput<
+    R extends RolesDecl = RolesDecl,
+    T extends SystemTokens = SystemTokens,
+> {
     name: string;
-    tokens: TokensInput<R>;
+    tokens: TokensInput<R, T>;
     recipes: RecipeInput[];
     /** Raw CSS appended verbatim after the compiled recipes (escape hatch). */
     css?: string[];
 }
 
 /** Identity with typing — the authoring entry point. */
-export function defineDesignSystem<const R extends RolesDecl = typeof DEFAULT_ROLES>(
-    input: DesignSystemInput<R>,
-): DesignSystemInput<R> {
+export function defineDesignSystem<
+    const R extends RolesDecl = typeof DEFAULT_ROLES,
+    const T extends SystemTokens = SystemTokens,
+>(input: DesignSystemInput<R, T>): DesignSystemInput<R, T> {
     return input;
 }
 
@@ -45,7 +49,30 @@ export interface CompiledDesignSystem {
         roles: Record<string, RoleDecl>;
         custom: Record<string, CustomTokenDecl>;
         breakpoints: Record<string, string>;
+        /** DS-level values per category id, e.g. `{ radius: { field: '0.5rem' } }`. */
+        system: Record<string, unknown>;
+        /** Overrides applied to dark-scheme themes. */
+        systemDark: Record<string, unknown>;
+        /**
+         * Every custom property this design system emits, flat and sorted —
+         * what editor completion, the docs site and cross-platform emitters
+         * want, rather than re-deriving it from the grammar.
+         */
+        properties: string[];
     };
+}
+
+/**
+ * Every custom property the compiled tokens.css defines, sorted and deduped.
+ *
+ * Read back off the emitted CSS rather than re-derived from the declaration,
+ * so it cannot drift from what the design system actually ships — including
+ * derived tokens like `--color-<role>-soft` that no declaration lists.
+ */
+function emittedProperties(tokensCss: string): string[] {
+    const found = new Set<string>();
+    for (const [, prop] of tokensCss.matchAll(/^\s*(--[\w-]+)\s*:/gm)) found.add(prop!);
+    return [...found].sort();
 }
 
 /** Default swatch: the first four declared roles plus the base surfaces. */
@@ -53,8 +80,8 @@ export interface CompiledDesignSystem {
 const swatchTokens = (tokens: TokensInput<any>, roles: Record<string, RoleDecl>): string[] =>
     tokens.swatch ?? [...Object.keys(roles).slice(0, 4), 'base-100', 'base-content'];
 
-export function compileDesignSystem<R extends RolesDecl>(
-    ds: DesignSystemInput<R>,
+export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>(
+    ds: DesignSystemInput<R, T>,
     manifest: Pick<ZeroManifest, 'components'>,
 ): CompiledDesignSystem {
     const byScope = new Map<string, ManifestComponent>(
@@ -110,6 +137,9 @@ export function compileDesignSystem<R extends RolesDecl>(
             roles,
             custom: ds.tokens.custom ?? {},
             breakpoints: ds.tokens.breakpoints ?? {},
+            system: (ds.tokens.system ?? {}) as Record<string, unknown>,
+            systemDark: (ds.tokens.systemDark ?? {}) as Record<string, unknown>,
+            properties: emittedProperties(tokensCss),
         },
     };
 }

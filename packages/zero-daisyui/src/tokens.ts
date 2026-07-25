@@ -3,7 +3,7 @@
  * zero contract. Values match the daisy presets `@sigx/daisyui` ships, so a
  * zero app skinned with this package sits visually next to a daisy app.
  */
-import type { RoleDecl, TokensInput } from '@sigx/zero-kit';
+import type { RoleDecl, SystemTokens, TokensInput } from '@sigx/zero-kit';
 
 /** daisyUI's color vocabulary — the recommended eight roles, declared explicitly. */
 export const roles = {
@@ -11,8 +11,21 @@ export const roles = {
     info: {}, success: {}, warning: {}, error: {},
 } as const satisfies Record<string, RoleDecl>;
 
-export const tokens: TokensInput<typeof roles> = {
+/**
+ * daisy's non-color token values — declared once for the design system rather
+ * than restated per theme. The pill-shaped toggles come from the large
+ * `radius.selector`; both daisy themes share the same structural feel.
+ */
+export const system = {
+    radius: { selector: '1.5rem', field: '0.5rem', box: '1rem' },
+    size: { selector: '0.25rem', field: '0.25rem' },
+    border: '1px',
+    disabledOpacity: '0.3',
+} as const satisfies SystemTokens;
+
+export const tokens: TokensInput<typeof roles, typeof system> = {
     roles,
+    system,
     defaultLight: 'light',
     defaultDark: 'dark',
     themes: {
@@ -42,10 +55,6 @@ export const tokens: TokensInput<typeof roles> = {
                 error: 'oklch(63.72% 0.237 25.33)',
                 'error-content': 'oklch(12.744% 0.0474 25.33)',
             },
-            radius: { selector: '1.5rem', field: '0.5rem', box: '1rem' },
-            size: { selector: '0.25rem', field: '0.25rem' },
-            border: '1px',
-            disabledOpacity: '0.3',
         },
         dark: {
             colorScheme: 'dark',
@@ -73,10 +82,6 @@ export const tokens: TokensInput<typeof roles> = {
                 error: 'oklch(63.72% 0.237 25.33)',
                 'error-content': 'oklch(12.744% 0.0474 25.33)',
             },
-            radius: { selector: '1.5rem', field: '0.5rem', box: '1rem' },
-            size: { selector: '0.25rem', field: '0.25rem' },
-            border: '1px',
-            disabledOpacity: '0.3',
         },
     },
 };

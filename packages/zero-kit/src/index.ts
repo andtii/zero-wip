@@ -4,7 +4,20 @@
 // @sigx/zero anatomy manifest. Node-only; a built design system ships CSS
 // and a tiny runtime module that imports only @sigx/zero.
 
-export type { CustomTokenDecl, RolesDecl, ThemeColors, ThemeInput, TokensInput } from './tokens.js';
+export type {
+    CustomTokenDecl,
+    RadiusKey,
+    RolesDecl,
+    Scale,
+    SizeKey,
+    SystemTokens,
+    TextKey,
+    ThemeColors,
+    ThemeInput,
+    ThemeSystem,
+    TokenValue,
+    TokensInput,
+} from './tokens.js';
 export { defineTokens, compileTokensCss } from './tokens.js';
 
 export type { CssProps, PartStyles, RecipeInput } from './recipes.js';
@@ -26,6 +39,10 @@ export type {
     RoleDecl,
     RecommendedRole,
     BaseSurfaceToken,
+    TokenCategory,
+    TokenCategoryId,
+    TokenCategoryShape,
+    TokenSyntax,
     ManifestPart,
     ManifestComponent,
     ZeroManifest,
@@ -34,8 +51,11 @@ export {
     RECOMMENDED_ROLE_LIST,
     DEFAULT_ROLES,
     BASE_SURFACE_TOKEN_LIST,
+    TOKEN_CATEGORIES,
+    TOKEN_KEY_PATTERN,
     ROLE_NAME_PATTERN,
     RESERVED_ROLE_NAMES,
+    tokenProperty,
     resolveRoles,
     requiredColorTokens,
     contrastPairs,

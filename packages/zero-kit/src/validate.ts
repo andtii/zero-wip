@@ -3,7 +3,12 @@
  * iterate loop.
  *
  * - Role declaration: names are kebab-case identifiers outside the reserved
- *   `base-*` namespace; custom-token names stay outside `--color-*`.
+ *   `base-*` namespace; custom-token names stay outside `--color-*` and
+ *   outside every token category's namespace.
+ * - Token categories: declared keys are spellable as custom properties, and
+ *   a `systemDark` / per-theme override only names keys the design system
+ *   declared. Absence of a category is never an error — `css/base.css` ships
+ *   fallbacks for the recommended keys.
  * - Token completeness: every declared role (+ `-content` where declared),
  *   every base surface, and every declared custom token present per theme;
  *   colors parseable. Color keys a theme defines but the DS never declared
@@ -19,6 +24,8 @@ import type { ZeroManifest } from './contract.js';
 import {
     BASE_SURFACE_TOKEN_LIST,
     RESERVED_ROLE_NAMES,
+    TOKEN_CATEGORIES,
+    TOKEN_KEY_PATTERN,
     ROLE_NAME_PATTERN,
     contrastPairs,
     requiredColorTokens,
@@ -68,10 +75,24 @@ export function validateDesignSystem<R extends RolesDecl>(
     const customDecls = ds.tokens.custom ?? {};
     const declaredCustom = new Map<string, string>();
     for (const name of Object.keys(customDecls)) {
-        if (name.replace(/^--/, '').startsWith('color-')) {
+        const prop = normProp(name);
+        if (prop.startsWith('--color-')) {
             error('tokens.custom', `custom token "${name}" is inside the --color-* namespace — declare a role instead`);
         }
-        const prop = normProp(name);
+        // Same rule for every token category: a custom token that lands in a
+        // category's namespace would be invisible to anything reasoning about
+        // that category, so declare it under `system` instead.
+        for (const category of TOKEN_CATEGORIES) {
+            const collides = category.shape === 'scalar'
+                ? prop === category.prefix
+                : prop.startsWith(category.prefix);
+            if (collides) {
+                error(
+                    'tokens.custom',
+                    `custom token "${name}" is inside the ${category.prefix}* namespace — declare it under system.${category.path.join('.')} instead`,
+                );
+            }
+        }
         const clash = declaredCustom.get(prop);
         if (clash) {
             error('tokens.custom', `custom tokens "${clash}" and "${name}" both emit ${prop} — declare one spelling`);
@@ -79,6 +100,48 @@ export function validateDesignSystem<R extends RolesDecl>(
             declaredCustom.set(prop, name);
         }
     }
+
+    // ── Token categories ──
+    // Absence is never an error: `css/base.css` ships fallbacks for every
+    // recommended key, so a design system that declares no spacing (or no
+    // categories at all) still resolves. What IS checked is that declared
+    // keys can be spelled as custom properties, and that a per-theme override
+    // names a key the design system actually declared — the runtime mirror of
+    // the type error, since `validate` runs against compiled JS.
+    const categoryKeys = (node: unknown): string[] =>
+        node && typeof node === 'object' ? Object.keys(node as object) : [];
+
+    const systemNode = (source: Record<string, unknown> | undefined, path: readonly string[]) =>
+        source?.[path[0]!];
+
+    const declaredSystem = (ds.tokens.system ?? {}) as Record<string, unknown>;
+    for (const category of TOKEN_CATEGORIES) {
+        if (category.shape === 'scalar') continue;
+        for (const key of categoryKeys(systemNode(declaredSystem, category.path))) {
+            if (!TOKEN_KEY_PATTERN.test(key)) {
+                error(
+                    `tokens.system.${category.path.join('.')}`,
+                    `key "${key}" is not a kebab-case identifier (it becomes ${category.prefix}${key})`,
+                );
+            }
+        }
+    }
+
+    const checkOverride = (where: string, source: Record<string, unknown> | undefined) => {
+        for (const category of TOKEN_CATEGORIES) {
+            if (category.shape === 'scalar') continue;
+            const declared = new Set(categoryKeys(systemNode(declaredSystem, category.path)));
+            for (const key of categoryKeys(systemNode(source, category.path))) {
+                if (!declared.has(key)) {
+                    error(
+                        `${where}.${category.path.join('.')}`,
+                        `overrides "${key}", which the design system never declares in tokens.system.${category.path.join('.')}`,
+                    );
+                }
+            }
+        }
+    };
+    checkOverride('tokens.systemDark', ds.tokens.systemDark as Record<string, unknown> | undefined);
 
     // ── Token completeness + contrast, per theme ──
     const required = requiredColorTokens(roles);
@@ -88,6 +151,7 @@ export function validateDesignSystem<R extends RolesDecl>(
     ]);
     const pairs = contrastPairs(roles);
     for (const [themeName, theme] of Object.entries(ds.tokens.themes)) {
+        checkOverride(`themes.${themeName}.system`, theme.system as Record<string, unknown> | undefined);
         const colors = theme.colors as Record<string, string>;
         for (const token of required) {
             const value = colors[token];
