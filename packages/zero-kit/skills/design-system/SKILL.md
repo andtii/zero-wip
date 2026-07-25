@@ -137,6 +137,21 @@ component's anatomy). No component code is ever written or changed.
      (`animation: 'none'`), never shortened — collapsing its duration makes it
      spin faster instead of settling.
    - `RecipeInput.css` takes raw CSS for anything the typed surface can't say.
+   - **Style Button first, and make its axes compose.** It is the component a
+     design system is judged on, and the only one where all three axes matter
+     at once. Do NOT write a rule per `color` × `variant` — eight roles by
+     four fills is thirty-two rule sets before sizes. Route the colour through
+     component tokens the fill rules read:
+     ```ts
+     tokens: { '--btn-accent': 'var(--color-primary)', '--btn-on-accent': '…' },
+     variants: {
+         color:   { success: { root: { base: { '--btn-accent': 'var(--color-success)', … } } } },
+         variant: { solid: { root: { base: { background: 'var(--btn-accent)' } } } },
+         size:    { lg: { root: { base: { padding: 'var(--space-md) var(--space-xl)' } } } },
+     },
+     defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },
+     ```
+     Adding a ninth role then costs one rule instead of four.
 
 4. **Assemble** (`src/design-system.ts`): `{ name, tokens, recipes }` exported
    as `designSystem`.

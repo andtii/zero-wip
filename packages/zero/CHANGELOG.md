@@ -39,6 +39,12 @@
 
 ### Added
 
+- **Button** — one part on a native `<button>`, carrying all three variant
+  axes. Zero shipped fourteen components and none of them was the one every
+  design system is judged on; `data-variant` (outline / soft / ghost) had
+  nothing to apply to.
+
+
 - `css/base.css` ships fallbacks for the typography categories
   (`--font-*` families, `--weight-*`, `--leading-*`, `--tracking-*`).
   `--font-*` is families only; sizes remain `--text-*`.

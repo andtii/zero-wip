@@ -21,6 +21,7 @@ import { radioGroupAnatomy } from './components/radio-group/anatomy.js';
 import { progressAnatomy } from './components/progress/anatomy.js';
 import { sliderAnatomy } from './components/slider/anatomy.js';
 import { accordionAnatomy } from './components/accordion/anatomy.js';
+import { buttonAnatomy } from './components/button/anatomy.js';
 import { selectAnatomy } from './components/select/anatomy.js';
 
 export {
@@ -29,6 +30,7 @@ export {
 };
 
 export const anatomies: Record<string, Anatomy> = {
+    button: buttonAnatomy,
     tabs: tabsAnatomy,
     collapsible: collapsibleAnatomy,
     switch: switchAnatomy,

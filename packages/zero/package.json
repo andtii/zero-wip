@@ -83,6 +83,10 @@
         "./select": {
             "types": "./dist/components/select/index.d.ts",
             "import": "./dist/components/select/index.js"
+        },
+        "./button": {
+            "types": "./dist/components/button/index.d.ts",
+            "import": "./dist/components/button/index.js"
         }
     },
     "files": [

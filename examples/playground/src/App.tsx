@@ -1,6 +1,6 @@
 import { component, signal } from 'sigx';
 import {
-    Accordion, Checkbox, Collapsible, Dialog, Field, Menu, Popover, Progress,
+    Accordion, Button, Checkbox, Collapsible, Dialog, Field, Menu, Popover, Progress,
     RadioGroup, Select, Slider, Switch, Tabs, Tooltip, themeController, listThemes,
 } from '@sigx/zero';
 
@@ -21,9 +21,9 @@ export const App = component(() => {
                 Unstyled primitives + one design-system import. Current themes:{' '}
                 {listThemes().map((t) => t.name).join(', ') || 'none registered'}
                 {' '}
-                <button onClick={() => themeController().toggle()}>toggle light/dark</button>
+                <Button.Root size="sm" onClick={() => themeController().toggle()}>toggle light/dark</Button.Root>
                 {' '}
-                <button onClick={() => themeController().setTheme(null)}>follow system</button>
+                <Button.Root size="sm" variant="outline" onClick={() => themeController().setTheme(null)}>follow system</Button.Root>
             </p>
 
             <Tabs.Root model={() => state.tab}>
@@ -35,6 +35,29 @@ export const App = component(() => {
                 </Tabs.List>
 
                 <Tabs.Panel value="components">
+                    <h2>Button</h2>
+                    <p>
+                        The variant axes the contract has always advertised, now with
+                        somewhere to apply them. <code>color</code> sets an accent pair;
+                        <code>variant</code> decides how the accent is used — so the two
+                        axes compose instead of multiplying.
+                    </p>
+                    {(['solid', 'outline', 'soft', 'ghost'] as const).map((variant) => (
+                        <p style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <code style={{ width: '4rem' }}>{variant}</code>
+                            {(['primary', 'success', 'warning', 'error'] as const).map((color) => (
+                                <Button.Root color={color} variant={variant}>{color}</Button.Root>
+                            ))}
+                            <Button.Root variant={variant} disabled>disabled</Button.Root>
+                        </p>
+                    ))}
+                    <p style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <code style={{ width: '4rem' }}>size</code>
+                        {(['xs', 'sm', 'md', 'lg', 'xl'] as const).map((size) => (
+                            <Button.Root size={size}>{size}</Button.Root>
+                        ))}
+                    </p>
+
                     <h2>Switch</h2>
                     <Switch.Root model={() => state.switchOn}>Notifications</Switch.Root>
                     {' '}
