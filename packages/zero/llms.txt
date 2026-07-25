@@ -42,6 +42,12 @@
   `tokens.system`, not repeated per theme. `tokens.systemDark` overrides them
   for dark-scheme themes, and a single theme can override via its own
   `system` block. Resolution: `system` → `systemDark` → `theme.system`.
+- ANY token can differ by color scheme, not only colors. Colors use
+  `light-dark()`; everything else (category values, declared `custom` tokens,
+  `extra`, component overrides) is emitted in a `prefers-color-scheme: dark`
+  block whenever the default light and dark themes disagree. Give a value a
+  light counterpart if you want it to differ under dark — there has to be
+  something for an explicitly-selected light theme to restate.
 - Themes are selected via `data-theme` on any ancestor; the default
   light/dark pair uses CSS `light-dark()` so system scheme needs no JS.
 - Cascade layers: `@layer zero.tokens, zero.recipes;` — app CSS is unlayered

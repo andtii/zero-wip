@@ -11,6 +11,12 @@
  * - The default light/dark pair is additionally emitted on `:root` as
  *   `light-dark()` pairs with `color-scheme: light dark` → system-correct
  *   first paint with ZERO JavaScript.
+ * - `light-dark()` is a `<color>` function, so ANY other token that differs
+ *   between the default light and dark themes — a category value, a declared
+ *   `custom` token, an `extra` token, a component override — is emitted in a
+ *   `prefers-color-scheme: dark` block instead, and restated by every theme
+ *   block so an explicit choice still wins and nested `[data-theme]` scopes
+ *   don't inherit the wrong value.
  * - Declared roles (and `custom` tokens carrying a `syntax`) are registered
  *   via `@property` so theme switches can animate typed values.
  * - Everything sits in `@layer zero.tokens` behind `:where()` so app CSS
@@ -255,42 +261,45 @@ function colorDecls(theme: AnyTheme, roles: RolesDecl): string[] {
     return decls;
 }
 
-function nonSystemDecls(theme: AnyTheme): string[] {
-    const decls: string[] = [];
+/**
+ * A theme's non-category custom properties: declared `custom` values, the
+ * untyped `extra` escape hatch, and component-token overrides.
+ */
+function themeOwnProps(theme: AnyTheme): Record<string, string> {
+    const props: Record<string, string> = {};
     for (const [name, value] of Object.entries(theme.custom ?? {})) {
-        decls.push(`${customProp(name)}: ${value};`);
+        props[customProp(name)] = value;
     }
     for (const [name, value] of Object.entries(theme.extra ?? {})) {
-        decls.push(`${customProp(name)}: ${value};`);
+        props[customProp(name)] = value;
     }
     for (const overrides of Object.values(theme.components ?? {})) {
         for (const [name, value] of Object.entries(overrides)) {
-            decls.push(`${name}: ${value};`);
+            props[name] = value;
         }
     }
-    return decls;
+    return props;
 }
 
 /**
  * `:where(:root)` — the scheme-following defaults.
  *
- * Colors collapse into `light-dark()` pairs. Non-color categories cannot:
- * `light-dark()` is a `<color>` function, so the light values go here and any
- * that differ under dark are emitted by the caller in a
+ * Colors collapse into `light-dark()` pairs. Nothing else can:
+ * `light-dark()` is a `<color>` function, so every other property emits its
+ * light value here, and any that differ under dark go in the caller's
  * `prefers-color-scheme: dark` block.
  */
 function rootDecls(
     light: AnyTheme,
     dark: AnyTheme | undefined,
     roles: RolesDecl,
-    systemLight: Record<string, string>,
+    nonColorLight: Record<string, string>,
 ): string[] {
     if (!dark) {
         return [
             'color-scheme: light;',
             ...colorDecls(light, roles),
-            ...systemDecls(systemLight),
-            ...nonSystemDecls(light),
+            ...systemDecls(nonColorLight),
         ];
     }
     const decls: string[] = ['color-scheme: light dark;'];
@@ -314,7 +323,7 @@ function rootDecls(
         if (le && de && le !== de) decls.push(`--color-${name}-soft: light-dark(${le}, ${de});`);
         else decls.push(`--color-${name}-soft: ${le ?? softVar(name, mix)};`);
     }
-    decls.push(...systemDecls(systemLight), ...nonSystemDecls(light));
+    decls.push(...systemDecls(nonColorLight));
     return decls;
 }
 
@@ -355,12 +364,25 @@ const block = (selector: string, decls: string[], indent = '    '): string =>
     `${indent}${selector} {\n${decls.map((d) => `${indent}    ${d}`).join('\n')}\n${indent}}`;
 
 /** Effective non-color token values for one theme, after all three tiers. */
-function systemFor(input: TokensInput<any, any>, theme: AnyTheme): Record<string, string> {
-    return resolveSystem(
-        input.system,
-        theme.colorScheme === 'dark' ? input.systemDark : undefined,
-        theme.system,
-    );
+/**
+ * Every non-color custom property a theme resolves to: the token categories
+ * after all three tiers, then the theme's own `custom` / `extra` /
+ * `components` values.
+ *
+ * One map, because scheme handling has to apply to all of them equally —
+ * `light-dark()` only rescues colors, so anything else that differs per
+ * scheme needs the `prefers-color-scheme` treatment regardless of which
+ * authoring field it came from.
+ */
+function nonColorFor(input: TokensInput<any, any>, theme: AnyTheme): Record<string, string> {
+    return {
+        ...resolveSystem(
+            input.system,
+            theme.colorScheme === 'dark' ? input.systemDark : undefined,
+            theme.system,
+        ),
+        ...themeOwnProps(theme),
+    };
 }
 
 /** Compile a `TokensInput` to the design system's `tokens.css`. */
@@ -375,20 +397,23 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
         throw new Error(`[zero-kit] defaultDark theme "${input.defaultDark}" is not in themes`);
     }
 
-    const systemLight = systemFor(input, light);
-    const systemDark = dark ? systemFor(input, dark) : {};
-    // Non-color tokens that resolve differently per scheme. These need the
+    const nonColorLight = nonColorFor(input, light);
+    const nonColorDark = dark ? nonColorFor(input, dark) : {};
+    // Properties that resolve differently per scheme. These need the
     // `prefers-color-scheme` block below AND must be restated by every theme
-    // block, or explicitly picking the light theme while the OS is dark would
-    // strand the dark values (they'd still be winning from the media block).
+    // block — otherwise a `<div data-theme="light">` nested under a
+    // system-dark root would inherit the dark value, and explicitly picking a
+    // light theme while the OS is dark would leave the media block winning.
     //
     // Restricted to properties the light side also defines: a dark-only value
-    // has nothing for a theme block to restate, so putting it in the media
-    // block would make it unresettable. `validateDesignSystem` reports that
-    // as an error; here the emission simply can't produce the trap.
+    // has nothing for a light theme block to restate. The kit cannot write
+    // base.css's fallback either — `revert-layer` skips the whole
+    // `zero.tokens` layer that base.css shares — so declaring the light value
+    // is the only way to make the value resettable. `validateDesignSystem`
+    // says so; here the emission simply can't produce the trap.
     const schemeDivergent = dark
         ? new Set(
-            [...divergentProps(systemLight, systemDark)].filter((prop) => prop in systemLight),
+            [...divergentProps(nonColorLight, nonColorDark)].filter((prop) => prop in nonColorLight),
         )
         : new Set<string>();
 
@@ -398,30 +423,29 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
     // so an explicit theme wins regardless of source order, and a nested
     // `[data-theme]` element re-themes its subtree via inheritance. App CSS
     // is unlayered, so it still wins over everything here.
-    const blocks: string[] = [block(':where(:root)', rootDecls(light, dark, roles, systemLight))];
+    const blocks: string[] = [block(':where(:root)', rootDecls(light, dark, roles, nonColorLight))];
 
     if (schemeDivergent.size > 0) {
         blocks.push(
             `    @media (prefers-color-scheme: dark) {\n` +
-            `${block(':where(:root)', systemDecls(systemDark, schemeDivergent), '        ')}\n` +
+            `${block(':where(:root)', systemDecls(nonColorDark, schemeDivergent), '        ')}\n` +
             `    }`,
         );
     }
 
     for (const [name, theme] of Object.entries(input.themes)) {
-        const system = systemFor(input, theme);
+        const nonColor = nonColorFor(input, theme);
         // Emit only what this theme actually changes relative to the :root
         // defaults, plus the scheme-divergent set. Everything else is
         // inherited, so restating it would be dead weight in every theme.
-        const own = divergentProps(system, systemLight);
+        const own = divergentProps(nonColor, nonColorLight);
         const emit = new Set([...own, ...schemeDivergent]);
         blocks.push(block(
             `[data-theme="${name}"]`,
             [
                 `color-scheme: ${theme.colorScheme};`,
                 ...colorDecls(theme, roles),
-                ...systemDecls(system, emit),
-                ...nonSystemDecls(theme),
+                ...systemDecls(nonColor, emit),
             ],
         ));
     }

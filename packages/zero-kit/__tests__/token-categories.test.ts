@@ -286,3 +286,54 @@ describe('category node traversal', () => {
         expect(systemNodeAt(undefined, ['radius'])).toBeUndefined();
     });
 });
+
+describe('per-scheme values apply to every token kind, not just colors', () => {
+    // light-dark() rescues colors only. Everything else — categories, declared
+    // custom tokens, the `extra` escape hatch and component overrides — needs
+    // the prefers-color-scheme block, and used to silently take the light
+    // theme's value under system dark.
+    const css = compileTokensCss(defineTokens({
+        roles,
+        custom: { 'glass-blur': { description: 'backdrop blur' } },
+        system: { border: '1px' },
+        systemDark: { border: '3px' },
+        defaultLight: 'l',
+        defaultDark: 'd',
+        themes: {
+            l: {
+                colorScheme: 'light',
+                colors,
+                custom: { 'glass-blur': '12px' },
+                extra: { '--scrim': 'oklch(0% 0 0 / 0.3)' },
+                components: { dialog: { '--dialog-shadow': '0 1px 2px' } },
+            },
+            d: {
+                colorScheme: 'dark',
+                colors,
+                custom: { 'glass-blur': '28px' },
+                extra: { '--scrim': 'oklch(0% 0 0 / 0.7)' },
+                components: { dialog: { '--dialog-shadow': '0 8px 24px' } },
+            },
+        },
+    }));
+
+    const media = css.slice(css.indexOf('@media (prefers-color-scheme: dark)'));
+
+    it.each([
+        ['a token category', '--border', '1px', '3px'],
+        ['a declared custom token', '--glass-blur', '12px', '28px'],
+        ['an extra token', '--scrim', 'oklch(0% 0 0 / 0.3)', 'oklch(0% 0 0 / 0.7)'],
+        ['a component override', '--dialog-shadow', '0 1px 2px', '0 8px 24px'],
+    ])('%s follows the system scheme', (_kind, prop, lightValue, darkValue) => {
+        // OS light, no explicit theme.
+        expect(blockOf(css, ':where(:root)')).toContain(`${prop}: ${lightValue};`);
+        // OS dark, no explicit theme.
+        expect(media).toContain(`${prop}: ${darkValue};`);
+        // Explicit dark theme, any OS setting.
+        expect(blockOf(css, '[data-theme="d"]')).toContain(`${prop}: ${darkValue};`);
+        // Explicit light theme. This restatement is what makes an explicit
+        // choice beat the media block, and what stops a `<div data-theme="l">`
+        // nested under a system-dark root from inheriting the dark value.
+        expect(blockOf(css, '[data-theme="l"]')).toContain(`${prop}: ${lightValue};`);
+    });
+});
