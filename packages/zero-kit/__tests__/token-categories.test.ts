@@ -99,9 +99,9 @@ describe('token categories', () => {
         });
 
         it('emits the dark value under prefers-color-scheme: dark', () => {
-            expect(css).toContain('@media (prefers-color-scheme: dark)');
-            const media = css.slice(css.indexOf('@media (prefers-color-scheme: dark)'));
-            expect(media).toContain('--border: 2px;');
+            const mediaStart = css.indexOf('@media (prefers-color-scheme: dark)');
+            expect(mediaStart, 'no prefers-color-scheme block emitted').toBeGreaterThan(-1);
+            expect(css.slice(mediaStart)).toContain('--border: 2px;');
         });
 
         it('the dark theme block carries the dark value', () => {
@@ -317,7 +317,9 @@ describe('per-scheme values apply to every token kind, not just colors', () => {
         },
     }));
 
-    const media = css.slice(css.indexOf('@media (prefers-color-scheme: dark)'));
+    const mediaStart = css.indexOf('@media (prefers-color-scheme: dark)');
+    expect(mediaStart, 'no prefers-color-scheme block emitted').toBeGreaterThan(-1);
+    const media = css.slice(mediaStart);
 
     it.each([
         ['a token category', '--border', '1px', '3px'],
@@ -335,5 +337,26 @@ describe('per-scheme values apply to every token kind, not just colors', () => {
         // choice beat the media block, and what stops a `<div data-theme="l">`
         // nested under a system-dark root from inheriting the dark value.
         expect(blockOf(css, '[data-theme="l"]')).toContain(`${prop}: ${lightValue};`);
+    });
+});
+
+describe('a theme that omits a scheme-divergent value', () => {
+    it('still states one, rather than inheriting the dark value', () => {
+        // `extra` (and `components`) are untyped escape hatches with no
+        // per-theme completeness requirement, so a third theme can legitimately
+        // not mention `--scrim` at all. Under system dark it would otherwise
+        // inherit the media block's dark value instead of the :root default it
+        // actually resolves to.
+        const css = compileTokensCss(defineTokens({
+            roles,
+            defaultLight: 'l',
+            defaultDark: 'd',
+            themes: {
+                l: { colorScheme: 'light', colors, extra: { '--scrim': 'black' } },
+                d: { colorScheme: 'dark', colors, extra: { '--scrim': 'white' } },
+                plain: { colorScheme: 'light', colors },
+            },
+        }));
+        expect(blockOf(css, '[data-theme="plain"]')).toContain('--scrim: black;');
     });
 });

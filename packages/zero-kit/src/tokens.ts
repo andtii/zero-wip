@@ -363,7 +363,6 @@ function propertyRegistrations(input: TokensInput<any>, roles: RolesDecl, light:
 const block = (selector: string, decls: string[], indent = '    '): string =>
     `${indent}${selector} {\n${decls.map((d) => `${indent}    ${d}`).join('\n')}\n${indent}}`;
 
-/** Effective non-color token values for one theme, after all three tiers. */
 /**
  * Every non-color custom property a theme resolves to: the token categories
  * after all three tiers, then the theme's own `custom` / `extra` /
@@ -440,12 +439,21 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
         // inherited, so restating it would be dead weight in every theme.
         const own = divergentProps(nonColor, nonColorLight);
         const emit = new Set([...own, ...schemeDivergent]);
+        // A theme that doesn't define a scheme-divergent property still has to
+        // state one, or under system dark it would inherit the media block's
+        // value instead of the `:root` default it actually resolves to. Only
+        // `extra` and `components` can land here — declared `custom` tokens are
+        // required in every theme, and category values resolve from `system`.
+        const source: Record<string, string> = { ...nonColor };
+        for (const prop of schemeDivergent) {
+            if (!(prop in source)) source[prop] = nonColorLight[prop]!;
+        }
         blocks.push(block(
             `[data-theme="${name}"]`,
             [
                 `color-scheme: ${theme.colorScheme};`,
                 ...colorDecls(theme, roles),
-                ...systemDecls(nonColor, emit),
+                ...systemDecls(source, emit),
             ],
         ));
     }
