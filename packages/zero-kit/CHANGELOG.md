@@ -35,6 +35,17 @@
 - `TokensInput.breakpoints` — reserved DS-level breakpoint declaration,
   surfaced in the DS manifest (consumed by the upcoming conditions support).
 
+- A style-brief pack ships with the design-system skill:
+  `skills/design-system/briefs/` holds four complete, compiling starting points
+  (brutalist, glass, corporate, terminal), each one a full `TokensInput` plus a
+  worked Button recipe. They are validated and compiled by the test suite, and
+  the skill's cheat-sheet table is compared against them cell by cell, so a
+  brief that goes stale fails a test instead of misleading the next reader.
+- The validator warns when a `tokens.system` or `tokens.systemDark` value reads
+  a colour role. Roles are `@property`-registered, so the reference resolves
+  once at `:root` and every `[data-theme]` block inherits that one colour — a
+  phosphor glow written `0 0 16px var(--color-primary)` stayed green on the
+  amber theme. Declare the value under each theme's own `system` instead.
 - The validator rejects an unknown key under `system`. It was ignored
   silently, so a design system could declare a whole token category that
   never appeared, with nothing to explain why — which is exactly what a
