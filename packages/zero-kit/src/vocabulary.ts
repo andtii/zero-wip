@@ -18,7 +18,13 @@ export interface TokenVocabulary {
 
 const normProp = (name: string): string => (name.startsWith('--') ? name : `--${name}`);
 
-/** Levenshtein, bailed out early — only ever used to suggest a near miss. */
+/**
+ * Levenshtein distance, only ever used to suggest a near miss.
+ *
+ * The length check is a cheap reject, not an early exit from the matrix —
+ * token names are short and vocabularies are dozens of entries, so the full
+ * DP is not worth optimizing.
+ */
 function distance(a: string, b: string, limit: number): number {
     if (Math.abs(a.length - b.length) > limit) return limit + 1;
     let prev = Array.from({ length: b.length + 1 }, (_, i) => i);

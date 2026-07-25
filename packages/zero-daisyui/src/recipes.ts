@@ -202,8 +202,8 @@ export const switchRecipe: RecipeInput = {
         ),
     },
     defaultVariants: { color: 'primary' },
-    // The visible ring lives on `control`/`item-control`; the label root
-    // only groups it. Declared rather than left implicit so the
+    // The visible ring lives on `control`; the <label> root only groups the
+    // control and its text. Declared rather than left implicit so the
     // delegation reads as a decision.
     skipStates: { root: ['focus-visible'] },
 };
@@ -472,8 +472,8 @@ export const checkbox: RecipeInput = {
             states: { checked: {}, unchecked: {}, indeterminate: {}, disabled: {} },
         },
     },
-    // The visible ring lives on `control`/`item-control`; the label root
-    // only groups it. Declared rather than left implicit so the
+    // The visible ring lives on `control`; the <label> root only groups the
+    // control and its text. Declared rather than left implicit so the
     // delegation reads as a decision.
     skipStates: { root: ['focus-visible'] },
 };
@@ -534,9 +534,9 @@ export const radioGroup: RecipeInput = {
             states: { checked: {}, unchecked: {}, disabled: {} },
         },
     },
-    // The visible ring lives on `control`/`item-control`; the label root
-    // only groups it. Declared rather than left implicit so the
-    // delegation reads as a decision.
+    // The visible ring lives on `item-control`; `item` is the <label> that
+    // wraps it. Declared rather than left implicit so the delegation reads
+    // as a decision.
     skipStates: { item: ['focus-visible'] },
 };
 
