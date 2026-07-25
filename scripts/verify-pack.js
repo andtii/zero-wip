@@ -114,10 +114,43 @@ function packPackage(pkgPath) {
     return { name: pkgJson.name, version: pkgJson.version, tarball, publishedManifest };
 }
 
+/**
+ * The pack smoke test is only meaningful if it covers exactly what
+ * `scripts/publish.js` ships. That script self-executes on import, so read its
+ * PACKAGES array from source rather than importing it.
+ *
+ * Both lists being stale copies of the repo-template's is what made this
+ * check fail on every run, so the agreement is asserted rather than asked for
+ * in a comment.
+ */
+function assertPublishListMatches() {
+    const source = readFileSync(join(rootDir, 'scripts/publish.js'), 'utf-8');
+    const block = /const PACKAGES = \[([\s\S]*?)\];/.exec(source);
+    if (!block) {
+        throw new Error('Could not find the PACKAGES array in scripts/publish.js');
+    }
+    const published = [...block[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
+    const same =
+        published.length === PACKAGES.length &&
+        published.every((p, i) => p === PACKAGES[i]);
+    if (!same) {
+        throw new Error(
+            'PACKAGES in scripts/verify-pack.js and scripts/publish.js disagree — ' +
+                'the pack smoke test would not cover what gets published.\n' +
+                `   verify-pack: ${JSON.stringify(PACKAGES)}\n` +
+                `   publish:     ${JSON.stringify(published)}`
+        );
+    }
+    console.log(`   ✓ package list matches scripts/publish.js (${PACKAGES.length} packages)`);
+}
+
 function main() {
     step(`Sandbox: ${sandbox}`);
     mkdirSync(tarballDir, { recursive: true });
     mkdirSync(appDir, { recursive: true });
+
+    step('Check the package list against scripts/publish.js');
+    assertPublishListMatches();
 
     step('Build all packages');
     run('pnpm run build', { cwd: rootDir });
