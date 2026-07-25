@@ -38,6 +38,10 @@ export { defineDesignSystem, compileDesignSystem } from './design-system.js';
 export type { ValidationIssue, ValidationResult } from './validate.js';
 export { validateDesignSystem } from './validate.js';
 
+export type { TokenVocabulary } from './vocabulary.js';
+export { tokenVocabulary } from './vocabulary.js';
+export { validateRecipes } from './validate-recipes.js';
+
 export { writeArtifacts } from './artifacts.js';
 
 export type {

@@ -296,3 +296,19 @@ describe('prelude collisions', () => {
         expect(css.match(/@supports \(c: d\)/g)).toHaveLength(1);
     });
 });
+
+describe('inherited object keys', () => {
+    it('rejects a condition named after an Object.prototype member', () => {
+        // `'toString' in breakpoints` is true for a plain object, so this
+        // resolved to Object.prototype.toString and emitted
+        // `@media (min-width: function toString() { [native code] })`.
+        expect(() => compile({
+            component: 'tabs',
+            parts: { tab: { at: { toString: { base: { color: 'red' } } } } },
+        })).toThrow(/unknown condition "toString"/);
+        expect(() => compile({
+            component: 'tabs',
+            parts: { tab: { at: { constructor: { base: { color: 'red' } } } } },
+        })).toThrow(/unknown condition "constructor"/);
+    });
+});

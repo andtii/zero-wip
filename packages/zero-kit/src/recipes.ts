@@ -194,6 +194,11 @@ function push(sink: Sink, path: readonly Condition[], rule: string): void {
  */
 type ConditionRegistry = Map<string, { condition: Condition; via: string }>;
 
+/*
+ * `Object.hasOwn`, not `in`: these are plain objects, so `in` is true for
+ * inherited keys. A condition named `toString` resolved to Object.prototype's
+ * method and emitted `@media (min-width: function toString() { … })`.
+ */
 function resolveCondition(
     key: string,
     context: RecipeContext,
@@ -205,13 +210,13 @@ function resolveCondition(
 
     if (key.startsWith('@')) {
         condition = { prelude: key, tier: TIER.raw, ordinal: registry.size };
-    } else if (key in breakpoints) {
+    } else if (Object.hasOwn(breakpoints, key)) {
         condition = {
             prelude: `@media (min-width: ${breakpoints[key]})`,
             tier: TIER.breakpoint,
             ordinal: Object.keys(breakpoints).indexOf(key),
         };
-    } else if (BUILTIN_CONDITIONS[key]) {
+    } else if (Object.hasOwn(BUILTIN_CONDITIONS, key)) {
         condition = {
             prelude: BUILTIN_CONDITIONS[key]!,
             tier: key === 'reduced-motion' ? TIER.reducedMotion : TIER.preference,

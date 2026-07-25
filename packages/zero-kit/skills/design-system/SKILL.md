@@ -130,6 +130,31 @@ component's anatomy). No component code is ever written or changed.
    `dist/css/index.css` + per-component files. The app consumes it with two
    lines: `import '<pkg>/css'` and `installThemes()`.
 
+## What `validate` will catch
+
+Content is checked, not just structure. These are errors:
+
+- a `var(--…)` this design system never declares — it resolves to nothing.
+  The message suggests the nearest declared name.
+- a component that styles `focus-visible` nowhere, so keyboard focus is
+  invisible.
+- a `skipStates` entry naming neither a state nor a flag of that part.
+- variants on a component with no `root` part (Dialog, Popover, Tooltip,
+  Menu) — the generated selectors can't match, so the rules would be dead CSS.
+
+And these are warnings worth driving to zero:
+
+- a hardcoded palette colour. Achromatic-with-alpha (`oklch(0% 0 0 / 0.3)`)
+  is exempt — that's a shadow or scrim, not palette.
+- a literal duration in a `transition`: reduced motion only collapses
+  `var(--duration-*)`, so a literal opts out of the preference.
+- a component in the manifest with no recipe at all.
+- a part that declares `focus-visible` and doesn't style it. If the ring
+  genuinely belongs on an inner part, say so with
+  `skipStates: { root: ['focus-visible'] }` rather than leaving it implicit.
+- `var(--x, fallback)` referencing something undeclared — the fallback makes
+  it safe, so it's the sanctioned way to read an app-supplied property.
+
 ## Reference
 
 `@sigx/zero-basic` in the zero repo is the canonical example — read its

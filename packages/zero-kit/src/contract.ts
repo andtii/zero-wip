@@ -180,6 +180,14 @@ export const DEFAULT_ROLES: Record<RecommendedRole, RoleDecl> = Object.fromEntri
     RECOMMENDED_ROLE_LIST.map((r) => [r, {}]),
 ) as Record<RecommendedRole, RoleDecl>;
 
+/**
+ * The shared component size scale — the values `data-size` accepts. Mirrors
+ * `SIZE_SCALE_LIST` in `@sigx/zero/contract` (parity-tested).
+ */
+export const SIZE_SCALE_LIST = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
+
+export type SizeScale = typeof SIZE_SCALE_LIST[number];
+
 /** The fixed base surfaces every design system must provide. */
 export const BASE_SURFACE_TOKEN_LIST = ['base-100', 'base-200', 'base-300', 'base-content'] as const;
 
