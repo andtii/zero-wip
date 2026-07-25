@@ -68,6 +68,33 @@ describe('Button', () => {
         expect(root().hasAttribute('data-variant')).toBe(false);
     });
 
+    it('does not call onClick when asChild and disabled', () => {
+        // The native <button disabled> case is enforced by the platform; an
+        // <a> is not, so this branch does it by hand and is the one that can
+        // regress silently.
+        const onClick = vi.fn();
+        render(
+            <Button.Root asChild disabled onClick={onClick}>
+                {(p: Record<string, unknown>) => <a href="/docs" {...p}>Docs</a>}
+            </Button.Root>,
+            container,
+        );
+        container.querySelector<HTMLElement>('[data-scope="button"]')!.click();
+        expect(onClick).not.toHaveBeenCalled();
+    });
+
+    it('still calls onClick for an enabled asChild render', () => {
+        const onClick = vi.fn();
+        render(
+            <Button.Root asChild onClick={onClick}>
+                {(p: Record<string, unknown>) => <a href="/docs" {...p}>Docs</a>}
+            </Button.Root>,
+            container,
+        );
+        container.querySelector<HTMLElement>('[data-scope="button"]')!.click();
+        expect(onClick).toHaveBeenCalledOnce();
+    });
+
     it('marks an asChild render disabled, since the element may not support it', () => {
         render(
             <Button.Root asChild disabled>
