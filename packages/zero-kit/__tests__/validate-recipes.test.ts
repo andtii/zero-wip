@@ -281,3 +281,35 @@ describe('var() stripping', () => {
         })).warnings).toContainEqual(expect.stringContaining('#3b82f6'));
     });
 });
+
+describe('diagnostic paths', () => {
+    it('point at the real location in the recipe', () => {
+        // `where` is what an author (or a generator) navigates by, so it has
+        // to match the shape they actually wrote.
+        const r = validateDesignSystem(dsWith({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            compoundVariants: [
+                { match: { color: 'primary' }, parts: { tab: { base: { color: 'var(--nope)' } } } },
+            ],
+        }), manifest);
+        expect(r.errors.map((e) => e.where)).toContainEqual(
+            'recipes.tabs.compoundVariants[0].parts.tab.base',
+        );
+    });
+
+    it('point into a conditional block', () => {
+        const r = validateDesignSystem(dsWith({
+            component: 'tabs',
+            parts: {
+                tab: {
+                    states: { 'focus-visible': { outline: '1px solid' } },
+                    at: { 'reduced-motion': { base: { color: 'var(--nope)' } } },
+                },
+            },
+        }), manifest);
+        expect(r.errors.map((e) => e.where)).toContainEqual(
+            'recipes.tabs.parts.tab.at["reduced-motion"].base',
+        );
+    });
+});

@@ -110,7 +110,7 @@ function* declarations(recipe: RecipeInput): Generator<{ path: string; props: Cs
     const compounds = recipe.compoundVariants ?? [];
     for (let i = 0; i < compounds.length; i++) {
         for (const [part, styles] of Object.entries(compounds[i]!.parts)) {
-            yield* fromPart(`compoundVariants[${i}].${part}`, styles);
+            yield* fromPart(`compoundVariants[${i}].parts.${part}`, styles);
         }
     }
 }
