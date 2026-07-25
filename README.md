@@ -42,6 +42,7 @@ installThemes();
 | [`@sigx/zero-kit`](packages/zero-kit) | Node-only authoring kit: `defineTokens` / `defineRecipe` / `defineDesignSystem`, the CSS compiler, the `zero-kit` CLI (`build` / `validate`), and the design-system generation agent skill |
 | [`@sigx/zero-basic`](packages/zero-basic) | Neutral starter design system — readable defaults, and the reference input for the AI skill |
 | [`@sigx/zero-daisyui`](packages/zero-daisyui) | daisyUI-flavored skin — daisy's tokens and component look as pure data, no Tailwind required |
+| [`@sigx/zero-material`](packages/zero-material) | Material-flavored skin — the acceptance test that a foreign design language (13 colour roles, `level1`–`level5` elevation, its own easings and breakpoints) fits the contract with no special-casing |
 
 `examples/playground` is the kitchen sink — `pnpm --filter zero-playground dev`.
 

@@ -1,0 +1,95 @@
+@layer zero.recipes {
+    [data-scope="dialog"][data-part="trigger"] {
+        appearance: none;
+        border-radius: 624rem;
+        border: var(--border) solid var(--color-outline);
+        background: transparent;
+        color: var(--color-primary);
+        padding: var(--space-xs) var(--space-lg);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+        cursor: pointer;
+    }
+
+    [data-scope="dialog"][data-part="trigger"]:hover:not([data-disabled]) {
+        background: var(--color-primary-soft);
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="dialog"][data-part="popup"] {
+        width: 100%;
+        height: 100dvh;
+        max-width: none;
+        max-height: none;
+        margin: 0;
+        padding: var(--space-lg);
+        background: var(--color-surface-container-high);
+        color: var(--color-surface-container-high-content);
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    [data-scope="dialog"][data-part="popup"]::backdrop {
+        background: oklch(0% 0 0 / 0.32);
+    }
+
+    [data-scope="dialog"][data-part="title"] {
+        margin: 0 0 var(--space-md);
+        font-family: var(--font-sans);
+        font-size: var(--text-xl);
+        font-weight: var(--weight-normal);
+        line-height: var(--leading-tight);
+    }
+
+    [data-scope="dialog"][data-part="description"] {
+        margin: 0 0 var(--space-lg);
+        font-size: var(--text-sm);
+        line-height: var(--leading-normal);
+        color: var(--color-base-content);
+    }
+
+    [data-scope="dialog"][data-part="close"] {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: var(--color-primary);
+        border-radius: 624rem;
+        padding: var(--space-xs) var(--space-lg);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+        cursor: pointer;
+    }
+
+    [data-scope="dialog"][data-part="close"]:hover:not([data-disabled]) {
+        background: var(--color-primary-soft);
+    }
+
+    [data-scope="dialog"][data-part="close"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    @media (min-width: 600px) {
+        [data-scope="dialog"][data-part="popup"] {
+            width: calc(100% - var(--space-2xl));
+            max-width: 35rem;
+            height: auto;
+            max-height: calc(100% - var(--space-2xl));
+            margin: auto;
+            background: var(--color-surface-container-high);
+            color: var(--color-surface-container-high-content);
+            border: none;
+            border-radius: var(--radius-box);
+            box-shadow: var(--shadow-level3);
+        }
+    }
+}

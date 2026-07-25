@@ -15,7 +15,8 @@
       "@sigx/zero/*": ["./packages/zero/src/*"],
       "@sigx/zero-kit": ["./packages/zero-kit/src/index.ts"],
       "@sigx/zero-basic": ["./packages/zero-basic/src/index.ts"],
-      "@sigx/zero-daisyui": ["./packages/zero-daisyui/src/index.ts"]
+      "@sigx/zero-daisyui": ["./packages/zero-daisyui/src/index.ts"],
+      "@sigx/zero-material": ["./packages/zero-material/src/index.ts"]
     }
   },
   "include": [

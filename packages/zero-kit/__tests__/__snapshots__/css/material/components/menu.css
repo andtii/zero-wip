@@ -1,0 +1,76 @@
+@layer zero.recipes {
+    [data-scope="menu"][data-part="trigger"] {
+        appearance: none;
+        border-radius: 624rem;
+        border: var(--border) solid var(--color-outline);
+        background: transparent;
+        color: var(--color-primary);
+        padding: var(--space-xs) var(--space-lg);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+        cursor: pointer;
+    }
+
+    [data-scope="menu"][data-part="trigger"]:hover:not([data-disabled]) {
+        background: var(--color-primary-soft);
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="menu"][data-part="popup"] {
+        background: var(--color-surface-container-high);
+        color: var(--color-surface-container-high-content);
+        border: none;
+        border-radius: var(--radius-box);
+        box-shadow: var(--shadow-level2);
+        padding: var(--space-xs);
+        min-width: 12rem;
+    }
+
+    [data-scope="menu"][data-part="item"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        padding: var(--space-xs) var(--space-md);
+        border-radius: var(--radius-selector);
+        font-size: var(--text-sm);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="menu"][data-part="item"][data-highlighted] {
+        background: var(--color-primary-soft);
+    }
+
+    [data-scope="menu"][data-part="item"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="menu"][data-part="item"]:focus-visible {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="menu"][data-part="group"] {
+        padding: var(--space-2xs) 0;
+    }
+
+    [data-scope="menu"][data-part="group-label"] {
+        padding: var(--space-2xs) var(--space-md);
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        color: var(--color-outline);
+    }
+
+    [data-scope="menu"][data-part="separator"] {
+        height: var(--border);
+        margin: var(--space-2xs) 0;
+        background: var(--color-outline);
+    }
+}
