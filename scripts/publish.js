@@ -34,8 +34,15 @@ const rootDir = join(__dirname, '..');
 // Packages in dependency order (dependencies first).
 // Framework core (sigx, @sigx/runtime-core, etc.) lives in
 // https://github.com/signalxjs/core and is consumed from npm here.
+//
+// Kept in step with PACKAGES in scripts/verify-pack.js, which reads this array
+// from source and fails if the two disagree — the pack smoke test has to cover
+// exactly what this script publishes.
 const PACKAGES = [
-    'packages/daisyui',
+    'packages/zero',
+    'packages/zero-kit',
+    'packages/zero-basic',
+    'packages/zero-daisyui',
 ];
 
 const args = process.argv.slice(2);

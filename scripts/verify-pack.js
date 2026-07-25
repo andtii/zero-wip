@@ -1,20 +1,24 @@
 #!/usr/bin/env node
 
 /**
- * @sigx/daisyui - Pre-publish pack smoke test
+ * SignalX Zero - Pre-publish pack smoke test
  *
  * Catches packaging bugs that lint/typecheck/test miss:
  *   - missing files in `files` array
- *   - broken `exports` map (subpath exports for tree-shaking)
- *   - unresolved `workspace:^` ranges
+ *   - broken `exports` map (zero ships 21 subpaths on @sigx/zero alone)
+ *   - unresolved `workspace:^` / `catalog:` ranges
  *   - dist/ produced by stale builds
+ *   - non-JS artifacts dropped from the package (manifest.json, the CSS a
+ *     design system IS)
  *
  * What it does:
- *   1. Build the publishable package.
- *   2. `pnpm pack` it into a temp dir.
- *   3. Spin up a minimal scratch project with a `file:` dep on the tarball.
- *   4. Typecheck a small TSX program that imports both the main entry and a
- *      subpath entry to prove the published shape works.
+ *   1. Build every publishable package.
+ *   2. `pnpm pack` each into a temp dir.
+ *   3. Spin up a minimal scratch project with `file:` deps on the tarballs.
+ *   4. Typecheck a small TSX program that imports the main entries and
+ *      several subpath entries, proving the published shape works.
+ *   5. Resolve the non-JS artifacts from the installed packages, since a
+ *      typecheck alone would never notice them missing.
  *
  * Usage:
  *   node scripts/verify-pack.js
@@ -32,11 +36,15 @@ import { tmpdir } from 'os';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = join(__dirname, '..');
 
+// Every publishable package, in dependency order (mirrors scripts/publish.js).
 const PACKAGES = [
-    'packages/daisyui',
+    'packages/zero',
+    'packages/zero-kit',
+    'packages/zero-basic',
+    'packages/zero-daisyui',
 ];
 
-const sandbox = join(tmpdir(), `sigx-daisyui-verify-pack-${Date.now()}`);
+const sandbox = join(tmpdir(), `sigx-zero-verify-pack-${Date.now()}`);
 const tarballDir = join(sandbox, 'tarballs');
 const appDir = join(sandbox, 'app');
 
@@ -106,10 +114,46 @@ function packPackage(pkgPath) {
     return { name: pkgJson.name, version: pkgJson.version, tarball, publishedManifest };
 }
 
+/**
+ * The pack smoke test is only meaningful if it covers exactly what
+ * `scripts/publish.js` ships. That script self-executes on import, so read its
+ * PACKAGES array from source rather than importing it.
+ *
+ * Both lists being stale copies of the repo-template's is what made this
+ * check fail on every run, so the agreement is asserted rather than asked for
+ * in a comment.
+ */
+function assertPublishListMatches() {
+    const source = readFileSync(join(rootDir, 'scripts/publish.js'), 'utf-8');
+    // Tolerant of formatting — a reformat of publish.js (quote style, spacing,
+    // trailing comma) must not red CI when the package list itself is
+    // unchanged.
+    const block = /const\s+PACKAGES\s*=\s*\[([\s\S]*?)\]/.exec(source);
+    if (!block) {
+        throw new Error('Could not find the PACKAGES array in scripts/publish.js');
+    }
+    const published = [...block[1].matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1]);
+    const same =
+        published.length === PACKAGES.length &&
+        published.every((p, i) => p === PACKAGES[i]);
+    if (!same) {
+        throw new Error(
+            'PACKAGES in scripts/verify-pack.js and scripts/publish.js disagree — ' +
+                'the pack smoke test would not cover what gets published.\n' +
+                `   verify-pack: ${JSON.stringify(PACKAGES)}\n` +
+                `   publish:     ${JSON.stringify(published)}`
+        );
+    }
+    console.log(`   ✓ package list matches scripts/publish.js (${PACKAGES.length} packages)`);
+}
+
 function main() {
     step(`Sandbox: ${sandbox}`);
     mkdirSync(tarballDir, { recursive: true });
     mkdirSync(appDir, { recursive: true });
+
+    step('Check the package list against scripts/publish.js');
+    assertPublishListMatches();
 
     step('Build all packages');
     run('pnpm run build', { cwd: rootDir });
@@ -122,17 +166,16 @@ function main() {
 
     step('Create scratch app');
     const rootPkg = readJson(join(rootDir, 'package.json'));
-    const daisyui = packed.find((p) => p.name === '@sigx/daisyui');
-    if (!daisyui) {
-        throw new Error("Expected '@sigx/daisyui' among the packed packages, but it was not found");
+    const zero = packed.find((p) => p.name === '@sigx/zero');
+    if (!zero) {
+        throw new Error("Expected '@sigx/zero' among the packed packages, but it was not found");
     }
-    // The peer deps daisyui & tailwindcss aren't needed for typechecking, but
     // sigx and the @sigx/* core peers must resolve — the scratch app plays the
     // consumer, so it installs them itself. Take the ranges from the PUBLISHED
-    // manifest (catalog: already rewritten to ^0.12.0) so npm sees a consistent
-    // graph; reading the source package.json would leak the literal `catalog:`
-    // protocol, which npm can't resolve (EUNSUPPORTEDPROTOCOL).
-    const peers = daisyui.publishedManifest.peerDependencies;
+    // manifest (catalog: already rewritten to a concrete range) so npm sees a
+    // consistent graph; reading the source package.json would leak the literal
+    // `catalog:` protocol, which npm can't resolve (EUNSUPPORTEDPROTOCOL).
+    const peers = zero.publishedManifest.peerDependencies;
     const deps = {
         ...Object.fromEntries(
             packed.map((p) => [p.name, `file:${p.tarball.replace(/\\/g, '/')}`])
@@ -143,7 +186,7 @@ function main() {
         '@sigx/runtime-dom': peers['@sigx/runtime-dom'],
     };
     const appPkg = {
-        name: 'sigx-daisyui-pack-smoke',
+        name: 'sigx-zero-pack-smoke',
         version: '0.0.0',
         private: true,
         type: 'module',
@@ -164,7 +207,8 @@ function main() {
                     module: 'ESNext',
                     moduleResolution: 'Bundler',
                     jsx: 'react-jsx',
-                    jsxImportSource: '@sigx/runtime-core',
+                    jsxImportSource: 'sigx',
+                    resolveJsonModule: true,
                     strict: true,
                     esModuleInterop: true,
                     skipLibCheck: true,
@@ -179,34 +223,79 @@ function main() {
 
     mkdirSync(join(appDir, 'src'), { recursive: true });
 
-    // Exercise the public surface: main entry + a couple of subpath exports.
+    // Exercise the public surface: the barrel, a compound component tree (so
+    // the JSX types resolve through the published .d.ts), the two-way `model`
+    // binding, and a design system's runtime module.
     writeFileSync(
         join(appDir, 'src', 'main.tsx'),
         [
-            "import { Button, Card, ThemeProvider } from '@sigx/daisyui';",
-            "import { component } from 'sigx';",
+            "import { Dialog, Tabs, ThemeProvider } from '@sigx/zero';",
+            "import { installThemes } from '@sigx/zero-basic';",
+            "import { component, signal } from 'sigx';",
             '',
-            'const App = component(() => () => (',
-            '    <ThemeProvider defaultTheme="cupcake">',
-            '        <Card>',
-            '            <Button variant="primary">Click me</Button>',
-            '        </Card>',
-            '    </ThemeProvider>',
-            '));',
+            'installThemes();',
+            '',
+            'const App = component(() => {',
+            "    const state = signal({ open: false, tab: 'a' });",
+            '    return () => (',
+            '        <ThemeProvider>',
+            '            <Tabs.Root model={() => state.tab}>',
+            '                <Tabs.List>',
+            '                    <Tabs.Tab value="a">First</Tabs.Tab>',
+            '                </Tabs.List>',
+            '                <Tabs.Panel value="a">',
+            '                    <Dialog.Root model={() => state.open}>',
+            '                        <Dialog.Trigger>Open</Dialog.Trigger>',
+            '                        <Dialog.Popup>',
+            '                            <Dialog.Title>Packed</Dialog.Title>',
+            '                            <Dialog.Close>Close</Dialog.Close>',
+            '                        </Dialog.Popup>',
+            '                    </Dialog.Root>',
+            '                </Tabs.Panel>',
+            '            </Tabs.Root>',
+            '        </ThemeProvider>',
+            '    );',
+            '});',
             '',
             'export type _R = typeof App;',
             '',
         ].join('\n')
     );
 
-    // Subpath exports (tree-shaking targets) must resolve from the published shape.
+    // Subpath exports (the tree-shaking targets) must resolve from the
+    // published shape — zero ships 21 of them, so a broken `exports` map is
+    // the most likely packaging bug here.
     writeFileSync(
         join(appDir, 'src', 'subpath-check.ts'),
         [
-            "import { Button } from '@sigx/daisyui/buttons';",
-            "import { Card } from '@sigx/daisyui/layout';",
-            "import { ThemeProvider } from '@sigx/daisyui/theme';",
-            'export type _C = [typeof Button, typeof Card, typeof ThemeProvider];',
+            "import { Dialog } from '@sigx/zero/dialog';",
+            "import { Select } from '@sigx/zero/select';",
+            "import { anatomies } from '@sigx/zero/anatomy';",
+            "import { themeController } from '@sigx/zero/theme';",
+            "import { RECOMMENDED_ROLE_LIST } from '@sigx/zero/contract';",
+            "import { createControllableState } from '@sigx/zero/behaviors';",
+            '',
+            'export type _C = [',
+            '    typeof Dialog, typeof Select, typeof anatomies,',
+            '    typeof themeController, typeof RECOMMENDED_ROLE_LIST,',
+            '    typeof createControllableState,',
+            '];',
+            '',
+        ].join('\n')
+    );
+
+    // The authoring kit is Node-only and never enters an app bundle, so a
+    // consumer uses it type-only from a DS package's build script. Prove the
+    // published types resolve that way.
+    writeFileSync(
+        join(appDir, 'src', 'kit-check.ts'),
+        [
+            "import type { RecipeInput, TokensInput } from '@sigx/zero-kit';",
+            "import { compileDesignSystem, validateDesignSystem } from '@sigx/zero-kit';",
+            'export type _K = [',
+            '    RecipeInput, TokensInput,',
+            '    typeof compileDesignSystem, typeof validateDesignSystem,',
+            '];',
             '',
         ].join('\n')
     );
@@ -214,8 +303,48 @@ function main() {
     step('Install scratch app (npm — to avoid pnpm workspace hoisting interference)');
     run('npm install --no-audit --no-fund --loglevel=error', { cwd: appDir });
 
-    step('Typecheck scratch app against the packed tarball');
+    step('Typecheck scratch app against the packed tarballs');
     run('npm run build', { cwd: appDir });
+
+    // A typecheck can't see a missing .json or .css — but for these packages
+    // those files ARE the product: manifest.json is the machine-readable
+    // contract tooling and AI generate against, and a design system is its
+    // compiled CSS. Resolve them the way a consumer would.
+    step('Resolve non-JS published artifacts');
+    const artifacts = [
+        '@sigx/zero/manifest.json',
+        '@sigx/zero/css',
+        '@sigx/zero-basic/css',
+        '@sigx/zero-daisyui/css',
+    ];
+    writeFileSync(
+        join(appDir, 'resolve-check.mjs'),
+        [
+            "import { createRequire } from 'node:module';",
+            "import { readFileSync } from 'node:fs';",
+            '',
+            'const require = createRequire(import.meta.url);',
+            `const artifacts = ${JSON.stringify(artifacts)};`,
+            '',
+            'for (const spec of artifacts) {',
+            '    const path = require.resolve(spec);',
+            '    const body = readFileSync(path, "utf8");',
+            '    if (body.trim() === "") throw new Error(`${spec} resolved to an empty file`);',
+            '    if (spec.endsWith(".json")) JSON.parse(body);',
+            '    console.log(`   ✓ ${spec}`);',
+            '}',
+            '',
+            '// The manifest is the anatomy contract — an empty or truncated one',
+            '// would still parse, so assert it actually carries components.',
+            'const manifest = require("@sigx/zero/manifest.json");',
+            'if (!Array.isArray(manifest.components) || manifest.components.length === 0) {',
+            '    throw new Error("manifest.json contains no components");',
+            '}',
+            'console.log(`   ✓ manifest.json declares ${manifest.components.length} components`);',
+            '',
+        ].join('\n')
+    );
+    run('node resolve-check.mjs', { cwd: appDir });
 
     step('✅ Pack smoke test passed');
 }
