@@ -221,8 +221,35 @@ And these are warnings worth driving to zero:
 
 ## Reference
 
-Three worked examples ship in the zero repo, in increasing distance from the
-defaults:
+### The brief pack — start here
+
+`skills/design-system/briefs/` holds four complete, compiling starting points.
+Each file is one `TokensInput` (every category filled, both schemes, contrast
+clean) plus one worked `RecipeInput` for Button. **Copy the closest one to
+`src/tokens.ts` and `src/recipes.ts`, then diverge.** They are compiled and
+validated by the repo's test suite, so a brief that has gone stale is a
+failing test rather than a trap.
+
+The four are deliberately not four palettes — each one teaches a different
+mechanic, and reading all four is the fastest way to learn what the token
+contract can express:
+
+| Brief | radius | border | Signature move | Teaches |
+|---|---|---|---|---|
+| brutalist | 0 | 3px | shadows drawn in `var(--color-base-content)` with zero blur, and `steps()` easings | how far the standard categories stretch before you need a custom token |
+| glass | 1.25rem | 1px | `backdrop-filter: blur(var(--glass-blur))` on every floating surface | declared custom tokens, and translucency that survives both schemes |
+| corporate | 0.5rem | 1px | a two-part shadow ramp (contact + ambient) and a 1.2 type ratio | contrast discipline and declared breakpoints — the two things this brief is judged on |
+| terminal | 0 | 1px | every duration is 0ms, and `--shadow-*` is a per-theme phosphor glow | 0ms durations instead of `transition:none`, and where a theme-coloured token has to be declared |
+
+Typography carries a brief further than anything else: brutalist wants a
+mono or condensed stack with 800+ weights and wide tracking; editorial
+wants a serif with generous `leading`; corporate wants a humanist sans and
+a restrained `ratio`. The four ratios above — 1.414, 1.25, 1.2, 1.125 — are
+most of the difference between those four looks.
+
+### Worked design systems
+
+Three ship in the zero repo, in increasing distance from the defaults:
 
 - `@sigx/zero-basic` — the canonical starting point. Read its `src/tokens.ts`
   and `src/recipes.ts` before writing your own.
@@ -234,16 +261,13 @@ defaults:
   (`outline`) with `content: false`. Read this one when the brief needs names
   the recommended eight don't cover.
 
-## Style briefs → decisions cheat sheet
+### Briefs the pack does not cover
 
-| Brief | radius | border | palette | extras |
-|---|---|---|---|---|
-| brutalist | 0 | 2-3px solid | high-contrast, few hues | hard shadows (`4px 4px 0 0`), uppercase labels |
-| glass | 1rem+ | 1px translucent | low-chroma + one accent | `backdrop-filter: blur()`, translucent `base-100` |
-| corporate | 0.375rem | 1px | blue primary, gray ramp | subtle shadows, AA+ contrast everywhere |
-| terminal | 0 | 1px | dark base, green/amber content | `fonts.mono`, no transitions |
+Reach for the nearest file and change these axes:
 
-Typography carries a brief further than anything else: brutalist wants a
-mono or condensed stack with 800+ weights and wide tracking; editorial
-wants a serif with generous `leading`; corporate wants a humanist sans and
-a restrained `ratio`.
+| Brief | Nearest | Change |
+|---|---|---|
+| editorial / magazine | corporate | a serif `fonts.sans`, `leading.relaxed` up to 1.8, ratio to 1.333 |
+| playful / toy | glass | radius to `9999px` on `field`, a bouncy `emphasized` easing, ratio 1.2 |
+| dense / data-tool | corporate | halve the `spacing` ramp, ratio to 1.125, `text.base` to 0.875rem |
+| neon / cyberpunk | terminal | keep the glow, raise chroma, restore real durations |
