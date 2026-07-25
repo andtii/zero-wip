@@ -54,19 +54,29 @@ that, not this summary.
 native input so they post pre-hydration. Design systems normally hide it
 visually while keeping it focusable, rather than `display: none`.
 
+Every component has a `Root` COMPONENT — it takes the `model` and the
+configuration props, and always wraps the others. For Dialog, Popover,
+Tooltip and Menu the root renders no DOM element of its own (it only provides
+context), so those four have no `root` PART and nothing to select with
+`[data-part="root"]`. Below, the slash-separated names are the parts a
+component renders; the root is called out separately where it carries props.
+
 - Tabs: Root(model=value)/List/Tab(value,asChild)/Panel(value). APG tabs,
   roving arrows, automatic|manual activation, orientation.
 - Collapsible: Root(model=open)/Trigger/Panel on native <details>.
 - Accordion: Root(model=string[])/Item/Trigger/Panel on native <details>;
   `multiple` and `collapsible`.
-- Dialog: Trigger/Popup/Title/Description/Close on native <dialog> + top
-  layer (no Portal). Style the backdrop via
+- Dialog: Root(model=open, modal, dismissible — renders no element) then
+  Trigger/Popup/Title/Description/Close on native <dialog> + top layer (no
+  Portal). Style the backdrop via
   [data-scope="dialog"][data-part="popup"]::backdrop.
-- Popover: Trigger/Popup/Title/Close on the popover attribute + anchor
-  positioning (placement, offset, positionStrategy).
-- Tooltip: Trigger/Popup with openDelay/closeDelay.
-- Menu: Trigger/Popup/Item(asChild)/Group/GroupLabel/Separator; `select`
-  event, closeOnSelect.
+- Popover: Root(model=open, placement, offset, positionStrategy — renders no
+  element) then Trigger/Popup/Title/Close, on the popover attribute + anchor
+  positioning.
+- Tooltip: Root(model=open, openDelay, closeDelay, placement — renders no
+  element) then Trigger/Popup.
+- Menu: Root(model=open, closeOnSelect, placement — renders no element) then
+  Trigger/Popup/Item(asChild)/Group/GroupLabel/Separator; `select` event.
 - Select: Root(model=value)/Trigger/Value/Indicator/Popup/Item/ItemIndicator/
   HiddenInput.
 - Switch: Root(model=checked)/Control/Thumb/Label/HiddenInput, role=switch.
