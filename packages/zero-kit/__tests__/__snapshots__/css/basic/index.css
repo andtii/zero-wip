@@ -44,6 +44,9 @@
         --radius-box: 0.75rem;
         --size-selector: 0.25rem;
         --size-field: 0.25rem;
+        --duration-fast: 150ms;
+        --duration-normal: 200ms;
+        --ease-standard: ease;
         --border: 1px;
         --disabled-opacity: 0.4;
     }
@@ -110,6 +113,13 @@
         --color-success-soft: color-mix(in oklab, var(--color-success) 16%, var(--color-base-100));
         --color-warning-soft: color-mix(in oklab, var(--color-warning) 16%, var(--color-base-100));
         --color-error-soft: color-mix(in oklab, var(--color-error) 16%, var(--color-base-100));
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        :root, [data-theme] {
+            --duration-fast: 0.01ms;
+            --duration-normal: 0.01ms;
+        }
     }
 }
 
@@ -230,7 +240,7 @@
         height: var(--switch-height);
         border-radius: 9999px;
         background: var(--color-base-300);
-        transition: background 0.15s ease;
+        transition: background var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="switch"][data-part="control"][data-state="checked"] {
@@ -251,7 +261,7 @@
         border-radius: 9999px;
         background: var(--color-base-100);
         box-shadow: 0 1px 2px oklch(0% 0 0 / 0.25);
-        transition: transform 0.15s ease;
+        transition: transform var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="switch"][data-part="thumb"][data-state="checked"] {
@@ -651,7 +661,7 @@
         border: calc(var(--border) * 2) solid var(--color-base-300);
         border-radius: var(--radius-selector);
         background: var(--color-base-100);
-        transition: background 0.15s ease, border-color 0.15s ease;
+        transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="checkbox"][data-part="control"][data-state="checked"] {
@@ -733,7 +743,7 @@
         border: calc(var(--border) * 2) solid var(--color-base-300);
         border-radius: 9999px;
         background: var(--color-base-100);
-        transition: border-color 0.15s ease;
+        transition: border-color var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="radio-group"][data-part="item-control"][data-state="checked"] {
@@ -750,7 +760,7 @@
         height: calc(var(--radio-size) / 2);
         border-radius: 9999px;
         background: transparent;
-        transition: background 0.15s ease;
+        transition: background var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="radio-group"][data-part="item-indicator"][data-state="checked"] {
@@ -787,7 +797,7 @@
         height: 100%;
         background: var(--color-primary);
         border-radius: 9999px;
-        transition: width 0.2s ease;
+        transition: width var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="progress"][data-part="range"][data-state="complete"] {
@@ -948,7 +958,7 @@
 
     [data-scope="select"][data-part="indicator"] {
         opacity: 0.6;
-        transition: transform 0.15s ease;
+        transition: transform var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="select"][data-part="indicator"][data-state="open"] {

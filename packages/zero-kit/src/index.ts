@@ -6,6 +6,9 @@
 
 export type {
     CustomTokenDecl,
+    DurationKey,
+    EaseKey,
+    MotionDecl,
     RadiusKey,
     RolesDecl,
     Scale,

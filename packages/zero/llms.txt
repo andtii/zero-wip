@@ -34,7 +34,9 @@
 - Non-color tokens work the same way: a closed set of CATEGORIES, each fixing
   a `--prefix-` and a value grammar, with OPEN keys inside that the design
   system declares. Today: `--radius-*` (selector|field|box), `--size-*`
-  (selector|field), `--text-*` (xs…3xl), `--border`, `--disabled-opacity`.
+  (selector|field), `--text-*` (xs…3xl), `--duration-*`
+  (instant|fast|normal|slow), `--ease-*` (linear|standard|emphasized),
+  `--border`, `--disabled-opacity`.
   The `recommended` keys are the ones `@sigx/zero/css` ships fallbacks for —
   declare any others you need and they flow into your manifest. The full
   table is `tokens.categories` in manifest.json.
@@ -42,6 +44,13 @@
   `tokens.system`, not repeated per theme. `tokens.systemDark` overrides them
   for dark-scheme themes, and a single theme can override via its own
   `system` block. Resolution: `system` → `systemDark` → `theme.system`.
+- Motion: recipes write
+  `transition: background var(--duration-fast) var(--ease-standard)`, never a
+  literal duration. Every declared `--duration-*` collapses to 0.01ms under
+  `prefers-reduced-motion: reduce`, so referencing the token is what makes a
+  recipe honor the preference — a hardcoded `0.2s` opts out. (0.01ms rather
+  than 0ms so `transitionend` / `animationend` still fire.) Don't tokenise a
+  LOOPING animation's duration; it would speed up rather than stop.
 - ANY token can differ by color scheme, not only colors. Colors use
   `light-dark()`; everything else (category values, declared `custom` tokens,
   `extra`, component overrides) is emitted in a `prefers-color-scheme: dark`

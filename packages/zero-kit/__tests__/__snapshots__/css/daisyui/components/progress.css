@@ -23,7 +23,7 @@
         height: 100%;
         background: var(--color-primary);
         border-radius: var(--radius-selector);
-        transition: width 0.3s ease;
+        transition: width var(--duration-slow) var(--ease-standard);
     }
 
     [data-scope="progress"][data-part="range"][data-state="complete"] {

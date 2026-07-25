@@ -48,6 +48,20 @@ component's anatomy). No component code is ever written or changed.
    - The keys inside a category are **yours**: `recommended` is what
      `@sigx/zero/css` ships fallbacks for, not a limit. Declare
      `radius: { pill: '9999px' }` and it flows into your manifest.
+   - **Motion is a personality axis — declare it, don't inline it.**
+     `motion: { durations, easings }` emits `--duration-*` / `--ease-*`;
+     recipes then write
+     `transition: background var(--duration-fast) var(--ease-standard)`
+     instead of magic numbers, and the whole system retunes in one place.
+     Snappy ⇒ 100–150ms with a sharp curve; stately ⇒ 300ms+ and gentler.
+     Durations must carry a unit — CSS silently ignores a bare `150`, and the
+     validator errors on it.
+     **Referencing `var(--duration-*)` is what makes a recipe respect
+     `prefers-reduced-motion`**: the kit collapses every declared duration to
+     ~0 in that mode. A hardcoded `0.2s` opts out of that, so don't.
+     One exception: a *looping* animation (a spinner) should not take its
+     duration from these tokens — collapsing it would spin absurdly fast
+     rather than stop. Leave it literal until recipe conditions land.
    - Omitting a category entirely is fine — the fallbacks apply. Absence is
      never a validation error.
    - Values that must differ by color scheme go in `systemDark` (applies to

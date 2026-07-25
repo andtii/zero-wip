@@ -39,6 +39,14 @@
 
 ### Added
 
+- `css/base.css` ships fallbacks for the motion categories
+  (`--duration-*`, `--ease-*`) and a global
+  `@media (prefers-reduced-motion: reduce)` block neutralizing the
+  recommended durations, so zero primitives honor the preference before any
+  design system loads. A design system's own duration keys are neutralized by
+  its compiled `tokens.css`.
+
+
 - `CSS_COLOR_KEYWORDS` and `ROLE_NAME_PATTERN` are now exported from the
   contract. `resolveColorToken` resolves through them rather than through
   private constants, so `@sigx/zero-kit`'s mirrored copy of the contract can

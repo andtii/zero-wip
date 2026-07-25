@@ -360,3 +360,97 @@ describe('a theme that omits a scheme-divergent value', () => {
         expect(blockOf(css, '[data-theme="plain"]')).toContain('--scrim: black;');
     });
 });
+
+describe('motion', () => {
+    const withMotion = (motion: Record<string, unknown>) => compileTokensCss(defineTokens({
+        roles,
+        system: { motion } as never,
+        defaultLight: 'l',
+        themes: { l: { colorScheme: 'light', colors } },
+    }));
+
+    it('emits durations and easings from a nested category path', () => {
+        // `motion` is the first category whose path has two segments
+        // (['motion','durations']) — the traversal has to follow all of it.
+        const css = withMotion({
+            durations: { fast: '120ms', normal: '200ms' },
+            easings: { standard: 'cubic-bezier(0.2, 0, 0, 1)' },
+        });
+        expect(css).toContain('--duration-fast: 120ms;');
+        expect(css).toContain('--duration-normal: 200ms;');
+        expect(css).toContain('--ease-standard: cubic-bezier(0.2, 0, 0, 1);');
+    });
+
+    it('collapses every declared duration under prefers-reduced-motion', () => {
+        const css = withMotion({ durations: { fast: '120ms', slow: '400ms' } });
+        const start = css.indexOf('@media (prefers-reduced-motion: reduce)');
+        expect(start, 'no reduced-motion block emitted').toBeGreaterThan(-1);
+        const reduced = css.slice(start);
+        expect(reduced).toContain('--duration-fast: 0.01ms;');
+        expect(reduced).toContain('--duration-slow: 0.01ms;');
+    });
+
+    it('neutralizes design-system-specific duration keys too', () => {
+        // The whole reason this is emitted by the kit rather than living in
+        // base.css: base.css cannot know a name it never declared.
+        const css = withMotion({ durations: { 'emphasized-decelerate': '500ms' } });
+        expect(css).toContain('--duration-emphasized-decelerate: 0.01ms;');
+    });
+
+    it('uses 0.01ms rather than 0ms', () => {
+        // 0ms suppresses transitionend/animationend, which presence and
+        // exit-animation coordination (#29) waits on.
+        const css = withMotion({ durations: { fast: '120ms' } });
+        expect(css).not.toMatch(/--duration-fast:\s*0ms;[\s\S]*prefers-reduced-motion/);
+        expect(css.slice(css.indexOf('prefers-reduced-motion'))).not.toContain(': 0ms;');
+    });
+
+    it('puts the neutralizer last, above theme-block specificity', () => {
+        // `:root, [data-theme]` is (0,1,0) — the same as `[data-theme="x"]` —
+        // so it only wins the tie by coming later. A `:where(:root)` here
+        // would lose to every theme block and reduced motion would silently
+        // stop working as soon as a theme was selected.
+        const css = compileTokensCss(defineTokens({
+            roles,
+            system: { motion: { durations: { fast: '120ms' } } },
+            defaultLight: 'l',
+            themes: {
+                l: { colorScheme: 'light', colors },
+                other: { colorScheme: 'light', colors },
+            },
+        }));
+        const reduced = css.indexOf('@media (prefers-reduced-motion: reduce)');
+        expect(reduced).toBeGreaterThan(css.lastIndexOf('[data-theme='));
+        expect(css.slice(reduced)).toContain(':root, [data-theme] {');
+    });
+
+    it('emits no reduced-motion block when no durations are declared', () => {
+        const css = compileTokensCss(defineTokens({
+            roles,
+            defaultLight: 'l',
+            themes: { l: { colorScheme: 'light', colors } },
+        }));
+        expect(css).not.toContain('prefers-reduced-motion');
+    });
+});
+
+describe('duration value validation', () => {
+    const withDurations = (durations: Record<string, unknown>) =>
+        messages(ds({ system: { motion: { durations } } as never }));
+
+    it('rejects a unitless duration', () => {
+        // CSS ignores `150` outright: the transition never runs and
+        // transitionend never fires, with no error anywhere. The one grammar
+        // where a silent failure is likely enough to be worth checking.
+        expect(withDurations({ fast: '150' })).toContainEqual(
+            expect.stringContaining('not a valid <time>'),
+        );
+        expect(withDurations({ fast: 150 })).toContainEqual(
+            expect.stringContaining('not a valid <time>'),
+        );
+    });
+
+    it('accepts times and functional values', () => {
+        expect(withDurations({ a: '150ms', b: '0.3s', c: 'var(--app-speed)' })).toEqual([]);
+    });
+});

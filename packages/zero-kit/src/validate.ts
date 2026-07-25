@@ -48,6 +48,30 @@ export interface ValidationResult {
     warnings: ValidationIssue[];
 }
 
+/** Values built from CSS functions are opaque here — accept them as-is. */
+const FUNCTIONAL_VALUE = /(?:var|calc|clamp|min|max|env|attr)\(/;
+const TIME_VALUE = /^-?(?:\d+\.?\d*|\.\d+)m?s$/;
+
+/**
+ * Check a declared value against its category's grammar, for the grammars
+ * where getting it wrong fails silently rather than loudly.
+ *
+ * `<time>` is the one that matters: CSS ignores a unitless `150`, so a
+ * mistyped duration doesn't error — the transition simply never runs, and
+ * `transitionend` never fires. `<length>` is deliberately not checked; `0`,
+ * percentages, `em`-relative and functional values are all legitimate and the
+ * false-positive risk outweighs the benefit.
+ */
+function badValue(syntax: string, value: unknown): string | undefined {
+    if (syntax !== '<time>') return undefined;
+    const text = String(value);
+    if (FUNCTIONAL_VALUE.test(text)) return undefined;
+    if (!TIME_VALUE.test(text)) {
+        return `"${text}" is not a valid <time> — CSS ignores a unitless duration, so this transition would never run (use "${text}ms" or "${text}s")`;
+    }
+    return undefined;
+}
+
 export function validateDesignSystem<R extends RolesDecl>(
     ds: DesignSystemInput<R>,
     manifest: Pick<ZeroManifest, 'components'>,
@@ -127,13 +151,15 @@ export function validateDesignSystem<R extends RolesDecl>(
             );
             continue;
         }
-        for (const key of categoryKeys(node)) {
+        for (const [key, value] of Object.entries((node ?? {}) as Record<string, unknown>)) {
             if (!TOKEN_KEY_PATTERN.test(key)) {
                 error(
                     `tokens.system.${path}`,
                     `key "${key}" is not a kebab-case identifier (it becomes ${category.prefix}${key})`,
                 );
             }
+            const bad = badValue(category.syntax, value);
+            if (bad) error(`tokens.system.${path}`, `"${key}": ${bad}`);
         }
     }
 

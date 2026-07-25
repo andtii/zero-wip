@@ -44,6 +44,10 @@
         --radius-box: 1rem;
         --size-selector: 0.25rem;
         --size-field: 0.25rem;
+        --duration-fast: 150ms;
+        --duration-normal: 200ms;
+        --duration-slow: 300ms;
+        --ease-standard: ease;
         --border: 1px;
         --disabled-opacity: 0.3;
     }
@@ -111,6 +115,14 @@
         --color-warning-soft: color-mix(in oklab, var(--color-warning) 16%, var(--color-base-100));
         --color-error-soft: color-mix(in oklab, var(--color-error) 16%, var(--color-base-100));
     }
+
+    @media (prefers-reduced-motion: reduce) {
+        :root, [data-theme] {
+            --duration-fast: 0.01ms;
+            --duration-normal: 0.01ms;
+            --duration-slow: 0.01ms;
+        }
+    }
 }
 
 @layer zero.recipes {
@@ -139,7 +151,7 @@
         color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
         border-radius: calc(var(--radius-field) - 0.25rem);
         cursor: pointer;
-        transition: background 0.2s ease, color 0.2s ease;
+        transition: background var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="tabs"][data-part="tab"]:hover:not([data-disabled]) {
@@ -211,7 +223,7 @@
         border-top: none;
         border-left: none;
         transform: rotate(45deg);
-        transition: transform 0.2s ease;
+        transition: transform var(--duration-normal) var(--ease-standard);
         opacity: 0.6;
     }
 
@@ -252,7 +264,7 @@
         border-radius: var(--radius-selector);
         border: var(--border) solid var(--color-base-300);
         background: var(--color-base-200);
-        transition: background 0.2s ease, border-color 0.2s ease;
+        transition: background var(--duration-normal) var(--ease-standard), border-color var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="switch"][data-part="control"][data-state="checked"] {
@@ -274,7 +286,7 @@
         border-radius: var(--radius-selector);
         background: var(--color-base-100);
         box-shadow: 0 1px 2px oklch(0% 0 0 / 0.2);
-        transition: transform 0.2s ease, background 0.2s ease;
+        transition: transform var(--duration-normal) var(--ease-standard), background var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="switch"][data-part="thumb"][data-state="checked"] {
@@ -422,7 +434,7 @@
         border-radius: var(--radius-field);
         box-shadow: 0 1px 2px oklch(0% 0 0 / 0.08);
         cursor: pointer;
-        transition: background 0.2s ease;
+        transition: background var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="dialog"][data-part="trigger"]:hover:not([data-disabled]) {
@@ -451,7 +463,7 @@
     }
 
     [data-scope="dialog"][data-part="popup"][data-state="open"] {
-        animation: zero-daisy-pop 0.2s ease-out;
+        animation: zero-daisy-pop var(--duration-normal) ease-out;
     }
 
     [data-scope="dialog"][data-part="popup"]::backdrop {
@@ -486,7 +498,7 @@
         border-radius: var(--radius-field);
         box-shadow: 0 1px 2px oklch(0% 0 0 / 0.08);
         cursor: pointer;
-        transition: background 0.2s ease;
+        transition: background var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="dialog"][data-part="close"]:hover:not([data-disabled]) {
@@ -523,7 +535,7 @@
         border-radius: var(--radius-field);
         box-shadow: 0 1px 2px oklch(0% 0 0 / 0.08);
         cursor: pointer;
-        transition: background 0.2s ease;
+        transition: background var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="popover"][data-part="trigger"]:hover:not([data-disabled]) {
@@ -576,7 +588,7 @@
         border-radius: var(--radius-field);
         box-shadow: 0 1px 2px oklch(0% 0 0 / 0.08);
         cursor: pointer;
-        transition: background 0.2s ease;
+        transition: background var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="popover"][data-part="close"]:hover:not([data-disabled]) {
@@ -623,7 +635,7 @@
         border-radius: var(--radius-field);
         box-shadow: 0 1px 2px oklch(0% 0 0 / 0.08);
         cursor: pointer;
-        transition: background 0.2s ease;
+        transition: background var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="menu"][data-part="trigger"]:hover:not([data-disabled]) {
@@ -664,7 +676,7 @@
         border-radius: var(--radius-field);
         cursor: pointer;
         outline: none;
-        transition: background 0.15s ease;
+        transition: background var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="menu"][data-part="item"][data-highlighted] {
@@ -752,7 +764,7 @@
         border-radius: calc(var(--radius-selector) / 3);
         background: var(--color-base-100);
         box-shadow: inset 0 1px 1px oklch(0% 0 0 / 0.1);
-        transition: background 0.2s ease, border-color 0.2s ease;
+        transition: background var(--duration-normal) var(--ease-standard), border-color var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="checkbox"][data-part="control"][data-state="checked"] {
@@ -836,7 +848,7 @@
         border: var(--border) solid var(--color-base-content);
         border-radius: 9999px;
         background: var(--color-base-100);
-        transition: border-color 0.2s ease;
+        transition: border-color var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="radio-group"][data-part="item-control"][data-state="checked"] {
@@ -854,7 +866,7 @@
         height: calc(var(--radio-size) * 0.55);
         border-radius: 9999px;
         background: transparent;
-        transition: background 0.2s ease, transform 0.2s ease;
+        transition: background var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard);
         transform: scale(0.5);
     }
 
@@ -894,7 +906,7 @@
         height: 100%;
         background: var(--color-primary);
         border-radius: var(--radius-selector);
-        transition: width 0.3s ease;
+        transition: width var(--duration-slow) var(--ease-standard);
     }
 
     [data-scope="progress"][data-part="range"][data-state="complete"] {
@@ -1004,7 +1016,7 @@
         border-top: none;
         border-left: none;
         transform: rotate(45deg);
-        transition: transform 0.2s ease;
+        transition: transform var(--duration-normal) var(--ease-standard);
         opacity: 0.6;
     }
 
@@ -1040,7 +1052,7 @@
         border-radius: var(--radius-field);
         box-shadow: 0 1px 2px oklch(0% 0 0 / 0.08);
         cursor: pointer;
-        transition: background 0.2s ease;
+        transition: background var(--duration-normal) var(--ease-standard);
         min-width: 13rem;
     }
 
@@ -1072,7 +1084,7 @@
 
     [data-scope="select"][data-part="indicator"] {
         opacity: 0.6;
-        transition: transform 0.2s ease;
+        transition: transform var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="select"][data-part="indicator"][data-state="open"] {
@@ -1099,7 +1111,7 @@
         font-weight: 500;
         border-radius: var(--radius-field);
         cursor: pointer;
-        transition: background 0.15s ease;
+        transition: background var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="select"][data-part="item"][data-highlighted] {
