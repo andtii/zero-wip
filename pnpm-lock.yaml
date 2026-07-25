@@ -68,6 +68,9 @@ importers:
       '@sigx/zero-basic':
         specifier: workspace:^
         version: link:../../packages/zero-basic
+      '@sigx/zero-brutalist':
+        specifier: workspace:^
+        version: link:../../packages/zero-brutalist
       '@sigx/zero-daisyui':
         specifier: workspace:^
         version: link:../../packages/zero-daisyui
@@ -125,6 +128,18 @@ importers:
         version: 4.1.10(@types/node@22.20.1)(@vitest/coverage-v8@4.1.10)(happy-dom@20.11.1)(vite@8.1.5(@types/node@22.20.1)(esbuild@0.28.1))
 
   packages/zero-basic:
+    devDependencies:
+      '@sigx/zero':
+        specifier: workspace:^
+        version: link:../zero
+      '@sigx/zero-kit':
+        specifier: workspace:^
+        version: link:../zero-kit
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
+  packages/zero-brutalist:
     devDependencies:
       '@sigx/zero':
         specifier: workspace:^

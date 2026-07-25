@@ -22,6 +22,7 @@ import { anatomies } from '@sigx/zero/anatomy';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import { designSystem as materialDS } from '@sigx/zero-material';
+import { designSystem as brutalistDS } from '@sigx/zero-brutalist';
 
 const manifest = {
     components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
@@ -35,6 +36,7 @@ const SYSTEMS: ReadonlyArray<readonly [string, CompiledDesignSystem]> = [
     ['basic', compileDesignSystem(basicDS, manifest)],
     ['daisyui', compileDesignSystem(daisyDS, manifest)],
     ['material', compileDesignSystem(materialDS, manifest)],
+    ['brutalist', compileDesignSystem(brutalistDS, manifest)],
 ];
 
 describe.each(SYSTEMS)('%s compiled CSS', (name, compiled) => {

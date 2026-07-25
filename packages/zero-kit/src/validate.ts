@@ -169,6 +169,41 @@ export function validateDesignSystem<R extends RolesDecl>(
     const categoryKeys = (node: unknown): string[] => (isKeyMap(node) ? Object.keys(node) : []);
 
     const declaredSystem = ds.tokens.system;
+
+    /**
+     * A key under `system` that matches no category is silently ignored by
+     * the compiler — the values simply never appear, with nothing to say why.
+     * That is how a stale doc cost a whole type ramp once, so it is an error
+     * with a suggestion rather than a shrug.
+     */
+    const categoryRoots = new Set<string>(TOKEN_CATEGORIES.map((c) => c.path[0]!));
+    // A nested category is plausibly reached for by two names other than its
+    // real path: its category id (`text` — what `typography.sizes` was called
+    // before it moved) and its leaf path segment (`sizes`). Both are unique
+    // across the table today.
+    const nestedAliases = new Map<string, readonly string[]>();
+    for (const category of TOKEN_CATEGORIES) {
+        if (category.path.length > 1) {
+            nestedAliases.set(category.id, category.path);
+            nestedAliases.set(category.path[category.path.length - 1]!, category.path);
+        }
+    }
+    const checkSystemKeys = (where: string, source: unknown) => {
+        if (!isKeyMap(source)) return;
+        for (const key of Object.keys(source)) {
+            if (categoryRoots.has(key)) continue;
+            // The likely mistakes are naming a nested category by its id or
+            // by its leaf, so say where the category actually lives.
+            const nested = nestedAliases.get(key);
+            const hint = nested ? ` — did you mean "${nested.join('.')}"?` : '';
+            error(
+                where,
+                `"${key}" is not a token category (${[...categoryRoots].join(', ')}), so it is ignored${hint}`,
+            );
+        }
+    };
+    checkSystemKeys('tokens.system', declaredSystem);
+    checkSystemKeys('tokens.systemDark', ds.tokens.systemDark);
     for (const category of TOKEN_CATEGORIES) {
         if (category.shape === 'scalar') continue;
         const path = category.path.join('.');
@@ -257,6 +292,7 @@ export function validateDesignSystem<R extends RolesDecl>(
     const pairs = contrastPairs(roles);
     for (const [themeName, theme] of Object.entries(ds.tokens.themes)) {
         checkOverride(`themes.${themeName}.system`, theme.system);
+        checkSystemKeys(`themes.${themeName}.system`, theme.system);
         const colors = theme.colors as Record<string, string>;
         for (const token of required) {
             const value = colors[token];

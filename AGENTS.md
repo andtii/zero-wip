@@ -142,8 +142,12 @@ To run the playground: `pnpm --filter zero-playground dev`.
   and the acceptance test for extensible vocabularies: thirteen colour roles,
   a `level1`–`level5` elevation ramp, its own easings, its own breakpoints.
   Private — it proves the contract rather than shipping a licensed token set.
+- `packages/zero-brutalist` → `@sigx/zero-brutalist` — brutalist skin,
+  generated from a style brief through the design-system agent skill. The
+  end-to-end proof of the thesis, and the regression test for the skill
+  itself. Private.
 - `examples/playground` — private kitchen-sink app; switches between
-  basic / daisyui / material by a two-line import swap.
+  basic / daisyui / material / brutalist by a two-line import swap.
 
 **Lockstep versioning**: every publishable package shares one version. Never
 bump a single package's version — use `pnpm version:patch|minor|major`.

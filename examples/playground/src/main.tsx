@@ -20,6 +20,8 @@ import { installThemes } from '@sigx/zero-basic';
 // import { installThemes } from '@sigx/zero-daisyui';
 // import '@sigx/zero-material/css';
 // import { installThemes } from '@sigx/zero-material';
+// import '@sigx/zero-brutalist/css';
+// import { installThemes } from '@sigx/zero-brutalist';
 
 import { App } from './App';
 
