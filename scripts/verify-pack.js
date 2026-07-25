@@ -269,6 +269,7 @@ function main() {
         join(appDir, 'src', 'subpath-check.ts'),
         [
             "import { Dialog } from '@sigx/zero/dialog';",
+            "import { Button } from '@sigx/zero/button';",
             "import { Select } from '@sigx/zero/select';",
             "import { anatomies } from '@sigx/zero/anatomy';",
             "import { themeController } from '@sigx/zero/theme';",
@@ -276,7 +277,7 @@ function main() {
             "import { createControllableState } from '@sigx/zero/behaviors';",
             '',
             'export type _C = [',
-            '    typeof Dialog, typeof Select, typeof anatomies,',
+            '    typeof Dialog, typeof Button, typeof Select, typeof anatomies,',
             '    typeof themeController, typeof RECOMMENDED_ROLE_LIST,',
             '    typeof createControllableState,',
             '];',

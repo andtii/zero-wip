@@ -38,7 +38,7 @@ installThemes();
 
 | Package | What it is |
 |---|---|
-| [`@sigx/zero`](packages/zero) | The runtime foundation: anatomy contract, headless behaviors (controllable models, SSR-safe ids, roving focus, dismissal), unstyled components (Tabs, Collapsible, Switch, Dialog — more coming), theme engine, `manifest.json` + `llms.txt` |
+| [`@sigx/zero`](packages/zero) | The runtime foundation: anatomy contract, headless behaviors (controllable models, SSR-safe ids, roving focus, dismissal), unstyled components (Button, Tabs, Collapsible, Switch, Dialog — more coming), theme engine, `manifest.json` + `llms.txt` |
 | [`@sigx/zero-kit`](packages/zero-kit) | Node-only authoring kit: `defineTokens` / `defineRecipe` / `defineDesignSystem`, the CSS compiler, the `zero-kit` CLI (`build` / `validate`), and the design-system generation agent skill |
 | [`@sigx/zero-basic`](packages/zero-basic) | Neutral starter design system — readable defaults, and the reference input for the AI skill |
 | [`@sigx/zero-daisyui`](packages/zero-daisyui) | daisyUI-flavored skin — daisy's tokens and component look as pure data, no Tailwind required |

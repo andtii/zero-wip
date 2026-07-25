@@ -75,7 +75,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-Fourteen components ship today. Every part each renders is listed below, in
+Fifteen components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -91,6 +91,9 @@ context), so those four have no `root` PART and nothing to select with
 `[data-part="root"]`. Below, the slash-separated names are the parts a
 component renders; the root is called out separately where it carries props.
 
+- Button: Root(asChild) — one part on a native <button>, no machine states.
+  Carries all three variant axes (color/size/variant), which is what it is
+  for: it is where a design system puts its fill styles.
 - Tabs: Root(model=value)/List/Tab(value,asChild)/Panel(value). APG tabs,
   roving arrows, automatic|manual activation, orientation.
 - Collapsible: Root(model=open)/Trigger/Panel on native <details>.
@@ -121,9 +124,12 @@ component renders; the root is called out separately where it carries props.
 - Field: Root/Label/Description/Error — wires ids and disabled/invalid/
   required down to the control it wraps.
 
-Variant axes (`color`/`size`/`variant`) are accepted by Tabs, Switch,
+Variant axes (`color`/`size`/`variant`) are accepted by Button, Tabs, Switch,
 Checkbox, RadioGroup, Slider, Progress and Select; they pass through as
-data-* and zero attaches no styling to them.
+data-* and zero attaches no styling to them. Button is the worked example:
+route `color` through a component token pair (`--btn-accent` and its
+content colour) that the `variant` rules read, so the two axes compose
+instead of multiplying into a rule per combination.
 
 - Recipes take conditional styles via `parts.<part>.at`, keyed by a declared
   breakpoint (emitted as `@media (min-width: ...)`), a built-in

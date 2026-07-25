@@ -35,6 +35,10 @@
 - `TokensInput.breakpoints` — reserved DS-level breakpoint declaration,
   surfaced in the DS manifest (consumed by the upcoming conditions support).
 
+- Both shipped design systems implement the `size` and `variant` axes for
+  the new Button. They were advertised by the contract and implemented
+  nowhere -- three `variants` blocks existed across both systems, all
+  `color` -- so a generator had no worked example to imitate.
 - **Typography in the token contract** -- `system.typography` declares
   `fonts`, `weights`, `leading`, `tracking` and the `--text-*` ramp,
   emitting `--font-*`, `--weight-*`, `--leading-*`, `--tracking-*`.

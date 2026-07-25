@@ -9,6 +9,9 @@ export * from './theme/index.js';
 
 export { anatomies } from './anatomy.js';
 
+export { Button, buttonAnatomy } from './components/button/index.js';
+export type { ButtonRootProps } from './components/button/index.js';
+
 export { Tabs, tabsAnatomy, useTabsContext } from './components/tabs/index.js';
 export type { TabsRootProps, TabsListProps, TabsTabProps, TabsPanelProps, TabsContext, TabsActivationMode } from './components/tabs/index.js';
 

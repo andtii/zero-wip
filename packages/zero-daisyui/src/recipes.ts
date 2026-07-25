@@ -735,7 +735,108 @@ export const select: RecipeInput = {
     },
 };
 
+export const button: RecipeInput = {
+    component: 'button',
+    // The two axes meet here instead of multiplying. `color` sets the accent
+    // pair; `variant` decides how the accent is used. 8 + 4 + 5 rules rather
+    // than 8 × 4.
+    tokens: {
+        '--btn-accent': 'var(--color-primary)',
+        '--btn-on-accent': 'var(--color-primary-content)',
+        '--btn-soft': 'var(--color-primary-soft)',
+    },
+    parts: {
+        root: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5em',
+                border: 'var(--border) solid transparent',
+                borderRadius: 'var(--radius-field)',
+                boxShadow: 'var(--shadow-xs)',
+                fontFamily: 'inherit',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard), '
+                    + 'border-color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                'focus-visible': {
+                    outline: '2px solid var(--btn-accent)',
+                    outlineOffset: '2px',
+                },
+            },
+            selectors: {
+                // Pressed: `:active` is a real pseudo-class here, because the
+                // anatomy declares no machine state called `active`.
+                '&:active:not([data-disabled])': { transform: 'translateY(1px)', boxShadow: 'none' },
+            },
+        },
+    },
+    variants: {
+        // One rule per role rather than per role × fill: the fill
+        // variants below read these two tokens, so adding a colour
+        // costs one rule instead of four.
+        color: Object.fromEntries(
+            (['primary', 'secondary', 'accent', 'neutral', 'info', 'success', 'warning', 'error'] as const).map((c) => [
+                c,
+                {
+                    root: {
+                        base: {
+                            '--btn-accent': `var(--color-${c})`,
+                            '--btn-on-accent': `var(--color-${c}-content)`,
+                            '--btn-soft': `var(--color-${c}-soft)`,
+                        },
+                    },
+                },
+            ]),
+        ),
+        variant: {
+            solid: {
+                root: {
+                    base: { background: 'var(--btn-accent)', color: 'var(--btn-on-accent)' },
+                    states: { hover: { filter: 'brightness(0.92)' } },
+                },
+            },
+            outline: {
+                root: {
+                    base: {
+                        background: 'transparent',
+                        color: 'var(--btn-accent)',
+                        borderColor: 'var(--btn-accent)',
+                    },
+                    states: { hover: { background: 'var(--btn-soft)' } },
+                },
+            },
+            soft: {
+                root: {
+                    base: { background: 'var(--btn-soft)', color: 'var(--btn-accent)' },
+                    states: { hover: { filter: 'brightness(0.95)' } },
+                },
+            },
+            ghost: {
+                root: {
+                    base: { background: 'transparent', color: 'var(--btn-accent)' },
+                    states: { hover: { background: 'var(--btn-soft)' } },
+                },
+            },
+        },
+        size: {
+            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-sm)' } } },
+            md: { root: { base: { padding: 'var(--space-sm) var(--space-lg)', fontSize: 'var(--text-md)' } } },
+            lg: { root: { base: { padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-lg)' } } },
+            xl: { root: { base: { padding: 'var(--space-lg) var(--space-2xl)', fontSize: 'var(--text-xl)' } } },
+        },
+    },
+    defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
-    field, checkbox, radioGroup, progress, slider, accordion, select,
+    field, checkbox, radioGroup, progress, slider, accordion, select, button,
 ];
