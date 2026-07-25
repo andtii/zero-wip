@@ -61,7 +61,7 @@ Omitting a category is fine — `@sigx/zero/css` ships fallbacks for the
 recommended keys, so absence is never a validation error.
 
 ```bash
-zero-kit validate   # tokens, contrast, and recipe CONTENT
+zero-kit validate   # tokens, WCAG contrast, recipe structure + content
 zero-kit build      # dist/css/index.css + per-component files + manifest
 ```
 

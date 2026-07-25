@@ -234,7 +234,7 @@ export function validateRecipes(
 
         // ── variant axes and values ──
         for (const [axis, values_] of Object.entries(recipe.variants ?? {})) {
-            if (!(axis in VARIANT_AXES)) {
+            if (!Object.hasOwn(VARIANT_AXES, axis)) {
                 warn(
                     `${where}.variants`,
                     `axis "${axis}" is not a contract axis (${Object.keys(VARIANT_AXES).join(', ')}) — zero never emits data-${axis}, so these rules can't match`,

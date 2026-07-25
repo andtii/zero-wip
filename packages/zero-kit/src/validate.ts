@@ -289,7 +289,7 @@ export function validateDesignSystem<R extends RolesDecl>(
         if (!TOKEN_KEY_PATTERN.test(name)) {
             error('tokens.breakpoints', `"${name}" is not a kebab-case identifier`);
         }
-        if (name in BUILTIN_CONDITIONS) {
+        if (Object.hasOwn(BUILTIN_CONDITIONS, name)) {
             error(
                 'tokens.breakpoints',
                 `"${name}" collides with the built-in condition of the same name — rename the breakpoint`,

@@ -201,6 +201,15 @@ describe('variants', () => {
         }).warnings).toContainEqual(expect.stringContaining('not a contract axis'));
     });
 
+    it('warns on an axis named after an Object.prototype member', () => {
+        // `in` would have reported these as valid contract axes.
+        expect(check({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            variants: { toString: { x: { tab: { base: { padding: '0' } } } } },
+        }).warnings).toContainEqual(expect.stringContaining('not a contract axis'));
+    });
+
     it('warns on a size outside the shared scale', () => {
         expect(check({
             component: 'tabs',
