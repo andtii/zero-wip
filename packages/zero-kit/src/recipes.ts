@@ -183,38 +183,66 @@ function push(sink: Sink, path: readonly Condition[], rule: string): void {
     sink.set(key, bucket);
 }
 
+/**
+ * Prelude → the condition it resolved to, for one recipe.
+ *
+ * Buckets are keyed by prelude, so the same prelude reached from two places
+ * has to agree on its tier — otherwise the merged block's emission order
+ * would depend on which part happened to be visited first. The registry also
+ * makes a raw key's ordinal stable across parts, so two parts using the same
+ * `@supports` still merge into one block.
+ */
+type ConditionRegistry = Map<string, { condition: Condition; via: string }>;
+
 function resolveCondition(
     key: string,
     context: RecipeContext,
     where: string,
-    seen: number,
+    registry: ConditionRegistry,
 ): Condition {
-    if (key.startsWith('@')) return { prelude: key, tier: TIER.raw, ordinal: seen };
     const breakpoints = context.breakpoints ?? {};
-    // Declared breakpoints win over built-ins; a name that collides with one
-    // is a validation error, so the precedence can never actually be observed.
-    if (key in breakpoints) {
-        return {
+    let condition: Condition;
+
+    if (key.startsWith('@')) {
+        condition = { prelude: key, tier: TIER.raw, ordinal: registry.size };
+    } else if (key in breakpoints) {
+        condition = {
             prelude: `@media (min-width: ${breakpoints[key]})`,
             tier: TIER.breakpoint,
             ordinal: Object.keys(breakpoints).indexOf(key),
         };
-    }
-    const builtin = BUILTIN_CONDITIONS[key];
-    if (builtin) {
-        return {
-            prelude: builtin,
+    } else if (BUILTIN_CONDITIONS[key]) {
+        condition = {
+            prelude: BUILTIN_CONDITIONS[key]!,
             tier: key === 'reduced-motion' ? TIER.reducedMotion : TIER.preference,
-            ordinal: seen,
+            ordinal: registry.size,
         };
+    } else {
+        const declared = Object.keys(breakpoints);
+        throw new Error(
+            `[zero-kit] ${where} uses unknown condition "${key}"\n` +
+            `  declared breakpoints: ${declared.length ? declared.join(', ') : '(none — declare them in tokens.breakpoints)'}\n` +
+            `  built-ins: ${Object.keys(BUILTIN_CONDITIONS).join(', ')}\n` +
+            `  or start the key with "@" for a raw prelude, e.g. "@container (min-width: 30rem)"`,
+        );
     }
-    const declared = Object.keys(breakpoints);
-    throw new Error(
-        `[zero-kit] ${where} uses unknown condition "${key}"\n` +
-        `  declared breakpoints: ${declared.length ? declared.join(', ') : '(none — declare them in tokens.breakpoints)'}\n` +
-        `  built-ins: ${Object.keys(BUILTIN_CONDITIONS).join(', ')}\n` +
-        `  or start the key with "@" for a raw prelude, e.g. "@container (min-width: 30rem)"`,
-    );
+
+    const seen = registry.get(condition.prelude);
+    if (!seen) {
+        registry.set(condition.prelude, { condition, via: key });
+        return condition;
+    }
+    if (seen.condition.tier !== condition.tier) {
+        // e.g. a raw `@media (min-width: 640px)` alongside a declared
+        // `sm: '640px'`. They'd share a bucket, and its emission tier would
+        // depend on visit order. Ambiguity, not a preference to resolve.
+        throw new Error(
+            `[zero-kit] ${where}: conditions "${seen.via}" and "${key}" both resolve to ` +
+            `"${condition.prelude}" but sort differently — use "${seen.via}" for both, ` +
+            `or give them distinct conditions`,
+        );
+    }
+    return seen.condition;
 }
 
 function emitPartStyles(
@@ -224,6 +252,7 @@ function emitPartStyles(
     baseSelector: string,
     sink: Sink,
     context: RecipeContext,
+    registry: ConditionRegistry,
     path: readonly Condition[] = [],
 ): void {
     const part = findPart(component, partName);
@@ -245,11 +274,10 @@ function emitPartStyles(
         const sel = nested.includes('&') ? nested.replace(/&/g, baseSelector) : `${baseSelector} ${nested}`;
         rule(sel, props);
     }
-    let seen = 0;
     for (const [key, nested] of Object.entries(styles.at ?? {})) {
         const where = `recipe for "${component.scope}"."${partName}"`;
-        const condition = resolveCondition(key, context, where, seen++);
-        emitPartStyles(component, partName, nested, baseSelector, sink, context, [...path, condition]);
+        const condition = resolveCondition(key, context, where, registry);
+        emitPartStyles(component, partName, nested, baseSelector, sink, context, registry, [...path, condition]);
     }
 }
 
@@ -296,6 +324,7 @@ export function compileRecipeCss(
         );
     }
     const sink: Sink = new Map();
+    const registry: ConditionRegistry = new Map();
 
     // Component-level tokens on the carrier part.
     if (recipe.tokens && Object.keys(recipe.tokens).length > 0) {
@@ -304,7 +333,7 @@ export function compileRecipeCss(
     }
 
     for (const [partName, styles] of Object.entries(recipe.parts)) {
-        emitPartStyles(component, partName, styles, partSelector(component.scope, partName), sink, context);
+        emitPartStyles(component, partName, styles, partSelector(component.scope, partName), sink, context, registry);
     }
 
     for (const [axis, values] of Object.entries(recipe.variants ?? {})) {
@@ -313,14 +342,14 @@ export function compileRecipeCss(
             for (const [partName, styles] of Object.entries(parts)) {
                 findPart(component, partName);
                 const selector = variantSelector(component, partName, `[${attr}="${value}"]`);
-                emitPartStyles(component, partName, styles, selector, sink, context);
+                emitPartStyles(component, partName, styles, selector, sink, context, registry);
 
                 // CSS-only default: the same styles apply when the attribute
                 // is absent. Never conflicts with the explicit-value rule —
                 // the attribute is either present or not.
                 if (recipe.defaultVariants?.[axis] === value) {
                     const dflt = variantSelector(component, partName, `:not([${attr}])`);
-                    emitPartStyles(component, partName, styles, dflt, sink, context);
+                    emitPartStyles(component, partName, styles, dflt, sink, context, registry);
                 }
             }
         }
@@ -332,7 +361,7 @@ export function compileRecipeCss(
             .join('');
         for (const [partName, styles] of Object.entries(compoundVariant.parts)) {
             findPart(component, partName);
-            emitPartStyles(component, partName, styles, variantSelector(component, partName, attrs), sink, context);
+            emitPartStyles(component, partName, styles, variantSelector(component, partName, attrs), sink, context, registry);
         }
     }
 

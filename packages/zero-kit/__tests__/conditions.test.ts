@@ -255,3 +255,44 @@ describe('breakpoint units', () => {
         expect(errors({ sm: '40rem', md: '48rem', lg: '64rem' })).toEqual([]);
     });
 });
+
+describe('prelude collisions', () => {
+    it('rejects a raw prelude that duplicates a declared breakpoint', () => {
+        // Both resolve to `@media (min-width: 640px)` but sort in different
+        // tiers, so the merged block's emission order would depend on which
+        // part happened to be visited first. Ambiguity, not a preference.
+        expect(() => compile({
+            component: 'tabs',
+            parts: {
+                list: { at: { sm: { base: { gap: '1rem' } } } },
+                tab: { at: { '@media (min-width: 640px)': { base: { padding: '1rem' } } } },
+            },
+        })).toThrow(/both resolve to "@media \(min-width: 640px\)"/);
+    });
+
+    it('still merges the same raw prelude used by different parts', () => {
+        // The ordinal has to be stable across parts for this to hold — a
+        // per-part counter would have split these into two blocks.
+        const css = compile({
+            component: 'tabs',
+            parts: {
+                list: { at: { '@supports (display: grid)': { base: { display: 'grid' } } } },
+                tab: { at: { '@supports (display: grid)': { base: { placeSelf: 'center' } } } },
+            },
+        });
+        expect(css.match(/@supports \(display: grid\)/g)).toHaveLength(1);
+        expect(css).toContain('display: grid;');
+        expect(css).toContain('place-self: center;');
+    });
+
+    it('keeps raw-prelude ordering stable when parts use different sets', () => {
+        const css = compile({
+            component: 'tabs',
+            parts: {
+                list: { at: { '@supports (a: b)': { base: { gap: '1rem' } }, '@supports (c: d)': { base: { gap: '2rem' } } } },
+                tab: { at: { '@supports (c: d)': { base: { padding: '1rem' } } } },
+            },
+        });
+        expect(css.match(/@supports \(c: d\)/g)).toHaveLength(1);
+    });
+});
