@@ -42,7 +42,8 @@ export const system = {
     /**
      * Hard offset shadows with no blur. They read as a second, displaced copy
      * of the element rather than as light, so they are drawn in the
-     * foreground colour — which is correct in both schemes with no restating.
+     * foreground colour. The compiler restates a colour-referencing token
+     * inside every theme block, so this one value is right in every theme.
      */
     shadow: {
         xs: '2px 2px 0 0 var(--color-base-content)',

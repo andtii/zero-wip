@@ -320,6 +320,13 @@ function systemDecls(props: Record<string, string>, only?: ReadonlySet<string>):
         .map(([prop, value]) => `${prop}: ${value};`);
 }
 
+/**
+ * A reference to any color token — role, base surface, `-content` or `-soft`.
+ * `[,)]` rather than `)` so a fallback (`var(--color-primary, red)`) counts:
+ * the value still has to be substituted where the theme's colors are in scope.
+ */
+const COLOR_REF = /var\(\s*--color-[a-z0-9-]+\s*[,)]/;
+
 /** Properties whose resolved value differs between the two property maps. */
 function divergentProps(a: Record<string, string>, b: Record<string, string>): Set<string> {
     const out = new Set<string>();
@@ -550,6 +557,33 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
         )
         : new Set<string>();
 
+    /**
+     * Properties whose value reads a color token, which every theme block must
+     * restate for the same reason — but a subtler one.
+     *
+     * CSS substitutes `var()` in a custom property where the property is
+     * DECLARED, not where it is used. A system-tier token is declared once, at
+     * `:root`, so `--shadow-md: 0 0 8px var(--color-primary)` captures the
+     * `:root` primary and inherits that captured color into every
+     * `[data-theme]` block — the theme redeclares the role, but nothing
+     * redeclares the token built from it. Measured: a phosphor glow written
+     * that way stayed green on an amber theme.
+     *
+     * Restating the token inside each theme block re-runs the substitution
+     * there, against that theme's own colors. `:root` itself is already
+     * correct: the color it reads is a `light-dark()`, which resolves per
+     * element from `color-scheme`.
+     *
+     * (Reading an unregistered token — a base surface — happens to survive as
+     * a `light-dark()` token stream, but only for a single light/dark pair.
+     * Both cases are handled the same way rather than relying on that.)
+     */
+    const colorReferencing = new Set(
+        Object.entries(nonColorLight)
+            .filter(([, value]) => COLOR_REF.test(value))
+            .map(([prop]) => prop),
+    );
+
     // Specificity ladder inside `@layer zero.tokens`:
     //   `:where(:root)` defaults      → (0,0,0)
     //   `[data-theme="x"]` overrides  → (0,1,0)  — always beat the defaults
@@ -572,14 +606,14 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
         // defaults, plus the scheme-divergent set. Everything else is
         // inherited, so restating it would be dead weight in every theme.
         const own = divergentProps(nonColor, nonColorLight);
-        const emit = new Set([...own, ...schemeDivergent]);
+        const emit = new Set([...own, ...schemeDivergent, ...colorReferencing]);
         // A theme that doesn't define a scheme-divergent property still has to
         // state one, or under system dark it would inherit the media block's
         // value instead of the `:root` default it actually resolves to. Only
         // `extra` and `components` can land here — declared `custom` tokens are
         // required in every theme, and category values resolve from `system`.
         const source: Record<string, string> = { ...nonColor };
-        for (const prop of schemeDivergent) {
+        for (const prop of [...schemeDivergent, ...colorReferencing]) {
             if (!(prop in source)) source[prop] = nonColorLight[prop]!;
         }
         blocks.push(block(

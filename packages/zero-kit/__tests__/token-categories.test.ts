@@ -544,3 +544,63 @@ describe('spacing and shadow', () => {
         expect(css).toContain('--shadow-level5: 0 12px 32px #0003;');
     });
 });
+
+describe('a system token that references a color', () => {
+    /**
+     * CSS substitutes `var()` where a property is DECLARED, not where it is
+     * used. A system-tier token is declared once at `:root`, so without help
+     * it captures the `:root` color and inherits that captured value into
+     * every theme block — measured in a browser as a phosphor glow that stayed
+     * green on an amber theme (#60).
+     */
+    const glow = (extraTheme?: Record<string, unknown>) => compileTokensCss(defineTokens({
+        roles,
+        system: { shadow: { md: '0 0 8px var(--color-primary)' } },
+        defaultLight: 'l',
+        defaultDark: 'd',
+        themes: {
+            l: { colorScheme: 'light', colors },
+            d: { colorScheme: 'dark', colors: { ...colors, primary: 'oklch(80% 0.2 145)' } },
+            ...extraTheme,
+        },
+    }));
+
+    it('is restated inside every theme block, so it resolves there', () => {
+        const css = glow();
+        for (const theme of ['l', 'd']) {
+            expect(blockOf(css, `[data-theme="${theme}"]`)).toContain('--shadow-md: 0 0 8px var(--color-primary);');
+        }
+    });
+
+    it('reaches a third theme too, which light-dark() alone could not', () => {
+        // The failure this rules out: an unregistered token (a base surface)
+        // survives substitution as a `light-dark()` stream and re-resolves
+        // from `color-scheme` — but only ever picks one of TWO branches, so a
+        // third theme took the default light theme's color.
+        const css = glow({ hicontrast: { colorScheme: 'light', colors: { ...colors, primary: 'oklch(0% 0 0)' } } });
+        expect(blockOf(css, '[data-theme="hicontrast"]')).toContain('--shadow-md: 0 0 8px var(--color-primary);');
+    });
+
+    it('counts a reference carrying a fallback', () => {
+        const css = compileTokensCss(defineTokens({
+            roles,
+            system: { shadow: { md: '0 0 8px var(--color-primary, oklch(50% 0 0))' } },
+            defaultLight: 'l',
+            themes: { l: { colorScheme: 'light', colors } },
+        }));
+        expect(blockOf(css, '[data-theme="l"]')).toContain('--shadow-md: 0 0 8px var(--color-primary, oklch(50% 0 0));');
+    });
+
+    it('leaves a token with no color reference where it was', () => {
+        // The restatement is targeted: a literal value stays at `:root` only,
+        // or every theme block would carry the whole system ramp.
+        const css = compileTokensCss(defineTokens({
+            roles,
+            system: { shadow: { md: '0 0 8px oklch(0% 0 0 / 0.3)' } },
+            defaultLight: 'l',
+            themes: { l: { colorScheme: 'light', colors } },
+        }));
+        expect(blockOf(css, ':where(:root)')).toContain('--shadow-md:');
+        expect(blockOf(css, '[data-theme="l"]')).not.toContain('--shadow-md:');
+    });
+});

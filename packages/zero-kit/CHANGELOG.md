@@ -41,11 +41,15 @@
   worked Button recipe. They are validated and compiled by the test suite, and
   the skill's cheat-sheet table is compared against them cell by cell, so a
   brief that goes stale fails a test instead of misleading the next reader.
-- The validator warns when a `tokens.system` or `tokens.systemDark` value reads
-  a colour role. Roles are `@property`-registered, so the reference resolves
-  once at `:root` and every `[data-theme]` block inherits that one colour — a
-  phosphor glow written `0 0 16px var(--color-primary)` stayed green on the
-  amber theme. Declare the value under each theme's own `system` instead.
+- A `tokens.system` value that references a colour now resolves per theme.
+  CSS substitutes `var()` where a property is *declared*, so a system-tier
+  token declared once at `:root` captured that colour and every `[data-theme]`
+  block inherited the captured value — a phosphor glow written
+  `0 0 16px var(--color-primary)` stayed green on the amber theme. Such tokens
+  are now restated inside each theme block, the way scheme-divergent values
+  already were, so the reference resolves against that theme's own colours.
+  This replaces the validator warning shipped alongside the brief pack: the
+  shape it warned about is the shape that works.
 - The validator rejects an unknown key under `system`. It was ignored
   silently, so a design system could declare a whole token category that
   never appeared, with nothing to explain why — which is exactly what a

@@ -17,8 +17,8 @@ import type { RecipeInput, RolesDecl, SystemTokens, TokensInput } from '@sigx/ze
 export const brief = {
     id: 'terminal',
     summary: 'A phosphor console: monospace everywhere, square, one glowing signal colour.',
-    teaches: '0ms durations instead of transition:none, and where a theme-coloured token has to be declared',
-    signature: 'every duration is 0ms, and --shadow-* is a per-theme phosphor glow',
+    teaches: '0ms durations instead of transition:none, and a glow built from theme colours',
+    signature: 'every duration is 0ms, and --shadow-* is a glow in var(--color-primary)',
 } as const;
 
 export const roles = {
@@ -42,20 +42,17 @@ export const system = {
 
     /**
      * Not a shadow — a phosphor glow, so it has to be the theme's own colour.
-     *
-     * It is written out per theme below rather than as
-     * `0 0 8px var(--color-primary)` here. A `var()` in a design-system-level
-     * token is substituted once, at `:root`, and the result inherits into
-     * every `[data-theme]` block — so a glow written that way stays green on
-     * the amber theme. The validator warns about it; this is the shape that
-     * works. The values here are the neutral fallback any future theme gets.
+     * Geometry is design-system-level and the colour reaches each theme
+     * through `var()`: green on the console, amber on paper, stated once. The
+     * compiler restates a colour-referencing token inside every theme block so
+     * the reference resolves there rather than freezing at `:root`.
      */
     shadow: {
-        xs: '0 0 2px 0 oklch(50% 0 0 / 0.5)',
-        sm: '0 0 4px 0 oklch(50% 0 0 / 0.5)',
-        md: '0 0 8px 0 oklch(50% 0 0 / 0.5)',
-        lg: '0 0 16px 0 oklch(50% 0 0 / 0.5)',
-        xl: '0 0 28px 0 oklch(50% 0 0 / 0.5)',
+        xs: '0 0 2px 0 var(--color-primary)',
+        sm: '0 0 4px 0 var(--color-primary)',
+        md: '0 0 8px 0 var(--color-primary)',
+        lg: '0 0 16px 0 var(--color-primary)',
+        xl: '0 0 28px 0 var(--color-primary)',
     },
 
     /**
@@ -102,16 +99,6 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
             colorScheme: 'dark',
             pair: 'paper',
             softMix: 0.18,
-            // Phosphor green, stated where the colour actually lives.
-            system: {
-                shadow: {
-                    xs: '0 0 2px 0 oklch(82% 0.19 145)',
-                    sm: '0 0 4px 0 oklch(82% 0.19 145)',
-                    md: '0 0 8px 0 oklch(82% 0.19 145)',
-                    lg: '0 0 16px 0 oklch(82% 0.19 145)',
-                    xl: '0 0 28px 0 oklch(82% 0.19 145)',
-                },
-            },
             colors: {
                 'base-100': 'oklch(16% 0.01 150)',
                 'base-200': 'oklch(20% 0.014 150)',
@@ -142,16 +129,6 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
             colorScheme: 'light',
             pair: 'terminal',
             softMix: 0.12,
-            // Amber ink bleeding into the page, not phosphor.
-            system: {
-                shadow: {
-                    xs: '0 0 2px 0 oklch(48% 0.13 60 / 0.5)',
-                    sm: '0 0 4px 0 oklch(48% 0.13 60 / 0.5)',
-                    md: '0 0 8px 0 oklch(48% 0.13 60 / 0.5)',
-                    lg: '0 0 16px 0 oklch(48% 0.13 60 / 0.5)',
-                    xl: '0 0 28px 0 oklch(48% 0.13 60 / 0.5)',
-                },
-            },
             colors: {
                 'base-100': 'oklch(96% 0.02 85)',
                 'base-200': 'oklch(92% 0.03 85)',
