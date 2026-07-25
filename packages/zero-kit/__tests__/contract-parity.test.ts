@@ -139,6 +139,27 @@ describe('kit ↔ zero contract parity', () => {
         }
     });
 
+    it('base.css fallbacks sit in a layer a design system outranks', () => {
+        // The fallbacks are on `:root` (0,1,0) while a compiled design system
+        // emits `:where(:root)` (0,0,0) — so sharing one layer let the
+        // fallback beat the design system's own default until a theme was
+        // explicitly selected. A separate, earlier layer makes the ordering
+        // independent of both specificity and import order.
+        const baseCss = readFileSync(
+            resolve(process.cwd(), 'packages/zero/css/base.css'),
+            'utf8',
+        );
+        const order = /@layer\s+([^;]+);/.exec(baseCss);
+        expect(order, 'base.css must declare the layer order').not.toBeNull();
+        const layers = order![1]!.split(',').map((l) => l.trim());
+        expect(layers.indexOf('zero.fallback')).toBeGreaterThan(-1);
+        expect(layers.indexOf('zero.fallback')).toBeLessThan(layers.indexOf('zero.tokens'));
+
+        // …and the fallback values must actually live in that layer.
+        const fallbackBlock = baseCss.slice(baseCss.indexOf('@layer zero.fallback'));
+        expect(fallbackBlock).toContain('--radius-box:');
+    });
+
     it('base.css ships a fallback for every recommended key', () => {
         // A category a design system never mentions must still resolve, which
         // is what makes "absence is never a validation error" safe.

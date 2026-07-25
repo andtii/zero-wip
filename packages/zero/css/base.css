@@ -9,9 +9,22 @@
  *
  * NO visual design lives here — that is the design system's job.
  */
-@layer zero.tokens, zero.recipes;
+/*
+ * Layer order. `zero.fallback` exists so the values below are genuinely
+ * last-resort: a design system writes into `zero.tokens`, and layer order
+ * beats selector specificity, so its defaults win no matter how they are
+ * spelled or in what order the stylesheets are imported.
+ *
+ * Sharing one layer did not work. These fallbacks are on `:root` — a
+ * pseudo-class, specificity (0,1,0) — while a compiled design system emits
+ * `:where(:root)` at (0,0,0) to sit below its own `[data-theme]` blocks. Same
+ * layer means specificity decides, so the fallback beat the design system's
+ * default and `--radius-box: 0.75rem` silently rendered as `0.5rem` until a
+ * theme was explicitly selected.
+ */
+@layer zero.fallback, zero.tokens, zero.recipes;
 
-@layer zero.tokens {
+@layer zero.fallback {
     :root {
         /* Structural fallbacks — a DS's tokens.css overrides all of these. */
         --radius-selector: 0.25rem;
