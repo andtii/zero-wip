@@ -35,6 +35,11 @@
 - `TokensInput.breakpoints` — reserved DS-level breakpoint declaration,
   surfaced in the DS manifest (consumed by the upcoming conditions support).
 
+- The validator rejects an unknown key under `system`. It was ignored
+  silently, so a design system could declare a whole token category that
+  never appeared, with nothing to explain why — which is exactly what a
+  stale line in the agent skill caused. The message names the categories
+  and suggests the right path for a category reached by its old name.
 - `@sigx/zero-material` is the acceptance test for the extensible token
   vocabulary: a design language zero was not designed around, expressed
   entirely as data. It validates with no errors and no warnings, styles all

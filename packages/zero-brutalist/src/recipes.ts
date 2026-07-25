@@ -1,0 +1,581 @@
+/**
+ * zero-brutalist recipes — the brief, applied to zero's anatomy.
+ *
+ * Brutalism is mostly three moves repeated: a thick black border, a hard
+ * offset shadow, and uppercase tracked-out mono labels. Pressing something
+ * shoves it into its own shadow.
+ */
+import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
+
+const ROLES = ['primary', 'secondary', 'accent', 'neutral', 'info', 'success', 'warning', 'error'] as const;
+
+/** Uppercase, tracked out, mono, heavy — the brief's label treatment. */
+const label: CssProps = {
+    fontFamily: 'var(--font-mono)',
+    fontWeight: 'var(--weight-semibold)',
+    letterSpacing: 'var(--tracking-wide)',
+    textTransform: 'uppercase',
+};
+
+const inked: CssProps = {
+    border: 'var(--border) solid var(--color-base-content)',
+    borderRadius: '0',
+    background: 'var(--color-base-100)',
+    color: 'var(--color-base-content)',
+};
+
+const focusRing: Record<string, CssProps> = {
+    'focus-visible': {
+        outline: 'var(--border) solid var(--color-primary)',
+        outlineOffset: '3px',
+    },
+};
+
+/** Hovering shoves the element part-way into its own shadow. */
+const shift = (n: string): CssProps => ({
+    boxShadow: 'var(--shadow-xs)',
+    transform: `translate(${n}, ${n})`,
+});
+
+const motion = (props: string): string =>
+    props.split(', ').map((p) => `${p} var(--duration-fast) var(--ease-standard)`).join(', ');
+
+// ── Button ────────────────────────────────────────────────────────────────
+export const button: RecipeInput = {
+    component: 'button',
+    tokens: {
+        '--btn-accent': 'var(--color-primary)',
+        '--btn-on-accent': 'var(--color-primary-content)',
+        '--btn-soft': 'var(--color-primary-soft)',
+    },
+    parts: {
+        root: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 'var(--space-sm)',
+                ...inked,
+                ...label,
+                lineHeight: 'var(--leading-none)',
+                boxShadow: 'var(--shadow-sm)',
+                cursor: 'pointer',
+                transition: motion('box-shadow, transform, background'),
+            },
+            states: {
+                disabled: {
+                    opacity: 'var(--disabled-opacity)',
+                    cursor: 'not-allowed',
+                    boxShadow: 'none',
+                    transform: 'none',
+                },
+                hover: shift('1px'),
+                ...focusRing,
+            },
+            selectors: { '&:active:not([data-disabled])': { boxShadow: 'none', transform: 'translate(3px, 3px)' } },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [
+            c,
+            {
+                root: {
+                    base: {
+                        '--btn-accent': `var(--color-${c})`,
+                        '--btn-on-accent': `var(--color-${c}-content)`,
+                        '--btn-soft': `var(--color-${c}-soft)`,
+                    },
+                },
+            },
+        ])),
+        variant: {
+            solid: { root: { base: { background: 'var(--btn-accent)', color: 'var(--btn-on-accent)' } } },
+            outline: { root: { base: { background: 'var(--color-base-100)', color: 'var(--color-base-content)' } } },
+            soft: { root: { base: { background: 'var(--btn-soft)', color: 'var(--color-base-content)' } } },
+            // Even "ghost" keeps the border. Brutalism has no invisible states.
+            ghost: {
+                root: {
+                    base: { background: 'transparent', color: 'var(--color-base-content)', boxShadow: 'none' },
+                    states: { hover: { background: 'var(--btn-soft)', transform: 'none' } },
+                },
+            },
+        },
+        size: {
+            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-sm)', fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-xs)' } } },
+            md: { root: { base: { padding: 'var(--space-sm) var(--space-lg)', fontSize: 'var(--text-sm)' } } },
+            lg: { root: { base: { padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { padding: 'var(--space-lg) var(--space-2xl)', fontSize: 'var(--text-lg)' } } },
+        },
+    },
+    defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },
+};
+
+// ── Tabs ──────────────────────────────────────────────────────────────────
+export const tabs: RecipeInput = {
+    component: 'tabs',
+    parts: {
+        root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' } },
+        list: { base: { display: 'flex', gap: 'var(--space-sm)' } },
+        tab: {
+            base: {
+                appearance: 'none',
+                ...inked,
+                ...label,
+                fontSize: 'var(--text-xs)',
+                padding: 'var(--space-sm) var(--space-lg)',
+                boxShadow: 'var(--shadow-xs)',
+                cursor: 'pointer',
+                transition: motion('box-shadow, transform, background'),
+            },
+            states: {
+                active: {
+                    background: 'var(--color-primary)',
+                    color: 'var(--color-primary-content)',
+                    boxShadow: 'var(--shadow-sm)',
+                },
+                inactive: {},
+                hover: shift('1px'),
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed', boxShadow: 'none' },
+                ...focusRing,
+            },
+        },
+        panel: {
+            base: { ...inked, padding: 'var(--space-lg)', boxShadow: 'var(--shadow-md)', lineHeight: 'var(--leading-normal)' },
+            states: { active: {}, inactive: {} },
+        },
+    },
+};
+
+// ── Disclosure ────────────────────────────────────────────────────────────
+const disclosureTrigger: PartStyles = {
+    base: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 'var(--space-md)',
+        ...label,
+        fontSize: 'var(--text-sm)',
+        cursor: 'pointer',
+        transition: motion('background'),
+    },
+    states: {
+        open: { background: 'var(--color-accent)', color: 'var(--color-accent-content)' },
+        closed: {},
+        hover: { background: 'var(--color-base-200)' },
+        disabled: { opacity: 'var(--disabled-opacity)' },
+        ...focusRing,
+    },
+};
+
+export const collapsible: RecipeInput = {
+    component: 'collapsible',
+    parts: {
+        root: { base: { ...inked, boxShadow: 'var(--shadow-sm)' }, states: { open: {}, closed: {} } },
+        trigger: disclosureTrigger,
+        panel: {
+            base: {
+                padding: 'var(--space-md)',
+                borderTop: 'var(--border) solid var(--color-base-content)',
+                lineHeight: 'var(--leading-normal)',
+            },
+            states: { open: {}, closed: {} },
+        },
+    },
+};
+
+export const accordion: RecipeInput = {
+    component: 'accordion',
+    parts: {
+        root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' } },
+        item: { base: { ...inked, boxShadow: 'var(--shadow-sm)' }, states: { open: {}, closed: {} } },
+        trigger: disclosureTrigger,
+        panel: {
+            base: {
+                padding: 'var(--space-md)',
+                borderTop: 'var(--border) solid var(--color-base-content)',
+                lineHeight: 'var(--leading-normal)',
+            },
+            states: { open: {}, closed: {} },
+        },
+    },
+};
+
+// ── Overlays ──────────────────────────────────────────────────────────────
+const overlayTrigger: PartStyles = {
+    base: {
+        appearance: 'none',
+        ...inked,
+        ...label,
+        fontSize: 'var(--text-xs)',
+        padding: 'var(--space-sm) var(--space-lg)',
+        boxShadow: 'var(--shadow-xs)',
+        cursor: 'pointer',
+    },
+    states: { open: {}, closed: {}, hover: shift('1px'), disabled: { opacity: 'var(--disabled-opacity)' }, ...focusRing },
+};
+
+export const dialog: RecipeInput = {
+    component: 'dialog',
+    parts: {
+        trigger: overlayTrigger,
+        popup: {
+            // Mobile-first: a full-bleed slab, then a shadowed card from `sm`.
+            base: {
+                width: '100%',
+                height: '100dvh',
+                maxWidth: 'none',
+                maxHeight: 'none',
+                margin: '0',
+                padding: 'var(--space-xl)',
+                ...inked,
+                border: 'none',
+                boxShadow: 'none',
+            },
+            states: { open: {}, closed: {} },
+            selectors: { '&::backdrop': { background: 'oklch(0% 0 0 / 0.55)' } },
+            at: {
+                sm: {
+                    base: {
+                        width: 'calc(100% - var(--space-2xl))',
+                        maxWidth: '34rem',
+                        height: 'auto',
+                        maxHeight: 'calc(100% - var(--space-2xl))',
+                        margin: 'auto',
+                        border: 'var(--border) solid var(--color-base-content)',
+                        boxShadow: 'var(--shadow-xl)',
+                    },
+                },
+            },
+        },
+        title: {
+            base: {
+                margin: '0 0 var(--space-md)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-2xl)',
+                fontWeight: 'var(--weight-bold)',
+                letterSpacing: 'var(--tracking-tight)',
+                lineHeight: 'var(--leading-none)',
+                textTransform: 'uppercase',
+            },
+        },
+        description: {
+            base: { margin: '0 0 var(--space-lg)', fontSize: 'var(--text-sm)', lineHeight: 'var(--leading-normal)' },
+        },
+        close: {
+            base: {
+                appearance: 'none',
+                ...inked,
+                ...label,
+                fontSize: 'var(--text-xs)',
+                padding: 'var(--space-sm) var(--space-lg)',
+                boxShadow: 'var(--shadow-xs)',
+                cursor: 'pointer',
+            },
+            states: { hover: shift('1px'), disabled: {}, ...focusRing },
+        },
+    },
+};
+
+const slab: CssProps = { ...inked, boxShadow: 'var(--shadow-md)', padding: 'var(--space-md)' };
+
+export const popover: RecipeInput = {
+    component: 'popover',
+    parts: {
+        trigger: overlayTrigger,
+        popup: { base: { ...slab, maxWidth: '20rem' }, states: { open: {}, closed: {} } },
+        title: { base: { margin: '0 0 var(--space-sm)', ...label, fontSize: 'var(--text-sm)' } },
+        close: {
+            base: { appearance: 'none', border: 'none', background: 'transparent', ...label, fontSize: 'var(--text-xs)', cursor: 'pointer' },
+            states: { disabled: {}, ...focusRing },
+        },
+    },
+};
+
+export const tooltip: RecipeInput = {
+    component: 'tooltip',
+    parts: {
+        trigger: {
+            base: { appearance: 'none', background: 'none', border: 'none', color: 'inherit', cursor: 'help' },
+            states: { open: {}, closed: {}, disabled: {}, ...focusRing },
+        },
+        popup: {
+            base: {
+                background: 'var(--color-neutral)',
+                color: 'var(--color-neutral-content)',
+                border: 'var(--border) solid var(--color-base-content)',
+                padding: 'var(--space-2xs) var(--space-sm)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+            },
+            states: { open: {}, closed: {} },
+        },
+    },
+};
+
+export const menu: RecipeInput = {
+    component: 'menu',
+    parts: {
+        trigger: overlayTrigger,
+        popup: { base: { ...slab, padding: 'var(--space-xs)', minWidth: '12rem' }, states: { open: {}, closed: {} } },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                cursor: 'pointer',
+            },
+            states: {
+                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+        group: { base: { padding: 'var(--space-2xs) 0' } },
+        'group-label': {
+            base: { padding: 'var(--space-2xs) var(--space-sm)', ...label, fontSize: 'var(--text-xs)', opacity: '0.7' },
+        },
+        separator: {
+            base: { height: 'var(--border)', margin: 'var(--space-2xs) 0', background: 'var(--color-base-content)' },
+        },
+    },
+};
+
+export const select: RecipeInput = {
+    component: 'select',
+    parts: {
+        root: { base: { display: 'inline-flex', position: 'relative' } },
+        trigger: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                minWidth: '12rem',
+                padding: 'var(--space-sm) var(--space-md)',
+                ...inked,
+                ...label,
+                fontSize: 'var(--text-xs)',
+                boxShadow: 'var(--shadow-xs)',
+                cursor: 'pointer',
+            },
+            states: {
+                open: { boxShadow: 'none', transform: 'translate(2px, 2px)' },
+                closed: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                invalid: { borderColor: 'var(--color-error)' },
+                ...focusRing,
+            },
+        },
+        value: { base: { flex: '1', textAlign: 'start' } },
+        indicator: { base: { transition: motion('transform') }, states: { open: { transform: 'rotate(180deg)' }, closed: {} } },
+        popup: { base: { ...slab, padding: 'var(--space-xs)', minWidth: '12rem' }, states: { open: {}, closed: {} } },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                cursor: 'pointer',
+            },
+            states: {
+                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                selected: { background: 'var(--color-accent)', color: 'var(--color-accent-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                ...focusRing,
+            },
+        },
+        'item-indicator': { base: { fontWeight: 'var(--weight-bold)' } },
+        'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0', pointerEvents: 'none' } },
+    },
+};
+
+// ── Selection controls ────────────────────────────────────────────────────
+export const switchRecipe: RecipeInput = {
+    component: 'switch',
+    tokens: {
+        '--switch-width': 'calc(var(--size-selector) * 14)',
+        '--switch-height': 'calc(var(--size-selector) * 7)',
+    },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
+            states: { checked: {}, unchecked: {}, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
+        },
+        control: {
+            base: {
+                display: 'inline-block',
+                position: 'relative',
+                width: 'var(--switch-width)',
+                height: 'var(--switch-height)',
+                ...inked,
+                boxShadow: 'var(--shadow-xs)',
+                transition: motion('background'),
+            },
+            states: {
+                checked: { background: 'var(--color-primary)' },
+                unchecked: {},
+                ...focusRing,
+            },
+        },
+        thumb: {
+            base: {
+                position: 'absolute',
+                top: '0',
+                left: '0',
+                width: 'calc(var(--size-selector) * 7)',
+                height: '100%',
+                background: 'var(--color-base-content)',
+                transition: motion('transform'),
+            },
+            states: {
+                checked: { transform: 'translateX(calc(var(--switch-width) - 100%))' },
+                unchecked: {},
+            },
+        },
+        label: { base: { ...label, fontSize: 'var(--text-xs)' }, states: { checked: {}, unchecked: {} } },
+        'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
+    },
+    skipStates: { root: ['focus-visible'] },
+};
+
+const tickBox: CssProps = {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 'calc(var(--size-selector) * 6)',
+        height: 'calc(var(--size-selector) * 6)',
+        ...inked,
+        boxShadow: 'var(--shadow-xs)',
+    transition: motion('background'),
+};
+
+export const checkbox: RecipeInput = {
+    component: 'checkbox',
+    parts: {
+        root: {
+            base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
+            states: { checked: {}, unchecked: {}, indeterminate: {}, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
+        },
+        control: {
+            base: tickBox,
+            states: {
+                checked: { background: 'var(--color-primary)' },
+                unchecked: {},
+                indeterminate: { background: 'var(--color-accent)' },
+                ...focusRing,
+            },
+        },
+        indicator: {
+            base: { color: 'var(--color-primary-content)', fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-xs)' },
+            states: { checked: {}, unchecked: {}, indeterminate: { color: 'var(--color-accent-content)' } },
+        },
+        label: { base: { ...label, fontSize: 'var(--text-xs)' }, states: { checked: {}, unchecked: {}, indeterminate: {} } },
+        'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
+    },
+    skipStates: { root: ['focus-visible'] },
+};
+
+export const radioGroup: RecipeInput = {
+    component: 'radio-group',
+    parts: {
+        root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' } },
+        label: { base: { ...label, fontSize: 'var(--text-sm)' } },
+        item: {
+            base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
+        },
+        // Square, like everything else. A brutalist radio is not a circle.
+        'item-control': {
+            base: tickBox,
+            states: { checked: { background: 'var(--color-primary)' }, unchecked: {}, ...focusRing },
+        },
+        'item-indicator': {
+            base: {
+                width: 'calc(var(--size-selector) * 2.5)',
+                height: 'calc(var(--size-selector) * 2.5)',
+                background: 'var(--color-primary-content)',
+                transform: 'scale(0)',
+                transition: motion('transform'),
+            },
+            states: { checked: { transform: 'scale(1)' }, unchecked: {} },
+        },
+        'item-label': { base: { ...label, fontSize: 'var(--text-xs)' } },
+        'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
+    },
+    skipStates: { item: ['focus-visible', 'checked', 'unchecked'], 'item-label': ['checked', 'unchecked'] },
+};
+
+// ── Field, slider, progress ───────────────────────────────────────────────
+export const field: RecipeInput = {
+    component: 'field',
+    parts: {
+        root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' } },
+        label: {
+            base: { ...label, fontSize: 'var(--text-xs)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            selectors: { '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' } },
+        },
+        description: { base: { margin: '0', fontSize: 'var(--text-xs)', opacity: '0.75' } },
+        error: { base: { margin: '0', ...label, fontSize: 'var(--text-xs)', color: 'var(--color-error)' } },
+    },
+    skipStates: { label: ['invalid', 'required'], error: ['invalid'] },
+};
+
+export const slider: RecipeInput = {
+    component: 'slider',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        label: { base: { ...label, fontSize: 'var(--text-xs)' } },
+        input: { base: { width: '100%', accentColor: 'var(--color-primary)' }, states: { ...focusRing } },
+        'value-text': { base: { ...label, fontSize: 'var(--text-xs)' } },
+    },
+    skipStates: { root: ['invalid', 'focus-visible'] },
+};
+
+export const progress: RecipeInput = {
+    component: 'progress',
+    keyframes: {
+        'brutalist-indeterminate': 'from { transform: translateX(-100%); } to { transform: translateX(250%); }',
+    },
+    parts: {
+        root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' } },
+        label: { base: { ...label, fontSize: 'var(--text-xs)' } },
+        track: {
+            base: {
+                position: 'relative',
+                height: 'calc(var(--size-field) * 5)',
+                ...inked,
+                boxShadow: 'var(--shadow-xs)',
+                overflow: 'hidden',
+            },
+        },
+        range: {
+            base: { height: '100%', background: 'var(--color-primary)', transition: motion('width') },
+            states: {
+                complete: { background: 'var(--color-success)' },
+                loading: {},
+                // Literal duration on purpose: a loop must stop under reduced
+                // motion, not accelerate — see `at` below.
+                indeterminate: { width: '40%', animation: 'brutalist-indeterminate 1s var(--ease-standard) infinite' },
+            },
+            at: { 'reduced-motion': { states: { indeterminate: { animation: 'none', width: '100%' } } } },
+        },
+        'value-text': { base: { ...label, fontSize: 'var(--text-xs)' } },
+    },
+    skipStates: { root: ['loading', 'complete', 'indeterminate'] },
+};
+
+export const recipes: RecipeInput[] = [
+    button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
+    switchRecipe, checkbox, radioGroup, field, slider, progress,
+];

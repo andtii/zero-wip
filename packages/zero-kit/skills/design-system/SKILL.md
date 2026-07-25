@@ -16,7 +16,33 @@ component's anatomy). No component code is ever written or changed.
    component's parts, their `data-state` values (as ready-made selectors),
    boolean flags, and token hints. Style ONLY what the manifest declares.
 
-2. **Author tokens** (`src/tokens.ts`): one light + one dark theme minimum,
+2. **Set up the package.** There is no `zero-kit init` yet (see issue #10),
+   so copy the shape of an existing design system — `@sigx/zero-basic` is the
+   smallest:
+
+   ```
+   packages/<name>/
+     package.json      # peerDependency + devDependency on @sigx/zero,
+                       # devDependency on @sigx/zero-kit; "build": tsgo && node build.mjs
+     tsconfig.json
+     build.mjs         # validate → compile → writeArtifacts (copy it verbatim)
+     src/{tokens,recipes,design-system,index}.ts
+   ```
+
+   `src/index.ts` is the runtime half: it registers each theme so
+   `themeController()` can switch between them. Take the swatch from your own
+   `tokens.swatch` rather than hardcoding role names — a design system whose
+   distinguishing colours aren't `primary`/`neutral` otherwise renders every
+   theme identically in a picker:
+
+   ```ts
+   const swatchTokens = tokens.swatch ?? [...Object.keys(roles).slice(0, 4), 'base-100', 'base-content'];
+   ```
+
+   Import from the kit **type-only** in `tokens.ts` and `recipes.ts`: those
+   modules ship in the browser bundle, and the kit is Node-only.
+
+3. **Author tokens** (`src/tokens.ts`): one light + one dark theme minimum,
    paired via `pair`. **Declare the color vocabulary first**: `roles` names
    every color role the design language needs — use the recommended eight
    (`primary|secondary|accent|neutral|info|success|warning|error`, the
@@ -30,9 +56,12 @@ component's anatomy). No component code is ever written or changed.
    - `softMix` (0.08–0.2) controls the derived `-soft` tinted surfaces.
    - **Structural feel goes in `system`, declared once for the whole design
      system — not repeated per theme.** Categories today: `radius`
-     (selector/field/box), `size` (selector/field), `text` (the xs…3xl ramp),
-     `border`, `disabledOpacity`. Brutalist ⇒ radius 0 + thick border;
-     soft/friendly ⇒ large radius.
+     (selector/field/box), `size` (selector/field), `spacing`, `shadow`,
+     `motion`, `typography`, `border`, `disabledOpacity`. Brutalist ⇒ radius 0
+     + thick border; soft/friendly ⇒ large radius.
+     The `--text-*` ramp lives at `system.typography.sizes`, NOT `system.text`
+     — an unknown key under `system` is ignored silently, so the ramp would
+     simply never appear.
      ```ts
      export const system = {
          radius: { selector: '0', field: '0', box: '0' },
@@ -103,7 +132,7 @@ component's anatomy). No component code is ever written or changed.
      A custom token inside a category namespace (`--radius-…`) is an error;
      declare it in `system` instead.
 
-3. **Author recipes** (`src/recipes.ts`): for each component in the manifest,
+4. **Author recipes** (`src/recipes.ts`): for each component in the manifest,
    a `RecipeInput` with `parts.<name>.base` styles and `parts.<name>.states`.
    State names resolve automatically: machine states (`open`, `checked`,
    `active`, …) → `[data-state]` selectors; flags (`disabled`, `focus-visible`)
@@ -153,15 +182,15 @@ component's anatomy). No component code is ever written or changed.
      ```
      Adding a ninth role then costs one rule instead of four.
 
-4. **Assemble** (`src/design-system.ts`): `{ name, tokens, recipes }` exported
+5. **Assemble** (`src/design-system.ts`): `{ name, tokens, recipes }` exported
    as `designSystem`.
 
-5. **Validate and iterate**: `zero-kit validate` (after building the TS), or
+6. **Validate and iterate**: `zero-kit validate` (after building the TS), or
    programmatically `validateDesignSystem(ds, manifest)`. Fix every error and
    drive warnings to zero unless deliberate. This loop is the point: generate
    → validate → fix → repeat.
 
-6. **Build**: `zero-kit build` (or the package's `build.mjs`) emits
+7. **Build**: `zero-kit build` (or the package's `build.mjs`) emits
    `dist/css/index.css` + per-component files. The app consumes it with two
    lines: `import '<pkg>/css'` and `installThemes()`.
 
@@ -192,8 +221,18 @@ And these are warnings worth driving to zero:
 
 ## Reference
 
-`@sigx/zero-basic` in the zero repo is the canonical example — read its
-`src/tokens.ts` and `src/recipes.ts` before writing your own.
+Three worked examples ship in the zero repo, in increasing distance from the
+defaults:
+
+- `@sigx/zero-basic` — the canonical starting point. Read its `src/tokens.ts`
+  and `src/recipes.ts` before writing your own.
+- `@sigx/zero-brutalist` — a brief taken to its extreme: radius 0, `steps()`
+  easings, hard offset shadows drawn in the foreground colour, a 1.414 type
+  ratio. Generated from this skill.
+- `@sigx/zero-material` — a foreign vocabulary: thirteen colour roles, a
+  `level1`–`level5` elevation ramp, `soft: false` tonal surfaces, and a role
+  (`outline`) with `content: false`. Read this one when the brief needs names
+  the recommended eight don't cover.
 
 ## Style briefs → decisions cheat sheet
 

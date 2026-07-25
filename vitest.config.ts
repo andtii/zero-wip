@@ -18,7 +18,8 @@ export default defineConfig({
             '@sigx/zero-kit': new URL('./packages/zero-kit/src/index.ts', import.meta.url).pathname,
             '@sigx/zero-basic': new URL('./packages/zero-basic/src/index.ts', import.meta.url).pathname,
             '@sigx/zero-daisyui': new URL('./packages/zero-daisyui/src/index.ts', import.meta.url).pathname,
-            '@sigx/zero-material': new URL('./packages/zero-material/src/index.ts', import.meta.url).pathname
+            '@sigx/zero-material': new URL('./packages/zero-material/src/index.ts', import.meta.url).pathname,
+            '@sigx/zero-brutalist': new URL('./packages/zero-brutalist/src/index.ts', import.meta.url).pathname
         }
     },
     test: {
