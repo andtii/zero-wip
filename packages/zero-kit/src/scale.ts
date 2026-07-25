@@ -50,10 +50,24 @@ export function generateTypeScale(
     if (!unit) {
         throw new Error(`[zero-kit] typography.scale.base "${scale.base}" has no unit`);
     }
-    if (!(scale.ratio > 1)) {
+    // Every input is design-system-authored, so each gets a targeted message
+    // rather than a RangeError from toFixed or a ramp of NaN/-1rem sizes.
+    const start = Number(magnitude);
+    if (!Number.isFinite(start) || start <= 0) {
         throw new Error(
-            `[zero-kit] typography.scale.ratio must be greater than 1, got ${scale.ratio} — ` +
+            `[zero-kit] typography.scale.base must be a positive finite length, got "${scale.base}"`,
+        );
+    }
+    if (!Number.isFinite(scale.ratio) || scale.ratio <= 1) {
+        throw new Error(
+            `[zero-kit] typography.scale.ratio must be a finite number greater than 1, got ${scale.ratio} — ` +
             'a ratio of 1 or less produces a flat or inverted ramp',
+        );
+    }
+    const precision = scale.precision ?? 4;
+    if (!Number.isInteger(precision) || precision < 0 || precision > 20) {
+        throw new Error(
+            `[zero-kit] typography.scale.precision must be an integer between 0 and 20, got ${precision}`,
         );
     }
 
@@ -68,8 +82,6 @@ export function generateTypeScale(
         );
     }
 
-    const precision = scale.precision ?? 4;
-    const start = Number(magnitude);
     return Object.fromEntries(steps.map((step, i) => {
         const value = start * scale.ratio ** (i - originIndex);
         const rounded = trim(value.toFixed(precision));

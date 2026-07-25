@@ -197,3 +197,17 @@ describe('functional values must be the whole value', () => {
         expect(errors({ weights: { bold: 'calc(var(--base-weight) + max(100, 200))' } })).toEqual([]);
     });
 });
+
+describe('scale input guards', () => {
+    it.each([
+        ['a negative base', { base: '-1rem', ratio: 2 }, /positive finite length/],
+        ['an infinite ratio', { base: '1rem', ratio: Infinity }, /finite number greater than 1/],
+        ['a negative precision', { base: '1rem', ratio: 2, precision: -1 }, /integer between 0 and 20/],
+        ['an absurd precision', { base: '1rem', ratio: 2, precision: 200 }, /integer between 0 and 20/],
+        ['a fractional precision', { base: '1rem', ratio: 2, precision: 1.5 }, /integer between 0 and 20/],
+    ])('rejects %s with a targeted message', (_label, scale, message) => {
+        // Without these, toFixed throws a bare RangeError or the ramp fills
+        // with NaN/negative sizes that nothing downstream would question.
+        expect(() => generateTypeScale(scale as never, RAMP)).toThrow(message);
+    });
+});
