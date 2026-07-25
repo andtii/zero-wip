@@ -378,13 +378,16 @@
 
     [data-scope="dialog"][data-part="popup"] {
         padding: 1.5rem;
-        max-width: 32rem;
-        width: calc(100% - 2rem);
+        width: 100%;
+        max-width: none;
+        height: 100dvh;
+        max-height: none;
+        margin: 0;
         background: var(--color-base-100);
         color: var(--color-base-content);
-        border: var(--border) solid var(--color-base-300);
-        border-radius: var(--radius-box);
-        box-shadow: 0 20px 50px -12px oklch(0% 0 0 / 0.35);
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
     }
 
     [data-scope="dialog"][data-part="popup"]::backdrop {
@@ -425,6 +428,19 @@
     [data-scope="dialog"][data-part="close"][data-focus-visible] {
         outline: 2px solid var(--color-primary);
         outline-offset: 2px;
+    }
+
+    @media (min-width: 640px) {
+        [data-scope="dialog"][data-part="popup"] {
+            width: calc(100% - 2rem);
+            max-width: 32rem;
+            height: auto;
+            max-height: calc(100% - 2rem);
+            margin: auto;
+            border: var(--border) solid var(--color-base-300);
+            border-radius: var(--radius-box);
+            box-shadow: 0 20px 50px -12px oklch(0% 0 0 / 0.35);
+        }
     }
 }
 
@@ -812,6 +828,13 @@
     [data-scope="progress"][data-part="value-text"] {
         font-size: var(--text-xs);
         color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
+            animation: none;
+            width: 100%;
+        }
     }
 }
 @keyframes zero-basic-indeterminate {

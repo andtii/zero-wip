@@ -23,8 +23,8 @@ export type {
 } from './tokens.js';
 export { defineTokens, compileTokensCss } from './tokens.js';
 
-export type { CssProps, PartStyles, RecipeInput } from './recipes.js';
-export { defineRecipe, compileRecipeCss } from './recipes.js';
+export type { CssProps, PartStyles, RecipeContext, RecipeInput } from './recipes.js';
+export { defineRecipe, compileRecipeCss, BUILTIN_CONDITIONS } from './recipes.js';
 
 export type {
     DesignSystemInput,

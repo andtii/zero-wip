@@ -102,7 +102,9 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
         if (componentCss[recipe.component]) {
             throw new Error(`[zero-kit] duplicate recipe for component "${recipe.component}"`);
         }
-        componentCss[recipe.component] = compileRecipeCss(recipe, component);
+        componentCss[recipe.component] = compileRecipeCss(recipe, component, {
+            breakpoints: ds.tokens.breakpoints,
+        });
     }
 
     const rawCss = (ds.css ?? []).join('\n');

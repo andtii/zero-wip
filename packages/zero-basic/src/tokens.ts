@@ -40,6 +40,9 @@ export const system = {
 export const tokens: TokensInput<typeof roles, typeof system> = {
     roles,
     system,
+    // Mobile-first min-widths. Declaration order is emission order, so these
+    // must ascend — the validator enforces it.
+    breakpoints: { sm: '640px', md: '768px', lg: '1024px' },
     defaultLight: 'basic',
     defaultDark: 'basic-dark',
     themes: {

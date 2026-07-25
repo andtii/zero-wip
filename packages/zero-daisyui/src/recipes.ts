@@ -559,6 +559,14 @@ export const progress: RecipeInput = {
                 loading: {},
                 indeterminate: { width: '40%', animation: 'zero-daisy-indeterminate 1.2s ease-in-out infinite' },
             },
+            // A looping animation must STOP under reduced motion, not speed
+            // up — which is why its duration is a literal rather than a
+            // `var(--duration-*)` that would collapse to 0.01ms.
+            at: {
+                'reduced-motion': {
+                    states: { indeterminate: { animation: 'none', width: '100%' } },
+                },
+            },
         },
         'value-text': {
             base: { fontSize: 'var(--text-xs)', opacity: '0.6' },

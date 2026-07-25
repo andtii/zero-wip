@@ -119,6 +119,15 @@ Variant axes (`color`/`size`/`variant`) are accepted by Tabs, Switch,
 Checkbox, RadioGroup, Slider, Progress and Select; they pass through as
 data-* and zero attaches no styling to them.
 
+- Recipes take conditional styles via `parts.<part>.at`, keyed by a declared
+  breakpoint (emitted as `@media (min-width: ...)`), a built-in
+  (`reduced-motion`, `hover-none`, `prefers-dark`, `forced-colors`) or a raw
+  `@`-prefixed prelude. Nesting composes at-rules, and `at` inside `variants`
+  gives responsive variants. Author mobile-first and declare breakpoints
+  ascending -- declaration order is emission order. `prefers-dark` is the
+  SYSTEM preference, NOT a `[data-theme]` dark theme. Stop a looping
+  animation under `reduced-motion` (`animation: none`); never shorten it.
+
 ## Authoring a design system (@sigx/zero-kit)
 
 defineTokens({roles?, system?, systemDark?, custom?, breakpoints?, themes,

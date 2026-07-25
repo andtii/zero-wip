@@ -202,20 +202,40 @@ export const dialog: RecipeInput = {
             },
         },
         popup: {
+            // Mobile-first: a full-bleed sheet on small viewports, the
+            // centered card from `sm` up. Below `sm` a 32rem card with a
+            // 1rem gutter is most of the screen anyway, minus the reachability.
             base: {
                 padding: '1.5rem',
-                maxWidth: '32rem',
-                width: 'calc(100% - 2rem)',
+                width: '100%',
+                maxWidth: 'none',
+                height: '100dvh',
+                maxHeight: 'none',
+                margin: '0',
                 background: 'var(--color-base-100)',
                 color: 'var(--color-base-content)',
-                border: 'var(--border) solid var(--color-base-300)',
-                borderRadius: 'var(--radius-box)',
-                boxShadow: '0 20px 50px -12px oklch(0% 0 0 / 0.35)',
+                border: 'none',
+                borderRadius: '0',
+                boxShadow: 'none',
             },
             states: { open: {}, closed: {} },
             selectors: {
                 '&::backdrop': {
                     background: 'color-mix(in oklab, var(--color-neutral) 45%, transparent)',
+                },
+            },
+            at: {
+                sm: {
+                    base: {
+                        width: 'calc(100% - 2rem)',
+                        maxWidth: '32rem',
+                        height: 'auto',
+                        maxHeight: 'calc(100% - 2rem)',
+                        margin: 'auto',
+                        border: 'var(--border) solid var(--color-base-300)',
+                        borderRadius: 'var(--radius-box)',
+                        boxShadow: '0 20px 50px -12px oklch(0% 0 0 / 0.35)',
+                    },
                 },
             },
         },
@@ -554,6 +574,14 @@ export const progress: RecipeInput = {
                 complete: { background: 'var(--color-success)' },
                 loading: {},
                 indeterminate: { width: '40%', animation: 'zero-basic-indeterminate 1.2s ease-in-out infinite' },
+            },
+            // A looping animation must STOP under reduced motion, not speed
+            // up — which is why its duration is a literal rather than a
+            // `var(--duration-*)` that would collapse to 0.01ms.
+            at: {
+                'reduced-motion': {
+                    states: { indeterminate: { animation: 'none', width: '100%' } },
+                },
             },
         },
         'value-text': {

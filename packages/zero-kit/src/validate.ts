@@ -33,6 +33,7 @@ import {
     resolveRoles,
 } from './contract.js';
 import type { RolesDecl } from './tokens.js';
+import { BUILTIN_CONDITIONS } from './recipes.js';
 import type { DesignSystemInput } from './design-system.js';
 import { compileDesignSystem } from './design-system.js';
 
@@ -273,6 +274,53 @@ export function validateDesignSystem<R extends RolesDecl>(
         if (!roles[name] && !(BASE_SURFACE_TOKEN_LIST as readonly string[]).includes(name)) {
             error('tokens.swatch', `swatch entry "${name}" is not a declared role or base surface`);
         }
+    }
+
+    // ── Breakpoints ──
+    // These become `@media (min-width: …)` preludes and the ORDER they are
+    // declared in decides emission order, so a descending declaration would
+    // silently make the wider breakpoint lose to the narrower one.
+    const breakpoints = Object.entries(ds.tokens.breakpoints ?? {});
+    let previousWidth = -Infinity;
+    let unit: string | undefined;
+    for (const [name, value] of breakpoints) {
+        if (!TOKEN_KEY_PATTERN.test(name)) {
+            error('tokens.breakpoints', `"${name}" is not a kebab-case identifier`);
+        }
+        if (name in BUILTIN_CONDITIONS) {
+            error(
+                'tokens.breakpoints',
+                `"${name}" collides with the built-in condition of the same name — rename the breakpoint`,
+            );
+        }
+        const width = /^(\d*\.?\d+)(px|rem|em)$/.exec(String(value));
+        if (!width) {
+            error('tokens.breakpoints', `"${name}": "${value}" is not a px/rem/em length`);
+            continue;
+        }
+        // One unit throughout, so the ascending check below is a sound
+        // comparison. Mixing them makes it meaningless in both directions:
+        // `{ sm: '30rem', md: '400px' }` reads as ascending (30 < 400) while
+        // 30rem is 480px at the default root size, and a rem list is anchored
+        // to a root font size the design system doesn't control anyway.
+        const [, magnitude, suffix] = width as unknown as [string, string, string];
+        if (unit === undefined) {
+            unit = suffix;
+        } else if (suffix !== unit) {
+            error(
+                'tokens.breakpoints',
+                `"${name}" is in ${suffix} but the others are in ${unit} — use one unit throughout so the ordering is comparable`,
+            );
+            continue;
+        }
+        const size = Number(magnitude);
+        if (size <= previousWidth) {
+            error(
+                'tokens.breakpoints',
+                `"${name}" (${value}) is not larger than the breakpoint before it — declare them mobile-first, ascending, since declaration order is emission order`,
+            );
+        }
+        previousWidth = size;
     }
 
     // ── Recipes: unknown parts/states are hard compile errors — surface
