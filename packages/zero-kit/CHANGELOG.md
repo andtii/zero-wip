@@ -65,6 +65,14 @@
 
 ### Fixed
 
+- **Every token kind now follows the system color scheme, not just colors and
+  token categories.** Declared `custom` tokens, `extra` tokens and
+  `components` overrides were emitted on `:where(:root)` from the default
+  *light* theme unconditionally, so a theme pair whose `--glass-blur` differed
+  resolved to the light value under system dark until the user explicitly
+  picked a theme. All non-color properties now go through one map and one
+  scheme-divergence pass, so the `prefers-color-scheme` block and the
+  per-theme restatement cover them equally.
 - **Non-color tokens can now differ by color scheme.** `:where(:root)` took
   *all* structural values from the light theme, so a dark theme's differing
   radius or border silently never applied under system dark. `light-dark()`
