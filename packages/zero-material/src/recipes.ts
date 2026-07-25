@@ -9,10 +9,11 @@ import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
 
 /**
  * Every role a consumer can pass as `color`. Must stay in step with the
- * `roles` declaration: a role that is declared but missing here silently
- * falls back to the default accent, which looks like the variant simply not
- * working. `surface*` and `outline` are excluded deliberately — they are
- * fills and hairlines, not action colours.
+ * `roles` declaration: a role declared there but missing here renders
+ * primary, because nothing sets `--btn-accent` and it keeps the value from
+ * `tokens` below. That reads as the variant not working at all rather than
+ * as one role being unwired. `surface*` and `outline` are excluded
+ * deliberately — they are fills and hairlines, not action colours.
  */
 const ROLES = [
     'primary', 'secondary', 'tertiary', 'accent',

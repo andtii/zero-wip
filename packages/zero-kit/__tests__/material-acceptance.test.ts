@@ -116,9 +116,10 @@ describe('the swatch follows the declaration', () => {
 
 describe('the colour axis covers what the vocabulary declares', () => {
     it('offers every action role as a button colour', () => {
-        // A role that is declared but missing from the variant axis falls
-        // back to the default accent, which reads as "the variant doesn't
-        // work" rather than "that role wasn't wired up".
+        // A role declared but missing from the variant axis renders primary —
+        // nothing sets --btn-accent, so it keeps the recipe's token default.
+        // That reads as "the variant doesn't work" rather than "that one role
+        // wasn't wired up".
         const button = designSystem.recipes.find((r) => r.component === 'button')!;
         const offered = new Set(Object.keys(button.variants?.color ?? {}));
 
