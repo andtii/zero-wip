@@ -45,10 +45,14 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-Fourteen components ship today. Parts are listed in anatomy order; the
-authoritative machine-readable list (parts × states × flags × token hints) is
-`@sigx/zero/manifest.json` — generate design systems against that, not this
-summary.
+Fourteen components ship today. Every part each renders is listed below, in
+anatomy order; the authoritative machine-readable list (parts × states × flags
+× token hints) is `@sigx/zero/manifest.json` — generate design systems against
+that, not this summary.
+
+`hidden-input` is a real, styleable part: form controls render an actual
+native input so they post pre-hydration. Design systems normally hide it
+visually while keeping it focusable, rather than `display: none`.
 
 - Tabs: Root(model=value)/List/Tab(value,asChild)/Panel(value). APG tabs,
   roving arrows, automatic|manual activation, orientation.
@@ -63,14 +67,13 @@ summary.
 - Tooltip: Trigger/Popup with openDelay/closeDelay.
 - Menu: Trigger/Popup/Item(asChild)/Group/GroupLabel/Separator; `select`
   event, closeOnSelect.
-- Select: Root(model=value)/Trigger/Value/Indicator/Popup/Item/ItemIndicator
-  + a hidden native input so it posts in forms.
-- Switch: Root(model=checked)/Control/Thumb/Label over a hidden native
-  checkbox, role=switch.
-- Checkbox: Root(model=checked)/Control/Indicator/Label; supports
+- Select: Root(model=value)/Trigger/Value/Indicator/Popup/Item/ItemIndicator/
+  HiddenInput.
+- Switch: Root(model=checked)/Control/Thumb/Label/HiddenInput, role=switch.
+- Checkbox: Root(model=checked)/Control/Indicator/Label/HiddenInput; supports
   `indeterminate`.
-- RadioGroup: Root(model=value)/Label/Item/ItemControl/ItemIndicator/ItemLabel;
-  orientation.
+- RadioGroup: Root(model=value)/Label/Item/ItemControl/ItemIndicator/
+  ItemLabel/HiddenInput; orientation.
 - Slider: Root(model=number)/Label/Input/ValueText on a native
   <input type=range> (single thumb).
 - Progress: Root/Label/Track/Range/ValueText; `value: number | null`

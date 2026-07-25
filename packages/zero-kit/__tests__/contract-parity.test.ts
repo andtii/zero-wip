@@ -28,7 +28,9 @@ import * as kit from '../src/contract.js';
 const SHARED: Record<string, [unknown, unknown]> = {
     RECOMMENDED_ROLE_LIST: [zero.RECOMMENDED_ROLE_LIST, kit.RECOMMENDED_ROLE_LIST],
     BASE_SURFACE_TOKEN_LIST: [zero.BASE_SURFACE_TOKEN_LIST, kit.BASE_SURFACE_TOKEN_LIST],
-    ROLE_NAME_PATTERN: [zero.ROLE_NAME_PATTERN.source, kit.ROLE_NAME_PATTERN.source],
+    // Compared as RegExp objects, not `.source` — deep equality covers the
+    // flags too, so adding `i` to one copy and not the other still fails.
+    ROLE_NAME_PATTERN: [zero.ROLE_NAME_PATTERN, kit.ROLE_NAME_PATTERN],
 };
 
 /**
