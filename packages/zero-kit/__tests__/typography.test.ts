@@ -211,3 +211,51 @@ describe('scale input guards', () => {
         expect(() => generateTypeScale(scale as never, RAMP)).toThrow(message);
     });
 });
+
+describe('generated step names', () => {
+    it('rejects a step that could escape the declaration', () => {
+        // Steps become the tail of `--text-<step>`, so a `;` or `}` would
+        // break out into the surrounding rule. Generated CSS is not a place
+        // to trust input.
+        expect(() => generateTypeScale(
+            { base: '1rem', ratio: 2, steps: ['a; } :root { --hacked: 1', 'ok'], origin: 'ok' },
+            RAMP,
+        )).toThrow(/not a kebab-case identifier/);
+    });
+
+    it('rejects a duplicated step', () => {
+        // Object.fromEntries keeps only the last, so the ramp would come out
+        // a step short with nothing to indicate why.
+        expect(() => generateTypeScale(
+            { base: '1rem', ratio: 2, steps: ['md', 'md'], origin: 'md' },
+            RAMP,
+        )).toThrow(/more than once/);
+    });
+
+    it('allows a leading digit, as the token grammar does', () => {
+        expect(generateTypeScale({ base: '1rem', ratio: 2, steps: ['md', '2xl'], origin: 'md' }, RAMP))
+            .toEqual({ md: '1rem', '2xl': '2rem' });
+    });
+});
+
+describe('value grammar accepts what CSS accepts', () => {
+    const ds = (typography: Record<string, unknown>): DesignSystemInput => ({
+        name: 'probe',
+        recipes: [],
+        tokens: {
+            roles, system: { typography }, defaultLight: 'l',
+            themes: { l: { colorScheme: 'light', colors } },
+        } as DesignSystemInput['tokens'],
+    });
+    const errors = (t: Record<string, unknown>) =>
+        validateDesignSystem(ds(t), manifest).errors.map((e) => e.message);
+
+    it('allows a leading + on a number', () => {
+        expect(errors({ weights: { bold: '+700' } })).toEqual([]);
+    });
+
+    it('allows an uppercase function name', () => {
+        // CSS function names are case-insensitive.
+        expect(errors({ weights: { bold: 'VAR(--app-weight)' } })).toEqual([]);
+    });
+});

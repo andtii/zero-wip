@@ -51,7 +51,7 @@ export interface ValidationResult {
     warnings: ValidationIssue[];
 }
 
-const FUNCTION_HEAD = /^\s*(?:var|calc|clamp|min|max|env|attr)\(/;
+const FUNCTION_HEAD = /^\s*(?:var|calc|clamp|min|max|env|attr)\(/i;
 
 /**
  * True when the value is ENTIRELY one CSS function call.
@@ -71,8 +71,8 @@ function isWhollyFunctional(text: string): boolean {
     }
     return false; // unbalanced — not a value we can vouch for
 }
-const TIME_VALUE = /^-?(?:\d+\.?\d*|\.\d+)m?s$/;
-const NUMBER_VALUE = /^-?(?:\d+\.?\d*|\.\d+)$/;
+const TIME_VALUE = /^[+-]?(?:\d+\.?\d*|\.\d+)m?s$/i;
+const NUMBER_VALUE = /^[+-]?(?:\d+\.?\d*|\.\d+)$/;
 
 /**
  * Check a declared value against its category's grammar, for the grammars

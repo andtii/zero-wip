@@ -7,6 +7,8 @@
  * top of a generated ramp.
  */
 
+import { TOKEN_KEY_PATTERN } from './contract.js';
+
 /** `1rem` → `{ magnitude: 1, unit: 'rem' }`. */
 const NUMERIC = /^\s*(-?(?:\d+\.?\d*|\.\d+))([a-z%]*)\s*$/i;
 
@@ -73,6 +75,24 @@ export function generateTypeScale(
 
     const steps = scale.steps ?? recommended;
     if (steps.length === 0) throw new Error('[zero-kit] typography.scale needs at least one step');
+    // Step names become the tail of `--text-<step>`, so they go through the
+    // same grammar as any declared token key. Without this a step could carry
+    // a `;` or `}` and break out of the declaration into the surrounding
+    // rule — the generated stylesheet is not a place to trust input.
+    for (const step of steps) {
+        if (!TOKEN_KEY_PATTERN.test(step)) {
+            throw new Error(
+                `[zero-kit] typography.scale step "${step}" is not a kebab-case identifier ` +
+                `(it becomes --text-${step})`,
+            );
+        }
+    }
+    const duplicate = steps.find((step, i) => steps.indexOf(step) !== i);
+    if (duplicate) {
+        // Object.fromEntries would silently keep only the last one, so the
+        // ramp would come out a step short with no indication why.
+        throw new Error(`[zero-kit] typography.scale lists step "${duplicate}" more than once`);
+    }
 
     const origin = scale.origin ?? (steps.includes('md') ? 'md' : steps[Math.floor(steps.length / 2)]!);
     const originIndex = steps.indexOf(origin);
