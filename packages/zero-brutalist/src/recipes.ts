@@ -446,13 +446,13 @@ export const switchRecipe: RecipeInput = {
 };
 
 const tickBox: CssProps = {
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 'calc(var(--size-selector) * 6)',
-        height: 'calc(var(--size-selector) * 6)',
-        ...inked,
-        boxShadow: 'var(--shadow-xs)',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 'calc(var(--size-selector) * 6)',
+    height: 'calc(var(--size-selector) * 6)',
+    ...inked,
+    boxShadow: 'var(--shadow-xs)',
     transition: motion('background'),
 };
 

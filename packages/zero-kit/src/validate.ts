@@ -177,9 +177,10 @@ export function validateDesignSystem<R extends RolesDecl>(
      * with a suggestion rather than a shrug.
      */
     const categoryRoots = new Set<string>(TOKEN_CATEGORIES.map((c) => c.path[0]!));
-    // Aliases a nested category is plausibly reached for by: its id (`text`
-    // for typography.sizes — the name it had before it moved) and its leaf
-    // path segment.
+    // A nested category is plausibly reached for by two names other than its
+    // real path: its category id (`text` — what `typography.sizes` was called
+    // before it moved) and its leaf path segment (`sizes`). Both are unique
+    // across the table today.
     const nestedAliases = new Map<string, readonly string[]>();
     for (const category of TOKEN_CATEGORIES) {
         if (category.path.length > 1) {
@@ -191,8 +192,8 @@ export function validateDesignSystem<R extends RolesDecl>(
         if (!isKeyMap(source)) return;
         for (const key of Object.keys(source)) {
             if (categoryRoots.has(key)) continue;
-            // The most likely mistake is naming a nested category by its leaf
-            // (`text` for `typography.sizes`), so say where it actually lives.
+            // The likely mistakes are naming a nested category by its id or
+            // by its leaf, so say where the category actually lives.
             const nested = nestedAliases.get(key);
             const hint = nested ? ` — did you mean "${nested.join('.')}"?` : '';
             error(
