@@ -243,3 +243,24 @@ describe('the shipped design systems', () => {
         expect(content.map((w) => `${w.where}: ${w.message}`)).toEqual([]);
     });
 });
+
+describe('focus-visible must actually style something', () => {
+    it('rejects an empty focus-visible block', () => {
+        // `{}` is the "deliberately covered, no styling" idiom used all over
+        // these recipes, so accepting it here would let the rule pass while
+        // the ring is genuinely missing.
+        expect(check({
+            component: 'tabs',
+            parts: { tab: { base: { color: 'var(--color-primary)' }, states: { 'focus-visible': {} } } },
+        }).errors).toContainEqual(expect.stringContaining('keyboard focus is invisible'));
+    });
+
+    it('accepts a focus-visible block declared under a condition', () => {
+        expect(check({
+            component: 'tabs',
+            parts: {
+                tab: { at: { 'forced-colors': { states: { 'focus-visible': { outline: '2px solid' } } } } },
+            },
+        }).errors).toEqual([]);
+    });
+});

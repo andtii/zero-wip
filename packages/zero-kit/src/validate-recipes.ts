@@ -191,9 +191,14 @@ export function validateRecipes(
         // ── focus-visible coverage ──
         const focusableParts = component.parts.filter((p) => (p.flags ?? []).includes('focus-visible'));
         if (focusableParts.length > 0) {
+            // An EMPTY block doesn't count. `states: { 'focus-visible': {} }`
+            // is the established "deliberately covered, no styling" idiom, so
+            // accepting it here would let a recipe satisfy the rule while
+            // rendering no visible ring at all — `skipStates` is how you say
+            // the ring lives somewhere else.
             const stylesFocus = (styles: PartStyles | undefined): boolean => {
                 if (!styles) return false;
-                if (Object.keys(styles.states ?? {}).includes('focus-visible')) return true;
+                if (Object.keys(styles.states?.['focus-visible'] ?? {}).length > 0) return true;
                 return Object.values(styles.at ?? {}).some(stylesFocus);
             };
             const anywhere = focusableParts.some((p) => stylesFocus(recipe.parts[p.name]));
