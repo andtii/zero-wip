@@ -83,6 +83,31 @@ component's anatomy). No component code is ever written or changed.
    `var(--radius-*)` — never hardcode palette colors in recipes.
    Cover every declared state (empty `{}` marks intentional no-styling).
    Always style `focus-visible` visibly.
+   **Conditional styles go in `at`** — the same shape, recursively:
+   ```ts
+   popup: {
+       base: { width: '100%', height: '100dvh', borderRadius: '0' },  // mobile first
+       at: {
+           sm: { base: { maxWidth: '32rem', borderRadius: 'var(--radius-box)' } },
+           'reduced-motion': { base: { transition: 'none' } },
+           '@starting-style': { states: { open: { opacity: '0' } } },
+       },
+   }
+   ```
+   A key is a breakpoint declared in `tokens.breakpoints` (emitted as
+   `@media (min-width: …)`), a built-in (`reduced-motion`, `hover-none`,
+   `prefers-dark`, `forced-colors`), or anything starting with `@`, used as a
+   raw prelude. Anything else is a hard error listing what was available.
+   - Author **mobile-first**: breakpoints are `min-width`, so `base` is the
+     small-screen case. Declare them ascending — declaration order is emission
+     order, and the validator enforces it.
+   - `at` works inside `variants` too, so responsive variants need nothing new.
+   - `prefers-dark` is the *system* preference, not your dark theme; it does
+     not fire for `[data-theme="…-dark"]`.
+   - A **looping** animation should be stopped under `reduced-motion`
+     (`animation: 'none'`), never shortened — collapsing its duration makes it
+     spin faster instead of settling.
+   - `RecipeInput.css` takes raw CSS for anything the typed surface can't say.
 
 4. **Assemble** (`src/design-system.ts`): `{ name, tokens, recipes }` exported
    as `designSystem`.

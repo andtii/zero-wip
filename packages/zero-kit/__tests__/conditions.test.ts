@@ -1,0 +1,240 @@
+/**
+ * `PartStyles.at` — conditional styles in the recipe compiler.
+ *
+ * Ordering is load-bearing here, not cosmetic: an at-rule adds NO specificity,
+ * so a conditional rule only beats the flat rule it refines by coming later in
+ * the stylesheet. Most of these tests assert positions, not just presence.
+ */
+import { describe, it, expect } from 'vitest';
+import { compileRecipeCss, validateDesignSystem } from '@sigx/zero-kit';
+import type { DesignSystemInput, ManifestComponent, RecipeInput } from '@sigx/zero-kit';
+import { anatomies } from '@sigx/zero/anatomy';
+
+const manifest = {
+    components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
+};
+const tabs = manifest.components.find((c) => c.scope === 'tabs')!;
+const breakpoints = { sm: '640px', md: '768px', lg: '1024px' };
+
+const compile = (recipe: RecipeInput, ctx = { breakpoints }) =>
+    compileRecipeCss(recipe, tabs, ctx);
+
+describe('condition keys', () => {
+    it('resolves a declared breakpoint to a min-width query', () => {
+        const css = compile({
+            component: 'tabs',
+            parts: { tab: { at: { md: { base: { padding: '1rem' } } } } },
+        });
+        expect(css).toContain('@media (min-width: 768px)');
+        expect(css).toContain('[data-scope="tabs"][data-part="tab"]');
+    });
+
+    it.each([
+        ['reduced-motion', '@media (prefers-reduced-motion: reduce)'],
+        ['hover-none', '@media (hover: none)'],
+        ['prefers-dark', '@media (prefers-color-scheme: dark)'],
+        ['forced-colors', '@media (forced-colors: active)'],
+    ])('resolves the built-in %s', (key, prelude) => {
+        const css = compile({
+            component: 'tabs',
+            parts: { tab: { at: { [key]: { base: { color: 'red' } } } } },
+        });
+        expect(css).toContain(prelude);
+    });
+
+    it('passes an @-prefixed key through verbatim', () => {
+        const css = compile({
+            component: 'tabs',
+            parts: {
+                tab: {
+                    at: {
+                        '@container (min-width: 20rem)': { base: { padding: '2rem' } },
+                        '@supports (interpolate-size: allow-keywords)': { base: { height: 'auto' } },
+                        '@starting-style': { base: { opacity: '0' } },
+                    },
+                },
+            },
+        });
+        expect(css).toContain('@container (min-width: 20rem) {');
+        expect(css).toContain('@supports (interpolate-size: allow-keywords) {');
+        expect(css).toContain('@starting-style {');
+    });
+
+    it('rejects an unknown key, naming what was available', () => {
+        expect(() => compile({
+            component: 'tabs',
+            parts: { tab: { at: { tablet: { base: { color: 'red' } } } } },
+        })).toThrow(/unknown condition "tablet"[\s\S]*sm, md, lg[\s\S]*reduced-motion/);
+    });
+
+    it('says so when no breakpoints are declared at all', () => {
+        expect(() => compileRecipeCss(
+            { component: 'tabs', parts: { tab: { at: { md: { base: { color: 'red' } } } } } },
+            tabs,
+            {},
+        )).toThrow(/declare them in tokens\.breakpoints/);
+    });
+});
+
+describe('emission order', () => {
+    const css = compile({
+        component: 'tabs',
+        parts: {
+            tab: {
+                base: { padding: '0.5rem' },
+                at: {
+                    // Deliberately authored out of order — emission must not
+                    // follow the order these were written in.
+                    lg: { base: { padding: '2rem' } },
+                    'reduced-motion': { base: { transition: 'none' } },
+                    sm: { base: { padding: '1rem' } },
+                    '@supports (display: grid)': { base: { display: 'grid' } },
+                },
+            },
+        },
+    });
+    const at = (needle: string) => css.indexOf(needle);
+
+    it('puts every conditional rule after every flat rule', () => {
+        expect(at('padding: 0.5rem')).toBeLessThan(at('@supports'));
+        expect(at('padding: 0.5rem')).toBeLessThan(at('@media'));
+    });
+
+    it('orders breakpoints ascending regardless of authoring order', () => {
+        expect(at('@media (min-width: 640px)')).toBeLessThan(at('@media (min-width: 1024px)'));
+    });
+
+    it('puts feature queries before breakpoints and reduced-motion last', () => {
+        expect(at('@supports')).toBeLessThan(at('@media (min-width: 640px)'));
+        expect(at('@media (prefers-reduced-motion: reduce)')).toBeGreaterThan(
+            at('@media (min-width: 1024px)'),
+        );
+    });
+});
+
+describe('composition', () => {
+    it('merges the same condition across different parts into one block', () => {
+        const css = compile({
+            component: 'tabs',
+            parts: {
+                list: { at: { md: { base: { gap: '1rem' } } } },
+                tab: { at: { md: { base: { padding: '1rem' } } } },
+            },
+        });
+        expect(css.match(/@media \(min-width: 768px\)/g)).toHaveLength(1);
+        expect(css).toContain('gap: 1rem;');
+        expect(css).toContain('padding: 1rem;');
+    });
+
+    it('nests at-rules when `at` is nested', () => {
+        const css = compile({
+            component: 'tabs',
+            parts: {
+                tab: { at: { md: { at: { 'reduced-motion': { base: { transition: 'none' } } } } } },
+            },
+        });
+        const outer = css.indexOf('@media (min-width: 768px)');
+        const inner = css.indexOf('@media (prefers-reduced-motion: reduce)');
+        expect(outer).toBeGreaterThan(-1);
+        expect(inner).toBeGreaterThan(outer);
+        expect(css.indexOf('transition: none')).toBeGreaterThan(inner);
+    });
+
+    it('applies to states and nested selectors, not just base', () => {
+        const css = compile({
+            component: 'tabs',
+            parts: {
+                tab: {
+                    at: {
+                        md: {
+                            states: { active: { fontWeight: '700' } },
+                            selectors: { '&::after': { content: '""' } },
+                        },
+                    },
+                },
+            },
+        });
+        const media = css.slice(css.indexOf('@media (min-width: 768px)'));
+        expect(media).toContain('[data-state="active"]');
+        expect(media).toContain('::after');
+    });
+
+    it('gives responsive variants for free', () => {
+        // `variants` values are PartStyles, so `at` works there with no
+        // separate mechanism — the reason it was designed as one field.
+        const css = compile({
+            component: 'tabs',
+            parts: {},
+            variants: {
+                size: { lg: { tab: { base: { fontSize: '1rem' }, at: { md: { base: { fontSize: '2rem' } } } } } },
+            },
+        });
+        const media = css.slice(css.indexOf('@media (min-width: 768px)'));
+        expect(media).toContain('[data-size="lg"]');
+        expect(media).toContain('font-size: 2rem;');
+    });
+});
+
+describe('RecipeInput.css', () => {
+    it('appends raw CSS inside the layer, after everything else', () => {
+        const css = compile({
+            component: 'tabs',
+            parts: { tab: { base: { color: 'red' }, at: { md: { base: { color: 'blue' } } } } },
+            css: '.legacy-thing { color: green; }',
+        });
+        expect(css.indexOf('.legacy-thing')).toBeGreaterThan(css.indexOf('@media'));
+        expect(css.slice(css.indexOf('.legacy-thing'))).toContain('}\n'); // still inside the layer
+        expect(css).toContain('@layer zero.recipes {');
+    });
+});
+
+describe('breakpoint declarations', () => {
+    const ds = (bp: Record<string, string>): DesignSystemInput => ({
+        name: 'probe',
+        recipes: [],
+        tokens: {
+            roles: { primary: {} },
+            breakpoints: bp,
+            defaultLight: 'l',
+            themes: {
+                l: {
+                    colorScheme: 'light',
+                    colors: {
+                        'base-100': 'oklch(100% 0 0)',
+                        'base-200': 'oklch(96% 0 0)',
+                        'base-300': 'oklch(92% 0 0)',
+                        'base-content': 'oklch(20% 0 0)',
+                        primary: 'oklch(50% 0.2 260)',
+                        'primary-content': 'oklch(98% 0.01 260)',
+                    },
+                },
+            },
+        } as DesignSystemInput['tokens'],
+    });
+    const errors = (bp: Record<string, string>) =>
+        validateDesignSystem(ds(bp), manifest).errors.map((e) => e.message);
+
+    it('accepts an ascending mobile-first list', () => {
+        expect(errors(breakpoints)).toEqual([]);
+    });
+
+    it('rejects a descending list', () => {
+        // Declaration order is emission order, so largest-first would make the
+        // wider breakpoint lose to the narrower one.
+        expect(errors({ lg: '1024px', sm: '640px' })).toContainEqual(
+            expect.stringContaining('mobile-first, ascending'),
+        );
+    });
+
+    it('rejects a name that collides with a built-in condition', () => {
+        expect(errors({ 'reduced-motion': '640px' })).toContainEqual(
+            expect.stringContaining('collides with the built-in'),
+        );
+    });
+
+    it('rejects a value that is not a length', () => {
+        expect(errors({ sm: 'wide' })).toContainEqual(
+            expect.stringContaining('is not a px/rem/em length'),
+        );
+    });
+});

@@ -922,6 +922,13 @@
         font-size: var(--text-xs);
         opacity: 0.6;
     }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
+            animation: none;
+            width: 100%;
+        }
+    }
 }
 @keyframes zero-daisy-indeterminate {
     from { margin-left: -40%; } to { margin-left: 100%; }

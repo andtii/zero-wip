@@ -35,6 +35,21 @@
 - `TokensInput.breakpoints` — reserved DS-level breakpoint declaration,
   surfaced in the DS manifest (consumed by the upcoming conditions support).
 
+- **Conditional recipe styles** -- `PartStyles.at` maps a condition to the
+  same shape, recursively. Keys resolve to a declared breakpoint's
+  `@media (min-width: ...)`, a built-in preference query, or a raw `@`
+  prelude (`@container`, `@supports`, `@starting-style`).
+  `TokensInput.breakpoints` -- declared but inert since it was added -- is
+  now consumed. Because `variants` hold `PartStyles`, responsive variants
+  need no separate mechanism.
+- `compileRecipeCss` takes a third `RecipeContext` argument carrying the
+  design system's breakpoints; `compileDesignSystem` passes it for you.
+- `RecipeInput.css` -- raw CSS appended inside the component's own layer
+  block, for anything the typed surface cannot express.
+- The validator checks breakpoint declarations: kebab-case names, px/rem/em
+  values, no collision with a built-in condition name, and **ascending
+  order** -- declaration order is emission order, so a largest-first list
+  would silently make the wider breakpoint lose to the narrower one.
 - **Motion tokens** (`system.motion`) — `durations` and `easings` emit
   `--duration-*` / `--ease-*`, so a design system states its motion
   personality once instead of scattering `0.15s` through its recipes.
