@@ -49,6 +49,23 @@
 
 ### Added
 
+- **Press feedback — `createPressFeedback` and the `pressed` /
+  `press-animating` flags.** CSS can see `:active` but not *where* a press
+  landed, so pointer-anchored effects (Material's ink ripple) were
+  inexpressible as pure recipe data. On parts whose anatomy declares the
+  `pressed` flag — Button root, in this release — the runtime now sets
+  `data-pressed` while the pointer/key is down, sets `data-press-animating`
+  from press-start until the part's CSS animation finishes (so a quick tap
+  plays a one-shot effect to completion; cleared on `animationend`, or
+  synchronously when the active design system attaches no animation), and
+  writes the press point as `--press-x` / `--press-y` / `--press-r` (px;
+  `r` is the farthest-corner radius). Keyboard presses (Enter/Space) press
+  at the box center. The design system consumes all of it in plain CSS; the
+  behavior is exported as `createPressFeedback` for future components.
+- Button's anatomy root gains the `pressed` and `press-animating` flags
+  (additive), and the `PartProps` bag documents the pointer/keyup handlers
+  it now carries — asChild renders get press feedback through the ordinary
+  bag spread.
 - **`axes` — the variant-axis set is open.** `variantAttrs` hardcoded exactly
   `color`/`size`/`variant`, and sigx forwards no rest props, so a design system
   with a fourth axis (density, emphasis, tone) had no route to the DOM at all:

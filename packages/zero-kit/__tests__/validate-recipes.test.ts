@@ -439,3 +439,38 @@ describe('diagnostic paths', () => {
         );
     });
 });
+
+describe('press feedback', () => {
+    it('accepts the runtime-published --press-* properties', () => {
+        // The zero runtime writes these on the element at press time; no
+        // design system declares them, and they must not read as typos.
+        const { errors, warnings } = check(tabsWith({
+            left: 'var(--press-x, 50%)',
+            width: 'calc(var(--press-r) * 2)',
+        }));
+        expect(errors).toEqual([]);
+        expect(warnings).not.toContainEqual(expect.stringContaining('--press-'));
+    });
+
+    const rippleButton = (afterProps: CssProps): RecipeInput => ({
+        component: 'button',
+        parts: {
+            root: {
+                states: { 'focus-visible': { outline: '1px solid' } },
+                selectors: { '&[data-press-animating]::after': afterProps },
+            },
+        },
+    });
+
+    it('warns when press-animating is targeted but nothing animates', () => {
+        // The runtime clears the flag as soon as no animation runs, so the
+        // rule matches for zero frames — dead on arrival.
+        expect(check(rippleButton({ opacity: '0.5' })).warnings)
+            .toContainEqual(expect.stringContaining('never sets an animation'));
+    });
+
+    it('accepts press-animating with an animation', () => {
+        expect(check(rippleButton({ animation: 'ripple var(--duration-fast) linear' })).warnings)
+            .not.toContainEqual(expect.stringContaining('never sets an animation'));
+    });
+});

@@ -310,6 +310,29 @@ export function validateRecipes(
             }
         }
 
+        // ── press-animating without an animation ──
+        //
+        // The runtime removes `data-press-animating` the moment it sees no
+        // CSS animation running on the part, so a rule gated on the flag that
+        // never starts one is dead: it matches for zero frames. The held
+        // state (`data-pressed`) is what a non-animated press effect keys on.
+        {
+            const targets: Array<{ path: string; props: CssProps }> = [];
+            for (const { path, props } of declarations(recipe)) {
+                if (path.includes('press-animating')) targets.push({ path, props });
+            }
+            const startsAnimation = targets.some(({ props }) =>
+                Object.keys(props).some((p) => p === 'animation' || p === 'animationName'));
+            if (targets.length > 0 && !startsAnimation) {
+                warn(
+                    `${where}.${targets[0]!.path}`,
+                    'targets data-press-animating but never sets an animation — the runtime clears the flag ' +
+                    'as soon as no animation is running, so the rule matches for zero frames. Start a ' +
+                    'keyframe animation here, or key a non-animated press effect on data-pressed instead',
+                );
+            }
+        }
+
         // ── focus-visible coverage ──
         const focusableParts = component.parts.filter((p) => (p.flags ?? []).includes('focus-visible'));
         if (focusableParts.length > 0) {

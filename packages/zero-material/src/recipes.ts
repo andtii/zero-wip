@@ -133,6 +133,9 @@ export const button: RecipeInput = {
         '--btn-accent': 'var(--color-primary)',
         '--btn-on-accent': 'var(--color-primary-content)',
         '--btn-soft': 'var(--color-primary-soft)',
+        // The state-layer/ripple ink. On a filled button that is the on-color;
+        // un-filled variants override to the accent itself.
+        '--btn-ripple': 'var(--btn-on-accent)',
     },
     parts: {
         root: {
@@ -149,12 +152,68 @@ export const button: RecipeInput = {
                 lineHeight: 'var(--leading-none)',
                 cursor: 'pointer',
                 transition: motion('background, box-shadow, border-color'),
+                // Ripple containment: the ink clips to the pill; box-shadow
+                // elevation is unaffected by overflow.
+                position: 'relative',
+                overflow: 'hidden',
+                WebkitTapHighlightColor: 'transparent',
             },
             states: {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed', boxShadow: 'none' },
                 ...focusRing,
             },
+            selectors: {
+                // Held state layer — Material pressed = ink at 12% while the
+                // pointer/key is down. This is the non-motion press feedback,
+                // so it also carries reduced-motion.
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '0',
+                    background: 'var(--btn-ripple)',
+                    opacity: '0',
+                    pointerEvents: 'none',
+                    transition: 'opacity var(--duration-fast) var(--ease-standard)',
+                },
+                '&[data-pressed]::before': { opacity: '0.12' },
+                // Ink ripple — a one-shot expansion from the press point the
+                // runtime publishes as --press-x/y, sized by --press-r (the
+                // farthest-corner radius). data-press-animating outlives
+                // release, so a quick tap still plays the full wave.
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    left: 'var(--press-x, 50%)',
+                    top: 'var(--press-y, 50%)',
+                    width: 'calc(var(--press-r, 0px) * 2)',
+                    height: 'calc(var(--press-r, 0px) * 2)',
+                    borderRadius: '50%',
+                    background: 'var(--btn-ripple)',
+                    transform: 'translate(-50%, -50%) scale(0)',
+                    opacity: '0',
+                    pointerEvents: 'none',
+                },
+                '&[data-press-animating]::after': {
+                    animation: 'btn-ripple var(--duration-slow) var(--ease-standard)',
+                },
+            },
+            at: {
+                // Reduced motion needs nothing here: --duration-* collapse to
+                // 0.01ms and the ::before tint remains as press feedback.
+                'forced-colors': {
+                    selectors: {
+                        '&::before': { display: 'none' },
+                        '&::after': { display: 'none' },
+                    },
+                },
+            },
         },
+    },
+    keyframes: {
+        'btn-ripple':
+            'from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } '
+            + '60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } '
+            + 'to { transform: translate(-50%, -50%) scale(1); opacity: 0; }',
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [
@@ -187,19 +246,28 @@ export const button: RecipeInput = {
                         background: 'transparent',
                         color: 'var(--btn-accent)',
                         borderColor: 'var(--color-outline)',
+                        '--btn-ripple': 'var(--btn-accent)',
                     },
                     states: { hover: { background: 'var(--btn-soft)' } },
                 },
             },
             soft: {
                 root: {
-                    base: { background: 'var(--btn-soft)', color: 'var(--btn-accent)' },
+                    base: {
+                        background: 'var(--btn-soft)',
+                        color: 'var(--btn-accent)',
+                        '--btn-ripple': 'var(--btn-accent)',
+                    },
                     states: { hover: { boxShadow: 'var(--shadow-level1)' } },
                 },
             },
             ghost: {
                 root: {
-                    base: { background: 'transparent', color: 'var(--btn-accent)' },
+                    base: {
+                        background: 'transparent',
+                        color: 'var(--btn-accent)',
+                        '--btn-ripple': 'var(--btn-accent)',
+                    },
                     states: { hover: { background: 'var(--btn-soft)' } },
                 },
             },

@@ -15,6 +15,7 @@
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { variantAttrs } from '../../contract/props.js';
@@ -61,6 +62,13 @@ export type ButtonRootProps =
 const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal }) => {
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
+    // Always on: one listener set, zero work until a press, and whether
+    // anything visible happens is the design system's call (CSS on
+    // data-pressed / data-press-animating / --press-*), not the app's.
+    const press = createPressFeedback({
+        getElement: () => el,
+        isDisabled: () => !!props.disabled,
+    });
 
     const bag = (): PartProps => ({
         'data-scope': SCOPE,
@@ -84,16 +92,23 @@ const ButtonRoot = component<ButtonRootProps>(({ props, slots, signal }) => {
         },
         onKeydown: (e: KeyboardEvent) => {
             if (props.disabled) return;
+            press.onKeydown(e);
             props.onKeydown?.(e);
         },
+        onKeyup: press.onKeyup,
         onFocus: (e: FocusEvent) => {
             focus.visible = isFocusVisible(el);
             props.onFocus?.(e);
         },
         onBlur: (e: FocusEvent) => {
+            press.onBlur(e);
             focus.visible = false;
             props.onBlur?.(e);
         },
+        onPointerdown: press.onPointerdown,
+        onPointerup: press.onPointerup,
+        onPointercancel: press.onPointercancel,
+        onPointerleave: press.onPointerleave,
     });
 
     return () => {

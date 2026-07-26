@@ -95,8 +95,13 @@ export interface PartProps {
     'aria-haspopup'?: string;
     onClick?: (e: MouseEvent) => void;
     onKeydown?: (e: KeyboardEvent) => void;
+    onKeyup?: (e: KeyboardEvent) => void;
     onFocus?: (e: FocusEvent) => void;
     onBlur?: (e: FocusEvent) => void;
+    onPointerdown?: (e: PointerEvent) => void;
+    onPointerup?: (e: PointerEvent) => void;
+    onPointercancel?: (e: PointerEvent) => void;
+    onPointerleave?: (e: PointerEvent) => void;
     ref?: (el: HTMLElement | null) => void;
     [key: string]: unknown;
 }

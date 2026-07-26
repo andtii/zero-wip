@@ -4,6 +4,16 @@
 
 ### Added
 
+- **`RUNTIME_PROPERTIES`** — the custom properties the `@sigx/zero` runtime
+  writes on elements (`--press-x/y/r`, `--progress-percent`,
+  `--slider-percent`) are now part of the token vocabulary, so recipes may
+  reference them without a "never declares" error. The press trio is new;
+  the percent pair was always written by Progress/Slider and merely never
+  referenced by a shipped recipe.
+- The validator warns when a recipe targets `data-press-animating` but never
+  starts an animation — the runtime clears the flag as soon as no animation
+  is running, so such a rule matches for zero frames.
+
 - **A recipe may key `variants` on any axis, not just the contract three.**
   The old warning — *"no zero component ever sets that attribute, so nothing
   can match them"* — was accurate and is now obsolete: `@sigx/zero`'s new

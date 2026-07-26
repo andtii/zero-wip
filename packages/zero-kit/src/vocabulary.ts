@@ -9,6 +9,7 @@
  */
 import {
     BASE_SURFACE_TOKEN_LIST,
+    RUNTIME_PROPERTIES,
     TOKEN_CATEGORIES,
     resolveRoles,
     resolveSizes,
@@ -90,6 +91,11 @@ export function tokenVocabulary(tokens: TokensInput<any, any>): TokenVocabulary 
             for (const key of Object.keys(node)) names.add(tokenProperty(category, key));
         }
     }
+
+    // ── runtime-published properties: the zero runtime writes these on
+    // elements (press point, progress/slider percent), so a recipe may
+    // reference them even though no design system declares them ──
+    for (const name of RUNTIME_PROPERTIES) names.add(name);
 
     // ── declared custom tokens, plus the untyped escape hatches. `extra` and
     // `components` are emitted verbatim, so a reference to one resolves —
