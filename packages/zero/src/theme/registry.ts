@@ -8,6 +8,12 @@
  *
  * Write-once configuration seeded at module load (identical on server and
  * client), so a module-level Map is safe under SSR.
+ *
+ * `clearThemes()` is the one exception, and it is client-only by intent: a host
+ * that swaps design systems at runtime must shed the previous DS's themes,
+ * because theme names are DS-specific and a stale entry would advertise a
+ * `[data-theme]` block whose stylesheet is no longer loaded. Never call it per
+ * SSR request — that would race concurrent renders sharing this module.
  */
 import { RECOMMENDED_ROLE_LIST, defaultSwatch } from '../contract/tokens.js';
 
@@ -79,6 +85,16 @@ export function registerThemes(source: ThemeSource): void {
             ),
         });
     }
+}
+
+/**
+ * Drop every registered theme — browser-only, for hosts that exchange design
+ * systems at runtime. Re-seed immediately afterwards with the incoming DS's
+ * `installThemes()`; between the two calls `listThemes()` is empty and
+ * `pickThemeFor()` returns undefined.
+ */
+export function clearThemes(): void {
+    themes.clear();
 }
 
 export function getTheme(name: string): ThemeInfo | undefined {

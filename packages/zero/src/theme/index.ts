@@ -5,6 +5,7 @@ export type { ThemeInfo, ThemeSource } from './registry.js';
 export {
     registerTheme,
     registerThemes,
+    clearThemes,
     getTheme,
     listThemes,
     pairOf,

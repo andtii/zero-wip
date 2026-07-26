@@ -7,6 +7,7 @@
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview",
+        "typecheck": "tsgo --noEmit",
         "gen:brand": "node scripts/gen-brand-theme.mjs"
     },
     "dependencies": {

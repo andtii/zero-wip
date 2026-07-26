@@ -1,8 +1,9 @@
 import { component, signal } from 'sigx';
 import {
     Accordion, Button, Checkbox, Collapsible, Dialog, Field, Menu, Popover, Progress,
-    RadioGroup, Select, Slider, Switch, Tabs, Tooltip, themeController, listThemes,
+    RadioGroup, Select, Slider, Switch, Tabs, Tooltip,
 } from '@sigx/zero';
+import { Toolbar } from './Toolbar';
 
 export const App = component(() => {
     const state = signal({
@@ -17,14 +18,7 @@ export const App = component(() => {
     return () => (
         <main style={{ maxWidth: '40rem', margin: '2rem auto', fontFamily: 'system-ui, sans-serif', padding: '0 1rem' }}>
             <h1>SignalX Zero playground</h1>
-            <p>
-                Unstyled primitives + one design-system import. Current themes:{' '}
-                {listThemes().map((t) => t.name).join(', ') || 'none registered'}
-                {' '}
-                <Button.Root size="sm" onClick={() => themeController().toggle()}>toggle light/dark</Button.Root>
-                {' '}
-                <Button.Root size="sm" variant="outline" onClick={() => themeController().setTheme(null)}>follow system</Button.Root>
-            </p>
+            <Toolbar />
 
             <Tabs.Root model={() => state.tab}>
                 <Tabs.List>
@@ -212,8 +206,26 @@ export const App = component(() => {
 
                 <Tabs.Panel value="about">
                     <p>
-                        Swap the two design-system imports in <code>main.tsx</code>{' '}
-                        (basic ↔ daisyui) and reload — same components, different skin.
+                        Pick a design system in the toolbar — same components, different
+                        skin, no reload. A design system compiles to one stylesheet, so
+                        switching is a <code>&lt;link&gt;</code> swap: the new sheet is
+                        loaded and awaited before the old one is dropped, which is why
+                        there is no unstyled flash.
+                    </p>
+                    <p>
+                        Exactly one is ever live. Token blocks are scoped by{' '}
+                        <code>data-theme</code>, but recipe CSS is not — every design
+                        system writes the same{' '}
+                        <code>[data-scope][data-part]</code> selectors into the same{' '}
+                        <code>@layer zero.recipes</code>, so two sheets would blend into
+                        a chimera rather than replace one another.
+                    </p>
+                    <p>
+                        One honest caveat: <code>@property</code> registrations live
+                        outside the cascade layers and are not withdrawn when a
+                        stylesheet is removed, so roles registered by a design system you
+                        have visited persist for the life of the page. Reload for
+                        pristine state.
                     </p>
                 </Tabs.Panel>
                 <Tabs.Panel value="disabled">
