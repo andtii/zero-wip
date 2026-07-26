@@ -108,7 +108,8 @@ complete design system from a style brief and iterates against `validate`.
 
 The package ships JSON Schemas (draft 2020-12) for the authoring surfaces.
 `schemas/` is in-repo source; the npm package publishes only `dist/`, so
-consumers find them at `dist/schemas/`. They are also served at:
+consumers find them at `dist/schemas/`. Each `$id` points at the docs-site
+URL where they will be served (publishing tracked on the docs repo):
 
 - `https://signalxjs.github.io/zero/schemas/tokens.schema.json` — `TokensInput`
 - `https://signalxjs.github.io/zero/schemas/recipe.schema.json` — `RecipeInput`
