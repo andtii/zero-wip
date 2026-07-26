@@ -41,7 +41,8 @@
   `allow-discrete` is all the platform needs, and no runtime helper is
   involved.
 - The validator warns about a half-animated part: `starting-style` with no
-  transition to interpolate, or with a transition that omits `allow-discrete`.
+  transition to interpolate, or with no discrete property (`display`,
+  `overlay`, `content-visibility`) carried by `allow-discrete`.
   The second is the silent one — the entry animates and the exit does not,
   because the element stops being rendered before it can play.
 - A style-brief pack ships with the design-system skill:

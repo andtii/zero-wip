@@ -184,6 +184,35 @@ describe('the validator catches a half-animated popup', () => {
         expect(messages.some((m) => m.includes('the exit will not'))).toBe(true);
     });
 
+    it('is not satisfied by allow-discrete over continuous properties alone', () => {
+        // `transition-behavior` applies to the properties actually listed. If
+        // none of them is discrete, nothing keeps the element rendered and the
+        // exit is still instant — so the warning must survive this shape.
+        const messages = warnings(recipe({
+            base: {
+                opacity: '0',
+                transition: 'opacity var(--duration-fast) var(--ease-standard)',
+                transitionBehavior: 'allow-discrete',
+            },
+            states: { open: { opacity: '1' } },
+            at: { 'starting-style': { states: { open: { opacity: '0' } } } },
+        }));
+        expect(messages.some((m) => m.includes('the exit will not'))).toBe(true);
+    });
+
+    it('accepts the two halves written as separate declarations', () => {
+        const messages = warnings(recipe({
+            base: {
+                opacity: '0',
+                transition: 'opacity var(--duration-fast) var(--ease-standard), display var(--duration-fast)',
+                transitionBehavior: 'allow-discrete',
+            },
+            states: { open: { opacity: '1' } },
+            at: { 'starting-style': { states: { open: { opacity: '0' } } } },
+        }));
+        expect(messages.filter((m) => m.includes('starting-style'))).toEqual([]);
+    });
+
     it('sees starting styles declared by a variant', () => {
         const messages = validateDesignSystem({
             name: 'probe',

@@ -34,6 +34,13 @@ const toOklch = converter('oklch');
  * `oklch(0% 0 0 / α)` — would be flagged, and the rule would be turned off
  * rather than obeyed.
  */
+/**
+ * The properties that keep an element rendered through its exit. Transitioning
+ * one of these with `allow-discrete` is what buys the closing animation;
+ * `overlay` is additionally what keeps a popup in the top layer.
+ */
+const DISCRETE_PRESENCE_PROPERTIES = ['display', 'overlay', 'content-visibility'] as const;
+
 function isScrim(literal: string): boolean {
     const parsed = parse(literal);
     if (!parsed) return false;
@@ -262,12 +269,23 @@ export function validateRecipes(
                     `${where}.${partName}`,
                     'declares starting-style but never transitions, so the entry styles are never used',
                 );
-            } else if (!transitions.some((value) => value.includes('allow-discrete'))) {
+                continue;
+            }
+            // Both halves are needed, and they can live in separate
+            // declarations (`transition-behavior` alongside a `transition`
+            // list). `allow-discrete` on its own changes nothing if the list
+            // holds only continuous properties like opacity — the element
+            // still stops being rendered immediately.
+            const allowsDiscrete = transitions.some((value) => value.includes('allow-discrete'));
+            const movesDiscrete = transitions.some((value) =>
+                DISCRETE_PRESENCE_PROPERTIES.some((prop) => new RegExp(`(^|[\\s,])${prop}([\\s,]|$)`).test(value)));
+            if (!allowsDiscrete || !movesDiscrete) {
                 warn(
                     `${where}.${partName}`,
-                    'declares starting-style but no allow-discrete transition — the entry will animate and the ' +
-                    'exit will not, because the element stops being rendered before it can play. Transition ' +
-                    '`display` (and `overlay`, for a top-layer popup) with allow-discrete',
+                    'declares starting-style but does not transition a discrete property with allow-discrete — ' +
+                    'the entry will animate and the exit will not, because the element stops being rendered ' +
+                    'before it can play. Transition `display` (and `overlay`, for a top-layer popup) with ' +
+                    'allow-discrete',
                 );
             }
         }

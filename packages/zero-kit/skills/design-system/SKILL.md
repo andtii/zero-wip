@@ -261,8 +261,9 @@ And these are warnings worth driving to zero:
   `var(--duration-*)`, so a literal opts out of the preference.
 - a component in the manifest with no recipe at all.
 - a part that declares `starting-style` but never transitions (the entry
-  styles are never used), or transitions without `allow-discrete` (the entry
-  animates and the exit cannot).
+  styles are never used), or transitions no discrete property with
+  `allow-discrete` (the entry animates and the exit cannot — `allow-discrete`
+  over `opacity` alone changes nothing).
 - a part that declares `focus-visible` and doesn't style it. If the ring
   genuinely belongs on an inner part, say so with
   `skipStates: { root: ['focus-visible'] }` rather than leaving it implicit.
