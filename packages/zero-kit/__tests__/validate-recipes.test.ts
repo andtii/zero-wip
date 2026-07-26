@@ -245,6 +245,11 @@ describe('variants', () => {
         // `data-color` passes through verbatim, so the selector is emitted and
         // simply never matches — dead CSS with no diagnostic. The probe design
         // system declares only `primary`.
+        //
+        // `brnad` is misspelled ON PURPOSE: a typo is the mistake this rule
+        // exists to catch, and it is what a generator actually produces. A
+        // plausible name like `brand` would read as a role someone meant to
+        // declare — a different bug with a different fix.
         expect(check({
             component: 'tabs',
             parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
