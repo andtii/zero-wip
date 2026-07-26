@@ -52,6 +52,11 @@ export const BUILTIN_CONDITIONS: Readonly<Record<string, string>> = {
     'hover-none': '@media (hover: none)',
     'prefers-dark': '@media (prefers-color-scheme: dark)',
     'forced-colors': '@media (forced-colors: active)',
+    // The state an element animates FROM on its first style change — the
+    // entry half of presence. Spellable as the raw `@starting-style` prelude
+    // too; naming it makes it discoverable and lets the validator recognise
+    // an entry animation and check for the exit half.
+    'starting-style': '@starting-style',
 };
 
 /** Compile-time context a recipe needs beyond its own component anatomy. */
@@ -169,7 +174,10 @@ interface Condition {
  * preference queries, then breakpoints ascending, and `reduced-motion` last so
  * an accessibility override is never overwritten by a wider viewport.
  */
-const TIER = { raw: 0, preference: 1, breakpoint: 2, reducedMotion: 3 } as const;
+// `startingStyle` sits last so an entry rule always follows the open-state
+// rule it interpolates from. It declares no transition of its own, so it
+// neither defeats nor is defeated by the reduced-motion tier.
+const TIER = { raw: 0, preference: 1, breakpoint: 2, reducedMotion: 3, startingStyle: 4 } as const;
 
 /** Rules grouped by their (possibly nested) at-rule chain. */
 type Sink = Map<string, { conditions: Condition[]; rules: string[] }>;
@@ -209,7 +217,12 @@ function resolveCondition(
     let condition: Condition;
 
     if (key.startsWith('@')) {
-        condition = { prelude: key, tier: TIER.raw, ordinal: registry.size };
+        // `@starting-style` is spellable both as the built-in name and as the
+        // raw prelude, so the raw form takes the same tier — otherwise the
+        // two spellings would emit in different places and only one of them
+        // would reliably follow the rule it interpolates from.
+        const tier = key.trim() === '@starting-style' ? TIER.startingStyle : TIER.raw;
+        condition = { prelude: key, tier, ordinal: registry.size };
     } else if (Object.hasOwn(breakpoints, key)) {
         condition = {
             prelude: `@media (min-width: ${breakpoints[key]})`,
@@ -219,7 +232,9 @@ function resolveCondition(
     } else if (Object.hasOwn(BUILTIN_CONDITIONS, key)) {
         condition = {
             prelude: BUILTIN_CONDITIONS[key]!,
-            tier: key === 'reduced-motion' ? TIER.reducedMotion : TIER.preference,
+            tier: key === 'reduced-motion'
+                ? TIER.reducedMotion
+                : key === 'starting-style' ? TIER.startingStyle : TIER.preference,
             ordinal: registry.size,
         };
     } else {

@@ -6,10 +6,21 @@
     }
 
     [data-scope="accordion"][data-part="item"] {
+        interpolate-size: allow-keywords;
         border: var(--border) solid var(--color-base-300);
         border-radius: var(--radius-box);
         background: var(--color-base-100);
         overflow: hidden;
+    }
+
+    [data-scope="accordion"][data-part="item"]::details-content {
+        block-size: 0;
+        overflow: hidden;
+        transition: block-size var(--duration-normal) var(--ease-standard), content-visibility var(--duration-normal) allow-discrete;
+    }
+
+    [data-scope="accordion"][data-part="item"][open]::details-content {
+        block-size: auto;
     }
 
     [data-scope="accordion"][data-part="trigger"] {
@@ -56,5 +67,11 @@
     [data-scope="accordion"][data-part="panel"] {
         padding: 0 var(--space-2xl) var(--space-xl);
         font-size: var(--text-md);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="accordion"][data-part="item"]::details-content {
+            transition: none;
+        }
     }
 }

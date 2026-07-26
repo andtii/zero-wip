@@ -34,6 +34,13 @@ const toOklch = converter('oklch');
  * `oklch(0% 0 0 / α)` — would be flagged, and the rule would be turned off
  * rather than obeyed.
  */
+/**
+ * The properties that keep an element rendered through its exit. Transitioning
+ * one of these with `allow-discrete` is what buys the closing animation;
+ * `overlay` is additionally what keeps a popup in the top layer.
+ */
+const DISCRETE_PRESENCE_PROPERTIES = ['display', 'overlay', 'content-visibility'] as const;
+
 function isScrim(literal: string): boolean {
     const parsed = parse(literal);
     if (!parsed) return false;
@@ -208,6 +215,77 @@ export function validateRecipes(
                 warn(
                     `${where}.${path}`,
                     `"${prop}" uses a literal duration — reference var(--duration-*) so reduced motion applies`,
+                );
+            }
+        }
+
+        // ── presence: an entry animation without an exit ──
+        //
+        // `@starting-style` gives the state an element animates FROM, so a
+        // part that declares it is asking for an entry animation. Two ways
+        // that silently half-works, both checkable:
+        //
+        //  - no `transition` at all, so there is nothing to interpolate and
+        //    the starting styles are simply never used;
+        //  - a transition that doesn't carry `display`/`overlay` through
+        //    `allow-discrete`, so the element is gone before the exit can
+        //    play. The entry animates, the exit does not, and nothing says so.
+        const declaresEntry = (styles: PartStyles): boolean =>
+            Object.entries(styles.at ?? {}).some(
+                ([key, nested]) =>
+                    key === 'starting-style' || key.trim() === '@starting-style' || declaresEntry(nested),
+            );
+        const transitionValues = (styles: PartStyles): string[] => [
+            ...[styles.base, ...Object.values(styles.states ?? {}), ...Object.values(styles.selectors ?? {})]
+                .flatMap((block) => Object.entries(block ?? {}))
+                .filter(([prop]) => prop === 'transition' || prop === 'transitionBehavior')
+                .map(([, value]) => String(value)),
+            ...Object.values(styles.at ?? {}).flatMap(transitionValues),
+        ];
+        // Every source of styles for a part, keyed by part: a variant can
+        // carry an entry animation as readily as the base block, and its
+        // transition may live in either.
+        const partSources = new Map<string, PartStyles[]>();
+        const addSource = (part: string, styles: PartStyles): void => {
+            partSources.set(part, [...(partSources.get(part) ?? []), styles]);
+        };
+        for (const [part, styles] of Object.entries(recipe.parts)) addSource(part, styles);
+        for (const values of Object.values(recipe.variants ?? {})) {
+            for (const parts of Object.values(values)) {
+                for (const [part, styles] of Object.entries(parts)) addSource(part, styles);
+            }
+        }
+        for (const compound of recipe.compoundVariants ?? []) {
+            for (const [part, styles] of Object.entries(compound.parts)) addSource(part, styles);
+        }
+
+        for (const [partName, sources] of partSources) {
+            // Recursive: a responsive entry animation nests the starting
+            // styles under the breakpoint, and needs the exit half just the same.
+            if (!sources.some(declaresEntry)) continue;
+            const transitions = sources.flatMap(transitionValues);
+            if (transitions.length === 0) {
+                warn(
+                    `${where}.${partName}`,
+                    'declares starting-style but never transitions, so the entry styles are never used',
+                );
+                continue;
+            }
+            // Both halves are needed, and they can live in separate
+            // declarations (`transition-behavior` alongside a `transition`
+            // list). `allow-discrete` on its own changes nothing if the list
+            // holds only continuous properties like opacity — the element
+            // still stops being rendered immediately.
+            const allowsDiscrete = transitions.some((value) => value.includes('allow-discrete'));
+            const movesDiscrete = transitions.some((value) =>
+                DISCRETE_PRESENCE_PROPERTIES.some((prop) => new RegExp(`(^|[\\s,])${prop}([\\s,]|$)`).test(value)));
+            if (!allowsDiscrete || !movesDiscrete) {
+                warn(
+                    `${where}.${partName}`,
+                    'declares starting-style but does not transition a discrete property with allow-discrete — ' +
+                    'the entry will animate and the exit will not, because the element stops being rendered ' +
+                    'before it can play. Transition `display` (and `overlay`, for a top-layer popup) with ' +
+                    'allow-discrete',
                 );
             }
         }

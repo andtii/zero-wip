@@ -165,6 +165,53 @@ component's anatomy). No component code is ever written or changed.
    - A **looping** animation should be stopped under `reduced-motion`
      (`animation: 'none'`), never shortened — collapsing its duration makes it
      spin faster instead of settling.
+   - **Animate presence in the recipe — there is no runtime helper, and none
+     is needed.** Zero never unmounts a popup: it keeps the node mounted,
+     toggles `data-state` and calls the native `showPopover()`/`showModal()`.
+     So both directions are CSS:
+     ```ts
+     popup: {
+         base: {
+             opacity: '0',
+             transform: 'translateY(-4px)',
+             transition: 'opacity var(--duration-fast) var(--ease-standard), '
+                 + 'transform var(--duration-fast) var(--ease-standard), '
+                 + 'display var(--duration-fast) allow-discrete, '
+                 + 'overlay var(--duration-fast) allow-discrete',
+         },
+         states: { open: { opacity: '1', transform: 'none' } },
+         at: {
+             'starting-style': { states: { open: { opacity: '0', transform: 'translateY(-4px)' } } },
+             'reduced-motion': { base: { transition: 'none' } },
+         },
+     }
+     ```
+     `starting-style` is the state the entry animates FROM. The two
+     `allow-discrete` entries are the **exit**: they keep the element rendered
+     — and, via `overlay`, in the top layer — for the length of the
+     transition. Leave them out and the entry animates while the close is
+     instant, which the validator warns about because nothing else would tell
+     you. (`overlay` is Chromium-only as of writing; elsewhere the exit
+     degrades to instant.)
+   - **A disclosure panel animates through `::details-content`.** Collapsible
+     and Accordion are native `<details>`, so the height animation belongs on
+     the browser's own wrapper, with `interpolate-size` making `auto` a legal
+     endpoint. Set it on the element, not globally:
+     ```ts
+     root: {
+         base: { interpolateSize: 'allow-keywords' },
+         selectors: {
+             '&::details-content': {
+                 blockSize: '0',
+                 overflow: 'hidden',
+                 transition: 'block-size var(--duration-normal) var(--ease-standard), '
+                     + 'content-visibility var(--duration-normal) allow-discrete',
+             },
+             '&[open]::details-content': { blockSize: 'auto' },
+         },
+     }
+     ```
+     Accordion's `<details>` is its `item` part, not `root`.
    - `RecipeInput.css` takes raw CSS for anything the typed surface can't say.
    - **Style Button first, and make its axes compose.** It is the component a
      design system is judged on, and the only one where all three axes matter
@@ -213,6 +260,10 @@ And these are warnings worth driving to zero:
 - a literal duration in a `transition`: reduced motion only collapses
   `var(--duration-*)`, so a literal opts out of the preference.
 - a component in the manifest with no recipe at all.
+- a part that declares `starting-style` but never transitions (the entry
+  styles are never used), or transitions no discrete property with
+  `allow-discrete` (the entry animates and the exit cannot — `allow-discrete`
+  over `opacity` alone changes nothing).
 - a part that declares `focus-visible` and doesn't style it. If the ring
   genuinely belongs on an inner part, say so with
   `skipStates: { root: ['focus-visible'] }` rather than leaving it implicit.

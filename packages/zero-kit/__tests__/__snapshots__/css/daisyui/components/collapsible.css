@@ -1,10 +1,21 @@
 @layer zero.recipes {
     [data-scope="collapsible"][data-part="root"] {
+        interpolate-size: allow-keywords;
         border: var(--border) solid var(--color-base-300);
         border-radius: var(--radius-box);
         background: var(--color-base-100);
         color: var(--color-base-content);
         overflow: hidden;
+    }
+
+    [data-scope="collapsible"][data-part="root"]::details-content {
+        block-size: 0;
+        overflow: hidden;
+        transition: block-size var(--duration-normal) var(--ease-standard), content-visibility var(--duration-normal) allow-discrete;
+    }
+
+    [data-scope="collapsible"][data-part="root"][open]::details-content {
+        block-size: auto;
     }
 
     [data-scope="collapsible"][data-part="trigger"] {
@@ -48,5 +59,11 @@
     [data-scope="collapsible"][data-part="panel"] {
         padding: 0 var(--space-2xl) var(--space-xl);
         font-size: var(--text-md);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="collapsible"][data-part="root"]::details-content {
+            transition: none;
+        }
     }
 }
