@@ -111,6 +111,25 @@ describe('Button', () => {
         )).toThrow(/not a kebab-case identifier/);
     });
 
+    it('refuses an axis that already has a prop of its own', () => {
+        // `axes` is applied after the named props, so this silently won:
+        // color="primary" axes={{ color: 'x' }} rendered data-color="x".
+        // Two ways to write one attribute, with precedence nobody would guess.
+        expect(() => render(
+            <Button.Root color="primary" axes={{ color: 'hijacked' }}>Save</Button.Root>,
+            container,
+        )).toThrow(/has a prop of its own/);
+
+        // …even without the named prop present, so the rule is one thing to
+        // learn rather than a conditional collision.
+        for (const axis of ['color', 'size', 'variant']) {
+            expect(() => render(
+                <Button.Root axes={{ [axis]: 'x' }}>Save</Button.Root>,
+                container,
+            )).toThrow(/has a prop of its own/);
+        }
+    });
+
     it('omits the axes it was not given', () => {
         // Absent, not empty — the CSS-only defaults hang off :not([data-size]).
         render(<Button.Root>Save</Button.Root>, container);

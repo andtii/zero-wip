@@ -65,9 +65,11 @@
   stay — they are the axes almost every design language has, and they keep
   autocomplete. An axis name must be kebab-case and may not be one the anatomy
   contract owns (`RESERVED_AXES`: `scope`, `part`, `state`, `orientation`, and
-  every flag); zero throws rather than dropping it silently, because shadowing
-  `data-state` from userland would repoint every `[data-state="open"]` rule a
-  design system wrote.
+  every flag), nor one of the three that already has a prop (`color`, `size`,
+  `variant` — use those, and keep their autocomplete). Zero throws rather than
+  dropping it silently: shadowing `data-state` from userland would repoint
+  every `[data-state="open"]` rule a design system wrote, and a second spelling
+  of `data-color` would win over the named prop by loop order alone.
 - `RESERVED_AXES` on the token contract, mirrored in `@sigx/zero-kit` and
   parity-tested, so the validator rejects exactly what the runtime refuses.
 - `manifest.json` `attributeSpec` gains `extraAxisForm`; `variantAxes` is now

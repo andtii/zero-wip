@@ -113,6 +113,14 @@ export const RESERVED_AXES: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * The axes with named props. Deliberately NOT in `RESERVED_AXES`: a recipe
+ * keying `variants.color` is the ordinary case and the validator must keep
+ * allowing it. These are only reserved on the runtime `axes` bag, where they
+ * would be a second way to write one attribute.
+ */
+const NAMED_AXES = ['color', 'size', 'variant'] as const;
+
+/**
  * Build the shared variant pass-through attributes from contract props.
  * Returns only the attributes whose props are set.
  *
@@ -133,6 +141,16 @@ export function variantAttrs(props: {
         'data-variant': props.variant,
     };
     for (const [axis, value] of Object.entries(props.axes ?? {})) {
+        if ((NAMED_AXES as readonly string[]).includes(axis)) {
+            // Otherwise this loop, running after the named props are applied,
+            // silently wins: `color="primary" axes={{ color: 'x' }}` rendered
+            // `data-color="x"`. Two ways to write one attribute, with
+            // precedence nobody would guess and none of the autocomplete the
+            // named prop exists to give.
+            throw new Error(
+                `[zero] axes: "${axis}" has a prop of its own — use ${axis}="…" rather than axes`,
+            );
+        }
         if (RESERVED_AXES.has(axis)) {
             throw new Error(
                 `[zero] axes: "${axis}" is part of the anatomy contract — data-${axis} already means something and cannot be overwritten`,
