@@ -13,14 +13,31 @@
  * *declaration*, not per rule, so a second stylesheet blends into the first
  * rather than replacing it. Exactly one `link[data-zero-ds]` is live at a time.
  *
- * Known limitation: `@property` registrations sit outside the cascade layers,
- * as each compiled stylesheet's preamble, and are NOT withdrawn when that
- * stylesheet is removed. After visiting material, its role registrations —
- * including material-only ones like `--color-tertiary` — stay registered for
- * the lifetime of the page. Impact is small in practice, since every DS
- * assigns all of its own roles at `:where(:root)`, but a registered property
- * substitutes as a computed value rather than a token stream, so a live switch
- * is not byte-identical to a fresh load. Reload for pristine state.
+ * The swap is clean, including the part that looks like it wouldn't be.
+ * `@property` registrations sit outside the cascade layers, in each compiled
+ * stylesheet's preamble, so it is reasonable to expect them to outlive their
+ * stylesheet and leave a visited design system's roles — material-only ones
+ * like `--color-tertiary` — registered for the life of the page. They don't:
+ * removing the stylesheet withdraws its registrations along with everything
+ * else in it. Measured in Chromium across `basic → material → basic`.
+ *
+ * To re-measure, exploit the fact that a registered `<color>` property rejects
+ * an invalid value at computed-value time and falls back, while an unregistered
+ * one is a raw token stream that comes back verbatim:
+ *
+ *     el.style.setProperty('--color-tertiary', 'not-a-color');
+ *     getComputedStyle(el).getPropertyValue('--color-tertiary').trim() === 'not-a-color'
+ *         // ^ true  => unregistered
+ *         // ^ false => registered, and you are seeing the fallback
+ *
+ * The `.trim()` matters: getPropertyValue can return the token stream with
+ * surrounding whitespace, which would read as a mismatch and misreport an
+ * unregistered property as registered.
+ *
+ * Nor is the brief two-`<link>` window observable: a stylesheet that is still
+ * loading has a null `.sheet` and applies nothing, and the outgoing link is
+ * removed before any frame in which both would be live. Sampling per animation
+ * frame, the number of links with a non-null `.sheet` never exceeds one.
  */
 import { clearThemes, getTheme, themeController } from '@sigx/zero';
 

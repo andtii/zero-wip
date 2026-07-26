@@ -241,11 +241,13 @@ export const App = component(() => {
                         a chimera rather than replace one another.
                     </p>
                     <p>
-                        One honest caveat: <code>@property</code> registrations live
-                        outside the cascade layers and are not withdrawn when a
-                        stylesheet is removed, so roles registered by a design system you
-                        have visited persist for the life of the page. Reload for
-                        pristine state.
+                        The swap leaves nothing behind. <code>@property</code>{' '}
+                        registrations sit outside the cascade layers, so you would expect
+                        a visited design system's roles — material-only ones like{' '}
+                        <code>--color-tertiary</code> — to stay registered for the life of
+                        the page. They don't — measured in Chromium: removing the
+                        stylesheet withdraws its registrations with it, so switching
+                        gets you the same result as loading that design system fresh.
                     </p>
                 </Tabs.Panel>
                 <Tabs.Panel value="disabled">
