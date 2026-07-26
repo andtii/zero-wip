@@ -16,10 +16,6 @@
         cursor: pointer;
     }
 
-    [data-scope="dialog"][data-part="trigger"]:hover:not([data-disabled]) {
-        background: var(--color-primary-soft);
-    }
-
     [data-scope="dialog"][data-part="trigger"][data-focus-visible] {
         outline: 3px solid var(--color-secondary);
         outline-offset: 2px;
@@ -35,7 +31,11 @@
         transition: opacity var(--duration-fast) var(--ease-standard);
     }
 
-    [data-scope="dialog"][data-part="trigger"][data-pressed]::before {
+    [data-scope="dialog"][data-part="trigger"]:hover:not([data-disabled])::before {
+        opacity: 0.08;
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-pressed]:not([data-disabled])::before {
         opacity: 0.12;
     }
 
@@ -115,10 +115,6 @@
         cursor: pointer;
     }
 
-    [data-scope="dialog"][data-part="close"]:hover:not([data-disabled]) {
-        background: var(--color-primary-soft);
-    }
-
     [data-scope="dialog"][data-part="close"][data-focus-visible] {
         outline: 3px solid var(--color-secondary);
         outline-offset: 2px;
@@ -134,7 +130,11 @@
         transition: opacity var(--duration-fast) var(--ease-standard);
     }
 
-    [data-scope="dialog"][data-part="close"][data-pressed]::before {
+    [data-scope="dialog"][data-part="close"]:hover:not([data-disabled])::before {
+        opacity: 0.08;
+    }
+
+    [data-scope="dialog"][data-part="close"][data-pressed]:not([data-disabled])::before {
         opacity: 0.12;
     }
 
@@ -154,6 +154,16 @@
 
     [data-scope="dialog"][data-part="close"][data-press-animating]::after {
         animation: dialog-ripple var(--duration-slow) var(--ease-standard);
+    }
+
+    @media (hover: none) {
+        [data-scope="dialog"][data-part="trigger"]:hover:not([data-disabled])::before {
+            opacity: 0;
+        }
+
+        [data-scope="dialog"][data-part="close"]:hover:not([data-disabled])::before {
+            opacity: 0;
+        }
     }
 
     @media (forced-colors: active) {

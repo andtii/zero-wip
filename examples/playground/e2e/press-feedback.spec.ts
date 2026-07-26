@@ -102,8 +102,17 @@ test('button: a real click plays the full press lifecycle, ripple outliving rele
 test('button: real keyboard Enter presses at the center', async ({ page }) => {
     test.skip(media(test.info().project.name), 'covered by the media-specific tests');
     test.skip(webkitOnLinux(test.info().project.name), 'Linux WebKit headless keyboard synthesis');
-    await part(page, 'button', 'root').first().focus();
-    await page.keyboard.press('Enter');
+    // WebKit occasionally hasn't granted a fresh headless page keyboard
+    // focus when the first synthetic key arrives — focus-and-press until the
+    // press registers instead of pressing once into the void.
+    const button = part(page, 'button', 'root').first();
+    await expect
+        .poll(async () => {
+            await button.focus();
+            await page.keyboard.press('Enter');
+            return (await readLog(page)).includes('button/root:data-pressed:on');
+        }, { timeout: 10_000 })
+        .toBe(true);
     const log = await logWith(page, 'button/root:data-press-animating:off');
     expectSequence(log, ['button/root:data-pressed:on', 'anim:btn-ripple']);
 });
