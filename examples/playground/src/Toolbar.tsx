@@ -27,9 +27,15 @@ export const Toolbar = component(() => {
         const entry = designSystems.find((d) => d.id === id);
         if (!entry || entry.id === state.ds) return;
         state.busy = true;
-        await activateDesignSystem(entry);
-        state.ds = entry.id;
-        state.busy = false;
+        try {
+            await activateDesignSystem(entry);
+        } finally {
+            // Read back what is actually in the document rather than assuming
+            // the switch took: a stylesheet that failed to load leaves the
+            // previous design system live, and the toolbar must say so.
+            state.ds = activeDesignSystemId() ?? state.ds;
+            state.busy = false;
+        }
     };
 
     return () => {

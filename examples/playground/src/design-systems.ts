@@ -98,31 +98,41 @@ export function activeDesignSystemId(): string | undefined {
 
 /**
  * Load a design system's stylesheet and make it the only one.
+ * Resolves `true` once it is active, `false` if the stylesheet failed to load.
  *
  * The new link is appended and awaited BEFORE the old one is removed, so the
  * page never renders through a frame with no design system. Appending also
  * puts the DS last in document order, which is what keeps its `:where(:root)`
  * block winning over `brand-theme.css` inside `@layer zero.tokens`.
+ *
+ * A failed load commits nothing. Tearing down the previous stylesheet and
+ * re-seeding the registry anyway would leave the page unstyled while the
+ * registry claimed otherwise — themes advertised for a design system whose CSS
+ * never arrived, which is precisely the desync `clearThemes()` exists to
+ * prevent. The old design system stays live instead.
  */
-export async function activateDesignSystem(entry: DesignSystemEntry): Promise<void> {
+export async function activateDesignSystem(entry: DesignSystemEntry): Promise<boolean> {
     const previous = document.querySelector(`link[${LINK_ATTR}]`);
-    if (previous?.getAttribute(LINK_ATTR) === entry.id) return;
+    if (previous?.getAttribute(LINK_ATTR) === entry.id) return true;
 
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = entry.href;
     link.setAttribute(LINK_ATTR, entry.id);
 
-    await new Promise<void>((resolve) => {
-        // Resolve on error too — a design system that failed to build should
-        // leave the playground usable rather than hanging the boot.
-        link.addEventListener('load', () => resolve(), { once: true });
-        link.addEventListener('error', () => {
-            console.error(`[playground] failed to load ${entry.id} stylesheet — run \`pnpm build\``);
-            resolve();
-        }, { once: true });
+    const loaded = await new Promise<boolean>((resolve) => {
+        // Never reject: an unbuilt design system should leave the playground
+        // usable rather than hanging the boot.
+        link.addEventListener('load', () => resolve(true), { once: true });
+        link.addEventListener('error', () => resolve(false), { once: true });
         document.head.append(link);
     });
+
+    if (!loaded) {
+        console.error(`[playground] failed to load the ${entry.id} stylesheet — run \`pnpm build\``);
+        link.remove();
+        return false;
+    }
 
     previous?.remove();
 
@@ -136,6 +146,7 @@ export async function activateDesignSystem(entry: DesignSystemEntry): Promise<vo
     } catch {
         // Persistence is best-effort.
     }
+    return true;
 }
 
 /**
