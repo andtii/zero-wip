@@ -26,9 +26,13 @@
  * one is a raw token stream that comes back verbatim:
  *
  *     el.style.setProperty('--color-tertiary', 'not-a-color');
- *     getComputedStyle(el).getPropertyValue('--color-tertiary') === 'not-a-color'
+ *     getComputedStyle(el).getPropertyValue('--color-tertiary').trim() === 'not-a-color'
  *         // ^ true  => unregistered
  *         // ^ false => registered, and you are seeing the fallback
+ *
+ * The `.trim()` matters: getPropertyValue can return the token stream with
+ * surrounding whitespace, which would read as a mismatch and misreport an
+ * unregistered property as registered.
  *
  * Nor is the brief two-`<link>` window observable: a stylesheet that is still
  * loading has a null `.sheet` and applies nothing, and the outgoing link is
