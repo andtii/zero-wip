@@ -67,13 +67,18 @@ describe('theme registry', () => {
     });
 
     it('refuses to clear on the server', () => {
-        const document_ = globalThis.document;
-        // @ts-expect-error — simulating the server, where there is no document.
-        delete globalThis.document;
+        // Swap the property rather than deleting it, and put the original
+        // descriptor back — happy-dom's `document` is not a plain writable
+        // value, so assigning it back would leak a different descriptor into
+        // every test file that runs after this one.
+        const original = Object.getOwnPropertyDescriptor(globalThis, 'document');
+        Object.defineProperty(globalThis, 'document', { value: undefined, configurable: true });
         try {
             expect(() => clearThemes()).toThrow(/browser-only/);
         } finally {
-            globalThis.document = document_;
+            if (original) Object.defineProperty(globalThis, 'document', original);
+            else Reflect.deleteProperty(globalThis, 'document');
         }
+        expect(typeof document).toBe('object');
     });
 });
