@@ -184,6 +184,16 @@ describe('tokens.schema.json', () => {
         }))).toBe(false);
     });
 
+    it('rejects a theme name that would break out of [data-theme="…"]', () => {
+        // Mirrors the compiler's throw and the validator's error: the name is
+        // interpolated into a selector, so the schema closes the same door
+        // at the JSON layer.
+        expect(validateTokens(asJson({
+            themes: { 'x"] *': { colorScheme: 'light', colors: { 'base-100': '#fff' } } },
+            defaultLight: 'x"] *',
+        }))).toBe(false);
+    });
+
     it('rejects a typography scale in an override tier (declarations live in system)', () => {
         expect(validateTokens(asJson({
             ...basicDS.tokens,
@@ -228,6 +238,13 @@ describe('recipe.schema.json', () => {
                 match: { size: 'x"], [data-part="panel' },
                 parts: { root: { base: { color: 'red' } } },
             }],
+        }))).toBe(false);
+    });
+
+    it('rejects an at-condition key that is neither kebab nor a raw @ prelude', () => {
+        expect(validateRecipe(asJson({
+            component: 'button',
+            parts: { root: { at: { 'Not Kebab': { base: { color: 'red' } } } } },
         }))).toBe(false);
     });
 

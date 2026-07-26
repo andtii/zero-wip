@@ -292,6 +292,14 @@ export function validateDesignSystem<R extends RolesDecl>(
     ]);
     const pairs = contrastPairs(roles);
     for (const [themeName, theme] of Object.entries(ds.tokens.themes)) {
+        // compileTokensCss throws on the same input; this is where an author
+        // gets told, with all the other issues.
+        if (!TOKEN_KEY_PATTERN.test(themeName)) {
+            error(
+                `tokens.themes.${themeName}`,
+                `theme "${themeName}" is not a kebab-case identifier — it becomes the selector [data-theme="${themeName}"]`,
+            );
+        }
         checkOverride(`themes.${themeName}.system`, theme.system);
         checkSystemKeys(`themes.${themeName}.system`, theme.system);
         const colors = theme.colors as Record<string, string>;

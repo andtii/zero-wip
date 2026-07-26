@@ -6,7 +6,6 @@
 // site, which serves them at https://signalxjs.github.io/zero/schemas/.
 // A Node script rather than `cp` so the build works on every platform.
 import { copyFile, mkdir, readdir } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 
 const src = new URL('../schemas/', import.meta.url);
 const out = new URL('../dist/schemas/', import.meta.url);
