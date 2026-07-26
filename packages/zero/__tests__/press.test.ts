@@ -8,7 +8,7 @@
  * geometry, and `getAnimations` (absent in happy-dom) is stubbed where the
  * no-animation guard is under test.
  */
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createPressFeedback } from '@sigx/zero';
 import type { PressFeedbackHandlers } from '@sigx/zero';
 
@@ -28,6 +28,16 @@ describe('createPressFeedback', () => {
             getElement: () => el,
             isDisabled: () => disabled,
         });
+    });
+
+    afterEach(() => {
+        // End any press a test left running: each pointer press attaches a
+        // window-level release listener, and a suite must not depend on
+        // test order to detach them. Cancel every pointerId the file uses.
+        for (const pointerId of [0, 7, 8, 9]) {
+            window.dispatchEvent(new PointerEvent('pointercancel', { pointerId }));
+        }
+        el.remove();
     });
 
     it('marks a pointer press and publishes the press point', () => {
@@ -83,6 +93,25 @@ describe('createPressFeedback', () => {
         expect(el.hasAttribute('data-pressed')).toBe(true);
         press.onPointerup(new PointerEvent('pointerup'));
         expect(el.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('a release anywhere ends the press — one-shot window listener', () => {
+        // A drag surface spreads no pointerleave; the release can land
+        // off-element, where the element's own pointerup never fires.
+        const drag = createPressFeedback({ getElement: () => el });
+        drag.onPointerdown(new PointerEvent('pointerdown', { button: 0, pointerId: 7 }));
+        expect(el.hasAttribute('data-pressed')).toBe(true);
+        // another pointer lifting is not this gesture ending
+        window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 8 }));
+        expect(el.hasAttribute('data-pressed')).toBe(true);
+        window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 7 }));
+        expect(el.hasAttribute('data-pressed')).toBe(false);
+        // and the listener is one-shot: a later stray release of the SAME
+        // pointer changes nothing
+        el.setAttribute('data-pressed', '');
+        window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 7 }));
+        expect(el.hasAttribute('data-pressed')).toBe(true);
+        el.removeAttribute('data-pressed');
     });
 
     it('lets an uncaptured pointerleave cancel the press', () => {

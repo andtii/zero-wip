@@ -21,7 +21,9 @@
   `--press-x`/`--press-y`/`--press-r` (px; r = farthest-corner radius).
   Keyboard presses get centered coordinates. Lifecycle: a press ends when
   the gesture ends — an uncaptured pointerleave cancels it, a captured
-  pointer (range-input drag, touch) holds it until release.
+  pointer (touch's implicit capture) holds it until release, and a drag
+  surface (slider) attaches no pointerleave at all: a window-level release
+  listener ends the press wherever the pointer lets go.
   Publishing parts: button root; tabs tab; dialog/popover trigger+close;
   menu trigger+item; select trigger (item is pointer-only — keyboard
   selection lives on the trigger); collapsible/accordion trigger;

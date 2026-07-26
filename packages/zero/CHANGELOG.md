@@ -49,6 +49,10 @@
 
 ### Added
 
+- **Real-browser interaction suite** (Playwright over the playground):
+  the press contract on chromium/firefox/webkit plus reduced-motion and
+  forced-colors projects, with real pointer, keyboard and touch input.
+  Runs in CI. It immediately caught the mouse-drag slider fix below.
 - **Press feedback everywhere Material presses.** The primitive shipped on
   Button now covers every interactive part: tabs tab, dialog/popover
   trigger+close, menu trigger+item, select trigger+item (item pointer-only —
@@ -62,6 +66,15 @@
 
 ### Fixed (pre-release)
 
+- `llms.txt` documented 4 of the 14 shipped components; it now lists all
+  fourteen with their parts and notes which accept variant axes.
+- **A mouse drag off the slider no longer drops the held state.** Implicit
+  pointer capture is a touch behavior, so a mouse drag fired pointerleave
+  the moment it wandered off the box. The slider spreads no pointerleave
+  handler, and press feedback now installs a one-shot, pointer-scoped
+  window-level pointerup/pointercancel listener at pointer-press-start,
+  ending the press wherever the release lands. Explicit `setPointerCapture`
+  was rejected: it breaks WebKit's native range-drag value tracking.
 - **Press lifecycle is now capture-aware.** `pointerleave` ended the press
   unconditionally; that is right for uncaptured pointers (drag off a button
   to cancel) but wrong under pointer capture — a native range input
@@ -159,8 +172,3 @@
   contract. `resolveColorToken` resolves through them rather than through
   private constants, so `@sigx/zero-kit`'s mirrored copy of the contract can
   be compared against them by an automated parity test.
-
-### Fixed
-
-- `llms.txt` documented 4 of the 14 shipped components; it now lists all
-  fourteen with their parts and notes which accept variant axes.

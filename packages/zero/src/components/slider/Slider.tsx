@@ -147,10 +147,11 @@ export type SliderInputProps = WithClass;
 const SliderInput = component<SliderInputProps>(({ props }) => {
     const slider = useSliderContext();
     let el: HTMLInputElement | null = null;
-    // A drag is a long press: the range input implicitly captures the
-    // pointer, so the press survives leaving the box until release (the
-    // capture-aware lifecycle in press.ts). No key handlers — arrow keys are
-    // value changes, not presses — and no one-shot: a drag has no ripple.
+    // A drag is a long press, so the press must survive leaving the box:
+    // no pointerleave handler is spread below, and the behavior's window
+    // release listener ends the press wherever the pointer lets go. No key
+    // handlers either — arrow keys are value changes, not presses — and no
+    // one-shot: a drag has no ripple.
     const press = createPressFeedback({
         getElement: () => el,
         isDisabled: () => slider.disabled(),
@@ -181,7 +182,6 @@ const SliderInput = component<SliderInputProps>(({ props }) => {
             onPointerdown={press.onPointerdown}
             onPointerup={press.onPointerup}
             onPointercancel={press.onPointercancel}
-            onPointerleave={press.onPointerleave}
             onFocus={() => { slider.focusVisible.visible = isFocusVisible(el); }}
             onBlur={(e: FocusEvent) => {
                 press.onBlur(e);

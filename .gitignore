@@ -5,3 +5,7 @@ coverage/
 .DS_Store
 *.tsbuildinfo
 .vite/
+
+# Playwright
+examples/playground/test-results/
+examples/playground/playwright-report/
