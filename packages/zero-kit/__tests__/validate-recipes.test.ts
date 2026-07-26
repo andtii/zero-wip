@@ -473,4 +473,18 @@ describe('press feedback', () => {
         expect(check(rippleButton({ animation: 'ripple var(--duration-fast) linear' })).warnings)
             .not.toContainEqual(expect.stringContaining('never sets an animation'));
     });
+
+    it('does not mistake a variant value for a press-animating gate', () => {
+        // The match is structural — a states block or a
+        // `[data-press-animating]` selector — not a substring of the
+        // diagnostic path, which a weird-but-legal axis vocabulary can echo.
+        expect(check({
+            component: 'button',
+            parts: { root: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            variants: {
+                mode: { 'press-animating': { root: { base: { opacity: '0.5' } } } },
+            },
+            defaultVariants: { mode: 'press-animating' },
+        }).warnings).not.toContainEqual(expect.stringContaining('never sets an animation'));
+    });
 });

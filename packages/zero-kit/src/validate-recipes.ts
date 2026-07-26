@@ -317,9 +317,37 @@ export function validateRecipes(
         // never starts one is dead: it matches for zero frames. The held
         // state (`data-pressed`) is what a non-animated press effect keys on.
         {
+            // Structural match, not a path-substring one: a variant VALUE named
+            // "press-animating" is a legal (if odd) axis vocabulary entry and
+            // must not trip this. A press-animating gate is exactly a
+            // `states['press-animating']` block or a selector key that carries
+            // `[data-press-animating]`.
             const targets: Array<{ path: string; props: CssProps }> = [];
-            for (const { path, props } of declarations(recipe)) {
-                if (path.includes('press-animating')) targets.push({ path, props });
+            const collect = (path: string, styles: PartStyles): void => {
+                const pressState = styles.states?.['press-animating'];
+                if (pressState) targets.push({ path: `${path}.states.press-animating`, props: pressState });
+                for (const [sel, props] of Object.entries(styles.selectors ?? {})) {
+                    if (sel.includes('[data-press-animating]')) {
+                        targets.push({ path: `${path}.selectors["${sel}"]`, props });
+                    }
+                }
+                for (const [key, nested] of Object.entries(styles.at ?? {})) {
+                    collect(`${path}.at["${key}"]`, nested);
+                }
+            };
+            for (const [part, styles] of Object.entries(recipe.parts)) collect(`parts.${part}`, styles);
+            for (const [axis, axisValues] of Object.entries(recipe.variants ?? {})) {
+                for (const [value, parts] of Object.entries(axisValues)) {
+                    for (const [part, styles] of Object.entries(parts)) {
+                        collect(`variants.${axis}.${value}.${part}`, styles);
+                    }
+                }
+            }
+            const compounds = recipe.compoundVariants ?? [];
+            for (let i = 0; i < compounds.length; i++) {
+                for (const [part, styles] of Object.entries(compounds[i]!.parts)) {
+                    collect(`compoundVariants[${i}].parts.${part}`, styles);
+                }
             }
             const startsAnimation = targets.some(({ props }) =>
                 Object.keys(props).some((p) => p === 'animation' || p === 'animationName'));
