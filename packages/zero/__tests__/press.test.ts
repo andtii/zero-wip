@@ -89,13 +89,18 @@ describe('createPressFeedback', () => {
         // A drag surface spreads no pointerleave; the release can land
         // off-element, where the element's own pointerup never fires.
         const drag = createPressFeedback({ getElement: () => el });
-        drag.onPointerdown(pointerdown());
+        drag.onPointerdown(new PointerEvent('pointerdown', { button: 0, pointerId: 7 }));
         expect(el.hasAttribute('data-pressed')).toBe(true);
-        window.dispatchEvent(new PointerEvent('pointerup'));
+        // another pointer lifting is not this gesture ending
+        window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 8 }));
+        expect(el.hasAttribute('data-pressed')).toBe(true);
+        window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 7 }));
         expect(el.hasAttribute('data-pressed')).toBe(false);
-        // and the listener is one-shot: a later stray release changes nothing
+        // and the listener is one-shot: a later stray release of the SAME
+        // pointer changes nothing (id-matched, so listeners leaked by other
+        // instances in this suite — which never released — stay out of it)
         el.setAttribute('data-pressed', '');
-        window.dispatchEvent(new PointerEvent('pointerup'));
+        window.dispatchEvent(new PointerEvent('pointerup', { pointerId: 7 }));
         expect(el.hasAttribute('data-pressed')).toBe(true);
         el.removeAttribute('data-pressed');
     });

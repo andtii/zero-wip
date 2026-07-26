@@ -150,7 +150,12 @@ export function createPressFeedback(opts: PressFeedbackOptions): PressFeedbackHa
             // gesture ends. NOT pointer capture: explicitly capturing breaks
             // WebKit's native range-drag value tracking.
             detachRelease?.();
-            const release = (): void => pressEnd();
+            const pointerId = e.pointerId;
+            const release = (ev: PointerEvent): void => {
+                // Only the gesture's own pointer ends it — lifting another
+                // finger mid-press must not clear the active interaction.
+                if (ev.pointerId === pointerId) pressEnd();
+            };
             window.addEventListener('pointerup', release, true);
             window.addEventListener('pointercancel', release, true);
             detachRelease = () => {
