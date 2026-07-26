@@ -35,6 +35,15 @@
 - `TokensInput.breakpoints` — reserved DS-level breakpoint declaration,
   surfaced in the DS manifest (consumed by the upcoming conditions support).
 
+- `starting-style` is a built-in recipe condition, emitted after the rule it
+  interpolates from. Presence — enter and exit animation — is declarative:
+  zero never unmounts a popup, so transitioning `display`/`overlay` with
+  `allow-discrete` is all the platform needs, and no runtime helper is
+  involved.
+- The validator warns about a half-animated part: `starting-style` with no
+  transition to interpolate, or with a transition that omits `allow-discrete`.
+  The second is the silent one — the entry animates and the exit does not,
+  because the element stops being rendered before it can play.
 - A style-brief pack ships with the design-system skill:
   `skills/design-system/briefs/` holds four complete, compiling starting points
   (brutalist, glass, corporate, terminal), each one a full `TokensInput` plus a

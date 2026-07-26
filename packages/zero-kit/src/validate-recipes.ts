@@ -212,6 +212,42 @@ export function validateRecipes(
             }
         }
 
+        // ── presence: an entry animation without an exit ──
+        //
+        // `@starting-style` gives the state an element animates FROM, so a
+        // part that declares it is asking for an entry animation. Two ways
+        // that silently half-works, both checkable:
+        //
+        //  - no `transition` at all, so there is nothing to interpolate and
+        //    the starting styles are simply never used;
+        //  - a transition that doesn't carry `display`/`overlay` through
+        //    `allow-discrete`, so the element is gone before the exit can
+        //    play. The entry animates, the exit does not, and nothing says so.
+        for (const [partName, styles] of Object.entries(recipe.parts)) {
+            const startsFrom = Object.keys(styles.at ?? {}).some(
+                (key) => key === 'starting-style' || key === '@starting-style',
+            );
+            if (!startsFrom) continue;
+            const transitions = [...declarations(recipe)]
+                .filter((d) => d.path.startsWith(`parts.${partName}.`))
+                .flatMap((d) => Object.entries(d.props))
+                .filter(([prop]) => prop === 'transition' || prop === 'transitionBehavior')
+                .map(([, value]) => String(value));
+            if (transitions.length === 0) {
+                warn(
+                    `${where}.${partName}`,
+                    'declares starting-style but never transitions, so the entry styles are never used',
+                );
+            } else if (!transitions.some((value) => value.includes('allow-discrete'))) {
+                warn(
+                    `${where}.${partName}`,
+                    'declares starting-style but no allow-discrete transition — the entry will animate and the ' +
+                    'exit will not, because the element stops being rendered before it can play. Transition ' +
+                    '`display` (and `overlay`, for a top-layer popup) with allow-discrete',
+                );
+            }
+        }
+
         // ── focus-visible coverage ──
         const focusableParts = component.parts.filter((p) => (p.flags ?? []).includes('focus-visible'));
         if (focusableParts.length > 0) {

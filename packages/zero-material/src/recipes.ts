@@ -49,6 +49,79 @@ const label: CssProps = {
 // ── Button ────────────────────────────────────────────────────────────────
 // The accent-pair indirection, so Material's larger role vocabulary costs one
 // rule per role rather than one per role × fill.
+/**
+ * Enter/exit presence for a top-layer popup.
+ *
+ * Zero never unmounts a popup; it toggles `data-state` and calls the native
+ * `showPopover()` / `showModal()`. Transitioning `display` and `overlay` with
+ * `allow-discrete` is all the platform needs — the browser keeps the element
+ * in the top layer for the length of the exit, so two declarations buy both
+ * directions. `@starting-style` supplies the state the entry animates FROM.
+ *
+ * `overlay` is Chromium-only as of writing; elsewhere the entry still animates
+ * and the exit is instant.
+ */
+const popupPresence = (from: string): PartStyles => ({
+    base: {
+        opacity: '0',
+        transform: from,
+        transition: 'opacity var(--duration-normal) var(--ease-emphasized), '
+            + 'transform var(--duration-normal) var(--ease-emphasized), '
+            + 'display var(--duration-normal) allow-discrete, '
+            + 'overlay var(--duration-normal) allow-discrete',
+    },
+    states: { open: { opacity: '1', transform: 'none' } },
+    at: {
+        'starting-style': { states: { open: { opacity: '0', transform: from } } },
+        'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+    },
+});
+
+/**
+ * Enter/exit for a disclosure panel, which is not in the top layer.
+ *
+ * Collapsible and Accordion are native `<details>`, so the panel lives inside
+ * the browser's `::details-content`. `interpolate-size: allow-keywords`
+ * unlocks `auto` as a transition endpoint — set on the element itself rather
+ * than globally, so nothing outside this design system changes behaviour.
+ */
+const disclosurePresence: PartStyles = {
+    base: { interpolateSize: 'allow-keywords' },
+    selectors: {
+        '&::details-content': {
+            blockSize: '0',
+            overflow: 'hidden',
+            transition: 'block-size var(--duration-normal) var(--ease-emphasized), '
+                + 'content-visibility var(--duration-normal) allow-discrete',
+        },
+        '&[open]::details-content': { blockSize: 'auto' },
+    },
+    at: { 'reduced-motion': { selectors: { '&::details-content': { transition: 'none' } } } },
+};
+
+/**
+ * Merge presence into a part's own styles per KEY, not per block: a recipe
+ * that already writes `states: { open: {} }` — the "deliberately unstyled"
+ * idiom — would otherwise replace the open state presence needs and silently
+ * lose the entry animation.
+ */
+const mergeKeyed = <T extends Record<string, CssProps>>(a: T | undefined, b: T | undefined): T =>
+    Object.fromEntries(
+        [...new Set([...Object.keys(a ?? {}), ...Object.keys(b ?? {})])]
+            .map((key) => [key, { ...a?.[key], ...b?.[key] }]),
+    ) as T;
+
+const withPresence = (presence: PartStyles, styles: PartStyles): PartStyles => ({
+    base: { ...presence.base, ...styles.base },
+    states: mergeKeyed(presence.states, styles.states),
+    selectors: mergeKeyed(presence.selectors, styles.selectors),
+    at: Object.fromEntries(
+        [...new Set([...Object.keys(presence.at ?? {}), ...Object.keys(styles.at ?? {})])].map(
+            (key) => [key, withPresence(presence.at?.[key] ?? {}, styles.at?.[key] ?? {})],
+        ),
+    ),
+});
+
 export const button: RecipeInput = {
     component: 'button',
     tokens: {
@@ -201,7 +274,7 @@ const disclosureTrigger: PartStyles = {
 export const collapsible: RecipeInput = {
     component: 'collapsible',
     parts: {
-        root: {
+        root: withPresence(disclosurePresence, {
             base: {
                 background: 'var(--color-surface-container)',
                 color: 'var(--color-surface-container-content)',
@@ -209,7 +282,7 @@ export const collapsible: RecipeInput = {
                 overflow: 'hidden',
             },
             states: { open: {}, closed: {} },
-        },
+        }),
         trigger: disclosureTrigger,
         panel: {
             base: { padding: '0 var(--space-md) var(--space-md)', lineHeight: 'var(--leading-normal)' },
@@ -222,7 +295,7 @@ export const accordion: RecipeInput = {
     component: 'accordion',
     parts: {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' } },
-        item: {
+        item: withPresence(disclosurePresence, {
             base: {
                 background: 'var(--color-surface-container)',
                 color: 'var(--color-surface-container-content)',
@@ -230,7 +303,7 @@ export const accordion: RecipeInput = {
                 overflow: 'hidden',
             },
             states: { open: {}, closed: {} },
-        },
+        }),
         trigger: disclosureTrigger,
         panel: {
             base: { padding: '0 var(--space-md) var(--space-md)', lineHeight: 'var(--leading-normal)' },
@@ -256,7 +329,7 @@ export const dialog: RecipeInput = {
             },
             states: { open: {}, closed: {}, hover: { background: 'var(--color-primary-soft)' }, disabled: {}, ...focusRing },
         },
-        popup: {
+        popup: withPresence(popupPresence('translateY(24px) scale(0.94)'), {
             // Mobile-first: Material's full-screen dialog below `sm`.
             base: {
                 width: '100%',
@@ -285,7 +358,7 @@ export const dialog: RecipeInput = {
                     },
                 },
             },
-        },
+        }),
         title: {
             base: {
                 margin: '0 0 var(--space-md)',
@@ -338,10 +411,10 @@ export const popover: RecipeInput = {
             },
             states: { open: {}, closed: {}, hover: { background: 'var(--color-primary-soft)' }, disabled: {}, ...focusRing },
         },
-        popup: {
+        popup: withPresence(popupPresence('scale(0.9)'), {
             base: { ...floating, padding: 'var(--space-md)', maxWidth: '20rem' },
             states: { open: {}, closed: {} },
-        },
+        }),
         title: { base: { margin: '0 0 var(--space-xs)', fontWeight: 'var(--weight-medium)' } },
         close: {
             base: {
@@ -364,7 +437,7 @@ export const tooltip: RecipeInput = {
             base: { appearance: 'none', background: 'none', border: 'none', color: 'inherit', cursor: 'help' },
             states: { open: {}, closed: {}, disabled: {}, ...focusRing },
         },
-        popup: {
+        popup: withPresence(popupPresence('scale(0.85)'), {
             base: {
                 background: 'var(--color-neutral)',
                 color: 'var(--color-neutral-content)',
@@ -374,7 +447,7 @@ export const tooltip: RecipeInput = {
                 boxShadow: 'var(--shadow-level1)',
             },
             states: { open: {}, closed: {} },
-        },
+        }),
     },
 };
 
@@ -394,7 +467,7 @@ export const menu: RecipeInput = {
             },
             states: { open: {}, closed: {}, hover: { background: 'var(--color-primary-soft)' }, disabled: {}, ...focusRing },
         },
-        popup: { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } },
+        popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } }),
         item: {
             base: {
                 display: 'flex',
@@ -459,7 +532,7 @@ export const select: RecipeInput = {
         },
         value: { base: { flex: '1', textAlign: 'start' } },
         indicator: { base: { opacity: '0.7', transition: motion('transform') }, states: { open: { transform: 'rotate(180deg)' }, closed: {} } },
-        popup: { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } },
+        popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } }),
         item: {
             base: {
                 display: 'flex',
