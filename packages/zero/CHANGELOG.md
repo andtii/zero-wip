@@ -70,8 +70,10 @@
   dropping it silently: shadowing `data-state` from userland would repoint
   every `[data-state="open"]` rule a design system wrote, and a second spelling
   of `data-color` would win over the named prop by loop order alone.
-- `RESERVED_AXES` on the token contract, mirrored in `@sigx/zero-kit` and
-  parity-tested, so the validator rejects exactly what the runtime refuses.
+- `RESERVED_AXES` — exported from `@sigx/zero/contract` (it lives with the prop
+  fragments, beside `variantAttrs`, not with the token vocabulary), mirrored in
+  `@sigx/zero-kit` and parity-tested, so the validator rejects exactly what the
+  runtime refuses.
 - `manifest.json` `attributeSpec` gains `extraAxisForm`; `variantAxes` is now
   documented as the axes with named props rather than as the whole set.
 

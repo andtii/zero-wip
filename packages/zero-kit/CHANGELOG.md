@@ -9,7 +9,7 @@
   can match them"* — was accurate and is now obsolete: `@sigx/zero`'s new
   `axes` prop sets `data-<axis>`. It is replaced by an **error** on an axis
   that shadows the anatomy contract (`RESERVED_AXES`, mirrored from
-  `@sigx/zero/contract` and parity-tested), which is the one case that must
+  `@sigx/zero/contract`'s prop fragments and parity-tested), the one case that must
   still fail — `data-state` as a variant axis would repoint every
   `[data-state="open"]` rule in the design system.
 - Two validator rules for the colour axis, the counterpart to the size-ramp
