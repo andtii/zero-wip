@@ -26,7 +26,9 @@
  *
  * Handlers are à la carte: a component spreads the ones that make sense for
  * it. A drag surface (Slider) spreads no key handlers — arrow keys are value
- * changes, not presses — and passes `oneShot: false`.
+ * changes, not presses — no pointerleave (the gesture survives leaving the
+ * box), and passes `oneShot: false`. Releases that land off-element are
+ * caught by a one-shot window listener installed at pointer-press-start.
  *
  * Writes are imperative (attribute/style on the node) rather than reactive:
  * restarting a CSS animation requires remove → reflow → re-add, and press
@@ -68,6 +70,7 @@ const isPressKey = (e: KeyboardEvent): boolean => e.key === 'Enter' || e.key ===
 
 export function createPressFeedback(opts: PressFeedbackOptions): PressFeedbackHandlers {
     let cleanupAnimation: (() => void) | null = null;
+    let detachRelease: (() => void) | null = null;
 
     const pressStart = (el: HTMLElement, x: number, y: number): void => {
         const rect = el.getBoundingClientRect();
@@ -125,6 +128,7 @@ export function createPressFeedback(opts: PressFeedbackOptions): PressFeedbackHa
     };
 
     const pressEnd = (): void => {
+        detachRelease?.();
         // Only the held state ends here; the one-shot flag and the
         // coordinates follow their own lifecycles.
         opts.getElement()?.removeAttribute('data-pressed');
@@ -139,6 +143,21 @@ export function createPressFeedback(opts: PressFeedbackOptions): PressFeedbackHa
             if (!el || e.button !== 0) return;
             const rect = el.getBoundingClientRect();
             pressStart(el, e.clientX - rect.left, e.clientY - rect.top);
+            // The release may land anywhere: a drag surface (Slider spreads
+            // no pointerleave — the gesture survives leaving the box) can be
+            // released off-element, where the element's own pointerup never
+            // fires. A one-shot window listener ends the press wherever the
+            // gesture ends. NOT pointer capture: explicitly capturing breaks
+            // WebKit's native range-drag value tracking.
+            detachRelease?.();
+            const release = (): void => pressEnd();
+            window.addEventListener('pointerup', release, true);
+            window.addEventListener('pointercancel', release, true);
+            detachRelease = () => {
+                window.removeEventListener('pointerup', release, true);
+                window.removeEventListener('pointercancel', release, true);
+                detachRelease = null;
+            };
         },
         onPointerup: pressEnd,
         onPointercancel: pressEnd,

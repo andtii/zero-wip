@@ -85,6 +85,21 @@ describe('createPressFeedback', () => {
         expect(el.hasAttribute('data-pressed')).toBe(false);
     });
 
+    it('a release anywhere ends the press — one-shot window listener', () => {
+        // A drag surface spreads no pointerleave; the release can land
+        // off-element, where the element's own pointerup never fires.
+        const drag = createPressFeedback({ getElement: () => el });
+        drag.onPointerdown(pointerdown());
+        expect(el.hasAttribute('data-pressed')).toBe(true);
+        window.dispatchEvent(new PointerEvent('pointerup'));
+        expect(el.hasAttribute('data-pressed')).toBe(false);
+        // and the listener is one-shot: a later stray release changes nothing
+        el.setAttribute('data-pressed', '');
+        window.dispatchEvent(new PointerEvent('pointerup'));
+        expect(el.hasAttribute('data-pressed')).toBe(true);
+        el.removeAttribute('data-pressed');
+    });
+
     it('lets an uncaptured pointerleave cancel the press', () => {
         (el as HTMLElement & { hasPointerCapture: (id: number) => boolean })
             .hasPointerCapture = () => false;

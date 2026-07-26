@@ -49,6 +49,23 @@
 
 ### Added
 
+- **Real-browser interaction suite** (Playwright over the playground):
+  the press contract on chromium/firefox/webkit plus reduced-motion and
+  forced-colors projects, with real pointer, keyboard and touch input.
+  Runs in CI. It immediately caught the two fixes below.
+
+### Fixed (pre-release)
+
+- **A mouse drag off the slider no longer drops the held state.** Implicit
+  pointer capture is a touch behavior, so a mouse drag fired pointerleave
+  the moment it wandered off the box. The slider spreads no pointerleave
+  handler, and press feedback now installs a one-shot window-level
+  pointerup/pointercancel listener at pointer-press-start, ending the press
+  wherever the release lands. Explicit `setPointerCapture` was rejected:
+  it breaks WebKit's native range-drag value tracking.
+
+### Added
+
 - **Press feedback everywhere Material presses.** The primitive shipped on
   Button now covers every interactive part: tabs tab, dialog/popover
   trigger+close, menu trigger+item, select trigger+item (item pointer-only —

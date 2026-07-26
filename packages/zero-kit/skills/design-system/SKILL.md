@@ -236,7 +236,8 @@ component's anatomy). No component code is ever written or changed.
      lands anywhere in the label row, the feedback on the control); slider
      input (`data-pressed` only — a drag has no one-shot). Lifecycle: a
      press ends when the gesture ends — uncaptured pointerleave cancels it,
-     a captured pointer (range-input drag, touch) holds it until release.
+     a captured pointer (touch) holds it until release, and drag surfaces
+     listen for the release at the window instead of ending on leave.
      - `data-pressed` — present while the pointer/key is physically down.
        Key non-animated press effects on this (a tint, a scale, an offset).
      - `data-press-animating` — present from press-start until the part's CSS

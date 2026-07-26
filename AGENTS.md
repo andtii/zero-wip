@@ -113,7 +113,13 @@ pnpm verify:pack   # publish dry-run
 ```
 
 To run the playground: `pnpm build` (it loads each design system's compiled CSS
-from `dist/`), then `pnpm --filter zero-playground dev`. The root `pnpm
+from `dist/`), then `pnpm --filter zero-playground dev`.
+
+Real-browser interaction tests (Playwright over the playground; press-feedback
+contract on chromium/firefox/webkit plus reduced-motion and forced-colors
+projects): `pnpm build`, then `pnpm --filter zero-playground e2e` (first run:
+`pnpm --filter zero-playground exec playwright install`). CI runs them on
+every PR. The root `pnpm
 typecheck` excludes `examples/`, so the playground has its own:
 `pnpm --filter zero-playground typecheck`.
 
