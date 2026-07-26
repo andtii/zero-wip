@@ -39,6 +39,20 @@
 
 ### Added
 
+- `registerThemes(tokens)` + the `ThemeSource` type — seed the theme registry
+  from a design system's token declaration in one call, with the picker swatch
+  DERIVED from that declaration (`tokens.swatch`, else the first four declared
+  roles plus the base pair) instead of hardcoded per package. Design systems'
+  `installThemes()` collapse to a single line, and what lands in the registry
+  now matches what the kit compiles into their `manifest.json` — previously
+  `@sigx/zero-basic` and `@sigx/zero-daisyui` registered four swatch tokens
+  while their own manifests named six. `ThemeSource` is typed structurally, so
+  `@sigx/zero-kit`'s `TokensInput` is assignable to it without zero taking any
+  dependency on the Node-only kit.
+- `defaultSwatch(roleNames)` on the token contract — the rule the compiler and
+  the runtime registry share, mirrored in `@sigx/zero-kit` and parity-tested,
+  so a theme picker can no longer disagree with the design system's manifest.
+
 - **Button** — one part on a native `<button>`, carrying all three variant
   axes. Zero shipped fourteen components and none of them was the one every
   design system is judged on; `data-variant` (outline / soft / ghost) had

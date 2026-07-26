@@ -69,6 +69,24 @@ export const BASE_SURFACE_TOKEN_LIST = ['base-100', 'base-200', 'base-300', 'bas
 export type BaseSurfaceToken = typeof BASE_SURFACE_TOKEN_LIST[number];
 
 /**
+ * The tokens a theme picker samples when a design system declares no `swatch`
+ * of its own: the first four declared roles, plus the base pair that says what
+ * the canvas looks like.
+ *
+ * Order comes from the declaration, so a design system controls this by
+ * declaring its most distinguishing roles first — or overrides it outright
+ * with `tokens.swatch` when the four that matter aren't the first four
+ * (Material's themes differ in their tonal surfaces, not in `primary`).
+ *
+ * The compiler and the runtime registry must agree on this or a picker
+ * disagrees with the design system's own manifest, so it lives in the
+ * contract both sides mirror rather than in either one.
+ */
+export function defaultSwatch(roleNames: readonly string[]): string[] {
+    return [...roleNames.slice(0, 4), 'base-100', 'base-content'];
+}
+
+/**
  * A value for the semantic `color` axis: a role name — recommended roles
  * autocompleted, any DS-declared role equally valid. Base surfaces are not
  * part of the axis.

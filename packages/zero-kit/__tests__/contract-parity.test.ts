@@ -50,6 +50,7 @@ const KNOWN_UNSHARED: Record<string, string> = {
     // Functions aren't meaningfully value-comparable; parity is asserted
     // behaviorally in the semantic layer below instead.
     tokenProperty: 'function — compared by behavior, not by value',
+    defaultSwatch: 'function — compared by behavior, not by value',
 };
 
 describe('kit ↔ zero contract parity', () => {
@@ -102,6 +103,37 @@ describe('kit ↔ zero contract parity', () => {
         // they need a separate deny-list rather than a stricter pattern.
         expect(kit.ROLE_NAME_PATTERN.test('transparent')).toBe(true);
         expect(kit.RESERVED_ROLE_NAMES.has('transparent')).toBe(true);
+    });
+
+    it('defaultSwatch picks identical tokens in both copies', () => {
+        // The kit applies this at compile time (into manifest.json) and zero's
+        // `registerThemes` applies it at runtime (into the theme registry). A
+        // drift here means a theme picker that contradicts the design system's
+        // own manifest, which is exactly the bug this pair exists to prevent.
+        const vocabularies = [
+            kit.RECOMMENDED_ROLE_LIST,
+            // Fewer than four roles, and more than four — the slice is the
+            // only interesting edge in the rule.
+            ['brand', 'danger'],
+            ['a', 'b', 'c', 'd', 'e', 'f'],
+            [],
+        ];
+        for (const roles of vocabularies) {
+            expect(kit.defaultSwatch(roles)).toEqual(zero.defaultSwatch(roles));
+        }
+    });
+
+    it('the default swatch names only tokens a design system must provide', () => {
+        // It samples declared roles plus the base pair; the base pair is
+        // required of every design system, so the swatch can never name a
+        // token that does not exist.
+        const swatch = kit.defaultSwatch(kit.RECOMMENDED_ROLE_LIST);
+        for (const token of swatch) {
+            expect(
+                (kit.RECOMMENDED_ROLE_LIST as readonly string[]).includes(token)
+                || (kit.BASE_SURFACE_TOKEN_LIST as readonly string[]).includes(token),
+            ).toBe(true);
+        }
     });
 
     it('tokenProperty spells identical names in both copies', () => {

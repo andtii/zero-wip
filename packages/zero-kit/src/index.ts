@@ -73,6 +73,7 @@ export {
     ROLE_NAME_PATTERN,
     RESERVED_ROLE_NAMES,
     tokenProperty,
+    defaultSwatch,
     resolveRoles,
     systemNodeAt,
     requiredColorTokens,

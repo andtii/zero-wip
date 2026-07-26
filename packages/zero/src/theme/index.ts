@@ -1,8 +1,15 @@
 // Theme engine — registry, headless controller, provider, first-paint script.
 // Theme *data* (palettes, compiled CSS) lives in each design-system package.
 
-export type { ThemeInfo } from './registry.js';
-export { registerTheme, getTheme, listThemes, pairOf, pickThemeFor } from './registry.js';
+export type { ThemeInfo, ThemeSource } from './registry.js';
+export {
+    registerTheme,
+    registerThemes,
+    getTheme,
+    listThemes,
+    pairOf,
+    pickThemeFor,
+} from './registry.js';
 
 export type { ThemeController, ThemeControllerOptions } from './theme-state.js';
 export {

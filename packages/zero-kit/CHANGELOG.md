@@ -32,6 +32,11 @@
   completeness and surfaced in the DS manifest.
 - `TokensInput.swatch` — declaration-driven theme-picker swatch (default:
   first four declared roles + base surfaces).
+- `defaultSwatch(roleNames)` — that default rule, exported and mirrored in
+  `@sigx/zero/contract` so `registerThemes` applies the same one at runtime.
+  Previously it was inlined in the compiler and copy-pasted into each design
+  system's `installThemes()`, which is how the registry and the manifest drifted
+  apart; the contract-parity suite now guards it.
 - `TokensInput.breakpoints` — reserved DS-level breakpoint declaration,
   surfaced in the DS manifest (consumed by the upcoming conditions support).
 

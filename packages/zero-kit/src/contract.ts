@@ -213,6 +213,18 @@ export const BASE_SURFACE_TOKEN_LIST = ['base-100', 'base-200', 'base-300', 'bas
 
 export type BaseSurfaceToken = typeof BASE_SURFACE_TOKEN_LIST[number];
 
+/**
+ * The tokens a theme picker samples when a design system declares no `swatch`
+ * of its own: the first four declared roles, plus the base pair.
+ *
+ * Mirrors `defaultSwatch` in `@sigx/zero/contract` (parity-tested). The
+ * compiler applies it here; `registerThemes` applies it at runtime — the two
+ * must produce the same list or a picker disagrees with the DS manifest.
+ */
+export function defaultSwatch(roleNames: readonly string[]): string[] {
+    return [...roleNames.slice(0, 4), 'base-100', 'base-content'];
+}
+
 /** Normalize a roles declaration (undefined → the recommended vocabulary). */
 export function resolveRoles(roles: Record<string, RoleDecl> | undefined): Record<string, RoleDecl> {
     return roles ?? DEFAULT_ROLES;
