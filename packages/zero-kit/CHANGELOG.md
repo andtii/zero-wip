@@ -4,6 +4,9 @@
 
 ### Changed (breaking — pre-release)
 
+- `ZeroManifest.tokens.sizeScale` is now `tokens.recommendedSizes`, matching
+  `tokens.colors.recommendedRoles`. `SizeScale` widens to accept any
+  DS-declared size name.
 - **Extensible color roles**: the color vocabulary is now DS-declared.
   `TokensInput.roles` declares role names (each emitting `--color-<role>`,
   plus `-content` / `-soft` per its `RoleDecl`); omitting `roles` selects the
@@ -30,6 +33,17 @@
 - `TokensInput.custom` — declared DS-specific tokens (`name → { description,
   syntax? }`), valued per-theme via `ThemeInput.custom`, validated for
   completeness and surfaced in the DS manifest.
+- `TokensInput.sizes` — the design system's `size` axis vocabulary, the
+  analogue of `roles` for the other axis zero interprets. Recipes are
+  validated against *this* ramp instead of a fixed `xs`–`xl`, so a design
+  system with density steps is no longer warned on every one of them, and it
+  is surfaced in the DS manifest as `tokens.sizes`. Omitted → the recommended
+  ramp. `SIZE_SCALE_LIST` and `RecommendedSize`/`SizeScale` are now exported,
+  so a design system can extend rather than retype it
+  (`sizes: [...SIZE_SCALE_LIST, '2xl']`).
+- `TokenVocabulary` gains `sizes` — it now carries the declared variant-axis
+  vocabularies alongside the custom-property names, which is what the recipe
+  validator checks against.
 - `TokensInput.swatch` — declaration-driven theme-picker swatch (default:
   first four declared roles + base surfaces).
 - `defaultSwatch(roleNames)` — that default rule, exported and mirrored in

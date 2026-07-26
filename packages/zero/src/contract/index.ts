@@ -3,6 +3,7 @@
 
 export type {
     SizeScale,
+    RecommendedSize,
     RecommendedRole,
     BaseSurfaceToken,
     ColorValue,

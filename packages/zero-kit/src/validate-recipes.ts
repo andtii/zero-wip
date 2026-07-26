@@ -9,7 +9,7 @@
  */
 import { parse, converter } from 'culori';
 import type { ManifestPart, ZeroManifest } from './contract.js';
-import { SIZE_SCALE_LIST, VARIANT_AXES } from './contract.js';
+import { VARIANT_AXES } from './contract.js';
 import type { CssProps, PartStyles, RecipeInput } from './recipes.js';
 import type { ValidationIssue } from './validate.js';
 import type { TokenVocabulary } from './vocabulary.js';
@@ -348,11 +348,14 @@ export function validateRecipes(
                 );
             }
             if (axis === 'size') {
+                // Checked against the DESIGN SYSTEM's ramp, not a fixed one:
+                // `tokens.sizes` if it declared its own (Material's density
+                // steps, a numbered ramp), else the recommended xs–xl.
                 for (const value of Object.keys(values_)) {
-                    if (!(SIZE_SCALE_LIST as readonly string[]).includes(value)) {
+                    if (!vocabulary.sizes.includes(value)) {
                         warn(
                             `${where}.variants.size`,
-                            `"${value}" is not on the shared size scale (${SIZE_SCALE_LIST.join(', ')})`,
+                            `"${value}" is not on this design system's size ramp (${vocabulary.sizes.join(', ')}) — declare it in tokens.sizes if it belongs there`,
                         );
                     }
                 }

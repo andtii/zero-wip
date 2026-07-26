@@ -4,6 +4,16 @@
 
 ### Changed (breaking — pre-release)
 
+- **The `size` axis is now open, like the color axis.** `SizeScale` was a
+  closed union (`'xs' | 'sm' | 'md' | 'lg' | 'xl'`) while `ColorValue` had the
+  `(string & {})` escape hatch, so a design system specifying density
+  (`compact`, `comfortable`) or a numbered ramp could not be consumed at all —
+  `<Button.Root size="comfortable">` was a compile error. It is now
+  `RecommendedSize | (string & {})`; `SIZE_SCALE_LIST` keeps its name and
+  becomes the *recommended* ramp, with `RecommendedSize` as its element type.
+- `manifest.json` `tokens.sizeScale` is now `tokens.recommendedSizes`, named
+  like `tokens.colors.recommendedRoles` because it means the same thing: a
+  default a design system may replace, not a closed set.
 - **The color contract is now a naming grammar, not a fixed vocabulary**:
   design systems declare their own roles (via `@sigx/zero-kit`); zero knows
   only the `--color-<role>[-content|-soft]` convention and the fixed base

@@ -47,7 +47,9 @@ const manifest = {
         // `recommended` are the keys @sigx/zero ships fallbacks for; a design
         // system may declare any others, and they appear in ITS manifest.
         categories: TOKEN_CATEGORIES.map((c) => ({ ...c, path: [...c.path], recommended: [...c.recommended] })),
-        sizeScale: [...SIZE_SCALE_LIST],
+        // The DEFAULT size ramp, not a closed set — a design system declares
+        // its own via `tokens.sizes` and it appears in ITS manifest.
+        recommendedSizes: [...SIZE_SCALE_LIST],
     },
     components: Object.values(anatomies).map((a) => a.toJSON()),
 };

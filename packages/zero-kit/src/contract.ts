@@ -201,12 +201,23 @@ export const DEFAULT_ROLES: Record<RecommendedRole, RoleDecl> = Object.fromEntri
 ) as Record<RecommendedRole, RoleDecl>;
 
 /**
- * The shared component size scale — the values `data-size` accepts. Mirrors
- * `SIZE_SCALE_LIST` in `@sigx/zero/contract` (parity-tested).
+ * The recommended component size ramp — the default `sizes` vocabulary when a
+ * design system doesn't declare one. Mirrors `SIZE_SCALE_LIST` in
+ * `@sigx/zero/contract` (parity-tested). Declaring a different ramp is fully
+ * supported; see `TokensInput.sizes`.
  */
 export const SIZE_SCALE_LIST = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
 
-export type SizeScale = typeof SIZE_SCALE_LIST[number];
+export type RecommendedSize = typeof SIZE_SCALE_LIST[number];
+
+/** A `size` axis value: recommended names autocompleted, any name valid. */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export type SizeScale = RecommendedSize | (string & {});
+
+/** Normalize a sizes declaration (undefined → the recommended ramp). */
+export function resolveSizes(sizes: readonly string[] | undefined): readonly string[] {
+    return sizes ?? SIZE_SCALE_LIST;
+}
 
 /** The fixed base surfaces every design system must provide. */
 export const BASE_SURFACE_TOKEN_LIST = ['base-100', 'base-200', 'base-300', 'base-content'] as const;
@@ -294,7 +305,12 @@ export interface ZeroManifest {
             recommendedRoles: string[];
         };
         categories: TokenCategory[];
-        sizeScale: string[];
+        /**
+         * The recommended `size` axis ramp — what a design system gets by
+         * default, not a closed set. Named like `colors.recommendedRoles` for
+         * the same reason: both are defaults a design system may replace.
+         */
+        recommendedSizes: string[];
     };
     components: ManifestComponent[];
 }

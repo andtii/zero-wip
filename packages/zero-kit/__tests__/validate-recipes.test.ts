@@ -210,12 +210,42 @@ describe('variants', () => {
         }).warnings).toContainEqual(expect.stringContaining('not a contract axis'));
     });
 
-    it('warns on a size outside the shared scale', () => {
+    it('warns on a size outside the design system\'s ramp', () => {
         expect(check({
             component: 'tabs',
             parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
             variants: { size: { '2xl': { tab: { base: { padding: '2rem' } } } } },
-        }).warnings).toContainEqual(expect.stringContaining('not on the shared size scale'));
+        }).warnings).toContainEqual(expect.stringContaining("not on this design system's size ramp"));
+    });
+
+    it('accepts a size the design system declared, however it is spelled', () => {
+        // The point of `tokens.sizes`: a design system whose ramp is Material
+        // density steps is checked against ITS ramp, not against xs–xl. Before
+        // this, every step of such a ramp was warned on.
+        const ds = dsWith({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            variants: {
+                size: {
+                    compact: { tab: { base: { padding: '0.25rem' } } },
+                    comfortable: { tab: { base: { padding: '0.75rem' } } },
+                },
+            },
+        });
+        ds.tokens.sizes = ['compact', 'comfortable'];
+        const warnings = validateDesignSystem(ds, manifest).warnings.map((w) => w.message);
+        expect(warnings).not.toContainEqual(expect.stringContaining('size ramp'));
+
+        // …and the declaration is a real constraint, not just a widening:
+        // `md` is off a Material ramp and is now the thing that warns.
+        const off = dsWith({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            variants: { size: { md: { tab: { base: { padding: '0.5rem' } } } } },
+        });
+        off.tokens.sizes = ['compact', 'comfortable'];
+        expect(validateDesignSystem(off, manifest).warnings.map((w) => w.message))
+            .toContainEqual(expect.stringContaining("not on this design system's size ramp"));
     });
 
     it('errors on variants for a component with no root part', () => {

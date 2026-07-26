@@ -240,6 +240,24 @@ component's anatomy). No component code is ever written or changed.
      defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },
      ```
      Adding a ninth role then costs one rule instead of four.
+   - **The `size` axis is your vocabulary too.** `xs|sm|md|lg|xl` is the
+     recommended ramp, not a fixed one. If the brief calls for density steps
+     or a numbered ramp, declare it and use it — `<Button.Root size="…">`
+     accepts any name, and the validator checks recipes against what you
+     declared rather than against xs–xl:
+     ```ts
+     // src/tokens.ts
+     export const tokens: TokensInput<typeof roles, typeof system> = {
+         roles, system,
+         sizes: ['compact', 'comfortable', 'spacious'],   // or [...SIZE_SCALE_LIST, '2xl']
+         defaultLight: '…', themes: { /* … */ },
+     };
+     ```
+     Declare it even when you keep the recommended ramp verbatim only if you
+     want it stated in the manifest; omitting `sizes` already means xs–xl.
+     Note `sizes` is the `data-size` axis — unrelated to `system.size`
+     (`--size-*`, the control-sizing unit) and to `system.typography.sizes`
+     (the `--text-*` ramp).
 
 5. **Assemble** (`src/design-system.ts`): `{ name, tokens, recipes }` exported
    as `designSystem`.
