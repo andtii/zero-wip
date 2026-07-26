@@ -39,10 +39,6 @@
         transition: background var(--duration-fast) var(--ease-standard);
     }
 
-    [data-scope="accordion"][data-part="trigger"]:hover:not([data-disabled]) {
-        background: var(--color-primary-soft);
-    }
-
     [data-scope="accordion"][data-part="trigger"][data-disabled] {
         opacity: var(--disabled-opacity);
     }
@@ -62,7 +58,11 @@
         transition: opacity var(--duration-fast) var(--ease-standard);
     }
 
-    [data-scope="accordion"][data-part="trigger"][data-pressed]::before {
+    [data-scope="accordion"][data-part="trigger"]:hover:not([data-disabled])::before {
+        opacity: 0.08;
+    }
+
+    [data-scope="accordion"][data-part="trigger"][data-pressed]:not([data-disabled])::before {
         opacity: 0.12;
     }
 
@@ -87,6 +87,12 @@
     [data-scope="accordion"][data-part="panel"] {
         padding: 0 var(--space-md) var(--space-md);
         line-height: var(--leading-normal);
+    }
+
+    @media (hover: none) {
+        [data-scope="accordion"][data-part="trigger"]:hover:not([data-disabled])::before {
+            opacity: 0;
+        }
     }
 
     @media (forced-colors: active) {

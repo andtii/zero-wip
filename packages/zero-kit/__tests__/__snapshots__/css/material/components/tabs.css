@@ -35,10 +35,6 @@
         border-bottom-color: var(--color-primary);
     }
 
-    [data-scope="tabs"][data-part="tab"]:hover:not([data-disabled]) {
-        background: var(--color-primary-soft);
-    }
-
     [data-scope="tabs"][data-part="tab"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;
@@ -59,7 +55,11 @@
         transition: opacity var(--duration-fast) var(--ease-standard);
     }
 
-    [data-scope="tabs"][data-part="tab"][data-pressed]::before {
+    [data-scope="tabs"][data-part="tab"]:hover:not([data-disabled])::before {
+        opacity: 0.08;
+    }
+
+    [data-scope="tabs"][data-part="tab"][data-pressed]:not([data-disabled])::before {
         opacity: 0.12;
     }
 
@@ -85,6 +85,12 @@
         font-family: var(--font-sans);
         font-size: var(--text-md);
         line-height: var(--leading-normal);
+    }
+
+    @media (hover: none) {
+        [data-scope="tabs"][data-part="tab"]:hover:not([data-disabled])::before {
+            opacity: 0;
+        }
     }
 
     @media (forced-colors: active) {

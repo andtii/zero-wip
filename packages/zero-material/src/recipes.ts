@@ -77,7 +77,11 @@ const pressable = (prefix: string, ink = 'var(--color-primary)'): PartStyles => 
             pointerEvents: 'none',
             transition: 'opacity var(--duration-fast) var(--ease-standard)',
         },
-        '&[data-pressed]::before': { opacity: '0.12' },
+        // MD3 state layers: hover 8%, pressed 12%. Pressed carries the
+        // redundant :not so its specificity EQUALS hover's and it wins by
+        // source order while both apply.
+        '&:hover:not([data-disabled])::before': { opacity: '0.08' },
+        '&[data-pressed]:not([data-disabled])::before': { opacity: '0.12' },
         '&::after': {
             content: '""',
             position: 'absolute',
@@ -96,6 +100,10 @@ const pressable = (prefix: string, ink = 'var(--color-primary)'): PartStyles => 
         },
     },
     at: {
+        // A tap on a touch screen must not leave a sticky hover layer.
+        'hover-none': {
+            selectors: { '&:hover:not([data-disabled])::before': { opacity: '0' } },
+        },
         'forced-colors': {
             selectors: {
                 '&::before': { display: 'none' },
@@ -130,7 +138,11 @@ const pressableCentered = (prefix: string, diameter: string, ink = 'var(--color-
             pointerEvents: 'none',
             transition: 'opacity var(--duration-fast) var(--ease-standard)',
         },
-        '&[data-pressed]::before': { opacity: '0.12' },
+        '&:hover:not([data-disabled])::before': { opacity: '0.08' },
+        '&[data-pressed]:not([data-disabled])::before': { opacity: '0.12' },
+        // MD3 ink: on-surface while unselected, the accent once selected.
+        '&[data-state="unchecked"]::before': { background: 'var(--color-base-content)' },
+        '&[data-state="unchecked"]::after': { background: 'var(--color-base-content)' },
         '&::after': {
             content: '""',
             position: 'absolute',
@@ -149,6 +161,9 @@ const pressableCentered = (prefix: string, diameter: string, ink = 'var(--color-
         },
     },
     at: {
+        'hover-none': {
+            selectors: { '&:hover:not([data-disabled])::before': { opacity: '0' } },
+        },
         'forced-colors': {
             selectors: {
                 '&::before': { display: 'none' },
@@ -289,7 +304,8 @@ export const button: RecipeInput = {
                     pointerEvents: 'none',
                     transition: 'opacity var(--duration-fast) var(--ease-standard)',
                 },
-                '&[data-pressed]::before': { opacity: '0.12' },
+                '&:hover:not([data-disabled])::before': { opacity: '0.08' },
+                '&[data-pressed]:not([data-disabled])::before': { opacity: '0.12' },
                 // Ink ripple — a one-shot expansion from the press point the
                 // runtime publishes as --press-x/y, sized by --press-r (the
                 // farthest-corner radius). data-press-animating outlives
@@ -314,6 +330,9 @@ export const button: RecipeInput = {
             at: {
                 // Reduced motion needs nothing here: --duration-* collapse to
                 // 0.01ms and the ::before tint remains as press feedback.
+                'hover-none': {
+                    selectors: { '&:hover:not([data-disabled])::before': { opacity: '0' } },
+                },
                 'forced-colors': {
                     selectors: {
                         '&::before': { display: 'none' },
@@ -362,7 +381,6 @@ export const button: RecipeInput = {
                         borderColor: 'var(--color-outline)',
                         '--btn-ripple': 'var(--btn-accent)',
                     },
-                    states: { hover: { background: 'var(--btn-soft)' } },
                 },
             },
             soft: {
@@ -382,7 +400,6 @@ export const button: RecipeInput = {
                         color: 'var(--btn-accent)',
                         '--btn-ripple': 'var(--btn-accent)',
                     },
-                    states: { hover: { background: 'var(--btn-soft)' } },
                 },
             },
         },
@@ -427,7 +444,6 @@ export const tabs: RecipeInput = {
             states: {
                 active: { color: 'var(--color-primary)', borderBottomColor: 'var(--color-primary)' },
                 inactive: {},
-                hover: { background: 'var(--color-primary-soft)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
@@ -457,7 +473,6 @@ const disclosureTrigger = (prefix: string): PartStyles => withPresence(pressable
     states: {
         open: {},
         closed: {},
-        hover: { background: 'var(--color-primary-soft)' },
         disabled: { opacity: 'var(--disabled-opacity)' },
         ...focusRing,
     },
@@ -521,7 +536,7 @@ export const dialog: RecipeInput = {
                 ...label,
                 cursor: 'pointer',
             },
-            states: { open: {}, closed: {}, hover: { background: 'var(--color-primary-soft)' }, disabled: {}, ...focusRing },
+            states: { open: {}, closed: {}, disabled: {}, ...focusRing },
         }),
         popup: withPresence(popupPresence('translateY(24px) scale(0.94)'), {
             // Mobile-first: Material's full-screen dialog below `sm`.
@@ -581,7 +596,7 @@ export const dialog: RecipeInput = {
                 ...label,
                 cursor: 'pointer',
             },
-            states: { hover: { background: 'var(--color-primary-soft)' }, disabled: {}, ...focusRing },
+            states: { disabled: {}, ...focusRing },
         }),
     },
     keyframes: rippleKeyframes('dialog'),
@@ -604,7 +619,7 @@ export const popover: RecipeInput = {
                 ...label,
                 cursor: 'pointer',
             },
-            states: { open: {}, closed: {}, hover: { background: 'var(--color-primary-soft)' }, disabled: {}, ...focusRing },
+            states: { open: {}, closed: {}, disabled: {}, ...focusRing },
         }),
         popup: withPresence(popupPresence('scale(0.9)'), {
             base: { ...floating, padding: 'var(--space-md)', maxWidth: '20rem' },
@@ -662,7 +677,7 @@ export const menu: RecipeInput = {
                 ...label,
                 cursor: 'pointer',
             },
-            states: { open: {}, closed: {}, hover: { background: 'var(--color-primary-soft)' }, disabled: {}, ...focusRing },
+            states: { open: {}, closed: {}, disabled: {}, ...focusRing },
         }),
         popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } }),
         // The popup keeps no overflow clip; the item's own clips its ripple.
@@ -796,7 +811,15 @@ export const switchRecipe: RecipeInput = {
                 ...focusRing,
             },
             selectors: {
-                '&[data-pressed] [data-part="thumb"]::before': { opacity: '0.12' },
+                '&:hover:not([data-disabled]) [data-part="thumb"]::before': { opacity: '0.08' },
+                '&[data-pressed]:not([data-disabled]) [data-part="thumb"]::before': { opacity: '0.12' },
+                // MD3 ink: on-surface while unselected, primary once checked.
+                '&[data-state="unchecked"] [data-part="thumb"]::before': { background: 'var(--color-base-content)' },
+            },
+            at: {
+                'hover-none': {
+                    selectors: { '&:hover:not([data-disabled]) [data-part="thumb"]::before': { opacity: '0' } },
+                },
             },
         },
         thumb: {
@@ -1023,6 +1046,14 @@ export const slider: RecipeInput = {
                     boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)',
                     transition: 'box-shadow var(--duration-fast) var(--ease-standard)',
                 },
+                // Keyboard focus must be discernible, not just a 10% wash:
+                // a crisp two-tone ring (surface gap + the focus ink used by
+                // every other part) sits inside the halo.
+                '&[data-focus-visible]::-webkit-slider-thumb': {
+                    boxShadow: '0 0 0 2px var(--color-base-100), '
+                        + '0 0 0 4px var(--color-secondary), '
+                        + '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)',
+                },
                 '&::-moz-range-track': {
                     height: 'calc(var(--size-selector) * 2)',
                     borderRadius: '624rem',
@@ -1036,6 +1067,11 @@ export const slider: RecipeInput = {
                     background: 'var(--color-primary)',
                     boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)',
                     transition: 'box-shadow var(--duration-fast) var(--ease-standard)',
+                },
+                '&[data-focus-visible]::-moz-range-thumb': {
+                    boxShadow: '0 0 0 2px var(--color-base-100), '
+                        + '0 0 0 4px var(--color-secondary), '
+                        + '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)',
                 },
             },
             at: {
