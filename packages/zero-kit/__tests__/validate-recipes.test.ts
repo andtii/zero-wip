@@ -193,21 +193,46 @@ describe('coverage', () => {
 });
 
 describe('variants', () => {
-    it('warns on an axis zero never emits', () => {
-        expect(check({
+    it('accepts an axis beyond the three with named props', () => {
+        // `density` used to warn that no zero component could ever set
+        // `data-density`, which was true and made a fourth axis impossible.
+        // Zero's `axes` prop sets it now, so the axis is legitimate and must
+        // pass clean.
+        const { errors, warnings } = check({
             component: 'tabs',
             parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
             variants: { density: { tight: { tab: { base: { padding: '0' } } } } },
-        }).warnings).toContainEqual(expect.stringContaining('not a contract axis'));
+        });
+        expect(errors).toEqual([]);
+        expect(warnings.filter((w) => w.includes('density'))).toEqual([]);
     });
 
-    it('warns on an axis named after an Object.prototype member', () => {
-        // `in` would have reported these as valid contract axes.
+    it('errors on an axis that shadows the anatomy contract', () => {
+        // `data-state` from userland would make every [data-state="open"]
+        // rule in the design system match the wrong thing, silently.
+        expect(check({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            variants: { state: { open: { tab: { base: { padding: '0' } } } } },
+        }).errors).toContainEqual(expect.stringContaining('part of the anatomy contract'));
+
+        // Flags are reserved too, not just the structural four.
+        expect(check({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            variants: { disabled: { yes: { tab: { base: { padding: '0' } } } } },
+        }).errors).toContainEqual(expect.stringContaining('part of the anatomy contract'));
+    });
+
+    it('errors on an axis named after an Object.prototype member', () => {
+        // `in` would once have reported these as valid contract axes. They are
+        // now caught as not-kebab-case, and `RESERVED_AXES` is a Set, so a
+        // prototype member is not silently "reserved" either.
         expect(check({
             component: 'tabs',
             parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
             variants: { toString: { x: { tab: { base: { padding: '0' } } } } },
-        }).warnings).toContainEqual(expect.stringContaining('not a contract axis'));
+        }).errors).toContainEqual(expect.stringContaining('not a kebab-case identifier'));
     });
 
     it('errors on a variant value that would break out of its selector', () => {

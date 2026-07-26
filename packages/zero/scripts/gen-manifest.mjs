@@ -29,11 +29,17 @@ const manifest = {
         state: 'data-state',
         flagForm: 'presence (data-<flag>=""), never "false"',
         flagVocabulary: [...FLAG_VOCABULARY],
+        // The axes with named props. NOT a closed set — a design system may
+        // declare others (density, emphasis, tone) and reach them through the
+        // `axes` prop, which spells them by the same rule.
         variantAxes: {
             color: 'data-color',
             size: 'data-size',
             variant: 'data-variant',
         },
+        extraAxisForm:
+            'data-<axis>, set via the `axes` prop; <axis> is kebab-case and may not '
+            + 'collide with the attributes above or with flagVocabulary',
     },
     tokens: {
         // Both halves of the token contract are grammars, not vocabularies:

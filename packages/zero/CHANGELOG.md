@@ -49,6 +49,30 @@
 
 ### Added
 
+- **`axes` — the variant-axis set is open.** `variantAttrs` hardcoded exactly
+  `color`/`size`/`variant`, and sigx forwards no rest props, so a design system
+  with a fourth axis (density, emphasis, tone) had no route to the DOM at all:
+  the kit compiled `[data-density="compact"]` selectors and then correctly
+  warned they were dead on arrival. `axes` passes any other axis through as
+  `data-<axis>`:
+
+  ```tsx
+  <Button.Root color="primary" axes={{ density: 'compact' }}>Save</Button.Root>
+  ```
+
+  Available on every component carrying variant axes (Button, Checkbox,
+  Progress, RadioGroup, Select, Slider, Switch, Tabs). The three named props
+  stay — they are the axes almost every design language has, and they keep
+  autocomplete. An axis name must be kebab-case and may not be one the anatomy
+  contract owns (`RESERVED_AXES`: `scope`, `part`, `state`, `orientation`, and
+  every flag); zero throws rather than dropping it silently, because shadowing
+  `data-state` from userland would repoint every `[data-state="open"]` rule a
+  design system wrote.
+- `RESERVED_AXES` on the token contract, mirrored in `@sigx/zero-kit` and
+  parity-tested, so the validator rejects exactly what the runtime refuses.
+- `manifest.json` `attributeSpec` gains `extraAxisForm`; `variantAxes` is now
+  documented as the axes with named props rather than as the whole set.
+
 - `clearThemes()` — drop every registered theme, for hosts that exchange design
   systems at runtime. Theme names are design-system-specific, so re-seeding
   without clearing would leave a previous DS's names selectable while its

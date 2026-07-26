@@ -62,6 +62,20 @@ and neither is a closed set. (`variant` has no declaration because zero never
 interprets it at all.) `sizes` is the `data-size` axis — not `system.size`,
 which is the `--size-*` control-sizing unit.
 
+Nor is the SET of axes closed. `color` / `size` / `variant` have named props
+because almost every design language has them; key `variants` on any other
+axis your design needs and consumers reach it through zero's `axes` prop:
+
+```ts
+variants: { density: { compact: { root: { base: { paddingBlock: '0.15rem' } } } } },
+```
+```tsx
+<Button.Root color="primary" axes={{ density: 'compact' }}>Save</Button.Root>
+```
+
+Axis names are kebab-case and may not be ones the anatomy contract owns
+(`scope`, `part`, `state`, `orientation`, or any flag) — see `RESERVED_AXES`.
+
 Both halves of the token contract work the same way: a **closed set of
 categories**, each fixing a `--prefix-` and a value grammar, with **open keys
 inside** that the design system declares. `zero-kit` curates the categories

@@ -38,9 +38,10 @@ export type {
     WithColor,
     WithSize,
     WithVariant,
+    WithAxes,
     WithOrientation,
     WithAsChild,
     PartProps,
 } from './props.js';
-export { variantAttrs } from './props.js';
+export { variantAttrs, RESERVED_AXES } from './props.js';
 export { renderAsChild } from './as-child.js';

@@ -15,7 +15,7 @@ import { useFieldContext } from '../../behaviors/field.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithColor, WithDisabled, WithSize, WithVariant } from '../../contract/props.js';
+import type { WithClass, WithColor, WithDisabled, WithSize, WithVariant, WithAxes } from '../../contract/props.js';
 import { checkboxAnatomy } from './anatomy.js';
 
 const SCOPE = checkboxAnatomy.scope;
@@ -45,6 +45,7 @@ export type CheckboxRootProps =
     & WithColor
     & WithSize
     & WithVariant
+    & WithAxes
     & WithClass
     & Define.Slot<'default'>;
 

@@ -26,7 +26,7 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr, stateAttr, type Orientation } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import type { PartProps, WithAsChild, WithClass, WithColor, WithDisabled, WithOrientation, WithSize, WithVariant } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithColor, WithDisabled, WithOrientation, WithSize, WithVariant, WithAxes } from '../../contract/props.js';
 import { tabsAnatomy } from './anatomy.js';
 import { provideTabsContext, useTabsContext, type TabsActivationMode, type TabsContext } from './context.js';
 
@@ -44,6 +44,7 @@ export type TabsRootProps =
     & WithColor
     & WithSize
     & WithVariant
+    & WithAxes
     & WithClass
     & Define.Slot<'default'>;
 

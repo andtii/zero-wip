@@ -39,6 +39,10 @@ const SHARED: Record<string, [unknown, unknown]> = {
     // a reordering in one copy is real drift, not cosmetic.
     TOKEN_CATEGORIES: [zero.TOKEN_CATEGORIES, kit.TOKEN_CATEGORIES],
     SIZE_SCALE_LIST: [zero.SIZE_SCALE_LIST, kit.SIZE_SCALE_LIST],
+    // Sorted arrays rather than the Sets themselves — order carries no
+    // meaning here, and this is the list the validator must reject by exactly
+    // when the runtime refuses to render it.
+    RESERVED_AXES: [[...zero.RESERVED_AXES].sort(), [...kit.RESERVED_AXES].sort()],
 };
 
 /**
@@ -103,6 +107,24 @@ describe('kit ↔ zero contract parity', () => {
         // they need a separate deny-list rather than a stricter pattern.
         expect(kit.ROLE_NAME_PATTERN.test('transparent')).toBe(true);
         expect(kit.RESERVED_ROLE_NAMES.has('transparent')).toBe(true);
+    });
+
+    it('the reserved axis names really are the anatomy contract', () => {
+        // The kit spells the list out; zero derives it from FLAG_VOCABULARY
+        // plus the four structural attributes. Verify the derivation rather
+        // than just the copied literal, so adding a flag to zero without
+        // updating the kit fails here.
+        for (const flag of zero.FLAG_VOCABULARY) {
+            expect(kit.RESERVED_AXES.has(flag)).toBe(true);
+        }
+        for (const structural of ['scope', 'part', 'state', 'orientation']) {
+            expect(kit.RESERVED_AXES.has(structural)).toBe(true);
+        }
+        // …and the axes that DO have named props are not reserved — they are
+        // set by zero itself, not through `axes`.
+        for (const axis of Object.keys(kit.VARIANT_AXES)) {
+            expect(kit.RESERVED_AXES.has(axis)).toBe(false);
+        }
     });
 
     it('defaultSwatch picks identical tokens in both copies', () => {

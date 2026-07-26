@@ -9,7 +9,7 @@
  */
 import { parse, converter } from 'culori';
 import type { ManifestPart, ZeroManifest } from './contract.js';
-import { TOKEN_KEY_PATTERN, VARIANT_AXES } from './contract.js';
+import { RESERVED_AXES, TOKEN_KEY_PATTERN } from './contract.js';
 import type { CssProps, PartStyles, RecipeInput } from './recipes.js';
 import type { ValidationIssue } from './validate.js';
 import type { TokenVocabulary } from './vocabulary.js';
@@ -150,8 +150,8 @@ export function validateRecipes(
     // The vocabularies are open by design, so "open" has to stop at what can
     // actually be an attribute — otherwise a value carrying a quote closes the
     // selector early and everything after it is read as CSS, silently styling
-    // parts the recipe never named. `compileRecipeCss` escapes the value as
-    // well; this is where an author gets told.
+    // parts the recipe never named. `compileRecipeCss` throws on the same
+    // input; this is where an author gets told, with all the other issues.
     const checkAxisName = (axis: string, where: string) => {
         if (!TOKEN_KEY_PATTERN.test(axis)) {
             error(where, `axis "${axis}" is not a kebab-case identifier — it becomes the attribute name data-${axis}`);
@@ -365,10 +365,15 @@ export function validateRecipes(
             for (const value of Object.keys(values_)) {
                 checkAxisValue(axis, value, `${where}.variants.${axis}`);
             }
-            if (!Object.hasOwn(VARIANT_AXES, axis)) {
-                warn(
+            // An axis outside the three with named props is fine — an app
+            // sets it through zero's `axes` prop. What is NOT fine is taking a
+            // name the anatomy contract already owns: `data-state` from
+            // userland would make every `[data-state="open"]` rule in the
+            // design system match the wrong thing, silently.
+            if (RESERVED_AXES.has(axis)) {
+                error(
                     `${where}.variants`,
-                    `axis "${axis}" is not a contract axis (${Object.keys(VARIANT_AXES).join(', ')}) — the data-${axis} selectors are emitted, but no zero component ever sets that attribute, so nothing can match them`,
+                    `axis "${axis}" is part of the anatomy contract — data-${axis} already means something, and zero refuses to set it from \`axes\``,
                 );
             }
             if (axis === 'size') {
