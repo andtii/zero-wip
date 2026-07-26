@@ -35,7 +35,7 @@ export type WithVariant = Define.Prop<'variant', string, false>;
  *
  * `color` / `size` / `variant` are the axes almost every design system has, so
  * they keep named props with autocomplete. They are not the only axes a design
- * LANGUAGE can have: Material specifies density, others emphasis or tone. The
+ * language can have: Material specifies density, others emphasis or tone. The
  * kit compiles `[data-density="compact"]` selectors happily, and before this
  * prop nothing could ever set that attribute — the rules were dead on arrival,
  * which the validator had to warn about.
@@ -45,8 +45,8 @@ export type WithVariant = Define.Prop<'variant', string, false>;
  * ```
  *
  * An axis may not shadow the anatomy contract (`scope`, `part`, `state`,
- * `orientation`, or any flag) — those attributes carry meaning zero and every
- * design system already select on.
+ * `orientation`, or any flag). Those attributes already carry meaning that
+ * zero sets and every design system selects on.
  */
 export type WithAxes = Define.Prop<'axes', Record<string, string>, false>;
 
