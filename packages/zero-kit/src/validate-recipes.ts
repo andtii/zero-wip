@@ -223,21 +223,40 @@ export function validateRecipes(
         //  - a transition that doesn't carry `display`/`overlay` through
         //    `allow-discrete`, so the element is gone before the exit can
         //    play. The entry animates, the exit does not, and nothing says so.
-        const declaresEntry = (styles: PartStyles | undefined): boolean =>
-            Object.entries(styles?.at ?? {}).some(
+        const declaresEntry = (styles: PartStyles): boolean =>
+            Object.entries(styles.at ?? {}).some(
                 ([key, nested]) =>
                     key === 'starting-style' || key.trim() === '@starting-style' || declaresEntry(nested),
             );
-        for (const [partName, styles] of Object.entries(recipe.parts)) {
-            // Recursive: a responsive entry animation nests the starting
-            // styles under the breakpoint (`at.md.at['starting-style']`), and
-            // that needs the exit half just as much.
-            if (!declaresEntry(styles)) continue;
-            const transitions = [...declarations(recipe)]
-                .filter((d) => d.path.startsWith(`parts.${partName}.`))
-                .flatMap((d) => Object.entries(d.props))
+        const transitionValues = (styles: PartStyles): string[] => [
+            ...[styles.base, ...Object.values(styles.states ?? {}), ...Object.values(styles.selectors ?? {})]
+                .flatMap((block) => Object.entries(block ?? {}))
                 .filter(([prop]) => prop === 'transition' || prop === 'transitionBehavior')
-                .map(([, value]) => String(value));
+                .map(([, value]) => String(value)),
+            ...Object.values(styles.at ?? {}).flatMap(transitionValues),
+        ];
+        // Every source of styles for a part, keyed by part: a variant can
+        // carry an entry animation as readily as the base block, and its
+        // transition may live in either.
+        const partSources = new Map<string, PartStyles[]>();
+        const addSource = (part: string, styles: PartStyles): void => {
+            partSources.set(part, [...(partSources.get(part) ?? []), styles]);
+        };
+        for (const [part, styles] of Object.entries(recipe.parts)) addSource(part, styles);
+        for (const values of Object.values(recipe.variants ?? {})) {
+            for (const parts of Object.values(values)) {
+                for (const [part, styles] of Object.entries(parts)) addSource(part, styles);
+            }
+        }
+        for (const compound of recipe.compoundVariants ?? []) {
+            for (const [part, styles] of Object.entries(compound.parts)) addSource(part, styles);
+        }
+
+        for (const [partName, sources] of partSources) {
+            // Recursive: a responsive entry animation nests the starting
+            // styles under the breakpoint, and needs the exit half just the same.
+            if (!sources.some(declaresEntry)) continue;
+            const transitions = sources.flatMap(transitionValues);
             if (transitions.length === 0) {
                 warn(
                     `${where}.${partName}`,

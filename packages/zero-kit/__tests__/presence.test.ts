@@ -184,6 +184,23 @@ describe('the validator catches a half-animated popup', () => {
         expect(messages.some((m) => m.includes('the exit will not'))).toBe(true);
     });
 
+    it('sees starting styles declared by a variant', () => {
+        const messages = validateDesignSystem({
+            name: 'probe',
+            tokens: basic.tokens,
+            recipes: [{
+                component: 'popover',
+                parts: { popup: { base: { transition: 'opacity var(--duration-fast) var(--ease-standard)' } } },
+                variants: {
+                    size: {
+                        lg: { popup: { at: { 'starting-style': { states: { open: { opacity: '0' } } } } } },
+                    },
+                },
+            } as RecipeInput],
+        } as DesignSystemInput, manifest).warnings.map((w) => w.message);
+        expect(messages.some((m) => m.includes('the exit will not'))).toBe(true);
+    });
+
     it('says nothing about a part that never asks for an entry animation', () => {
         // The rules key on `starting-style`, so a plain unanimated popup — or
         // any other part — is not nagged into animating.
