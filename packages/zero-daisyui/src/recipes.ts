@@ -870,9 +870,12 @@ export const button: RecipeInput = {
                 },
             },
             selectors: {
-                // Pressed: `:active` is a real pseudo-class here, because the
-                // anatomy declares no machine state called `active`.
-                '&:active:not([data-disabled])': { transform: 'translateY(1px)', boxShadow: 'none' },
+                // Pressed: the runtime's press feedback, not `:active` — same
+                // sink, but with keyboard parity and drag-off semantics the
+                // pseudo-class can't guarantee across browsers. The :not
+                // keeps the old rule's specificity above hover and covers a
+                // press that goes disabled mid-gesture.
+                '&[data-pressed]:not([data-disabled])': { transform: 'translateY(1px)', boxShadow: 'none' },
             },
         },
     },

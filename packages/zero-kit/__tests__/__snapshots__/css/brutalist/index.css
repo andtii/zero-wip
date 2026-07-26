@@ -223,7 +223,7 @@
         outline-offset: 3px;
     }
 
-    [data-scope="button"][data-part="root"]:active:not([data-disabled]) {
+    [data-scope="button"][data-part="root"][data-pressed]:not([data-disabled]) {
         box-shadow: none;
         transform: translate(3px, 3px);
     }

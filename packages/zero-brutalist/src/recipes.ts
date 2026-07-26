@@ -155,7 +155,11 @@ export const button: RecipeInput = {
                 hover: shift('1px'),
                 ...focusRing,
             },
-            selectors: { '&:active:not([data-disabled])': { boxShadow: 'none', transform: 'translate(3px, 3px)' } },
+            // The stamp rides the runtime's press feedback, not `:active`:
+            // same collapse of the hard shadow, but with keyboard parity and
+            // drag-off semantics the pseudo-class can't guarantee. The :not
+            // keeps the old specificity above hover.
+            selectors: { '&[data-pressed]:not([data-disabled])': { boxShadow: 'none', transform: 'translate(3px, 3px)' } },
         },
     },
     variants: {
