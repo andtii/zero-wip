@@ -296,7 +296,7 @@ export function validateDesignSystem<R extends RolesDecl>(
         // gets told, with all the other issues.
         if (!TOKEN_KEY_PATTERN.test(themeName)) {
             error(
-                `tokens.themes.${themeName}`,
+                `themes.${themeName}`,
                 `theme "${themeName}" is not a kebab-case identifier — it becomes the selector [data-theme="${themeName}"]`,
             );
         }
