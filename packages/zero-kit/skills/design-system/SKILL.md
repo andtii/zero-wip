@@ -292,10 +292,33 @@ component's anatomy). No component code is ever written or changed.
        layer lives on the thumb's `::before`, lit from the control's flag via
        a descendant selector (`'&[data-pressed] [data-part="thumb"]::before'`),
        with no one-shot at all.
-     - Native form controls take vendor pseudos: the slider handle halo is
-       `'&[data-pressed]::-webkit-slider-thumb'` and a SEPARATE
-       `'&[data-pressed]::-moz-range-thumb'` key — one unknown selector in a
-       shared list invalidates the whole rule.
+     - A native slider needs a custom skin before press feedback can
+       render in Blink: it ignores thumb-pseudo styling on a native
+       (`appearance: auto`) range input, so a halo written against
+       `::-webkit-slider-thumb` silently never paints there (Gecko honours
+       `::-moz-range-thumb` either way — skin it anyway, for one look). Skin the input
+       (`appearance: 'none'`, own track and thumb pseudos), then set ONE
+       custom property from the states and read it in each vendor thumb
+       pseudo — the pseudos cannot share a selector list (one unknown
+       selector invalidates the whole rule), and the variable defines the
+       halo once per engine instead of once per state per engine:
+       ```ts
+       base: { appearance: 'none', outline: 'none', '--slider-halo': 'transparent' },
+       states: {
+           'focus-visible': { '--slider-halo': 'color-mix(in oklab, var(--color-primary) 10%, transparent)' },
+           pressed: { '--slider-halo': 'color-mix(in oklab, var(--color-primary) 12%, transparent)' },
+       },
+       selectors: {
+           '&::-webkit-slider-thumb': { appearance: 'none', /* size, radius, background, */ boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)' },
+           '&::-moz-range-thumb': { /* same, separate key */ },
+       },
+       ```
+       Chrome treats range inputs as ALWAYS `:focus-visible` — even on
+       mouse focus — so an input-box outline reads as a stuck rectangle on
+       press; the halo must BE the focus indicator. Fill the track with the
+       runtime-published `--slider-percent` as a gradient stop, and revert
+       to `appearance: 'auto'` under `forced-colors` (native rendering
+       knows forced colors better than a custom skin).
    - `RecipeInput.css` takes raw CSS for anything the typed surface can't say.
    - **Style Button first, and make its axes compose.** It is the component a
      design system is judged on, and the only one where all three axes matter
