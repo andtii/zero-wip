@@ -23,6 +23,7 @@ all four are expressed as declarations rather than escape hatches:
 | `emphasized-decelerate` / `emphasized-accelerate` easings | open keys inside `motion` |
 | Window-size classes at 600 / 840 / 1240px | `breakpoints`, driving a full-screen dialog below `sm` |
 | The ink ripple, expanding from the press point | pure recipe CSS over the runtime's press feedback (`data-pressed`, `data-press-animating`, `--press-x/y/r`) — no JavaScript in this package |
+| State layers on every pressable surface, the 40dp selection-control halo, the switch layer that rides the thumb, the slider handle halo while dragging | the same press data, read four different ways: bounded ripple, centered unclipped circle, a descendant selector from the flagged control to the thumb's pseudo, and vendor thumb pseudos on `data-pressed` |
 
 It validates with **no errors and no warnings**, styles all fifteen
 components, and required no change to `@sigx/zero-kit`.

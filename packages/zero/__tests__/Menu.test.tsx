@@ -76,4 +76,52 @@ describe('Menu', () => {
         items[1]!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true }));
         expect(onSelect).toHaveBeenCalledWith('duplicate');
     });
+
+    it('publishes press feedback on the trigger and on items', () => {
+        mount();
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(trigger.hasAttribute('data-pressed')).toBe(true);
+        trigger.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        expect(trigger.hasAttribute('data-pressed')).toBe(false);
+
+        trigger.click();
+        const item = container.querySelectorAll<HTMLElement>('[data-part="item"]')[0]!;
+        item.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(item.hasAttribute('data-pressed')).toBe(true);
+        item.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        expect(item.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('marks the item pressed on Enter even though activation closes the menu', () => {
+        mount();
+        container.querySelector<HTMLElement>('[data-part="trigger"]')!.click();
+        const item = container.querySelectorAll<HTMLElement>('[data-part="item"]')[1]!;
+        item.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true }));
+        // The same keydown activates and closes; the press flag must have
+        // been set before that, and it is still on the captured element.
+        expect(item.hasAttribute('data-pressed')).toBe(true);
+        item.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', bubbles: true }));
+        expect(item.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('publishes no press feedback on a disabled trigger or item', () => {
+        mount();
+        container.querySelector<HTMLElement>('[data-part="trigger"]')!.click();
+        const disabledItem = container.querySelectorAll<HTMLElement>('[data-part="item"]')[2]!;
+        disabledItem.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(disabledItem.hasAttribute('data-pressed')).toBe(false);
+
+        const second = document.createElement('div');
+        document.body.appendChild(second);
+        render(
+            <Menu.Root>
+                <Menu.Trigger disabled>Actions</Menu.Trigger>
+            </Menu.Root>,
+            second,
+        );
+        const trigger = second.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(trigger.hasAttribute('data-pressed')).toBe(false);
+    });
 });

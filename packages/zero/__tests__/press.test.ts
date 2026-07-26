@@ -55,6 +55,57 @@ describe('createPressFeedback', () => {
         expect(el.hasAttribute('data-pressed')).toBe(false);
     });
 
+    it('survives pointerleave while the pointer is captured', () => {
+        // A press ends when the gesture ends, and capture defines the
+        // gesture: a native range input implicitly captures during drag, so
+        // a leave mid-drag must not cancel the held state.
+        (el as HTMLElement & { hasPointerCapture: (id: number) => boolean })
+            .hasPointerCapture = () => true;
+        press.onPointerdown(pointerdown());
+        press.onPointerleave(new PointerEvent('pointerleave'));
+        expect(el.hasAttribute('data-pressed')).toBe(true);
+        press.onPointerup(new PointerEvent('pointerup'));
+        expect(el.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('survives pointerleave when the HANDLER element holds capture', () => {
+        // Cross-element wiring (checkables): pointer handlers live on the
+        // label row while getElement() is the control. Capture is held by
+        // the pointerdown target on the row, so the guard must consult the
+        // element the leave fired on, not only the marked one.
+        const row = document.createElement('label');
+        document.body.appendChild(row);
+        (row as HTMLElement & { hasPointerCapture: (id: number) => boolean })
+            .hasPointerCapture = () => true;
+        row.addEventListener('pointerleave', press.onPointerleave);
+        press.onPointerdown(pointerdown());
+        row.dispatchEvent(new PointerEvent('pointerleave'));
+        expect(el.hasAttribute('data-pressed')).toBe(true);
+        press.onPointerup(new PointerEvent('pointerup'));
+        expect(el.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('lets an uncaptured pointerleave cancel the press', () => {
+        (el as HTMLElement & { hasPointerCapture: (id: number) => boolean })
+            .hasPointerCapture = () => false;
+        press.onPointerdown(pointerdown());
+        press.onPointerleave(new PointerEvent('pointerleave'));
+        expect(el.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('oneShot: false publishes the held state but never the one-shot flag', () => {
+        const drag = createPressFeedback({
+            getElement: () => el,
+            oneShot: false,
+        });
+        drag.onPointerdown(pointerdown());
+        expect(el.hasAttribute('data-pressed')).toBe(true);
+        expect(el.style.getPropertyValue('--press-x')).toBe('0px');
+        expect(el.hasAttribute('data-press-animating')).toBe(false);
+        drag.onPointerup(new PointerEvent('pointerup'));
+        expect(el.hasAttribute('data-pressed')).toBe(false);
+    });
+
     it('keeps the coordinates after release, for release fades', () => {
         press.onPointerdown(pointerdown());
         press.onPointerup(new PointerEvent('pointerup'));

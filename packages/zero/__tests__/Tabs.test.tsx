@@ -100,6 +100,35 @@ describe('Tabs', () => {
         expect(tabs[0]!.getAttribute('data-state')).toBe('active');
     });
 
+    it('publishes press feedback on a tab press and release', () => {
+        mountTabs(container);
+        const tab = container.querySelector<HTMLElement>('[data-scope="tabs"][data-part="tab"]')!;
+        tab.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(tab.hasAttribute('data-pressed')).toBe(true);
+        tab.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        expect(tab.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('keyboard press feedback composes with roving selection', () => {
+        mountTabs(container);
+        const tabs = container.querySelectorAll<HTMLElement>('[data-part="tab"]');
+        tabs[0]!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+        expect(tabs[0]!.hasAttribute('data-pressed')).toBe(true);
+        tabs[0]!.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', bubbles: true }));
+        expect(tabs[0]!.hasAttribute('data-pressed')).toBe(false);
+        // Press runs first in the keydown chain — the roving keys must still
+        // reach the tablist handler after it.
+        tabs[0]!.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
+        expect(tabs[1]!.getAttribute('data-state')).toBe('active');
+    });
+
+    it('publishes no press feedback on a disabled tab', () => {
+        mountTabs(container);
+        const tabC = container.querySelectorAll<HTMLElement>('[data-part="tab"]')[2]!;
+        tabC.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(tabC.hasAttribute('data-pressed')).toBe(false);
+    });
+
     it('asChild renders the caller element with the spread bag', () => {
         render(
             <Tabs.Root defaultValue="a">

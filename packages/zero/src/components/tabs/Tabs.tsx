@@ -23,6 +23,7 @@ import { createListController, type ListItem } from '../../behaviors/list.js';
 import { createRovingKeydown } from '../../behaviors/roving.js';
 import { createId } from '../../behaviors/create-id.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr, type Orientation } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
 import { renderAsChild } from '../../contract/as-child.js';
@@ -126,6 +127,10 @@ const TabsTab = component<TabsTabProps>(({ props, slots, onUnmounted, signal }) 
     const tabs = useTabsContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
+    const press = createPressFeedback({
+        getElement: () => el,
+        isDisabled: () => !!props.disabled,
+    });
 
     const item: ListItem = {
         id: `tab-${props.value}`,
@@ -164,12 +169,23 @@ const TabsTab = component<TabsTabProps>(({ props, slots, onUnmounted, signal }) 
         'aria-selected': isSelected() ? 'true' : 'false',
         'aria-controls': tabs.panelId(props.value),
         onClick: () => select(),
-        onKeydown: (e: KeyboardEvent) => tabs.keydown(e, props.value),
+        onKeydown: (e: KeyboardEvent) => {
+            press.onKeydown(e);
+            tabs.keydown(e, props.value);
+        },
+        onKeyup: press.onKeyup,
         onFocus: () => {
             focus.visible = isFocusVisible(el);
             if (tabs.activationMode() === 'automatic') select();
         },
-        onBlur: () => { focus.visible = false; },
+        onBlur: (e: FocusEvent) => {
+            press.onBlur(e);
+            focus.visible = false;
+        },
+        onPointerdown: press.onPointerdown,
+        onPointerup: press.onPointerup,
+        onPointercancel: press.onPointercancel,
+        onPointerleave: press.onPointerleave,
         ref: (node: HTMLElement | null) => { el = node; },
     });
 

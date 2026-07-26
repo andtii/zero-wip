@@ -29,6 +29,7 @@ import { createTypeahead } from '../../behaviors/typeahead.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { useFieldContext } from '../../behaviors/field.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { variantAttrs } from '../../contract/props.js';
@@ -242,6 +243,11 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
     const select = useSelectContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
+    // Disabled lives in the root's context, not on this part's props.
+    const press = createPressFeedback({
+        getElement: () => el,
+        isDisabled: () => select.disabled(),
+    });
 
     const bag = (): PartProps => ({
         id: select.ids.trigger,
@@ -262,9 +268,20 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
         onClick: () => {
             if (!select.disabled()) select.open.value = !select.open.value;
         },
-        onKeydown: (e: KeyboardEvent) => select.triggerKeydown(e),
+        onKeydown: (e: KeyboardEvent) => {
+            press.onKeydown(e);
+            select.triggerKeydown(e);
+        },
+        onKeyup: press.onKeyup,
         onFocus: () => { focus.visible = isFocusVisible(el); },
-        onBlur: () => { focus.visible = false; },
+        onBlur: (e: FocusEvent) => {
+            press.onBlur(e);
+            focus.visible = false;
+        },
+        onPointerdown: press.onPointerdown,
+        onPointerup: press.onPointerup,
+        onPointercancel: press.onPointercancel,
+        onPointerleave: press.onPointerleave,
         ref: (node: HTMLElement | null) => { el = node; select.setTrigger(node); },
     });
 
@@ -390,6 +407,13 @@ function optionText(el: HTMLElement | null): string | undefined {
 const SelectItem = component<SelectItemProps>(({ props, slots, onUnmounted }) => {
     const select = useSelectContext();
     let el: HTMLElement | null = null;
+    // Pointer-only: keyboard selection happens on the trigger
+    // (aria-activedescendant — focus never reaches the option), so keyboard
+    // press feedback deliberately lives on the trigger instead.
+    const press = createPressFeedback({
+        getElement: () => el,
+        isDisabled: () => !!props.disabled,
+    });
 
     const item: ListItem = {
         id: `option-${props.value}`,
@@ -420,6 +444,10 @@ const SelectItem = component<SelectItemProps>(({ props, slots, onUnmounted }) =>
         onPointerenter: () => {
             if (!props.disabled) select.highlighted.value = props.value;
         },
+        onPointerdown: press.onPointerdown,
+        onPointerup: press.onPointerup,
+        onPointercancel: press.onPointercancel,
+        onPointerleave: press.onPointerleave,
         ref: (node: HTMLElement | null) => { el = node; },
     });
 

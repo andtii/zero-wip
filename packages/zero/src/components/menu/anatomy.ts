@@ -4,7 +4,7 @@ export const menuAnatomy = defineAnatomy('menu', {
     trigger: {
         element: 'button',
         states: ['open', 'closed'],
-        flags: ['disabled', 'focus-visible'],
+        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size', 'text'],
         asChild: true,
     },
@@ -15,7 +15,7 @@ export const menuAnatomy = defineAnatomy('menu', {
     },
     item: {
         element: 'div',
-        flags: ['disabled', 'highlighted'],
+        flags: ['disabled', 'highlighted', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'text'],
         asChild: true,
     },

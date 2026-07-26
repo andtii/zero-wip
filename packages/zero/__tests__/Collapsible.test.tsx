@@ -48,6 +48,33 @@ describe('Collapsible', () => {
         expect(container.querySelector('[data-part="panel"]')!.getAttribute('data-state')).toBe('open');
     });
 
+    it('publishes press feedback on the trigger, by pointer and by Enter', () => {
+        mount(signal({ open: false }));
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(trigger.hasAttribute('data-pressed')).toBe(true);
+        trigger.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        expect(trigger.hasAttribute('data-pressed')).toBe(false);
+
+        trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+        expect(trigger.hasAttribute('data-pressed')).toBe(true);
+        trigger.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', bubbles: true }));
+        expect(trigger.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('publishes no press feedback while the root is disabled', () => {
+        render(
+            <Collapsible.Root disabled>
+                <Collapsible.Trigger>Toggle</Collapsible.Trigger>
+                <Collapsible.Panel>Content</Collapsible.Panel>
+            </Collapsible.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(trigger.hasAttribute('data-pressed')).toBe(false);
+    });
+
     it('disabled root blocks toggling', () => {
         render(
             <Collapsible.Root disabled>

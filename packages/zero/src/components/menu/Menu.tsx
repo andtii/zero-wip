@@ -27,6 +27,7 @@ import { createTypeahead } from '../../behaviors/typeahead.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { createFocusRestore } from '../../behaviors/focus.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import type { PartProps, WithAsChild, WithClass, WithDisabled } from '../../contract/props.js';
@@ -137,6 +138,10 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal }) => {
     const menu = useMenuContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
+    const press = createPressFeedback({
+        getElement: () => el,
+        isDisabled: () => !!props.disabled,
+    });
 
     const bag = (): PartProps => ({
         'data-scope': SCOPE,
@@ -151,14 +156,23 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal }) => {
             if (!props.disabled) menu.state.value = !menu.state.value;
         },
         onKeydown: (e: KeyboardEvent) => {
+            press.onKeydown(e);
             // ArrowDown on a closed trigger opens the menu (APG).
             if (e.key === 'ArrowDown' && !menu.state.value && !props.disabled) {
                 e.preventDefault();
                 menu.state.value = true;
             }
         },
+        onKeyup: press.onKeyup,
         onFocus: () => { focus.visible = isFocusVisible(el); },
-        onBlur: () => { focus.visible = false; },
+        onBlur: (e: FocusEvent) => {
+            press.onBlur(e);
+            focus.visible = false;
+        },
+        onPointerdown: press.onPointerdown,
+        onPointerup: press.onPointerup,
+        onPointercancel: press.onPointercancel,
+        onPointerleave: press.onPointerleave,
         ref: (node: HTMLElement | null) => { el = node; menu.setAnchor(node); },
     });
 
@@ -231,6 +245,10 @@ const MenuItem = component<MenuItemProps>(({ props, slots, signal, onUnmounted }
     const menu = useMenuContext();
     let el: HTMLElement | null = null;
     const focus = signal({ highlighted: false });
+    const press = createPressFeedback({
+        getElement: () => el,
+        isDisabled: () => !!props.disabled,
+    });
 
     const item: ListItem = {
         id: `item-${props.value}`,
@@ -256,6 +274,7 @@ const MenuItem = component<MenuItemProps>(({ props, slots, signal, onUnmounted }
         'aria-disabled': props.disabled ? 'true' : undefined,
         onClick: () => activate(),
         onKeydown: (e: KeyboardEvent) => {
+            press.onKeydown(e);
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 activate();
@@ -263,9 +282,17 @@ const MenuItem = component<MenuItemProps>(({ props, slots, signal, onUnmounted }
             }
             menu.keydown(e, props.value);
         },
+        onKeyup: press.onKeyup,
         onPointerenter: () => { el?.focus(); },
+        onPointerdown: press.onPointerdown,
+        onPointerup: press.onPointerup,
+        onPointercancel: press.onPointercancel,
+        onPointerleave: press.onPointerleave,
         onFocus: () => { focus.highlighted = true; },
-        onBlur: () => { focus.highlighted = false; },
+        onBlur: (e: FocusEvent) => {
+            press.onBlur(e);
+            focus.highlighted = false;
+        },
         ref: (node: HTMLElement | null) => { el = node; },
     });
 

@@ -226,8 +226,17 @@ component's anatomy). No component code is ever written or changed.
      Accordion's `<details>` is its `item` part, not `root`.
    - **Press feedback: the runtime publishes the press, the recipe styles
      it.** CSS can see `:active` but not *where* a press landed, so on parts
-     whose anatomy declares the `pressed` flag (Button root today) zero
-     writes:
+     whose anatomy declares the `pressed` flag zero writes the data below.
+     Publishing parts: button root; tabs tab; dialog/popover trigger+close;
+     menu trigger+item; select trigger+item (the item is pointer-only —
+     keyboard selection stays on the trigger via aria-activedescendant, so
+     item ripples fire for pointer presses only); collapsible/accordion
+     trigger;
+     switch/checkbox `control` and radio-group `item-control` (the press
+     lands anywhere in the label row, the feedback on the control); slider
+     input (`data-pressed` only — a drag has no one-shot). Lifecycle: a
+     press ends when the gesture ends — uncaptured pointerleave cancels it,
+     a captured pointer (range-input drag, touch) holds it until release.
      - `data-pressed` — present while the pointer/key is physically down.
        Key non-animated press effects on this (a tint, a scale, an offset).
      - `data-press-animating` — present from press-start until the part's CSS
@@ -269,6 +278,24 @@ component's anatomy). No component code is ever written or changed.
      `forced-colors`. The same hooks express non-Material ideas: a brutalist
      stamp (`[data-pressed] { translate: 2px 2px }`), a scale-press, a
      spotlight at `--press-x/y`.
+     **The unbounded variant** (MD3 selection controls): a fixed circle
+     centered on the part — same two pseudos, but `left/top: 50%`, a fixed
+     `width/height` (e.g. `calc(var(--size-selector) * 15)` for a 2.5×
+     halo), coordinates ignored, and NO `overflow: hidden` so the halo
+     extends past the box.
+     **Two lifecycle constraints worth knowing:**
+     - A one-shot animation must target the FLAGGED element (or its own
+       pseudo-elements). The runtime clears `data-press-animating` unless a
+       CSS animation targets that element, and its `animationend` listener
+       ignores events from descendants — so a ripple on a *child's* pseudo
+       silently never plays. Material's switch routes around this: the held
+       layer lives on the thumb's `::before`, lit from the control's flag via
+       a descendant selector (`'&[data-pressed] [data-part="thumb"]::before'`),
+       with no one-shot at all.
+     - Native form controls take vendor pseudos: the slider handle halo is
+       `'&[data-pressed]::-webkit-slider-thumb'` and a SEPARATE
+       `'&[data-pressed]::-moz-range-thumb'` key — one unknown selector in a
+       shared list invalidates the whole rule.
    - `RecipeInput.css` takes raw CSS for anything the typed surface can't say.
    - **Style Button first, and make its axes compose.** It is the component a
      design system is judged on, and the only one where all three axes matter

@@ -90,6 +90,49 @@ describe('Select', () => {
         expect(state.fruit).toBe('banana');
     });
 
+    it('publishes press feedback on the trigger, by pointer and by Enter', () => {
+        mount(signal({ fruit: '' }));
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(trigger.hasAttribute('data-pressed')).toBe(true);
+        trigger.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        expect(trigger.hasAttribute('data-pressed')).toBe(false);
+
+        // triggerKeydown preventDefaults Enter; press composes ahead of it,
+        // so the feedback fires regardless.
+        trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true }));
+        expect(trigger.hasAttribute('data-pressed')).toBe(true);
+        trigger.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter', bubbles: true }));
+        expect(trigger.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('publishes press feedback on items by pointer, skipping disabled ones', () => {
+        mount(signal({ fruit: '' }));
+        container.querySelector<HTMLElement>('[data-part="trigger"]')!.click();
+        const items = container.querySelectorAll<HTMLElement>('[data-part="item"]');
+        items[0]!.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(items[0]!.hasAttribute('data-pressed')).toBe(true);
+        items[0]!.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        expect(items[0]!.hasAttribute('data-pressed')).toBe(false);
+
+        items[2]!.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(items[2]!.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('publishes no press feedback while the root is disabled', () => {
+        render(
+            <Select.Root disabled placeholder="Pick a fruit…">
+                <Select.Trigger>
+                    <Select.Value />
+                </Select.Trigger>
+            </Select.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(trigger.hasAttribute('data-pressed')).toBe(false);
+    });
+
     it('Escape closes without selecting', () => {
         const state = signal({ fruit: '' });
         mount(state);

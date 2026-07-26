@@ -16,6 +16,7 @@ import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import type { WithClass, WithDisabled } from '../../contract/props.js';
 import { collapsibleAnatomy } from './anatomy.js';
@@ -84,6 +85,10 @@ const CollapsibleTrigger = component<CollapsibleTriggerProps>(({ props, slots, s
     const ctx = useCollapsibleContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
+    const press = createPressFeedback({
+        getElement: () => el,
+        isDisabled: () => ctx.disabled(),
+    });
 
     return () => (
         <summary
@@ -100,8 +105,17 @@ const CollapsibleTrigger = component<CollapsibleTriggerProps>(({ props, slots, s
                 e.preventDefault();
                 if (!ctx.disabled()) ctx.state.value = !ctx.state.value;
             }}
+            onKeydown={press.onKeydown}
+            onKeyup={press.onKeyup}
+            onPointerdown={press.onPointerdown}
+            onPointerup={press.onPointerup}
+            onPointercancel={press.onPointercancel}
+            onPointerleave={press.onPointerleave}
             onFocus={() => { focus.visible = isFocusVisible(el); }}
-            onBlur={() => { focus.visible = false; }}
+            onBlur={(e: FocusEvent) => {
+                press.onBlur(e);
+                focus.visible = false;
+            }}
         >
             {slots.default?.()}
         </summary>

@@ -4,7 +4,7 @@ export const popoverAnatomy = defineAnatomy('popover', {
     trigger: {
         element: 'button',
         states: ['open', 'closed'],
-        flags: ['disabled', 'focus-visible'],
+        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size', 'text'],
         asChild: true,
     },
@@ -19,7 +19,7 @@ export const popoverAnatomy = defineAnatomy('popover', {
     },
     close: {
         element: 'button',
-        flags: ['disabled', 'focus-visible'],
+        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size'],
         asChild: true,
     },

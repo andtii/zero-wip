@@ -12,6 +12,7 @@ import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState } from '../../behaviors/controllable.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
 import type { WithClass, WithColor, WithDisabled, WithSize, WithVariant, WithAxes } from '../../contract/props.js';
@@ -56,7 +57,15 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal }) =
         (v) => emit('checkedChange', v),
     );
     let inputEl: HTMLInputElement | null = null;
+    let controlEl: HTMLElement | null = null;
     const focus = signal({ visible: false });
+    // Cross-element press: the row (label) is the pointer target and the
+    // hidden input is the keyboard target, but the feedback lands on the
+    // visible control — coordinates are computed against getElement's rect.
+    const press = createPressFeedback({
+        getElement: () => controlEl,
+        isDisabled: () => !!props.disabled,
+    });
 
     const checkedState = () => stateAttr(state.value, 'checked', 'unchecked');
 
@@ -71,6 +80,10 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal }) =
             data-required={dataAttr(props.required)}
             {...variantAttrs(props)}
             class={props.class}
+            onPointerdown={press.onPointerdown}
+            onPointerup={press.onPointerup}
+            onPointercancel={press.onPointercancel}
+            onPointerleave={press.onPointerleave}
         >
             <input
                 type="checkbox"
@@ -89,7 +102,12 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal }) =
                     state.value = (e.target as HTMLInputElement).checked;
                 }}
                 onFocus={() => { focus.visible = isFocusVisible(inputEl); }}
-                onBlur={() => { focus.visible = false; }}
+                onBlur={(e: FocusEvent) => {
+                    press.onBlur(e);
+                    focus.visible = false;
+                }}
+                onKeydown={press.onKeydown}
+                onKeyup={press.onKeyup}
             />
             <span
                 data-scope={SCOPE}
@@ -97,6 +115,7 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal }) =
                 data-state={checkedState()}
                 data-disabled={dataAttr(props.disabled)}
                 data-focus-visible={dataAttr(focus.visible)}
+                ref={(node: HTMLElement | null) => { controlEl = node; }}
             >
                 <span
                     data-scope={SCOPE}

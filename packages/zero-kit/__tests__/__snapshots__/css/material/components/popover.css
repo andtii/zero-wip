@@ -1,5 +1,8 @@
 @layer zero.recipes {
     [data-scope="popover"][data-part="trigger"] {
+        position: relative;
+        overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
         appearance: none;
         border-radius: 624rem;
         border: var(--border) solid var(--color-outline);
@@ -20,6 +23,38 @@
     [data-scope="popover"][data-part="trigger"][data-focus-visible] {
         outline: 3px solid var(--color-secondary);
         outline-offset: 2px;
+    }
+
+    [data-scope="popover"][data-part="trigger"]::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--color-primary);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-pressed]::before {
+        opacity: 0.12;
+    }
+
+    [data-scope="popover"][data-part="trigger"]::after {
+        content: "";
+        position: absolute;
+        left: var(--press-x, 50%);
+        top: var(--press-y, 50%);
+        width: calc(var(--press-r, 0px) * 2);
+        height: calc(var(--press-r, 0px) * 2);
+        border-radius: 50%;
+        background: var(--color-primary);
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-press-animating]::after {
+        animation: popover-ripple var(--duration-slow) var(--ease-standard);
     }
 
     [data-scope="popover"][data-part="popup"] {
@@ -46,10 +81,14 @@
     }
 
     [data-scope="popover"][data-part="close"] {
+        position: relative;
+        overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
         appearance: none;
         border: none;
         background: transparent;
         color: var(--color-primary);
+        border-radius: var(--radius-selector);
         cursor: pointer;
         font-family: var(--font-sans);
         font-size: var(--text-sm);
@@ -60,6 +99,56 @@
     [data-scope="popover"][data-part="close"][data-focus-visible] {
         outline: 3px solid var(--color-secondary);
         outline-offset: 2px;
+    }
+
+    [data-scope="popover"][data-part="close"]::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--color-primary);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="popover"][data-part="close"][data-pressed]::before {
+        opacity: 0.12;
+    }
+
+    [data-scope="popover"][data-part="close"]::after {
+        content: "";
+        position: absolute;
+        left: var(--press-x, 50%);
+        top: var(--press-y, 50%);
+        width: calc(var(--press-r, 0px) * 2);
+        height: calc(var(--press-r, 0px) * 2);
+        border-radius: 50%;
+        background: var(--color-primary);
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    [data-scope="popover"][data-part="close"][data-press-animating]::after {
+        animation: popover-ripple var(--duration-slow) var(--ease-standard);
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="popover"][data-part="trigger"]::before {
+            display: none;
+        }
+
+        [data-scope="popover"][data-part="trigger"]::after {
+            display: none;
+        }
+
+        [data-scope="popover"][data-part="close"]::before {
+            display: none;
+        }
+
+        [data-scope="popover"][data-part="close"]::after {
+            display: none;
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -78,4 +167,7 @@
             transform: scale(0.9);
         }
     }
+}
+@keyframes popover-ripple {
+    from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }

@@ -13,7 +13,7 @@ export const sliderAnatomy = defineAnatomy('slider', {
     },
     input: {
         element: 'input',
-        flags: ['disabled', 'invalid', 'focus-visible'],
+        flags: ['disabled', 'invalid', 'focus-visible', 'pressed'],
         tokens: ['color', 'radius-selector', 'size'],
     },
     'value-text': {
