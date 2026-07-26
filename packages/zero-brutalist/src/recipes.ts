@@ -5,9 +5,18 @@
  * offset shadow, and uppercase tracked-out mono labels. Pressing something
  * shoves it into its own shadow.
  */
-import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
+import type { CssProps, PartStyles, RecipeInput, RoleDecl } from '@sigx/zero-kit';
+import { roles } from './tokens.js';
 
-const ROLES = ['primary', 'secondary', 'accent', 'neutral', 'info', 'success', 'warning', 'error'] as const;
+/**
+ * Every role a consumer can pass as `color`, derived from the declaration
+ * rather than retyped — a role declared in `tokens.ts` but missing here would
+ * silently render primary. Roles opting out of `-content` or `-soft` are
+ * fills or hairlines, not action colours; this design system declares none.
+ */
+const ROLES = Object.entries(roles as Record<string, RoleDecl>)
+    .filter(([, decl]) => decl.content !== false && decl.soft !== false)
+    .map(([name]) => name);
 
 /** Uppercase, tracked out, mono, heavy — the brief's label treatment. */
 const label: CssProps = {

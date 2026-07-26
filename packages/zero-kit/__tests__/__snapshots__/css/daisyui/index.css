@@ -205,6 +205,41 @@
         background: var(--color-primary);
         color: var(--color-primary-content);
     }
+
+    [data-scope="tabs"][data-part="root"][data-color="secondary"] [data-scope="tabs"][data-part="tab"][data-state="active"] {
+        background: var(--color-secondary);
+        color: var(--color-secondary-content);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="accent"] [data-scope="tabs"][data-part="tab"][data-state="active"] {
+        background: var(--color-accent);
+        color: var(--color-accent-content);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="neutral"] [data-scope="tabs"][data-part="tab"][data-state="active"] {
+        background: var(--color-neutral);
+        color: var(--color-neutral-content);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="info"] [data-scope="tabs"][data-part="tab"][data-state="active"] {
+        background: var(--color-info);
+        color: var(--color-info-content);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="success"] [data-scope="tabs"][data-part="tab"][data-state="active"] {
+        background: var(--color-success);
+        color: var(--color-success-content);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="warning"] [data-scope="tabs"][data-part="tab"][data-state="active"] {
+        background: var(--color-warning);
+        color: var(--color-warning-content);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="error"] [data-scope="tabs"][data-part="tab"][data-state="active"] {
+        background: var(--color-error);
+        color: var(--color-error-content);
+    }
 }
 
 @layer zero.recipes {

@@ -5,20 +5,25 @@
  * tonal surface roles, the `level1`–`level5` elevation ramp, Material's
  * emphasized easings, and a dialog that goes full-screen below `sm`.
  */
-import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
+import type { CssProps, PartStyles, RecipeInput, RoleDecl } from '@sigx/zero-kit';
+import { roles } from './tokens.js';
 
 /**
- * Every role a consumer can pass as `color`. Must stay in step with the
- * `roles` declaration: a role declared there but missing here renders
- * primary, because nothing sets `--btn-accent` and it keeps the value from
- * `tokens` below. That reads as the variant not working at all rather than
- * as one role being unwired. `surface*` and `outline` are excluded
- * deliberately — they are fills and hairlines, not action colours.
+ * Every role a consumer can pass as `color`, DERIVED from the declaration.
+ *
+ * It used to be retyped here, with a comment warning that the two had to be
+ * kept in step: a role declared in `tokens.ts` but missing from this list
+ * renders primary, because nothing sets `--btn-accent`, which reads as the
+ * variant being broken rather than as one role being unwired.
+ *
+ * The declaration already says which roles are action colours. Material's
+ * `surface*` tones opt out of `-soft` and `outline` opts out of `-content`,
+ * because they are fills and hairlines — not something a button can be. So
+ * the exclusion the hand-written list encoded by hand is exactly this filter.
  */
-const ROLES = [
-    'primary', 'secondary', 'tertiary', 'accent',
-    'error', 'info', 'success', 'warning', 'neutral',
-] as const;
+const ROLES = Object.entries(roles as Record<string, RoleDecl>)
+    .filter(([, decl]) => decl.content !== false && decl.soft !== false)
+    .map(([name]) => name);
 
 const focusRing: Record<string, CssProps> = {
     'focus-visible': {

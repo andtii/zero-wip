@@ -4,7 +4,19 @@
  * package: a design system is data, and "looks like daisy" is one possible
  * value of that data.
  */
-import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
+import type { CssProps, PartStyles, RecipeInput, RoleDecl } from '@sigx/zero-kit';
+import { roles } from './tokens.js';
+
+/**
+ * Every role a consumer can pass as `color`, derived from the declaration
+ * rather than retyped — a role declared in `tokens.ts` but missing here would
+ * silently render as the default colour instead. Roles opting out of
+ * `-content` or `-soft` are fills or hairlines, not action colours; this
+ * design system declares none.
+ */
+const ROLES = Object.entries(roles as Record<string, RoleDecl>)
+    .filter(([, decl]) => decl.content !== false && decl.soft !== false)
+    .map(([name]) => name);
 
 const focusRing: Record<string, NonNullable<PartStyles['base']>> = {
     'focus-visible': {
@@ -134,11 +146,25 @@ export const tabs: RecipeInput = {
         },
     },
     variants: {
-        color: {
-            primary: {
-                tab: { states: { active: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' } } },
-            },
-        },
+        // Every role, not just primary. `data-color` passes through whatever a
+        // consumer sets, so a one-role axis made `<Tabs.Root color="success">`
+        // type-check, emit the attribute, and match nothing — the tab just
+        // stayed primary with no diagnostic anywhere.
+        color: Object.fromEntries(
+            ROLES.map((c) => [
+                c,
+                {
+                    tab: {
+                        states: {
+                            active: {
+                                background: `var(--color-${c})`,
+                                color: `var(--color-${c}-content)`,
+                            },
+                        },
+                    },
+                },
+            ]),
+        ),
     },
 };
 
@@ -258,7 +284,7 @@ export const switchRecipe: RecipeInput = {
     },
     variants: {
         color: Object.fromEntries(
-            (['primary', 'secondary', 'accent', 'neutral', 'info', 'success', 'warning', 'error'] as const).map((c) => [
+            ROLES.map((c) => [
                 c,
                 {
                     control: {
@@ -855,7 +881,7 @@ export const button: RecipeInput = {
         // variants below read these two tokens, so adding a colour
         // costs one rule instead of four.
         color: Object.fromEntries(
-            (['primary', 'secondary', 'accent', 'neutral', 'info', 'success', 'warning', 'error'] as const).map((c) => [
+            ROLES.map((c) => [
                 c,
                 {
                     root: {

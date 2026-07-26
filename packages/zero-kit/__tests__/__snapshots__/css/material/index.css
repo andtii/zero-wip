@@ -279,16 +279,16 @@
         --btn-soft: var(--color-tertiary-soft);
     }
 
-    [data-scope="button"][data-part="root"][data-color="accent"] {
-        --btn-accent: var(--color-accent);
-        --btn-on-accent: var(--color-accent-content);
-        --btn-soft: var(--color-accent-soft);
-    }
-
     [data-scope="button"][data-part="root"][data-color="error"] {
         --btn-accent: var(--color-error);
         --btn-on-accent: var(--color-error-content);
         --btn-soft: var(--color-error-soft);
+    }
+
+    [data-scope="button"][data-part="root"][data-color="neutral"] {
+        --btn-accent: var(--color-neutral);
+        --btn-on-accent: var(--color-neutral-content);
+        --btn-soft: var(--color-neutral-soft);
     }
 
     [data-scope="button"][data-part="root"][data-color="info"] {
@@ -309,10 +309,10 @@
         --btn-soft: var(--color-warning-soft);
     }
 
-    [data-scope="button"][data-part="root"][data-color="neutral"] {
-        --btn-accent: var(--color-neutral);
-        --btn-on-accent: var(--color-neutral-content);
-        --btn-soft: var(--color-neutral-soft);
+    [data-scope="button"][data-part="root"][data-color="accent"] {
+        --btn-accent: var(--color-accent);
+        --btn-on-accent: var(--color-accent-content);
+        --btn-soft: var(--color-accent-soft);
     }
 
     [data-scope="button"][data-part="root"][data-variant="solid"] {

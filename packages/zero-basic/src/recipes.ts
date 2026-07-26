@@ -2,7 +2,19 @@
  * zero-basic recipes — readable neutral styling for every zero component.
  * Pure data (type-only kit imports); compiled to CSS by build.mjs.
  */
-import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
+import type { CssProps, PartStyles, RecipeInput, RoleDecl } from '@sigx/zero-kit';
+import { roles } from './tokens.js';
+
+/**
+ * Every role a consumer can pass as `color`, derived from the declaration
+ * rather than retyped — a role declared in `tokens.ts` but missing here would
+ * silently render as the default colour instead. Roles opting out of
+ * `-content` or `-soft` are fills or hairlines, not action colours; this
+ * design system declares none.
+ */
+const ROLES = Object.entries(roles as Record<string, RoleDecl>)
+    .filter(([, decl]) => decl.content !== false && decl.soft !== false)
+    .map(([name]) => name);
 
 const focusRing: Record<string, PartStyles['base']> = {
     'focus-visible': {
@@ -242,7 +254,7 @@ export const switchRecipe: RecipeInput = {
     },
     variants: {
         color: Object.fromEntries(
-            (['primary', 'secondary', 'accent', 'neutral', 'info', 'success', 'warning', 'error'] as const).map((c) => [
+            ROLES.map((c) => [
                 c,
                 {
                     control: {
@@ -879,7 +891,7 @@ export const button: RecipeInput = {
         // variants below read these two tokens, so adding a colour
         // costs one rule instead of four.
         color: Object.fromEntries(
-            (['primary', 'secondary', 'accent', 'neutral', 'info', 'success', 'warning', 'error'] as const).map((c) => [
+            ROLES.map((c) => [
                 c,
                 {
                     root: {
