@@ -292,10 +292,11 @@ component's anatomy). No component code is ever written or changed.
        layer lives on the thumb's `::before`, lit from the control's flag via
        a descendant selector (`'&[data-pressed] [data-part="thumb"]::before'`),
        with no one-shot at all.
-     - Native form controls need a custom skin before press feedback can
-       render at all: Blink ignores thumb-pseudo styling on a native
-       (`appearance: auto`) slider, so a halo written against
-       `::-webkit-slider-thumb` silently never paints. Skin the input
+     - A native slider needs a custom skin before press feedback can
+       render in Blink: it ignores thumb-pseudo styling on a native
+       (`appearance: auto`) range input, so a halo written against
+       `::-webkit-slider-thumb` silently never paints there (Gecko honours
+       `::-moz-range-thumb` either way — skin it anyway, for one look). Skin the input
        (`appearance: 'none'`, own track and thumb pseudos), then set ONE
        custom property from the states and read it in each vendor thumb
        pseudo — the pseudos cannot share a selector list (one unknown
@@ -308,7 +309,7 @@ component's anatomy). No component code is ever written or changed.
            pressed: { '--slider-halo': 'color-mix(in oklab, var(--color-primary) 12%, transparent)' },
        },
        selectors: {
-           '&::-webkit-slider-thumb': { /* size, radius, background, */ boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)' },
+           '&::-webkit-slider-thumb': { appearance: 'none', /* size, radius, background, */ boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)' },
            '&::-moz-range-thumb': { /* same, separate key */ },
        },
        ```
