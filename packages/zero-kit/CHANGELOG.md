@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **Selector injection through variant axis names and values.** Recipe
+  compilation interpolated them straight into `[data-<axis>="<value>"]`, so a
+  value containing a quote closed the attribute early and everything after it
+  was read as CSS — `size: { 'x"], [data-part="panel': … }` emitted a second,
+  unrelated selector styling every tab inside any panel. `compileRecipeCss`
+  now throws on an axis name or value that isn't a kebab-case identifier (the
+  same `TOKEN_KEY_PATTERN` every other declared name obeys), and
+  `validateRecipes` reports it as an error first, including for
+  `compoundVariants.match`. `tokens.sizes` entries are checked at the
+  declaration too. Affects all axes, not just `size`.
+
 ### Changed (breaking — pre-release)
 
 - `ZeroManifest.tokens.sizeScale` is now `tokens.recommendedSizes`, matching

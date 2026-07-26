@@ -11,7 +11,7 @@
  * and failing the build is how recipes stay in lockstep with core.
  */
 import type { ManifestComponent, ManifestPart } from './contract.js';
-import { INTERACTION_STATES, VARIANT_AXES } from './contract.js';
+import { INTERACTION_STATES, TOKEN_KEY_PATTERN, VARIANT_AXES } from './contract.js';
 
 export type CssProps = Record<string, string | number>;
 
@@ -328,8 +328,34 @@ function renderBucket(conditions: Condition[], rules: string[]): string {
     return body;
 }
 
-function axisAttr(axis: string): string {
-    return VARIANT_AXES[axis] ?? `data-${axis}`;
+function axisAttr(axis: string, scope: string): string {
+    return VARIANT_AXES[axis] ?? `data-${assertAxisToken('axis', axis, scope)}`;
+}
+
+/**
+ * Axis names and values become `[data-<axis>="<value>"]`, so they have to be
+ * spellable as an identifier.
+ *
+ * The vocabularies are open by design — a design system names its own roles,
+ * sizes and variants — but "open" stops at what can survive being written into
+ * a selector. A value carrying a `"` closes the attribute early and everything
+ * after it is read as CSS: `size: { 'x"], [data-part="panel': … }` emitted a
+ * second, unrelated selector that styled every tab inside any panel. That is
+ * selector injection, not a typo.
+ *
+ * A hard error rather than escaping, for the reason this module already throws
+ * on unknown parts and states: the contract is the contract, and failing the
+ * build is how recipes stay honest. `validateRecipes` reports the same thing
+ * as a collected error with a friendlier message; this is the backstop for
+ * calling `compileRecipeCss` directly, which is public API.
+ */
+function assertAxisToken(kind: 'axis' | 'value', token: string, scope: string): string {
+    if (!TOKEN_KEY_PATTERN.test(token)) {
+        throw new Error(
+            `[zero-kit] recipe for "${scope}" uses ${kind} "${token}", which is not a kebab-case identifier — it would be written into a [data-…] selector`,
+        );
+    }
+    return token;
 }
 
 /** Compile one recipe to CSS (inside `@layer zero.recipes`). */
@@ -357,11 +383,11 @@ export function compileRecipeCss(
     }
 
     for (const [axis, values] of Object.entries(recipe.variants ?? {})) {
-        const attr = axisAttr(axis);
+        const attr = axisAttr(axis, component.scope);
         for (const [value, parts] of Object.entries(values)) {
             for (const [partName, styles] of Object.entries(parts)) {
                 findPart(component, partName);
-                const selector = variantSelector(component, partName, `[${attr}="${value}"]`);
+                const selector = variantSelector(component, partName, `[${attr}="${assertAxisToken('value', value, component.scope)}"]`);
                 emitPartStyles(component, partName, styles, selector, sink, context, registry);
 
                 // CSS-only default: the same styles apply when the attribute
@@ -377,7 +403,7 @@ export function compileRecipeCss(
 
     for (const compoundVariant of recipe.compoundVariants ?? []) {
         const attrs = Object.entries(compoundVariant.match)
-            .map(([axis, value]) => `[${axisAttr(axis)}="${value}"]`)
+            .map(([axis, value]) => `[${axisAttr(axis, component.scope)}="${assertAxisToken('value', value, component.scope)}"]`)
             .join('');
         for (const [partName, styles] of Object.entries(compoundVariant.parts)) {
             findPart(component, partName);

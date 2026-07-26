@@ -9,7 +9,7 @@
  */
 import { parse, converter } from 'culori';
 import type { ManifestPart, ZeroManifest } from './contract.js';
-import { VARIANT_AXES } from './contract.js';
+import { TOKEN_KEY_PATTERN, VARIANT_AXES } from './contract.js';
 import type { CssProps, PartStyles, RecipeInput } from './recipes.js';
 import type { ValidationIssue } from './validate.js';
 import type { TokenVocabulary } from './vocabulary.js';
@@ -145,6 +145,23 @@ export function validateRecipes(
     const issues: ValidationIssue[] = [];
     const error = (where: string, message: string) => issues.push({ level: 'error', where, message });
     const warn = (where: string, message: string) => issues.push({ level: 'warning', where, message });
+
+    // Axis names and values are interpolated into `[data-<axis>="<value>"]`.
+    // The vocabularies are open by design, so "open" has to stop at what can
+    // actually be an attribute — otherwise a value carrying a quote closes the
+    // selector early and everything after it is read as CSS, silently styling
+    // parts the recipe never named. `compileRecipeCss` escapes the value as
+    // well; this is where an author gets told.
+    const checkAxisName = (axis: string, where: string) => {
+        if (!TOKEN_KEY_PATTERN.test(axis)) {
+            error(where, `axis "${axis}" is not a kebab-case identifier — it becomes the attribute name data-${axis}`);
+        }
+    };
+    const checkAxisValue = (axis: string, value: string, where: string) => {
+        if (!TOKEN_KEY_PATTERN.test(value)) {
+            error(where, `"${value}" is not a kebab-case identifier — it becomes the attribute value in [data-${axis}="…"]`);
+        }
+    };
 
     const byScope = new Map(manifest.components.map((c) => [c.scope, c]));
 
@@ -341,6 +358,10 @@ export function validateRecipes(
 
         // ── variant axes and values ──
         for (const [axis, values_] of Object.entries(recipe.variants ?? {})) {
+            checkAxisName(axis, `${where}.variants`);
+            for (const value of Object.keys(values_)) {
+                checkAxisValue(axis, value, `${where}.variants.${axis}`);
+            }
             if (!Object.hasOwn(VARIANT_AXES, axis)) {
                 warn(
                     `${where}.variants`,
@@ -359,6 +380,13 @@ export function validateRecipes(
                         );
                     }
                 }
+            }
+        }
+
+        for (const compound of recipe.compoundVariants ?? []) {
+            for (const [axis, value] of Object.entries(compound.match)) {
+                checkAxisName(axis, `${where}.compoundVariants`);
+                checkAxisValue(axis, value, `${where}.compoundVariants.${axis}`);
             }
         }
 

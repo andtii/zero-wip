@@ -61,6 +61,50 @@ describe('compileRecipeCss', () => {
         expect(css).toContain('font-weight: 700;');
     });
 
+    it('refuses a variant name or value that would break out of its selector', () => {
+        // Axis vocabularies are open, so "open" has to stop at what survives
+        // being written into `[data-<axis>="<value>"]`. Unguarded, this value
+        // closed the attribute early and emitted a SECOND selector —
+        // `[data-part="panel"] [data-scope="tabs"][data-part="tab"]` — styling
+        // every tab inside any panel. `validateRecipes` reports it as a
+        // collected error; compileRecipeCss is public API and can be called
+        // without validating, so it refuses outright.
+        const injected = 'x"], [data-part="panel';
+        expect(() => compileRecipeCss({
+            component: 'tabs',
+            parts: { tab: { base: { padding: '1rem' } } },
+            variants: { size: { [injected]: { tab: { base: { color: 'red' } } } } },
+        }, tabsComponent)).toThrow(/not a kebab-case identifier/);
+
+        expect(() => compileRecipeCss({
+            component: 'tabs',
+            parts: { tab: { base: { padding: '1rem' } } },
+            variants: { [injected]: { a: { tab: { base: { color: 'red' } } } } },
+        }, tabsComponent)).toThrow(/not a kebab-case identifier/);
+
+        expect(() => compileRecipeCss({
+            component: 'tabs',
+            parts: { tab: { base: { padding: '1rem' } } },
+            compoundVariants: [{ match: { size: injected }, parts: { tab: { base: { color: 'red' } } } }],
+        }, tabsComponent)).toThrow(/not a kebab-case identifier/);
+    });
+
+    it('still accepts every spelling the shipped design systems use', () => {
+        // The guard must not be stricter than real vocabulary: `2xl` starts
+        // with a digit and `base-100` is hyphenated-numeric, and both are
+        // legitimate axis values.
+        const css = compileRecipeCss({
+            component: 'tabs',
+            parts: { tab: { base: { padding: '1rem' } } },
+            variants: {
+                size: { '2xl': { tab: { base: { padding: '2rem' } } } },
+                color: { 'base-100': { tab: { base: { color: 'red' } } } },
+            },
+        }, tabsComponent);
+        expect(css).toContain('[data-size="2xl"]');
+        expect(css).toContain('[data-color="base-100"]');
+    });
+
     it('rejects unknown parts and states', () => {
         expect(() => compileRecipeCss({ component: 'tabs', parts: { nope: { base: { color: 'red' } } } }, tabsComponent))
             .toThrow(/unknown part "nope"/);

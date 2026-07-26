@@ -210,6 +210,37 @@ describe('variants', () => {
         }).warnings).toContainEqual(expect.stringContaining('not a contract axis'));
     });
 
+    it('errors on a variant value that would break out of its selector', () => {
+        // The axis vocabularies are open, so "open" has to stop at what can
+        // be an attribute value. This one closes the selector early and
+        // appends a second, unrelated one — the styles would land on every
+        // tab inside any panel, which no recipe asked for.
+        expect(check({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            variants: { size: { 'x"], [data-part="panel': { tab: { base: { color: 'red' } } } } },
+        }).errors).toContainEqual(expect.stringContaining('not a kebab-case identifier'));
+    });
+
+    it('errors on an axis NAME that would break out of its selector', () => {
+        expect(check({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            variants: { 'x="y"], [data-part="panel': { a: { tab: { base: { color: 'red' } } } } },
+        }).errors).toContainEqual(expect.stringContaining('not a kebab-case identifier'));
+    });
+
+    it('errors on a compound-variant match value that would break out', () => {
+        expect(check({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            compoundVariants: [{
+                match: { size: 'x"], [data-part="panel' },
+                parts: { tab: { base: { color: 'red' } } },
+            }],
+        }).errors).toContainEqual(expect.stringContaining('not a kebab-case identifier'));
+    });
+
     it('warns on a size outside the design system\'s ramp', () => {
         expect(check({
             component: 'tabs',
