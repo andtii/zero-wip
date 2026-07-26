@@ -25,6 +25,8 @@ export interface TokenVocabulary {
      * `tokens.sizes`, else the recommended ramp.
      */
     sizes: readonly string[];
+    /** The declared colour roles — what the `color` axis may key on. */
+    roles: ReadonlySet<string>;
     /** Closest known name, for a "did you mean" hint. */
     nearest(name: string): string | undefined;
 }
@@ -108,6 +110,7 @@ export function tokenVocabulary(tokens: TokensInput<any, any>): TokenVocabulary 
     return {
         names,
         sizes: resolveSizes(tokens.sizes),
+        roles: new Set(Object.keys(roles)),
         nearest(name) {
             let best: string | undefined;
             let bestDistance = 4; // anything further apart isn't a typo

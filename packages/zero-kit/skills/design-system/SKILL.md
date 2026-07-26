@@ -240,6 +240,24 @@ component's anatomy). No component code is ever written or changed.
      defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },
      ```
      Adding a ninth role then costs one rule instead of four.
+   - **Derive the colour axis from `roles`; never retype the list.** A role
+     declared in `tokens.ts` but missing from a recipe's `color` axis renders
+     as the default colour — the variant reads as broken rather than as one
+     role being unwired, and nothing in the type system notices. Import
+     `roles` as a value and filter it:
+     ```ts
+     import { roles } from './tokens.js';
+
+     // Roles opting out of `-content` or `-soft` are fills and hairlines
+     // (Material's `surface*`, `outline`) — not something a button can be.
+     const ROLES = Object.entries(roles as Record<string, RoleDecl>)
+         .filter(([, decl]) => decl.content !== false && decl.soft !== false)
+         .map(([name]) => name);
+     ```
+     Wire the SAME set on every component that has a colour axis. The
+     validator errors on a colour value that names no declared role, and warns
+     when one component wires fewer roles than its siblings — holding a role
+     back everywhere on purpose is fine and says nothing.
    - **The `size` axis is your vocabulary too.** `xs|sm|md|lg|xl` is the
      recommended ramp, not a fixed one. If the brief calls for density steps
      or a numbered ramp, declare it and use it — `<Button.Root size="…">`

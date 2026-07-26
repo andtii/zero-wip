@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Added
+
+- Two validator rules for the colour axis, the counterpart to the size-ramp
+  check: an **error** on a `variants.color` key that names no declared role
+  (it compiles to a selector `data-color` can never match), and a **warning**
+  when one component wires fewer roles than its siblings. The second catches
+  a component claiming the axis and under-delivering — `@sigx/zero-daisyui`
+  styled only `primary` on Tabs while Button looped all eight, so
+  `<Tabs.Root color="success">` type-checked, emitted the attribute and
+  matched nothing. A role held back consistently across every component
+  (`@sigx/zero-material`'s tonal surfaces) is a deliberate choice and says
+  nothing.
+- `TokenVocabulary` gains `roles`, alongside `sizes`.
+
 ### Fixed
 
 - **Selector injection through variant axis names and values.** Recipe

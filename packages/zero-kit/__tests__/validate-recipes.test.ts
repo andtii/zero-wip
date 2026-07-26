@@ -241,6 +241,41 @@ describe('variants', () => {
         }).errors).toContainEqual(expect.stringContaining('not a kebab-case identifier'));
     });
 
+    it('errors on a colour value that names no declared role', () => {
+        // `data-color` passes through verbatim, so the selector is emitted and
+        // simply never matches — dead CSS with no diagnostic. The probe design
+        // system declares only `primary`.
+        expect(check({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            variants: { color: { brnad: { tab: { base: { color: 'red' } } } } },
+        }).errors).toContainEqual(expect.stringContaining('is not a declared role'));
+    });
+
+    it('warns when one component wires fewer roles than its siblings', () => {
+        // The daisyUI bug this rule was written for: Button looped every role
+        // while Tabs wired only `primary`, so `<Tabs.Root color="success">`
+        // type-checked, emitted data-color, and matched nothing.
+        const twoRoles = (name: string, wired: string[]): RecipeInput => ({
+            component: name,
+            parts: { root: { base: { padding: '0' } } },
+            variants: Object.fromEntries([['color', Object.fromEntries(
+                wired.map((r) => [r, { root: { base: { color: `var(--color-${r})` } } }]),
+            )]]),
+        });
+        const ds = dsWith(twoRoles('button', ['primary', 'accent']));
+        ds.recipes.push(twoRoles('progress', ['primary']));
+        ds.tokens.roles = { primary: {}, accent: {} } as DesignSystemInput['tokens']['roles'];
+        ds.tokens.themes.l!.colors = {
+            ...colors, accent: 'oklch(50% 0.2 30)', 'accent-content': 'oklch(98% 0.01 30)',
+        } as DesignSystemInput['tokens']['themes'][string]['colors'];
+
+        const warnings = validateDesignSystem(ds, manifest).warnings.map((w) => w.message);
+        expect(warnings).toContainEqual(expect.stringContaining('color="accent" renders as the default here'));
+        // …and the component that wires everything is not itself flagged.
+        expect(warnings.filter((w) => w.includes('renders as the default here'))).toHaveLength(1);
+    });
+
     it('warns on a size outside the design system\'s ramp', () => {
         expect(check({
             component: 'tabs',

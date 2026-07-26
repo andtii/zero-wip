@@ -165,6 +165,9 @@ export function validateRecipes(
 
     const byScope = new Map(manifest.components.map((c) => [c.scope, c]));
 
+    /** component scope → the roles its `color` axis wires. Compared at the end. */
+    const colorAxisByComponent = new Map<string, Set<string>>();
+
     // ── every component the manifest declares should be styled ──
     const styled = new Set(recipes.map((r) => r.component));
     const unstyled = manifest.components.map((c) => c.scope).filter((s) => !styled.has(s));
@@ -381,6 +384,21 @@ export function validateRecipes(
                     }
                 }
             }
+            if (axis === 'color') {
+                // A colour key that names no declared role is dead CSS: zero
+                // passes `data-color` through verbatim, so the selector is
+                // emitted and simply never matches anything the design system
+                // can produce.
+                for (const value of Object.keys(values_)) {
+                    if (!vocabulary.roles.has(value)) {
+                        error(
+                            `${where}.variants.color`,
+                            `"${value}" is not a declared role (${[...vocabulary.roles].join(', ')})`,
+                        );
+                    }
+                }
+                colorAxisByComponent.set(recipe.component, new Set(Object.keys(values_)));
+            }
         }
 
         for (const compound of recipe.compoundVariants ?? []) {
@@ -399,6 +417,34 @@ export function validateRecipes(
                 `"${recipe.component}" has no "root" part, so the variant attribute falls back to "${component.parts[0]?.name}" — ` +
                 'the generated descendant selectors would not match and the rules are dead',
             );
+        }
+    }
+
+    // ── the colour axis should mean the same thing on every component ──
+    //
+    // Zero passes `data-color` through verbatim, so `<Tabs.Root color="success">`
+    // type-checks and emits the attribute whether or not any rule matches it.
+    // A component wiring fewer roles than its siblings therefore fails
+    // silently: the consumer gets the default colour and no diagnostic.
+    //
+    // Compared against the UNION the design system wires rather than against
+    // its declared roles, so a role held back everywhere on purpose (a tonal
+    // surface that is a fill, not an action colour) says nothing, while one
+    // component lagging behind the others does.
+    if (colorAxisByComponent.size > 1) {
+        const wiredAnywhere = new Set(
+            [...colorAxisByComponent.values()].flatMap((roles) => [...roles]),
+        );
+        for (const [scope, wired] of colorAxisByComponent) {
+            const missing = [...wiredAnywhere].filter((role) => !wired.has(role));
+            if (missing.length > 0) {
+                warn(
+                    `recipes.${scope}.variants.color`,
+                    `wires ${wired.size} of the ${wiredAnywhere.size} roles other components style — `
+                    + `color="${missing[0]}" renders as the default here but not elsewhere `
+                    + `(missing: ${missing.join(', ')})`,
+                );
+            }
         }
     }
 
