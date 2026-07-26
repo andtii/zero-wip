@@ -4,6 +4,17 @@
 
 ### Added
 
+- **JSON Schemas for the authoring surfaces** (draft 2020-12), shipped in
+  `schemas/` and copied to `dist/schemas/` by the build, for publication at
+  `https://signalxjs.github.io/zero/schemas/`:
+  `tokens.schema.json` (`TokensInput`), `recipe.schema.json` (`RecipeInput`)
+  and `manifest.schema.json` — the manifest `@sigx/zero` already emitted with
+  that `$schema` URL, which now exists. A generator can emit tokens/recipes as
+  plain JSON, schema-check the structure, then run `zero-kit validate` for the
+  semantic half. The schemas are validated against every shipped design
+  system (and the real zero manifest) by the test suite, including negative
+  cases, so they cannot silently drift from the TypeScript types.
+
 - **`RUNTIME_PROPERTIES`** — the custom properties the `@sigx/zero` runtime
   writes on elements (`--press-x/y/r`, `--progress-percent`,
   `--slider-percent`) are now part of the token vocabulary, so recipes may

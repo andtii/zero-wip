@@ -29,6 +29,7 @@ import {
     BASE_SURFACE_TOKEN_LIST,
     DEFAULT_ROLES,
     TOKEN_CATEGORIES,
+    TOKEN_KEY_PATTERN,
     resolveRoles,
     systemNodeAt,
     tokenProperty,
@@ -613,6 +614,15 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
     }
 
     for (const [name, theme] of Object.entries(input.themes)) {
+        // The name is interpolated into `[data-theme="<name>"]` — the same
+        // selector-injection surface the axis values guard against. A quote
+        // in a theme name would close the attribute and everything after it
+        // would be read as CSS.
+        if (!TOKEN_KEY_PATTERN.test(name)) {
+            throw new Error(
+                `[zero-kit] theme "${name}" is not a kebab-case identifier — it becomes the selector [data-theme="${name}"]`,
+            );
+        }
         const nonColor = nonColorFor(input, theme);
         // Emit only what this theme actually changes relative to the :root
         // defaults, plus the scheme-divergent set. Everything else is

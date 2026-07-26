@@ -18,6 +18,19 @@ const tabsComponent = manifest.components.find((c) => c.scope === 'tabs')!;
 describe('compileTokensCss', () => {
     const css = compileTokensCss(basicTokens);
 
+    it('refuses a theme name that would break out of its selector', () => {
+        // `[data-theme="<name>"]` is an injection surface exactly like the
+        // axis values: a quote in the name closes the attribute and the rest
+        // is read as CSS.
+        expect(() => compileTokensCss({
+            ...basicTokens,
+            themes: {
+                ...basicTokens.themes,
+                'x"] [data-part="popup': { colorScheme: 'light', colors: { ...Object.values(basicTokens.themes)[0]!.colors } },
+            },
+        })).toThrow(/kebab-case identifier/);
+    });
+
     it('emits the tokens layer with :root light-dark pairs', () => {
         expect(css).toContain('@layer zero.tokens');
         expect(css).toContain('color-scheme: light dark;');
