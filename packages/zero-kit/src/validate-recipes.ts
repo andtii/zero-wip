@@ -223,11 +223,16 @@ export function validateRecipes(
         //  - a transition that doesn't carry `display`/`overlay` through
         //    `allow-discrete`, so the element is gone before the exit can
         //    play. The entry animates, the exit does not, and nothing says so.
-        for (const [partName, styles] of Object.entries(recipe.parts)) {
-            const startsFrom = Object.keys(styles.at ?? {}).some(
-                (key) => key === 'starting-style' || key === '@starting-style',
+        const declaresEntry = (styles: PartStyles | undefined): boolean =>
+            Object.entries(styles?.at ?? {}).some(
+                ([key, nested]) =>
+                    key === 'starting-style' || key.trim() === '@starting-style' || declaresEntry(nested),
             );
-            if (!startsFrom) continue;
+        for (const [partName, styles] of Object.entries(recipe.parts)) {
+            // Recursive: a responsive entry animation nests the starting
+            // styles under the breakpoint (`at.md.at['starting-style']`), and
+            // that needs the exit half just as much.
+            if (!declaresEntry(styles)) continue;
             const transitions = [...declarations(recipe)]
                 .filter((d) => d.path.startsWith(`parts.${partName}.`))
                 .flatMap((d) => Object.entries(d.props))

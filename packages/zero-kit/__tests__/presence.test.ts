@@ -63,6 +63,28 @@ describe('the starting-style condition', () => {
         const css = compileDesignSystem(ds, manifest).componentCss.popover!;
         expect(css.indexOf('@starting-style')).toBeGreaterThan(css.indexOf('opacity: 1;'));
     });
+
+    it('puts the raw `@starting-style` spelling in the same place', () => {
+        // Both spellings are documented, so they have to behave identically.
+        // As a plain raw prelude the entry rule would sort first and could
+        // precede the breakpoint rule it needs to interpolate from.
+        const popup = (key: string) => ({
+            base: { transition: 'opacity 1ms, display 1ms allow-discrete' },
+            at: {
+                [key]: { states: { open: { opacity: '0' } } },
+                sm: { states: { open: { opacity: '1' } } },
+            },
+        });
+        const css = (key: string) => compileDesignSystem({
+            name: 'probe',
+            tokens: basic.tokens,
+            recipes: [{ component: 'popover', parts: { popup: popup(key) } } as RecipeInput],
+        } as DesignSystemInput, manifest).componentCss.popover!;
+        for (const key of ['starting-style', '@starting-style']) {
+            const out = css(key);
+            expect(out.indexOf('@starting-style'), key).toBeGreaterThan(out.indexOf('@media (min-width'));
+        }
+    });
 });
 
 describe.each(SYSTEMS)('%s animates presence', (name, ds) => {
@@ -145,6 +167,21 @@ describe('the validator catches a half-animated popup', () => {
             at: { 'starting-style': { states: { open: { opacity: '0' } } } },
         }));
         expect(messages.filter((m) => m.includes('starting-style'))).toEqual([]);
+    });
+
+    it('sees starting styles nested under another condition', () => {
+        // A responsive entry animation puts them under the breakpoint; it
+        // needs the exit half just as much as a flat one does.
+        const messages = warnings(recipe({
+            base: { opacity: '0' },
+            at: {
+                sm: {
+                    base: { transition: 'opacity var(--duration-fast) var(--ease-standard)' },
+                    at: { 'starting-style': { states: { open: { opacity: '0' } } } },
+                },
+            },
+        }));
+        expect(messages.some((m) => m.includes('the exit will not'))).toBe(true);
     });
 
     it('says nothing about a part that never asks for an entry animation', () => {

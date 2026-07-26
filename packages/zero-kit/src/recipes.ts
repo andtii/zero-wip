@@ -217,7 +217,12 @@ function resolveCondition(
     let condition: Condition;
 
     if (key.startsWith('@')) {
-        condition = { prelude: key, tier: TIER.raw, ordinal: registry.size };
+        // `@starting-style` is spellable both as the built-in name and as the
+        // raw prelude, so the raw form takes the same tier — otherwise the
+        // two spellings would emit in different places and only one of them
+        // would reliably follow the rule it interpolates from.
+        const tier = key.trim() === '@starting-style' ? TIER.startingStyle : TIER.raw;
+        condition = { prelude: key, tier, ordinal: registry.size };
     } else if (Object.hasOwn(breakpoints, key)) {
         condition = {
             prelude: `@media (min-width: ${breakpoints[key]})`,
