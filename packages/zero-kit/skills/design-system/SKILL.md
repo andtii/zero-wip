@@ -228,7 +228,10 @@ component's anatomy). No component code is ever written or changed.
      it.** CSS can see `:active` but not *where* a press landed, so on parts
      whose anatomy declares the `pressed` flag zero writes the data below.
      Publishing parts: button root; tabs tab; dialog/popover trigger+close;
-     menu trigger+item; select trigger+item; collapsible/accordion trigger;
+     menu trigger+item; select trigger+item (the item is pointer-only —
+     keyboard selection stays on the trigger via aria-activedescendant, so
+     item ripples fire for pointer presses only); collapsible/accordion
+     trigger;
      switch/checkbox `control` and radio-group `item-control` (the press
      lands anywhere in the label row, the feedback on the control); slider
      input (`data-pressed` only — a drag has no one-shot). Lifecycle: a
