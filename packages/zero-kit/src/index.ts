@@ -86,4 +86,5 @@ export {
     INTERACTION_STATES,
     VARIANT_AXES,
     RESERVED_AXES,
+    RUNTIME_PROPERTIES,
 } from './contract.js';

@@ -22,6 +22,7 @@ all four are expressed as declarations rather than escape hatches:
 | Elevation named `level1`–`level5` | open keys inside the closed `shadow` category |
 | `emphasized-decelerate` / `emphasized-accelerate` easings | open keys inside `motion` |
 | Window-size classes at 600 / 840 / 1240px | `breakpoints`, driving a full-screen dialog below `sm` |
+| The ink ripple, expanding from the press point | pure recipe CSS over the runtime's press feedback (`data-pressed`, `data-press-animating`, `--press-x/y/r`) — no JavaScript in this package |
 
 It validates with **no errors and no warnings**, styles all fifteen
 components, and required no change to `@sigx/zero-kit`.

@@ -439,3 +439,71 @@ describe('diagnostic paths', () => {
         );
     });
 });
+
+describe('press feedback', () => {
+    it('accepts the runtime-published --press-* properties', () => {
+        // The zero runtime writes these on the element at press time; no
+        // design system declares them, and they must not read as typos.
+        const { errors, warnings } = check(tabsWith({
+            left: 'var(--press-x, 50%)',
+            width: 'calc(var(--press-r) * 2)',
+        }));
+        expect(errors).toEqual([]);
+        expect(warnings).not.toContainEqual(expect.stringContaining('--press-'));
+    });
+
+    const rippleButton = (afterProps: CssProps): RecipeInput => ({
+        component: 'button',
+        parts: {
+            root: {
+                states: { 'focus-visible': { outline: '1px solid' } },
+                selectors: { '&[data-press-animating]::after': afterProps },
+            },
+        },
+    });
+
+    it('warns when press-animating is targeted but nothing animates', () => {
+        // The runtime clears the flag as soon as no animation runs, so the
+        // rule matches for zero frames — dead on arrival.
+        expect(check(rippleButton({ opacity: '0.5' })).warnings)
+            .toContainEqual(expect.stringContaining('never sets an animation'));
+    });
+
+    it('accepts press-animating with an animation', () => {
+        expect(check(rippleButton({ animation: 'ripple var(--duration-fast) linear' })).warnings)
+            .not.toContainEqual(expect.stringContaining('never sets an animation'));
+    });
+
+    it('warns when the only "animation" on a press-animating gate is none', () => {
+        expect(check(rippleButton({ animation: 'none' })).warnings)
+            .toContainEqual(expect.stringContaining('never sets an animation'));
+    });
+
+    it('does not treat a negated selector as a press-animating gate', () => {
+        // `:not([data-press-animating])` styles the flag's absence; no
+        // animation is expected there.
+        expect(check({
+            component: 'button',
+            parts: {
+                root: {
+                    states: { 'focus-visible': { outline: '1px solid' } },
+                    selectors: { '&:not([data-press-animating])::after': { opacity: '0' } },
+                },
+            },
+        }).warnings).not.toContainEqual(expect.stringContaining('never sets an animation'));
+    });
+
+    it('does not mistake a variant value for a press-animating gate', () => {
+        // The match is structural — a states block or a
+        // `[data-press-animating]` selector — not a substring of the
+        // diagnostic path, which a weird-but-legal axis vocabulary can echo.
+        expect(check({
+            component: 'button',
+            parts: { root: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            variants: {
+                mode: { 'press-animating': { root: { base: { opacity: '0.5' } } } },
+            },
+            defaultVariants: { mode: 'press-animating' },
+        }).warnings).not.toContainEqual(expect.stringContaining('never sets an animation'));
+    });
+});

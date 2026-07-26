@@ -176,4 +176,35 @@ describe('Button', () => {
         expect(el.getAttribute('aria-disabled')).toBe('true');
         expect(el.hasAttribute('data-disabled')).toBe(true);
     });
+
+    it('publishes press feedback on pointer press and release', () => {
+        // The behavior itself is covered in press.test.ts; this pins the
+        // wiring — the handlers actually reach the rendered element.
+        render(<Button.Root>Save</Button.Root>, container);
+        root().dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(root().hasAttribute('data-pressed')).toBe(true);
+        expect(root().style.getPropertyValue('--press-x')).toBe('0px');
+        root().dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        expect(root().hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('publishes no press feedback while disabled', () => {
+        render(<Button.Root disabled>Save</Button.Root>, container);
+        root().dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(root().hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('gives an asChild render press feedback through the bag', () => {
+        render(
+            <Button.Root asChild>
+                {(p: Record<string, unknown>) => <a href="/docs" {...p}>Docs</a>}
+            </Button.Root>,
+            container,
+        );
+        const el = container.querySelector<HTMLElement>('[data-scope="button"]')!;
+        el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(el.hasAttribute('data-pressed')).toBe(true);
+        el.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        expect(el.hasAttribute('data-pressed')).toBe(false);
+    });
 });

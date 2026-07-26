@@ -177,8 +177,8 @@ component's anatomy). No component code is ever written or changed.
    - A **looping** animation should be stopped under `reduced-motion`
      (`animation: 'none'`), never shortened — collapsing its duration makes it
      spin faster instead of settling.
-   - **Animate presence in the recipe — there is no runtime helper, and none
-     is needed.** Zero never unmounts a popup: it keeps the node mounted,
+   - **Animate presence in the recipe — presence needs no runtime helper.**
+     Zero never unmounts a popup: it keeps the node mounted,
      toggles `data-state` and calls the native `showPopover()`/`showModal()`.
      So both directions are CSS:
      ```ts
@@ -224,6 +224,51 @@ component's anatomy). No component code is ever written or changed.
      }
      ```
      Accordion's `<details>` is its `item` part, not `root`.
+   - **Press feedback: the runtime publishes the press, the recipe styles
+     it.** CSS can see `:active` but not *where* a press landed, so on parts
+     whose anatomy declares the `pressed` flag (Button root today) zero
+     writes:
+     - `data-pressed` — present while the pointer/key is physically down.
+       Key non-animated press effects on this (a tint, a scale, an offset).
+     - `data-press-animating` — present from press-start until the part's CSS
+       animation finishes, **not** until release, so a quick tap plays a
+       one-shot effect (a ripple) to completion. The runtime clears it on
+       `animationend` — put the whole effect in ONE keyframe animation whose
+       duration is `var(--duration-*)`; a rule on this flag that starts no
+       animation is dead (the validator warns).
+     - `--press-x` / `--press-y` — the press point in px relative to the
+       part; keyboard presses (Enter/Space) get the box center.
+     - `--press-r` — distance to the farthest corner, so a covering circle
+       is `calc(var(--press-r) * 2)` wide without trigonometry.
+     Material's ink ripple as a recipe (needs `position: relative` +
+     `overflow: hidden` on the part):
+     ```ts
+     selectors: {
+         '&::before': {   // held state layer — also the reduced-motion fallback
+             content: '""', position: 'absolute', inset: '0', opacity: '0',
+             background: 'var(--btn-ripple)', pointerEvents: 'none',
+             transition: 'opacity var(--duration-fast) var(--ease-standard)',
+         },
+         '&[data-pressed]::before': { opacity: '0.12' },
+         '&::after': {    // the ripple, anchored to the press point
+             content: '""', position: 'absolute',
+             left: 'var(--press-x, 50%)', top: 'var(--press-y, 50%)',
+             width: 'calc(var(--press-r, 0px) * 2)', height: 'calc(var(--press-r, 0px) * 2)',
+             borderRadius: '50%', background: 'var(--btn-ripple)',
+             transform: 'translate(-50%, -50%) scale(0)', opacity: '0', pointerEvents: 'none',
+         },
+         '&[data-press-animating]::after': {
+             animation: 'btn-ripple var(--duration-slow) var(--ease-standard)',
+         },
+     },
+     keyframes: { 'btn-ripple': 'from { … scale(0); opacity: 0.12; } to { … scale(1); opacity: 0; }' },
+     ```
+     Reduced motion needs nothing extra — token durations collapse, the
+     animation ends immediately, and the `data-pressed` tint remains as the
+     non-motion feedback. Hide decorative press layers under
+     `forced-colors`. The same hooks express non-Material ideas: a brutalist
+     stamp (`[data-pressed] { translate: 2px 2px }`), a scale-press, a
+     spotlight at `--press-x/y`.
    - `RecipeInput.css` takes raw CSS for anything the typed surface can't say.
    - **Style Button first, and make its axes compose.** It is the component a
      design system is judged on, and the only one where all three axes matter

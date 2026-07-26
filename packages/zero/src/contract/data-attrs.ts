@@ -28,6 +28,14 @@
 /**
  * The shared boolean-flag vocabulary. Components never invent synonyms —
  * a new flag is a contract change.
+ *
+ * `pressed` and `press-animating` are the press-feedback pair, produced by
+ * `createPressFeedback`: `pressed` is present while a pointer or key is
+ * physically down on the part (the *held* state a design system tints or
+ * translates), `press-animating` from press-start until the design system's
+ * press animation finishes — not until release, so a one-shot effect like a
+ * ripple always plays to completion. The press point is published alongside
+ * as `--press-x` / `--press-y` / `--press-r` custom properties.
  */
 export const FLAG_VOCABULARY = [
     'disabled',
@@ -39,6 +47,7 @@ export const FLAG_VOCABULARY = [
     'placeholder',
     'focus-visible',
     'pressed',
+    'press-animating',
 ] as const;
 
 export type FlagName = typeof FLAG_VOCABULARY[number];

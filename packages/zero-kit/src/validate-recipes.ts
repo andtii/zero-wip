@@ -310,6 +310,62 @@ export function validateRecipes(
             }
         }
 
+        // ── press-animating without an animation ──
+        //
+        // The runtime removes `data-press-animating` the moment it sees no
+        // CSS animation running on the part, so a rule gated on the flag that
+        // never starts one is dead: it matches for zero frames. The held
+        // state (`data-pressed`) is what a non-animated press effect keys on.
+        {
+            // Structural match, not a path-substring one: a variant VALUE named
+            // "press-animating" is a legal (if odd) axis vocabulary entry and
+            // must not trip this. A press-animating gate is exactly a
+            // `states['press-animating']` block or a selector key that carries
+            // `[data-press-animating]` outside `:not()` — a negated occurrence
+            // styles the flag's ABSENCE and needs no animation.
+            const gatesOnFlag = (sel: string): boolean =>
+                sel.replace(/:not\(\s*\[data-press-animating\]\s*\)/g, '').includes('[data-press-animating]');
+            const targets: Array<{ path: string; props: CssProps }> = [];
+            const collect = (path: string, styles: PartStyles): void => {
+                const pressState = styles.states?.['press-animating'];
+                if (pressState) targets.push({ path: `${path}.states.press-animating`, props: pressState });
+                for (const [sel, props] of Object.entries(styles.selectors ?? {})) {
+                    if (gatesOnFlag(sel)) {
+                        targets.push({ path: `${path}.selectors["${sel}"]`, props });
+                    }
+                }
+                for (const [key, nested] of Object.entries(styles.at ?? {})) {
+                    collect(`${path}.at["${key}"]`, nested);
+                }
+            };
+            for (const [part, styles] of Object.entries(recipe.parts)) collect(`parts.${part}`, styles);
+            for (const [axis, axisValues] of Object.entries(recipe.variants ?? {})) {
+                for (const [value, parts] of Object.entries(axisValues)) {
+                    for (const [part, styles] of Object.entries(parts)) {
+                        collect(`variants.${axis}.${value}.${part}`, styles);
+                    }
+                }
+            }
+            const compounds = recipe.compoundVariants ?? [];
+            for (let i = 0; i < compounds.length; i++) {
+                for (const [part, styles] of Object.entries(compounds[i]!.parts)) {
+                    collect(`compoundVariants[${i}].parts.${part}`, styles);
+                }
+            }
+            // `animation: 'none'` starts nothing, so it counts for nothing.
+            const startsAnimation = targets.some(({ props }) =>
+                Object.entries(props).some(([p, v]) =>
+                    (p === 'animation' || p === 'animationName') && String(v).trim() !== 'none'));
+            if (targets.length > 0 && !startsAnimation) {
+                warn(
+                    `${where}.${targets[0]!.path}`,
+                    'targets data-press-animating but never sets an animation — the runtime clears the flag ' +
+                    'as soon as no animation is running, so the rule matches for zero frames. Start a ' +
+                    'keyframe animation here, or key a non-animated press effect on data-pressed instead',
+                );
+            }
+        }
+
         // ── focus-visible coverage ──
         const focusableParts = component.parts.filter((p) => (p.flags ?? []).includes('focus-visible'));
         if (focusableParts.length > 0) {

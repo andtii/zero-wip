@@ -262,6 +262,21 @@ export function contrastPairs(roles: Record<string, RoleDecl>): readonly (readon
     ];
 }
 
+/**
+ * Custom properties the `@sigx/zero` runtime writes on elements — not design
+ * tokens, but runtime-published interaction/measurement data recipes may
+ * reference. `--press-*` come from the press-feedback behavior (press point
+ * and farthest-corner radius, in px, on any part whose anatomy declares the
+ * `pressed` flag); the percent pair is written by Progress and Slider.
+ */
+export const RUNTIME_PROPERTIES = [
+    '--press-x',
+    '--press-y',
+    '--press-r',
+    '--progress-percent',
+    '--slider-percent',
+] as const;
+
 /** Interaction states resolved to real pseudo-classes, not data attributes. */
 export const INTERACTION_STATES: Record<string, string> = {
     hover: ':hover:not([data-disabled])',
@@ -294,7 +309,7 @@ export const VARIANT_AXES: Record<string, string> = {
 export const RESERVED_AXES: ReadonlySet<string> = new Set([
     'scope', 'part', 'state', 'orientation',
     'disabled', 'highlighted', 'selected', 'invalid', 'required',
-    'readonly', 'placeholder', 'focus-visible', 'pressed',
+    'readonly', 'placeholder', 'focus-visible', 'pressed', 'press-animating',
 ]);
 
 // ── Minimal structural mirror of @sigx/zero's AnatomyJSON/manifest types ──

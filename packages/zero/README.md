@@ -36,6 +36,13 @@ Native-platform first: `<dialog>` +
 top layer (no Portal), the `popover` attribute, `<details>`, real form
 inputs. SSR-safe ids via `app.use(zeroPlugin())` per request.
 
+Interaction state is published as data for the design system to style:
+`data-focus-visible`, and on Button press feedback — `data-pressed` while
+the pointer/key is down, `data-press-animating` until the press animation
+finishes, with the press point as `--press-x` / `--press-y` / `--press-r`.
+That is what makes a pointer-anchored effect like Material's ink ripple
+expressible as pure CSS.
+
 ## For tooling / AI
 
 - `@sigx/zero/anatomy` — every component's parts × states × flags as typed

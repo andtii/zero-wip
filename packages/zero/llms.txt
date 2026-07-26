@@ -13,7 +13,13 @@
   checked|unchecked, active|inactive).
 - Boolean flags are presence-only: `data-disabled=""`, never ="false".
   Vocabulary: disabled, highlighted, selected, invalid, required, readonly,
-  placeholder, focus-visible, pressed.
+  placeholder, focus-visible, pressed, press-animating.
+- Press feedback (parts declaring the `pressed` flag — Button root): the
+  runtime sets `data-pressed` while the pointer/key is down, and
+  `data-press-animating` from press-start until the part's CSS animation
+  ends (one-shot effects like ripples play out even on a quick tap), and
+  writes the press point as `--press-x`/`--press-y`/`--press-r` (px;
+  r = farthest-corner radius). Keyboard presses get centered coordinates.
 - Variant axes pass through as data-color / data-size / data-variant
   (values: color = any DS-declared role — recommended vocabulary
   primary|secondary|accent|neutral|info|success|warning|error,
@@ -93,7 +99,8 @@ component renders; the root is called out separately where it carries props.
 
 - Button: Root(asChild) — one part on a native <button>, no machine states.
   Carries all three variant axes (color/size/variant), which is what it is
-  for: it is where a design system puts its fill styles.
+  for: it is where a design system puts its fill styles. Publishes press
+  feedback (data-pressed / data-press-animating / --press-*).
 - Tabs: Root(model=value)/List/Tab(value,asChild)/Panel(value). APG tabs,
   roving arrows, automatic|manual activation, orientation.
 - Collapsible: Root(model=open)/Trigger/Panel on native <details>.

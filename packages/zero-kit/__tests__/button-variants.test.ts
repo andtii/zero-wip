@@ -79,10 +79,11 @@ describe('the button anatomy', () => {
     });
 
     it('declares no machine states', () => {
-        // A button has nothing to be open or checked about. Pressed is
-        // `:active`, which the recipe layer resolves as a pseudo-class.
+        // A button has nothing to be open or checked about. Held press is
+        // `:active` (a pseudo-class) plus the `pressed` / `press-animating`
+        // press-feedback flags — flags, not states, because they compose.
         const button = manifest.components.find((c) => c.scope === 'button')!;
         expect(button.parts[0]!.states ?? []).toEqual([]);
-        expect(button.parts[0]!.flags).toEqual(['disabled', 'focus-visible']);
+        expect(button.parts[0]!.flags).toEqual(['disabled', 'focus-visible', 'pressed', 'press-animating']);
     });
 });
