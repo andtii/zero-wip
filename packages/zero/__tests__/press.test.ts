@@ -136,6 +136,18 @@ describe('createPressFeedback', () => {
             expect(el.hasAttribute('data-pressed')).toBe(true);
         });
 
+        it('ignores a descendant\'s animation when deciding the guard', () => {
+            // A spinner inside the button is in the subtree report, but its
+            // animationend never targets the part — counting it would strand
+            // the flag. Only effects targeting the part itself (which is how
+            // pseudo-element ripples report) keep it alive.
+            const child = document.createElement('span');
+            el.appendChild(child);
+            el.getAnimations = () => [{ effect: { target: child } } as unknown as Animation];
+            press.onPointerdown(pointerdown());
+            expect(el.hasAttribute('data-press-animating')).toBe(false);
+        });
+
         it('restarts on a re-press while still animating', () => {
             stubAnimations(1);
             press.onPointerdown(pointerdown());

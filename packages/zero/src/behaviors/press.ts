@@ -90,10 +90,19 @@ export function createPressFeedback(opts: PressFeedbackOptions): PressFeedbackHa
         // The active design system may style nothing on the flag — then no
         // animationend ever comes, and a dead attribute would linger. Reduced
         // motion is NOT that case: the kit collapses durations to 0.01ms,
-        // deliberately nonzero so animationend still fires.
-        if (typeof el.getAnimations === 'function'
-            && el.getAnimations({ subtree: true }).length === 0) {
-            cleanupAnimation();
+        // deliberately nonzero so animationend still fires. `subtree: true`
+        // because a pseudo-element ripple is only reported with it — but a
+        // descendant's animation (a spinner inside the button) or a running
+        // transition fires no animationend at this element, so only CSS
+        // animations whose effect targets the part itself count. A
+        // pseudo-element effect reports the originating element as target.
+        if (typeof el.getAnimations === 'function') {
+            const ownAnimation = el.getAnimations({ subtree: true }).some((a) => {
+                if (typeof CSSAnimation !== 'undefined' && !(a instanceof CSSAnimation)) return false;
+                const target = (a.effect as KeyframeEffect | null)?.target;
+                return target === undefined || target === el;
+            });
+            if (!ownAnimation) cleanupAnimation();
         }
     };
 
