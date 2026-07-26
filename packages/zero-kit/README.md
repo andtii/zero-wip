@@ -104,4 +104,23 @@ grows with the design system rather than being a list to maintain.
 The `skills/design-system` folder ships an agent skill that generates a
 complete design system from a style brief and iterates against `validate`.
 
+## JSON Schemas
+
+The package ships JSON Schemas (draft 2020-12) for the authoring surfaces, in
+`schemas/` (source) and `dist/schemas/` (published), served at:
+
+- `https://signalxjs.github.io/zero/schemas/tokens.schema.json` — `TokensInput`
+- `https://signalxjs.github.io/zero/schemas/recipe.schema.json` — `RecipeInput`
+- `https://signalxjs.github.io/zero/schemas/manifest.schema.json` — the
+  `@sigx/zero` anatomy manifest (`dist/manifest.json` declares it as its
+  `$schema`)
+
+They close the JSON-first authoring loop: a generator (AI or otherwise) emits
+tokens and recipes as plain JSON, checks them against the schema for
+structural mistakes, wraps them in `defineTokens` / `defineRecipe`, and runs
+`zero-kit validate` for the semantic half — completeness, WCAG contrast,
+anatomy and token-reference checks the schema can't see. The schemas are kept
+honest by the test suite, which validates every shipped design system's
+tokens and recipes (and the real zero manifest) against them.
+
 MIT © Andreas Ekdahl

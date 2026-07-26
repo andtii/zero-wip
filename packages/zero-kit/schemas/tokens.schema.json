@@ -1,0 +1,257 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://signalxjs.github.io/zero/schemas/tokens.schema.json",
+    "title": "SignalX Zero design-system tokens (TokensInput)",
+    "description": "The argument to @sigx/zero-kit's defineTokens(), as plain JSON data: the design system's color-role vocabulary, size-axis ramp, non-color token categories, breakpoints, custom tokens and themes. An AI (or any tool) can emit this JSON, wrap it in defineTokens(...) and run `zero-kit validate` — this schema catches structural mistakes before the validator's deeper semantic checks (completeness, WCAG contrast, undeclared references) take over. Values are CSS text and deliberately unconstrained here: the compiler accepts any value the browser would.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["themes", "defaultLight"],
+    "properties": {
+        "roles": {
+            "description": "The design system's color role vocabulary. Every role emits --color-<role>, plus -content / -soft per its declaration. Omitted → the recommended eight (primary, secondary, accent, neutral, info, success, warning, error). Role names must be bare kebab-case identifiers starting with a letter — they become --color-<role>.",
+            "type": "object",
+            "propertyNames": { "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$" },
+            "additionalProperties": { "$ref": "#/$defs/roleDecl" }
+        },
+        "sizes": {
+            "description": "The design system's `size` axis vocabulary — the values recipes may key variants.size on. Omitted → the recommended ramp (xs, sm, md, lg, xl). Entries become [data-size=\"…\"] selector values, hence the kebab-case grammar.",
+            "type": "array",
+            "items": { "$ref": "#/$defs/tokenKey" }
+        },
+        "swatch": {
+            "description": "Role / base-surface token names sampled into theme-picker swatches. Default: the first four declared roles plus base-100 and base-content.",
+            "type": "array",
+            "items": { "$ref": "#/$defs/tokenKey" }
+        },
+        "custom": {
+            "description": "DS-declared custom tokens: name → metadata. Values live per-theme in each theme's `custom`. Names may be spelled with or without the leading `--`.",
+            "type": "object",
+            "additionalProperties": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "description": { "type": "string" },
+                    "syntax": {
+                        "description": "CSS @property syntax string (e.g. \"<color>\", \"<length>\") → typed registration in the compiled CSS.",
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "breakpoints": {
+            "description": "Mobile-first min-width breakpoints, in ascending order (declaration order is emission order — the validator enforces kebab-case names, px/rem/em values and the ordering).",
+            "type": "object",
+            "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+            "additionalProperties": { "type": "string", "minLength": 1 }
+        },
+        "system": {
+            "description": "Design-system-level values for every non-color token category, declared ONCE rather than per theme. The category set is closed (the validator rejects unknown keys); the keys inside each category are yours.",
+            "$ref": "#/$defs/systemTokens"
+        },
+        "systemDark": {
+            "description": "Overrides applied to every colorScheme: \"dark\" theme and to :root under prefers-color-scheme: dark — how a NON-color token differs per scheme (light-dark() only accepts <color>).",
+            "$ref": "#/$defs/themeSystem"
+        },
+        "themes": {
+            "description": "Theme name → theme. Names become [data-theme=\"…\"] values.",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": { "$ref": "#/$defs/theme" }
+        },
+        "defaultLight": {
+            "description": "Theme used for :root (system light). Must name a key of `themes`.",
+            "type": "string",
+            "minLength": 1
+        },
+        "defaultDark": {
+            "description": "Theme paired with defaultLight for system dark. Must name a key of `themes`.",
+            "type": "string",
+            "minLength": 1
+        }
+    },
+    "$defs": {
+        "tokenKey": {
+            "description": "A kebab-case identifier that may start with a digit (--text-2xl is legal) — the grammar for token keys, size names and swatch entries.",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "tokenValue": {
+            "description": "A CSS value as authored — string, or a bare number for unitless values.",
+            "type": ["string", "number"]
+        },
+        "roleDecl": {
+            "description": "Declaration of one color role.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "content": {
+                    "description": "Emit + require + contrast-check a <role>-content pairing. Default true.",
+                    "type": "boolean"
+                },
+                "soft": {
+                    "description": "Emit a <role>-soft tint (explicit value or softMix derivation). Default true.",
+                    "type": "boolean"
+                },
+                "description": {
+                    "description": "Intent of the role — surfaced in the DS manifest for tooling/AI.",
+                    "type": "string"
+                }
+            }
+        },
+        "scale": {
+            "description": "One scale category's keys: kebab-case key → CSS value. Recommended keys have base.css fallbacks; any other key is equally valid.",
+            "type": "object",
+            "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+            "additionalProperties": { "$ref": "#/$defs/tokenValue" }
+        },
+        "typeScale": {
+            "description": "Modular type scale expanded into the --text-* ramp: { base, ratio }, with explicit typography.sizes winning per key.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["base", "ratio"],
+            "properties": {
+                "base": {
+                    "description": "The value of the origin step — a number with a CSS length unit (e.g. \"1rem\").",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "ratio": {
+                    "description": "Ratio between adjacent steps — 1.125 minor third, 1.618 golden. Must exceed 1 (the compiler rejects a flat or inverted ramp).",
+                    "type": "number",
+                    "exclusiveMinimum": 1
+                },
+                "steps": {
+                    "description": "Step names, small to large. Defaults to the recommended --text-* ramp.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/tokenKey" },
+                    "minItems": 1
+                },
+                "origin": {
+                    "description": "Which step carries `base`. Defaults to md, else the middle step.",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "precision": {
+                    "description": "Decimal places before trailing zeros are trimmed. Default 4.",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 20
+                }
+            }
+        },
+        "typography": {
+            "description": "The design system's typographic voice. `fonts` is FAMILIES — sizes are --text-*, listed in `sizes` or generated from `scale`.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "fonts": { "$ref": "#/$defs/scale" },
+                "weights": { "$ref": "#/$defs/scale" },
+                "leading": { "$ref": "#/$defs/scale" },
+                "tracking": { "$ref": "#/$defs/scale" },
+                "sizes": { "$ref": "#/$defs/scale" },
+                "scale": { "$ref": "#/$defs/typeScale" }
+            }
+        },
+        "typographyOverride": {
+            "description": "Per-theme / dark-scheme typography overrides. No `scale` here — a scale is a DECLARATION (it mints --text-* keys), and declarations live only in the base `system` tier.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "fonts": { "$ref": "#/$defs/scale" },
+                "weights": { "$ref": "#/$defs/scale" },
+                "leading": { "$ref": "#/$defs/scale" },
+                "tracking": { "$ref": "#/$defs/scale" },
+                "sizes": { "$ref": "#/$defs/scale" }
+            }
+        },
+        "motion": {
+            "description": "Durations and easings, split because they vary independently. Referencing var(--duration-*) is what makes a recipe respect prefers-reduced-motion.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "durations": { "$ref": "#/$defs/scale" },
+                "easings": { "$ref": "#/$defs/scale" }
+            }
+        },
+        "systemTokens": {
+            "description": "The closed category set (mirrors TOKEN_CATEGORIES): radius, size, typography, spacing, shadow, motion, border, disabledOpacity.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "radius": { "$ref": "#/$defs/scale" },
+                "size": { "$ref": "#/$defs/scale" },
+                "typography": { "$ref": "#/$defs/typography" },
+                "spacing": { "$ref": "#/$defs/scale" },
+                "shadow": { "$ref": "#/$defs/scale" },
+                "motion": { "$ref": "#/$defs/motion" },
+                "border": { "$ref": "#/$defs/tokenValue" },
+                "disabledOpacity": { "$ref": "#/$defs/tokenValue" }
+            }
+        },
+        "themeSystem": {
+            "description": "systemTokens as an override tier: same shape, but typography may not declare a `scale`. (The TypeScript type additionally narrows keys to those the design system declared — a cross-field constraint JSON Schema cannot express; `zero-kit validate` enforces it.)",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "radius": { "$ref": "#/$defs/scale" },
+                "size": { "$ref": "#/$defs/scale" },
+                "typography": { "$ref": "#/$defs/typographyOverride" },
+                "spacing": { "$ref": "#/$defs/scale" },
+                "shadow": { "$ref": "#/$defs/scale" },
+                "motion": { "$ref": "#/$defs/motion" },
+                "border": { "$ref": "#/$defs/tokenValue" },
+                "disabledOpacity": { "$ref": "#/$defs/tokenValue" }
+            }
+        },
+        "theme": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["colorScheme", "colors"],
+            "properties": {
+                "colorScheme": {
+                    "description": "Which scheme this theme belongs to — drives light-dark() pairing, systemDark application and the emitted color-scheme declaration.",
+                    "enum": ["light", "dark"]
+                },
+                "pair": {
+                    "description": "The theme toggle() switches to.",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "softMix": {
+                    "description": "Soft-tint mix ratio (0–1) for -soft tokens. Default 0.16.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                },
+                "colors": {
+                    "description": "Color token name → CSS color. Keys are declared role names, their -content / -soft derivatives, and the fixed base surfaces (base-100/200/300/base-content). Completeness against the role declaration is checked by `zero-kit validate`, not here.",
+                    "type": "object",
+                    "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+                    "additionalProperties": { "type": "string", "minLength": 1 }
+                },
+                "system": {
+                    "description": "Per-theme overrides of the design-system-level `system` values — declared keys only.",
+                    "$ref": "#/$defs/themeSystem"
+                },
+                "custom": {
+                    "description": "Values for the design system's declared `custom` tokens.",
+                    "type": "object",
+                    "additionalProperties": { "type": "string" }
+                },
+                "extra": {
+                    "description": "DS-specific extra tokens, emitted verbatim — the undeclared escape hatch (prefer `custom`; the validator warns here).",
+                    "type": "object",
+                    "additionalProperties": { "type": "string" }
+                },
+                "components": {
+                    "description": "Component-token overrides: component scope → { custom property → value }, e.g. { \"button\": { \"--btn-radius\": \"9999px\" } }.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": { "type": "string" }
+                    }
+                }
+            }
+        }
+    }
+}
