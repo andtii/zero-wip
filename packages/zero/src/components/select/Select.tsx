@@ -40,6 +40,7 @@ import type {
     WithDisabled,
     WithSize,
     WithVariant,
+    WithAxes,
 } from '../../contract/props.js';
 import { selectAnatomy } from './anatomy.js';
 
@@ -104,6 +105,7 @@ export type SelectRootProps =
     & WithColor
     & WithSize
     & WithVariant
+    & WithAxes
     & WithClass
     & Define.Slot<'default'>;
 

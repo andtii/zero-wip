@@ -276,6 +276,21 @@ component's anatomy). No component code is ever written or changed.
      Note `sizes` is the `data-size` axis — unrelated to `system.size`
      (`--size-*`, the control-sizing unit) and to `system.typography.sizes`
      (the `--text-*` ramp).
+   - **You are not limited to three axes.** `color`, `size` and `variant` have
+     named props because almost every design language has them. If the brief
+     needs another — density, emphasis, tone, elevation — key `variants` on it
+     and consumers reach it through zero's `axes` prop:
+     ```ts
+     variants: { density: { compact: { root: { base: { paddingBlock: 'var(--space-2xs)' } } } } },
+     ```
+     ```tsx
+     <Button.Root color="primary" axes={{ density: 'compact' }}>Save</Button.Root>
+     ```
+     An axis name must be kebab-case and may NOT be one the anatomy contract
+     owns (`scope`, `part`, `state`, `orientation`, or any flag such as
+     `disabled` / `selected`) — the validator errors and zero refuses to render
+     it, because shadowing `data-state` would silently repoint every
+     `[data-state="open"]` rule you wrote.
 
 5. **Assemble** (`src/design-system.ts`): `{ name, tokens, recipes }` exported
    as `designSystem`.

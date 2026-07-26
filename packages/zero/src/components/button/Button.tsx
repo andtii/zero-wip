@@ -26,6 +26,7 @@ import type {
     WithDisabled,
     WithSize,
     WithVariant,
+    WithAxes,
 } from '../../contract/props.js';
 import { buttonAnatomy } from './anatomy.js';
 
@@ -35,6 +36,7 @@ export type ButtonRootProps =
     & WithColor
     & WithSize
     & WithVariant
+    & WithAxes
     & WithDisabled
     & WithClass
     & WithAsChild

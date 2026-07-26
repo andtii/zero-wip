@@ -4,6 +4,14 @@
 
 ### Added
 
+- **A recipe may key `variants` on any axis, not just the contract three.**
+  The old warning — *"no zero component ever sets that attribute, so nothing
+  can match them"* — was accurate and is now obsolete: `@sigx/zero`'s new
+  `axes` prop sets `data-<axis>`. It is replaced by an **error** on an axis
+  that shadows the anatomy contract (`RESERVED_AXES`, mirrored from
+  `@sigx/zero/contract`'s prop fragments and parity-tested), the one case that must
+  still fail — `data-state` as a variant axis would repoint every
+  `[data-state="open"]` rule in the design system.
 - Two validator rules for the colour axis, the counterpart to the size-ramp
   check: an **error** on a `variants.color` key that names no declared role
   (it compiles to a selector `data-color` can never match), and a **warning**

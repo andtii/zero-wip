@@ -85,4 +85,5 @@ export {
     contrastPairs,
     INTERACTION_STATES,
     VARIANT_AXES,
+    RESERVED_AXES,
 } from './contract.js';

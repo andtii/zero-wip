@@ -14,7 +14,7 @@ import { createControllableState } from '../../behaviors/controllable.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithColor, WithDisabled, WithSize, WithVariant } from '../../contract/props.js';
+import type { WithClass, WithColor, WithDisabled, WithSize, WithVariant, WithAxes } from '../../contract/props.js';
 import { switchAnatomy } from './anatomy.js';
 
 const SCOPE = switchAnatomy.scope;
@@ -45,6 +45,7 @@ export type SwitchRootProps =
     & WithColor
     & WithSize
     & WithVariant
+    & WithAxes
     & WithClass
     & Define.Slot<'default'>;
 

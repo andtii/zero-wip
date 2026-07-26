@@ -19,7 +19,7 @@ import { useFieldContext } from '../../behaviors/field.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr, stateAttr, type Orientation } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithColor, WithDisabled, WithOrientation, WithSize, WithVariant } from '../../contract/props.js';
+import type { WithClass, WithColor, WithDisabled, WithOrientation, WithSize, WithVariant, WithAxes } from '../../contract/props.js';
 import { radioGroupAnatomy } from './anatomy.js';
 
 const SCOPE = radioGroupAnatomy.scope;
@@ -74,6 +74,7 @@ export type RadioGroupRootProps =
     & WithColor
     & WithSize
     & WithVariant
+    & WithAxes
     & WithClass
     & Define.Slot<'default'>;
 

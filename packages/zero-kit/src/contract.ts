@@ -270,12 +270,32 @@ export const INTERACTION_STATES: Record<string, string> = {
     active: ':active:not([data-disabled])',
 };
 
-/** Contract variant axes and their pass-through attributes. */
+/**
+ * The variant axes with named props on every zero component.
+ *
+ * NOT a closed set: a design system may key `variants` on any axis it names —
+ * density, emphasis, tone — and an app reaches it through zero's `axes` prop,
+ * which spells it `data-<axis>` by the same rule. These three get autocomplete
+ * because almost every design language has them.
+ */
 export const VARIANT_AXES: Record<string, string> = {
     color: 'data-color',
     size: 'data-size',
     variant: 'data-variant',
 };
+
+/**
+ * Axis names that are NOT available, because the anatomy contract already
+ * gives `data-<name>` a meaning. Mirrors `RESERVED_AXES` in
+ * `@sigx/zero/contract` (parity-tested): the validator must reject exactly
+ * what the runtime refuses to render, or a design system would compile
+ * selectors nothing is ever able to set.
+ */
+export const RESERVED_AXES: ReadonlySet<string> = new Set([
+    'scope', 'part', 'state', 'orientation',
+    'disabled', 'highlighted', 'selected', 'invalid', 'required',
+    'readonly', 'placeholder', 'focus-visible', 'pressed',
+]);
 
 // ── Minimal structural mirror of @sigx/zero's AnatomyJSON/manifest types ──
 

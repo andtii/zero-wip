@@ -76,6 +76,60 @@ describe('Button', () => {
         expect(root().getAttribute('data-variant')).toBe('tonal');
     });
 
+    it('passes a design-system axis beyond the named three', () => {
+        // The kit has always compiled `[data-density="compact"]` selectors,
+        // and until `axes` existed nothing could set that attribute — the
+        // rules were dead on arrival. A design language with density,
+        // emphasis or tone now has a route to the DOM.
+        render(
+            <Button.Root color="primary" axes={{ density: 'compact', emphasis: 'high' }}>Save</Button.Root>,
+            container,
+        );
+        expect(root().getAttribute('data-density')).toBe('compact');
+        expect(root().getAttribute('data-emphasis')).toBe('high');
+        expect(root().getAttribute('data-color')).toBe('primary');
+    });
+
+    it('refuses an axis that would shadow the anatomy contract', () => {
+        // Overwriting `data-state` from userland would make every
+        // [data-state="open"] rule in the design system match the wrong
+        // thing, with no error anywhere. Loud beats silent: the value comes
+        // from application code, not from user input.
+        expect(() => render(
+            <Button.Root axes={{ state: 'open' }}>Save</Button.Root>,
+            container,
+        )).toThrow(/part of the anatomy contract/);
+
+        expect(() => render(
+            <Button.Root axes={{ disabled: 'yes' }}>Save</Button.Root>,
+            container,
+        )).toThrow(/part of the anatomy contract/);
+
+        expect(() => render(
+            <Button.Root axes={{ 'Not Kebab': 'x' }}>Save</Button.Root>,
+            container,
+        )).toThrow(/not a kebab-case identifier/);
+    });
+
+    it('refuses an axis that already has a prop of its own', () => {
+        // `axes` is applied after the named props, so this silently won:
+        // color="primary" axes={{ color: 'x' }} rendered data-color="x".
+        // Two ways to write one attribute, with precedence nobody would guess.
+        expect(() => render(
+            <Button.Root color="primary" axes={{ color: 'hijacked' }}>Save</Button.Root>,
+            container,
+        )).toThrow(/has a prop of its own/);
+
+        // …even without the named prop present, so the rule is one thing to
+        // learn rather than a conditional collision.
+        for (const axis of ['color', 'size', 'variant']) {
+            expect(() => render(
+                <Button.Root axes={{ [axis]: 'x' }}>Save</Button.Root>,
+                container,
+            )).toThrow(/has a prop of its own/);
+        }
+    });
+
     it('omits the axes it was not given', () => {
         // Absent, not empty — the CSS-only defaults hang off :not([data-size]).
         render(<Button.Root>Save</Button.Root>, container);
