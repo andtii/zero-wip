@@ -30,17 +30,29 @@ component's anatomy). No component code is ever written or changed.
    ```
 
    `src/index.ts` is the runtime half: it registers each theme so
-   `themeController()` can switch between them. Take the swatch from your own
-   `tokens.swatch` rather than hardcoding role names — a design system whose
-   distinguishing colours aren't `primary`/`neutral` otherwise renders every
-   theme identically in a picker:
+   `themeController()` can switch between them. Hand your whole `tokens`
+   object to `registerThemes` and it derives the rest — including the theme
+   picker's swatch, which it reads from your own `tokens.swatch` (see step 3)
+   so it matches your compiled `manifest.json`. Never hardcode role names
+   here: a design system whose distinguishing colours aren't
+   `primary`/`neutral` would render every theme identically in a picker.
 
    ```ts
-   const swatchTokens = tokens.swatch ?? [...Object.keys(roles).slice(0, 4), 'base-100', 'base-content'];
+   import { registerThemes } from '@sigx/zero';
+   import { tokens } from './tokens.js';
+
+   export { roles, system, tokens } from './tokens.js';
+   export { recipes } from './recipes.js';
+   export { designSystem } from './design-system.js';
+
+   export function installThemes(): void {
+       registerThemes(tokens);
+   }
    ```
 
    Import from the kit **type-only** in `tokens.ts` and `recipes.ts`: those
-   modules ship in the browser bundle, and the kit is Node-only.
+   modules ship in the browser bundle, and the kit is Node-only. (`@sigx/zero`
+   is the one runtime import a design system makes.)
 
 3. **Author tokens** (`src/tokens.ts`): one light + one dark theme minimum,
    paired via `pair`. **Declare the color vocabulary first**: `roles` names

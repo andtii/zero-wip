@@ -22,6 +22,7 @@ export {
     ROLE_NAME_PATTERN,
     tokenProperty,
     resolveColorToken,
+    defaultSwatch,
 } from './tokens.js';
 
 export type { FlagName, Orientation } from './data-attrs.js';

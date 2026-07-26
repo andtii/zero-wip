@@ -4,7 +4,7 @@
  * combined index, and theme metadata for the runtime registry.
  */
 import type { ManifestComponent, RoleDecl, ZeroManifest } from './contract.js';
-import { DEFAULT_ROLES, resolveRoles } from './contract.js';
+import { DEFAULT_ROLES, defaultSwatch, resolveRoles } from './contract.js';
 import type { CustomTokenDecl, RolesDecl, SystemTokens, TokensInput } from './tokens.js';
 import { compileTokensCss } from './tokens.js';
 import type { RecipeInput } from './recipes.js';
@@ -75,11 +75,6 @@ function emittedProperties(tokensCss: string): string[] {
     return [...found].sort();
 }
 
-/** Default swatch: the first four declared roles plus the base surfaces. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- variance-erased internal plumbing
-const swatchTokens = (tokens: TokensInput<any>, roles: Record<string, RoleDecl>): string[] =>
-    tokens.swatch ?? [...Object.keys(roles).slice(0, 4), 'base-100', 'base-content'];
-
 export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>(
     ds: DesignSystemInput<R, T>,
     manifest: Pick<ZeroManifest, 'components'>,
@@ -116,7 +111,7 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
     ].join('\n');
 
     const roles = resolveRoles(ds.tokens.roles);
-    const swatch = swatchTokens(ds.tokens, roles);
+    const swatch = ds.tokens.swatch ?? defaultSwatch(Object.keys(roles));
     const themes: CompiledTheme[] = Object.entries(ds.tokens.themes).map(([name, theme]) => {
         const colors = theme.colors as Record<string, string>;
         return {
