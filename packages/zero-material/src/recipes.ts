@@ -970,34 +970,79 @@ export const slider: RecipeInput = {
     parts: {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' }, states: { disabled: { opacity: 'var(--disabled-opacity)' } } },
         label: { base: { ...label } },
-        // MD3's handle halo while dragging: `data-pressed` is the whole story
-        // (the runtime publishes no one-shot for drag surfaces), painted on
-        // the native thumb. Vendor thumb pseudos cannot share one selector
-        // list — an unrecognized selector invalidates the whole rule — so
-        // each engine gets its own keys.
+        // A custom skin (`appearance: none`), for two reasons at once. Blink
+        // ignores thumb-pseudo styling on a native slider, so the MD3 handle
+        // halo could never render there; and Chrome treats range inputs as
+        // always `:focus-visible`, so the generic focus RING appeared on a
+        // mouse press and stayed — MD3's focus indicator for a slider is the
+        // handle halo, not a ring around the track.
+        //
+        // Both halo states set one custom property the thumb pseudos read:
+        // vendor thumb pseudos cannot share a selector list (an unrecognized
+        // selector invalidates the whole rule), and the variable keeps the
+        // halo defined once per engine instead of once per state per engine.
+        // The filled track reads the runtime-published `--slider-percent`
+        // (set on the slider root, inherited here) as a gradient stop.
         input: {
-            base: { width: '100%', accentColor: 'var(--color-primary)' },
-            states: { ...focusRing },
+            base: {
+                appearance: 'none',
+                width: '100%',
+                height: 'calc(var(--size-selector) * 10)',
+                margin: '0',
+                background: 'transparent',
+                cursor: 'pointer',
+                outline: 'none',
+                accentColor: 'var(--color-primary)',
+                '--slider-halo': 'transparent',
+                '--slider-track':
+                    'linear-gradient(to right, var(--color-primary) var(--slider-percent, 50%), var(--color-secondary-soft) 0)',
+            },
+            states: {
+                'focus-visible': {
+                    '--slider-halo': 'color-mix(in oklab, var(--color-primary) 10%, transparent)',
+                },
+                pressed: {
+                    '--slider-halo': 'color-mix(in oklab, var(--color-primary) 12%, transparent)',
+                },
+                disabled: { cursor: 'not-allowed' },
+            },
             selectors: {
+                '&::-webkit-slider-runnable-track': {
+                    height: 'calc(var(--size-selector) * 2)',
+                    borderRadius: '624rem',
+                    background: 'var(--slider-track)',
+                },
                 '&::-webkit-slider-thumb': {
+                    appearance: 'none',
+                    width: 'calc(var(--size-selector) * 5)',
+                    height: 'calc(var(--size-selector) * 5)',
+                    marginTop: 'calc(var(--size-selector) * -1.5)',
+                    borderRadius: '624rem',
+                    border: 'none',
+                    background: 'var(--color-primary)',
+                    boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)',
                     transition: 'box-shadow var(--duration-fast) var(--ease-standard)',
                 },
-                '&[data-pressed]::-webkit-slider-thumb': {
-                    boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) color-mix(in oklab, var(--color-primary) 12%, transparent)',
+                '&::-moz-range-track': {
+                    height: 'calc(var(--size-selector) * 2)',
+                    borderRadius: '624rem',
+                    background: 'var(--slider-track)',
                 },
                 '&::-moz-range-thumb': {
+                    width: 'calc(var(--size-selector) * 5)',
+                    height: 'calc(var(--size-selector) * 5)',
+                    borderRadius: '624rem',
+                    border: 'none',
+                    background: 'var(--color-primary)',
+                    boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)',
                     transition: 'box-shadow var(--duration-fast) var(--ease-standard)',
-                },
-                '&[data-pressed]::-moz-range-thumb': {
-                    boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) color-mix(in oklab, var(--color-primary) 12%, transparent)',
                 },
             },
             at: {
+                // Native rendering knows forced colors better than we do; the
+                // retained accentColor keeps the fallback branded elsewhere.
                 'forced-colors': {
-                    selectors: {
-                        '&[data-pressed]::-webkit-slider-thumb': { boxShadow: 'none' },
-                        '&[data-pressed]::-moz-range-thumb': { boxShadow: 'none' },
-                    },
+                    base: { appearance: 'auto', '--slider-halo': 'transparent' },
                 },
             },
         },
