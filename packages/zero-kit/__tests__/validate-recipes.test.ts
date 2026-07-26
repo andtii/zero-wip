@@ -474,6 +474,25 @@ describe('press feedback', () => {
             .not.toContainEqual(expect.stringContaining('never sets an animation'));
     });
 
+    it('warns when the only "animation" on a press-animating gate is none', () => {
+        expect(check(rippleButton({ animation: 'none' })).warnings)
+            .toContainEqual(expect.stringContaining('never sets an animation'));
+    });
+
+    it('does not treat a negated selector as a press-animating gate', () => {
+        // `:not([data-press-animating])` styles the flag's absence; no
+        // animation is expected there.
+        expect(check({
+            component: 'button',
+            parts: {
+                root: {
+                    states: { 'focus-visible': { outline: '1px solid' } },
+                    selectors: { '&:not([data-press-animating])::after': { opacity: '0' } },
+                },
+            },
+        }).warnings).not.toContainEqual(expect.stringContaining('never sets an animation'));
+    });
+
     it('does not mistake a variant value for a press-animating gate', () => {
         // The match is structural — a states block or a
         // `[data-press-animating]` selector — not a substring of the

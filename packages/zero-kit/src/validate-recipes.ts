@@ -321,13 +321,16 @@ export function validateRecipes(
             // "press-animating" is a legal (if odd) axis vocabulary entry and
             // must not trip this. A press-animating gate is exactly a
             // `states['press-animating']` block or a selector key that carries
-            // `[data-press-animating]`.
+            // `[data-press-animating]` outside `:not()` — a negated occurrence
+            // styles the flag's ABSENCE and needs no animation.
+            const gatesOnFlag = (sel: string): boolean =>
+                sel.replace(/:not\(\s*\[data-press-animating\]\s*\)/g, '').includes('[data-press-animating]');
             const targets: Array<{ path: string; props: CssProps }> = [];
             const collect = (path: string, styles: PartStyles): void => {
                 const pressState = styles.states?.['press-animating'];
                 if (pressState) targets.push({ path: `${path}.states.press-animating`, props: pressState });
                 for (const [sel, props] of Object.entries(styles.selectors ?? {})) {
-                    if (sel.includes('[data-press-animating]')) {
+                    if (gatesOnFlag(sel)) {
                         targets.push({ path: `${path}.selectors["${sel}"]`, props });
                     }
                 }
@@ -349,8 +352,10 @@ export function validateRecipes(
                     collect(`compoundVariants[${i}].parts.${part}`, styles);
                 }
             }
+            // `animation: 'none'` starts nothing, so it counts for nothing.
             const startsAnimation = targets.some(({ props }) =>
-                Object.keys(props).some((p) => p === 'animation' || p === 'animationName'));
+                Object.entries(props).some(([p, v]) =>
+                    (p === 'animation' || p === 'animationName') && String(v).trim() !== 'none'));
             if (targets.length > 0 && !startsAnimation) {
                 warn(
                     `${where}.${targets[0]!.path}`,
