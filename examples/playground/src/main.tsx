@@ -5,25 +5,23 @@ import '@sigx/zero/css';
 // extensible-vocabulary demo. Imported before the DS so the DS's later
 // :root block overrides the shared base tokens; the brand-only tokens
 // (--color-brand*, --brand-glow) stay defined globally and the demo scopes
-// itself with [data-theme="brand"].
+// itself with [data-theme="brand"]. `activateDesignSystem` appends the DS
+// stylesheet to <head>, so it stays last in document order across every swap
+// and that ordering keeps holding.
 import './brand-theme.css';
 
-// The design system is ONE import pair. Swap the two lines for any other
-// design system and the whole app changes skin — no component code touched.
-// zero-material is the strongest form of the claim: thirteen colour roles
-// instead of eight, a level1–level5 elevation ramp, its own easings and a
-// dialog that goes full-screen below its own breakpoint, and still nothing
-// here changes but these two lines.
-import '@sigx/zero-basic/css';
-import { installThemes } from '@sigx/zero-basic';
-// import '@sigx/zero-daisyui/css';
-// import { installThemes } from '@sigx/zero-daisyui';
-// import '@sigx/zero-material/css';
-// import { installThemes } from '@sigx/zero-material';
-// import '@sigx/zero-brutalist/css';
-// import { installThemes } from '@sigx/zero-brutalist';
-
+// The design system is no longer an import pair you edit — it is a compiled
+// stylesheet exchanged at runtime, which is the honest form of the claim that
+// a design system is data. zero-material is the strongest case: thirteen
+// colour roles instead of eight, a level1–level5 elevation ramp, its own
+// easings and a dialog that goes full-screen below its own breakpoint — and
+// still nothing here changes, because nothing here knows which DS is loaded.
+import { activateDesignSystem, resolvePersistedDesignSystem } from './design-systems';
 import { App } from './App';
 
-installThemes();
+// Awaited before the first render, so the app never paints unstyled and the
+// theme registry is seeded — and any stale persisted theme reconciled —
+// before the toolbar reads it.
+await activateDesignSystem(resolvePersistedDesignSystem());
+
 render(<App />, document.getElementById('app')!);

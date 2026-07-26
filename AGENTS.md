@@ -112,7 +112,10 @@ pnpm verify:catalog  # catalog: usage check for @sigx core deps
 pnpm verify:pack   # publish dry-run
 ```
 
-To run the playground: `pnpm --filter zero-playground dev`.
+To run the playground: `pnpm build` (it loads each design system's compiled CSS
+from `dist/`), then `pnpm --filter zero-playground dev`. The root `pnpm
+typecheck` excludes `examples/`, so the playground has its own:
+`pnpm --filter zero-playground typecheck`.
 
 ## Packages
 
@@ -147,7 +150,12 @@ To run the playground: `pnpm --filter zero-playground dev`.
   end-to-end proof of the thesis, and the regression test for the skill
   itself. Private.
 - `examples/playground` — private kitchen-sink app; switches between
-  basic / daisyui / material / brutalist by a two-line import swap.
+  basic / daisyui / material / brutalist **at runtime** from its toolbar. A
+  design system compiles to one stylesheet, so switching is a `<link>` swap
+  (`src/design-systems.ts`) plus a theme-registry re-seed. Exactly one design
+  system is live at a time — recipe CSS is not `data-theme`-scoped, so two
+  stylesheets would blend rather than replace. Needs `pnpm build` first: the
+  playground resolves each DS's CSS from its `dist/`.
 
 **Lockstep versioning**: every publishable package shares one version. Never
 bump a single package's version — use `pnpm version:patch|minor|major`.

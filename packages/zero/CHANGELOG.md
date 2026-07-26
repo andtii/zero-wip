@@ -49,6 +49,13 @@
 
 ### Added
 
+- `clearThemes()` — drop every registered theme, for hosts that exchange design
+  systems at runtime. Theme names are design-system-specific, so re-seeding
+  without clearing would leave a previous DS's names selectable while its
+  stylesheet is gone: `listThemes()` would offer a `[data-theme]` block that no
+  longer exists, and `pickThemeFor()`/`toggle()` could land on a theme belonging
+  to a design system that is no longer loaded. Browser-only by intent — the
+  registry is otherwise write-once so a module-level Map stays SSR-safe.
 - `registerThemes(tokens)` + the `ThemeSource` type — seed the theme registry
   from a design system's token declaration in one call, with the picker swatch
   DERIVED from that declaration (`tokens.swatch`, else the first four declared
