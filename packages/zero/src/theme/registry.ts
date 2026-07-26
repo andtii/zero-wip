@@ -92,8 +92,18 @@ export function registerThemes(source: ThemeSource): void {
  * systems at runtime. Re-seed immediately afterwards with the incoming DS's
  * `installThemes()`; between the two calls `listThemes()` is empty and
  * `pickThemeFor()` returns undefined.
+ *
+ * Throws on the server rather than trusting the docs: this is the one call that
+ * can unpick write-once configuration, and on the server that registry is
+ * shared by every concurrent render. Failing loudly beats bleeding one
+ * request's design system into another's.
  */
 export function clearThemes(): void {
+    if (typeof document === 'undefined') {
+        throw new Error(
+            '[zero] clearThemes() is browser-only — clearing the shared registry under SSR would race concurrent renders.',
+        );
+    }
     themes.clear();
 }
 

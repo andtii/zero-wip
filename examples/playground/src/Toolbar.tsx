@@ -25,7 +25,10 @@ export const Toolbar = component(() => {
 
     const switchTo = async (id: string): Promise<void> => {
         const entry = designSystems.find((d) => d.id === id);
-        if (!entry || entry.id === state.ds) return;
+        // Compare against the document, not the cached selection: if the first
+        // load failed there is no link at all, and short-circuiting on
+        // `state.ds` would make the seemingly-active button a dead retry.
+        if (!entry || state.busy || entry.id === activeDesignSystemId()) return;
         state.busy = true;
         try {
             await activateDesignSystem(entry);

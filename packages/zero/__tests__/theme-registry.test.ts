@@ -65,4 +65,15 @@ describe('theme registry', () => {
 
         expect(listThemes()).toEqual([]);
     });
+
+    it('refuses to clear on the server', () => {
+        const document_ = globalThis.document;
+        // @ts-expect-error — simulating the server, where there is no document.
+        delete globalThis.document;
+        try {
+            expect(() => clearThemes()).toThrow(/browser-only/);
+        } finally {
+            globalThis.document = document_;
+        }
+    });
 });
