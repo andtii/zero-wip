@@ -144,10 +144,15 @@ export function createPressFeedback(opts: PressFeedbackOptions): PressFeedbackHa
         onPointercancel: pressEnd,
         onPointerleave: (e) => {
             // A captured pointer's gesture continues past the boundary: the
-            // browser retargets pointerup/pointercancel to the element, and
-            // per spec suppresses boundary events entirely — but any leave
-            // that does slip through mid-gesture must not end the press.
-            if (opts.getElement()?.hasPointerCapture?.(e.pointerId)) return;
+            // browser retargets pointerup/pointercancel to the capture
+            // holder, and per spec suppresses boundary events entirely — but
+            // any leave that does slip through mid-gesture must not end the
+            // press. Capture is held by the pointerdown target, which in
+            // cross-element wiring (checkables: handlers on the label row,
+            // feedback on the control) is NOT the marked element — so check
+            // the element this handler fired on as well as the marked one.
+            const holders = [e.currentTarget as Element | null, opts.getElement()];
+            if (holders.some((n) => n?.hasPointerCapture?.(e.pointerId))) return;
             pressEnd();
         },
         onKeydown: (e) => {

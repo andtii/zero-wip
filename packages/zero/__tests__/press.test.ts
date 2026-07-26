@@ -68,6 +68,23 @@ describe('createPressFeedback', () => {
         expect(el.hasAttribute('data-pressed')).toBe(false);
     });
 
+    it('survives pointerleave when the HANDLER element holds capture', () => {
+        // Cross-element wiring (checkables): pointer handlers live on the
+        // label row while getElement() is the control. Capture is held by
+        // the pointerdown target on the row, so the guard must consult the
+        // element the leave fired on, not only the marked one.
+        const row = document.createElement('label');
+        document.body.appendChild(row);
+        (row as HTMLElement & { hasPointerCapture: (id: number) => boolean })
+            .hasPointerCapture = () => true;
+        row.addEventListener('pointerleave', press.onPointerleave);
+        press.onPointerdown(pointerdown());
+        row.dispatchEvent(new PointerEvent('pointerleave'));
+        expect(el.hasAttribute('data-pressed')).toBe(true);
+        press.onPointerup(new PointerEvent('pointerup'));
+        expect(el.hasAttribute('data-pressed')).toBe(false);
+    });
+
     it('lets an uncaptured pointerleave cancel the press', () => {
         (el as HTMLElement & { hasPointerCapture: (id: number) => boolean })
             .hasPointerCapture = () => false;
