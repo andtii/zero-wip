@@ -17,6 +17,7 @@ import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import type { WithClass, WithDisabled } from '../../contract/props.js';
 import { accordionAnatomy } from './anatomy.js';
@@ -130,6 +131,10 @@ const AccordionTrigger = component<AccordionTriggerProps>(({ props, slots, signa
     const item = useAccordionItemContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
+    const press = createPressFeedback({
+        getElement: () => el,
+        isDisabled: () => item.disabled(),
+    });
 
     return () => (
         <summary
@@ -144,8 +149,17 @@ const AccordionTrigger = component<AccordionTriggerProps>(({ props, slots, signa
                 e.preventDefault();
                 if (!item.disabled()) accordion.toggle(item.value());
             }}
+            onKeydown={press.onKeydown}
+            onKeyup={press.onKeyup}
+            onPointerdown={press.onPointerdown}
+            onPointerup={press.onPointerup}
+            onPointercancel={press.onPointercancel}
+            onPointerleave={press.onPointerleave}
             onFocus={() => { focus.visible = isFocusVisible(el); }}
-            onBlur={() => { focus.visible = false; }}
+            onBlur={(e: FocusEvent) => {
+                press.onBlur(e);
+                focus.visible = false;
+            }}
         >
             {slots.default?.()}
         </summary>

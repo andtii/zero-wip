@@ -18,6 +18,16 @@
  *   CSS trigonometry. Coordinates survive release deliberately: a release
  *   fade may still be reading them.
  *
+ * The lifecycle rule: a press ends when the gesture ends, and pointer
+ * capture defines the gesture. An uncaptured pointerleave cancels the press
+ * (drag off a button to cancel); a captured pointer (a native range input
+ * dragging, touch's implicit capture) keeps the press until pointerup or
+ * pointercancel, which capture retargets to the element anyway.
+ *
+ * Handlers are à la carte: a component spreads the ones that make sense for
+ * it. A drag surface (Slider) spreads no key handlers — arrow keys are value
+ * changes, not presses — and passes `oneShot: false`.
+ *
  * Writes are imperative (attribute/style on the node) rather than reactive:
  * restarting a CSS animation requires remove → reflow → re-add, and press
  * state is transient interaction data, not model state. Handlers only ever
@@ -29,6 +39,13 @@ export interface PressFeedbackOptions {
     getElement(): HTMLElement | null;
     /** Pressing a disabled part produces no feedback. */
     isDisabled?: () => boolean;
+    /**
+     * When false, the `data-press-animating` machinery is skipped entirely:
+     * a drag surface restarts it on every grab for no visual gain, and each
+     * restart forces a reflow. `data-pressed` and the coordinates are still
+     * published. Default true.
+     */
+    oneShot?: boolean;
 }
 
 /**
@@ -59,6 +76,7 @@ export function createPressFeedback(opts: PressFeedbackOptions): PressFeedbackHa
         el.style.setProperty('--press-y', `${y}px`);
         el.style.setProperty('--press-r', `${r}px`);
         el.setAttribute('data-pressed', '');
+        if (opts.oneShot === false) return;
 
         // One-shot flag. A re-press while the previous effect is still in
         // flight must restart it, and CSS only restarts an animation when the
@@ -124,7 +142,14 @@ export function createPressFeedback(opts: PressFeedbackOptions): PressFeedbackHa
         },
         onPointerup: pressEnd,
         onPointercancel: pressEnd,
-        onPointerleave: pressEnd,
+        onPointerleave: (e) => {
+            // A captured pointer's gesture continues past the boundary: the
+            // browser retargets pointerup/pointercancel to the element, and
+            // per spec suppresses boundary events entirely — but any leave
+            // that does slip through mid-gesture must not end the press.
+            if (opts.getElement()?.hasPointerCapture?.(e.pointerId)) return;
+            pressEnd();
+        },
         onKeydown: (e) => {
             const el = guard();
             if (!el || !isPressKey(e) || e.repeat) return;

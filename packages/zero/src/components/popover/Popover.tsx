@@ -24,6 +24,7 @@ import { createId } from '../../behaviors/create-id.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { createFocusRestore } from '../../behaviors/focus.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import type { PartProps, WithAsChild, WithClass, WithDisabled } from '../../contract/props.js';
@@ -113,6 +114,10 @@ const PopoverTrigger = component<PopoverTriggerProps>(({ props, slots, signal })
     const popover = usePopoverContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
+    const press = createPressFeedback({
+        getElement: () => el,
+        isDisabled: () => !!props.disabled,
+    });
 
     const bag = (): PartProps => ({
         'data-scope': SCOPE,
@@ -127,7 +132,16 @@ const PopoverTrigger = component<PopoverTriggerProps>(({ props, slots, signal })
             if (!props.disabled) popover.state.value = !popover.state.value;
         },
         onFocus: () => { focus.visible = isFocusVisible(el); },
-        onBlur: () => { focus.visible = false; },
+        onBlur: (e: FocusEvent) => {
+            press.onBlur(e);
+            focus.visible = false;
+        },
+        onKeydown: press.onKeydown,
+        onKeyup: press.onKeyup,
+        onPointerdown: press.onPointerdown,
+        onPointerup: press.onPointerup,
+        onPointercancel: press.onPointercancel,
+        onPointerleave: press.onPointerleave,
         ref: (node: HTMLElement | null) => { el = node; popover.setAnchor(node); },
     });
 
@@ -208,6 +222,10 @@ const PopoverClose = component<PopoverCloseProps>(({ props, slots, signal }) => 
     const popover = usePopoverContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
+    const press = createPressFeedback({
+        getElement: () => el,
+        isDisabled: () => !!props.disabled,
+    });
 
     const bag = (): PartProps => ({
         'data-scope': SCOPE,
@@ -218,7 +236,16 @@ const PopoverClose = component<PopoverCloseProps>(({ props, slots, signal }) => 
             if (!props.disabled) popover.state.value = false;
         },
         onFocus: () => { focus.visible = isFocusVisible(el); },
-        onBlur: () => { focus.visible = false; },
+        onBlur: (e: FocusEvent) => {
+            press.onBlur(e);
+            focus.visible = false;
+        },
+        onKeydown: press.onKeydown,
+        onKeyup: press.onKeyup,
+        onPointerdown: press.onPointerdown,
+        onPointerup: press.onPointerup,
+        onPointercancel: press.onPointercancel,
+        onPointerleave: press.onPointerleave,
         ref: (node: HTMLElement | null) => { el = node; },
     });
 

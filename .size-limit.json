@@ -12,7 +12,7 @@
     {
         "name": "@sigx/zero/tabs",
         "path": "packages/zero/dist/components/tabs/index.js",
-        "limit": "2.5 kB",
+        "limit": "3 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

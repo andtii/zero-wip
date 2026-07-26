@@ -17,6 +17,7 @@ import { createControllableState, type ControllableState } from '../../behaviors
 import { createId } from '../../behaviors/create-id.js';
 import { useFieldContext } from '../../behaviors/field.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr, type Orientation } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
 import type { WithClass, WithColor, WithDisabled, WithOrientation, WithSize, WithVariant, WithAxes } from '../../contract/props.js';
@@ -134,6 +135,14 @@ const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal })
     const isChecked = (): boolean => group.state.value === props.value;
     const checkedState = () => stateAttr(isChecked(), 'checked', 'unchecked');
 
+    let controlEl: HTMLElement | null = null;
+    // Cross-element press: pointer on the row, keyboard on the hidden input,
+    // feedback on the visible item-control.
+    const press = createPressFeedback({
+        getElement: () => controlEl,
+        isDisabled: () => disabled(),
+    });
+
     return () => (
         <label
             data-scope={SCOPE}
@@ -142,6 +151,10 @@ const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal })
             data-disabled={dataAttr(disabled())}
             data-focus-visible={dataAttr(focus.visible)}
             class={props.class}
+            onPointerdown={press.onPointerdown}
+            onPointerup={press.onPointerup}
+            onPointercancel={press.onPointercancel}
+            onPointerleave={press.onPointerleave}
         >
             <input
                 type="radio"
@@ -159,7 +172,12 @@ const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal })
                     if ((e.target as HTMLInputElement).checked) group.state.value = props.value;
                 }}
                 onFocus={() => { focus.visible = isFocusVisible(inputEl); }}
-                onBlur={() => { focus.visible = false; }}
+                onBlur={(e: FocusEvent) => {
+                    press.onBlur(e);
+                    focus.visible = false;
+                }}
+                onKeydown={press.onKeydown}
+                onKeyup={press.onKeyup}
             />
             <span
                 data-scope={SCOPE}
@@ -167,6 +185,7 @@ const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal })
                 data-state={checkedState()}
                 data-disabled={dataAttr(disabled())}
                 data-focus-visible={dataAttr(focus.visible)}
+                ref={(node: HTMLElement | null) => { controlEl = node; }}
             >
                 <span
                     data-scope={SCOPE}

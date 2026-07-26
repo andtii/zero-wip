@@ -9,7 +9,7 @@ export const selectAnatomy = defineAnatomy('select', {
     trigger: {
         element: 'button',
         states: ['open', 'closed'],
-        flags: ['disabled', 'invalid', 'focus-visible', 'placeholder'],
+        flags: ['disabled', 'invalid', 'focus-visible', 'placeholder', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size', 'text'],
         asChild: true,
     },
@@ -30,7 +30,7 @@ export const selectAnatomy = defineAnatomy('select', {
     },
     item: {
         element: 'div',
-        flags: ['selected', 'highlighted', 'disabled'],
+        flags: ['selected', 'highlighted', 'disabled', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'text'],
         asChild: true,
     },

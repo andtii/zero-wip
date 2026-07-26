@@ -4,6 +4,7 @@
         align-items: center;
         gap: var(--space-sm);
         cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
     }
 
     [data-scope="checkbox"][data-part="root"][data-disabled] {
@@ -12,6 +13,8 @@
     }
 
     [data-scope="checkbox"][data-part="control"] {
+        position: relative;
+        -webkit-tap-highlight-color: transparent;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -38,6 +41,43 @@
         outline-offset: 2px;
     }
 
+    [data-scope="checkbox"][data-part="control"]::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: calc(var(--size-selector) * 15);
+        height: calc(var(--size-selector) * 15);
+        border-radius: 50%;
+        background: var(--color-primary);
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-pressed]::before {
+        opacity: 0.12;
+    }
+
+    [data-scope="checkbox"][data-part="control"]::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: calc(var(--size-selector) * 15);
+        height: calc(var(--size-selector) * 15);
+        border-radius: 50%;
+        background: var(--color-primary);
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-press-animating]::after {
+        animation: checkbox-ripple var(--duration-slow) var(--ease-standard);
+    }
+
     [data-scope="checkbox"][data-part="indicator"] {
         color: var(--color-primary-content);
         font-size: var(--text-xs);
@@ -53,4 +93,17 @@
         height: 1px;
         opacity: 0;
     }
+
+    @media (forced-colors: active) {
+        [data-scope="checkbox"][data-part="control"]::before {
+            display: none;
+        }
+
+        [data-scope="checkbox"][data-part="control"]::after {
+            display: none;
+        }
+    }
+}
+@keyframes checkbox-ripple {
+    from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }

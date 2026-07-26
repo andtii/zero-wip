@@ -51,6 +51,120 @@ const label: CssProps = {
     letterSpacing: 'var(--tracking-wide)',
 };
 
+// ── Press feedback ────────────────────────────────────────────────────────
+// The runtime publishes the press (`data-pressed`, `data-press-animating`,
+// `--press-x/y/r`); these fragments are the Material read of it — a held
+// state layer plus the ink ripple. Compose onto a part with `withPresence`.
+
+/**
+ * Bounded press feedback: state layer + ink ripple clipped to the part.
+ * `prefix` must be unique per RECIPE — keyframes are declared per recipe but
+ * named globally, and each compiled component file must carry its own copy.
+ */
+const pressable = (prefix: string, ink = 'var(--color-primary)'): PartStyles => ({
+    base: {
+        position: 'relative',
+        overflow: 'hidden',
+        WebkitTapHighlightColor: 'transparent',
+    },
+    selectors: {
+        '&::before': {
+            content: '""',
+            position: 'absolute',
+            inset: '0',
+            background: ink,
+            opacity: '0',
+            pointerEvents: 'none',
+            transition: 'opacity var(--duration-fast) var(--ease-standard)',
+        },
+        '&[data-pressed]::before': { opacity: '0.12' },
+        '&::after': {
+            content: '""',
+            position: 'absolute',
+            left: 'var(--press-x, 50%)',
+            top: 'var(--press-y, 50%)',
+            width: 'calc(var(--press-r, 0px) * 2)',
+            height: 'calc(var(--press-r, 0px) * 2)',
+            borderRadius: '50%',
+            background: ink,
+            transform: 'translate(-50%, -50%) scale(0)',
+            opacity: '0',
+            pointerEvents: 'none',
+        },
+        '&[data-press-animating]::after': {
+            animation: `${prefix}-ripple var(--duration-slow) var(--ease-standard)`,
+        },
+    },
+    at: {
+        'forced-colors': {
+            selectors: {
+                '&::before': { display: 'none' },
+                '&::after': { display: 'none' },
+            },
+        },
+    },
+});
+
+/**
+ * Unbounded press feedback for selection controls: a fixed circle centered
+ * on the part (MD3's 40dp state layer), press coordinates ignored, and no
+ * clipping — the halo extends past the box.
+ */
+const pressableCentered = (prefix: string, diameter: string, ink = 'var(--color-primary)'): PartStyles => ({
+    base: {
+        position: 'relative',
+        WebkitTapHighlightColor: 'transparent',
+    },
+    selectors: {
+        '&::before': {
+            content: '""',
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            width: diameter,
+            height: diameter,
+            borderRadius: '50%',
+            background: ink,
+            transform: 'translate(-50%, -50%)',
+            opacity: '0',
+            pointerEvents: 'none',
+            transition: 'opacity var(--duration-fast) var(--ease-standard)',
+        },
+        '&[data-pressed]::before': { opacity: '0.12' },
+        '&::after': {
+            content: '""',
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            width: diameter,
+            height: diameter,
+            borderRadius: '50%',
+            background: ink,
+            transform: 'translate(-50%, -50%) scale(0)',
+            opacity: '0',
+            pointerEvents: 'none',
+        },
+        '&[data-press-animating]::after': {
+            animation: `${prefix}-ripple var(--duration-slow) var(--ease-standard)`,
+        },
+    },
+    at: {
+        'forced-colors': {
+            selectors: {
+                '&::before': { display: 'none' },
+                '&::after': { display: 'none' },
+            },
+        },
+    },
+});
+
+const rippleKeyframes = (prefix: string): Record<string, string> => ({
+    [`${prefix}-ripple`]:
+        'from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } '
+        + '60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } '
+        + 'to { transform: translate(-50%, -50%) scale(1); opacity: 0; }',
+});
+
 // ── Button ────────────────────────────────────────────────────────────────
 // The accent-pair indirection, so Material's larger role vocabulary costs one
 // rule per role rather than one per role × fill.
@@ -295,7 +409,9 @@ export const tabs: RecipeInput = {
                 borderBottom: 'var(--border) solid var(--color-outline)',
             },
         },
-        tab: {
+        // NOTE: `active` on a tab is the SELECTED anatomy state, not the
+        // `:active` pseudo-class — press styling must stay in `selectors`.
+        tab: withPresence(pressable('tab'), {
             base: {
                 appearance: 'none',
                 background: 'none',
@@ -315,16 +431,19 @@ export const tabs: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
-        },
+        }),
         panel: {
             base: { fontFamily: 'var(--font-sans)', fontSize: 'var(--text-md)', lineHeight: 'var(--leading-normal)' },
             states: { active: {}, inactive: {} },
         },
     },
+    keyframes: rippleKeyframes('tab'),
 };
 
 // ── Disclosure ────────────────────────────────────────────────────────────
-const disclosureTrigger: PartStyles = {
+// A function of the ripple prefix: collapsible and accordion emit separate
+// component stylesheets, so each must name (and declare) its own keyframe.
+const disclosureTrigger = (prefix: string): PartStyles => withPresence(pressable(prefix), {
     base: {
         display: 'flex',
         alignItems: 'center',
@@ -342,7 +461,7 @@ const disclosureTrigger: PartStyles = {
         disabled: { opacity: 'var(--disabled-opacity)' },
         ...focusRing,
     },
-};
+});
 
 export const collapsible: RecipeInput = {
     component: 'collapsible',
@@ -356,12 +475,13 @@ export const collapsible: RecipeInput = {
             },
             states: { open: {}, closed: {} },
         }),
-        trigger: disclosureTrigger,
+        trigger: disclosureTrigger('collapsible'),
         panel: {
             base: { padding: '0 var(--space-md) var(--space-md)', lineHeight: 'var(--leading-normal)' },
             states: { open: {}, closed: {} },
         },
     },
+    keyframes: rippleKeyframes('collapsible'),
 };
 
 export const accordion: RecipeInput = {
@@ -377,19 +497,20 @@ export const accordion: RecipeInput = {
             },
             states: { open: {}, closed: {} },
         }),
-        trigger: disclosureTrigger,
+        trigger: disclosureTrigger('accordion'),
         panel: {
             base: { padding: '0 var(--space-md) var(--space-md)', lineHeight: 'var(--leading-normal)' },
             states: { open: {}, closed: {} },
         },
     },
+    keyframes: rippleKeyframes('accordion'),
 };
 
 // ── Dialog ────────────────────────────────────────────────────────────────
 export const dialog: RecipeInput = {
     component: 'dialog',
     parts: {
-        trigger: {
+        trigger: withPresence(pressable('dialog'), {
             base: {
                 appearance: 'none',
                 borderRadius: '624rem',
@@ -401,7 +522,7 @@ export const dialog: RecipeInput = {
                 cursor: 'pointer',
             },
             states: { open: {}, closed: {}, hover: { background: 'var(--color-primary-soft)' }, disabled: {}, ...focusRing },
-        },
+        }),
         popup: withPresence(popupPresence('translateY(24px) scale(0.94)'), {
             // Mobile-first: Material's full-screen dialog below `sm`.
             base: {
@@ -449,7 +570,7 @@ export const dialog: RecipeInput = {
                 color: 'var(--color-base-content)',
             },
         },
-        close: {
+        close: withPresence(pressable('dialog'), {
             base: {
                 appearance: 'none',
                 border: 'none',
@@ -461,8 +582,9 @@ export const dialog: RecipeInput = {
                 cursor: 'pointer',
             },
             states: { hover: { background: 'var(--color-primary-soft)' }, disabled: {}, ...focusRing },
-        },
+        }),
     },
+    keyframes: rippleKeyframes('dialog'),
 };
 
 // ── Floating surfaces ─────────────────────────────────────────────────────
@@ -471,7 +593,7 @@ const floating: CssProps = { ...raised('level2'), padding: 'var(--space-xs)' };
 export const popover: RecipeInput = {
     component: 'popover',
     parts: {
-        trigger: {
+        trigger: withPresence(pressable('popover'), {
             base: {
                 appearance: 'none',
                 borderRadius: '624rem',
@@ -483,24 +605,26 @@ export const popover: RecipeInput = {
                 cursor: 'pointer',
             },
             states: { open: {}, closed: {}, hover: { background: 'var(--color-primary-soft)' }, disabled: {}, ...focusRing },
-        },
+        }),
         popup: withPresence(popupPresence('scale(0.9)'), {
             base: { ...floating, padding: 'var(--space-md)', maxWidth: '20rem' },
             states: { open: {}, closed: {} },
         }),
         title: { base: { margin: '0 0 var(--space-xs)', fontWeight: 'var(--weight-medium)' } },
-        close: {
+        close: withPresence(pressable('popover'), {
             base: {
                 appearance: 'none',
                 border: 'none',
                 background: 'transparent',
                 color: 'var(--color-primary)',
+                borderRadius: 'var(--radius-selector)',
                 cursor: 'pointer',
                 ...label,
             },
             states: { disabled: {}, ...focusRing },
-        },
+        }),
     },
+    keyframes: rippleKeyframes('popover'),
 };
 
 export const tooltip: RecipeInput = {
@@ -527,7 +651,7 @@ export const tooltip: RecipeInput = {
 export const menu: RecipeInput = {
     component: 'menu',
     parts: {
-        trigger: {
+        trigger: withPresence(pressable('menu'), {
             base: {
                 appearance: 'none',
                 borderRadius: '624rem',
@@ -539,9 +663,10 @@ export const menu: RecipeInput = {
                 cursor: 'pointer',
             },
             states: { open: {}, closed: {}, hover: { background: 'var(--color-primary-soft)' }, disabled: {}, ...focusRing },
-        },
+        }),
         popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } }),
-        item: {
+        // The popup keeps no overflow clip; the item's own clips its ripple.
+        item: withPresence(pressable('menu'), {
             base: {
                 display: 'flex',
                 alignItems: 'center',
@@ -557,7 +682,7 @@ export const menu: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
-        },
+        }),
         group: { base: { padding: 'var(--space-2xs) 0' } },
         'group-label': {
             base: {
@@ -571,13 +696,15 @@ export const menu: RecipeInput = {
             base: { height: 'var(--border)', margin: 'var(--space-2xs) 0', background: 'var(--color-outline)' },
         },
     },
+    keyframes: rippleKeyframes('menu'),
 };
 
 export const select: RecipeInput = {
     component: 'select',
     parts: {
         root: { base: { display: 'inline-flex', position: 'relative' } },
-        trigger: {
+        // The ripple clip inherits the field's asymmetric radius.
+        trigger: withPresence(pressable('select'), {
             base: {
                 appearance: 'none',
                 display: 'inline-flex',
@@ -602,11 +729,11 @@ export const select: RecipeInput = {
                 invalid: { borderBottomColor: 'var(--color-error)' },
                 ...focusRing,
             },
-        },
+        }),
         value: { base: { flex: '1', textAlign: 'start' } },
         indicator: { base: { opacity: '0.7', transition: motion('transform') }, states: { open: { transform: 'rotate(180deg)' }, closed: {} } },
         popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } }),
-        item: {
+        item: withPresence(pressable('select'), {
             base: {
                 display: 'flex',
                 alignItems: 'center',
@@ -622,10 +749,11 @@ export const select: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 ...focusRing,
             },
-        },
+        }),
         'item-indicator': { base: { color: 'var(--color-primary)' } },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0', pointerEvents: 'none' } },
     },
+    keyframes: rippleKeyframes('select'),
 };
 
 // ── Selection controls ────────────────────────────────────────────────────
@@ -637,9 +765,20 @@ export const switchRecipe: RecipeInput = {
     },
     parts: {
         root: {
-            base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+            },
             states: { checked: {}, unchecked: {}, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
         },
+        // Material's switch state layer rides the THUMB (which travels and
+        // grows), so the held layer is a thumb pseudo lit from the control's
+        // flag via a descendant selector. No one-shot ripple here: the
+        // runtime clears `data-press-animating` unless an animation targets
+        // the flagged element itself, and the thumb is a descendant.
         control: {
             base: {
                 display: 'inline-block',
@@ -655,6 +794,9 @@ export const switchRecipe: RecipeInput = {
                 checked: { background: 'var(--color-primary)', borderColor: 'var(--color-primary)' },
                 unchecked: {},
                 ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed] [data-part="thumb"]::before': { opacity: '0.12' },
             },
         },
         thumb: {
@@ -677,6 +819,27 @@ export const switchRecipe: RecipeInput = {
                     transform: 'translate(calc(var(--switch-width) - 100% - var(--size-selector) * 2), -50%)',
                 },
                 unchecked: {},
+            },
+            selectors: {
+                // Fixed halo (the thumb itself grows 4→6 units) that travels
+                // with the thumb by construction.
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    left: '50%',
+                    top: '50%',
+                    width: 'calc(var(--size-selector) * 10)',
+                    height: 'calc(var(--size-selector) * 10)',
+                    borderRadius: '50%',
+                    background: 'var(--color-primary)',
+                    transform: 'translate(-50%, -50%)',
+                    opacity: '0',
+                    pointerEvents: 'none',
+                    transition: 'opacity var(--duration-fast) var(--ease-standard)',
+                },
+            },
+            at: {
+                'forced-colors': { selectors: { '&::before': { display: 'none' } } },
             },
         },
         label: { base: { fontSize: 'var(--text-md)' }, states: { checked: {}, unchecked: {} } },
@@ -708,10 +871,20 @@ export const checkbox: RecipeInput = {
     component: 'checkbox',
     parts: {
         root: {
-            base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+            },
             states: { checked: {}, unchecked: {}, indeterminate: {}, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
         },
-        control: { ...tickBox, base: { ...tickBox.base, borderRadius: 'var(--radius-selector)' } },
+        // MD3 selection-control halo: unbounded, centered, coords ignored.
+        control: withPresence(pressableCentered('checkbox', 'calc(var(--size-selector) * 15)'), {
+            ...tickBox,
+            base: { ...tickBox.base, borderRadius: 'var(--radius-selector)' },
+        }),
         indicator: {
             base: { color: 'var(--color-primary-content)', fontSize: 'var(--text-xs)' },
             states: { checked: {}, unchecked: {}, indeterminate: {} },
@@ -719,6 +892,7 @@ export const checkbox: RecipeInput = {
         label: { base: { fontSize: 'var(--text-md)' }, states: { checked: {}, unchecked: {}, indeterminate: {} } },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
     },
+    keyframes: rippleKeyframes('checkbox'),
     skipStates: { root: ['focus-visible'] },
 };
 
@@ -728,19 +902,25 @@ export const radioGroup: RecipeInput = {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' } },
         label: { base: { ...label, fontSize: 'var(--text-md)' } },
         item: {
-            base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'transparent',
+            },
             states: { disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
         },
         // Not `tickBox`: a radio has no indeterminate state, and reusing the
         // checkbox's styles smuggled one in — which the compiler rejected.
-        'item-control': {
+        'item-control': withPresence(pressableCentered('radio', 'calc(var(--size-selector) * 15)'), {
             base: { ...tickBox.base, borderRadius: '624rem' },
             states: {
                 checked: { borderColor: 'var(--color-primary)' },
                 unchecked: {},
                 ...focusRing,
             },
-        },
+        }),
         'item-indicator': {
             // The dot is always in the DOM, so it has to be hidden when
             // unchecked rather than left to the absence of a rule.
@@ -760,6 +940,7 @@ export const radioGroup: RecipeInput = {
         'item-label': { base: { fontSize: 'var(--text-md)' } },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
     },
+    keyframes: rippleKeyframes('radio'),
     // The tick itself carries the selected state; the row, dot and text have
     // no appearance of their own that depends on it.
     skipStates: {
@@ -789,7 +970,37 @@ export const slider: RecipeInput = {
     parts: {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' }, states: { disabled: { opacity: 'var(--disabled-opacity)' } } },
         label: { base: { ...label } },
-        input: { base: { width: '100%', accentColor: 'var(--color-primary)' }, states: { ...focusRing } },
+        // MD3's handle halo while dragging: `data-pressed` is the whole story
+        // (the runtime publishes no one-shot for drag surfaces), painted on
+        // the native thumb. Vendor thumb pseudos cannot share one selector
+        // list — an unrecognized selector invalidates the whole rule — so
+        // each engine gets its own keys.
+        input: {
+            base: { width: '100%', accentColor: 'var(--color-primary)' },
+            states: { ...focusRing },
+            selectors: {
+                '&::-webkit-slider-thumb': {
+                    transition: 'box-shadow var(--duration-fast) var(--ease-standard)',
+                },
+                '&[data-pressed]::-webkit-slider-thumb': {
+                    boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) color-mix(in oklab, var(--color-primary) 12%, transparent)',
+                },
+                '&::-moz-range-thumb': {
+                    transition: 'box-shadow var(--duration-fast) var(--ease-standard)',
+                },
+                '&[data-pressed]::-moz-range-thumb': {
+                    boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) color-mix(in oklab, var(--color-primary) 12%, transparent)',
+                },
+            },
+            at: {
+                'forced-colors': {
+                    selectors: {
+                        '&[data-pressed]::-webkit-slider-thumb': { boxShadow: 'none' },
+                        '&[data-pressed]::-moz-range-thumb': { boxShadow: 'none' },
+                    },
+                },
+            },
+        },
         'value-text': { base: { fontSize: 'var(--text-xs)', color: 'var(--color-outline)' } },
     },
     skipStates: { root: ['invalid', 'focus-visible'] },

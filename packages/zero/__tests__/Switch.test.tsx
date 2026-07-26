@@ -43,6 +43,36 @@ describe('Switch', () => {
         expect(root.getAttribute('data-variant')).toBe('soft');
     });
 
+    it('pointer press on the row lands feedback on the control', () => {
+        render(<Switch.Root>Label</Switch.Root>, container);
+        const root = container.querySelector<HTMLElement>('[data-scope="switch"][data-part="root"]')!;
+        const control = container.querySelector<HTMLElement>('[data-scope="switch"][data-part="control"]')!;
+        root.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(control.hasAttribute('data-pressed')).toBe(true);
+        // Cross-element on purpose: the row is the target, the control is the
+        // styling surface — the row itself stays unmarked.
+        expect(root.hasAttribute('data-pressed')).toBe(false);
+        root.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        expect(control.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('keyboard press on the hidden input lands feedback on the control', () => {
+        render(<Switch.Root>Label</Switch.Root>, container);
+        const input = container.querySelector<HTMLElement>('[data-scope="switch"][data-part="hidden-input"]')!;
+        const control = container.querySelector<HTMLElement>('[data-scope="switch"][data-part="control"]')!;
+        input.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+        expect(control.hasAttribute('data-pressed')).toBe(true);
+        input.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', bubbles: true }));
+        expect(control.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('publishes no press feedback while disabled', () => {
+        render(<Switch.Root disabled>Label</Switch.Root>, container);
+        const root = container.querySelector<HTMLElement>('[data-scope="switch"][data-part="root"]')!;
+        root.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(container.querySelector('[data-part="control"]')!.hasAttribute('data-pressed')).toBe(false);
+    });
+
     it('disabled and form wiring', () => {
         render(<Switch.Root disabled name="notify" value="yes" />, container);
         const input = container.querySelector<HTMLInputElement>('input')!;

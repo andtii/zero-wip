@@ -10,7 +10,7 @@ export const switchAnatomy = defineAnatomy('switch', {
     control: {
         element: 'span',
         states: ['checked', 'unchecked'],
-        flags: ['disabled', 'focus-visible'],
+        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'size'],
     },
     thumb: {

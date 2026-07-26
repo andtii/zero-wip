@@ -22,6 +22,7 @@ import type { Define } from 'sigx';
 import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
+import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import type { PartProps, WithAsChild, WithClass, WithDisabled } from '../../contract/props.js';
@@ -95,6 +96,10 @@ const DialogTrigger = component<DialogTriggerProps>(({ props, slots, signal }) =
     const dialog = useDialogContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
+    const press = createPressFeedback({
+        getElement: () => el,
+        isDisabled: () => !!props.disabled,
+    });
 
     const bag = (): PartProps => ({
         'data-scope': SCOPE,
@@ -109,7 +114,16 @@ const DialogTrigger = component<DialogTriggerProps>(({ props, slots, signal }) =
             if (!props.disabled) dialog.state.value = true;
         },
         onFocus: () => { focus.visible = isFocusVisible(el); },
-        onBlur: () => { focus.visible = false; },
+        onBlur: (e: FocusEvent) => {
+            press.onBlur(e);
+            focus.visible = false;
+        },
+        onKeydown: press.onKeydown,
+        onKeyup: press.onKeyup,
+        onPointerdown: press.onPointerdown,
+        onPointerup: press.onPointerup,
+        onPointercancel: press.onPointercancel,
+        onPointerleave: press.onPointerleave,
         ref: (node: HTMLElement | null) => { el = node; },
     });
 
@@ -213,6 +227,10 @@ const DialogClose = component<DialogCloseProps>(({ props, slots, signal }) => {
     const dialog = useDialogContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
+    const press = createPressFeedback({
+        getElement: () => el,
+        isDisabled: () => !!props.disabled,
+    });
 
     const bag = (): PartProps => ({
         'data-scope': SCOPE,
@@ -223,7 +241,16 @@ const DialogClose = component<DialogCloseProps>(({ props, slots, signal }) => {
             if (!props.disabled) dialog.state.value = false;
         },
         onFocus: () => { focus.visible = isFocusVisible(el); },
-        onBlur: () => { focus.visible = false; },
+        onBlur: (e: FocusEvent) => {
+            press.onBlur(e);
+            focus.visible = false;
+        },
+        onKeydown: press.onKeydown,
+        onKeyup: press.onKeyup,
+        onPointerdown: press.onPointerdown,
+        onPointerup: press.onPointerup,
+        onPointercancel: press.onPointercancel,
+        onPointerleave: press.onPointerleave,
         ref: (node: HTMLElement | null) => { el = node; },
     });
 

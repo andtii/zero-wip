@@ -10,7 +10,7 @@ export const checkboxAnatomy = defineAnatomy('checkbox', {
     control: {
         element: 'span',
         states: ['checked', 'unchecked', 'indeterminate'],
-        flags: ['disabled', 'focus-visible', 'invalid'],
+        flags: ['disabled', 'focus-visible', 'invalid', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'size'],
     },
     indicator: {

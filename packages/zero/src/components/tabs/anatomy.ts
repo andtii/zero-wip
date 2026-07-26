@@ -12,7 +12,7 @@ export const tabsAnatomy = defineAnatomy('tabs', {
     tab: {
         element: 'button',
         states: ['active', 'inactive'],
-        flags: ['disabled', 'focus-visible'],
+        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size', 'text'],
         asChild: true,
     },

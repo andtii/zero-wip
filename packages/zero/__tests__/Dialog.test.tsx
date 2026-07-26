@@ -57,6 +57,29 @@ describe('Dialog', () => {
         expect(trigger.getAttribute('data-state')).toBe('closed');
     });
 
+    it('publishes press feedback on the trigger and the close button', () => {
+        mount(container, signal({ open: true }));
+        for (const part of ['trigger', 'close'] as const) {
+            const el = container.querySelector<HTMLElement>(`[data-part="${part}"]`)!;
+            el.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+            expect(el.hasAttribute('data-pressed')).toBe(true);
+            el.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+            expect(el.hasAttribute('data-pressed')).toBe(false);
+        }
+    });
+
+    it('publishes no press feedback on a disabled trigger', () => {
+        render(
+            <Dialog.Root model={[signal({ open: false }), 'open']}>
+                <Dialog.Trigger disabled>Open</Dialog.Trigger>
+            </Dialog.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(trigger.hasAttribute('data-pressed')).toBe(false);
+    });
+
     it('native close events sync back into the model', () => {
         const state = signal({ open: true });
         mount(container, state);

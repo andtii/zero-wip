@@ -1,5 +1,8 @@
 @layer zero.recipes {
     [data-scope="menu"][data-part="trigger"] {
+        position: relative;
+        overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
         appearance: none;
         border-radius: 624rem;
         border: var(--border) solid var(--color-outline);
@@ -22,6 +25,38 @@
         outline-offset: 2px;
     }
 
+    [data-scope="menu"][data-part="trigger"]::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--color-primary);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-pressed]::before {
+        opacity: 0.12;
+    }
+
+    [data-scope="menu"][data-part="trigger"]::after {
+        content: "";
+        position: absolute;
+        left: var(--press-x, 50%);
+        top: var(--press-y, 50%);
+        width: calc(var(--press-r, 0px) * 2);
+        height: calc(var(--press-r, 0px) * 2);
+        border-radius: 50%;
+        background: var(--color-primary);
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-press-animating]::after {
+        animation: menu-ripple var(--duration-slow) var(--ease-standard);
+    }
+
     [data-scope="menu"][data-part="popup"] {
         opacity: 0;
         transform: scale(0.9);
@@ -41,6 +76,9 @@
     }
 
     [data-scope="menu"][data-part="item"] {
+        position: relative;
+        overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
         display: flex;
         align-items: center;
         gap: var(--space-sm);
@@ -65,6 +103,38 @@
         outline-offset: 2px;
     }
 
+    [data-scope="menu"][data-part="item"]::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--color-primary);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="menu"][data-part="item"][data-pressed]::before {
+        opacity: 0.12;
+    }
+
+    [data-scope="menu"][data-part="item"]::after {
+        content: "";
+        position: absolute;
+        left: var(--press-x, 50%);
+        top: var(--press-y, 50%);
+        width: calc(var(--press-r, 0px) * 2);
+        height: calc(var(--press-r, 0px) * 2);
+        border-radius: 50%;
+        background: var(--color-primary);
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    [data-scope="menu"][data-part="item"][data-press-animating]::after {
+        animation: menu-ripple var(--duration-slow) var(--ease-standard);
+    }
+
     [data-scope="menu"][data-part="group"] {
         padding: var(--space-2xs) 0;
     }
@@ -80,6 +150,24 @@
         height: var(--border);
         margin: var(--space-2xs) 0;
         background: var(--color-outline);
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="menu"][data-part="trigger"]::before {
+            display: none;
+        }
+
+        [data-scope="menu"][data-part="trigger"]::after {
+            display: none;
+        }
+
+        [data-scope="menu"][data-part="item"]::before {
+            display: none;
+        }
+
+        [data-scope="menu"][data-part="item"]::after {
+            display: none;
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -98,4 +186,7 @@
             transform: scale(0.9);
         }
     }
+}
+@keyframes menu-ripple {
+    from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }

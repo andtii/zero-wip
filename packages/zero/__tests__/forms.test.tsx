@@ -39,6 +39,24 @@ describe('Checkbox', () => {
         render(<Checkbox.Root indeterminate defaultChecked />, container);
         expect(container.querySelector('[data-part="control"]')!.getAttribute('data-state')).toBe('indeterminate');
     });
+
+    it('pointer press on the row lands feedback on the control', () => {
+        render(<Checkbox.Root>Terms</Checkbox.Root>, container);
+        const root = container.querySelector<HTMLElement>('[data-scope="checkbox"][data-part="root"]')!;
+        const control = container.querySelector<HTMLElement>('[data-scope="checkbox"][data-part="control"]')!;
+        root.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(control.hasAttribute('data-pressed')).toBe(true);
+        expect(root.hasAttribute('data-pressed')).toBe(false);
+        root.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        expect(control.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('publishes no press feedback while disabled', () => {
+        render(<Checkbox.Root disabled>Terms</Checkbox.Root>, container);
+        const root = container.querySelector<HTMLElement>('[data-scope="checkbox"][data-part="root"]')!;
+        root.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(container.querySelector('[data-part="control"]')!.hasAttribute('data-pressed')).toBe(false);
+    });
 });
 
 describe('Field', () => {
@@ -88,6 +106,31 @@ describe('RadioGroup', () => {
         expect(state.plan).toBe('pro');
         expect(container.querySelectorAll('[data-part="item"]')[1]!.getAttribute('data-state')).toBe('checked');
     });
+
+    it('press on an item row or its hidden input lands feedback on that item-control', () => {
+        render(
+            <RadioGroup.Root defaultValue="free">
+                <RadioGroup.Item value="free">Free</RadioGroup.Item>
+                <RadioGroup.Item value="pro">Pro</RadioGroup.Item>
+            </RadioGroup.Root>,
+            container,
+        );
+        const item = container.querySelectorAll<HTMLElement>('[data-part="item"]')[1]!;
+        const control = item.querySelector<HTMLElement>('[data-part="item-control"]')!;
+        const otherControl = container.querySelectorAll<HTMLElement>('[data-part="item-control"]')[0]!;
+
+        item.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(control.hasAttribute('data-pressed')).toBe(true);
+        expect(otherControl.hasAttribute('data-pressed')).toBe(false);
+        item.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        expect(control.hasAttribute('data-pressed')).toBe(false);
+
+        const input = item.querySelector<HTMLElement>('[data-part="hidden-input"]')!;
+        input.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+        expect(control.hasAttribute('data-pressed')).toBe(true);
+        input.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', bubbles: true }));
+        expect(control.hasAttribute('data-pressed')).toBe(false);
+    });
 });
 
 describe('Slider', () => {
@@ -108,6 +151,35 @@ describe('Slider', () => {
         input.dispatchEvent(new Event('input', { bubbles: true }));
         expect(state.volume).toBe(55);
         expect(container.querySelector('[data-part="value-text"]')!.textContent).toBe('55');
+    });
+
+    it('publishes held press feedback on the input, with no one-shot flag', () => {
+        render(
+            <Slider.Root min={0} max={100}>
+                <Slider.Input />
+            </Slider.Root>,
+            container,
+        );
+        const input = container.querySelector<HTMLElement>('[data-scope="slider"][data-part="input"]')!;
+        input.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(input.hasAttribute('data-pressed')).toBe(true);
+        // oneShot: false — a drag has no ripple, so the animating flag never
+        // appears at all.
+        expect(input.hasAttribute('data-press-animating')).toBe(false);
+        input.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        expect(input.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('publishes no press feedback while disabled', () => {
+        render(
+            <Slider.Root disabled min={0} max={100}>
+                <Slider.Input />
+            </Slider.Root>,
+            container,
+        );
+        const input = container.querySelector<HTMLElement>('[data-scope="slider"][data-part="input"]')!;
+        input.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(input.hasAttribute('data-pressed')).toBe(false);
     });
 });
 
@@ -174,5 +246,14 @@ describe('Accordion', () => {
         mount(state, true);
         container.querySelectorAll<HTMLElement>('[data-part="trigger"]')[1]!.click();
         expect(state.open).toEqual(['a', 'b']);
+    });
+
+    it('publishes press feedback on a trigger press and release', () => {
+        mount(signal({ open: ['a'] }));
+        const trigger = container.querySelector<HTMLElement>('[data-scope="accordion"][data-part="trigger"]')!;
+        trigger.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(trigger.hasAttribute('data-pressed')).toBe(true);
+        trigger.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        expect(trigger.hasAttribute('data-pressed')).toBe(false);
     });
 });

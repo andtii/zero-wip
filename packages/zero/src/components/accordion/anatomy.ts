@@ -14,7 +14,7 @@ export const accordionAnatomy = defineAnatomy('accordion', {
     trigger: {
         element: 'summary',
         states: ['open', 'closed'],
-        flags: ['disabled', 'focus-visible'],
+        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size', 'text'],
     },
     panel: {

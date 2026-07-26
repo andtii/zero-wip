@@ -14,12 +14,20 @@
 - Boolean flags are presence-only: `data-disabled=""`, never ="false".
   Vocabulary: disabled, highlighted, selected, invalid, required, readonly,
   placeholder, focus-visible, pressed, press-animating.
-- Press feedback (parts declaring the `pressed` flag — Button root): the
-  runtime sets `data-pressed` while the pointer/key is down, and
-  `data-press-animating` from press-start until the part's CSS animation
-  ends (one-shot effects like ripples play out even on a quick tap), and
-  writes the press point as `--press-x`/`--press-y`/`--press-r` (px;
-  r = farthest-corner radius). Keyboard presses get centered coordinates.
+- Press feedback (parts declaring the `pressed` flag): the runtime sets
+  `data-pressed` while the pointer/key is down, and `data-press-animating`
+  from press-start until the part's CSS animation ends (one-shot effects
+  like ripples play out even on a quick tap), and writes the press point as
+  `--press-x`/`--press-y`/`--press-r` (px; r = farthest-corner radius).
+  Keyboard presses get centered coordinates. Lifecycle: a press ends when
+  the gesture ends — an uncaptured pointerleave cancels it, a captured
+  pointer (range-input drag, touch) holds it until release.
+  Publishing parts: button root; tabs tab; dialog/popover trigger+close;
+  menu trigger+item; select trigger (item is pointer-only — keyboard
+  selection lives on the trigger); collapsible/accordion trigger;
+  switch/checkbox control and radio-group item-control (press anywhere in
+  the label row lands on the control; Space via the hidden input);
+  slider input (`data-pressed` only — a drag has no one-shot).
 - Variant axes pass through as data-color / data-size / data-variant
   (values: color = any DS-declared role — recommended vocabulary
   primary|secondary|accent|neutral|info|success|warning|error,
@@ -100,7 +108,8 @@ component renders; the root is called out separately where it carries props.
 - Button: Root(asChild) — one part on a native <button>, no machine states.
   Carries all three variant axes (color/size/variant), which is what it is
   for: it is where a design system puts its fill styles. Publishes press
-  feedback (data-pressed / data-press-animating / --press-*).
+  feedback (data-pressed / data-press-animating / --press-*), as do all
+  interactive parts — see the press-feedback bullet above.
 - Tabs: Root(model=value)/List/Tab(value,asChild)/Panel(value). APG tabs,
   roving arrows, automatic|manual activation, orientation.
 - Collapsible: Root(model=open)/Trigger/Panel on native <details>.

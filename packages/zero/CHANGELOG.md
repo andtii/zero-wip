@@ -49,6 +49,27 @@
 
 ### Added
 
+- **Press feedback everywhere Material presses.** The primitive shipped on
+  Button now covers every interactive part: tabs tab, dialog/popover
+  trigger+close, menu trigger+item, select trigger+item (item pointer-only —
+  keyboard selection lives on the trigger), collapsible/accordion trigger,
+  switch/checkbox control and radio-group item-control (cross-element: the
+  press lands anywhere in the label row, the feedback on the visible
+  control, Space via the hidden input), and slider input. Anatomy flags are
+  additive per part; slider declares only `pressed`.
+- `createPressFeedback` gained `oneShot: false` for drag surfaces — skips
+  the `data-press-animating` machinery entirely (a drag has no ripple).
+
+### Fixed (pre-release)
+
+- **Press lifecycle is now capture-aware.** `pointerleave` ended the press
+  unconditionally; that is right for uncaptured pointers (drag off a button
+  to cancel) but wrong under pointer capture — a native range input
+  implicitly captures during drag, and touch implicitly captures on any
+  element. A press now ends when the gesture ends: leave is ignored while
+  the element holds capture for that pointer; pointerup/pointercancel (which
+  capture retargets to the element) end it.
+
 - **Press feedback — `createPressFeedback` and the `pressed` /
   `press-animating` flags.** CSS can see `:active` but not *where* a press
   landed, so pointer-anchored effects (Material's ink ripple) were

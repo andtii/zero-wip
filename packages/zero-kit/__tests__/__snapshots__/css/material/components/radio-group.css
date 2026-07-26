@@ -17,6 +17,7 @@
         align-items: center;
         gap: var(--space-sm);
         cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
     }
 
     [data-scope="radio-group"][data-part="item"][data-disabled] {
@@ -25,6 +26,8 @@
     }
 
     [data-scope="radio-group"][data-part="item-control"] {
+        position: relative;
+        -webkit-tap-highlight-color: transparent;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -43,6 +46,43 @@
     [data-scope="radio-group"][data-part="item-control"][data-focus-visible] {
         outline: 3px solid var(--color-secondary);
         outline-offset: 2px;
+    }
+
+    [data-scope="radio-group"][data-part="item-control"]::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: calc(var(--size-selector) * 15);
+        height: calc(var(--size-selector) * 15);
+        border-radius: 50%;
+        background: var(--color-primary);
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-pressed]::before {
+        opacity: 0.12;
+    }
+
+    [data-scope="radio-group"][data-part="item-control"]::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: calc(var(--size-selector) * 15);
+        height: calc(var(--size-selector) * 15);
+        border-radius: 50%;
+        background: var(--color-primary);
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-press-animating]::after {
+        animation: radio-ripple var(--duration-slow) var(--ease-standard);
     }
 
     [data-scope="radio-group"][data-part="item-indicator"] {
@@ -68,4 +108,17 @@
         height: 1px;
         opacity: 0;
     }
+
+    @media (forced-colors: active) {
+        [data-scope="radio-group"][data-part="item-control"]::before {
+            display: none;
+        }
+
+        [data-scope="radio-group"][data-part="item-control"]::after {
+            display: none;
+        }
+    }
+}
+@keyframes radio-ripple {
+    from { transform: translate(-50%, -50%) scale(0); opacity: 0.12; } 60% { transform: translate(-50%, -50%) scale(1); opacity: 0.12; } to { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }
