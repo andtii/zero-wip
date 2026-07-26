@@ -349,6 +349,25 @@ export function validateDesignSystem<R extends RolesDecl>(
         }
     }
 
+    // ── Sizes ──
+    // A declared size becomes the value in `[data-size="…"]`, so the open
+    // vocabulary stops at what can be an attribute value. Caught at the
+    // declaration rather than only where a recipe uses it.
+    const sizes = ds.tokens.sizes;
+    if (sizes) {
+        if (sizes.length === 0) {
+            error('tokens.sizes', 'declared but empty — omit it to take the recommended ramp');
+        }
+        for (const size of sizes) {
+            if (!TOKEN_KEY_PATTERN.test(size)) {
+                error('tokens.sizes', `"${size}" is not a kebab-case identifier`);
+            }
+        }
+        if (new Set(sizes).size !== sizes.length) {
+            error('tokens.sizes', 'contains duplicate entries');
+        }
+    }
+
     // ── Breakpoints ──
     // These become `@media (min-width: …)` preludes and the ORDER they are
     // declared in decides emission order, so a descending declaration would

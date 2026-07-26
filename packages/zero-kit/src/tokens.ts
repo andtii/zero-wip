@@ -209,6 +209,18 @@ export interface TokensInput<R extends RolesDecl = RolesDecl, T extends SystemTo
      * info, success, warning, error).
      */
     roles?: R;
+    /**
+     * The design system's `size` axis vocabulary — the values its recipes may
+     * key `variants.size` on and consumers may pass as `size`. Omitted → the
+     * recommended ramp (`xs`, `sm`, `md`, `lg`, `xl`).
+     *
+     * Declared rather than inferred, for the same reason `roles` is: it
+     * flows into the DS manifest, so tooling, the docs site and the
+     * generation skill can see the ramp, and the validator can tell a typo
+     * from a deliberate step. Unlike a token category this emits no custom
+     * property — `--size-*` is control sizing, a different thing entirely.
+     */
+    sizes?: readonly string[];
     /** Role/base token names sampled into theme swatches. Default: first four roles + base. */
     swatch?: (RoleName<R> | typeof BASE_SURFACE_TOKEN_LIST[number])[];
     /** DS-declared custom tokens: name → metadata. Values live per-theme in `custom`. */

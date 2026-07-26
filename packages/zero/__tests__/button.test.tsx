@@ -61,6 +61,21 @@ describe('Button', () => {
         expect(root().getAttribute('data-variant')).toBe('outline');
     });
 
+    it('accepts a design-system size name off the recommended ramp', () => {
+        // The `size` axis is DS vocabulary, not contract: Material specifies
+        // density, other systems number their steps. This is as much a
+        // type-level assertion as a runtime one — `size="comfortable"` was a
+        // compile error while `SizeScale` was a closed union, so a design
+        // system with its own ramp could not be consumed at all.
+        render(
+            <Button.Root color="brand" size="comfortable" variant="tonal">Save</Button.Root>,
+            container,
+        );
+        expect(root().getAttribute('data-size')).toBe('comfortable');
+        expect(root().getAttribute('data-color')).toBe('brand');
+        expect(root().getAttribute('data-variant')).toBe('tonal');
+    });
+
     it('omits the axes it was not given', () => {
         // Absent, not empty — the CSS-only defaults hang off :not([data-size]).
         render(<Button.Root>Save</Button.Root>, container);

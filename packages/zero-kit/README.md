@@ -18,6 +18,8 @@ export const designSystem = defineDesignSystem({
         // The color vocabulary is YOURS: declare any roles (omit for the
         // recommended eight). Each emits --color-<role> (+ -content/-soft).
         roles: { primary: {}, surface: { content: false, soft: false } },
+        // The size axis is yours too — omit for the recommended xs–xl ramp.
+        sizes: ['compact', 'comfortable', 'spacious'],
         // Non-color tokens: declared ONCE for the design system, not per
         // theme. Categories are closed; the keys inside them are yours.
         system: {
@@ -50,8 +52,15 @@ export const designSystem = defineDesignSystem({
 Only the base surfaces (`base-100/200/300/base-content`) are fixed — they
 anchor `-soft` derivation, `light-dark()` emission and theme swatches.
 Declared roles are `@property`-registered in the compiled CSS and surfaced,
-with `system`, `custom` and `breakpoints`, in the DS's `dist/manifest.json`
-(which also lists every custom property the design system emits).
+with `sizes`, `system`, `custom` and `breakpoints`, in the DS's
+`dist/manifest.json` (which also lists every custom property the design system
+emits).
+
+Both variant axes zero interprets work this way. `roles` names what `color`
+accepts, `sizes` names what `size` accepts; both have a recommended default
+and neither is a closed set. (`variant` has no declaration because zero never
+interprets it at all.) `sizes` is the `data-size` axis — not `system.size`,
+which is the `--size-*` control-sizing unit.
 
 Both halves of the token contract work the same way: a **closed set of
 categories**, each fixing a `--prefix-` and a value grammar, with **open keys

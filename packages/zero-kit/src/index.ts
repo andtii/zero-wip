@@ -55,6 +55,8 @@ export { writeArtifacts } from './artifacts.js';
 export type {
     RoleDecl,
     RecommendedRole,
+    RecommendedSize,
+    SizeScale,
     BaseSurfaceToken,
     TokenCategory,
     TokenCategoryId,
@@ -67,6 +69,9 @@ export type {
 export {
     RECOMMENDED_ROLE_LIST,
     DEFAULT_ROLES,
+    // Exported so a design system can extend the recommended ramp rather than
+    // retype it: `sizes: [...SIZE_SCALE_LIST, '2xl']`.
+    SIZE_SCALE_LIST,
     BASE_SURFACE_TOKEN_LIST,
     TOKEN_CATEGORIES,
     TOKEN_KEY_PATTERN,

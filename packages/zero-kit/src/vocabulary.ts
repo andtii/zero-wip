@@ -1,17 +1,30 @@
 /**
- * The set of custom properties a design system actually guarantees.
+ * What a design system actually declared — the custom properties it
+ * guarantees, and the vocabularies its variant axes accept.
  *
- * Recipes are checked against this rather than against a hardcoded list of
- * token names: it is derived from the declaration, so every category added to
- * `TOKEN_CATEGORIES` starts being enforced without touching the validator.
+ * Recipes are checked against this rather than against hardcoded lists: it is
+ * derived from the declaration, so every category added to `TOKEN_CATEGORIES`
+ * starts being enforced without touching the validator, and a design system
+ * with its own size ramp is checked against *its* ramp.
  */
-import { BASE_SURFACE_TOKEN_LIST, TOKEN_CATEGORIES, resolveRoles, tokenProperty } from './contract.js';
+import {
+    BASE_SURFACE_TOKEN_LIST,
+    TOKEN_CATEGORIES,
+    resolveRoles,
+    resolveSizes,
+    tokenProperty,
+} from './contract.js';
 import type { RolesDecl, TokensInput } from './tokens.js';
 import { systemNodeAt } from './contract.js';
 
 export interface TokenVocabulary {
     /** Every custom property the design system defines. */
     names: ReadonlySet<string>;
+    /**
+     * The `size` axis values this design system declared, resolved — its own
+     * `tokens.sizes`, else the recommended ramp.
+     */
+    sizes: readonly string[];
     /** Closest known name, for a "did you mean" hint. */
     nearest(name: string): string | undefined;
 }
@@ -94,6 +107,7 @@ export function tokenVocabulary(tokens: TokensInput<any, any>): TokenVocabulary 
 
     return {
         names,
+        sizes: resolveSizes(tokens.sizes),
         nearest(name) {
             let best: string | undefined;
             let bestDistance = 4; // anything further apart isn't a typo

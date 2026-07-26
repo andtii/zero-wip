@@ -21,6 +21,10 @@
  * - `RECOMMENDED_ROLE_LIST` is the default vocabulary a DS gets when it
  *   declares nothing — shared recipes and the generation skill reference
  *   these names, but nothing in zero requires them.
+ * - The `size` axis is the same shape: `SIZE_SCALE_LIST` is the recommended
+ *   ramp a DS gets by default, and `SizeScale` accepts any DS-declared name
+ *   (Material's density steps, a numbered ramp). Zero passes it through as
+ *   `data-size` without interpreting it.
  * - `variant` (fill style: outline, soft, ghost, …) is intentionally NOT in
  *   the contract — it is design-system chrome and differs per DS. Zero passes
  *   it through as `data-variant` without interpreting it.
@@ -45,10 +49,27 @@
  * `TokenCategory`.
  */
 
-/** The shared component size scale. */
-export type SizeScale = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-
+/**
+ * The recommended component size scale — the default vocabulary a design
+ * system gets when it declares no `sizes` of its own. Used for prop
+ * autocomplete; any DS-declared size name is equally valid everywhere these
+ * appear.
+ */
 export const SIZE_SCALE_LIST = ['xs', 'sm', 'md', 'lg', 'xl'] as const;
+
+export type RecommendedSize = typeof SIZE_SCALE_LIST[number];
+
+/**
+ * A value for the `size` axis: recommended sizes autocompleted, any
+ * DS-declared size name equally valid.
+ *
+ * Open for the same reason `ColorValue` is — the size ramp is design-system
+ * vocabulary, not contract. Material specifies density (`compact`,
+ * `comfortable`), other systems number their steps; a foundation for building
+ * *new* design systems cannot require `xs`–`xl`.
+ */
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export type SizeScale = RecommendedSize | (string & {});
 
 /**
  * The recommended color roles — the default vocabulary a design system gets

@@ -4,7 +4,7 @@
  * combined index, and theme metadata for the runtime registry.
  */
 import type { ManifestComponent, RoleDecl, ZeroManifest } from './contract.js';
-import { DEFAULT_ROLES, defaultSwatch, resolveRoles } from './contract.js';
+import { DEFAULT_ROLES, defaultSwatch, resolveRoles, resolveSizes } from './contract.js';
 import type { CustomTokenDecl, RolesDecl, SystemTokens, TokensInput } from './tokens.js';
 import { compileTokensCss } from './tokens.js';
 import type { RecipeInput } from './recipes.js';
@@ -47,6 +47,8 @@ export interface CompiledDesignSystem {
     /** The DS's declared token vocabulary — emitted into the DS manifest. */
     tokens: {
         roles: Record<string, RoleDecl>;
+        /** The DS's `size` axis vocabulary, resolved (declared, else recommended). */
+        sizes: string[];
         custom: Record<string, CustomTokenDecl>;
         breakpoints: Record<string, string>;
         /** DS-level values per category id, e.g. `{ radius: { field: '0.5rem' } }`. */
@@ -132,6 +134,7 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
         themes,
         tokens: {
             roles,
+            sizes: [...resolveSizes(ds.tokens.sizes)],
             custom: ds.tokens.custom ?? {},
             breakpoints: ds.tokens.breakpoints ?? {},
             system: (ds.tokens.system ?? {}) as Record<string, unknown>,
