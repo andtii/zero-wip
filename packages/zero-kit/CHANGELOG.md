@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [0.1.0] - 2026-07-27
+
 ### Added
 
 - **Pseudo-part projection** (multi-target RFC docs/rfcs/0001, #98):
