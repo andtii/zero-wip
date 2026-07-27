@@ -1,13 +1,17 @@
 # RFC 0001 — Multi-target design systems: Lynx adopts the zero model
 
 - **Status**: Proposed
-- **Tracking issue**: #95
+- **Tracking issue**: #95 (pluggability amendment: #107)
 - **Affected repos**: `signalxjs/zero` (this repo), `signalxjs/lynx`
 - **Decisions locked before this RFC**: (1) `@sigx/zero-kit` grows a pluggable
-  emitter layer — one authoring toolchain, `web` and `lynx` targets; (2) one
-  design-system source (`tokens.ts` + `recipes.ts`) compiles to both targets;
-  (3) `lynx-heroui` is rebuilt as pure data and is the **pilot**; (4) no
-  backward compatibility anywhere — pre-1.0, get it right.
+  emitter layer — one authoring toolchain, emit targets behind a published
+  SPI; (2) one design-system source (`tokens.ts` + `recipes.ts`) compiles to
+  every target it declares; (3) `lynx-heroui` is rebuilt as pure data and is
+  the **pilot**; (4) no backward compatibility anywhere — pre-1.0, get it
+  right; (5) **zero-kit knows no concrete foreign platform** (#107): it ships
+  the SPI, the target-neutral core, and the built-in `web` target only — the
+  Lynx emitter is `@sigx/lynx-zero-kit` in the lynx repo, and further targets
+  (terminal, …) can come later without touching this repo.
 
 ## 1. Motivation
 
@@ -77,6 +81,14 @@ Collision resolutions:
 
 ## 3. zero-kit: target-neutral core + pluggable emitters
 
+zero-kit's job splits into a **target-neutral core** (authoring types,
+resolution, validation, lowering toolkit) and a published **target SPI**.
+zero-kit itself contains exactly one target: `web` (zero's own platform, the
+reference implementation). Every other target is an external package
+implementing the SPI — `@sigx/lynx-zero-kit` for Lynx, a future terminal
+target, anything else. zero-kit never names a foreign platform: it knows the
+SPI, the generic `target-<id>` recipe-condition pattern, and nothing more.
+
 ### 3.1 Pipeline
 
 ```
@@ -86,9 +98,9 @@ defineTokens / defineRecipe / defineDesignSystem     (authoring — target-neutr
         │           vocabulary, per-target recipe projection
    validate()       shared structural pass (per target manifest)
         │           + per-target capability pass
-   target.emit()    web | lynx
+   target.emit()    built-in 'web' | any EmitTarget plugin (e.g. @sigx/lynx-zero-kit)
         │
-   writeArtifacts() → dist/<target>/**
+   writeArtifacts() → dist/<target-id>/**
 ```
 
 ### 3.2 Module layout
@@ -106,20 +118,22 @@ packages/zero-kit/src/
     vocabulary.ts          # (moved) token vocabulary + Levenshtein
     validate.ts            # (moved) shared validation
     validate-recipes.ts    # (moved) + capability-aware value checks
-  lower/
+  lower/                   # EXPORTED toolkit (capability-driven), usable by any target plugin
     color.ts               # oklch / color-mix → hex (culori)
     calc.ts                # length-arithmetic folding
     derive.ts              # expression hoisting → derived tokens + derivation program
   targets/
-    types.ts               # EmitTarget, TargetCapabilities, TargetArtifacts
-    web/                   # current compileTokensCss / compileRecipeCss relocated
-    lynx/
-      classes.ts           # anatomy → zx- class projection (the normative spec, §4)
-      recipe-css.ts        # class-selector CSS emission
-      themes.ts            # themes.js generation + derivation program
-  artifacts.ts             # writes dist/<target>/** for any TargetArtifacts
+    spi.ts                 # EmitTarget, TargetCapabilities, TargetArtifacts — the published SPI
+    load.ts                # resolves a targets: entry ('web' | module specifier) to an EmitTarget
+    web/                   # the built-in reference target (current compileTokensCss / compileRecipeCss)
+  artifacts.ts             # writes dist/<target-id>/** for any TargetArtifacts
   cli.ts
 ```
+
+There is deliberately **no `targets/lynx/`**. The Lynx emitter (class
+projection, recipe-CSS emission, `themes.js` generation — §4 and §6) lives in
+the lynx repo as `@sigx/lynx-zero-kit`, a Node-only package depending on
+zero-kit for the SPI, the resolve/validate core, and the lowering toolkit.
 
 ### 3.3 Key types
 
@@ -134,9 +148,9 @@ export interface TargetCapabilities {
 }
 
 export interface EmitTarget {
-    readonly id: 'web' | 'lynx';
+    readonly id: string;                 // open — 'web' (built-in), 'lynx', 'terminal', …
     readonly capabilities: TargetCapabilities;
-    readonly defaultManifest: string;    // '@sigx/zero/manifest.json' | '@sigx/lynx-zero/manifest.json'
+    readonly defaultManifest: string;    // the target's foundation manifest, e.g. '@sigx/zero/manifest.json'
     validate(ds: ResolvedDesignSystem, manifest: FoundationManifest): ValidationIssue[];
     emit(ds: ResolvedDesignSystem, manifest: FoundationManifest): TargetArtifacts;
 }
@@ -150,10 +164,20 @@ The derivation-program grammar is deliberately frozen at `mix | mul` — it
 covers every derivation observed in both repos; anything else is a
 compile-time error until a real DS needs more.
 
+**Target loading**: an entry in `targets:` is either the built-in name
+`'web'` or a module specifier (`'@sigx/lynx-zero-kit'`) whose default export
+is an `EmitTarget`; the kit `import()`s it at build time. The CLI addresses
+targets by their resolved `id`. Duplicate ids across declared targets are an
+error.
+
 ### 3.4 Value lowering — the central mechanism
 
-Theme values are compile-time data (they live in `tokens.ts`), so any
-expression whose free variables are theme-resolvable tokens can be **folded**:
+The lowering machinery is an **exported, capability-driven toolkit**
+(`@sigx/zero-kit/lowering`), not private plumbing: any target plugin whose
+`TargetCapabilities` rule out a construct calls the same folding helpers, so
+a future terminal target reuses them unchanged. Theme values are compile-time
+data (they live in `tokens.ts`), so any expression whose free variables are
+theme-resolvable tokens can be **folded**:
 
 - `oklch(…)` literals → hex via culori. Always.
 - `color-mix(in oklab, var(--color-primary) 16%, var(--color-base-100))` in a
@@ -164,9 +188,9 @@ expression whose free variables are theme-resolvable tokens can be **folded**:
 - `calc(var(--size-field) * 12)` → same hoisting; a small length-arithmetic
   evaluator folds it per theme (themes may override sizes).
 - Expressions over runtime-only values (`--press-*`, `env()`, percentages of
-  unknown boxes) → **hard error** for the lynx target, with the fix named:
-  *"move it under `at: { 'target-web': … }` or provide a `target-lynx`
-  literal."*
+  unknown boxes) → **hard error** for a target that can't compute them, with
+  the fix named: *"move it under `at: { 'target-web': … }` or provide a
+  `target-<id>` literal for this target."*
 
 Every hoisted derivation is also recorded as a `DerivationEntry` in the
 artifact so runtime-registered tenant themes (`registerTheme`/`extendTheme`)
@@ -175,38 +199,47 @@ can recompute derived values in JS — replacing lynx's hand-maintained
 
 ### 3.5 Two foundation manifests, one kit
 
-The lynx target validates against a **lynx manifest**, not the web one.
-`lynx-zero` adopts the same `defineAnatomy` authoring (per-component
-`anatomy.ts`, aggregated registry, `manifest.json` emitted at build). The
-anatomy *format* is shared law; the *inventory* is per-foundation (lynx has
-`nav-tab-bar`; web has `popover`). The manifest schema gains a
-`foundation: 'zero' | 'lynx-zero'` discriminator.
+Each target validates against **its own foundation manifest**, named by the
+target's `defaultManifest` (overridable per build). `lynx-zero` adopts the
+same `defineAnatomy` authoring (per-component `anatomy.ts`, aggregated
+registry, `manifest.json` emitted at build). The anatomy *format* is shared
+law; the *inventory* is per-foundation (lynx has `nav-tab-bar`; web has
+`popover`). The manifest schema gains an open `foundation: string`
+discriminator (`'zero'`, `'lynx-zero'`, …).
 
-For components existing on both platforms, part/state/flag names **must**
-match so one recipe styles both. Enforcement is a **build-time parity check**
-in the kit: for every recipe compiled for both targets, diff the two
-anatomies' parts/states that the recipe touches; error on mismatch. This is
-the established zero↔zero-kit parity-test pattern applied across repos — no
-shared anatomy package (deliberately deferred until drift proves chronic).
+For components existing on more than one platform, part/state/flag names
+**must** match so one recipe styles all of them. Enforcement is a
+**build-time parity check** in the kit core: for every recipe compiled for
+two or more targets, diff the parts/states the recipe touches across all
+loaded foundation manifests; error on mismatch. This is the established
+zero↔zero-kit parity-test pattern applied across repos — no shared anatomy
+package (deliberately deferred until drift proves chronic).
 
 ### 3.6 DS declaration, CLI, artifact layout
 
 ```ts
 export const designSystem = defineDesignSystem({
     name: 'daisy',
-    targets: ['web', 'lynx'],            // default: ['web']
+    targets: ['web', '@sigx/lynx-zero-kit'],   // built-in name | module specifier; default: ['web']
     tokens, recipes,
-    css: [...],                          // web-only escape hatch
+    css: [...],                                // web-only escape hatch
 });
 ```
 
 ```
-zero-kit build    [entry] [--target web,lynx] [--out dist]
-                  [--manifest <path>] [--manifest.web <path>] [--manifest.lynx <path>]
+zero-kit build    [entry] [--target <id>[,<id>…]] [--out dist]
+                  [--manifest <path>] [--manifest.<id> <path>]
 zero-kit validate [entry] [--target …] [--strict]
 ```
 
-Artifact root becomes `dist/<target>/` for **every** DS package (breaking:
+The DS declares *which* target packages it ships (it must — it authors the
+target sections and publishes the artifacts); `--target` filters among the
+declared ids. This puts the knowledge where it belongs: the **DS** knows its
+targets, each **target package** knows its platform, the **kit** knows
+neither. (Consequence: a dual-target DS package here takes a devDependency on
+`@sigx/lynx-zero-kit` — no cycle, since zero-kit never depends back.)
+
+Artifact root becomes `dist/<target-id>/` for **every** DS package (breaking:
 web moves from `dist/css/**` to `dist/web/css/**`, `dist/web/manifest.json`).
 A dual-target DS ships both trees behind subpath exports (`./css` → web,
 `./lynx`, `./lynx/css`).
@@ -218,6 +251,9 @@ document intent and silence the note. The inverse — a target component with
 no recipe — remains a per-target coverage warning.
 
 ## 4. Anatomy → class projection for Lynx
+
+*(Normative for `@sigx/lynx-zero-kit` — the Lynx target plugin in the lynx
+repo. zero-kit contains none of this.)*
 
 No attribute selectors on Lynx, so the anatomy projects onto a deterministic
 generated class scheme. Descendant combinators are proven in the Lynx engine
@@ -273,10 +309,10 @@ export function zx(scope: string, part: string, o?: {
 export function registerDesignSystemMeta(meta: LynxDsManifest): void;  // seeded by the DS artifact
 ```
 
-The projection function is *specified* in `targets/lynx/classes.ts` and
-mirrored (~30 lines) in lynx-zero, kept honest by a parity test that runs the
-kit's projection over the lynx manifest and compares — the established
-duplication pattern.
+The projection function is *specified* in `@sigx/lynx-zero-kit` and mirrored
+(~30 lines) in lynx-zero at runtime, kept honest by a parity test that runs
+the plugin's projection over the lynx manifest and compares — the established
+duplication pattern, entirely within the lynx repo.
 
 **Class prefix / DS coexistence**: the lynx emitter accepts an optional
 `classPrefix` (e.g. `hero-`), and lynx-zero components read a provided prefix
@@ -286,18 +322,21 @@ prefixes and switches at runtime by swapping the provided prefix +
 `clearThemes()` + the other DS's `installThemes()` — the Lynx analogue of the
 web playground's `<link>` swap.
 
-## 5. Recipe portability — one source, two targets
+## 5. Recipe portability — one source, many targets
 
 Two mechanisms, no overlay files:
 
 1. **Capability-based lowering (the default path).** Well-written recipes
    (var refs, lengths, flex, colors, radius, opacity, typography, portable
-   keyframes) compile to both targets untouched; foldable expressions lower
+   keyframes) compile to every target untouched; foldable expressions lower
    automatically (§3.4); non-portable constructs outside a target section are
    errors that name the fix.
 
-2. **Reserved `at` conditions `target-web` / `target-lynx`** for genuine
-   divergence:
+2. **The reserved `at` condition namespace `target-<id>`** for genuine
+   divergence. zero-kit reserves the *pattern*, not any names: an emitter
+   inlines `target-<its own id>` (no at-rule wrapper) and strips every other
+   `target-*` block. A `target-<id>` whose id matches no declared target is a
+   validation warning (likely a typo), never silently meaningful:
 
 ```ts
 parts: {
@@ -316,10 +355,10 @@ parts: {
 ```
 
 `at` already nests inside `variants` and `compoundVariants`, so target
-divergence composes with every existing mechanism for free. The web emitter
-inlines `target-web` content (no at-rule wrapper) and strips `target-lynx`;
-the lynx emitter does the reverse. Whole-recipe divergence: pin
-`targets: ['web']` and write a sibling `defineRecipe({ component, targets: ['lynx'], … })`.
+divergence composes with every existing mechanism for free. Whole-recipe
+divergence: pin `targets: ['web']` and write a sibling
+`defineRecipe({ component, targets: ['lynx'], … })` (`RecipeInput.targets`
+holds target *ids*).
 
 **Value grammar tiers** (published via `TargetCapabilities`, enforced by
 target validation):
@@ -329,16 +368,21 @@ target validation):
   props, foldable `oklch()`/`color-mix()`/`calc()`, `@keyframes` with
   portable bodies (Lynx supports CSS animations — the existing spinner spins).
 - *Web-only*: pseudo-elements, `selectors` blocks, every `at` condition
-  except the two targets (breakpoints, `@container`, `starting-style`, raw
-  `@…`), runtime properties, `light-dark()`, filters/backdrop.
+  except the `target-<id>` namespace (breakpoints, `@container`,
+  `starting-style`, raw `@…`), runtime properties, `light-dark()`,
+  filters/backdrop.
 - *Lynx-only*: nothing, by design — `target-lynx` exists for literal
-  alternatives, not new vocabulary.
+  alternatives, not new vocabulary. The same rule applies to any future
+  target.
 
 Validation becomes target-aware: the structural pass runs against each
 declared target's manifest; the value pass extends the existing vocabulary
 machinery with capability checks. `validate --strict` stays the CI gate.
 
 ## 6. Lynx artifacts and the theme pipeline
+
+*(Artifact shapes owned and emitted by `@sigx/lynx-zero-kit`; zero-kit only
+provides the generic `TargetArtifacts` writer.)*
 
 ```
 dist/lynx/
@@ -491,7 +535,7 @@ every contract tweak; vendoring shared source is the worst of both.
 | Phase | Repo | Work | Milestone / gate |
 |---|---|---|---|
 | **0** | lynx | Land `behaviors/` (controllable, create-id, selection, list, press, dismiss, presence, position) + typography move. No kit dependency; existing DSes untouched. | Tests green; behavior tests match web's cases. |
-| **1** | both | Kit target refactor + lynx emitter + lowering (this repo); lynx repo adds `@sigx/zero-kit` devDependency and proves the loop with a throwaway smoke DS. | A showcase screen styled purely by generated classes + a generated theme. On-device verification of the open questions (transition, box-shadow, descendant selectors, the two in-source contradictions). |
+| **1** | both | Kit SPI + core refactor + lowering toolkit + built-in web target (this repo); **`@sigx/lynx-zero-kit`** implementing the SPI (lynx repo); lynx repo proves the loop with a throwaway smoke DS. | A showcase screen styled purely by generated classes + a generated theme. On-device verification of the open questions (transition, box-shadow, descendant selectors, the two in-source contradictions). |
 | **2** | both | 5 pilot components (`button`, `switch`, `dialog`, `tabs`, `field` — together they exercise press, controllable, dismiss/presence, selection, composition) + `zero-heroui` with recipes for them. | **Go/no-go gate**: side-by-side showcase screen, old `lynx-heroui` vs new stack, visually equivalent. |
 | **3** | both | Full Tier A/B/C inventory; complete hero recipes; hero showcase screens re-pointed; hero's tests absorbed as anatomy tests. | **Delete `lynx-heroui`**; repo greps clean. |
 | **4** | both | `zero-daisyui` lynx target (+ recipes it lacks: card, badge, nav-* — web benefits too); migrate `lynx-updates-ui`; move markdown/emoji adapters; carry daisy's 26 test files; showcase DS switcher via `classPrefix`. | **Delete `lynx-daisyui`**; `lynx-updates-ui` DS-agnostic; runtime daisy↔hero switching works. |
@@ -519,15 +563,19 @@ hero proves the system).
 
 ## 11. Tracking issues
 
-Filed and cross-linked from #95 (this RFC's tracking issue):
+Filed and cross-linked from #95 (this RFC's tracking issue; #107 is the
+pluggability amendment):
 
 - zero repo: #96 contract changes (`--text-fixed-*`, web-only runtime
-  properties, settles #53), #97 kit target refactor + lynx emitter +
-  lowering, #98 web anatomy changes (slider superset, dialog
-  `backdrop`/`footer`), #99 `zero-heroui` pilot package, #100 `zero-daisyui`
-  lynx target.
+  properties, settles #53), #97 kit SPI + target-neutral core + lowering
+  toolkit + built-in web target (no lynx knowledge — #107), #98 web anatomy
+  changes (slider superset, dialog `backdrop`/`footer`), #99 `zero-heroui`
+  pilot package, #100 `zero-daisyui` lynx target.
 - lynx repo: [signalxjs/lynx#804](https://github.com/signalxjs/lynx/issues/804)
-  Phase 0 behaviors, [#805](https://github.com/signalxjs/lynx/issues/805)
+  Phase 0 behaviors,
+  [#810](https://github.com/signalxjs/lynx/issues/810) `@sigx/lynx-zero-kit`
+  (the Lynx `EmitTarget` plugin),
+  [#805](https://github.com/signalxjs/lynx/issues/805)
   Phase 1 kit adoption + on-device verification,
   [#806](https://github.com/signalxjs/lynx/issues/806) Phase 2 pilot
   (go/no-go gate), [#807](https://github.com/signalxjs/lynx/issues/807)
