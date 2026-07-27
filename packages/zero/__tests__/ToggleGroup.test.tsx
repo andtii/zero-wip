@@ -108,6 +108,20 @@ describe('Toggle', () => {
         expect(span.getAttribute('data-state')).toBe('off');
     });
 
+    it('a held key does not strobe an asChild toggle (repeat guard)', () => {
+        render(
+            <Toggle.Root asChild>
+                {(p: PartProps) => <span {...p}>B</span>}
+            </Toggle.Root>,
+            container,
+        );
+        const span = container.querySelector<HTMLElement>('span')!;
+        span.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+        span.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', repeat: true, bubbles: true, cancelable: true }));
+        span.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', repeat: true, bubbles: true, cancelable: true }));
+        expect(span.getAttribute('data-state')).toBe('on');
+    });
+
     it('asChild on an anchor: Space is supplied, Enter is left to the native click', () => {
         render(
             <Toggle.Root asChild>

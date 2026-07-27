@@ -91,7 +91,9 @@ const ToggleRoot = component<ToggleRootProps>(({ props, slots, emit, signal }) =
             // won't synthesize a click from this key (a span always; an
             // anchor on Space). Where it will, ours must stay out of the way
             // or the press toggles twice.
-            if (props.asChild && (e.key === 'Enter' || e.key === ' ') && !synthesizesClickFrom(e.currentTarget, e.key)) {
+            // `!e.repeat`: a held key auto-repeats keydown; a toggle must
+            // flip once per press, not strobe.
+            if (props.asChild && !e.repeat && (e.key === 'Enter' || e.key === ' ') && !synthesizesClickFrom(e.currentTarget, e.key)) {
                 e.preventDefault();
                 state.value = !state.value;
             }

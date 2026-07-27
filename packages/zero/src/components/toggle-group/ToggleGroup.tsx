@@ -237,7 +237,8 @@ const ToggleGroupItem = component<ToggleGroupItemProps>(({ props, slots, onUnmou
             // Keyboard activation for asChild elements where the platform
             // won't synthesize a click from this key (a span always; an
             // anchor on Space); where it will, ours stays out of the way.
-            if (props.asChild && (e.key === 'Enter' || e.key === ' ') && !synthesizesClickFrom(e.currentTarget, e.key)) {
+            // `!e.repeat`: a held key must flip once per press, not strobe.
+            if (props.asChild && !e.repeat && (e.key === 'Enter' || e.key === ' ') && !synthesizesClickFrom(e.currentTarget, e.key)) {
                 e.preventDefault();
                 group.toggle(props.value);
             }
