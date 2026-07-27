@@ -15,7 +15,7 @@ import { createControllableState } from '../../behaviors/controllable.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
-import { renderAsChild } from '../../contract/as-child.js';
+import { isNativelyActivatable, renderAsChild } from '../../contract/as-child.js';
 import { variantAttrs } from '../../contract/props.js';
 import type {
     PartProps,
@@ -68,8 +68,12 @@ const ToggleRoot = component<ToggleRootProps>(({ props, slots, emit, signal }) =
         'aria-pressed': state.value ? 'true' : 'false',
         'aria-label': props.label,
         // A native <button disabled> is inert already; an asChild element is
-        // not, so disabled has to be conveyed and enforced by hand there.
+        // not, so disabled has to be conveyed and enforced by hand there —
+        // and a non-interactive asChild element needs the whole button
+        // contract supplied: role, a tab stop, and Enter/Space activation.
         'aria-disabled': props.asChild && props.disabled ? 'true' : undefined,
+        role: props.asChild ? 'button' : undefined,
+        tabIndex: props.asChild && !props.disabled ? 0 : undefined,
         ...variantAttrs(props),
         ref: (node: HTMLElement | null) => { el = node; },
         onClick: (e: MouseEvent) => {
@@ -83,6 +87,14 @@ const ToggleRoot = component<ToggleRootProps>(({ props, slots, emit, signal }) =
         onKeydown: (e: KeyboardEvent) => {
             if (props.disabled) return;
             press.onKeydown(e);
+            // Keyboard activation for asChild elements with no native button
+            // behavior. Natively interactive elements are skipped — they
+            // synthesize a click from these same keys, and doing both would
+            // toggle twice per press.
+            if (props.asChild && (e.key === 'Enter' || e.key === ' ') && !isNativelyActivatable(e.currentTarget)) {
+                e.preventDefault();
+                state.value = !state.value;
+            }
         },
         onKeyup: press.onKeyup,
         onFocus: () => { focus.visible = isFocusVisible(el); },

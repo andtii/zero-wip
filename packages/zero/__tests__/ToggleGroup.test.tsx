@@ -91,6 +91,38 @@ describe('Toggle', () => {
         const root = container.querySelector<HTMLElement>('[data-scope="toggle"]')!;
         expect(root.getAttribute('aria-label')).toBe('Bold');
     });
+
+    it('asChild on a non-button gets the button contract: role, tab stop, key activation', () => {
+        render(
+            <Toggle.Root asChild>
+                {(p: PartProps) => <span {...p}>B</span>}
+            </Toggle.Root>,
+            container,
+        );
+        const span = container.querySelector<HTMLElement>('span')!;
+        expect(span.getAttribute('role')).toBe('button');
+        expect(span.tabIndex).toBe(0);
+        span.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+        expect(span.getAttribute('data-state')).toBe('on');
+        span.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
+        expect(span.getAttribute('data-state')).toBe('off');
+    });
+
+    it('asChild on a native button does not double-toggle from key activation', () => {
+        render(
+            <Toggle.Root asChild>
+                {(p: PartProps) => <button type="button" {...p}>B</button>}
+            </Toggle.Root>,
+            container,
+        );
+        const btn = container.querySelector<HTMLElement>('button')!;
+        // Keydown alone must not toggle — the platform's synthesized click
+        // (dispatched here by hand) is the single activation path.
+        btn.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+        expect(btn.getAttribute('data-state')).toBe('off');
+        btn.click();
+        expect(btn.getAttribute('data-state')).toBe('on');
+    });
 });
 
 describe('ToggleGroup', () => {
@@ -260,5 +292,9 @@ describe('ToggleGroup', () => {
         expect(span.getAttribute('data-part')).toBe('item');
         expect(span.getAttribute('data-state')).toBe('on');
         expect(span.getAttribute('aria-pressed')).toBe('true');
+        // Non-button asChild items get the button contract supplied.
+        expect(span.getAttribute('role')).toBe('button');
+        span.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
+        expect(span.getAttribute('data-state')).toBe('off');
     });
 });

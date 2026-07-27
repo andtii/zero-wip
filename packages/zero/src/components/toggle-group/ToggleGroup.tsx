@@ -26,7 +26,7 @@ import { createRovingKeydown } from '../../behaviors/roving.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr, type Orientation } from '../../contract/data-attrs.js';
-import { renderAsChild } from '../../contract/as-child.js';
+import { isNativelyActivatable, renderAsChild } from '../../contract/as-child.js';
 import { variantAttrs } from '../../contract/props.js';
 import type {
     PartProps,
@@ -217,7 +217,10 @@ const ToggleGroupItem = component<ToggleGroupItemProps>(({ props, slots, onUnmou
         'data-orientation': group.orientation(),
         tabIndex: isTabbable() ? 0 : -1,
         'aria-pressed': isOn() ? 'true' : 'false',
+        // asChild elements get the button contract supplied by hand: the
+        // native <button> below carries these itself.
         'aria-disabled': props.asChild && disabled() ? 'true' : undefined,
+        role: props.asChild ? 'button' : undefined,
         ref: (node: HTMLElement | null) => { el = node; },
         onClick: (e: MouseEvent) => {
             if (disabled()) {
@@ -231,6 +234,13 @@ const ToggleGroupItem = component<ToggleGroupItemProps>(({ props, slots, onUnmou
             if (disabled()) return;
             press.onKeydown(e);
             group.keydown(e, props.value);
+            // Keyboard activation for asChild elements with no native button
+            // behavior; natively interactive elements synthesize a click from
+            // these keys already, and doing both would toggle twice.
+            if (props.asChild && (e.key === 'Enter' || e.key === ' ') && !isNativelyActivatable(e.currentTarget)) {
+                e.preventDefault();
+                group.toggle(props.value);
+            }
         },
         onKeyup: press.onKeyup,
         onFocus: () => { focus.visible = isFocusVisible(el); },
