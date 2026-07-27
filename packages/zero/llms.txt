@@ -91,7 +91,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-Fifteen components ship today. Every part each renders is listed below, in
+Sixteen components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -141,6 +141,12 @@ component renders; the root is called out separately where it carries props.
   (null = indeterminate).
 - Field: Root/Label/Description/Error — wires ids and disabled/invalid/
   required down to the control it wraps.
+- Avatar: Root/Image(src, alt, asChild)/Fallback. Display-only; every part
+  mirrors the load status as data-state="loading|loaded|error" (no src →
+  error). Zero toggles `hidden` (fallback while loaded, image while error), so
+  recipes must not set `display` on those parts unconditionally — style
+  `&:not([hidden])` instead. Server markup always renders `loading`; the
+  status resolves on mount. `statusChange` event.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Button, Tabs, Switch,
 Checkbox, RadioGroup, Slider, Progress and Select; they pass through as

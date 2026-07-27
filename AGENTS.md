@@ -139,9 +139,9 @@ typecheck` excludes `examples/`, so the playground has its own:
   `defineTokens` / `defineRecipe` / `defineDesignSystem`, the tokens/recipes →
   plain-CSS compiler, the `zero-kit` CLI (`build | validate`; `init` and
   `eject` are planned — see issues #10/#11), and the design-system generation
-  agent skill. devDependency of DS packages; never a runtime dependency.
-  (JSON schemas are planned in #12; `manifest.json` already references the
-  not-yet-published schema URL.)
+  agent skill, and the JSON schemas for manifest/tokens/recipes (shipped in
+  `schemas/`, referenced by `manifest.json`). devDependency of DS packages;
+  never a runtime dependency.
 - `packages/zero-basic` → `@sigx/zero-basic` — neutral starter design system
   (readable defaults). Dogfoods zero-kit; reference pair for the AI skill.
 - `packages/zero-daisyui` → `@sigx/zero-daisyui` — daisyUI-flavored skin:

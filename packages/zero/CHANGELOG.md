@@ -49,6 +49,15 @@
 
 ### Added
 
+- **Avatar component** (`@sigx/zero/avatar`): Root/Image/Fallback, every part
+  mirroring the image load status as `data-state="loading|loaded|error"` (a
+  missing `src` resolves to `error` on mount). Zero toggles `hidden` — the
+  fallback while `loaded`, the image while `error` — and styles nothing, so
+  recipes must gate any `display` they set on those parts behind
+  `&:not([hidden])`. Cached images that complete before hydration are
+  detected from the element itself; server markup always renders `loading`.
+  `statusChange` event; `asChild` on Image keeps load detection through the
+  spread bag. All four design systems ship an avatar recipe.
 - **Real-browser interaction suite** (Playwright over the playground):
   the press contract on chromium/firefox/webkit plus reduced-motion and
   forced-colors projects, with real pointer, keyboard and touch input.

@@ -87,3 +87,6 @@ export type {
     SelectPopupProps,
     SelectItemProps,
 } from './components/select/index.js';
+
+export { Avatar, avatarAnatomy, useAvatarContext } from './components/avatar/index.js';
+export type { AvatarStatus, AvatarRootProps, AvatarImageProps, AvatarFallbackProps } from './components/avatar/index.js';

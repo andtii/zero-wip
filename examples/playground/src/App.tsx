@@ -1,9 +1,19 @@
 import { component, signal } from 'sigx';
 import {
-    Accordion, Button, Checkbox, Collapsible, Dialog, Field, Menu, Popover, Progress,
+    Accordion, Avatar, Button, Checkbox, Collapsible, Dialog, Field, Menu, Popover, Progress,
     RadioGroup, Select, Slider, Switch, Tabs, Tooltip,
 } from '@sigx/zero';
 import { Toolbar } from './Toolbar';
+
+const avatarSvg = (hue: number): string =>
+    'data:image/svg+xml,' + encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80">`
+        + `<rect width="80" height="80" fill="oklch(70% 0.15 ${hue})"/>`
+        + `<circle cx="40" cy="30" r="14" fill="white"/>`
+        + `<path d="M12 78c4-20 52-20 56 0z" fill="white"/></svg>`,
+    );
+const AVATAR_A = avatarSvg(250);
+const AVATAR_B = avatarSvg(150);
 
 export const App = component(() => {
     const state = signal({
@@ -13,6 +23,7 @@ export const App = component(() => {
         plan: 'free',
         fruit: '',
         volume: 40,
+        avatarSrc: AVATAR_A,
     });
 
     return () => (
@@ -58,6 +69,39 @@ export const App = component(() => {
                     <Switch.Root color="success" defaultChecked>Autosave</Switch.Root>
                     {' '}
                     <Switch.Root disabled>Disabled</Switch.Root>
+
+                    <h2>Avatar</h2>
+                    <p>
+                        Image with graceful fallback: every part mirrors the load status
+                        as <code>data-state</code>, a broken or missing <code>src</code>
+                        shows the fallback, and the design system decides shape and fill.
+                        Swapping the src resets to <code>loading</code> until the new
+                        image reports in.
+                    </p>
+                    <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <Avatar.Root>
+                            <Avatar.Image src={AVATAR_A} alt="A loaded avatar" />
+                            <Avatar.Fallback>OK</Avatar.Fallback>
+                        </Avatar.Root>
+                        <Avatar.Root>
+                            <Avatar.Image src="/definitely-missing.png" alt="A broken avatar" />
+                            <Avatar.Fallback>404</Avatar.Fallback>
+                        </Avatar.Root>
+                        <Avatar.Root>
+                            <Avatar.Image alt="No image at all" />
+                            <Avatar.Fallback>ZX</Avatar.Fallback>
+                        </Avatar.Root>
+                        <Avatar.Root>
+                            <Avatar.Image src={state.avatarSrc} alt="A swappable avatar" />
+                            <Avatar.Fallback>…</Avatar.Fallback>
+                        </Avatar.Root>
+                        <Button.Root
+                            variant="outline"
+                            onClick={() => { state.avatarSrc = state.avatarSrc === AVATAR_A ? AVATAR_B : AVATAR_A; }}
+                        >
+                            Swap src
+                        </Button.Root>
+                    </p>
 
                     <h2>Collapsible</h2>
                     <Collapsible.Root defaultOpen>
