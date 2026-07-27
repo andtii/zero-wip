@@ -77,7 +77,10 @@ const AvatarRoot = component<AvatarRootProps>(({ props, slots, emit, signal }) =
 
 export type AvatarImageProps =
     & Define.Prop<'src', string, false>
-    & Define.Prop<'alt', string, false>
+    // Required: once loaded, the image is the avatar's ONLY accessible
+    // representation (the fallback is hidden). Pass alt="" only for an
+    // avatar that is genuinely decorative next to a visible name.
+    & Define.Prop<'alt', string, true>
     & WithClass
     & WithAsChild
     & Define.Slot<'default', PartProps>;
@@ -117,7 +120,7 @@ const AvatarImage = component<AvatarImageProps>(({ props, slots, onMounted }) =>
         'data-part': 'image',
         'data-state': avatar.status(),
         src: props.src,
-        alt: props.alt ?? '',
+        alt: props.alt,
         hidden: avatar.status() === 'error' ? true : undefined,
         // Until the image is what the avatar shows, the fallback is the one
         // accessible representation — otherwise AT announces initials AND alt.
