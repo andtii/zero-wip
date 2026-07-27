@@ -27,6 +27,26 @@
                 "$ref": "#/$defs/tokenKey"
             }
         },
+        "variants": {
+            "description": "The `variant` axis vocabulary — the fill/chrome styles this design system offers (solid, outline, …). Once declared, the validator closes the set: a recipe variants.variant value outside it is an error. Omitted → the axis stays undeclared and recipe values are unchecked. Entries become [data-variant=\"…\"] selector values, hence the kebab-case grammar.",
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/tokenKey"
+            }
+        },
+        "axes": {
+            "description": "Additional variant axes: axis name → its value vocabulary. Axis names must not re-declare an axis with a named prop (color, size, variant) and must not take a name the anatomy contract reserves — the validator rejects exactly what the zero runtime refuses to render. Once declared, wiring an undeclared axis or an undeclared value is an error.",
+            "type": "object",
+            "propertyNames": {
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            },
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/$defs/tokenKey"
+                }
+            }
+        },
         "swatch": {
             "description": "Role / base-surface token names sampled into theme-picker swatches. Default: the first four declared roles plus base-100 and base-content.",
             "type": "array",

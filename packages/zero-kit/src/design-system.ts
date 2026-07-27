@@ -49,6 +49,10 @@ export interface CompiledDesignSystem {
         roles: Record<string, RoleDecl>;
         /** The DS's `size` axis vocabulary, resolved (declared, else recommended). */
         sizes: string[];
+        /** The DS's declared `variant` axis vocabulary ([] when undeclared). */
+        variants: string[];
+        /** Declared custom variant axes: axis name → values ({} when undeclared). */
+        axes: Record<string, string[]>;
         custom: Record<string, CustomTokenDecl>;
         breakpoints: Record<string, string>;
         /** DS-level values per category id, e.g. `{ radius: { field: '0.5rem' } }`. */
@@ -135,6 +139,10 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
         tokens: {
             roles,
             sizes: [...resolveSizes(ds.tokens.sizes)],
+            variants: [...(ds.tokens.variants ?? [])],
+            axes: Object.fromEntries(
+                Object.entries(ds.tokens.axes ?? {}).map(([axis, values]) => [axis, [...values]]),
+            ),
             custom: ds.tokens.custom ?? {},
             breakpoints: ds.tokens.breakpoints ?? {},
             system: (ds.tokens.system ?? {}) as Record<string, unknown>,

@@ -20,6 +20,10 @@ export const designSystem = defineDesignSystem({
         roles: { primary: {}, surface: { content: false, soft: false } },
         // The size axis is yours too — omit for the recommended xs–xl ramp.
         sizes: ['compact', 'comfortable', 'spacious'],
+        // The variant axis, and any custom axes. Declaring them closes the
+        // set: a recipe typo becomes a build error, not a minted value.
+        variants: ['solid', 'outline', 'ghost'],
+        axes: { density: ['compact', 'comfortable'] },
         // Non-color tokens: declared ONCE for the design system, not per
         // theme. Categories are closed; the keys inside them are yours.
         system: {
@@ -52,15 +56,18 @@ export const designSystem = defineDesignSystem({
 Only the base surfaces (`base-100/200/300/base-content`) are fixed — they
 anchor `-soft` derivation, `light-dark()` emission and theme swatches.
 Declared roles are `@property`-registered in the compiled CSS and surfaced,
-with `sizes`, `system`, `custom` and `breakpoints`, in the DS's
-`dist/manifest.json` (which also lists every custom property the design system
-emits).
+with `sizes`, `variants`, `axes`, `system`, `custom` and `breakpoints`, in the
+DS's `dist/manifest.json` (which also lists every custom property the design
+system emits).
 
-Both variant axes zero interprets work this way. `roles` names what `color`
-accepts, `sizes` names what `size` accepts; both have a recommended default
-and neither is a closed set. (`variant` has no declaration because zero never
-interprets it at all.) `sizes` is the `data-size` axis — not `system.size`,
-which is the `--size-*` control-sizing unit.
+Every variant axis works this way. `roles` names what `color` accepts,
+`sizes` what `size` accepts, `variants` what `variant` accepts, and `axes`
+declares any further axes. The rule is one principle: **an explicit
+declaration closes its set** — recipe values outside a declared vocabulary
+are errors, while the default recommended ramps stay advisory warnings.
+(`variants`/`axes` have no recommended default, so omitting them leaves those
+axes unchecked.) `sizes` is the `data-size` axis — not `system.size`, which
+is the `--size-*` control-sizing unit.
 
 Nor is the SET of axes closed. `color` / `size` / `variant` have named props
 because almost every design language has them; key `variants` on any other

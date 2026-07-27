@@ -60,6 +60,9 @@ export const system = {
 
 export const tokens: TokensInput<typeof roles, typeof system> = {
     roles,
+    // The `variant` axis vocabulary — what button's variants.variant keys on.
+    // Declared so a recipe typo is a build error, not a minted value.
+    variants: ['solid', 'outline', 'soft', 'ghost'],
     system,
     defaultLight: 'light',
     defaultDark: 'dark',

@@ -12,6 +12,8 @@ import type { CssProps, DesignSystemInput, ManifestComponent, RecipeInput } from
 import { anatomies } from '@sigx/zero/anatomy';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
+import { designSystem as materialDS } from '@sigx/zero-material';
+import { designSystem as brutalistDS } from '@sigx/zero-brutalist';
 
 const manifest = {
     components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
@@ -255,6 +257,20 @@ describe('variants', () => {
         }).errors).toContainEqual(expect.stringContaining('not a kebab-case identifier'));
     });
 
+    it('errors on a compound-variant match keyed on a reserved axis', () => {
+        // Same rule as `variants`: `match: { pressed: … }` compiles to
+        // `[data-pressed="…"]`, which never matches a presence-only flag —
+        // dead CSS minted silently.
+        expect(check({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            compoundVariants: [{
+                match: { pressed: 'yes' },
+                parts: { tab: { base: { color: 'red' } } },
+            }],
+        }).errors).toContainEqual(expect.stringContaining('part of the anatomy contract'));
+    });
+
     it('errors on a compound-variant match value that would break out', () => {
         expect(check({
             component: 'tabs',
@@ -333,15 +349,18 @@ describe('variants', () => {
         expect(warnings).not.toContainEqual(expect.stringContaining('size ramp'));
 
         // …and the declaration is a real constraint, not just a widening:
-        // `md` is off a Material ramp and is now the thing that warns.
+        // `md` is off a Material ramp, and because the ramp was EXPLICITLY
+        // declared the set is closed — an off-ramp value is an error, where
+        // the default recommended ramp only warns (the author never wrote
+        // that set down, so a step outside it may be deliberate).
         const off = dsWith({
             component: 'tabs',
             parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
             variants: { size: { md: { tab: { base: { padding: '0.5rem' } } } } },
         });
         off.tokens.sizes = ['compact', 'comfortable'];
-        expect(validateDesignSystem(off, manifest).warnings.map((w) => w.message))
-            .toContainEqual(expect.stringContaining("not on this design system's size ramp"));
+        expect(validateDesignSystem(off, manifest).errors.map((e) => e.message))
+            .toContainEqual(expect.stringContaining("not on this design system's declared size ramp"));
     });
 
     it('errors on variants for a component with no root part', () => {
@@ -367,6 +386,140 @@ describe('the shipped design systems', () => {
         // recipes, not only against crafted failures.
         const content = result.warnings.filter((w) => w.where.startsWith('recipes'));
         expect(content.map((w) => `${w.where}: ${w.message}`)).toEqual([]);
+    });
+});
+
+describe('declared axis vocabularies (RFC 0002 phase 1)', () => {
+    const tabsVariant = (values: Record<string, string>): RecipeInput => ({
+        component: 'tabs',
+        parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+        variants: {
+            variant: Object.fromEntries(Object.entries(values).map(([v, pad]) => [
+                v, { tab: { base: { padding: pad } } },
+            ])),
+        },
+    });
+
+    it('leaves variant values unchecked while tokens.variants is undeclared', () => {
+        // Today's behaviour, preserved exactly: absence is never an error.
+        const { errors, warnings } = check(tabsVariant({ ghots: '0' }));
+        expect(errors).toEqual([]);
+        expect(warnings.filter((w) => w.includes('ghots'))).toEqual([]);
+    });
+
+    it('errors on a variant value outside the declared list, listing the set', () => {
+        const ds = dsWith(tabsVariant({ ghots: '0' }));
+        ds.tokens.variants = ['solid', 'ghost'];
+        expect(validateDesignSystem(ds, manifest).errors.map((e) => e.message))
+            .toContainEqual(expect.stringContaining('"ghots" is not a declared variant (solid, ghost)'));
+    });
+
+    it('accepts declared variant values, and warns on a declared value nothing wires', () => {
+        const ds = dsWith(tabsVariant({ solid: '0', ghost: '1px' }));
+        ds.tokens.variants = ['solid', 'ghost', 'outline'];
+        const result = validateDesignSystem(ds, manifest);
+        expect(result.errors).toEqual([]);
+        expect(result.warnings.map((w) => w.message))
+            .toContainEqual(expect.stringContaining('"outline" is declared but no recipe wires it'));
+    });
+
+    it('closes the custom-axis set once tokens.axes is declared', () => {
+        const density = (value: string): RecipeInput => ({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            variants: { density: { [value]: { tab: { base: { padding: '0' } } } } },
+        });
+
+        const wrongValue = dsWith(density('tigth'));
+        wrongValue.tokens.axes = { density: ['tight', 'loose'] };
+        expect(validateDesignSystem(wrongValue, manifest).errors.map((e) => e.message))
+            .toContainEqual(expect.stringContaining('"tigth" is not a declared value of axis "density" (tight, loose)'));
+
+        // A whole axis outside the declaration is the same mistake one level up.
+        const wrongAxis = dsWith(density('tight'));
+        wrongAxis.tokens.axes = { emphasis: ['high', 'low'] };
+        expect(validateDesignSystem(wrongAxis, manifest).errors.map((e) => e.message))
+            .toContainEqual(expect.stringContaining('axis "density" is not declared in tokens.axes'));
+
+        const ok = dsWith(density('tight'));
+        ok.tokens.axes = { density: ['tight', 'loose'] };
+        const result = validateDesignSystem(ok, manifest);
+        expect(result.errors).toEqual([]);
+        expect(result.warnings.map((w) => w.message))
+            .toContainEqual(expect.stringContaining('"loose" is declared but no recipe wires it'));
+    });
+
+    it('validates the declaration itself like sizes: non-empty, kebab-case, no duplicates', () => {
+        const clean = (): DesignSystemInput => dsWith(tabsWith({ color: 'var(--color-primary)' }));
+
+        const empty = clean();
+        empty.tokens.variants = [];
+        expect(validateDesignSystem(empty, manifest).errors.map((e) => e.message))
+            .toContainEqual(expect.stringContaining('declared but empty'));
+
+        const dupes = clean();
+        dupes.tokens.variants = ['solid', 'solid'];
+        expect(validateDesignSystem(dupes, manifest).errors.map((e) => e.message))
+            .toContainEqual(expect.stringContaining('duplicate entries'));
+
+        const badCase = clean();
+        badCase.tokens.axes = { density: ['Not Kebab'] };
+        expect(validateDesignSystem(badCase, manifest).errors.map((e) => e.message))
+            .toContainEqual(expect.stringContaining('not a kebab-case identifier'));
+    });
+
+    it('rejects axis names the runtime refuses to render', () => {
+        const ds = dsWith(tabsWith({ color: 'var(--color-primary)' }));
+        ds.tokens.axes = { variant: ['solid'], pressed: ['yes'] };
+        const errors = validateDesignSystem(ds, manifest).errors.map((e) => e.message);
+        expect(errors).toContainEqual(expect.stringContaining('"variant" already has a named prop'));
+        expect(errors).toContainEqual(expect.stringContaining('"pressed" is part of the anatomy contract'));
+    });
+
+    it('errors on defaultVariants selecting outside what the recipe wires — no declaration needed', () => {
+        const typo = tabsVariant({ solid: '0', ghost: '1px' });
+        typo.defaultVariants = { variant: 'ghots' };
+        expect(check(typo).errors)
+            .toContainEqual(expect.stringContaining('"ghots" is not a value this recipe wires for "variant" (solid, ghost)'));
+
+        const unwiredAxis = tabsVariant({ solid: '0' });
+        unwiredAxis.defaultVariants = { color: 'primary' };
+        expect(check(unwiredAxis).errors)
+            .toContainEqual(expect.stringContaining('"color" names an axis this recipe does not wire'));
+    });
+});
+
+describe('the declared vocabulary closes the set in every shipped design system (phase 1 gate)', () => {
+    it.each<[string, DesignSystemInput]>([
+        ['basic', basicDS as DesignSystemInput],
+        ['daisyui', daisyDS as DesignSystemInput],
+        ['material', materialDS as DesignSystemInput],
+        ['brutalist', brutalistDS as DesignSystemInput],
+    ])('%s: a seeded variants.variant typo and a defaultVariants typo both error', (_name, ds) => {
+        // Seed a typo'd variant VALUE into the real button recipe.
+        const seeded = structuredClone(ds) as DesignSystemInput;
+        const button = seeded.recipes.find((r) => r.component === 'button')!;
+        const variantAxis = button.variants!['variant']!;
+        variantAxis['ghots'] = variantAxis['ghost']!;
+        delete variantAxis['ghost'];
+        expect(validateDesignSystem(seeded, manifest).errors.map((e) => e.message))
+            .toContainEqual(expect.stringContaining('"ghots" is not a declared variant'));
+
+        // Seed a typo'd DEFAULT — previously a silent no-op.
+        const defaulted = structuredClone(ds) as DesignSystemInput;
+        const button2 = defaulted.recipes.find((r) => r.component === 'button')!;
+        button2.defaultVariants = { ...button2.defaultVariants, variant: 'ghots' };
+        expect(validateDesignSystem(defaulted, manifest).errors.map((e) => e.message))
+            .toContainEqual(expect.stringContaining('"ghots" is not a value this recipe wires for "variant"'));
+    });
+
+    it.each<[string, DesignSystemInput]>([
+        ['material', materialDS as DesignSystemInput],
+        ['brutalist', brutalistDS as DesignSystemInput],
+    ])('%s passes every content rule with its vocabulary declared', (_name, ds) => {
+        // basic and daisyui are covered above; these two prove the declaration
+        // is clean across the whole matrix, material's 13 roles included.
+        expect(validateDesignSystem(ds, manifest).errors).toEqual([]);
     });
 });
 

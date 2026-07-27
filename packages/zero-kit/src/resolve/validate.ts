@@ -23,9 +23,11 @@ import { parse, wcagContrast } from 'culori';
 import type { ZeroManifest } from '../contract.js';
 import {
     BASE_SURFACE_TOKEN_LIST,
+    RESERVED_AXES,
     RESERVED_ROLE_NAMES,
     TOKEN_CATEGORIES,
     TOKEN_KEY_PATTERN,
+    VARIANT_AXES,
     systemNodeAt,
     ROLE_NAME_PATTERN,
     contrastPairs,
@@ -376,6 +378,40 @@ export function validateDesignSystem<R extends RolesDecl>(
         }
     }
 
+    // ── Variant axis vocabularies ──
+    // Same rules as sizes: a declared value becomes the value in
+    // `[data-variant="…"]` / `[data-<axis>="…"]`, so the same attribute-value
+    // grammar applies, caught at the declaration. Axis NAMES additionally
+    // must not re-declare an axis that has a named prop and must not take a
+    // name the anatomy contract owns — the zero runtime throws on both, and
+    // the validator must reject exactly what the runtime refuses to render.
+    const checkAxisValues = (where: string, values: readonly string[]): void => {
+        if (values.length === 0) {
+            error(where, 'declared but empty — omit it to leave the vocabulary undeclared');
+        }
+        for (const value of values) {
+            if (!TOKEN_KEY_PATTERN.test(value)) {
+                error(where, `"${value}" is not a kebab-case identifier`);
+            }
+        }
+        if (new Set(values).size !== values.length) {
+            error(where, 'contains duplicate entries');
+        }
+    };
+    if (ds.tokens.variants) checkAxisValues('tokens.variants', ds.tokens.variants);
+    for (const [axis, values] of Object.entries(ds.tokens.axes ?? {})) {
+        if (!TOKEN_KEY_PATTERN.test(axis)) {
+            error('tokens.axes', `"${axis}" is not a kebab-case identifier — it becomes the attribute name data-${axis}`);
+        }
+        if (Object.hasOwn(VARIANT_AXES, axis)) {
+            error('tokens.axes', `"${axis}" already has a named prop — declare it in tokens.${axis === 'variant' ? 'variants' : axis === 'size' ? 'sizes' : 'roles'} instead`);
+        }
+        if (RESERVED_AXES.has(axis)) {
+            error('tokens.axes', `"${axis}" is part of the anatomy contract — data-${axis} already means something, and zero refuses to set it from \`axes\``);
+        }
+        checkAxisValues(`tokens.axes.${axis}`, values);
+    }
+
     // ── Breakpoints ──
     // These become `@media (min-width: …)` preludes and the ORDER they are
     // declared in decides emission order, so a descending declaration would
@@ -431,16 +467,9 @@ export function validateDesignSystem<R extends RolesDecl>(
         error('recipes', (e as Error).message);
     }
 
-    // ── Recipe color variants should reference declared roles ──
-    for (const recipe of ds.recipes) {
-        for (const value of Object.keys(recipe.variants?.color ?? {})) {
-            if (!roles[value]) {
-                warn(`recipes.${recipe.component}`, `color variant "${value}" is not a declared role`);
-            }
-        }
-    }
-
     // ── Recipe CONTENT: token references, literals, coverage ──
+    // (Colour-variant role membership is checked in validateRecipes as an
+    // error — a second, weaker copy of the rule here would double-report.)
     for (const issue of validateRecipes(ds.recipes, manifest, tokenVocabulary(ds.tokens))) {
         (issue.level === 'error' ? errors : warnings).push(issue);
     }

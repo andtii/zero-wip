@@ -27,8 +27,18 @@ export interface TokenVocabulary {
      * `tokens.sizes`, else the recommended ramp.
      */
     sizes: readonly string[];
+    /**
+     * True when `tokens.sizes` was explicitly declared. An explicit
+     * declaration closes its set — off-ramp recipe values are then errors,
+     * where the default recommended ramp only warns.
+     */
+    sizesDeclared: boolean;
     /** The declared colour roles — what the `color` axis may key on. */
     roles: ReadonlySet<string>;
+    /** The declared `variant` axis vocabulary — undefined when undeclared. */
+    variants: readonly string[] | undefined;
+    /** Declared custom axes: axis name → values — undefined when undeclared. */
+    axes: Readonly<Record<string, readonly string[]>> | undefined;
     /** Closest known name, for a "did you mean" hint. */
     nearest(name: string): string | undefined;
 }
@@ -128,7 +138,10 @@ export function tokenVocabulary(tokens: TokensInput<any, any>): TokenVocabulary 
     return {
         names,
         sizes: resolveSizes(tokens.sizes),
+        sizesDeclared: tokens.sizes !== undefined,
         roles: new Set(Object.keys(roles)),
+        variants: tokens.variants,
+        axes: tokens.axes,
         nearest(name) {
             let best: string | undefined;
             let bestDistance = 4; // anything further apart isn't a typo
