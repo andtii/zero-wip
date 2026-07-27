@@ -4,6 +4,21 @@
 
 ### Added
 
+- **`--text-fixed-<key>` aliases** (part of the multi-target RFC,
+  docs/rfcs/0001, #96): `compileTokensCss` derives a `--text-fixed-<key>:
+  var(--text-<key>)` alias for every emitted `--text-<key>`, restating it in
+  exactly the theme blocks that re-emit the underlying key (an alias
+  substitutes its `var()` where declared — the same capture trap as
+  color-referencing tokens). A literal `typography.sizes` key spelling a
+  `fixed-*` name wins over the derived alias. The aliases join the token
+  vocabulary, so recipes may reference `var(--text-fixed-<key>)` for any
+  declared or recommended key. Exported as `TEXT_FIXED_PREFIX`
+  (parity-tested against `@sigx/zero/contract`).
+- **Contract docs for cross-target semantics**: `RUNTIME_PROPERTIES` are
+  documented as web-only (a target that cannot resolve inline-written
+  `var()` has no equivalent mechanism), and `-soft` derivation is documented
+  as oklab-at-`softMix` for every emit target.
+
 - **JSON Schemas for the authoring surfaces** (draft 2020-12), shipped in
   `schemas/` and copied to `dist/schemas/` by the build, for publication at
   `https://signalxjs.github.io/zero/schemas/`:

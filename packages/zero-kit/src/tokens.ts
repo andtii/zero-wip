@@ -28,6 +28,7 @@ import { generateTypeScale } from './scale.js';
 import {
     BASE_SURFACE_TOKEN_LIST,
     DEFAULT_ROLES,
+    TEXT_FIXED_PREFIX,
     TOKEN_CATEGORIES,
     TOKEN_KEY_PATTERN,
     resolveRoles,
@@ -475,10 +476,33 @@ function propertyRegistrations(input: TokensInput<any>, roles: RolesDecl, light:
 const block = (selector: string, decls: string[], indent = '    '): string =>
     `${indent}${selector} {\n${decls.map((d) => `${indent}    ${d}`).join('\n')}\n${indent}}`;
 
+const TEXT_PREFIX = '--text-';
+
+/** `--text-<key>` and not itself a fixed alias. */
+const isScalableText = (prop: string): boolean =>
+    prop.startsWith(TEXT_PREFIX) && !prop.startsWith(TEXT_FIXED_PREFIX);
+
+/**
+ * Add the contract's `--text-fixed-<key>` alias for every emitted
+ * `--text-<key>` (see `TEXT_FIXED_PREFIX`). On the web the alias is pure
+ * indirection — `var(--text-<key>)` — so an app override of the ramp still
+ * flows through. A key the design system literally declared as `fixed-*`
+ * wins over the derived alias.
+ */
+function withTextFixedAliases(props: Record<string, string>): Record<string, string> {
+    const out = { ...props };
+    for (const prop of Object.keys(props)) {
+        if (!isScalableText(prop)) continue;
+        const alias = `${TEXT_FIXED_PREFIX}${prop.slice(TEXT_PREFIX.length)}`;
+        if (!(alias in out)) out[alias] = `var(${prop})`;
+    }
+    return out;
+}
+
 /**
  * Every non-color custom property a theme resolves to: the token categories
  * after all three tiers, then the theme's own `custom` / `extra` /
- * `components` values.
+ * `components` values, then the derived `--text-fixed-*` aliases.
  *
  * One map, because scheme handling has to apply to all of them equally —
  * `light-dark()` only rescues colors, so anything else that differs per
@@ -486,14 +510,14 @@ const block = (selector: string, decls: string[], indent = '    '): string =>
  * authoring field it came from.
  */
 function nonColorFor(input: TokensInput<any, any>, theme: AnyTheme): Record<string, string> {
-    return {
+    return withTextFixedAliases({
         ...resolveSystem(
             input.system,
             theme.colorScheme === 'dark' ? input.systemDark : undefined,
             theme.system,
         ),
         ...themeOwnProps(theme),
-    };
+    });
 }
 
 /**
@@ -629,13 +653,28 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
         // inherited, so restating it would be dead weight in every theme.
         const own = divergentProps(nonColor, nonColorLight);
         const emit = new Set([...own, ...schemeDivergent, ...colorReferencing]);
+        // The `--text-fixed-*` aliases capture their `var()` where DECLARED,
+        // exactly like the color-referencing tokens above: an alias declared
+        // only at `:root` keeps `:root`'s ramp value inside a `[data-theme]`
+        // scope. So any theme block that re-emits a `--text-<key>` must
+        // restate that key's alias, re-running the substitution against the
+        // theme's own ramp. (The `prefers-color-scheme` block needs no such
+        // treatment — it redeclares the ramp on `:root` itself, where the
+        // alias already lives.)
+        // Iterating the set while adding is safe: an added alias never passes
+        // `isScalableText`, so nothing cascades.
+        for (const prop of emit) {
+            if (isScalableText(prop)) emit.add(`${TEXT_FIXED_PREFIX}${prop.slice(TEXT_PREFIX.length)}`);
+        }
         // A theme that doesn't define a scheme-divergent property still has to
         // state one, or under system dark it would inherit the media block's
         // value instead of the `:root` default it actually resolves to. Only
         // `extra` and `components` can land here — declared `custom` tokens are
         // required in every theme, and category values resolve from `system`.
+        // Iterates the full emit set so a restated `--text-fixed-*` alias is
+        // covered too when the theme itself never resolves that text key.
         const source: Record<string, string> = { ...nonColor };
-        for (const prop of [...schemeDivergent, ...colorReferencing]) {
+        for (const prop of emit) {
             if (!(prop in source)) source[prop] = nonColorLight[prop]!;
         }
         blocks.push(block(

@@ -39,6 +39,21 @@
         --text-xl: 1.25rem;
         --text-2xl: 1.5rem;
         --text-3xl: 1.875rem;
+
+        /* Fixed-size aliases: the same ramp, immune to platform font
+           scaling. On the web that scaling doesn't exist, so these are pure
+           indirection; targets with a runtime font scale materialize them as
+           literals. Recipes use them for control chrome that must not grow
+           with in-app text scaling. A DS's tokens.css re-emits aliases for
+           every key it declares. */
+        --text-fixed-xs: var(--text-xs);
+        --text-fixed-sm: var(--text-sm);
+        --text-fixed-md: var(--text-md);
+        --text-fixed-lg: var(--text-lg);
+        --text-fixed-xl: var(--text-xl);
+        --text-fixed-2xl: var(--text-2xl);
+        --text-fixed-3xl: var(--text-3xl);
+
         --border: 1px;
         --disabled-opacity: 0.4;
 

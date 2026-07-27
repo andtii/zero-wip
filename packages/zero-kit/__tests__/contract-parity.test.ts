@@ -35,6 +35,7 @@ const SHARED: Record<string, [unknown, unknown]> = {
     // flags too, so adding `i` to one copy and not the other still fails.
     ROLE_NAME_PATTERN: [zero.ROLE_NAME_PATTERN, kit.ROLE_NAME_PATTERN],
     TOKEN_KEY_PATTERN: [zero.TOKEN_KEY_PATTERN, kit.TOKEN_KEY_PATTERN],
+    TEXT_FIXED_PREFIX: [zero.TEXT_FIXED_PREFIX, kit.TEXT_FIXED_PREFIX],
     // Deep-compared including order: the categories drive emission order, so
     // a reordering in one copy is real drift, not cosmetic.
     TOKEN_CATEGORIES: [zero.TOKEN_CATEGORIES, kit.TOKEN_CATEGORIES],
@@ -235,6 +236,13 @@ describe('kit ↔ zero contract parity', () => {
             for (const key of keys) {
                 expect(baseCss).toContain(`${kit.tokenProperty(category, key)}:`);
             }
+        }
+        // The text ramp's fixed aliases are contract too (TEXT_FIXED_PREFIX):
+        // a recipe may reference --text-fixed-<key> for any recommended key
+        // even under a design system that never declares typography.
+        const text = kit.TOKEN_CATEGORIES.find((c) => c.id === 'text')!;
+        for (const key of text.recommended) {
+            expect(baseCss).toContain(`${kit.TEXT_FIXED_PREFIX}${key}:`);
         }
     });
 
