@@ -19,7 +19,7 @@ import process from 'node:process';
 import type { ZeroManifest } from './contract.js';
 import type { DesignSystemInput } from './design-system.js';
 import { compileDesignSystem } from './design-system.js';
-import { validateDesignSystem } from './validate.js';
+import { validateDesignSystem } from './resolve/validate.js';
 import { writeArtifacts } from './artifacts.js';
 
 interface Args {

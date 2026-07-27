@@ -28,13 +28,15 @@ export type {
     TokenValue,
     TokensInput,
 } from './tokens.js';
-export { defineTokens, compileTokensCss } from './tokens.js';
+export { defineTokens } from './tokens.js';
+export { compileTokensCss } from './targets/web/tokens-css.js';
 
 export type { TypeScale } from './scale.js';
 export { generateTypeScale } from './scale.js';
 
 export type { CssProps, PartStyles, RecipeContext, RecipeInput } from './recipes.js';
-export { defineRecipe, compileRecipeCss, BUILTIN_CONDITIONS } from './recipes.js';
+export { defineRecipe, BUILTIN_CONDITIONS } from './recipes.js';
+export { compileRecipeCss } from './targets/web/recipe-css.js';
 
 export type {
     DesignSystemInput,
@@ -43,12 +45,12 @@ export type {
 } from './design-system.js';
 export { defineDesignSystem, compileDesignSystem } from './design-system.js';
 
-export type { ValidationIssue, ValidationResult } from './validate.js';
-export { validateDesignSystem } from './validate.js';
+export type { ValidationIssue, ValidationResult } from './resolve/validate.js';
+export { validateDesignSystem } from './resolve/validate.js';
 
-export type { TokenVocabulary } from './vocabulary.js';
-export { tokenVocabulary } from './vocabulary.js';
-export { validateRecipes } from './validate-recipes.js';
+export type { TokenVocabulary } from './resolve/vocabulary.js';
+export { tokenVocabulary } from './resolve/vocabulary.js';
+export { validateRecipes } from './resolve/validate-recipes.js';
 
 export { writeArtifacts } from './artifacts.js';
 

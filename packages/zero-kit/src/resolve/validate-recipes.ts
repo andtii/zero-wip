@@ -8,9 +8,9 @@
  * straight through to the shipped stylesheet, where it resolves to nothing.
  */
 import { parse, converter } from 'culori';
-import type { ManifestPart, ZeroManifest } from './contract.js';
-import { RESERVED_AXES, TOKEN_KEY_PATTERN } from './contract.js';
-import type { CssProps, PartStyles, RecipeInput } from './recipes.js';
+import type { ManifestPart, ZeroManifest } from '../contract.js';
+import { RESERVED_AXES, TOKEN_KEY_PATTERN } from '../contract.js';
+import type { CssProps, PartStyles, RecipeInput } from '../recipes.js';
 import type { ValidationIssue } from './validate.js';
 import type { TokenVocabulary } from './vocabulary.js';
 

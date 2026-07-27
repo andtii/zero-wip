@@ -20,7 +20,7 @@
  *   part is addressed or explicitly listed in `skipStates`.
  */
 import { parse, wcagContrast } from 'culori';
-import type { ZeroManifest } from './contract.js';
+import type { ZeroManifest } from '../contract.js';
 import {
     BASE_SURFACE_TOKEN_LIST,
     RESERVED_ROLE_NAMES,
@@ -31,11 +31,11 @@ import {
     contrastPairs,
     requiredColorTokens,
     resolveRoles,
-} from './contract.js';
-import type { RolesDecl } from './tokens.js';
-import { BUILTIN_CONDITIONS } from './recipes.js';
-import type { DesignSystemInput } from './design-system.js';
-import { compileDesignSystem } from './design-system.js';
+} from '../contract.js';
+import type { RolesDecl } from '../tokens.js';
+import { BUILTIN_CONDITIONS } from '../recipes.js';
+import type { DesignSystemInput } from '../design-system.js';
+import { compileDesignSystem } from '../design-system.js';
 import { validateRecipes } from './validate-recipes.js';
 import { tokenVocabulary } from './vocabulary.js';
 

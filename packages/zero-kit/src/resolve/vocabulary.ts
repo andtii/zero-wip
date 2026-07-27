@@ -15,9 +15,9 @@ import {
     resolveRoles,
     resolveSizes,
     tokenProperty,
-} from './contract.js';
-import type { RolesDecl, TokensInput } from './tokens.js';
-import { systemNodeAt } from './contract.js';
+} from '../contract.js';
+import type { RolesDecl, TokensInput } from '../tokens.js';
+import { systemNodeAt } from '../contract.js';
 
 export interface TokenVocabulary {
     /** Every custom property the design system defines. */
