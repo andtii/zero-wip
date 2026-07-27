@@ -1427,7 +1427,162 @@ export const combobox: RecipeInput = {
     keyframes: rippleKeyframes('combobox'),
 };
 
+// ── Toggle, toggle group ──────────────────────────────────────────────────
+/**
+ * Material's outlined toggle button: a hairline pill while off, the accent
+ * fill once on. Same accent-pair indirection as button, plus a `--toggle-ink`
+ * the on state flips so the state layer/ripple is on-surface while outlined
+ * and the on-color once filled.
+ */
+export const toggle: RecipeInput = {
+    component: 'toggle',
+    tokens: {
+        '--toggle-accent': 'var(--color-primary)',
+        '--toggle-on-accent': 'var(--color-primary-content)',
+        '--toggle-ink': 'var(--color-base-content)',
+    },
+    parts: {
+        root: withPresence(pressable('toggle', 'var(--toggle-ink)'), {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 'var(--space-xs)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--color-outline)',
+                borderRadius: 'var(--radius-field)',
+                ...label,
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: motion('background, color, border-color'),
+            },
+            states: {
+                on: {
+                    background: 'var(--toggle-accent)',
+                    color: 'var(--toggle-on-accent)',
+                    borderColor: 'var(--toggle-accent)',
+                    '--toggle-ink': 'var(--toggle-on-accent)',
+                },
+                off: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        }),
+    },
+    keyframes: rippleKeyframes('toggle'),
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [
+            c,
+            {
+                root: {
+                    base: {
+                        '--toggle-accent': `var(--color-${c})`,
+                        '--toggle-on-accent': `var(--color-${c}-content)`,
+                    },
+                },
+            },
+        ])),
+        size: {
+            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-sm)', fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-sm)' } } },
+            md: { root: { base: { padding: 'var(--space-xs) var(--space-lg)', fontSize: 'var(--text-sm)' } } },
+            lg: { root: { base: { padding: 'var(--space-sm) var(--space-xl)', fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { padding: 'var(--space-md) var(--space-2xl)', fontSize: 'var(--text-lg)' } } },
+        },
+    },
+    defaultVariants: { color: 'primary', size: 'md' },
+};
+
+/**
+ * Material's segmented button: connected outlined segments in one fully
+ * rounded pill, hairlines between them, and the on segment taking the
+ * container fill. MD3 names that fill secondary-container; in this
+ * vocabulary it is the `secondary` soft/role pair — the same pairing the
+ * button's soft variant uses.
+ */
+export const toggleGroup: RecipeInput = {
+    component: 'toggle-group',
+    tokens: {
+        '--toggle-group-fill': 'var(--color-secondary-soft)',
+        '--toggle-group-on-fill': 'var(--color-secondary)',
+        '--toggle-group-ink': 'var(--color-base-content)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                border: 'var(--border) solid var(--color-outline)',
+                // The segmented pill: Material's fully-rounded action shape.
+                borderRadius: '624rem',
+                overflow: 'hidden',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        item: withPresence(pressable('toggle-group', 'var(--toggle-group-ink)'), {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 'var(--space-xs)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                padding: 'var(--space-xs) var(--space-lg)',
+                ...label,
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: motion('background, color'),
+            },
+            states: {
+                on: {
+                    background: 'var(--toggle-group-fill)',
+                    color: 'var(--toggle-group-on-fill)',
+                    '--toggle-group-ink': 'var(--toggle-group-on-fill)',
+                },
+                off: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                'focus-visible': {
+                    // The pill clips its segments (joined corners), so an
+                    // offset ring would be swallowed — inset it instead.
+                    outline: '3px solid var(--color-secondary)',
+                    outlineOffset: '-3px',
+                },
+            },
+            selectors: {
+                '&[data-orientation="horizontal"] + &': {
+                    borderInlineStart: 'var(--border) solid var(--color-outline)',
+                },
+                '&[data-orientation="vertical"] + &': {
+                    borderBlockStart: 'var(--border) solid var(--color-outline)',
+                },
+            },
+        }),
+    },
+    keyframes: rippleKeyframes('toggle-group'),
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [
+            c,
+            {
+                item: {
+                    base: {
+                        '--toggle-group-fill': `var(--color-${c}-soft)`,
+                        '--toggle-group-on-fill': `var(--color-${c})`,
+                    },
+                },
+            },
+        ])),
+    },
+    defaultVariants: { color: 'secondary' },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
+    toggle, toggleGroup,
 ];

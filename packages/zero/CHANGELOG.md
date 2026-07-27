@@ -2,7 +2,16 @@
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Toggle** (`@sigx/zero/toggle`) — a two-state button (`aria-pressed`,
+  `on|off` on `data-state`). A mode you flip, not a form value; Switch keeps
+  the form-participating case.
+- **ToggleGroup** (`@sigx/zero/toggle-group`) — toggle buttons under one
+  `string[]` model, single (`deselectable` opt-out) or `multiple` selection,
+  orientation-aware arrow-key roving with a single tab stop, RTL-aware. The
+  `item` part mirrors the standalone toggle's `on|off` contract and doubles
+  the on state as a `data-selected` presence flag.
 
 ## [0.1.0] - 2026-07-27
 

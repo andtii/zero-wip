@@ -1,7 +1,7 @@
 import { component, signal } from 'sigx';
 import {
     Accordion, Avatar, Button, Checkbox, Collapsible, Combobox, Dialog, Field, Menu, Popover, Progress,
-    RadioGroup, Select, Slider, Switch, Tabs, Toast, Tooltip, toast,
+    RadioGroup, Select, Slider, Switch, Tabs, Toast, Toggle, ToggleGroup, Tooltip, toast,
 } from '@sigx/zero';
 import { Toolbar } from './Toolbar';
 
@@ -33,6 +33,7 @@ export const App = component(() => {
         country: '',
         countryQuery: '',
         countryOpen: false,
+        align: ['left'] as string[],
     });
 
     return () => (
@@ -79,6 +80,31 @@ export const App = component(() => {
                     <Switch.Root color="success" defaultChecked>Autosave</Switch.Root>
                     {' '}
                     <Switch.Root disabled>Disabled</Switch.Root>
+
+                    <h2>Toggle + ToggleGroup</h2>
+                    <p>
+                        A mode you flip, not a value you submit: <code>aria-pressed</code>{' '}
+                        semantics, <code>on|off</code> on <code>data-state</code>. The group
+                        keeps one tab stop and roves with arrow keys; its model is always{' '}
+                        <code>string[]</code> — <code>multiple</code> changes the setter,
+                        not the shape.
+                    </p>
+                    <p style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <Toggle.Root>Mute</Toggle.Root>
+                        <Toggle.Root color="warning" defaultPressed>Pinned</Toggle.Root>
+                        <Toggle.Root disabled>Disabled</Toggle.Root>
+                        <ToggleGroup.Root model={() => state.align} deselectable={false}>
+                            <ToggleGroup.Item value="left">Left</ToggleGroup.Item>
+                            <ToggleGroup.Item value="center">Center</ToggleGroup.Item>
+                            <ToggleGroup.Item value="right">Right</ToggleGroup.Item>
+                        </ToggleGroup.Root>
+                        <ToggleGroup.Root multiple defaultValue={['bold']}>
+                            <ToggleGroup.Item value="bold"><b>B</b></ToggleGroup.Item>
+                            <ToggleGroup.Item value="italic"><i>I</i></ToggleGroup.Item>
+                            <ToggleGroup.Item value="underline"><u>U</u></ToggleGroup.Item>
+                            <ToggleGroup.Item value="strike" disabled><s>S</s></ToggleGroup.Item>
+                        </ToggleGroup.Root>
+                    </p>
 
                     <h2>Avatar</h2>
                     <p>

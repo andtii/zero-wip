@@ -1257,7 +1257,186 @@ export const combobox: RecipeInput = {
     },
 };
 
+// daisy "btn" that stays pressed: the off state is the neutral btn, the on
+// state is the solid accent fill.
+export const toggle: RecipeInput = {
+    component: 'toggle',
+    // Same accent machinery as button: `color` sets the pair once, the on
+    // state consumes it — a role costs one rule, not one per state.
+    tokens: {
+        '--toggle-accent': 'var(--color-primary)',
+        '--toggle-on-accent': 'var(--color-primary-content)',
+        '--toggle-soft': 'var(--color-primary-soft)',
+    },
+    parts: {
+        root: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5em',
+                color: 'var(--color-base-content)',
+                background: 'var(--color-base-200)',
+                border: 'var(--border) solid var(--color-base-300)',
+                borderRadius: 'var(--radius-field)',
+                boxShadow: 'var(--shadow-xs)',
+                fontFamily: 'inherit',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard), '
+                    + 'color var(--duration-fast) var(--ease-standard), '
+                    + 'border-color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                on: {
+                    background: 'var(--toggle-accent)',
+                    color: 'var(--toggle-on-accent)',
+                    borderColor: 'var(--toggle-accent)',
+                },
+                off: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                'focus-visible': {
+                    outline: '2px solid var(--toggle-accent)',
+                    outlineOffset: '2px',
+                },
+            },
+            selectors: {
+                // Hover on an on toggle must not fade toward the neutral hover
+                // wash — equal specificity, later in source, so on wins; the
+                // filter supplies daisy's darkened-fill hover instead.
+                '&[data-state="on"]:hover': {
+                    background: 'var(--toggle-accent)',
+                    filter: 'brightness(0.92)',
+                },
+                // Pressed: the runtime's press feedback, not `:active` — see
+                // the button recipe for why the :not matters.
+                '&[data-pressed]:not([data-disabled])': { transform: 'translateY(1px)', boxShadow: 'none' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(
+            ROLES.map((c) => [
+                c,
+                {
+                    root: {
+                        base: {
+                            '--toggle-accent': `var(--color-${c})`,
+                            '--toggle-on-accent': `var(--color-${c}-content)`,
+                            '--toggle-soft': `var(--color-${c}-soft)`,
+                        },
+                    },
+                },
+            ]),
+        ),
+        size: {
+            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-sm)' } } },
+            md: { root: { base: { padding: 'var(--space-sm) var(--space-lg)', fontSize: 'var(--text-md)' } } },
+            lg: { root: { base: { padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-lg)' } } },
+            xl: { root: { base: { padding: 'var(--space-lg) var(--space-2xl)', fontSize: 'var(--text-xl)' } } },
+        },
+    },
+    defaultVariants: { color: 'primary', size: 'md' },
+};
+
+// daisy "join" of btns: one bordered capsule, hairline seams between items,
+// the on item filled with the accent.
+export const toggleGroup: RecipeInput = {
+    component: 'toggle-group',
+    tokens: {
+        '--toggle-group-accent': 'var(--color-primary)',
+        '--toggle-group-on-accent': 'var(--color-primary-content)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                background: 'var(--color-base-200)',
+                border: 'var(--border) solid var(--color-base-300)',
+                borderRadius: 'var(--radius-field)',
+                boxShadow: 'var(--shadow-xs)',
+                overflow: 'hidden',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        item: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5em',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                padding: 'var(--space-sm) var(--space-lg)',
+                fontFamily: 'inherit',
+                fontWeight: 'var(--weight-semibold)',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard), '
+                    + 'color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                on: {
+                    background: 'var(--toggle-group-accent)',
+                    color: 'var(--toggle-group-on-accent)',
+                },
+                off: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                'focus-visible': {
+                    // The group clips its children (joined corners), so an
+                    // offset ring would be swallowed — inset it instead.
+                    outline: '2px solid var(--toggle-group-accent)',
+                    outlineOffset: '-2px',
+                },
+            },
+            selectors: {
+                // On beats hover by source order at equal specificity; the
+                // filter supplies daisy's darkened-fill hover instead.
+                '&[data-state="on"]:hover': {
+                    background: 'var(--toggle-group-accent)',
+                    filter: 'brightness(0.92)',
+                },
+                // The join seams, flipping to the block axis when vertical.
+                '&[data-orientation="horizontal"] + &': {
+                    borderInlineStart: 'var(--border) solid var(--color-base-300)',
+                },
+                '&[data-orientation="vertical"] + &': {
+                    borderBlockStart: 'var(--border) solid var(--color-base-300)',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(
+            ROLES.map((c) => [
+                c,
+                {
+                    item: {
+                        base: {
+                            '--toggle-group-accent': `var(--color-${c})`,
+                            '--toggle-group-on-accent': `var(--color-${c}-content)`,
+                        },
+                    },
+                },
+            ]),
+        ),
+    },
+    defaultVariants: { color: 'primary' },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
+    toggle, toggleGroup,
 ];

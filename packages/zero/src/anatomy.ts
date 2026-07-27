@@ -26,12 +26,14 @@ import { selectAnatomy } from './components/select/anatomy.js';
 import { avatarAnatomy } from './components/avatar/anatomy.js';
 import { toastAnatomy } from './components/toast/anatomy.js';
 import { comboboxAnatomy } from './components/combobox/anatomy.js';
+import { toggleAnatomy } from './components/toggle/anatomy.js';
+import { toggleGroupAnatomy } from './components/toggle-group/anatomy.js';
 
 export {
     buttonAnatomy,
     tabsAnatomy, collapsibleAnatomy, switchAnatomy, dialogAnatomy, popoverAnatomy, tooltipAnatomy, menuAnatomy,
     fieldAnatomy, checkboxAnatomy, radioGroupAnatomy, progressAnatomy, sliderAnatomy, accordionAnatomy, selectAnatomy,
-    avatarAnatomy, toastAnatomy, comboboxAnatomy,
+    avatarAnatomy, toastAnatomy, comboboxAnatomy, toggleAnatomy, toggleGroupAnatomy,
 };
 
 export const anatomies: Record<string, Anatomy> = {
@@ -53,4 +55,6 @@ export const anatomies: Record<string, Anatomy> = {
     avatar: avatarAnatomy,
     toast: toastAnatomy,
     combobox: comboboxAnatomy,
+    toggle: toggleAnatomy,
+    'toggle-group': toggleGroupAnatomy,
 };
