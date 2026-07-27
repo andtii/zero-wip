@@ -186,15 +186,19 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit }) => {
             selected.value = value;
         },
         isTabbable(value) {
-            // One tab stop: the selected node, else the first visible
-            // enabled node (Tabs' rule). Decided from the model first —
-            // registration isn't reactive, so a node may only consult
-            // nodes registered BEFORE it. A selected node hidden under a
-            // collapsed branch keeps its claim but never renders tabbable
-            // (it isn't reachable), leaving the tree without a stop — the
-            // same trade Tabs makes for a removed selected tab.
+            // One tab stop: the selected node while it is VISIBLE and
+            // enabled, else the first visible enabled node — a selection
+            // hidden under a collapsed branch must not leave the tree
+            // unreachable by keyboard. Selection and expansion are both
+            // reactive reads, so this recomputes on every change; only the
+            // initial render can transiently see an incomplete registry
+            // (a second stop that heals on the first interaction), which
+            // beats a permanently missing one.
             const sel = selected.value;
-            if (sel !== '') return sel === value;
+            if (sel !== '') {
+                const selNode = tree.find(sel);
+                if (selNode && !selNode.disabled()) return sel === value;
+            }
             return tree.enabledItems()[0]?.value === value;
         },
         keydown(e, node) {
@@ -466,6 +470,9 @@ const TreeViewBranchTrigger = component<TreeViewBranchTriggerProps>(({ props, sl
         },
         onKeydown: press.onKeydown,
         onKeyup: press.onKeyup,
+        // Safety net for asChild rows that are themselves focusable: a key
+        // held across a focus move must not strand data-pressed.
+        onBlur: press.onBlur,
         onPointerdown: press.onPointerdown,
         onPointerup: press.onPointerup,
         onPointercancel: press.onPointercancel,

@@ -238,6 +238,18 @@ describe('TreeView', () => {
         expect(byValue(c2, 'README.md').tabIndex).toBe(-1);
     });
 
+    it('a selection hidden by collapse yields the tab stop to the first visible node', () => {
+        const state = signal({ file: '' });
+        mountTree(container, { model: [state, 'file'], defaultExpandedValues: ['src'] });
+        byValue(container, 'index.ts').click();
+        expect(byValue(container, 'index.ts').tabIndex).toBe(0);
+        container.querySelector<HTMLElement>('[data-part="branch-trigger"]')!.click();
+        // The selected node is now invisible — the stop falls back so the
+        // tree stays keyboard-reachable.
+        expect(byValue(container, 'src').tabIndex).toBe(0);
+        expect(byValue(container, 'README.md').tabIndex).toBe(-1);
+    });
+
     it('selection survives collapsing its branch', () => {
         const state = signal({ file: '' });
         mountTree(container, { model: [state, 'file'], defaultExpandedValues: ['src'] });
