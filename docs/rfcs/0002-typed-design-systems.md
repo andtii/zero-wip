@@ -86,7 +86,8 @@ documents the pattern.
 
 `roles` and `sizes` are declared in `tokens.ts`, flow into the manifest, and are
 validated: a recipe whose `variants.color` names an undeclared role is a hard error
-listing the declared set (`resolve/validate-recipes.ts:448-460`). `variant` values and
+listing the declared set (`packages/zero-kit/src/resolve/validate-recipes.ts:448-460`).
+`variant` values and
 custom axis names have no equivalent. They exist only as object keys inside a
 deliberately flat recipe type:
 
@@ -492,10 +493,10 @@ exactly `export {}` so the subpath resolves at runtime for free; each design sys
 `package.json` gains
 `"./register": { "types": "./dist/register.d.ts", "import": "./dist/register.js" }`
 (`"import"`, matching every existing entry in the shipped exports maps). The design
-system packages declare no `sideEffects` field today, so bundlers keep the import;
-if one is ever added, dropping the register import is harmless — the module is empty
-and the types act at compile time — but nothing may ever hang runtime behaviour off
-it. All four design systems build through their own `build.mjs` → `writeArtifacts`
+system packages already declare `"sideEffects": false`, so a bundler may drop the
+empty register import from its output — harmless, because the module is empty and
+the types act at compile time — but it is also why nothing may ever hang runtime
+behaviour off it. All four design systems build through their own `build.mjs` → `writeArtifacts`
 rather than through the CLI, so that is the correct insertion point — putting it in
 `cli.ts` would generate types for nobody (though `cli.ts build` calls the same
 functions and gets the artifact for free).
