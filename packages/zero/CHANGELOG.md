@@ -12,6 +12,17 @@
   orientation-aware arrow-key roving with a single tab stop, RTL-aware. The
   `item` part mirrors the standalone toggle's `on|off` contract and doubles
   the on state as a `data-selected` presence flag.
+- **Virtual anchors in the positioning behavior** — `PositionAnchor =
+  HTMLElement | VirtualAnchor` (anything with `getBoundingClientRect()`),
+  a `pointAnchor(x, y, size?)` factory for anchoring at client coordinates,
+  and `createAnchorPosition` now returns an `AnchorPositionHandle` whose
+  `update()` re-runs the strategy while open — a moved anchor repositions
+  without a close/reopen. `PositionStrategy.apply` and
+  `AnchorPositionInput.getAnchor` widen to `PositionAnchor`; element
+  anchors and existing custom strategies keep working unchanged. One
+  type-level change: `createAnchorPosition` returns the handle instead of
+  `void` — callers that ignored the return value are unaffected, but a
+  wrapper typed as returning `void` will need its annotation updated.
 
 ## [0.1.0] - 2026-07-27
 
