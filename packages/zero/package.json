@@ -99,6 +99,14 @@
         "./combobox": {
             "types": "./dist/components/combobox/index.d.ts",
             "import": "./dist/components/combobox/index.js"
+        },
+        "./toggle": {
+            "types": "./dist/components/toggle/index.d.ts",
+            "import": "./dist/components/toggle/index.js"
+        },
+        "./toggle-group": {
+            "types": "./dist/components/toggle-group/index.d.ts",
+            "import": "./dist/components/toggle-group/index.js"
         }
     },
     "files": [

@@ -22,3 +22,16 @@ export function renderAsChild(slot: SlotAccessor, bag: PartProps): unknown {
     const rendered = items.map((item) => (typeof item === 'function' ? item(bag) : item));
     return rendered.length === 1 ? rendered[0] : rendered;
 }
+
+/**
+ * Whether the platform will synthesize a click from THIS key on THIS
+ * element. Components synthesizing keyboard activation for asChild elements
+ * skip exactly these cases — doubling a native synthesis would activate
+ * twice per press. Per-key because anchors only synthesize on Enter: a
+ * role="button" anchor still needs Space supplied by the component.
+ */
+export function synthesizesClickFrom(target: EventTarget | null, key: string): boolean {
+    const tag = target instanceof HTMLElement ? target.tagName : '';
+    if (tag === 'BUTTON' || tag === 'INPUT' || tag === 'SUMMARY') return true;
+    return tag === 'A' && key === 'Enter';
+}

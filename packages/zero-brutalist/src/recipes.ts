@@ -960,7 +960,180 @@ export const combobox: RecipeInput = {
     },
 };
 
+// ── Toggle ────────────────────────────────────────────────────────────────
+/**
+ * A two-state slab. Off is the outlined button look; on is inverted and
+ * collapsed into its own shadow — a plate stamped down and left there. The
+ * accent machinery mirrors button: `color` sets the pair once, `on` reads it.
+ */
+export const toggle: RecipeInput = {
+    component: 'toggle',
+    tokens: {
+        '--toggle-accent': 'var(--color-primary)',
+        '--toggle-on-accent': 'var(--color-primary-content)',
+    },
+    parts: {
+        root: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 'var(--space-sm)',
+                ...inked,
+                ...label,
+                lineHeight: 'var(--leading-none)',
+                boxShadow: 'var(--shadow-sm)',
+                cursor: 'pointer',
+                transition: motion('box-shadow, transform, background, color'),
+            },
+            states: {
+                disabled: {
+                    opacity: 'var(--disabled-opacity)',
+                    cursor: 'not-allowed',
+                    boxShadow: 'none',
+                    transform: 'none',
+                },
+                hover: shift('1px'),
+                // On = stamped down: inverted fill, shadow gone, sitting where
+                // the shadow was.
+                on: {
+                    background: 'var(--toggle-accent)',
+                    color: 'var(--toggle-on-accent)',
+                    boxShadow: 'none',
+                    transform: 'translate(2px, 2px)',
+                },
+                off: {},
+                ...focusRing,
+            },
+            selectors: {
+                // Hovering an on toggle must not lift it back out of its
+                // shadow — restate the stamped look at higher specificity.
+                '&[data-state="on"]:hover': {
+                    background: 'var(--toggle-accent)',
+                    boxShadow: 'none',
+                    transform: 'translate(2px, 2px)',
+                },
+                // The button stamp: full shove while the press is held.
+                '&[data-pressed]:not([data-disabled])': { boxShadow: 'none', transform: 'translate(3px, 3px)' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [
+            c,
+            {
+                root: {
+                    base: {
+                        '--toggle-accent': `var(--color-${c})`,
+                        '--toggle-on-accent': `var(--color-${c}-content)`,
+                    },
+                },
+            },
+        ])),
+        size: {
+            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-sm)', fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-xs)' } } },
+            md: { root: { base: { padding: 'var(--space-sm) var(--space-lg)', fontSize: 'var(--text-sm)' } } },
+            lg: { root: { base: { padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { padding: 'var(--space-lg) var(--space-2xl)', fontSize: 'var(--text-lg)' } } },
+        },
+    },
+    defaultVariants: { color: 'primary', size: 'md' },
+};
+
+// ── Toggle group ──────────────────────────────────────────────────────────
+/**
+ * One framed slab, items joined by hard interior rules; the on item inverts.
+ * The frame clips (`overflow: hidden`), so the press stamp stays inside it
+ * and the focus ring is inset rather than offset out into the clip.
+ */
+export const toggleGroup: RecipeInput = {
+    component: 'toggle-group',
+    tokens: {
+        '--toggle-group-accent': 'var(--color-primary)',
+        '--toggle-group-on-accent': 'var(--color-primary-content)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                ...inked,
+                boxShadow: 'var(--shadow-sm)',
+                overflow: 'hidden',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        item: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 'var(--space-sm)',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                padding: 'var(--space-sm) var(--space-lg)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: motion('background, color, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                on: {
+                    background: 'var(--toggle-group-accent)',
+                    color: 'var(--toggle-group-on-accent)',
+                },
+                off: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                // The frame clips its children, so an offset ring would be
+                // swallowed — inset it. currentColor keeps it visible on both
+                // the base and the inverted on fill.
+                'focus-visible': {
+                    outline: 'var(--border) solid currentColor',
+                    outlineOffset: 'calc(-2 * var(--border))',
+                },
+            },
+            selectors: {
+                // Equal footing with hover is not enough — the on fill must
+                // win the hover wash outright.
+                '&[data-state="on"]:hover': { background: 'var(--toggle-group-accent)' },
+                '&[data-orientation="horizontal"] + &': {
+                    borderInlineStart: 'var(--border) solid var(--color-base-content)',
+                },
+                '&[data-orientation="vertical"] + &': {
+                    borderBlockStart: 'var(--border) solid var(--color-base-content)',
+                },
+                // A shallower stamp than the free-standing button: the item
+                // has no shadow to collapse into, and the frame clips it.
+                '&[data-pressed]:not([data-disabled])': { transform: 'translate(1px, 1px)' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [
+            c,
+            {
+                item: {
+                    base: {
+                        '--toggle-group-accent': `var(--color-${c})`,
+                        '--toggle-group-on-accent': `var(--color-${c}-content)`,
+                    },
+                },
+            },
+        ])),
+    },
+    defaultVariants: { color: 'primary' },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
+    toggle, toggleGroup,
 ];

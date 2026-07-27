@@ -184,6 +184,19 @@ component renders; the root is called out separately where it carries props.
   The popup is popover="manual" + the dismiss layer (native auto light
   dismiss would close on a caret click). No data-placeholder on the input —
   use :placeholder-shown. Home/End stay with the text caret.
+- Toggle: Root(model=pressed, defaultPressed, label, asChild) — one
+  two-state <button> (aria-pressed, data-state on|off; `label` →
+  aria-label for icon-only toggles). A mode you flip, not a form value
+  (Switch keeps the form case). No hidden input.
+- ToggleGroup: Root(model=string[], multiple, deselectable, loop, label,
+  orientation)/Item(value, asChild). role=group of aria-pressed buttons
+  (`label` names the group);
+  model is ALWAYS string[] — `multiple` changes the setter (append vs
+  replace), not the shape. Single mode deselects on re-click unless
+  deselectable=false. Arrow keys rove focus (orientation- and RTL-aware,
+  one tab stop: first enabled on item, else first enabled) WITHOUT changing
+  selection; click/Space/Enter toggle. Item mirrors toggle's on|off and
+  doubles it as a data-selected presence flag.
 
 Named models (first used by Combobox; the convention for every multi-state
 component): a component has exactly ONE unnamed `model` — its essential
