@@ -131,6 +131,15 @@ component renders; the root is called out separately where it carries props.
   element) then Trigger/Popup.
 - Menu: Root(model=open, closeOnSelect, placement — renders no element) then
   Trigger/Popup/Item(asChild)/Group/GroupLabel/Separator; `select` event.
+  Context menu: ContextTrigger(asChild) wraps any surface — right-click /
+  Android long-press opens the SAME popup at the pointer via a virtual
+  anchor (deferred past the gesture: an auto popover opened mid-gesture
+  would be light-dismissed by its own pointerup, racily); Shift+F10 /
+  ContextMenu key open anchored to the surface RECT (keyboard has no
+  pointer). A second right-click outside the popup repositions; last
+  opener (Trigger vs ContextTrigger) wins the anchor. No iOS long-press
+  (no native contextmenu there) — pair -webkit-touch-callout: none with
+  your own recognizer for now.
   Submenus: Sub(model=open, placement default right-start with RTL flip,
   openDelay/closeDelay hover intent — renders no element) then
   SubTrigger(asChild)/SubPopup, nested to any depth inside a Popup. Item/

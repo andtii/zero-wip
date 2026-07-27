@@ -48,6 +48,7 @@ export { Menu, menuAnatomy, useMenuContext } from './components/menu/index.js';
 export type {
     MenuRootProps,
     MenuTriggerProps,
+    MenuContextTriggerProps,
     MenuPopupProps,
     MenuItemProps,
     MenuGroupProps,
