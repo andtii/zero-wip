@@ -49,6 +49,25 @@
 
 ### Added
 
+- **Combobox component** (`@sigx/zero/combobox`) — and with it the
+  **named-models convention**: a component has exactly one unnamed `model`
+  (its essential value, what `hidden-input` posts); every additional
+  controllable state is a named model (`model:inputValue`, `model:open` in
+  JSX, via sigx `Define.Model<'name', T>`), each keeping the standard
+  `default<Name>` + `<name>Change` companions. Parts:
+  Root/Control/Input/Trigger/Popup/Item/ItemIndicator/Empty/HiddenInput —
+  Control is the field chrome around input + trigger, mirroring
+  open/invalid/focus-visible so recipes draw the ring on the box; the input
+  is a real `<input>` (no `data-placeholder`; use `:placeholder-shown`).
+  APG editable combobox: focus stays in the input, highlight travels by
+  `aria-activedescendant`, Home/End stay with the caret, Enter fills the
+  input with the picked item's label. **Filtering belongs to the consumer**
+  (items are JSX children); zero prunes a highlight whose item unmounts so
+  the activedescendant never dangles. The popup is `popover="manual"` plus
+  the dismiss layer — the first component consumer of
+  `createDismissable` — because native light dismiss would close the list
+  on a caret click in the input. All four design systems ship a combobox
+  recipe.
 - **Avatar component** (`@sigx/zero/avatar`): Root/Image/Fallback, every part
   mirroring the image load status as `data-state="loading|loaded|error"` (a
   missing `src` resolves to `error` on mount). Zero toggles `hidden` — the

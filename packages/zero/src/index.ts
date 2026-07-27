@@ -110,3 +110,14 @@ export type {
     ToastActionData,
     ToastRole,
 } from './components/toast/index.js';
+
+export { Combobox, comboboxAnatomy, useComboboxContext } from './components/combobox/index.js';
+export type {
+    ComboboxRootProps,
+    ComboboxControlProps,
+    ComboboxInputProps,
+    ComboboxTriggerProps,
+    ComboboxPopupProps,
+    ComboboxItemProps,
+    ComboboxEmptyProps,
+} from './components/combobox/index.js';

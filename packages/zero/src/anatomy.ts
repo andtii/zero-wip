@@ -25,12 +25,13 @@ import { buttonAnatomy } from './components/button/anatomy.js';
 import { selectAnatomy } from './components/select/anatomy.js';
 import { avatarAnatomy } from './components/avatar/anatomy.js';
 import { toastAnatomy } from './components/toast/anatomy.js';
+import { comboboxAnatomy } from './components/combobox/anatomy.js';
 
 export {
     buttonAnatomy,
     tabsAnatomy, collapsibleAnatomy, switchAnatomy, dialogAnatomy, popoverAnatomy, tooltipAnatomy, menuAnatomy,
     fieldAnatomy, checkboxAnatomy, radioGroupAnatomy, progressAnatomy, sliderAnatomy, accordionAnatomy, selectAnatomy,
-    avatarAnatomy, toastAnatomy,
+    avatarAnatomy, toastAnatomy, comboboxAnatomy,
 };
 
 export const anatomies: Record<string, Anatomy> = {
@@ -51,4 +52,5 @@ export const anatomies: Record<string, Anatomy> = {
     select: selectAnatomy,
     avatar: avatarAnatomy,
     toast: toastAnatomy,
+    combobox: comboboxAnatomy,
 };

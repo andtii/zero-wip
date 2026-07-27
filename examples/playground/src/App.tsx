@@ -1,6 +1,6 @@
 import { component, signal } from 'sigx';
 import {
-    Accordion, Avatar, Button, Checkbox, Collapsible, Dialog, Field, Menu, Popover, Progress,
+    Accordion, Avatar, Button, Checkbox, Collapsible, Combobox, Dialog, Field, Menu, Popover, Progress,
     RadioGroup, Select, Slider, Switch, Tabs, Toast, Tooltip, toast,
 } from '@sigx/zero';
 import { Toolbar } from './Toolbar';
@@ -15,6 +15,12 @@ const avatarSvg = (hue: number): string =>
 const AVATAR_A = avatarSvg(250);
 const AVATAR_B = avatarSvg(150);
 
+const COUNTRIES = [
+    'Argentina', 'Australia', 'Brazil', 'Canada', 'Denmark', 'Finland',
+    'Germany', 'Iceland', 'Japan', 'Kenya', 'Mexico', 'Norway',
+    'Portugal', 'Sweden', 'Thailand', 'Uruguay',
+];
+
 export const App = component(() => {
     const state = signal({
         tab: 'components',
@@ -24,6 +30,9 @@ export const App = component(() => {
         fruit: '',
         volume: 40,
         avatarSrc: AVATAR_A,
+        country: '',
+        countryQuery: '',
+        countryOpen: false,
     });
 
     return () => (
@@ -228,6 +237,38 @@ export const App = component(() => {
                             <Select.Item value="cherry">Cherry</Select.Item>
                         </Select.Popup>
                     </Select.Root>
+
+                    <h2>Combobox</h2>
+                    <p>
+                        The named-models convention in action: <code>model</code> is the
+                        selected value, <code>model:inputValue</code> the text,
+                        <code>model:open</code> the popup — and filtering is the
+                        consumer's, so this list is a plain <code>.filter()</code> over
+                        the bound query.
+                    </p>
+                    <Combobox.Root
+                        model={() => state.country}
+                        model:inputValue={() => state.countryQuery}
+                        model:open={() => state.countryOpen}
+                        name="country"
+                        placeholder="Search countries…"
+                    >
+                        <Combobox.Control>
+                            <Combobox.Input />
+                            <Combobox.Trigger />
+                        </Combobox.Control>
+                        <Combobox.Popup>
+                            {COUNTRIES
+                                .filter((c) => c.toLowerCase().includes(state.countryQuery.toLowerCase()))
+                                .map((c) => (
+                                    <Combobox.Item value={c.toLowerCase()} key={c}>{c}</Combobox.Item>
+                                ))}
+                            {COUNTRIES.every((c) => !c.toLowerCase().includes(state.countryQuery.toLowerCase()))
+                                ? <Combobox.Empty>No countries match</Combobox.Empty>
+                                : null}
+                        </Combobox.Popup>
+                    </Combobox.Root>
+                    <p><small>Selected: <code>{state.country || '—'}</code></small></p>
 
                     <h2>Slider + Progress</h2>
                     <Slider.Root model={() => state.volume}>

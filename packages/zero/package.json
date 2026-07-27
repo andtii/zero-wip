@@ -95,6 +95,10 @@
         "./toast": {
             "types": "./dist/components/toast/index.d.ts",
             "import": "./dist/components/toast/index.js"
+        },
+        "./combobox": {
+            "types": "./dist/components/combobox/index.d.ts",
+            "import": "./dist/components/combobox/index.js"
         }
     },
     "files": [

@@ -857,7 +857,103 @@ export const toast: RecipeInput = {
     },
 };
 
+export const combobox: RecipeInput = {
+    component: 'combobox',
+    parts: {
+        root: { base: { display: 'inline-flex', position: 'relative' } },
+        control: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                minWidth: '12rem',
+                ...inked,
+                boxShadow: 'var(--shadow-xs)',
+            },
+            states: {
+                open: { boxShadow: 'none', transform: 'translate(2px, 2px)' },
+                closed: {},
+                invalid: { borderColor: 'var(--color-error)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                ...focusRing,
+            },
+        },
+        input: {
+            base: {
+                flex: '1',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                padding: 'var(--space-sm) var(--space-md)',
+            },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                readonly: {},
+                open: {},
+                closed: {},
+                invalid: {},
+                required: {},
+            },
+            selectors: {
+                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 55%, transparent)', textTransform: 'uppercase' },
+            },
+        },
+        trigger: {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                padding: '0 var(--space-md)',
+                cursor: 'pointer',
+                transition: motion('transform'),
+            },
+            states: {
+                open: { transform: 'rotate(180deg)' },
+                closed: {},
+                disabled: { cursor: 'not-allowed' },
+            },
+        },
+        popup: withPresence(popupPresence('translate(4px, 4px)'), { base: { ...slab, padding: 'var(--space-xs)', minWidth: '12rem' }, states: { open: {}, closed: {} } }),
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                cursor: 'pointer',
+            },
+            states: {
+                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                selected: { background: 'var(--color-accent)', color: 'var(--color-accent-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+            },
+        },
+        'item-indicator': { base: { fontSize: 'var(--text-xs)' } },
+        empty: {
+            base: {
+                padding: 'var(--space-md)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                textAlign: 'center',
+                opacity: '0.7',
+            },
+        },
+    },
+    // The visible ring lives on `control`; input and trigger delegate.
+    skipStates: {
+        input: ['focus-visible'],
+        trigger: ['focus-visible'],
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
-    switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast,
+    switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
 ];
