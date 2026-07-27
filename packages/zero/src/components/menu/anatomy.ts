@@ -36,6 +36,15 @@ export const menuAnatomy = defineAnatomy('menu', {
         states: ['open', 'closed'],
         tokens: ['color', 'radius-box'],
     },
+    // The right-click surface. Additive (context menu = the same menu opened
+    // at pointer coordinates); typically the consumer's own content, so
+    // recipes usually leave it unstyled.
+    'context-trigger': {
+        element: 'div',
+        states: ['open', 'closed'],
+        flags: ['disabled'],
+        asChild: true,
+    },
     group: {
         element: 'div',
     },

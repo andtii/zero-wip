@@ -4,6 +4,17 @@
 
 ### Added
 
+- **Context menu: `Menu.ContextTrigger`** — an additive `context-trigger`
+  part on the `menu` anatomy (no separate component: same popup, items,
+  submenus, typeahead and focus restore). Wrap any surface; right-click /
+  Android long-press opens the popup at the pointer through a virtual
+  anchor — deferred until the gesture completes, because an auto popover
+  opened mid-gesture is racily light-dismissed by its own pointerup —
+  and Shift+F10 / the ContextMenu key open it anchored to the surface's
+  rect (APG). A second right-click outside the popup re-anchors it; the
+  regular `Menu.Trigger` re-claims the anchor on open, so the last opener
+  wins. iOS long-press (no native `contextmenu`) is deferred.
+
 - **NumberInput** (`@sigx/zero/number-input`) — a WAI-ARIA spinbutton over a
   real `type="text" inputmode="decimal"` input. Model is `number | null`
   (empty is not 0); typing edits an uncommitted draft committed on

@@ -183,7 +183,7 @@ test('menu: the trigger ripples; a real item press activates and closes', async 
     await part(page, 'menu', 'item').first().click();
     const itemLog = await logWith(page, 'menu/item:data-pressed:off');
     expectSequence(itemLog, ['menu/item:data-pressed:on', 'menu/item:data-pressed:off']);
-    await expect(part(page, 'menu', 'popup')).not.toBeVisible();
+    await expect(part(page, 'menu', 'popup').first()).not.toBeVisible();
 });
 
 test('disclosure triggers ripple on their native summaries', async ({ page }) => {

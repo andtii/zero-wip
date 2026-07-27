@@ -43,7 +43,7 @@ import { createId } from '../../behaviors/create-id.js';
 import { createListController, type ListItem } from '../../behaviors/list.js';
 import { createRovingKeydown } from '../../behaviors/roving.js';
 import { createTypeahead } from '../../behaviors/typeahead.js';
-import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
+import { createAnchorPosition, pointAnchor, type Placement, type PositionAnchor, type PositionStrategy } from '../../behaviors/position.js';
 import { createFocusRestore } from '../../behaviors/focus.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
@@ -60,7 +60,13 @@ interface MenuContext {
     ids: { popup: string };
     keydown(e: KeyboardEvent, value: string): void;
     select(value: string): void;
-    setAnchor(el: HTMLElement | null): void;
+    setAnchor(anchor: PositionAnchor | null): void;
+    /**
+     * Open anchored at client coordinates (a context menu). While already
+     * open, repositions in place — a second right-click must not flicker
+     * through close/reopen.
+     */
+    openAt(x: number, y: number): void;
     setPopup(el: HTMLElement | null): void;
 }
 
@@ -76,6 +82,7 @@ function makeInert(): MenuContext {
         keydown: () => {},
         select: () => {},
         setAnchor: () => {},
+        openAt: () => {},
         setPopup: () => {},
     };
 }
@@ -102,7 +109,7 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit }) => {
     );
     const list = createListController();
     const baseId = createId('zx-menu');
-    let anchor: HTMLElement | null = null;
+    let anchor: PositionAnchor | null = null;
     let popup: HTMLElement | null = null;
 
     const roving = createRovingKeydown({
@@ -113,6 +120,15 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit }) => {
     const typeahead = createTypeahead({
         list,
         onMatch: (item: ListItem) => item.el()?.focus(),
+    });
+
+    const pos = createAnchorPosition({
+        getAnchor: () => anchor,
+        getFloating: () => popup,
+        isOpen: () => state.value,
+        placement: () => props.placement ?? 'bottom-start',
+        offset: () => props.offset ?? 4,
+        strategy: props.positionStrategy,
     });
 
     const ctx: MenuContext = {
@@ -127,19 +143,16 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit }) => {
             emit('select', value);
             if (props.closeOnSelect ?? true) state.value = false;
         },
-        setAnchor: (el) => { anchor = el; },
+        setAnchor: (a) => { anchor = a; },
+        openAt(x, y) {
+            anchor = pointAnchor(x, y);
+            if (state.value) pos.update();
+            else state.value = true;
+        },
         setPopup: (el) => { popup = el; },
     };
     defineProvide(useMenuContext, () => ctx);
 
-    createAnchorPosition({
-        getAnchor: () => anchor,
-        getFloating: () => popup,
-        isOpen: () => state.value,
-        placement: () => props.placement ?? 'bottom-start',
-        offset: () => props.offset ?? 4,
-        strategy: props.positionStrategy,
-    });
     createFocusRestore(() => state.value);
 
     return () => <>{slots.default?.()}</>;
@@ -172,13 +185,18 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal }) => {
         'aria-expanded': menu.state.value ? 'true' : 'false',
         'aria-controls': menu.ids.popup,
         onClick: () => {
-            if (!props.disabled) menu.state.value = !menu.state.value;
+            if (props.disabled) return;
+            // Re-claim the anchor on every open: a context-trigger open may
+            // have moved it to a point — last opener wins.
+            menu.setAnchor(el);
+            menu.state.value = !menu.state.value;
         },
         onKeydown: (e: KeyboardEvent) => {
             press.onKeydown(e);
             // ArrowDown on a closed trigger opens the menu (APG).
             if (e.key === 'ArrowDown' && !menu.state.value && !props.disabled) {
                 e.preventDefault();
+                menu.setAnchor(el);
                 menu.state.value = true;
             }
         },
@@ -205,6 +223,79 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal }) => {
         );
     };
 }, { name: 'Menu.Trigger' });
+
+// ── ContextTrigger ──
+
+export type MenuContextTriggerProps =
+    & WithDisabled
+    & WithClass
+    & WithAsChild
+    & Define.Slot<'default', PartProps>;
+
+/**
+ * The right-click surface. Wrap any content: `contextmenu` (right-click,
+ * long-press on Android) opens the menu at the pointer, Shift+F10 / the
+ * ContextMenu key open it anchored to the surface's rect (APG — the
+ * keyboard has no pointer position). iOS has no native `contextmenu`
+ * event; pair with `-webkit-touch-callout: none` and a long-press
+ * recognizer of your own until zero grows one.
+ */
+const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots }) => {
+    const menu = useMenuContext();
+    let el: HTMLElement | null = null;
+
+    const bag = (): PartProps => ({
+        'data-scope': SCOPE,
+        'data-part': 'context-trigger',
+        'data-state': stateAttr(menu.state.value, 'open', 'closed'),
+        'data-disabled': dataAttr(props.disabled),
+        'aria-haspopup': 'menu',
+        'aria-expanded': menu.state.value ? 'true' : 'false',
+        'aria-controls': menu.ids.popup,
+        ref: (node: HTMLElement | null) => { el = node; },
+        onContextmenu: (e: MouseEvent) => {
+            if (props.disabled) return;
+            e.preventDefault();
+            const { clientX, clientY } = e;
+            // Never open inside the right-click gesture: the popup is an
+            // auto popover, and the gesture's own pointerup light-dismisses
+            // a popover it didn't press inside — racily, at millisecond
+            // granularity. When contextmenu fires with the button still
+            // down (macOS convention), wait for the release; either way,
+            // open a task later so the gesture's input processing is fully
+            // done before showPopover().
+            const openDeferred = (): void => {
+                setTimeout(() => menu.openAt(clientX, clientY), 0);
+            };
+            if (e.buttons !== 0) {
+                window.addEventListener('pointerup', openDeferred, { once: true, capture: true });
+            } else {
+                openDeferred();
+            }
+        },
+        onKeydown: (e: KeyboardEvent) => {
+            if (props.disabled) return;
+            // Bubbles from any focused descendant — the surface itself needs
+            // no tab stop of its own.
+            if ((e.key === 'F10' && e.shiftKey) || e.key === 'ContextMenu') {
+                e.preventDefault();
+                if (!el) return;
+                menu.setAnchor(el);
+                menu.state.value = true;
+            }
+        },
+    });
+
+    return () => {
+        const b = bag();
+        if (props.asChild) return renderAsChild(slots.default, b);
+        return (
+            <div class={props.class} {...b}>
+                {slots.default?.(b)}
+            </div>
+        );
+    };
+}, { name: 'Menu.ContextTrigger' });
 
 // ── Popup ──
 
@@ -457,6 +548,9 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
             parent.select(value);
         },
         setAnchor: () => {},
+        // A context trigger inside a submenu would re-anchor the WRONG
+        // popup; submenus anchor to their sub-trigger, so this is inert.
+        openAt: () => {},
         setPopup: (el) => { subPopup = el; },
     };
     defineProvide(useMenuContext, () => subCtx);
@@ -713,6 +807,7 @@ const MenuSeparator = component<MenuSeparatorProps>(({ props }) => {
 export const Menu = compound(MenuRoot, {
     Root: MenuRoot,
     Trigger: MenuTrigger,
+    ContextTrigger: MenuContextTrigger,
     Popup: MenuPopup,
     Item: MenuItem,
     Sub: MenuSub,

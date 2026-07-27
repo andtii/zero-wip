@@ -2,6 +2,7 @@ export { Menu, useMenuContext, useMenuSubContext } from './Menu.js';
 export type {
     MenuRootProps,
     MenuTriggerProps,
+    MenuContextTriggerProps,
     MenuPopupProps,
     MenuItemProps,
     MenuSubProps,

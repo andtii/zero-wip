@@ -311,4 +311,90 @@ describe('Menu submenus', () => {
         expect(subPopups[1]!.getAttribute('data-state')).toBe('open');
         expectAnatomy(container, menuAnatomy);
     });
+
+    function mountContext(extra: { disabled?: boolean } = {}) {
+        render(
+            <Menu.Root>
+                <Menu.ContextTrigger disabled={extra.disabled}>
+                    <span>Right-click zone</span>
+                </Menu.ContextTrigger>
+                <Menu.Popup>
+                    <Menu.Item value="copy">Copy</Menu.Item>
+                    <Menu.Item value="paste">Paste</Menu.Item>
+                </Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+    }
+
+    const contextmenuAt = (el: HTMLElement, x: number, y: number) => {
+        const e = new MouseEvent('contextmenu', { clientX: x, clientY: y, bubbles: true, cancelable: true });
+        el.dispatchEvent(e);
+        return e;
+    };
+
+    it('context trigger: right-click opens at the pointer (a task later) and eats the native menu', async () => {
+        mountContext();
+        const surface = container.querySelector<HTMLElement>('[data-part="context-trigger"]')!;
+        expect(surface.getAttribute('aria-haspopup')).toBe('menu');
+        expect(surface.getAttribute('data-state')).toBe('closed');
+        const e = contextmenuAt(surface, 120, 80);
+        expect(e.defaultPrevented).toBe(true);
+        // Deferred past the gesture: opening inside it would be racily
+        // light-dismissed by the same gesture's pointerup.
+        expect(surface.getAttribute('data-state')).toBe('closed');
+        await tick();
+        expect(surface.getAttribute('data-state')).toBe('open');
+        expect(container.querySelector('[data-part="popup"]')!.getAttribute('data-state')).toBe('open');
+    });
+
+    it('context trigger: with the button still down, the open waits for the release', async () => {
+        mountContext();
+        const surface = container.querySelector<HTMLElement>('[data-part="context-trigger"]')!;
+        const e = new MouseEvent('contextmenu', { clientX: 10, clientY: 10, buttons: 2, bubbles: true, cancelable: true });
+        surface.dispatchEvent(e);
+        await tick();
+        // Still down — not yet open.
+        expect(surface.getAttribute('data-state')).toBe('closed');
+        window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        await tick();
+        expect(surface.getAttribute('data-state')).toBe('open');
+    });
+
+    it('context trigger: a second right-click while open keeps it open (repositions in place)', async () => {
+        mountContext();
+        const surface = container.querySelector<HTMLElement>('[data-part="context-trigger"]')!;
+        contextmenuAt(surface, 120, 80);
+        await tick();
+        contextmenuAt(surface, 300, 200);
+        await tick();
+        expect(surface.getAttribute('data-state')).toBe('open');
+        expect(container.querySelector('[data-part="popup"]')!.getAttribute('data-state')).toBe('open');
+    });
+
+    it('context trigger: Shift+F10 opens anchored to the element', () => {
+        mountContext();
+        const surface = container.querySelector<HTMLElement>('[data-part="context-trigger"]')!;
+        const e = new KeyboardEvent('keydown', { key: 'F10', shiftKey: true, bubbles: true, cancelable: true });
+        surface.dispatchEvent(e);
+        expect(e.defaultPrevented).toBe(true);
+        expect(surface.getAttribute('data-state')).toBe('open');
+    });
+
+    it('context trigger: disabled ignores both paths', async () => {
+        mountContext({ disabled: true });
+        const surface = container.querySelector<HTMLElement>('[data-part="context-trigger"]')!;
+        expect(surface.getAttribute('data-disabled')).toBe('');
+        contextmenuAt(surface, 10, 10);
+        surface.dispatchEvent(new KeyboardEvent('keydown', { key: 'F10', shiftKey: true, bubbles: true, cancelable: true }));
+        await tick();
+        expect(surface.getAttribute('data-state')).toBe('closed');
+    });
+
+    it('context trigger renders a valid anatomy', async () => {
+        mountContext();
+        contextmenuAt(container.querySelector<HTMLElement>('[data-part="context-trigger"]')!, 50, 50);
+        await tick();
+        expectAnatomy(container, menuAnatomy);
+    });
 });
