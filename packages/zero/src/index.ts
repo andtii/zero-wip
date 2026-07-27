@@ -112,6 +112,12 @@ export type {
     ToastRole,
 } from './components/toast/index.js';
 
+export { Toggle, toggleAnatomy } from './components/toggle/index.js';
+export type { ToggleRootProps } from './components/toggle/index.js';
+
+export { ToggleGroup, toggleGroupAnatomy, useToggleGroupContext } from './components/toggle-group/index.js';
+export type { ToggleGroupRootProps, ToggleGroupItemProps } from './components/toggle-group/index.js';
+
 export { Combobox, comboboxAnatomy, useComboboxContext } from './components/combobox/index.js';
 export type {
     ComboboxRootProps,

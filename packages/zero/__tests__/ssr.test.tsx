@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Avatar, Collapsible, Combobox, Dialog, Switch, Tabs, Toast, createToaster, zeroPlugin } from '@sigx/zero';
+import { Avatar, Collapsible, Combobox, Dialog, Switch, Tabs, Toast, ToggleGroup, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -40,6 +40,10 @@ function page() {
                     <Combobox.Item value="apple">Apple</Combobox.Item>
                 </Combobox.Popup>
             </Combobox.Root>
+            <ToggleGroup.Root defaultValue={['b']}>
+                <ToggleGroup.Item value="a">A</ToggleGroup.Item>
+                <ToggleGroup.Item value="b">B</ToggleGroup.Item>
+            </ToggleGroup.Root>
         </div>
     );
 }
@@ -79,5 +83,9 @@ describe('SSR', () => {
         // The combobox posts pre-hydration and renders its popup closed.
         expect(html).toMatch(/data-scope="combobox"[^>]*data-part="hidden-input"[^>]*value="apple"/);
         expect(html).toMatch(/data-scope="combobox"[^>]*data-part="popup"[^>]*data-state="closed"/);
+        // The toggle group's single tab stop resolves server-side from the
+        // model (registration order stands in for DOM order).
+        expect(html).toMatch(/data-scope="toggle-group"[^>]*data-part="item"[^>]*data-state="off"[^>]*tabindex="-1"/i);
+        expect(html).toMatch(/data-scope="toggle-group"[^>]*data-part="item"[^>]*data-state="on"[^>]*tabindex="0"/i);
     });
 });
