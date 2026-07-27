@@ -87,13 +87,24 @@ describe('Avatar', () => {
         expect(parts().fallback.hasAttribute('hidden')).toBe(false);
     });
 
-    it('an already-complete cached image is detected without a load event', async () => {
+    async function withCachedImage(naturalWidthValue: number, run: () => Promise<void>) {
         const proto = HTMLImageElement.prototype;
         const complete = Object.getOwnPropertyDescriptor(proto, 'complete');
         const naturalWidth = Object.getOwnPropertyDescriptor(proto, 'naturalWidth');
         Object.defineProperty(proto, 'complete', { configurable: true, get: () => true });
-        Object.defineProperty(proto, 'naturalWidth', { configurable: true, get: () => 64 });
+        Object.defineProperty(proto, 'naturalWidth', { configurable: true, get: () => naturalWidthValue });
         try {
+            await run();
+        } finally {
+            if (complete) Object.defineProperty(proto, 'complete', complete);
+            else Reflect.deleteProperty(proto, 'complete');
+            if (naturalWidth) Object.defineProperty(proto, 'naturalWidth', naturalWidth);
+            else Reflect.deleteProperty(proto, 'naturalWidth');
+        }
+    }
+
+    it('an already-complete cached image is detected without a load event', async () => {
+        await withCachedImage(64, async () => {
             render(
                 <Avatar.Root>
                     <Avatar.Image src="/cached.png" alt="" />
@@ -103,12 +114,22 @@ describe('Avatar', () => {
             );
             await tick();
             expect(parts().root.getAttribute('data-state')).toBe('loaded');
-        } finally {
-            if (complete) Object.defineProperty(proto, 'complete', complete);
-            else Reflect.deleteProperty(proto, 'complete');
-            if (naturalWidth) Object.defineProperty(proto, 'naturalWidth', naturalWidth);
-            else Reflect.deleteProperty(proto, 'naturalWidth');
-        }
+        });
+    });
+
+    it('a cached failure (complete, no pixels) resolves to error without an error event', async () => {
+        await withCachedImage(0, async () => {
+            render(
+                <Avatar.Root>
+                    <Avatar.Image src="/cached-broken.png" alt="" />
+                    <Avatar.Fallback>ME</Avatar.Fallback>
+                </Avatar.Root>,
+                container,
+            );
+            await tick();
+            expect(parts().root.getAttribute('data-state')).toBe('error');
+            expect(parts().image.hasAttribute('hidden')).toBe(true);
+        });
     });
 
     // The src-swap reset lives in a `watch` on props.src. Plain props are

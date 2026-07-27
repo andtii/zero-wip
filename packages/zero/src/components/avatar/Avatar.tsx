@@ -103,10 +103,12 @@ const AvatarImage = component<AvatarImageProps>(({ props, slots, onMounted }) =>
                 avatar.setStatus('error');
                 return;
             }
-            // A cached image completes before hydration attaches the load
-            // handler — the rendered element itself is the probe.
+            // A cached image settles before hydration attaches the handlers —
+            // the rendered element itself is the probe, in both directions: a
+            // complete image with no pixels is one whose error event already
+            // fired.
             const img = el as HTMLImageElement | null;
-            if (img?.complete && img.naturalWidth > 0) avatar.setStatus('loaded');
+            if (img?.complete) avatar.setStatus(img.naturalWidth > 0 ? 'loaded' : 'error');
         });
     });
 
