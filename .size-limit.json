@@ -32,7 +32,7 @@
     {
         "name": "@sigx/zero/menu",
         "path": "packages/zero/dist/components/menu/index.js",
-        "limit": "4 kB",
+        "limit": "5 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

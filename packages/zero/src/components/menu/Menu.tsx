@@ -16,8 +16,27 @@
  * Keyboard: ArrowDown/Up move focus through enabled items, Home/End jump,
  * typeahead matches item text, Enter/Space activate, Escape closes (native
  * popover) and focus returns to the trigger.
+ *
+ * Submenus nest the same parts:
+ * ```tsx
+ * <Menu.Sub>
+ *     <Menu.SubTrigger>Share</Menu.SubTrigger>
+ *     <Menu.SubPopup>
+ *         <Menu.Item value="email">Email</Menu.Item>
+ *     </Menu.SubPopup>
+ * </Menu.Sub>
+ * ```
+ * `Menu.Sub` shadows the menu context for its subtree, so Item/Group/
+ * Separator work unchanged at any depth and `select` bubbles to the root.
+ * The nested `popover="auto"` is a DOM descendant of the parent popup, so
+ * the platform provides the stacking model: opening a child keeps ancestors
+ * open, Escape closes only the innermost, light dismiss closes the chain,
+ * and opening a sibling submenu closes the other. Keyboard: ArrowRight (LTR)
+ * / Enter / Space open and focus the first item, ArrowLeft closes back to
+ * the sub-trigger. Hover opens/closes with intent delays and never moves
+ * focus into the submenu.
  */
-import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
+import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
@@ -307,6 +326,360 @@ const MenuItem = component<MenuItemProps>(({ props, slots, signal, onUnmounted }
     };
 }, { name: 'Menu.Item' });
 
+// ── Sub ──
+
+interface MenuSubContext {
+    parent: MenuContext;
+    state: ControllableState<boolean>;
+    ids: { trigger: string; popup: string };
+    /** Open; when `focusFirst`, focus moves to the first enabled sub item once the popover shows. */
+    open(focusFirst: boolean): void;
+    /** Close; when `refocusTrigger`, focus returns to the sub-trigger (keyboard paths). */
+    close(refocusTrigger: boolean): void;
+    scheduleOpen(): void;
+    scheduleClose(): void;
+    cancelTimers(): void;
+    consumePendingFocus(): boolean;
+    isRtl(): boolean;
+    setSubTrigger(el: HTMLElement | null): void;
+    subTrigger(): HTMLElement | null;
+    setSubPopup(el: HTMLElement | null): void;
+}
+
+function makeInertSub(): MenuSubContext {
+    let open = false;
+    return {
+        parent: makeInert(),
+        state: {
+            get value() { return open; },
+            set value(v: boolean) { open = v; },
+        },
+        ids: { trigger: 'zx-menu-sub-inert-trigger', popup: 'zx-menu-sub-inert-popup' },
+        open: () => {},
+        close: () => {},
+        scheduleOpen: () => {},
+        scheduleClose: () => {},
+        cancelTimers: () => {},
+        consumePendingFocus: () => false,
+        isRtl: () => false,
+        setSubTrigger: () => {},
+        subTrigger: () => null,
+        setSubPopup: () => {},
+    };
+}
+
+export const useMenuSubContext = defineInjectable<MenuSubContext>(() => makeInertSub());
+
+export type MenuSubProps =
+    & Define.Model<boolean>
+    & Define.Event<'openChange', boolean>
+    & Define.Prop<'placement', Placement, false>
+    & Define.Prop<'offset', number, false>
+    & Define.Prop<'positionStrategy', PositionStrategy, false>
+    /** Hover-intent delays in ms; openDelay 100, closeDelay 300. */
+    & Define.Prop<'openDelay', number, false>
+    & Define.Prop<'closeDelay', number, false>
+    & Define.Slot<'default'>;
+
+const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) => {
+    // Captured BEFORE shadowing: the enclosing level, whatever its depth.
+    const parent = useMenuContext();
+    const state = createControllableState<boolean>(
+        () => props.model,
+        false,
+        (v) => emit('openChange', v),
+    );
+    const list = createListController();
+    const baseId = createId('zx-menu-sub');
+    let subTrigger: HTMLElement | null = null;
+    let subPopup: HTMLElement | null = null;
+    let pendingFocus = false;
+    let openHandle: ReturnType<typeof setTimeout> | null = null;
+    let closeHandle: ReturnType<typeof setTimeout> | null = null;
+
+    const isRtl = (): boolean => {
+        const el = subTrigger;
+        if (!el) return false;
+        try {
+            if (el.matches(':dir(rtl)')) return true;
+        } catch {
+            // :dir() unsupported — fall through to computed style.
+        }
+        return typeof getComputedStyle === 'function' && getComputedStyle(el).direction === 'rtl';
+    };
+
+    const cancelTimers = (): void => {
+        if (openHandle != null) clearTimeout(openHandle);
+        if (closeHandle != null) clearTimeout(closeHandle);
+        openHandle = closeHandle = null;
+    };
+
+    const open = (focusFirst: boolean): void => {
+        cancelTimers();
+        pendingFocus = focusFirst;
+        state.value = true;
+    };
+
+    const close = (refocusTrigger: boolean): void => {
+        cancelTimers();
+        pendingFocus = false;
+        state.value = false;
+        if (refocusTrigger) subTrigger?.focus();
+    };
+
+    const roving = createRovingKeydown({
+        list,
+        orientation: () => 'vertical',
+        onMove: () => {},
+    });
+    const typeahead = createTypeahead({
+        list,
+        onMatch: (item: ListItem) => item.el()?.focus(),
+    });
+
+    // The subtree context: Item/Group/Separator inside the SubPopup use it
+    // unchanged. Selection bubbles to the root; ArrowLeft steps back out.
+    const subCtx: MenuContext = {
+        state,
+        list,
+        ids: { popup: `${baseId}-popup` },
+        keydown(e, value) {
+            const closeKey = isRtl() ? 'ArrowRight' : 'ArrowLeft';
+            if (e.key === closeKey) {
+                e.preventDefault();
+                close(true);
+                return;
+            }
+            roving(e, value);
+            if (!e.defaultPrevented) typeahead(e, value);
+        },
+        select(value) {
+            parent.select(value);
+        },
+        setAnchor: () => {},
+        setPopup: (el) => { subPopup = el; },
+    };
+    defineProvide(useMenuContext, () => subCtx);
+
+    const ctx: MenuSubContext = {
+        parent,
+        state,
+        ids: { trigger: `${baseId}-trigger`, popup: `${baseId}-popup` },
+        open,
+        close,
+        scheduleOpen: () => {
+            cancelTimers();
+            openHandle = setTimeout(() => open(false), props.openDelay ?? 100);
+        },
+        scheduleClose: () => {
+            cancelTimers();
+            closeHandle = setTimeout(() => close(false), props.closeDelay ?? 300);
+        },
+        cancelTimers,
+        consumePendingFocus: () => {
+            const wanted = pendingFocus;
+            pendingFocus = false;
+            return wanted;
+        },
+        isRtl,
+        setSubTrigger: (el) => { subTrigger = el; },
+        subTrigger: () => subTrigger,
+        setSubPopup: (el) => { subPopup = el; },
+    };
+    defineProvide(useMenuSubContext, () => ctx);
+
+    createAnchorPosition({
+        getAnchor: () => subTrigger,
+        getFloating: () => subPopup,
+        isOpen: () => state.value,
+        placement: () => props.placement ?? (isRtl() ? 'left-start' : 'right-start'),
+        offset: () => props.offset ?? 4,
+        strategy: props.positionStrategy,
+    });
+
+    // The native popover cascade closes descendants with their ancestors —
+    // this mirrors it in state land for controlled parents and non-popover
+    // environments.
+    watch(
+        () => parent.state.value,
+        (parentOpen) => {
+            if (!parentOpen) close(false);
+        },
+    );
+
+    // Roving/hover moving to a DIFFERENT parent-level item closes this sub.
+    watch(
+        () => state.value,
+        (openNow, _prev, onCleanup) => {
+            if (!openNow || typeof document === 'undefined') return;
+            const onFocusin = (e: FocusEvent): void => {
+                const target = e.target as Node | null;
+                if (!target) return;
+                if (subTrigger?.contains(target) || subPopup?.contains(target)) return;
+                close(false);
+            };
+            document.addEventListener('focusin', onFocusin);
+            onCleanup(() => document.removeEventListener('focusin', onFocusin));
+        },
+    );
+
+    onUnmounted(() => cancelTimers());
+
+    return () => <>{slots.default?.()}</>;
+}, { name: 'Menu.Sub' });
+
+// ── SubTrigger ──
+
+export type MenuSubTriggerProps =
+    /** Identity in the PARENT list (roving/typeahead); defaults to the sub id. */
+    & Define.Prop<'value', string, false>
+    & Define.Prop<'textValue', string, false>
+    & WithDisabled
+    & WithClass
+    & WithAsChild
+    & Define.Slot<'default', PartProps>;
+
+const MenuSubTrigger = component<MenuSubTriggerProps>(({ props, slots, signal, onUnmounted }) => {
+    const sub = useMenuSubContext();
+    let el: HTMLElement | null = null;
+    const focus = signal({ highlighted: false });
+    const press = createPressFeedback({
+        getElement: () => el,
+        isDisabled: () => !!props.disabled,
+    });
+
+    const value = (): string => props.value ?? sub.ids.trigger;
+
+    // A parent-level item: arrows and typeahead at the parent level rove
+    // through it like any other item. It never emits `select`.
+    const item: ListItem = {
+        id: `sub-trigger-${sub.ids.trigger}`,
+        get value() { return value(); },
+        disabled: () => !!props.disabled,
+        el: () => el,
+        textValue: () => props.textValue ?? el?.textContent?.trim() ?? value(),
+    };
+    const unregister = sub.parent.list.register(item);
+    onUnmounted(() => unregister());
+
+    const bag = (): PartProps => ({
+        id: sub.ids.trigger,
+        'data-scope': SCOPE,
+        'data-part': 'sub-trigger',
+        'data-state': stateAttr(sub.state.value, 'open', 'closed'),
+        'data-disabled': dataAttr(props.disabled),
+        'data-highlighted': dataAttr(focus.highlighted),
+        role: 'menuitem',
+        tabIndex: -1,
+        'aria-haspopup': 'menu',
+        'aria-expanded': sub.state.value ? 'true' : 'false',
+        'aria-controls': sub.ids.popup,
+        'aria-disabled': props.disabled ? 'true' : undefined,
+        onClick: () => {
+            if (props.disabled) return;
+            if (sub.state.value) sub.close(false);
+            else sub.open(false);
+        },
+        onKeydown: (e: KeyboardEvent) => {
+            press.onKeydown(e);
+            if (props.disabled) return;
+            const openKey = e.key === 'Enter' || e.key === ' '
+                || e.key === (sub.isRtl() ? 'ArrowLeft' : 'ArrowRight');
+            if (openKey) {
+                e.preventDefault();
+                sub.open(true);
+                return;
+            }
+            sub.parent.keydown(e, value());
+        },
+        onKeyup: press.onKeyup,
+        onPointerenter: () => {
+            el?.focus();
+            if (!props.disabled) sub.scheduleOpen();
+        },
+        onPointerdown: press.onPointerdown,
+        onPointerup: press.onPointerup,
+        onPointercancel: press.onPointercancel,
+        onPointerleave: (e: PointerEvent) => {
+            press.onPointerleave(e);
+            sub.scheduleClose();
+        },
+        onFocus: () => { focus.highlighted = true; },
+        onBlur: (e: FocusEvent) => {
+            press.onBlur(e);
+            focus.highlighted = false;
+        },
+        ref: (node: HTMLElement | null) => { el = node; sub.setSubTrigger(node); },
+    });
+
+    return () => {
+        const b = bag();
+        if (props.asChild) return renderAsChild(slots.default, b);
+        return (
+            <div class={props.class} {...b}>
+                {slots.default?.(b)}
+            </div>
+        );
+    };
+}, { name: 'Menu.SubTrigger' });
+
+// ── SubPopup ──
+
+export type MenuSubPopupProps = WithClass & Define.Slot<'default'>;
+
+const MenuSubPopup = component<MenuSubPopupProps>(({ props, slots, onMounted }) => {
+    const sub = useMenuSubContext();
+    // The shadowed context — this IS the sub's own list/state.
+    const menu = useMenuContext();
+    let el: HTMLElement | null = null;
+
+    onMounted(() => {
+        effect(() => {
+            const open = sub.state.value;
+            const node = el as (HTMLElement & { showPopover?(): void; hidePopover?(): void; matches(s: string): boolean }) | null;
+            if (!node || typeof node.showPopover !== 'function') return;
+            const showing = node.matches(':popover-open');
+            if (open && !showing) {
+                node.showPopover();
+                // Unlike the root popup, focus only moves in when the open
+                // was a keyboard gesture — hover leaves it on the trigger.
+                if (sub.consumePendingFocus()) menu.list.enabledItems()[0]?.el()?.focus();
+            } else if (!open && showing) {
+                node.hidePopover!();
+            }
+        });
+    });
+
+    return () => (
+        <div
+            id={sub.ids.popup}
+            data-scope={SCOPE}
+            data-part="sub-popup"
+            data-state={stateAttr(sub.state.value, 'open', 'closed')}
+            popover="auto"
+            role="menu"
+            aria-labelledby={sub.ids.trigger}
+            class={props.class}
+            ref={(node: HTMLElement | null) => { el = node; sub.setSubPopup(node); }}
+            onToggle={(e: Event) => {
+                const open = (e as ToggleEvent).newState === 'open';
+                if (sub.state.value === open) return;
+                // A native close (Escape) with focus still inside would
+                // strand it on a hidden element; hand it back to the
+                // sub-trigger. A light-dismiss click has already moved focus
+                // to the clicked target, so `contains` is false and nothing
+                // is stolen.
+                if (!open && el?.contains(document.activeElement)) sub.subTrigger()?.focus();
+                sub.state.value = open;
+            }}
+            onPointerenter={() => sub.cancelTimers()}
+            onPointerleave={() => sub.scheduleClose()}
+        >
+            {slots.default?.()}
+        </div>
+    );
+}, { name: 'Menu.SubPopup' });
+
 // ── Group / GroupLabel / Separator ──
 
 export type MenuGroupProps = WithClass & Define.Slot<'default'>;
@@ -342,6 +715,9 @@ export const Menu = compound(MenuRoot, {
     Trigger: MenuTrigger,
     Popup: MenuPopup,
     Item: MenuItem,
+    Sub: MenuSub,
+    SubTrigger: MenuSubTrigger,
+    SubPopup: MenuSubPopup,
     Group: MenuGroup,
     GroupLabel: MenuGroupLabel,
     Separator: MenuSeparator,

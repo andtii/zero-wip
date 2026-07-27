@@ -19,6 +19,23 @@ export const menuAnatomy = defineAnatomy('menu', {
         tokens: ['color', 'radius-selector', 'text'],
         asChild: true,
     },
+    // A distinct part, not an item variant: it carries a data-state (item is
+    // flags-only by contract), and recipes style [data-state="open"] to keep
+    // it visually active after focus moves into the submenu.
+    'sub-trigger': {
+        element: 'div',
+        states: ['open', 'closed'],
+        flags: ['disabled', 'highlighted', 'pressed', 'press-animating'],
+        tokens: ['color', 'radius-selector', 'text'],
+        asChild: true,
+    },
+    // Distinct from `popup` so a side-attached submenu can animate on its own
+    // axis (translateX) without descendant selectors.
+    'sub-popup': {
+        element: 'div',
+        states: ['open', 'closed'],
+        tokens: ['color', 'radius-box'],
+    },
     group: {
         element: 'div',
     },

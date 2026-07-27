@@ -128,6 +128,16 @@ component renders; the root is called out separately where it carries props.
   element) then Trigger/Popup.
 - Menu: Root(model=open, closeOnSelect, placement — renders no element) then
   Trigger/Popup/Item(asChild)/Group/GroupLabel/Separator; `select` event.
+  Submenus: Sub(model=open, placement default right-start with RTL flip,
+  openDelay/closeDelay hover intent — renders no element) then
+  SubTrigger(asChild)/SubPopup, nested to any depth inside a Popup. Item/
+  Group/Separator work unchanged inside a SubPopup and `select` bubbles to
+  the root. sub-trigger carries data-state open|closed AND the highlighted
+  flag — style [data-state="open"] to keep it active while focus is in the
+  submenu; sub-popup is a distinct part so it can animate on its own axis.
+  Keyboard: ArrowRight/Enter/Space open + focus first item, ArrowLeft closes
+  back (mirrored under RTL); Escape closes one level (native popover);
+  hover opens without moving focus.
 - Select: Root(model=value)/Trigger/Value/Indicator/Popup/Item/ItemIndicator/
   HiddenInput.
 - Switch: Root(model=checked)/Control/Thumb/Label/HiddenInput, role=switch.

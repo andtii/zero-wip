@@ -698,6 +698,34 @@ export const menu: RecipeInput = {
                 ...focusRing,
             },
         }),
+        // The item look plus a chevron; `open` keeps the state layer while
+        // focus is inside the submenu.
+        'sub-trigger': withPresence(pressable('menu'), {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-md)',
+                borderRadius: 'var(--radius-selector)',
+                fontSize: 'var(--text-sm)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                highlighted: { background: 'var(--color-primary-soft)' },
+                open: { background: 'var(--color-primary-soft)' },
+                closed: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            // No pseudo-element chevron here: pressable() owns BOTH ::before
+            // (state layer) and ::after (ripple). The open-state layer is the
+            // affordance; a chevron is content the app supplies.
+        }),
+        'sub-popup': withPresence(popupPresence('translateX(-4px) scale(0.95)'), {
+            base: { ...floating, minWidth: '12rem' },
+            states: { open: {}, closed: {} },
+        }),
         group: { base: { padding: 'var(--space-2xs) 0' } },
         'group-label': {
             base: {

@@ -422,6 +422,32 @@ export const menu: RecipeInput = {
                 ...focusRing,
             },
         },
+        // The item look plus a hard chevron; `open` inverts like highlight.
+        'sub-trigger': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                cursor: 'pointer',
+            },
+            states: {
+                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                open: { background: 'var(--color-base-200)' },
+                closed: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&::after': { content: '"\\203A"', marginLeft: 'auto' },
+            },
+        },
+        'sub-popup': withPresence(popupPresence('translate(4px, 4px)'), {
+            base: { ...slab, padding: 'var(--space-xs)', minWidth: '12rem' },
+            states: { open: {}, closed: {} },
+        }),
         group: { base: { padding: 'var(--space-2xs) 0' } },
         'group-label': {
             base: { padding: 'var(--space-2xs) var(--space-sm)', ...label, fontSize: 'var(--text-xs)', opacity: '0.7' },

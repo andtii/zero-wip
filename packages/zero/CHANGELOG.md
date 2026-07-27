@@ -75,6 +75,24 @@
   the plain two-state transition; `@starting-style`/`allow-discrete` are
   wrong here, and the skill documents why. All four design systems ship a
   toast recipe with a role-driven `variants.color` block.
+- **Menu submenus** (`Menu.Sub` / `Menu.SubTrigger` / `Menu.SubPopup`):
+  nested menus to any depth, built on nested `popover="auto"` — the platform
+  supplies the stacking model (opening a child keeps ancestors open, Escape
+  closes one level, light dismiss closes the chain, opening a sibling closes
+  the other). `Menu.Sub` shadows the menu context for its subtree, so
+  Item/Group/Separator work unchanged and `select` bubbles to the root.
+  Anatomy grows two parts (additive): `sub-trigger` (data-state open|closed
+  plus the item flags — style `[data-state="open"]` to keep it active while
+  focus is in the submenu) and `sub-popup` (its own part so it can animate
+  on its own axis). Keyboard per APG (ArrowRight/Enter/Space open + focus
+  first, ArrowLeft closes back, mirrored under RTL, per-level typeahead);
+  hover opens after `openDelay` (100ms) without moving focus and closes
+  after `closeDelay` (300ms). All four design systems style the new parts.
+- `fixedPositionStrategy` now shifts into the viewport after flipping (a
+  tall submenu near the bottom edge rendered partly off screen — flip picks
+  the side, shift keeps it on screen) and re-measures one frame after
+  placement, because the open-state write races `showPopover()` across
+  reactive callbacks and a still-hidden float measures 0×0.
 - **Real-browser interaction suite** (Playwright over the playground):
   the press contract on chromium/firefox/webkit plus reduced-motion and
   forced-colors projects, with real pointer, keyboard and touch input.

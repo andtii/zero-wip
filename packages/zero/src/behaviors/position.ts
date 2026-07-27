@@ -85,6 +85,11 @@ export const fixedPositionStrategy: PositionStrategy = {
                     coords = flippedCoords;
                 }
             }
+            // Shift: flip picks the side; this keeps the result on screen
+            // when neither side fully fits (a tall submenu near the bottom
+            // edge would otherwise render partly out of the viewport).
+            coords.top = Math.min(Math.max(coords.top, 0), Math.max(0, window.innerHeight - size.height));
+            coords.left = Math.min(Math.max(coords.left, 0), Math.max(0, window.innerWidth - size.width));
 
             floating.style.position = 'fixed';
             floating.style.top = `${Math.round(coords.top)}px`;
@@ -94,9 +99,15 @@ export const fixedPositionStrategy: PositionStrategy = {
         };
 
         update();
+        // The open-state write and the showPopover() call race across
+        // reactive callbacks: measured while still display:none the floating
+        // size reads 0 and the shift clamp has nothing to clamp. One frame
+        // later the popover is visible and measurable.
+        const raf = typeof requestAnimationFrame === 'function' ? requestAnimationFrame(() => update()) : null;
         window.addEventListener('scroll', update, { capture: true, passive: true });
         window.addEventListener('resize', update, { passive: true });
         return () => {
+            if (raf != null) cancelAnimationFrame(raf);
             window.removeEventListener('scroll', update, { capture: true });
             window.removeEventListener('resize', update);
         };
