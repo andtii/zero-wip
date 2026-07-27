@@ -137,6 +137,18 @@ export type {
     RatingItemSlotProps,
 } from './components/rating-group/index.js';
 
+export { TreeView, treeViewAnatomy, useTreeViewContext, useTreeBranchContext } from './components/tree-view/index.js';
+export type {
+    TreeViewRootProps,
+    TreeViewLabelProps,
+    TreeViewTreeProps,
+    TreeViewItemProps,
+    TreeViewBranchProps,
+    TreeViewBranchTriggerProps,
+    TreeViewBranchIndicatorProps,
+    TreeViewBranchContentProps,
+} from './components/tree-view/index.js';
+
 export { Combobox, comboboxAnatomy, useComboboxContext } from './components/combobox/index.js';
 export type {
     ComboboxRootProps,

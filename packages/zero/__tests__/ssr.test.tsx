@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Avatar, Collapsible, Combobox, Dialog, NumberInput, RatingGroup, Switch, Tabs, Toast, ToggleGroup, createToaster, zeroPlugin } from '@sigx/zero';
+import { Avatar, Collapsible, Combobox, Dialog, NumberInput, RatingGroup, Switch, Tabs, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -60,6 +60,18 @@ function page() {
                     <RatingGroup.Item index={3} />
                 </RatingGroup.Control>
             </RatingGroup.Root>
+            <TreeView.Root defaultValue="a/1" defaultExpandedValues={['a']}>
+                <TreeView.Label>Tree</TreeView.Label>
+                <TreeView.Tree>
+                    <TreeView.Branch value="a">
+                        <TreeView.BranchTrigger><TreeView.BranchIndicator />a</TreeView.BranchTrigger>
+                        <TreeView.BranchContent>
+                            <TreeView.Item value="a/1">one</TreeView.Item>
+                        </TreeView.BranchContent>
+                    </TreeView.Branch>
+                    <TreeView.Item value="b">b</TreeView.Item>
+                </TreeView.Tree>
+            </TreeView.Root>
         </div>
     );
 }
@@ -109,5 +121,10 @@ describe('SSR', () => {
         // Rating renders the fractional display server-side and posts it.
         expect(html).toMatch(/data-scope="rating-group"[^>]*data-part="item"[^>]*data-state="half"/);
         expect(html).toMatch(/data-scope="rating-group"[^>]*data-part="hidden-input"[^>]*value="2.5"/);
+        // The tree renders open branches, levels and the selected tab stop
+        // server-side (registration order stands in for DOM order).
+        expect(html).toMatch(/data-scope="tree-view"[^>]*data-part="branch"[^>]*data-state="open"/);
+        expect(html).toMatch(/data-scope="tree-view"[^>]*data-part="item"[^>]*data-selected=""[^>]*tabindex="0"/i);
+        expect(html).toMatch(/aria-level="2"/);
     });
 });

@@ -1434,6 +1434,83 @@ export const ratingGroup: RecipeInput = {
     },
 };
 
+export const treeView: RecipeInput = {
+    component: 'tree-view',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
+        },
+        tree: {
+            base: { display: 'flex', flexDirection: 'column', fontSize: 'var(--text-sm)' },
+        },
+        // Indentation comes from branch-content's inline padding — depth is
+        // the DOM nesting, no per-level rules needed.
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                padding: '0.25rem 0.5rem',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                selected: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '-2px' },
+            },
+            selectors: {
+                '&[data-selected]:hover': { background: 'var(--color-primary)' },
+            },
+        },
+        branch: {
+            base: { display: 'flex', flexDirection: 'column', outline: 'none' },
+            states: { open: {}, closed: {}, selected: {}, disabled: {} },
+        },
+        'branch-trigger': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                padding: '0.25rem 0.5rem',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+                userSelect: 'none',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                open: {},
+                closed: {},
+                selected: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '-2px' },
+            },
+            selectors: {
+                '&[data-selected]:hover': { background: 'var(--color-primary)' },
+            },
+        },
+        'branch-indicator': {
+            base: {
+                display: 'inline-block',
+                transition: 'transform var(--duration-fast) var(--ease-standard)',
+            },
+            states: { open: { transform: 'rotate(90deg)' }, closed: {} },
+            at: {
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+        'branch-content': {
+            base: { display: 'flex', flexDirection: 'column', paddingInlineStart: '1rem' },
+            states: { open: {}, closed: {} },
+        },
+    },
+};
+
 export const toggle: RecipeInput = {
     component: 'toggle',
     // Same accent machinery as button: `color` sets the pair once, the on
@@ -1595,5 +1672,5 @@ export const toggleGroup: RecipeInput = {
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup,
+    toggle, toggleGroup, numberInput, ratingGroup, treeView,
 ];
