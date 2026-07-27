@@ -204,5 +204,8 @@ export function createAnchorPosition(input: AnchorPositionInput): AnchorPosition
         { immediate: true },
     );
 
-    return { update: () => reapply?.() };
+    // The isOpen() re-check covers the microtask window where the model has
+    // flipped closed but the watch cleanup hasn't flushed yet — an update()
+    // in that gap must not re-position a logically closed popup.
+    return { update: () => { if (input.isOpen()) reapply?.(); } };
 }

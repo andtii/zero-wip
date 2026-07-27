@@ -204,9 +204,15 @@ describe('createAnchorPosition handle', () => {
         expect(floating.style.top).toBe('202px');
         expect(floating.style.left).toBe('300px');
 
+        // The microtask window: the model has flipped closed but the watch
+        // cleanup hasn't flushed — update() must already be inert.
         state.open = false;
+        anchor = pointAnchor(500, 400);
+        handle.update();
+        expect(floating.style.left).toBe('300px');
+
         await tick();
-        // Closed again: the handle went inert.
+        // Closed and flushed: still inert.
         anchor = pointAnchor(400, 300);
         handle.update();
         expect(floating.style.left).toBe('300px');
