@@ -15,7 +15,7 @@ import { createControllableState } from '../../behaviors/controllable.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
-import { isNativelyActivatable, renderAsChild } from '../../contract/as-child.js';
+import { renderAsChild, synthesizesClickFrom } from '../../contract/as-child.js';
 import { variantAttrs } from '../../contract/props.js';
 import type {
     PartProps,
@@ -87,11 +87,11 @@ const ToggleRoot = component<ToggleRootProps>(({ props, slots, emit, signal }) =
         onKeydown: (e: KeyboardEvent) => {
             if (props.disabled) return;
             press.onKeydown(e);
-            // Keyboard activation for asChild elements with no native button
-            // behavior. Natively interactive elements are skipped — they
-            // synthesize a click from these same keys, and doing both would
-            // toggle twice per press.
-            if (props.asChild && (e.key === 'Enter' || e.key === ' ') && !isNativelyActivatable(e.currentTarget)) {
+            // Keyboard activation for asChild elements where the platform
+            // won't synthesize a click from this key (a span always; an
+            // anchor on Space). Where it will, ours must stay out of the way
+            // or the press toggles twice.
+            if (props.asChild && (e.key === 'Enter' || e.key === ' ') && !synthesizesClickFrom(e.currentTarget, e.key)) {
                 e.preventDefault();
                 state.value = !state.value;
             }

@@ -108,6 +108,23 @@ describe('Toggle', () => {
         expect(span.getAttribute('data-state')).toBe('off');
     });
 
+    it('asChild on an anchor: Space is supplied, Enter is left to the native click', () => {
+        render(
+            <Toggle.Root asChild>
+                {(p: PartProps) => <a href="#toggle" {...p}>B</a>}
+            </Toggle.Root>,
+            container,
+        );
+        const link = container.querySelector<HTMLElement>('a')!;
+        // Anchors synthesize click from Enter only — keydown alone must not
+        // toggle (the click will), but Space has no native path and must be
+        // supplied by the component.
+        link.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+        expect(link.getAttribute('data-state')).toBe('off');
+        link.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
+        expect(link.getAttribute('data-state')).toBe('on');
+    });
+
     it('asChild on a native button does not double-toggle from key activation', () => {
         render(
             <Toggle.Root asChild>

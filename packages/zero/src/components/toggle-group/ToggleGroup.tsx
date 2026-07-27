@@ -26,7 +26,7 @@ import { createRovingKeydown } from '../../behaviors/roving.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr, type Orientation } from '../../contract/data-attrs.js';
-import { isNativelyActivatable, renderAsChild } from '../../contract/as-child.js';
+import { renderAsChild, synthesizesClickFrom } from '../../contract/as-child.js';
 import { variantAttrs } from '../../contract/props.js';
 import type {
     PartProps,
@@ -234,10 +234,10 @@ const ToggleGroupItem = component<ToggleGroupItemProps>(({ props, slots, onUnmou
             if (disabled()) return;
             press.onKeydown(e);
             group.keydown(e, props.value);
-            // Keyboard activation for asChild elements with no native button
-            // behavior; natively interactive elements synthesize a click from
-            // these keys already, and doing both would toggle twice.
-            if (props.asChild && (e.key === 'Enter' || e.key === ' ') && !isNativelyActivatable(e.currentTarget)) {
+            // Keyboard activation for asChild elements where the platform
+            // won't synthesize a click from this key (a span always; an
+            // anchor on Space); where it will, ours stays out of the way.
+            if (props.asChild && (e.key === 'Enter' || e.key === ' ') && !synthesizesClickFrom(e.currentTarget, e.key)) {
                 e.preventDefault();
                 group.toggle(props.value);
             }

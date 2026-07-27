@@ -24,12 +24,14 @@ export function renderAsChild(slot: SlotAccessor, bag: PartProps): unknown {
 }
 
 /**
- * Elements the platform already activates from Enter/Space (synthesizing a
- * click). Components that synthesize keyboard activation for asChild
- * elements skip these — synthesizing on top of the native click would
- * activate twice per key press.
+ * Whether the platform will synthesize a click from THIS key on THIS
+ * element. Components synthesizing keyboard activation for asChild elements
+ * skip exactly these cases — doubling a native synthesis would activate
+ * twice per press. Per-key because anchors only synthesize on Enter: a
+ * role="button" anchor still needs Space supplied by the component.
  */
-export function isNativelyActivatable(target: EventTarget | null): boolean {
+export function synthesizesClickFrom(target: EventTarget | null, key: string): boolean {
     const tag = target instanceof HTMLElement ? target.tagName : '';
-    return tag === 'BUTTON' || tag === 'A' || tag === 'INPUT' || tag === 'SUMMARY';
+    if (tag === 'BUTTON' || tag === 'INPUT' || tag === 'SUMMARY') return true;
+    return tag === 'A' && key === 'Enter';
 }
