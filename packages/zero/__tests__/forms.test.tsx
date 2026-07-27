@@ -139,7 +139,7 @@ describe('Slider', () => {
         render(
             <Slider.Root model={[state, 'volume']} min={0} max={100}>
                 <Slider.Label>Volume</Slider.Label>
-                <Slider.Input />
+                <Slider.Control />
                 <Slider.ValueText />
             </Slider.Root>,
             container,
@@ -156,11 +156,11 @@ describe('Slider', () => {
     it('publishes held press feedback on the input, with no one-shot flag', () => {
         render(
             <Slider.Root min={0} max={100}>
-                <Slider.Input />
+                <Slider.Control />
             </Slider.Root>,
             container,
         );
-        const input = container.querySelector<HTMLElement>('[data-scope="slider"][data-part="input"]')!;
+        const input = container.querySelector<HTMLElement>('[data-scope="slider"][data-part="control"]')!;
         input.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
         expect(input.hasAttribute('data-pressed')).toBe(true);
         // oneShot: false — a drag has no ripple, so the animating flag never
@@ -173,11 +173,11 @@ describe('Slider', () => {
     it('publishes no press feedback while disabled', () => {
         render(
             <Slider.Root disabled min={0} max={100}>
-                <Slider.Input />
+                <Slider.Control />
             </Slider.Root>,
             container,
         );
-        const input = container.querySelector<HTMLElement>('[data-scope="slider"][data-part="input"]')!;
+        const input = container.querySelector<HTMLElement>('[data-scope="slider"][data-part="control"]')!;
         input.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
         expect(input.hasAttribute('data-pressed')).toBe(false);
     });

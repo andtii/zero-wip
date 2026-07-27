@@ -30,7 +30,7 @@ export {
 export type { FlagName, Orientation } from './data-attrs.js';
 export { FLAG_VOCABULARY, dataAttr, stateAttr } from './data-attrs.js';
 
-export type { Anatomy, AnatomyJSON, PartSpec, PartJSON, TokenHint } from './anatomy.js';
+export type { Anatomy, AnatomyJSON, PartSpec, PartJSON, PartPseudo, TokenHint } from './anatomy.js';
 export { defineAnatomy } from './anatomy.js';
 
 export type {

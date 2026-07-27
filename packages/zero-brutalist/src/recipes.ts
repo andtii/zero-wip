@@ -321,7 +321,6 @@ export const dialog: RecipeInput = {
                 boxShadow: 'none',
             },
             states: { open: {}, closed: {} },
-            selectors: { '&::backdrop': { background: 'oklch(0% 0 0 / 0.55)' } },
             at: {
                 sm: {
                     base: {
@@ -336,6 +335,10 @@ export const dialog: RecipeInput = {
                 },
             },
         }),
+        backdrop: {
+            base: { background: 'oklch(0% 0 0 / 0.55)' },
+            states: { open: {}, closed: {} },
+        },
         title: {
             base: {
                 margin: '0 0 var(--space-md)',
@@ -649,7 +652,7 @@ export const slider: RecipeInput = {
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
         },
         label: { base: { ...label, fontSize: 'var(--text-xs)' } },
-        input: { base: { width: '100%', accentColor: 'var(--color-primary)' }, states: { ...focusRing } },
+        control: { base: { width: '100%', accentColor: 'var(--color-primary)' }, states: { ...focusRing } },
         'value-text': { base: { ...label, fontSize: 'var(--text-xs)' } },
     },
     skipStates: { root: ['invalid', 'focus-visible'] },

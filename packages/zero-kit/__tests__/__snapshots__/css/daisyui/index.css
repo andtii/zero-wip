@@ -1186,22 +1186,22 @@
         font-weight: var(--weight-semibold);
     }
 
-    [data-scope="slider"][data-part="input"] {
+    [data-scope="slider"][data-part="control"] {
         width: 100%;
         accent-color: var(--color-primary);
         cursor: pointer;
     }
 
-    [data-scope="slider"][data-part="input"][data-disabled] {
+    [data-scope="slider"][data-part="control"][data-disabled] {
         cursor: not-allowed;
     }
 
-    [data-scope="slider"][data-part="input"][data-focus-visible] {
+    [data-scope="slider"][data-part="control"][data-focus-visible] {
         outline: 2px solid var(--color-primary);
         outline-offset: 2px;
     }
 
-    [data-scope="slider"][data-part="input"][data-invalid] {
+    [data-scope="slider"][data-part="control"][data-invalid] {
         accent-color: var(--color-error);
     }
 

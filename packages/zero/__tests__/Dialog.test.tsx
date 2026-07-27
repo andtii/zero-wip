@@ -11,7 +11,9 @@ function mount(container: HTMLElement, state: { open: boolean }) {
             <Dialog.Popup>
                 <Dialog.Title>Title</Dialog.Title>
                 <Dialog.Description>Description</Dialog.Description>
-                <Dialog.Close>Close</Dialog.Close>
+                <Dialog.Footer>
+                    <Dialog.Close>Close</Dialog.Close>
+                </Dialog.Footer>
             </Dialog.Popup>
         </Dialog.Root>,
         container,
@@ -29,6 +31,10 @@ describe('Dialog', () => {
         mount(container, signal({ open: false }));
         expectAnatomy(container, dialogAnatomy);
         expect(container.querySelector('dialog[data-part="popup"]')).not.toBeNull();
+        expect(container.querySelector('footer[data-part="footer"]')).not.toBeNull();
+        // The backdrop part renders no element — it projects onto the native
+        // ::backdrop; only recipes ever address it.
+        expect(container.querySelector('[data-part="backdrop"]')).toBeNull();
     });
 
     it('labels the popup from rendered title and description', () => {

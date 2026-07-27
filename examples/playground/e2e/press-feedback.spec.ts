@@ -195,7 +195,7 @@ test('disclosure triggers ripple on their native summaries', async ({ page }) =>
 
 test('slider: the press survives a drag that leaves the track (capture) and never one-shots', async ({ page }) => {
     await part(page, 'tabs', 'tab').nth(1).click(); // Forms
-    const slider = part(page, 'slider', 'input');
+    const slider = part(page, 'slider', 'control');
     await slider.hover(); // scrolls into view; coordinates measured after
     const box = (await slider.boundingBox())!;
     const before = await slider.evaluate((el) => (el as HTMLInputElement).value);
@@ -214,7 +214,7 @@ test('slider: the press survives a drag that leaves the track (capture) and neve
     await expect(slider).not.toHaveAttribute('data-pressed', '');
     const after = await slider.evaluate((el) => (el as HTMLInputElement).value);
     expect(after).not.toBe(before);
-    expect(await readLog(page)).not.toContain('slider/input:data-press-animating:on');
+    expect(await readLog(page)).not.toContain('slider/control:data-press-animating:on');
 });
 
 test('touch: a real tap presses and the ripple completes', async ({ page }) => {

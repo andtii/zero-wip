@@ -4,6 +4,14 @@
 
 ### Added
 
+- **Pseudo-part projection** (multi-target RFC docs/rfcs/0001, #98):
+  `ManifestPart.pseudo` marks a part that renders no element of its own on
+  the web (dialog's `backdrop`). `compileRecipeCss` attaches such a part's
+  rules to the host part with the pseudo-element last —
+  `[data-part="popup"][data-state="open"]::backdrop` — across base, states,
+  nested selectors, variants and compound variants. The manifest schema
+  gains the matching optional `pseudo` object.
+
 - **`--text-fixed-<key>` aliases** (part of the multi-target RFC,
   docs/rfcs/0001, #96): `compileTokensCss` derives a `--text-fixed-<key>:
   var(--text-<key>)` alias for every emitted `--text-<key>`, restating it in

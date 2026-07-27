@@ -341,6 +341,14 @@ export interface ManifestPart {
     flags?: readonly string[];
     tokens?: readonly string[];
     asChild?: boolean;
+    /**
+     * Present when the part renders no element of its own on the web and
+     * projects onto a pseudo-element of another part (dialog's `backdrop` →
+     * `popup`'s `::backdrop`). The web compiler composes
+     * `[data-part="<of>"]<state fragments><selector>` — pseudo-element last,
+     * because attributes can only narrow the host.
+     */
+    pseudo?: { of: string; selector: string };
     /** state/flag name → selector fragment (e.g. `open` → `[data-state="open"]`). */
     selectors: Record<string, string>;
 }

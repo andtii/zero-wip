@@ -30,7 +30,7 @@
   aria-activedescendant); collapsible/accordion trigger;
   switch/checkbox control and radio-group item-control (press anywhere in
   the label row lands on the control; Space via the hidden input);
-  slider input (`data-pressed` only — a drag has no one-shot).
+  slider control (`data-pressed` only — a drag has no one-shot).
 - Variant axes pass through as data-color / data-size / data-variant
   (values: color = any DS-declared role — recommended vocabulary
   primary|secondary|accent|neutral|info|success|warning|error,
@@ -119,9 +119,11 @@ component renders; the root is called out separately where it carries props.
 - Accordion: Root(model=string[])/Item/Trigger/Panel on native <details>;
   `multiple` and `collapsible`.
 - Dialog: Root(model=open, modal, dismissible — renders no element) then
-  Trigger/Popup/Title/Description/Close on native <dialog> + top layer (no
-  Portal). Style the backdrop via
-  [data-scope="dialog"][data-part="popup"]::backdrop.
+  Trigger/Popup/Title/Description/Footer/Close on native <dialog> + top layer
+  (no Portal). The backdrop is a `backdrop` part that renders no element on
+  the web — recipes style `parts.backdrop` and the compiler projects it onto
+  [data-scope="dialog"][data-part="popup"]::backdrop (states narrow the
+  popup: [data-state="open"]::backdrop).
 - Popover: Root(model=open, placement, offset, positionStrategy — renders no
   element) then Trigger/Popup/Title/Close, on the popover attribute + anchor
   positioning.
@@ -146,8 +148,10 @@ component renders; the root is called out separately where it carries props.
   `indeterminate`.
 - RadioGroup: Root(model=value)/Label/Item/ItemControl/ItemIndicator/
   ItemLabel/HiddenInput; orientation.
-- Slider: Root(model=number)/Label/Input/ValueText on a native
-  <input type=range> (single thumb).
+- Slider: Root(model=number)/Label/Control/ValueText on a native
+  <input type=range> (single thumb). The anatomy also declares track/range/
+  thumb parts — the projection for platforms without a native range widget;
+  the web never renders them, so rules against them are inert here.
 - Progress: Root/Label/Track/Range/ValueText; `value: number | null`
   (null = indeterminate).
 - Field: Root/Label/Description/Error — wires ids and disabled/invalid/

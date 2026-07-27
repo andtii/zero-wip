@@ -4,14 +4,16 @@
  * ```tsx
  * <Slider.Root model={() => state.volume} min={0} max={100}>
  *     <Slider.Label>Volume</Slider.Label>
- *     <Slider.Input />
+ *     <Slider.Control />
  *     <Slider.ValueText />
  * </Slider.Root>
  * ```
  *
  * The platform supplies keyboard behavior, form participation and a11y;
  * design systems style the input's track/thumb pseudo-elements against
- * `[data-scope="slider"][data-part="input"]`. The current fraction is
+ * `[data-scope="slider"][data-part="control"]`. (The anatomy also declares
+ * `track`/`range`/`thumb` parts — the projection for platforms without a
+ * native range widget; the web never renders them.) The current fraction is
  * exposed as `--slider-percent` for track-fill styling.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
@@ -37,7 +39,7 @@ interface SliderContext {
     invalid(): boolean;
     name(): string | undefined;
     percent(): number;
-    ids: { input: string; label: string };
+    ids: { control: string; label: string };
     focusVisible: { visible: boolean };
 }
 
@@ -55,7 +57,7 @@ function makeInert(): SliderContext {
         invalid: () => false,
         name: () => undefined,
         percent: () => 0,
-        ids: { input: 'zx-slider-inert-input', label: 'zx-slider-inert-label' },
+        ids: { control: 'zx-slider-inert-control', label: 'zx-slider-inert-label' },
         focusVisible: { visible: false },
     };
 }
@@ -101,7 +103,7 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal }) =
         name: () => props.name,
         percent: () => Math.min(100, Math.max(0, ((state.value - min()) / (max() - min())) * 100)),
         ids: {
-            input: field.inert ? `${baseId}-input` : field.ids.control,
+            control: field.inert ? `${baseId}-control` : field.ids.control,
             label: field.inert ? `${baseId}-label` : field.ids.label,
         },
         focusVisible,
@@ -131,7 +133,7 @@ const SliderLabel = component<SliderLabelProps>(({ props, slots }) => {
     return () => (
         <label
             id={slider.ids.label}
-            for={slider.ids.input}
+            for={slider.ids.control}
             data-scope={SCOPE}
             data-part="label"
             data-disabled={dataAttr(slider.disabled())}
@@ -142,9 +144,9 @@ const SliderLabel = component<SliderLabelProps>(({ props, slots }) => {
     );
 }, { name: 'Slider.Label' });
 
-export type SliderInputProps = WithClass;
+export type SliderControlProps = WithClass;
 
-const SliderInput = component<SliderInputProps>(({ props }) => {
+const SliderControl = component<SliderControlProps>(({ props }) => {
     const slider = useSliderContext();
     let el: HTMLInputElement | null = null;
     // A drag is a long press, so the press must survive leaving the box:
@@ -161,9 +163,9 @@ const SliderInput = component<SliderInputProps>(({ props }) => {
     return () => (
         <input
             type="range"
-            id={slider.ids.input}
+            id={slider.ids.control}
             data-scope={SCOPE}
-            data-part="input"
+            data-part="control"
             data-disabled={dataAttr(slider.disabled())}
             data-invalid={dataAttr(slider.invalid())}
             data-focus-visible={dataAttr(slider.focusVisible.visible)}
@@ -189,14 +191,14 @@ const SliderInput = component<SliderInputProps>(({ props }) => {
             }}
         />
     );
-}, { name: 'Slider.Input' });
+}, { name: 'Slider.Control' });
 
 export type SliderValueTextProps = WithClass & Define.Slot<'default', { value: number }>;
 
 const SliderValueText = component<SliderValueTextProps>(({ props, slots }) => {
     const slider = useSliderContext();
     return () => (
-        <output data-scope={SCOPE} data-part="value-text" for={slider.ids.input} class={props.class}>
+        <output data-scope={SCOPE} data-part="value-text" for={slider.ids.control} class={props.class}>
             {slots.default?.({ value: slider.state.value }) ?? String(slider.state.value)}
         </output>
     );
@@ -205,6 +207,6 @@ const SliderValueText = component<SliderValueTextProps>(({ props, slots }) => {
 export const Slider = compound(SliderRoot, {
     Root: SliderRoot,
     Label: SliderLabel,
-    Input: SliderInput,
+    Control: SliderControl,
     ValueText: SliderValueText,
 });

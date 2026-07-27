@@ -554,7 +554,6 @@ export const dialog: RecipeInput = {
                 boxShadow: 'none',
             },
             states: { open: {}, closed: {} },
-            selectors: { '&::backdrop': { background: 'oklch(0% 0 0 / 0.32)' } },
             at: {
                 sm: {
                     base: {
@@ -568,6 +567,10 @@ export const dialog: RecipeInput = {
                 },
             },
         }),
+        backdrop: {
+            base: { background: 'oklch(0% 0 0 / 0.32)' },
+            states: { open: {}, closed: {} },
+        },
         title: {
             base: {
                 margin: '0 0 var(--space-md)',
@@ -1034,7 +1037,7 @@ export const slider: RecipeInput = {
         // halo defined once per engine instead of once per state per engine.
         // The filled track reads the runtime-published `--slider-percent`
         // (set on the slider root, inherited here) as a gradient stop.
-        input: {
+        control: {
             base: {
                 appearance: 'none',
                 width: '100%',

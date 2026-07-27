@@ -318,11 +318,6 @@ export const dialog: RecipeInput = {
                 boxShadow: 'none',
             },
             states: { open: {}, closed: {} },
-            selectors: {
-                '&::backdrop': {
-                    background: 'color-mix(in oklab, var(--color-neutral) 45%, transparent)',
-                },
-            },
             at: {
                 sm: {
                     base: {
@@ -338,6 +333,10 @@ export const dialog: RecipeInput = {
                 },
             },
         }),
+        backdrop: {
+            base: { background: 'color-mix(in oklab, var(--color-neutral) 45%, transparent)' },
+            states: { open: {}, closed: {} },
+        },
         title: {
             base: {
                 margin: '0 0 var(--space-md)',
@@ -749,7 +748,7 @@ export const slider: RecipeInput = {
             base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
             states: { disabled: {} },
         },
-        input: {
+        control: {
             base: { width: '100%', accentColor: 'var(--color-primary)', cursor: 'pointer' },
             states: {
                 disabled: { cursor: 'not-allowed' },

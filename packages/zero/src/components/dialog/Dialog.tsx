@@ -215,6 +215,19 @@ const DialogDescription = component<DialogDescriptionProps>(({ props, slots }) =
     );
 }, { name: 'Dialog.Description' });
 
+// ── Footer ──
+
+export type DialogFooterProps = WithClass & Define.Slot<'default'>;
+
+/** The action row — the shared `footer` part every platform's dialog has. */
+const DialogFooter = component<DialogFooterProps>(({ props, slots }) => (
+    () => (
+        <footer data-scope={SCOPE} data-part="footer" class={props.class}>
+            {slots.default?.()}
+        </footer>
+    )
+), { name: 'Dialog.Footer' });
+
 // ── Close ──
 
 export type DialogCloseProps =
@@ -271,5 +284,6 @@ export const Dialog = compound(DialogRoot, {
     Popup: DialogPopup,
     Title: DialogTitle,
     Description: DialogDescription,
+    Footer: DialogFooter,
     Close: DialogClose,
 });

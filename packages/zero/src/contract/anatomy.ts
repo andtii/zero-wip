@@ -19,8 +19,29 @@ export type TokenHint =
     | 'size'
     | 'text';
 
+/**
+ * Web projection of a part that renders no element of its own: it hangs off
+ * a pseudo-element of another part. `selector()` and the recipe compiler
+ * compose `[data-part="<of>"]<state/flag fragments><selector>` — the
+ * pseudo-element always last, so states narrow the HOST, which is the only
+ * thing an attribute can narrow.
+ *
+ * The part itself stays real in the anatomy: platforms without the
+ * pseudo-element (a Lynx dialog backdrop is a rendered view) project it like
+ * any other part. Only the web selector shape is special.
+ */
+export interface PartPseudo {
+    /** The rendered part the pseudo-element belongs to. */
+    of: string;
+    /** The pseudo-element, including the `::` (e.g. `'::backdrop'`). */
+    selector: string;
+}
+
 export interface PartSpec {
-    /** Default rendered element, e.g. 'button', 'dialog', 'input'. */
+    /**
+     * Default rendered element, e.g. 'button', 'dialog', 'input'. For a
+     * `pseudo` part, the element of the part it projects from.
+     */
     element: string;
     /** Closed set of `data-state` values this part can carry, if any. */
     states?: readonly string[];
@@ -30,6 +51,8 @@ export interface PartSpec {
     tokens?: readonly TokenHint[];
     /** True when the part supports `asChild`. */
     asChild?: boolean;
+    /** Present when the part projects onto a pseudo-element on the web. */
+    pseudo?: PartPseudo;
 }
 
 export interface PartJSON extends PartSpec {
@@ -70,11 +93,15 @@ export function defineAnatomy<S extends string, P extends string>(
     parts: Record<P, PartSpec>,
     opts?: { orientation?: boolean },
 ): Anatomy<S, P> {
+    // No runtime guard that `pseudo.of` names a real part — defineAnatomy is
+    // on every component's size budget, and zero's own anatomies (the only
+    // web callers) are checked by the anatomy test suite instead.
     const selector = (part: P, o?: { state?: string; flags?: readonly string[] }): string => {
-        let sel = `[data-scope="${scope}"][data-part="${part}"]`;
+        const pseudo = parts[part].pseudo;
+        let sel = `[data-scope="${scope}"][data-part="${pseudo?.of ?? part}"]`;
         if (o?.state) sel += `[data-state="${o.state}"]`;
         for (const flag of o?.flags ?? []) sel += `[data-${flag}]`;
-        return sel;
+        return pseudo ? sel + pseudo.selector : sel;
     };
 
     return {
