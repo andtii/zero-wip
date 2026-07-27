@@ -58,6 +58,23 @@
   detected from the element itself; server markup always renders `loading`.
   `statusChange` event; `asChild` on Image keeps load detection through the
   spread bag. All four design systems ship an avatar recipe.
+- **Toast component + manager/queue** (`@sigx/zero/toast`):
+  Viewport/Root/Title/Description/Action/Close over an imperative queue —
+  `toast({ title, color, duration, role })` from anywhere in the browser,
+  `createToaster()` for apps and tests, `useToaster` injectable with a
+  fresh-empty server fallback so SSR requests can never share toasts. The
+  viewport is a `popover="manual"` top layer (`role=region`) with
+  pause-on-hover/focus; each root is `role=status`/`alert`, carries
+  `data-color` and `data-placement`, and publishes
+  `--toast-index`/`--toast-count`. Mounted toasts cap at `max` (default 5)
+  with a FIFO overflow queue. **Presence is runtime-managed** — the one
+  deliberate exception to the declarative presence rule, because toasts must
+  unmount: roots enter `closed`→`open` a frame apart and stay mounted after
+  dismissal until their longest computed transition/animation finishes
+  (instant when none — every engine, reduced motion included). Recipes style
+  the plain two-state transition; `@starting-style`/`allow-discrete` are
+  wrong here, and the skill documents why. All four design systems ship a
+  toast recipe with a role-driven `variants.color` block.
 - **Real-browser interaction suite** (Playwright over the playground):
   the press contract on chromium/firefox/webkit plus reduced-motion and
   forced-colors projects, with real pointer, keyboard and touch input.

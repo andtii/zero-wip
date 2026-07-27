@@ -24,12 +24,13 @@ import { accordionAnatomy } from './components/accordion/anatomy.js';
 import { buttonAnatomy } from './components/button/anatomy.js';
 import { selectAnatomy } from './components/select/anatomy.js';
 import { avatarAnatomy } from './components/avatar/anatomy.js';
+import { toastAnatomy } from './components/toast/anatomy.js';
 
 export {
     buttonAnatomy,
     tabsAnatomy, collapsibleAnatomy, switchAnatomy, dialogAnatomy, popoverAnatomy, tooltipAnatomy, menuAnatomy,
     fieldAnatomy, checkboxAnatomy, radioGroupAnatomy, progressAnatomy, sliderAnatomy, accordionAnatomy, selectAnatomy,
-    avatarAnatomy,
+    avatarAnatomy, toastAnatomy,
 };
 
 export const anatomies: Record<string, Anatomy> = {
@@ -49,4 +50,5 @@ export const anatomies: Record<string, Anatomy> = {
     accordion: accordionAnatomy,
     select: selectAnatomy,
     avatar: avatarAnatomy,
+    toast: toastAnatomy,
 };

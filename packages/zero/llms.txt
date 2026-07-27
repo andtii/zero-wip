@@ -91,7 +91,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-Sixteen components ship today. Every part each renders is listed below, in
+Seventeen components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -147,6 +147,17 @@ component renders; the root is called out separately where it carries props.
   recipes must not set `display` on those parts unconditionally — style
   `&:not([hidden])` instead. Server markup always renders `loading`; the
   status resolves on mount. `statusChange` event.
+- Toast: Viewport(placement, toaster)/Root(toast)/Title/Description/Action/
+  Close, over an imperative queue: `toast({ title, color, duration, role })`
+  (browser-only), `createToaster()` for apps/tests, `useToaster` injectable.
+  Viewport is a popover="manual" top layer, `role=region`; each root is
+  `role=status` (or `alert`), carries `data-color` + `data-placement`, and
+  publishes `--toast-index`/`--toast-count`. PRESENCE IS RUNTIME-MANAGED —
+  the one exception to the declarative presence rule: roots mount `closed`,
+  flip `open` a frame later, and stay mounted after dismissal until their
+  longest transition/animation ends. Style the plain two-state transition;
+  never `@starting-style`/`allow-discrete` on toast parts, and gate any
+  viewport `display` behind `&:popover-open`.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Button, Tabs, Switch,
 Checkbox, RadioGroup, Slider, Progress and Select; they pass through as

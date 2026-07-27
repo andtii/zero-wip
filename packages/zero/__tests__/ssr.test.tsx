@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Avatar, Collapsible, Dialog, Switch, Tabs, zeroPlugin } from '@sigx/zero';
+import { Avatar, Collapsible, Dialog, Switch, Tabs, Toast, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -30,6 +30,7 @@ function page() {
                 <Avatar.Image src="/me.png" alt="Me" />
                 <Avatar.Fallback>ME</Avatar.Fallback>
             </Avatar.Root>
+            <Toast.Viewport toaster={createToaster()} />
         </div>
     );
 }
@@ -63,5 +64,8 @@ describe('SSR', () => {
         expect(html).toContain('data-color="primary"');
         // Avatar renders loading on the server; the fallback stays visible.
         expect(html).toMatch(/data-scope="avatar"[^>]*data-part="root"[^>]*data-state="loading"/);
+        // The toast viewport server-renders as an empty top-layer region.
+        expect(html).toMatch(/<ol[^>]*data-scope="toast"[^>]*popover="manual"/);
+        expect(html).not.toMatch(/data-scope="toast"[^>]*data-part="root"/);
     });
 });
