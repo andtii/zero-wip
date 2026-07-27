@@ -1,7 +1,10 @@
 # RFC 0002 — Typed design systems: declared vocabulary, generated types, and the theme model
 
 - **Status**: Proposed
-- **Tracking issue**: #127
+- **Tracking issue**: #127 · revised post-landing under #139 — every claim re-verified
+  against the tree, the §5 generator input specified (it was under-specified), the
+  design-system token specials given a typed surface (§6), and the theme/`never`
+  consequences stated at their real size.
 - **Affected repos**: `signalxjs/zero` (this repo) only. Nothing here crosses into
   `signalxjs/lynx`; §5 records how the generated artifact behaves once RFC 0001's
   target SPI lands.
@@ -22,6 +25,17 @@
      open on the lookup surface.**
   6. **Multi-theme is proven by shipping it in `zero-daisyui`**, not by redesigning
      `pair` first.
+- **Decisions locked in the #139 revision**:
+  7. **The generated `components` map covers every recipe scope** — all 21 in
+     practice, since every design system fully skins every component. An unwired
+     axis is `never`, so the fallback branch keeps exactly one meaning: "no
+     augmentation, or a scope this design system never styled" (§4.1, §5).
+  8. **Design-system token specials are typed per category** — Material's
+     `shadow.level1`–`level5`, its easings and durations reach the app as
+     autocomplete-but-open per-category unions with a typed `token()` helper (§6).
+  9. **An explicit declaration closes its set.** Declared vocabularies — roles,
+     `variants`, `axes`, and an explicitly declared `sizes` — reject outside
+     values as errors; ramps resolved by default stay advisory warnings (§2).
 
 ## 1. Motivation
 
@@ -72,7 +86,7 @@ documents the pattern.
 
 `roles` and `sizes` are declared in `tokens.ts`, flow into the manifest, and are
 validated: a recipe whose `variants.color` names an undeclared role is a hard error
-listing the declared set (`resolve/validate-recipes.ts:449-457`). `variant` values and
+listing the declared set (`resolve/validate-recipes.ts:448-460`). `variant` values and
 custom axis names have no equivalent. They exist only as object keys inside a
 deliberately flat recipe type:
 
@@ -116,7 +130,7 @@ axes?: Record<string, readonly string[]>;
 ```
 
 Validation reuses the `sizes` rules already in
-`packages/zero-kit/src/resolve/validate.ts:364-376` (non-empty, kebab-case, no
+`packages/zero-kit/src/resolve/validate.ts:360-377` (non-empty, kebab-case, no
 duplicates). Axis *names* additionally must not be reserved by the anatomy contract,
 and must not re-declare one of the three axes that have named props. The validator
 must reject exactly what the runtime refuses to render, and the runtime already
@@ -127,21 +141,60 @@ throws on both:
 | axis shadows a named prop | `packages/zero/src/contract/props.ts:149-158` | `VARIANT_AXES`, `packages/zero-kit/src/contract.ts:316` |
 | axis is owned by the anatomy contract | `packages/zero/src/contract/props.ts:159-163` | `RESERVED_AXES`, `packages/zero-kit/src/contract.ts:329` |
 
-(The kit keeps its own copy of both sets so it stays a pure Node tool with no runtime
-dependency on zero; the duplication is held honest by the existing
-`contract-parity.test.ts`.)
+The kit keeps its own copy of both sets so it stays a pure Node tool with no runtime
+dependency on zero. `RESERVED_AXES` is already held honest by
+`contract-parity.test.ts` — the named-prop set is not: zero spells it `NAMED_AXES`
+and keeps it module-private (`packages/zero/src/contract/props.ts:126`), so the
+parity test cannot see it. This RFC renames it `VARIANT_AXES`, exports it from
+`@sigx/zero/contract`, and adds the matching `SHARED` row to
+`contract-parity.test.ts` — a required edit, not an optional one: the test's
+completeness assertion (`contract-parity.test.ts:76-83`) fails on any new
+same-named shared export until the row exists. (A fourth copy of the set lives in
+`packages/zero/scripts/gen-manifest.mjs`; once the constant is exported, the
+generator imports it instead.)
 
 In `validate-recipes.ts`, a `variants.variant` value outside the declared list becomes
-an **error** carrying the existing Levenshtein "did you mean", mirroring the rule
-already in force for colours. Custom axis values likewise. The inverse — a declared
-value no recipe anywhere wires — becomes a **warning**, because that is the shape of a
-variant that reads as broken rather than as deliberately absent.
+an **error** listing the declared set, exactly as the colour rule at
+`validate-recipes.ts:448-460` already does. Custom axis values likewise. The inverse —
+a declared value no recipe anywhere wires — becomes a **warning**, because that is the
+shape of a variant that reads as broken rather than as deliberately absent (precedent:
+the "wires fewer roles than its siblings" warning at `validate-recipes.ts:495-510`).
+`resolve/vocabulary.ts`'s `TokenVocabulary` gains `variants` and `axes` fields so
+`validateRecipes` can see the declaration through the object it already receives.
 
-Both checks apply only once the vocabulary is declared, so omitting `variants`
-preserves today's behaviour exactly. Absence is never an error; that rule is unchanged.
+The severity split follows one principle, stated here because size and colour
+currently answer it differently: **an explicit declaration closes its set.** Colour
+against `roles`, variant against `variants`, a custom axis against `axes`, and size
+against an *explicitly declared* `tokens.sizes` are all errors. Size against the
+default recommended ramp stays a warning, as today — the author never wrote the set
+down, so the validator cannot know a step outside it is a mistake. (No shipped design
+system declares `tokens.sizes`, so the size flip changes nothing today; it commits
+future design systems to the same contract the other declared vocabularies carry.)
 
-`schemas/tokens.schema.json` gains both fields, so the JSON-first authoring loop
-(`schemas.test.ts` validates every shipped design system against it) covers them too.
+Two adjacent rules land in the same phase because they close the same fail-silent
+class one layer down:
+
+- **`defaultVariants` becomes validated, unconditionally.** Today
+  `defaultVariants: { variant: 'ghots' }` is checked by nothing and stays a silent
+  no-op. New rule: every `defaultVariants` key must name an axis the recipe wires,
+  and every value must be a member of that axis's wired set — an error, and it needs
+  no §2 declaration since it validates the recipe against itself. (Live case that
+  must keep passing: `zero-material`'s toggle-group declares
+  `defaultVariants: { color: 'secondary' }`.)
+- **The duplicate colour check goes away.** `validate.ts:435-441` warns for the same
+  condition `validate-recipes.ts:448-460` errors on, so every violation currently
+  reports twice at two severities. The warning is deleted.
+
+Both vocabulary checks apply only once the vocabulary is declared, so omitting
+`variants` preserves today's behaviour exactly. Absence is never an error; that rule
+is unchanged.
+
+`schemas/tokens.schema.json` gains both fields — required additions, since the schema
+sets `additionalProperties: false` at the top level — so the JSON-first authoring loop
+(`schemas.test.ts` validates every shipped design system against it) covers them the
+moment the declarations land. One honest caveat for phase 1: no shipped design system
+declares `tokens.sizes` or `tokens.custom` today, so this is the first real exercise
+of `TokensInput`'s optional-vocabulary paths across all four design systems.
 
 ## 3. The augmentation seam
 
@@ -193,13 +246,53 @@ keep four design systems live with no register module, and it is the regression 
 for the fallback branch.
 
 `ColorValue` and `SizeScale` keep their current definitions and names as the un-scoped
-forms, so nothing outside the prop fragments moves.
+forms, so nothing outside the prop fragments moves. `ZeroVocabulary` carries four
+documented keys once augmented — `theme`, `breakpoint`, `property`, `components` — plus
+a fifth, `tokens`, added by this revision for the per-category token unions (§6).
 
 These resolvers were prototyped against `tsgo` before this RFC was written, with
 positive assertions for every declared value and `@ts-expect-error` assertions for
 every typo, empty-axis and unknown-component case. That exercise is what produced the
 guard-ordering note above and the `Record<string, never>` requirement in §5 — both were
-wrong in the first formulation and both failed silently rather than loudly.
+wrong in the first formulation and both failed silently rather than loudly. The §5
+scope assertion and the §6 `TokenKeysOf` resolver added in the #139 revision went
+through the same exercise.
+
+### 3.1 Scope keys must fail loud
+
+`Scoped<S>` has a fail-silent mode of its own: a typo'd scope key in a generated file
+does not error — it makes `S extends keyof C` false, hands back the open fallback, and
+un-narrows exactly the component it meant to narrow. The compile pipeline cannot
+normally produce one (`compileDesignSystem` throws on a recipe for a scope the anatomy
+manifest lacks), but a hand-edited or version-skewed `register.d.ts` can. Two changes
+close it:
+
+```ts
+// packages/zero/src/anatomy.ts — the registry keeps its literal keys
+export const anatomies = { button: buttonAnatomy, /* … all 21 … */ } as const
+    satisfies Record<string, Anatomy>;
+export type ZeroAnatomies = typeof anatomies;
+export type ZeroScope = keyof ZeroAnatomies & string;
+```
+
+(today the registry is annotated `Record<string, Anatomy>`, which erases the keys),
+and the generated file carries a type-level assertion against `ZeroScope` (§5) so an
+unknown scope is a compile error in the file that contains it. §8's
+`defineRecipeFor<ZeroAnatomies>()` wants this type anyway; this pays for it early.
+
+### 3.2 Where the augmentation binds
+
+`declare module '@sigx/zero'` binds to whatever that specifier resolves to *in the
+including program*. In an app consuming published packages that is
+`node_modules/@sigx/zero` — the intended case. Inside this repo, the root
+`tsconfig.json` maps `@sigx/zero` to `packages/zero/src/index.ts` via `paths` under
+`moduleResolution: bundler`, so a `/register` file that enters the root program would
+augment the *source* module — which is precisely how the leak in open question 2
+would manifest. The concrete canary already exists: the button runtime tests pass
+`axes={{ density: 'compact', emphasis: 'high' }}` and assert that reserved axes
+throw; under any leaked augmentation those become type errors, so `pnpm typecheck`
+staying green is the leak detector. Verifying the binding in both directions is a
+phase-3 gate item.
 
 ## 4. Per-component narrowing
 
@@ -217,8 +310,9 @@ export type WithVariantAxes<S extends string> =
     WithColor<S> & WithSize<S> & WithVariant<S> & WithAxes<S>;
 ```
 
-The ten components that carry the axes — button, avatar, checkbox, combobox, progress,
-radio-group, select, slider, switch, tabs — name their own scope:
+The thirteen components that carry the axes — avatar, button, checkbox, combobox,
+number-input, progress, radio-group, select, slider, switch, tabs, toggle,
+toggle-group — name their own scope:
 
 ```ts
 export type ButtonRootProps = WithVariantAxes<'button'> & WithDisabled & WithClass & …
@@ -227,25 +321,69 @@ export type ButtonRootProps = WithVariantAxes<'button'> & WithDisabled & WithCla
 Toast is the partial case: `ToastOptions.color` and `ToastData.color`
 (`components/toast/toaster.ts:33,50`) become `ColorValueFor<'toast'>`.
 
-Two things deliberately do **not** change. `variantAttrs`' runtime guards stay exactly
-as they are — JS consumers and generated JSON have no types, and the runtime is the
-only thing protecting them. `PartProps` keeps `'data-color'?: string`; it is an
-attribute bag handed to an `asChild` slot, not a prop surface.
+`variantAttrs`' runtime **guards** stay exactly as they are — JS consumers and
+generated JSON have no types, and the runtime is the only thing protecting them. Its
+**parameter type** cannot: all thirteen components call `variantAttrs(props)` with
+the whole props bag, and a mapped `AxesFor<S>` with optional members
+(`{ density?: 'compact' | 'comfortable' }`) is not assignable to the current
+`axes?: Record<string, string>` under `strict`. The signature widens to
 
-### 4.1 The `never` consequence, stated plainly
+```ts
+export function variantAttrs(props: {
+    color?: string;
+    size?: string;
+    variant?: string;
+    axes?: Record<string, string | undefined>;
+}): Record<string, string | undefined>
+```
+
+with the axes loop skipping `undefined` values before the guards run — an `undefined`
+axis value must neither throw nor emit `data-<axis>="undefined"`. The narrowed
+`ColorValueFor<S>` / `SizeScaleFor<S>` / `VariantValueFor<S>` are all assignable to
+plain `string` params, including the `never` case, so only `axes` forces the change.
+One thing deliberately does **not** change: `PartProps` keeps
+`'data-color'?: string`; it is an attribute bag handed to an `asChild` slot, not a
+prop surface.
+
+### 4.1 The `never` consequence, stated at its real size
 
 A component whose recipes wire no colour axis generates `color: never`, so
 `<Checkbox.Root color="success">` becomes a type error under an opted-in design
 system. Today it type-checks and matches nothing in any of the four shipped design
 systems — the runtime accepts the prop and emits `data-color`, and no recipe selects
-on it. Turning that into an error is the point, but it is also a visible break for
-anyone already writing it, so:
+on it. Turning that into an error is the point — but the blast radius is much wider
+than the #103 six, and the RFC should say so rather than imply otherwise.
+
+What the four design systems actually wire, from their recipe sources: button
+(colour/variant/size, all four design systems), toast (colour, all four), toggle
+(colour/size, all four), toggle-group (colour, all four), switch (colour — basic and
+daisyui only), tabs (colour — daisyui only). Everything else wires nothing. Under
+decision 7 (every recipe scope is emitted), that means **15 of 21 scopes under
+daisyui, 16 under basic, and 17 under material and brutalist wire no axis at all** —
+and even a wired scope carries `never` for the axes it leaves unwired: toggle wires
+colour and size, so its `variant` is `never`; only button wires all three. The set
+differs per design system. Three tiers, in decreasing order of inertness:
+
+1. **Components with no variant props at all** — accordion, collapsible, dialog,
+   field, menu, popover, tooltip. Their generated entries are inert: no prop reads
+   them, nothing can break.
+2. **The #103 six** — checkbox, combobox, progress, radio-group, select, slider.
+   The prop exists, no design system wires it anywhere; `never` is the visible break
+   this section is about, and phase 4 is what removes it.
+3. **Per-design-system partials** — switch and tabs. `<Switch.Root color="primary">`
+   becomes an error under material and compiles under daisyui. That divergence is the
+   mechanism *working*, not a bug: under material that colour genuinely matches
+   nothing. It resolves design-system-by-design-system as #103's pattern is applied,
+   or stands as an honest description of what each system styles.
+
+Two mitigations:
 
 - The generated file carries a JSDoc line on each empty axis naming the component and
   the reason, so the error explains itself rather than surfacing as
-  `Type 'string' is not assignable to type 'never'`.
-- **#103 is sequenced immediately after this work** (§9 phase 4) and is what makes the
-  empty cases go away. This RFC gives #103 teeth: today "the axis is unwired" is
+  `Type 'string' is not assignable to type 'never'`. The generated wording names the
+  design system, not the issue tracker — the generator has no knowledge of #103.
+- **#103 is sequenced immediately after this work** (§9 phase 4) and is what makes
+  tier 2 go away. This RFC gives #103 teeth: today "the axis is unwired" is
   invisible, afterwards it is a compile error with a name attached.
 
 ## 5. The generated artifact
@@ -255,13 +393,49 @@ A new `packages/zero-kit/src/targets/web/register-dts.ts`. The augmented specifi
 alongside `tokens-css.ts` and `recipe-css.ts`, not to the target-neutral core — RFC
 0001's rule that the kit knows no concrete foreign platform cuts both ways.
 
-Input is the resolved `CompiledDesignSystem`, which already carries everything needed:
-`roles`, `sizes`, the §2 `variants`/`axes`, `breakpoints`, `themes`, and `properties`
-— the last read back off the emitted CSS (`design-system.ts:74-78`) rather than
-re-derived, so it includes derived tokens like `--color-<role>-soft` that no
-declaration lists and cannot drift from the stylesheet. Per-component axis values are
-harvested from each `RecipeInput.variants`, validated against §2's declaration, so a
-typo is a build error long before it could become a type.
+Input is the resolved `CompiledDesignSystem` — which carries *most* of what is
+needed: `roles`, `sizes`, the §2 `variants`/`axes`, `breakpoints`, `themes`, the
+category structure under `system`/`systemDark`, and `properties` — the last read back
+off the emitted CSS (`design-system.ts:74-78`) rather than re-derived, so it includes
+derived tokens like `--color-<role>-soft` that no declaration lists and cannot drift
+from the stylesheet. What it does **not** carry is per-component axis data:
+`componentCss` is opaque compiled CSS, and `compileDesignSystem` consumes
+`ds.recipes` without recording what they wired. The harvest is therefore a normative
+extension, populated inside the existing recipe loop
+(`design-system.ts:91-105`):
+
+```ts
+export interface CompiledComponentAxes {
+    color: string[];
+    size: string[];
+    variant: string[];
+    /** Custom axes: axis name → wired values. */
+    axes: Record<string, string[]>;
+    /** The recipe's defaultVariants, validated in phase 1. Manifest/docs only. */
+    defaults?: Record<string, string>;
+}
+
+export interface CompiledDesignSystem {
+    // … existing fields …
+    /** scope → the axis vocabulary the recipes actually wire. */
+    components: Record<string, CompiledComponentAxes>;
+}
+```
+
+Each axis's value set is `Object.keys(recipe.variants[axis])` unioned with every
+`compoundVariants[].match[axis]` value — no shipped design system uses
+`compoundVariants` today, but the compiler emits CSS for them, and the type must
+cover everything the CSS matches. `defaultVariants` is harvested into `defaults` for
+the manifest but never widens a union: phase 1 guarantees defaults are members of the
+wired set. An absent axis is an empty array, which the generator emits as `never` /
+`Record<string, never>`. All values are validated against §2's declaration during
+`validateRecipes`, so a typo is a build error long before it could become a type.
+
+The same map replaces the manifest's bare component list:
+`manifest.json`'s `components` field changes from `Object.keys(componentCss)` (an
+array of scope names) to this record — a breaking shape change to the manifest,
+called out as such; the known consumers are in-repo (the docs tooling, the
+generation skill, and tests), and scope names remain reachable as its keys.
 
 ```ts
 // dist/register.d.ts — GENERATED by zero-kit build. Do not edit.
@@ -270,6 +444,11 @@ declare module '@sigx/zero' {
         theme: 'light' | 'dark' | 'dim' | 'nord' | 'sunset';
         breakpoint: 'sm' | 'md' | 'lg';
         property: '--color-primary' | '--color-primary-content' | '--shadow-level3' | …;
+        tokens: {
+            shadow: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'level1' | 'level2' | 'level3' | 'level4' | 'level5';
+            ease: 'linear' | 'standard' | 'emphasized' | 'emphasized-decelerate' | 'emphasized-accelerate';
+            // … one entry per scale-shaped category, §6 …
+        };
         components: {
             /** button — colour, size and variant all wired. */
             button: {
@@ -278,11 +457,18 @@ declare module '@sigx/zero' {
                 variant: 'solid' | 'outline' | 'soft' | 'ghost';
                 axes: Record<string, never>;
             };
-            /** checkbox — accepts data-color at runtime, but no recipe wires it (see #103). */
+            /** checkbox — accepts data-color at runtime, but no recipe in this design system wires it. */
             checkbox: { color: never; size: never; variant: never; axes: Record<string, never> };
+            // … every recipe scope, all 21 (decision 7) …
         };
     }
 }
+type _MustBeTrue<T extends true> = T;
+/** Fails to compile if this file names a scope zero's anatomy registry lacks (§3.1). */
+type _ScopesValid = _MustBeTrue<
+    keyof import('@sigx/zero').ZeroVocabulary['components'] extends import('@sigx/zero').ZeroScope
+        ? true : false
+>;
 export {};
 ```
 
@@ -290,12 +476,28 @@ export {};
 top object type and accepts any object literal, so `{}` would silently permit
 `axes={{ anything: 'x' }}` — the failure class this whole mechanism exists to remove.
 
-Written by `artifacts.ts` next to the CSS, together with an empty `dist/register.js` so
-the subpath resolves at runtime for free; each design system's `package.json` gains
-`"./register": { "types": "./dist/register.d.ts", "default": "./dist/register.js" }`.
-All four design systems build through their own `build.mjs` → `writeArtifacts` rather
-than through the CLI, so that is the correct insertion point — putting it in `cli.ts`
-would generate types for nobody.
+**Every recipe scope is emitted** (decision 7) — all 21 in practice, since every
+design system fully skins every component. Emitting only wired scopes would be
+smaller, but every omitted scope silently falls back to the open unions —
+`<Checkbox.Root color="success">` would keep type-checking, which is the first row of
+§1.1's table. Emitting all of them keeps the fallback branch single-meaning and the
+generator dumb: the kit needs no knowledge of which zero components carry the prop
+fragments. The scope-validity assertion is a requirement, not an incantation — the
+generated file must fail to compile when it names a scope `ZeroScope` lacks; the
+exact spelling is the generator's business.
+
+Written by `artifacts.ts` next to the CSS, together with `dist/register.js` containing
+exactly `export {}` so the subpath resolves at runtime for free; each design system's
+`package.json` gains
+`"./register": { "types": "./dist/register.d.ts", "import": "./dist/register.js" }`
+(`"import"`, matching every existing entry in the shipped exports maps). The design
+system packages declare no `sideEffects` field today, so bundlers keep the import;
+if one is ever added, dropping the register import is harmless — the module is empty
+and the types act at compile time — but nothing may ever hang runtime behaviour off
+it. All four design systems build through their own `build.mjs` → `writeArtifacts`
+rather than through the CLI, so that is the correct insertion point — putting it in
+`cli.ts` would generate types for nobody (though `cli.ts build` calls the same
+functions and gets the artifact for free).
 
 An app opts in with one line at its entry:
 
@@ -317,11 +519,67 @@ augment, so `@sigx/lynx-zero-kit` would emit its own equivalent if it wants one.
 | `ZeroThemeNameOrCustom` | `ZeroThemeName \| (string & {})` | The lookup surface — `getTheme`, `pairOf`, `registerTheme` — which may legitimately be handed a runtime-registered tenant theme (RFC 0001 §6 treats that as a real feature). |
 | `ZeroProperty` | open with autocomplete | An app is not the only writer of custom properties: `--press-x/y/r`, `--progress-percent`, `--slider-percent` are runtime-published and never appear in `tokens.css`. Closing this would reject valid code. |
 | `ZeroBreakpoint` | open with autocomplete | An app's own media queries are not confined to the design system's ramp. |
+| `TokenKeyFor<C>` | open with autocomplete, per category | The design system's declared keys plus the recommended ramp — but an app may define `--shadow-hero` itself; same policy as `ZeroProperty`, with structure. |
 
 `ZeroProperty` ships with a one-line `cssVar(name: ZeroProperty): string` helper, so an
 app writing `var(--shadow-level3)` in its own styles gets what the recipe validator
 already gives at build time. `ZeroBreakpoint` narrows names only — the *values* stay in
 the design system manifest, because zero emits no breakpoint custom properties.
+
+### 6.1 Per-category token unions — the specials reach the app
+
+The flat `property` union answers "does this custom property exist" but flattens the
+structure a design system's *specials* live in. Material's elevation is not a custom
+category — it is the recommended-but-open `shadow` category carrying Material's own
+`level1`–`level5` keys, exactly as `emphasized-decelerate` is an `ease` key and
+`extra-long` a `duration` key. That structure is already preserved end-to-end
+(declaration → `tokens.system`/`systemDark` → manifest); this section projects it.
+
+Zero's side, new API alongside `cssVar`:
+
+```ts
+/** The scale-shaped categories from TOKEN_CATEGORIES (border and
+ *  disabled-opacity are scalar — keyless — and excluded). */
+export type ZeroTokenCategory =
+    'radius' | 'size' | 'font' | 'text' | 'weight' | 'leading'
+    | 'tracking' | 'space' | 'shadow' | 'duration' | 'ease';
+
+type TokenKeysOf<C extends string> =
+    ZeroVocabulary extends { tokens: infer T }
+        ? (C extends keyof T ? Extract<T[C], string> : string)
+        : string;
+
+/** Autocomplete-but-open, same policy as ZeroProperty. */
+export type TokenKeyFor<C extends ZeroTokenCategory> = TokenKeysOf<C> | (string & {});
+
+/** token('shadow', 'level3') → 'var(--shadow-level3)'. Prefixes come from TOKEN_CATEGORIES. */
+export function token<C extends ZeroTokenCategory>(category: C, key: TokenKeyFor<C>): string;
+```
+
+The generated side is the `tokens` key sketched in §5. The generation rule: for each
+scale-shaped category in `TOKEN_CATEGORIES`, the union is the category's
+`recommended` keys ∪ the keys declared at the category's `path` under
+`tokens.system` ∪ the keys under `tokens.systemDark`. The recommended keys belong in
+the union even when undeclared, because `css/base.css` ships their structural
+fallbacks — `var(--shadow-md)` is legal under every design system. So Material's
+shadow union is `'xs' | … | 'xl'` **and** `'level1' | … | 'level5'`: the recommended
+ramp plus the specials, which is the honest description of what its stylesheet
+answers to. All inputs are already on `CompiledDesignSystem.tokens`; the walk is the
+one `resolve/vocabulary.ts` already does for validation.
+
+Category *names* stay the closed `ZeroTokenCategory` union even unaugmented —
+declaring a new category root is a hard kit error today, so there is no open case to
+preserve. Category *keys* are open with autocomplete, per the table row above.
+
+`custom` token declarations get no dedicated surface yet: every shipped design system
+declares `custom: {}`, and their properties already land in the flat `property` union
+via the CSS read-back. Because augmentation merges interfaces, adding a `custom` key
+to the generated `tokens` map later is non-breaking — deferred until a design system
+actually declares one.
+
+Both `cssVar` and `token` are runtime exports and count against zero's size budget;
+they are one-liners, but the budget check is part of the phase-3 gate, not an
+afterthought.
 
 ## 7. The theme model, and multi-theme
 
@@ -349,11 +607,36 @@ So the gap is not the model. It is that nothing exercises it. This RFC proposes:
    themes — the same role `zero-material` plays for the colour vocabulary.
 2. **`pickThemeFor` prefers the source's declared `defaultLight`/`defaultDark`** over
    first-registered, falling back to the current scan. A latent bug that only a third
-   theme exposes.
+   theme exposes. The fix needs data the registry does not hold today: zero's
+   `ThemeSource` has no `defaultLight`/`defaultDark` fields — they exist only
+   kit-side on `TokensInput`. So `ThemeSource` gains both as optional fields, the
+   registry stores them (and `clearThemes` clears them), and `pickThemeFor` prefers
+   the declared default when it is registered with the matching scheme. **No design
+   system package changes**: every `installThemes()` already calls
+   `registerThemes(tokens)` with the whole `TokensInput`
+   (`packages/zero-daisyui/src/index.ts:13`), which carries both fields — the
+   structural typing the registry was designed around does the work.
 3. **The #120 state-matrix contrast audit iterates every registered theme** rather than
    the two schemes. The audit already enumerates part × state × design system, so this
    is one more loop dimension — and without it, three of daisy's five themes would ship
    unaudited.
+
+### 7.1 Where the theme name narrows — the complete inventory
+
+§6's two-tier split (closed authoring, open lookup) names three surfaces; the type
+has more, and the boundary rule needs stating once. **Closed (`ZeroThemeName`)** —
+the authoring surface, where the app states an intent: the public `setTheme`, the
+`theme` props on `ThemeProvider`/`ThemeScope`, and `ThemeControllerOptions.initial`.
+**Open (`ZeroThemeNameOrCustom` or plain `string`)** — everything a value can reach
+without the app having typed it: `getTheme`/`pairOf`/`registerTheme` (as already
+listed), the `theme()` accessor's *return* — its value can come from persisted
+storage written by an older app version or a runtime-registered tenant theme, so a
+closed return type would be a lie — and the storage boundary itself: the
+`localStorage` read stays `string | null` and is treated as untrusted input, and the
+controller-internal `setTheme` implementation stays `string` with the closed type
+living only on the public API. The principle: **authoring is closed; anything that
+round-trips through storage or the registry is open.** This resolves what was open
+question 3.
 
 Explicitly **out of scope**: turning `pair` into a family, or making `toggle()` an
 n-cycle. `pair` is a single binary counterpart and `toggle()` is a two-cycle; whether
@@ -376,8 +659,12 @@ skill with a brief pack. What is thin:
   and every error is deferred to `zero-kit validate`. `defineAnatomy<S, P>` already
   carries part names as a type, so the shape exists — a `defineRecipeFor<ZeroAnatomies>()`
   factory keeps the kit foundation-neutral, and `PartSpec.states`/`flags` would need to
-  become generic. Pairs with **#51** (csstype for property names — `paddding` still
-  compiles and is silently dropped by the browser).
+  become generic. §3.1's `ZeroAnatomies`/`ZeroScope` land in phase 2, so this seam's
+  prerequisite is already paid for. One honest limit: the per-component axis *unions*
+  cannot come from this seam — every design system computes its colour axis
+  (`Object.fromEntries(ROLES.map(…))`), so they are harvestable only from the recipe
+  *values* at build time, which is what §5 does. Pairs with **#51** (csstype for
+  property names — `paddding` still compiles and is silently dropped by the browser).
 - **#10 `zero-kit init`.** The framework has no front door: bootstrapping a design
   system today means hand-copying `@sigx/zero-basic`, which the skill says out loud.
 - **A conformance report.** `zero-kit validate --report` emitting components styled,
@@ -392,12 +679,14 @@ evidence that `{role, -content, -soft}` is too narrow. **#125** ambient role
 indirection composes with it. **#118** split-pair lint. **#48** control insets versus a
 density ramp. **#103** wiring the axes everywhere, promoted by §4.1.
 
-**Component surface.** Eighteen components, all fully skinned in all four design
+**Component surface.** Twenty-one components, all fully skinned in all four design
 systems — but skewed to interactive widgets. The content tier a design system is
 visually judged on is absent: card, alert, badge, skeleton, spinner, steps, divider,
 rating, table. RFC 0001 §7 already names all ten as Tier B for Lynx, so the anatomy work
 is shared either way. Input and textarea are a sharper hole — `field` exists with no text
-control to put in it. Plus **#121** ToggleGroup/Toggle, **#104**, **#123**, **#105**.
+control to put in it (NumberInput, #136, is the numeric case, not the text one). Plus
+**#104**, **#123**, **#105**. (ToggleGroup/Toggle, formerly listed here as #121,
+landed as #122.)
 
 **Ecosystem.** **#97/#99/#100** (RFC 0001), **#11** eject, **#13** W3C `.tokens.json`
 interchange, **#14** lynx palette emitter, **#18** docs-site publishing.
@@ -406,11 +695,11 @@ interchange, **#14** lynx palette emitter, **#18** docs-site publishing.
 
 | Phase | Issue | Work | Gate |
 |---|---|---|---|
-| **1** | #129 | §2 declared vocabulary: `TokensInput.variants`/`axes`, validator rules, schema, and the declarations added to all four design systems. | Validation errors on a seeded typo in each design system; no behaviour change otherwise. |
-| **2** | #130 | §3 + §4 seam and per-component narrowing, behind an **empty** `ZeroVocabulary`. | Provably a no-op: full test suite, `pnpm typecheck`, and the playground typecheck all unchanged. |
-| **3** | #131 | §5 generator + `/register` subpath across the four design systems; §6 theme/property/breakpoint narrowing. | A scratch app importing `@sigx/zero-material/register` gets `tertiary` autocompleted and `primry` rejected; removing the import restores the open unions. |
-| **4** | #103 | Wire the colour/size axes for checkbox, radio-group, slider, progress, select, combobox. | No component generates an empty axis it accepts at runtime. |
-| **5** | #132 | §7 daisy multi-theme, `pickThemeFor` fix, contrast audit over every theme. **Independent of 1–4** and may land in any order. | Five daisy themes, all contrast-clean, switchable in the playground. |
+| **1** | #129 | §2 declared vocabulary: `TokensInput.variants`/`axes`, validator rules under the "explicit declaration closes its set" policy, `TokenVocabulary.variants`/`axes`, unconditional `defaultVariants` validation, removal of the duplicate colour warning (`validate.ts:435-441`), schema fields, and the declarations added to all four design systems. | Validation errors on a seeded typo — in a `variants` value **and** in a `defaultVariants` value — in each design system; no behaviour change otherwise. |
+| **2** | #130 | §3 + §4 seam and per-component narrowing across the **13** carrier components + toast, behind an **empty** `ZeroVocabulary`; `variantAttrs` parameter widening with the `undefined`-skip; `NAMED_AXES` → exported `VARIANT_AXES` + the parity-test `SHARED` row; §3.1 `ZeroAnatomies`/`ZeroScope`; the type-test setup (greenfield — the repo has no type-level tests at all: a dedicated tsconfig + `pnpm test:types`). | Provably a no-op: full test suite, `pnpm typecheck`, and the playground typecheck all unchanged — the button axes tests double as the §3.2 leak canary — **and** the isolated type-test project compiles with its positive and `@ts-expect-error` assertions. |
+| **3** | #131 | §5 generator + `CompiledDesignSystem.components` harvest + manifest shape change + `/register` subpath (with §5's packaging details) across the four design systems; §6 theme/property/breakpoint narrowing + §6.1 per-category `tokens` map with `cssVar`/`token` helpers; §3.2 augmentation-binding verification. | A scratch app importing `@sigx/zero-material/register` gets `tertiary` autocompleted, `primry` rejected, and `token('shadow', 'level3')` autocompleting `level1`–`level5`; removing the import restores the open unions; a manifest snapshot per design system; zero's size budget still green. |
+| **4** | #103 | Wire the colour/size axes for checkbox, radio-group, slider, progress, select, combobox — and settle the §4.1 tier-3 partials (switch, tabs) per design system: wire or accept the divergence. | No component generates an empty axis it accepts at runtime, in any design system, or the divergence is recorded in the issue. |
+| **5** | #132 | §7 daisy multi-theme; §7's `ThemeSource.defaultLight`/`defaultDark` + registry storage + `pickThemeFor` preference (no design-system package changes); §7.1's closed/open surfaces; contrast audit over every theme. **Independent of 1–4** and may land in any order. | Five daisy themes, all contrast-clean, switchable in the playground; `pickThemeFor('dark')` returns the declared default regardless of registration order. |
 
 Phases 1→2→3→4 are strictly ordered: 2 cannot narrow what 1 did not declare, 3 has
 nothing to generate without 2's seam, and 4's value is only visible once 3 makes the
@@ -424,18 +713,21 @@ gap a type error.
 2. **Type-test isolation.** Module augmentation leaks across a TypeScript project, so a
    test importing any `/register` module inside the graph root `pnpm typecheck` compiles
    would narrow `ColorValue` repo-wide and break the playground. The proposal is a
-   dedicated tsconfig plus a `pnpm test:types` script; confirm `tsgo` honours a
-   per-file project this way before committing to it.
-3. **Two-tier theme API.** `setTheme` closed while `registerTheme` stays open is
-   defensible but may read as inconsistent. The alternative — both open — gives
-   autocomplete without catching `setTheme('dimm')`, which was most of the motivation.
+   dedicated tsconfig plus a `pnpm test:types` script — built from nothing, since the
+   repo has no type-level tests today; confirm `tsgo` honours a per-file project this
+   way before committing to it. The leak has a concrete detector either way: the
+   button axes tests (§3.2).
+3. ~~**Two-tier theme API.**~~ Resolved by §7.1: authoring closed, anything that
+   round-trips through storage or the registry open — including `theme()`'s return.
 4. **Should `property` be closed after all?** It is open because runtime-published
    properties (`--press-*`) never appear in `tokens.css`. Emitting `RUNTIME_PROPERTIES`
-   into the generated union would let it close. Deferred until something wants it.
+   into the generated union would let it close. Deferred until something wants it —
+   §6.1's per-category unions are the structured middle ground in the meantime.
 5. **`orientation`** is already a closed union and could take the same per-component
    treatment (only tabs, radio-group and slider declare it). Probably over-reach.
-6. **Generated-file size.** Material emits well over a hundred custom properties; the
-   `property` union is correspondingly large. Measure before assuming it is fine.
+6. ~~**Generated-file size.**~~ Measured, closed: material emits **94** custom
+   properties (brutalist 81, daisyui 62, basic 60). A 94-member string union is
+   trivially fine.
 
 ## 11. Tracking issues
 
@@ -448,3 +740,6 @@ Filed and cross-linked from #127 (this RFC's tracking issue):
 
 Phase 4 is **#103**, promoted rather than refiled. Related and unchanged by this RFC:
 #51, #10, #118, #120, #125, #126, and RFC 0001's #97.
+
+The post-landing revision is **#139**; the phase issues above are re-scoped in place
+to match §9 rather than refiled.
