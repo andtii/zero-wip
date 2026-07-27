@@ -9,9 +9,12 @@
   a `pointAnchor(x, y, size?)` factory for anchoring at client coordinates,
   and `createAnchorPosition` now returns an `AnchorPositionHandle` whose
   `update()` re-runs the strategy while open — a moved anchor repositions
-  without a close/reopen. All additive: `PositionStrategy.apply` and
+  without a close/reopen. `PositionStrategy.apply` and
   `AnchorPositionInput.getAnchor` widen to `PositionAnchor`; element
-  anchors and existing custom strategies keep working unchanged.
+  anchors and existing custom strategies keep working unchanged. One
+  type-level change: `createAnchorPosition` returns the handle instead of
+  `void` — callers that ignored the return value are unaffected, but a
+  wrapper typed as returning `void` will need its annotation updated.
 
 ## [0.1.0] - 2026-07-27
 

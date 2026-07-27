@@ -31,7 +31,7 @@ export interface PositionOptions {
  * structurally and a point in the viewport satisfies it via `pointAnchor`.
  */
 export interface VirtualAnchor {
-    getBoundingClientRect(): DOMRect;
+    getBoundingClientRect(): DOMRectReadOnly;
 }
 
 export type PositionAnchor = HTMLElement | VirtualAnchor;
@@ -50,7 +50,7 @@ export function pointAnchor(x: number, y: number, size = 0): VirtualAnchor {
         x, y, width: size, height: size,
         top: y, left: x, right: x + size, bottom: y + size,
         toJSON: () => ({ x, y, width: size, height: size }),
-    } as DOMRect;
+    } as DOMRectReadOnly;
     return { getBoundingClientRect: () => rect };
 }
 
@@ -63,7 +63,7 @@ export interface PositionStrategy {
 }
 
 function computeCoords(
-    anchor: DOMRect,
+    anchor: DOMRectReadOnly,
     floating: { width: number; height: number },
     placement: Placement,
     offset: number,
