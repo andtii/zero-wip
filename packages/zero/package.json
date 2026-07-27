@@ -115,6 +115,10 @@
         "./rating-group": {
             "types": "./dist/components/rating-group/index.d.ts",
             "import": "./dist/components/rating-group/index.js"
+        },
+        "./tree-view": {
+            "types": "./dist/components/tree-view/index.d.ts",
+            "import": "./dist/components/tree-view/index.js"
         }
     },
     "files": [

@@ -1302,8 +1302,87 @@ export const ratingGroup: RecipeInput = {
     },
 };
 
+// ── Tree view ─────────────────────────────────────────────────────────────
+/**
+ * The menu row grammar walking a hierarchy: an inked frame around the tree,
+ * hard-washed rows inside it, and the selected row stamped in full ink —
+ * the page inverts under it. Depth is the DOM nesting: `branch-content`
+ * indents once behind a hard left rule, so every level draws its own rule.
+ */
+const treeRow: PartStyles = {
+    base: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 'var(--space-sm)',
+        padding: 'var(--space-xs) var(--space-sm)',
+        ...label,
+        fontSize: 'var(--text-xs)',
+        cursor: 'pointer',
+        transition: motion('background, color, transform'),
+    },
+    states: {
+        hover: { background: 'var(--color-base-200)' },
+        // Selected = stamped: full ink slab, page colour for the glyphs.
+        selected: { background: 'var(--color-base-content)', color: 'var(--color-base-100)' },
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+    selectors: {
+        // The hover wash must not fade a selected row back toward the page.
+        '&[data-selected]:hover': { background: 'var(--color-base-content)' },
+        // A shallow stamp — rows carry no shadow to collapse into.
+        '&[data-pressed]:not([data-disabled])': { transform: 'translate(1px, 1px)' },
+    },
+};
+
+export const treeView: RecipeInput = {
+    component: 'tree-view',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        label: { base: { ...label, fontSize: 'var(--text-sm)' } },
+        tree: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                ...inked,
+                boxShadow: 'var(--shadow-sm)',
+                padding: 'var(--space-xs)',
+            },
+        },
+        item: treeRow,
+        branch: {
+            base: { display: 'flex', flexDirection: 'column', outline: 'none' },
+            states: { open: {}, closed: {}, selected: {}, disabled: {} },
+        },
+        'branch-trigger': {
+            base: { ...treeRow.base, userSelect: 'none' },
+            states: { open: {}, closed: {}, ...treeRow.states },
+            selectors: treeRow.selectors,
+        },
+        // A hard quarter-turn, on the same tokenized motion as everything
+        // else — the durations collapse under reduced motion.
+        'branch-indicator': {
+            base: { display: 'inline-block', transition: motion('transform') },
+            states: { open: { transform: 'rotate(90deg)' }, closed: {} },
+        },
+        'branch-content': {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                marginInlineStart: 'var(--space-sm)',
+                paddingInlineStart: 'var(--space-sm)',
+                borderInlineStart: 'var(--border) solid var(--color-base-content)',
+            },
+            states: { open: {}, closed: {} },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup,
+    toggle, toggleGroup, numberInput, ratingGroup, treeView,
 ];

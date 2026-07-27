@@ -4,6 +4,19 @@
 
 ### Added
 
+- **TreeView** (`@sigx/zero/tree-view`) — the APG tree pattern. Unnamed
+  model = selected value; `model:expandedValues` (named-models convention)
+  = the expansion set. ArrowRight expands then descends, ArrowLeft
+  collapses then climbs (RTL-mirrored), Enter/Space select, typeahead over
+  visible nodes, one tab stop. Collapsed content stays mounted and
+  `hidden`. Single selection in v1.
+- **`createTreeController` behavior** (`behaviors/tree.ts`) — hierarchical
+  registration that IMPLEMENTS the flat `ListController` interface over the
+  VISIBLE nodes (every ancestor expanded, DOM-ordered), so
+  `createRovingKeydown` and `createTypeahead` work on a tree unchanged.
+  `sortByDomOrder` is now exported from `behaviors/list.ts` (shared by
+  both controllers).
+
 - **RatingGroup** (`@sigx/zero/rating-group`) — radio semantics over a row
   of symbols with hover preview and optional half values. The `item` part
   carries the library's one three-value state set (`full|half|empty`),

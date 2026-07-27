@@ -1753,8 +1753,82 @@ export const ratingGroup: RecipeInput = {
     },
 };
 
+// ── Tree view ─────────────────────────────────────────────────────────────
+/**
+ * Material's list-item treatment over the tree anatomy: every row (leaf item
+ * and branch trigger alike) is a menu-style row with the MD3 state layer and
+ * ink ripple, and a selected row takes the secondary-container fill — the
+ * same `secondary-soft` pairing the select item and segmented button use.
+ *
+ * Selected never fights hover here: hover is `pressable`'s ::before state
+ * layer compositing OVER the fill (MD3's state-layer-on-container), not a
+ * competing background declaration — so no `&[data-selected]:hover` guard is
+ * needed. Depth is the DOM nesting; branch-content's inline padding is the
+ * only indentation rule.
+ */
+const treeRow: PartStyles = {
+    base: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 'var(--space-sm)',
+        padding: 'var(--space-xs) var(--space-md)',
+        borderRadius: 'var(--radius-selector)',
+        fontSize: 'var(--text-sm)',
+        cursor: 'pointer',
+        userSelect: 'none',
+        transition: motion('background'),
+    },
+    states: {
+        selected: { background: 'var(--color-secondary-soft)' },
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+};
+
+export const treeView: RecipeInput = {
+    component: 'tree-view',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        label: {
+            base: { ...label, color: 'var(--color-base-content)', padding: 'var(--space-2xs) var(--space-md)' },
+        },
+        tree: {
+            base: { display: 'flex', flexDirection: 'column', fontFamily: 'var(--font-sans)' },
+        },
+        item: withPresence(pressable('tree-view'), treeRow),
+        // The treeitem ELEMENT (row + subtree); the row look lives on the
+        // trigger inside it, so the ring and the fill draw on the row only.
+        branch: {
+            base: { display: 'flex', flexDirection: 'column', outline: 'none' },
+            states: { open: {}, closed: {}, selected: {}, disabled: {} },
+        },
+        'branch-trigger': withPresence(pressable('tree-view'), {
+            ...treeRow,
+            states: { ...treeRow.states, open: {}, closed: {} },
+        }),
+        'branch-indicator': {
+            base: {
+                display: 'inline-flex',
+                transition: motion('transform'),
+            },
+            states: { open: { transform: 'rotate(90deg)' }, closed: {} },
+            // --duration-* already collapses under reduced motion; `none`
+            // makes the intent explicit rather than relying on 0.01ms.
+            at: { 'reduced-motion': { base: { transition: 'none' } } },
+        },
+        'branch-content': {
+            base: { display: 'flex', flexDirection: 'column', paddingInlineStart: 'var(--space-lg)' },
+            states: { open: {}, closed: {} },
+        },
+    },
+    keyframes: rippleKeyframes('tree-view'),
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup,
+    toggle, toggleGroup, numberInput, ratingGroup, treeView,
 ];
