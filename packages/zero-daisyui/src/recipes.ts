@@ -484,6 +484,35 @@ export const menu: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
         },
+        // The item look plus a chevron; `open` keeps it lit while focus is
+        // inside the submenu.
+        'sub-trigger': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.625rem',
+                padding: 'var(--space-md) var(--space-lg)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                borderRadius: 'var(--radius-field)',
+                cursor: 'pointer',
+                outline: 'none',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                highlighted: { background: 'var(--color-base-200)' },
+                open: { background: 'var(--color-base-200)' },
+                closed: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&::after': { content: '"\\203A"', marginLeft: 'auto', opacity: '0.6' },
+            },
+        },
+        'sub-popup': withPresence(popupPresence('translateX(-4px)'), {
+            base: { ...floatingPanel, padding: 'var(--space-md)', minWidth: '13rem' },
+            states: { open: {}, closed: {} },
+        }),
         group: { base: {} },
         'group-label': {
             base: {

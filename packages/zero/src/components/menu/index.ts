@@ -1,9 +1,12 @@
-export { Menu, useMenuContext } from './Menu.js';
+export { Menu, useMenuContext, useMenuSubContext } from './Menu.js';
 export type {
     MenuRootProps,
     MenuTriggerProps,
     MenuPopupProps,
     MenuItemProps,
+    MenuSubProps,
+    MenuSubTriggerProps,
+    MenuSubPopupProps,
     MenuGroupProps,
     MenuGroupLabelProps,
     MenuSeparatorProps,

@@ -490,6 +490,42 @@ export const menu: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
         },
+        // The item look, plus a chevron and an `open` state that keeps it
+        // visually active after focus moves into the submenu.
+        'sub-trigger': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-md)',
+                padding: '0.375rem 0.625rem',
+                fontSize: 'var(--text-sm)',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+                outline: 'none',
+            },
+            states: {
+                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                open: { background: 'var(--color-base-200)' },
+                closed: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&::after': { content: '"\\203A"', marginLeft: 'auto', opacity: '0.6' },
+            },
+        },
+        // The popup surface, entering from the side it attaches on.
+        'sub-popup': withPresence(popupPresence('translateX(-4px)'), {
+            base: {
+                padding: 'var(--space-sm)',
+                minWidth: '12rem',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--color-base-300)',
+                borderRadius: 'var(--radius-box)',
+                boxShadow: 'var(--shadow-md)',
+            },
+            states: { open: {}, closed: {} },
+        }),
         group: { base: {} },
         'group-label': {
             base: {

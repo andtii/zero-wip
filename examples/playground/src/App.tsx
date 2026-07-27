@@ -138,6 +138,20 @@ export const App = component(() => {
                                 <Menu.Item value="rename">Rename</Menu.Item>
                                 <Menu.Item value="duplicate">Duplicate</Menu.Item>
                             </Menu.Group>
+                            <Menu.Sub>
+                                <Menu.SubTrigger>Share</Menu.SubTrigger>
+                                <Menu.SubPopup>
+                                    <Menu.Item value="email">Email</Menu.Item>
+                                    <Menu.Item value="link">Copy link</Menu.Item>
+                                    <Menu.Sub>
+                                        <Menu.SubTrigger>Social</Menu.SubTrigger>
+                                        <Menu.SubPopup>
+                                            <Menu.Item value="mastodon">Mastodon</Menu.Item>
+                                            <Menu.Item value="bluesky">Bluesky</Menu.Item>
+                                        </Menu.SubPopup>
+                                    </Menu.Sub>
+                                </Menu.SubPopup>
+                            </Menu.Sub>
                             <Menu.Separator />
                             <Menu.Item value="delete">Delete…</Menu.Item>
                         </Menu.Popup>

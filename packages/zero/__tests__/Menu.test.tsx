@@ -1,7 +1,10 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { Menu, menuAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
+
+/** watch()-driven cascades settle a microtask after the write. */
+const tick = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
 describe('Menu', () => {
     let container: HTMLElement;
@@ -123,5 +126,189 @@ describe('Menu', () => {
         const trigger = second.querySelector<HTMLElement>('[data-part="trigger"]')!;
         trigger.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
         expect(trigger.hasAttribute('data-pressed')).toBe(false);
+    });
+});
+
+describe('Menu submenus', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    function mountSub(onSelect: (v: string) => void = () => {}, subDisabled = false) {
+        render(
+            <Menu.Root onSelect={onSelect}>
+                <Menu.Trigger>Actions</Menu.Trigger>
+                <Menu.Popup>
+                    <Menu.Item value="rename">Rename</Menu.Item>
+                    <Menu.Sub>
+                        <Menu.SubTrigger value="share" disabled={subDisabled}>Share</Menu.SubTrigger>
+                        <Menu.SubPopup>
+                            <Menu.Item value="email">Email</Menu.Item>
+                            <Menu.Item value="link">Copy link</Menu.Item>
+                        </Menu.SubPopup>
+                    </Menu.Sub>
+                </Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        return {
+            rootTrigger: container.querySelector<HTMLElement>('[data-part="trigger"]')!,
+            subTrigger: container.querySelector<HTMLElement>('[data-part="sub-trigger"]')!,
+            subPopup: container.querySelector<HTMLElement>('[data-part="sub-popup"]')!,
+        };
+    }
+
+    it('renders a valid anatomy with APG roles on the sub parts', () => {
+        const { rootTrigger, subTrigger, subPopup } = mountSub();
+        rootTrigger.click();
+        expectAnatomy(container, menuAnatomy);
+        expect(subTrigger.getAttribute('role')).toBe('menuitem');
+        expect(subTrigger.getAttribute('aria-haspopup')).toBe('menu');
+        expect(subTrigger.getAttribute('aria-expanded')).toBe('false');
+        expect(subTrigger.getAttribute('aria-controls')).toBe(subPopup.id);
+        expect(subTrigger.getAttribute('data-state')).toBe('closed');
+        expect(subPopup.getAttribute('role')).toBe('menu');
+        expect(subPopup.getAttribute('aria-labelledby')).toBe(subTrigger.id);
+        expect(subPopup.getAttribute('data-state')).toBe('closed');
+    });
+
+    it('ArrowRight, Enter and Space open the submenu; click toggles', () => {
+        const { rootTrigger, subTrigger, subPopup } = mountSub();
+        rootTrigger.click();
+        subTrigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', cancelable: true, bubbles: true }));
+        expect(subTrigger.getAttribute('data-state')).toBe('open');
+        expect(subTrigger.getAttribute('aria-expanded')).toBe('true');
+        expect(subPopup.getAttribute('data-state')).toBe('open');
+        subTrigger.click();
+        expect(subTrigger.getAttribute('data-state')).toBe('closed');
+        subTrigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true }));
+        expect(subTrigger.getAttribute('data-state')).toBe('open');
+    });
+
+    it('ArrowLeft inside the submenu closes it and refocuses the sub-trigger', () => {
+        const { rootTrigger, subTrigger, subPopup } = mountSub();
+        rootTrigger.click();
+        subTrigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', cancelable: true, bubbles: true }));
+        const subItem = subPopup.querySelectorAll<HTMLElement>('[data-part="item"]')[0]!;
+        subItem.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', cancelable: true, bubbles: true }));
+        expect(subPopup.getAttribute('data-state')).toBe('closed');
+        expect(document.activeElement).toBe(subTrigger);
+    });
+
+    it('selecting a sub item bubbles to the root and closes the chain', async () => {
+        const onSelect = vi.fn();
+        const { rootTrigger, subTrigger, subPopup } = mountSub(onSelect);
+        rootTrigger.click();
+        subTrigger.click();
+        subPopup.querySelectorAll<HTMLElement>('[data-part="item"]')[0]!.click();
+        expect(onSelect).toHaveBeenCalledWith('email');
+        expect(rootTrigger.getAttribute('aria-expanded')).toBe('false');
+        await tick();
+        expect(subPopup.getAttribute('data-state')).toBe('closed');
+    });
+
+    it('the sub-trigger never emits select', () => {
+        const onSelect = vi.fn();
+        const { rootTrigger, subTrigger } = mountSub(onSelect);
+        rootTrigger.click();
+        subTrigger.click();
+        subTrigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true }));
+        expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('hover opens after openDelay without moving focus in, and closes after closeDelay', () => {
+        vi.useFakeTimers();
+        const { rootTrigger, subTrigger, subPopup } = mountSub();
+        rootTrigger.click();
+        subTrigger.dispatchEvent(new PointerEvent('pointerenter', { bubbles: false }));
+        expect(subPopup.getAttribute('data-state')).toBe('closed');
+        vi.advanceTimersByTime(120);
+        expect(subPopup.getAttribute('data-state')).toBe('open');
+        expect(document.activeElement).toBe(subTrigger);
+        subTrigger.dispatchEvent(new PointerEvent('pointerleave', { bubbles: false }));
+        vi.advanceTimersByTime(320);
+        expect(subPopup.getAttribute('data-state')).toBe('closed');
+    });
+
+    it('entering the sub popup cancels the scheduled close', () => {
+        vi.useFakeTimers();
+        const { rootTrigger, subTrigger, subPopup } = mountSub();
+        rootTrigger.click();
+        subTrigger.dispatchEvent(new PointerEvent('pointerenter'));
+        vi.advanceTimersByTime(120);
+        subTrigger.dispatchEvent(new PointerEvent('pointerleave'));
+        subPopup.dispatchEvent(new PointerEvent('pointerenter'));
+        vi.advanceTimersByTime(1000);
+        expect(subPopup.getAttribute('data-state')).toBe('open');
+    });
+
+    it('focus landing on another parent-level item closes the submenu', async () => {
+        const { rootTrigger, subTrigger, subPopup } = mountSub();
+        rootTrigger.click();
+        subTrigger.click();
+        expect(subPopup.getAttribute('data-state')).toBe('open');
+        await tick();
+        const parentItem = container.querySelectorAll<HTMLElement>('[data-part="item"]')[0]!;
+        parentItem.focus();
+        parentItem.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+        await tick();
+        expect(subPopup.getAttribute('data-state')).toBe('closed');
+    });
+
+    it('closing the root closes an open submenu with it', async () => {
+        const { rootTrigger, subTrigger, subPopup } = mountSub();
+        rootTrigger.click();
+        subTrigger.click();
+        expect(subPopup.getAttribute('data-state')).toBe('open');
+        rootTrigger.click();
+        await tick();
+        expect(subPopup.getAttribute('data-state')).toBe('closed');
+    });
+
+    it('a disabled sub-trigger neither opens nor presses', () => {
+        const { rootTrigger, subTrigger, subPopup } = mountSub(() => {}, true);
+        rootTrigger.click();
+        subTrigger.click();
+        expect(subPopup.getAttribute('data-state')).toBe('closed');
+        subTrigger.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
+        expect(subTrigger.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('nests two levels deep with isolated state', () => {
+        render(
+            <Menu.Root>
+                <Menu.Trigger>Actions</Menu.Trigger>
+                <Menu.Popup>
+                    <Menu.Sub>
+                        <Menu.SubTrigger value="share">Share</Menu.SubTrigger>
+                        <Menu.SubPopup>
+                            <Menu.Item value="email">Email</Menu.Item>
+                            <Menu.Sub>
+                                <Menu.SubTrigger value="social">Social</Menu.SubTrigger>
+                                <Menu.SubPopup>
+                                    <Menu.Item value="toot">Toot</Menu.Item>
+                                </Menu.SubPopup>
+                            </Menu.Sub>
+                        </Menu.SubPopup>
+                    </Menu.Sub>
+                </Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        container.querySelector<HTMLElement>('[data-part="trigger"]')!.click();
+        const subTriggers = container.querySelectorAll<HTMLElement>('[data-part="sub-trigger"]');
+        const subPopups = container.querySelectorAll<HTMLElement>('[data-part="sub-popup"]');
+        subTriggers[0]!.click();
+        expect(subPopups[0]!.getAttribute('data-state')).toBe('open');
+        expect(subPopups[1]!.getAttribute('data-state')).toBe('closed');
+        subTriggers[1]!.click();
+        expect(subPopups[0]!.getAttribute('data-state')).toBe('open');
+        expect(subPopups[1]!.getAttribute('data-state')).toBe('open');
+        expectAnatomy(container, menuAnatomy);
     });
 });
