@@ -40,9 +40,17 @@ export type PositionAnchor = HTMLElement | VirtualAnchor;
  * A virtual anchor at client coordinates — what a context menu anchors to.
  * The rect is captured once: a moved pointer means a new `pointAnchor` (plus
  * `AnchorPositionHandle.update()` when already open), not a live rect.
+ *
+ * The rect is built structurally rather than with `new DOMRect(...)`: the
+ * constructor doesn't exist in non-DOM runtimes, and while positioning never
+ * RUNS on the server, a component may still construct its anchors there.
  */
 export function pointAnchor(x: number, y: number, size = 0): VirtualAnchor {
-    const rect = new DOMRect(x, y, size, size);
+    const rect = {
+        x, y, width: size, height: size,
+        top: y, left: x, right: x + size, bottom: y + size,
+        toJSON: () => ({ x, y, width: size, height: size }),
+    } as DOMRect;
     return { getBoundingClientRect: () => rect };
 }
 
