@@ -196,8 +196,13 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit }) => {
             // beats a permanently missing one.
             const sel = selected.value;
             if (sel !== '') {
-                const selNode = tree.find(sel);
-                if (selNode && !selNode.disabled()) return sel === value;
+                const selNode = tree.findNode(sel);
+                // Unregistered means "registers later this render pass" —
+                // the claim stands, or the initial render would hand a
+                // second stop to the first node. Registered-but-hidden (a
+                // collapsed ancestor) or disabled genuinely falls back.
+                if (!selNode) return sel === value;
+                if (!selNode.disabled() && tree.find(sel)) return sel === value;
             }
             return tree.enabledItems()[0]?.value === value;
         },
