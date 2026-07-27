@@ -132,7 +132,21 @@ for (const ds of DESIGN_SYSTEMS) {
                     const [l1, l2] = [luminance(a), luminance(b)].sort((x, y) => y - x);
                     return (l1 + 0.05) / (l2 + 0.05);
                 };
-                const hasInk = (c: string): boolean => !c.includes('transparent') && !/\/\s*0\)/.test(c) && c !== 'rgba(0, 0, 0, 0)';
+                /**
+                 * Exact alpha via canvas normalization: assigning fillStyle
+                 * canonicalizes any CSS color to `#rrggbb` (opaque) or
+                 * `rgba(r, g, b, a)` — no string-sniffing the many spellings
+                 * of transparent.
+                 */
+                const alphaOf = (c: string): number => {
+                    ctx.fillStyle = '#000';
+                    ctx.fillStyle = c;
+                    const s = String(ctx.fillStyle);
+                    if (s.startsWith('#')) return 1;
+                    const m = /rgba?\([^)]*[,\s\/]\s*([\d.]+)\s*\)$/.exec(s);
+                    return m ? parseFloat(m[1]) : 1;
+                };
+                const hasInk = (c: string): boolean => alphaOf(c) > 0;
 
                 const bodyBg = resolve(getComputedStyle(document.body).backgroundColor, [255, 255, 255]);
                 const out: { key: string; color: string; bg: string; ratio: number; disabled: boolean }[] = [];
