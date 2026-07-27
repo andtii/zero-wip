@@ -136,15 +136,33 @@ const partSelector = (scope: string, part: string): string =>
     `[data-scope="${scope}"][data-part="${part}"]`;
 
 /**
+ * A pseudo-element name: `::backdrop`, `::details-content`,
+ * `::-webkit-slider-thumb`. The suffix is written into a selector verbatim,
+ * so this is the same injection surface as axis values — anything else is a
+ * hard error, not something to escape.
+ */
+const PSEUDO_ELEMENT_PATTERN = /^::-?[a-z][a-z-]*$/;
+
+/**
  * Where a part's rules actually attach: itself, or — for a projected part
  * (`pseudo` in the anatomy) — the host part plus a pseudo-element suffix.
+ * The projection is manifest data, so it fails fast like unknown parts and
+ * states do: a missing host would silently emit selectors matching nothing,
+ * and a malformed suffix is selector injection.
  */
 function partProjection(
     component: ManifestComponent,
     partName: string,
 ): { host: string; suffix: string } {
     const part = findPart(component, partName);
-    return { host: part.pseudo?.of ?? partName, suffix: part.pseudo?.selector ?? '' };
+    if (!part.pseudo) return { host: partName, suffix: '' };
+    findPart(component, part.pseudo.of);
+    if (!PSEUDO_ELEMENT_PATTERN.test(part.pseudo.selector)) {
+        throw new Error(
+            `[zero-kit] "${component.scope}"."${partName}" projects onto "${part.pseudo.selector}", which is not a pseudo-element — it would be written into a selector verbatim`,
+        );
+    }
+    return { host: part.pseudo.of, suffix: part.pseudo.selector };
 }
 
 /**

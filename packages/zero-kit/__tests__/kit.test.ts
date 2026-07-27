@@ -163,6 +163,23 @@ describe('compileRecipeCss', () => {
         // The part's own name never reaches a selector — nothing renders it.
         expect(css).not.toContain('[data-part="backdrop"]');
     });
+
+    it('rejects a malformed pseudo projection like unknown parts and states', () => {
+        const styled = { component: 'demo', parts: { ghost: { base: { color: 'red' } } } };
+        const demo = (pseudo: { of: string; selector: string }): ManifestComponent => ({
+            scope: 'demo',
+            parts: [
+                { name: 'root', element: 'div', selectors: {} },
+                { name: 'ghost', element: 'div', selectors: {}, pseudo },
+            ],
+        });
+        // A missing host would silently emit selectors matching nothing.
+        expect(() => compileRecipeCss(styled, demo({ of: 'nope', selector: '::backdrop' })))
+            .toThrow(/unknown part "nope"/);
+        // A non-pseudo suffix is written into a selector verbatim — injection.
+        expect(() => compileRecipeCss(styled, demo({ of: 'root', selector: ', [data-part="x"]' })))
+            .toThrow(/not a pseudo-element/);
+    });
 });
 
 describe('the shipped design systems', () => {
