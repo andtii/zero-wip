@@ -1320,7 +1320,109 @@ export const toast: RecipeInput = {
     keyframes: rippleKeyframes('toast'),
 };
 
+export const combobox: RecipeInput = {
+    component: 'combobox',
+    parts: {
+        root: { base: { display: 'inline-flex', position: 'relative' } },
+        // Material's filled text field: rounded top, flat bottom, underline.
+        control: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                minWidth: '12rem',
+                background: 'var(--color-surface-container)',
+                color: 'var(--color-surface-container-content)',
+                borderBottom: '2px solid var(--color-outline)',
+                borderRadius: 'var(--radius-selector) var(--radius-selector) 0 0',
+                transition: motion('border-color'),
+            },
+            states: {
+                open: { borderBottomColor: 'var(--color-primary)' },
+                closed: {},
+                invalid: { borderBottomColor: 'var(--color-error)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                ...focusRing,
+            },
+        },
+        input: {
+            base: {
+                flex: '1',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-md)',
+                padding: 'var(--space-sm) var(--space-md)',
+            },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                readonly: {},
+                open: {},
+                closed: {},
+                invalid: {},
+                required: {},
+            },
+            selectors: {
+                '&::placeholder': { color: 'var(--color-outline)' },
+            },
+        },
+        trigger: withPresence(pressableCentered('combobox', '2.5rem'), {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--color-surface-container-content)',
+                opacity: '0.7',
+                padding: '0 var(--space-md)',
+                cursor: 'pointer',
+                transition: motion('transform'),
+            },
+            states: {
+                open: { transform: 'rotate(180deg)' },
+                closed: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        }),
+        popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } }),
+        item: withPresence(pressable('combobox'), {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-md)',
+                borderRadius: 'var(--radius-selector)',
+                fontSize: 'var(--text-sm)',
+                cursor: 'pointer',
+            },
+            states: {
+                highlighted: { background: 'var(--color-primary-soft)' },
+                selected: { background: 'var(--color-secondary-soft)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+            },
+        }),
+        'item-indicator': { base: { color: 'var(--color-primary)' } },
+        empty: {
+            base: {
+                padding: 'var(--space-md)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                textAlign: 'center',
+                color: 'var(--color-outline)',
+            },
+        },
+    },
+    // The visible ring lives on `control`; input and trigger delegate.
+    skipStates: {
+        input: ['focus-visible'],
+        trigger: ['focus-visible'],
+    },
+    keyframes: rippleKeyframes('combobox'),
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
-    switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast,
+    switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
 ];

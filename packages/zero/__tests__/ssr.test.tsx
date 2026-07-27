@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Avatar, Collapsible, Dialog, Switch, Tabs, Toast, createToaster, zeroPlugin } from '@sigx/zero';
+import { Avatar, Collapsible, Combobox, Dialog, Switch, Tabs, Toast, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -31,6 +31,15 @@ function page() {
                 <Avatar.Fallback>ME</Avatar.Fallback>
             </Avatar.Root>
             <Toast.Viewport toaster={createToaster()} />
+            <Combobox.Root name="fruit" defaultValue="apple">
+                <Combobox.Control>
+                    <Combobox.Input />
+                    <Combobox.Trigger />
+                </Combobox.Control>
+                <Combobox.Popup>
+                    <Combobox.Item value="apple">Apple</Combobox.Item>
+                </Combobox.Popup>
+            </Combobox.Root>
         </div>
     );
 }
@@ -67,5 +76,8 @@ describe('SSR', () => {
         // The toast viewport server-renders as an empty top-layer region.
         expect(html).toMatch(/<ol[^>]*data-scope="toast"[^>]*popover="manual"/);
         expect(html).not.toMatch(/data-scope="toast"[^>]*data-part="root"/);
+        // The combobox posts pre-hydration and renders its popup closed.
+        expect(html).toMatch(/data-scope="combobox"[^>]*data-part="hidden-input"[^>]*value="apple"/);
+        expect(html).toMatch(/data-scope="combobox"[^>]*data-part="popup"[^>]*data-state="closed"/);
     });
 });

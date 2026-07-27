@@ -1151,7 +1151,124 @@ export const toast: RecipeInput = {
     },
 };
 
+export const combobox: RecipeInput = {
+    component: 'combobox',
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column' },
+        },
+        // The field chrome lives on the box wrapping input + trigger; the
+        // focus ring draws here from the input's forwarded focus-visible.
+        control: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                minWidth: '12rem',
+                background: 'var(--color-base-100)',
+                border: 'var(--border) solid var(--color-base-300)',
+                borderRadius: 'var(--radius-field)',
+            },
+            states: {
+                hover: { borderColor: 'var(--color-base-content)' },
+                open: { borderColor: 'var(--color-primary)' },
+                closed: {},
+                invalid: { borderColor: 'var(--color-error)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                ...focusRing,
+            },
+        },
+        input: {
+            base: {
+                flex: '1',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                fontSize: 'var(--text-sm)',
+                padding: '0.5rem 0.75rem',
+            },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                readonly: {},
+                open: {},
+                closed: {},
+                invalid: {},
+                required: {},
+            },
+            selectors: {
+                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' },
+            },
+        },
+        trigger: {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                opacity: '0.6',
+                padding: '0 0.625rem',
+                cursor: 'pointer',
+                transition: 'transform var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                open: { transform: 'rotate(180deg)' },
+                closed: {},
+                disabled: { cursor: 'not-allowed' },
+            },
+        },
+        popup: withPresence(popupPresence('translateY(-4px)'), {
+            base: {
+                padding: 'var(--space-sm)',
+                minWidth: '12rem',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--color-base-300)',
+                borderRadius: 'var(--radius-box)',
+                boxShadow: 'var(--shadow-md)',
+            },
+            states: { open: {}, closed: {} },
+        }),
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 'var(--space-md)',
+                padding: '0.375rem 0.625rem',
+                fontSize: 'var(--text-sm)',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+            },
+            states: {
+                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                selected: { fontWeight: 'var(--weight-semibold)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        'item-indicator': {
+            base: { fontSize: 'var(--text-xs)' },
+            states: { selected: {} },
+        },
+        empty: {
+            base: {
+                padding: 'var(--space-md)',
+                fontSize: 'var(--text-sm)',
+                textAlign: 'center',
+                color: 'color-mix(in oklab, var(--color-base-content) 55%, transparent)',
+            },
+        },
+    },
+    // The visible ring lives on `control`; input and trigger delegate.
+    skipStates: {
+        input: ['focus-visible'],
+        trigger: ['focus-visible'],
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
-    field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast,
+    field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
 ];

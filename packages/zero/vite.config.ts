@@ -26,7 +26,8 @@ export default defineLibConfig({
         'components/accordion/index': 'src/components/accordion/index.ts',
         'components/select/index': 'src/components/select/index.ts',
         'components/avatar/index': 'src/components/avatar/index.ts',
-        'components/toast/index': 'src/components/toast/index.ts'
+        'components/toast/index': 'src/components/toast/index.ts',
+        'components/combobox/index': 'src/components/combobox/index.ts'
     },
     external: ['sigx', 'sigx/jsx-runtime', 'sigx/jsx-dev-runtime'],
     jsx: true

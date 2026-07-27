@@ -260,7 +260,8 @@ component's anatomy). No component code is ever written or changed.
      it.** CSS can see `:active` but not *where* a press landed, so on parts
      whose anatomy declares the `pressed` flag zero writes the data below.
      Publishing parts: button root; tabs tab; dialog/popover trigger+close;
-     menu trigger+item+sub-trigger; select trigger+item (the item is pointer-only —
+     menu trigger+item+sub-trigger; combobox trigger+item; select
+     trigger+item (select and combobox items are pointer-only —
      keyboard selection stays on the trigger via aria-activedescendant, so
      item ripples fire for pointer presses only); toast action+close;
      collapsible/accordion trigger;

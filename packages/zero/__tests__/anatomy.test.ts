@@ -28,7 +28,7 @@ describe('defineAnatomy', () => {
 describe('anatomy registry', () => {
     it('contains every component', () => {
         expect(Object.keys(anatomies).sort()).toEqual([
-            'accordion', 'avatar', 'button', 'checkbox', 'collapsible', 'dialog', 'field', 'menu',
+            'accordion', 'avatar', 'button', 'checkbox', 'collapsible', 'combobox', 'dialog', 'field', 'menu',
             'popover',
             'progress', 'radio-group', 'select', 'slider', 'switch', 'tabs', 'toast', 'tooltip',
         ]);

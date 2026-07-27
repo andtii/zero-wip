@@ -25,8 +25,9 @@
   surface (slider) attaches no pointerleave at all: a window-level release
   listener ends the press wherever the pointer lets go.
   Publishing parts: button root; tabs tab; dialog/popover trigger+close;
-  menu trigger+item; select trigger (item is pointer-only — keyboard
-  selection lives on the trigger); collapsible/accordion trigger;
+  menu trigger+item; select trigger+item and combobox trigger+item (items
+  are pointer-only — keyboard selection lives on the trigger/input via
+  aria-activedescendant); collapsible/accordion trigger;
   switch/checkbox control and radio-group item-control (press anywhere in
   the label row lands on the control; Space via the hidden input);
   slider input (`data-pressed` only — a drag has no one-shot).
@@ -91,7 +92,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-Seventeen components ship today. Every part each renders is listed below, in
+Eighteen components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -168,9 +169,28 @@ component renders; the root is called out separately where it carries props.
   longest transition/animation ends. Style the plain two-state transition;
   never `@starting-style`/`allow-discrete` on toast parts, and gate any
   viewport `display` behind `&:popover-open`.
+- Combobox: Root(model=value, model:inputValue, model:open)/Control/Input/
+  Trigger/Popup/Item(asChild)/ItemIndicator/Empty/HiddenInput. APG editable
+  combobox: focus stays in the real <input> (role=combobox,
+  aria-autocomplete=list, aria-activedescendant); Control is the field
+  chrome wrapping input + trigger and mirrors open/invalid/focus-visible so
+  the ring draws on the box. FILTERING IS THE CONSUMER'S: render only the
+  items matching `model:inputValue` and render Empty yourself — zero
+  registers/highlights/selects and prunes a highlight whose item unmounts.
+  The popup is popover="manual" + the dismiss layer (native auto light
+  dismiss would close on a caret click). No data-placeholder on the input —
+  use :placeholder-shown. Home/End stay with the text caret.
+
+Named models (first used by Combobox; the convention for every multi-state
+component): a component has exactly ONE unnamed `model` — its essential
+value, what `hidden-input` posts. Every additional controllable state is a
+named model bound as `model:<stateName>` in JSX (sigx
+`Define.Model<'<stateName>', T>`), each keeping the standard companions
+`default<StateName>` + `<stateName>Change`. Combobox: `model` = selected
+value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Button, Tabs, Switch,
-Checkbox, RadioGroup, Slider, Progress and Select; they pass through as
+Checkbox, RadioGroup, Slider, Progress, Select and Combobox; they pass through as
 data-* and zero attaches no styling to them. Button is the worked example:
 route `color` through a component token pair (`--btn-accent` and its
 content colour) that the `variant` rules read, so the two axes compose
