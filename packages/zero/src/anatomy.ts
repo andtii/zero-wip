@@ -29,12 +29,14 @@ import { comboboxAnatomy } from './components/combobox/anatomy.js';
 import { toggleAnatomy } from './components/toggle/anatomy.js';
 import { toggleGroupAnatomy } from './components/toggle-group/anatomy.js';
 import { numberInputAnatomy } from './components/number-input/anatomy.js';
+import { ratingGroupAnatomy } from './components/rating-group/anatomy.js';
 
 export {
     buttonAnatomy,
     tabsAnatomy, collapsibleAnatomy, switchAnatomy, dialogAnatomy, popoverAnatomy, tooltipAnatomy, menuAnatomy,
     fieldAnatomy, checkboxAnatomy, radioGroupAnatomy, progressAnatomy, sliderAnatomy, accordionAnatomy, selectAnatomy,
     avatarAnatomy, toastAnatomy, comboboxAnatomy, toggleAnatomy, toggleGroupAnatomy, numberInputAnatomy,
+    ratingGroupAnatomy,
 };
 
 export const anatomies: Record<string, Anatomy> = {
@@ -59,4 +61,5 @@ export const anatomies: Record<string, Anatomy> = {
     toggle: toggleAnatomy,
     'toggle-group': toggleGroupAnatomy,
     'number-input': numberInputAnatomy,
+    'rating-group': ratingGroupAnatomy,
 };

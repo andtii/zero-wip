@@ -204,6 +204,18 @@ component renders; the root is called out separately where it carries props.
   focus-visible). hidden-input posts canonical String(value) — the visible
   input never carries name, so format can't corrupt form data. Empty
   commits null, never 0. Triggers are tabIndex=-1 satellites.
+- RatingGroup: Root(model=number 0=none, count=5, allowHalf, deselectable,
+  name/required/invalid/readonly)/Label/Control(role=radiogroup)/
+  Item(index — explicit children 1..count, zero owns no iteration)/
+  HiddenInput. Item's data-state is the ONE 3-value set: full|half|empty,
+  driven by the DISPLAYED value (hover preview ?? committed);
+  data-highlighted marks the preview range; the default slot receives
+  { state, highlighted } for SVG swapping (text-star fallback). Keyboard
+  moves the VALUE, not element focus (allowHalf: two values per element):
+  single tab stop at ceil(value), arrows ±step (0.5 with allowHalf), Home
+  = smallest step, End = count, RTL flips horizontal. Pointer x decides
+  halves; tap commits with the same math; pointerleave on control clears
+  the preview.
 - Toggle: Root(model=pressed, defaultPressed, label, asChild) — one
   two-state <button> (aria-pressed, data-state on|off; `label` →
   aria-label for icon-only toggles). A mode you flip, not a form value

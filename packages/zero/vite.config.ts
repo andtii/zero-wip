@@ -30,7 +30,8 @@ export default defineLibConfig({
         'components/combobox/index': 'src/components/combobox/index.ts',
         'components/toggle/index': 'src/components/toggle/index.ts',
         'components/toggle-group/index': 'src/components/toggle-group/index.ts',
-        'components/number-input/index': 'src/components/number-input/index.ts'
+        'components/number-input/index': 'src/components/number-input/index.ts',
+        'components/rating-group/index': 'src/components/rating-group/index.ts'
     },
     external: ['sigx', 'sigx/jsx-runtime', 'sigx/jsx-dev-runtime'],
     jsx: true

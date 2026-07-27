@@ -1682,8 +1682,79 @@ export const numberInput: RecipeInput = {
     keyframes: rippleKeyframes('number-input'),
 };
 
+// ── Rating group ──────────────────────────────────────────────────────────
+/**
+ * Radio semantics over a row of glyphs. The item's content is a text star,
+ * so colour and font-size ARE the fill: primary once full/half (the same
+ * selected ink as every other selection control here), outline while empty
+ * (Material's inactive hairline tone). A glyph can't host a bounded state
+ * layer, so `highlighted` — the hover preview range — reads as a subtle
+ * scale emphasis instead, with the reduced-motion guard that implies.
+ */
+export const ratingGroup: RecipeInput = {
+    component: 'rating-group',
+    tokens: { '--rating-size': 'var(--text-xl)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { ...label, color: 'var(--color-base-content)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--color-error)' },
+                required: {},
+            },
+            selectors: { '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' } },
+        },
+        // role=radiogroup — one tab stop, so the group ring is the focus
+        // indicator, drawn Material-style around the whole row.
+        control: {
+            base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-2xs)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                readonly: {},
+                'focus-visible': {
+                    outline: '3px solid var(--color-secondary)',
+                    outlineOffset: '2px',
+                    borderRadius: 'var(--radius-selector)',
+                },
+            },
+        },
+        item: {
+            base: {
+                fontSize: 'var(--rating-size)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                userSelect: 'none',
+                color: 'var(--color-outline)',
+                transition: motion('color, transform'),
+            },
+            states: {
+                full: { color: 'var(--color-primary)' },
+                half: { color: 'var(--color-primary)' },
+                empty: {},
+                highlighted: { transform: 'scale(1.12)' },
+                disabled: { cursor: 'not-allowed' },
+                readonly: { cursor: 'default' },
+                // The group ring lives on control; the value-following tab
+                // stop still gets a discernible per-item marker.
+                'focus-visible': {
+                    outline: '2px solid var(--color-secondary)',
+                    outlineOffset: '1px',
+                    borderRadius: 'var(--radius-selector)',
+                },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' }, states: { highlighted: { transform: 'none' } } },
+            },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput,
+    toggle, toggleGroup, numberInput, ratingGroup,
 ];

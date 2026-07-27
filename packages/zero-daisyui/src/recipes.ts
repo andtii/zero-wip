@@ -1555,8 +1555,85 @@ export const numberInput: RecipeInput = {
     skipStates: { input: ['focus-visible'] },
 };
 
+// daisy "rating" flavor: a row of orange filled symbols. The default content
+// is a text star, so `color` + `font-size` carry the whole visual.
+export const ratingGroup: RecipeInput = {
+    component: 'rating-group',
+    tokens: {
+        '--rating-size': 'calc(var(--size-selector) * 6)',
+        // daisy's rating orange, deepened toward its content pair: raw
+        // `--color-warning` sits at 1.62:1 on light base-100 — a nearly
+        // invisible star. The 70/30 oklab mix keeps the warning hue and
+        // clears 3:1 against base-100 in both schemes (3.36:1 light,
+        // 4.71:1 dark).
+        '--rating-fill': 'color-mix(in oklab, var(--color-warning) 70%, var(--color-warning-content))',
+    },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-sm)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--color-error)' },
+                required: {},
+            },
+        },
+        control: {
+            base: { display: 'inline-flex', gap: 'var(--space-2xs)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                readonly: {},
+                'focus-visible': {
+                    outline: '2px solid var(--color-base-content)',
+                    outlineOffset: '2px',
+                    borderRadius: 'var(--radius-selector)',
+                },
+            },
+        },
+        item: {
+            base: {
+                fontSize: 'var(--rating-size)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                userSelect: 'none',
+                color: 'color-mix(in oklab, var(--color-base-content) 20%, transparent)',
+                transition: 'color var(--duration-fast) var(--ease-standard), '
+                    + 'transform var(--duration-fast) var(--ease-standard), '
+                    + 'filter var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                full: { color: 'var(--rating-fill)' },
+                half: { color: 'var(--rating-fill)' },
+                empty: {},
+                // The hover-preview range: daisy scales and brightens the
+                // symbols under the pointer.
+                highlighted: { transform: 'scale(1.15)', filter: 'brightness(1.1)' },
+                disabled: { cursor: 'not-allowed' },
+                readonly: { cursor: 'default' },
+                // The group ring lives on control; per-item focus still gets
+                // a marker for the value-following tab stop.
+                'focus-visible': {
+                    outline: '2px solid var(--color-base-content)',
+                    outlineOffset: '1px',
+                    borderRadius: 'var(--radius-selector)',
+                },
+            },
+            at: {
+                // The brightness lift stays — only the motion goes.
+                'reduced-motion': {
+                    base: { transition: 'none' },
+                    states: { highlighted: { transform: 'none' } },
+                },
+            },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput,
+    toggle, toggleGroup, numberInput, ratingGroup,
 ];

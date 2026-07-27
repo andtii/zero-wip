@@ -126,5 +126,15 @@
             "sigx/jsx-runtime",
             "sigx/jsx-dev-runtime"
         ]
+    },
+    {
+        "name": "@sigx/zero/rating-group",
+        "path": "packages/zero/dist/components/rating-group/index.js",
+        "limit": "3 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
     }
 ]

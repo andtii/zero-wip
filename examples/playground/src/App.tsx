@@ -2,7 +2,7 @@ import { component, signal } from 'sigx';
 import type { PartProps } from '@sigx/zero';
 import {
     Accordion, Avatar, Button, Checkbox, Collapsible, Combobox, Dialog, Field, Menu, NumberInput, Popover,
-    Progress, RadioGroup, Select, Slider, Switch, Tabs, Toast, Toggle, ToggleGroup, Tooltip, toast,
+    Progress, RadioGroup, RatingGroup, Select, Slider, Switch, Tabs, Toast, Toggle, ToggleGroup, Tooltip, toast,
 } from '@sigx/zero';
 import { Toolbar } from './Toolbar';
 
@@ -36,6 +36,7 @@ export const App = component(() => {
         countryOpen: false,
         align: ['left'] as string[],
         qty: 2 as number | null,
+        stars: 3.5,
     });
 
     return () => (
@@ -386,6 +387,36 @@ export const App = component(() => {
                         <Progress.Track><Progress.Range /></Progress.Track>
                         <Progress.ValueText />
                     </Progress.Root>
+
+                    <h2>RatingGroup</h2>
+                    <p>
+                        Radio semantics with fractional display: hover previews without
+                        committing (<code>data-highlighted</code> marks the range), the
+                        pointer x decides halves with <code>allowHalf</code>, and the
+                        keyboard moves the <em>value</em> — one tab stop that rides{' '}
+                        <code>ceil(value)</code>.
+                    </p>
+                    <p style={{ display: 'flex', gap: '2rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                        <RatingGroup.Root model={() => state.stars} allowHalf name="stars">
+                            <RatingGroup.Label>Rate this (halves)</RatingGroup.Label>
+                            <RatingGroup.Control>
+                                {[1, 2, 3, 4, 5].map((i) => <RatingGroup.Item index={i} />)}
+                            </RatingGroup.Control>
+                        </RatingGroup.Root>
+                        <RatingGroup.Root defaultValue={4} deselectable>
+                            <RatingGroup.Label>Whole stars, deselectable</RatingGroup.Label>
+                            <RatingGroup.Control>
+                                {[1, 2, 3, 4, 5].map((i) => <RatingGroup.Item index={i} />)}
+                            </RatingGroup.Control>
+                        </RatingGroup.Root>
+                        <RatingGroup.Root defaultValue={3.5} allowHalf readonly>
+                            <RatingGroup.Label>Readonly average</RatingGroup.Label>
+                            <RatingGroup.Control>
+                                {[1, 2, 3, 4, 5].map((i) => <RatingGroup.Item index={i} />)}
+                            </RatingGroup.Control>
+                        </RatingGroup.Root>
+                    </p>
+                    <p><small>Model: <code>{state.stars}</code></small></p>
 
                     <h2>Accordion</h2>
                     <Accordion.Root defaultValue={['one']}>

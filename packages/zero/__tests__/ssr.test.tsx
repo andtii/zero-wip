@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Avatar, Collapsible, Combobox, Dialog, NumberInput, Switch, Tabs, Toast, ToggleGroup, createToaster, zeroPlugin } from '@sigx/zero';
+import { Avatar, Collapsible, Combobox, Dialog, NumberInput, RatingGroup, Switch, Tabs, Toast, ToggleGroup, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -52,6 +52,14 @@ function page() {
                     <NumberInput.IncrementTrigger>+</NumberInput.IncrementTrigger>
                 </NumberInput.Control>
             </NumberInput.Root>
+            <RatingGroup.Root name="stars" defaultValue={2.5} allowHalf>
+                <RatingGroup.Label>Stars</RatingGroup.Label>
+                <RatingGroup.Control>
+                    <RatingGroup.Item index={1} />
+                    <RatingGroup.Item index={2} />
+                    <RatingGroup.Item index={3} />
+                </RatingGroup.Control>
+            </RatingGroup.Root>
         </div>
     );
 }
@@ -98,5 +106,8 @@ describe('SSR', () => {
         // The number input posts pre-hydration and renders the committed value.
         expect(html).toMatch(/data-scope="number-input"[^>]*data-part="hidden-input"[^>]*value="3"/);
         expect(html).toMatch(/role="spinbutton"[^>]*data-scope="number-input"[^>]*data-part="input"/);
+        // Rating renders the fractional display server-side and posts it.
+        expect(html).toMatch(/data-scope="rating-group"[^>]*data-part="item"[^>]*data-state="half"/);
+        expect(html).toMatch(/data-scope="rating-group"[^>]*data-part="hidden-input"[^>]*value="2.5"/);
     });
 });

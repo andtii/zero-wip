@@ -111,6 +111,10 @@
         "./number-input": {
             "types": "./dist/components/number-input/index.d.ts",
             "import": "./dist/components/number-input/index.js"
+        },
+        "./rating-group": {
+            "types": "./dist/components/rating-group/index.d.ts",
+            "import": "./dist/components/rating-group/index.js"
         }
     },
     "files": [

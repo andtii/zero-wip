@@ -1247,8 +1247,63 @@ export const numberInput: RecipeInput = {
     skipStates: { input: ['focus-visible'] },
 };
 
+export const ratingGroup: RecipeInput = {
+    component: 'rating-group',
+    tokens: { '--rating-size': 'var(--text-xl)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { ...label, fontSize: 'var(--text-xs)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--color-error)' },
+                required: {},
+            },
+            selectors: { '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' } },
+        },
+        control: {
+            base: { display: 'inline-flex', gap: 'var(--space-2xs)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                readonly: {},
+                ...focusRing,
+            },
+        },
+        item: {
+            base: {
+                fontSize: 'var(--rating-size)',
+                lineHeight: '1',
+                fontWeight: 'var(--weight-bold)',
+                cursor: 'pointer',
+                userSelect: 'none',
+                // Empty is the ink at outline strength — same hue, faded hard,
+                // so full vs empty reads as stamped vs ghosted.
+                color: 'color-mix(in oklab, var(--color-base-content) 30%, transparent)',
+                transition: motion('color, background'),
+            },
+            states: {
+                full: { color: 'var(--color-base-content)' },
+                half: { color: 'var(--color-base-content)' },
+                empty: {},
+                // Hover preview: a hard wash behind the glyph. Brutalism does
+                // not swell — no scaling.
+                highlighted: { background: 'var(--color-base-200)' },
+                disabled: { cursor: 'not-allowed' },
+                readonly: { cursor: 'default' },
+                // The group ring lives on control; the value-following tab
+                // stop still gets its own tight frame.
+                'focus-visible': { outline: 'var(--border) solid var(--color-primary)', outlineOffset: '1px' },
+            },
+        },
+        'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput,
+    toggle, toggleGroup, numberInput, ratingGroup,
 ];
