@@ -415,7 +415,9 @@ const NumberInputInput = component<NumberInputInputProps>(({ props }) => {
             onWheel={(e: WheelEvent) => {
                 // Focus-gated: a wheel over an unfocused input keeps
                 // scrolling the page.
-                if (!ctx.allowWheel() || document.activeElement !== el) return;
+                // deltaY 0 is a horizontal scroll — not a step in either
+                // direction.
+                if (!ctx.allowWheel() || e.deltaY === 0 || document.activeElement !== el) return;
                 e.preventDefault();
                 ctx.stepBy(e.deltaY < 0 ? 1 : -1);
             }}

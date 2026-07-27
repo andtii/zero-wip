@@ -276,6 +276,15 @@ describe('NumberInput', () => {
         expect(state.qty).toBe(5);
     });
 
+    it('a horizontal wheel (deltaY 0) does not step', () => {
+        const state = signal({ qty: 5 as number | null });
+        mount(container, { model: [state, 'qty'], allowWheel: true });
+        const el = input(container);
+        el.focus();
+        el.dispatchEvent(new WheelEvent('wheel', { deltaY: 0, deltaX: 40, bubbles: true, cancelable: true }));
+        expect(state.qty).toBe(5);
+    });
+
     it('wheel is off by default', () => {
         const state = signal({ qty: 5 as number | null });
         mount(container, { model: [state, 'qty'] });
