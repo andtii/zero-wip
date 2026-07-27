@@ -205,6 +205,38 @@ component's anatomy). No component code is ever written or changed.
      instant, which the validator warns about because nothing else would tell
      you. (`overlay` is Chromium-only as of writing; elsewhere the exit
      degrades to instant.)
+   - **Toast presence is runtime-managed — the one exception to the rule
+     above. Do NOT use `@starting-style`/`allow-discrete` on toast parts.**
+     Toasts must eventually unmount (popups never do), so zero drives their
+     presence: a toast root mounts as `closed`, flips to `open` a frame
+     later, and after `dismiss()` stays mounted as `closed` until its longest
+     computed transition/animation finishes (instantly when there is none —
+     reduced motion included, in every engine). Style the plain two-state
+     transition and both directions work everywhere:
+     ```ts
+     root: {
+         base: {
+             opacity: '0',
+             transform: 'translateY(8px)',
+             transition: 'opacity var(--duration-normal) var(--ease-standard), '
+                 + 'transform var(--duration-normal) var(--ease-standard)',
+         },
+         states: { open: { opacity: '1', transform: 'none' } },
+         at: { 'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } } },
+     }
+     ```
+     The `viewport` is a `popover="manual"` top layer that zero shows while
+     any toast is mounted. Override the UA popover defaults (`position:
+     fixed`, `inset: auto`, `margin: 0`, `border`, `background`) and position
+     it from `data-placement` (`top-start|top|top-end|bottom-start|bottom|
+     bottom-end`, also mirrored on each root, so the enter direction can
+     follow the edge). Gate any `display` you set behind `&:popover-open` —
+     an unconditional one would defeat the UA's hiding of the closed
+     popover. Stacked/offset effects key on the published `--toast-index` /
+     `--toast-count` custom properties, the same contract idea as
+     `--press-*`. The toast root also carries `data-color` per toast, so a
+     `variants.color` block routing roles through a component token is the
+     natural shape.
    - **A disclosure panel animates through `::details-content`.** Collapsible
      and Accordion are native `<details>`, so the height animation belongs on
      the browser's own wrapper, with `interpolate-size` making `auto` a legal
@@ -230,8 +262,8 @@ component's anatomy). No component code is ever written or changed.
      Publishing parts: button root; tabs tab; dialog/popover trigger+close;
      menu trigger+item; select trigger+item (the item is pointer-only —
      keyboard selection stays on the trigger via aria-activedescendant, so
-     item ripples fire for pointer presses only); collapsible/accordion
-     trigger;
+     item ripples fire for pointer presses only); toast action+close;
+     collapsible/accordion trigger;
      switch/checkbox `control` and radio-group `item-control` (the press
      lands anywhere in the label row, the feedback on the control); slider
      input (`data-pressed` only — a drag has no one-shot). Lifecycle: a

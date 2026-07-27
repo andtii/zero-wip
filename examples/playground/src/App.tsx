@@ -1,7 +1,7 @@
 import { component, signal } from 'sigx';
 import {
     Accordion, Avatar, Button, Checkbox, Collapsible, Dialog, Field, Menu, Popover, Progress,
-    RadioGroup, Select, Slider, Switch, Tabs, Tooltip,
+    RadioGroup, Select, Slider, Switch, Tabs, Toast, Tooltip, toast,
 } from '@sigx/zero';
 import { Toolbar } from './Toolbar';
 
@@ -30,6 +30,7 @@ export const App = component(() => {
         <main style={{ maxWidth: '40rem', margin: '2rem auto', fontFamily: 'system-ui, sans-serif', padding: '0 1rem' }}>
             <h1>SignalX Zero playground</h1>
             <Toolbar />
+            <Toast.Viewport placement="bottom-end" />
 
             <Tabs.Root model={() => state.tab}>
                 <Tabs.List>
@@ -141,6 +142,35 @@ export const App = component(() => {
                             <Menu.Item value="delete">Delete…</Menu.Item>
                         </Menu.Popup>
                     </Menu.Root>
+
+                    <h2>Toast</h2>
+                    <p>
+                        An imperative queue behind a <code>popover="manual"</code> top
+                        layer. Presence is runtime-managed — the enter/exit transition
+                        is plain two-state CSS, and the node unmounts once the exit
+                        finishes. Hover the stack to pause auto-dismiss.
+                    </p>
+                    <p style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <Button.Root onClick={() => toast({ title: 'Saved', description: 'Your changes are safe.', color: 'success' })}>
+                            Success toast
+                        </Button.Root>
+                        <Button.Root color="error" onClick={() => toast({ title: 'Sync failed', description: 'Retrying in 30s.', color: 'error', role: 'alert' })}>
+                            Error alert
+                        </Button.Root>
+                        <Button.Root variant="outline" onClick={() => {
+                            const started = toast({ title: 'Uploading…', duration: Infinity });
+                            setTimeout(() => toast({ id: started, title: 'Upload complete', color: 'success', duration: 4000 }), 1500);
+                        }}>
+                            Progress → done
+                        </Button.Root>
+                        <Button.Root variant="outline" onClick={() => toast({
+                            title: 'Undoable action',
+                            action: { label: 'Undo', onClick: () => toast({ title: 'Undone', color: 'info' }) },
+                            duration: 8000,
+                        })}>
+                            With action
+                        </Button.Root>
+                    </p>
 
                     <h2>Dialog</h2>
                     <Dialog.Root model={() => state.dialogOpen}>

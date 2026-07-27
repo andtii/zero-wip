@@ -154,7 +154,7 @@ describe('the shipped design systems', () => {
         expect(Object.keys(compiled.componentCss).sort()).toEqual([
             'accordion', 'avatar', 'button', 'checkbox', 'collapsible', 'dialog', 'field', 'menu',
             'popover', 'progress', 'radio-group', 'select', 'slider', 'switch', 'tabs',
-            'tooltip',
+            'toast', 'tooltip',
         ]);
         expect(compiled.indexCss).toContain('@layer zero.tokens');
         expect(compiled.themes.length).toBe(2);

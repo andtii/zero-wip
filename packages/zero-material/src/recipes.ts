@@ -1173,7 +1173,126 @@ export const avatar: RecipeInput = {
     },
 };
 
+/**
+ * Toast presence is runtime-managed — plain two-state transitions, no
+ * `@starting-style`/`allow-discrete`. The M3 snackbar: a raised
+ * surface-container card sliding in from the nearest edge, ripples on its
+ * buttons.
+ */
+export const toast: RecipeInput = {
+    component: 'toast',
+    tokens: {
+        '--toast-accent': 'var(--color-primary)',
+        '--toast-from': '8px',
+    },
+    parts: {
+        viewport: {
+            base: {
+                position: 'fixed',
+                inset: 'auto',
+                margin: '0',
+                padding: 'var(--space-lg)',
+                border: 'none',
+                background: 'transparent',
+                overflow: 'visible',
+                width: 'min(24rem, 100vw)',
+                listStyle: 'none',
+                flexDirection: 'column',
+                gap: 'var(--space-sm)',
+                pointerEvents: 'none',
+            },
+            selectors: {
+                '&:popover-open': { display: 'flex' },
+                '&[data-placement="top-start"]': { top: '0', left: '0' },
+                '&[data-placement="top"]': { top: '0', left: '50%', transform: 'translateX(-50%)' },
+                '&[data-placement="top-end"]': { top: '0', right: '0' },
+                '&[data-placement="bottom-start"]': { bottom: '0', left: '0', flexDirection: 'column-reverse' },
+                '&[data-placement="bottom"]': { bottom: '0', left: '50%', transform: 'translateX(-50%)', flexDirection: 'column-reverse' },
+                '&[data-placement="bottom-end"]': { bottom: '0', right: '0', flexDirection: 'column-reverse' },
+            },
+        },
+        root: {
+            base: {
+                ...raised('level3'),
+                pointerEvents: 'auto',
+                display: 'grid',
+                gridTemplateColumns: '1fr auto auto',
+                alignItems: 'center',
+                columnGap: 'var(--space-md)',
+                padding: 'var(--space-md) var(--space-lg)',
+                borderRadius: 'var(--radius-field)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                opacity: '0',
+                transform: 'translateY(var(--toast-from))',
+                transition: 'opacity var(--duration-normal) var(--ease-emphasized), '
+                    + 'transform var(--duration-normal) var(--ease-emphasized)',
+            },
+            selectors: {
+                '&[data-placement^="top"]': { '--toast-from': '-8px' },
+            },
+            states: {
+                open: { opacity: '1', transform: 'none' },
+                closed: {},
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+            },
+        },
+        title: {
+            base: { gridColumn: '1', ...label },
+        },
+        description: {
+            base: {
+                gridColumn: '1',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklab, var(--color-surface-container-high-content) 80%, transparent)',
+            },
+        },
+        action: withPresence(pressable('toast', 'var(--toast-accent)'), {
+            base: {
+                gridColumn: '2',
+                gridRow: '1',
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--toast-accent)',
+                borderRadius: '624rem',
+                padding: 'var(--space-2xs) var(--space-md)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                cursor: 'pointer',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' }, ...focusRing },
+        }),
+        close: withPresence(pressable('toast', 'var(--color-surface-container-high-content)'), {
+            base: {
+                gridColumn: '3',
+                gridRow: '1',
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--color-surface-container-high-content)',
+                borderRadius: '624rem',
+                padding: 'var(--space-2xs) var(--space-xs)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                cursor: 'pointer',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' }, ...focusRing },
+        }),
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((role) => [
+            role,
+            { root: { base: { '--toast-accent': `var(--color-${role})` } } },
+        ])),
+    },
+    keyframes: rippleKeyframes('toast'),
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
-    switchRecipe, checkbox, radioGroup, field, slider, progress, avatar,
+    switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast,
 ];

@@ -22,7 +22,10 @@ export function expectAnatomy(container: HTMLElement, anatomy: Anatomy): void {
         }
 
         for (const attr of el.getAttributeNames()) {
-            if (!attr.startsWith('data-') || ['data-scope', 'data-part', 'data-state', 'data-orientation', 'data-color', 'data-size', 'data-variant'].includes(attr)) continue;
+            // data-placement is published positioning data, not a flag: the
+            // fixed position strategy writes it on open floats, and toast
+            // parts carry it for placement-keyed styling.
+            if (!attr.startsWith('data-') || ['data-scope', 'data-part', 'data-state', 'data-orientation', 'data-color', 'data-size', 'data-variant', 'data-placement'].includes(attr)) continue;
             const flag = attr.slice(5);
             expect(spec!.flags ?? [], `part "${partName}" declares flag "${flag}"`).toContain(flag);
             expect(el.getAttribute(attr), `flag ${attr} is presence-only`).toBe('');

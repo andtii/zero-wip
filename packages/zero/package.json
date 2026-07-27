@@ -91,6 +91,10 @@
         "./avatar": {
             "types": "./dist/components/avatar/index.d.ts",
             "import": "./dist/components/avatar/index.js"
+        },
+        "./toast": {
+            "types": "./dist/components/toast/index.d.ts",
+            "import": "./dist/components/toast/index.js"
         }
     },
     "files": [
