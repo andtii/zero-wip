@@ -265,7 +265,12 @@ const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots })
             // open a task later so the gesture's input processing is fully
             // done before showPopover().
             const openDeferred = (): void => {
-                setTimeout(() => menu.openAt(clientX, clientY), 0);
+                setTimeout(() => {
+                    // The world may have moved during the deferral: a
+                    // disabled or unmounted surface no longer opens.
+                    if (props.disabled || !el?.isConnected) return;
+                    menu.openAt(clientX, clientY);
+                }, 0);
             };
             if (e.buttons !== 0) {
                 // Paired teardown: a canceled gesture (or one that never

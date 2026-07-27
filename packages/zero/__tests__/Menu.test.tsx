@@ -311,6 +311,14 @@ describe('Menu submenus', () => {
         expect(subPopups[1]!.getAttribute('data-state')).toBe('open');
         expectAnatomy(container, menuAnatomy);
     });
+});
+
+describe('Menu.ContextTrigger', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
 
     function mountContext(extra: { disabled?: boolean } = {}) {
         render(
