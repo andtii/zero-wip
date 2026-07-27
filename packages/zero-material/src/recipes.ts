@@ -718,9 +718,9 @@ export const menu: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
-            selectors: {
-                '&::after': { content: '"\\203A"', marginLeft: 'auto', color: 'var(--color-outline)' },
-            },
+            // No pseudo-element chevron here: pressable() owns BOTH ::before
+            // (state layer) and ::after (ripple). The open-state layer is the
+            // affordance; a chevron is content the app supplies.
         }),
         'sub-popup': withPresence(popupPresence('translateX(-4px) scale(0.95)'), {
             base: { ...floating, minWidth: '12rem' },

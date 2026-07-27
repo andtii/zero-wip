@@ -190,7 +190,7 @@
     }
 
     [data-scope="menu"][data-part="sub-trigger"]::after {
-        content: "\203A";
+        content: "";
         position: absolute;
         left: var(--press-x, 50%);
         top: var(--press-y, 50%);
@@ -201,8 +201,6 @@
         transform: translate(-50%, -50%) scale(0);
         opacity: 0;
         pointer-events: none;
-        margin-left: auto;
-        color: var(--color-outline);
     }
 
     [data-scope="menu"][data-part="sub-trigger"][data-press-animating]::after {

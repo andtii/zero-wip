@@ -663,7 +663,14 @@ const MenuSubPopup = component<MenuSubPopupProps>(({ props, slots, onMounted }) 
             ref={(node: HTMLElement | null) => { el = node; sub.setSubPopup(node); }}
             onToggle={(e: Event) => {
                 const open = (e as ToggleEvent).newState === 'open';
-                if (sub.state.value !== open) sub.state.value = open;
+                if (sub.state.value === open) return;
+                // A native close (Escape) with focus still inside would
+                // strand it on a hidden element; hand it back to the
+                // sub-trigger. A light-dismiss click has already moved focus
+                // to the clicked target, so `contains` is false and nothing
+                // is stolen.
+                if (!open && el?.contains(document.activeElement)) sub.subTrigger()?.focus();
+                sub.state.value = open;
             }}
             onPointerenter={() => sub.cancelTimers()}
             onPointerleave={() => sub.scheduleClose()}
