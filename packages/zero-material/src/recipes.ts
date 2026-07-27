@@ -1126,7 +1126,54 @@ export const progress: RecipeInput = {
     skipStates: { root: ['loading', 'complete', 'indeterminate'] },
 };
 
+export const avatar: RecipeInput = {
+    component: 'avatar',
+    parts: {
+        root: {
+            base: {
+                position: 'relative',
+                display: 'inline-grid',
+                width: 'calc(var(--size-selector) * 10)',
+                height: 'calc(var(--size-selector) * 10)',
+                borderRadius: '9999px',
+                overflow: 'hidden',
+                verticalAlign: 'middle',
+                background: 'var(--color-surface-container)',
+            },
+            states: { loading: {}, loaded: {}, error: {} },
+        },
+        image: {
+            base: {
+                gridArea: '1 / 1',
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                // Cross-fade over the tonal fallback as the image reports in.
+                opacity: '0',
+                transition: motion('opacity'),
+            },
+            states: { loading: {}, loaded: { opacity: '1' }, error: {} },
+        },
+        fallback: {
+            base: {
+                ...label,
+                gridArea: '1 / 1',
+                placeItems: 'center',
+                width: '100%',
+                height: '100%',
+                background: 'var(--color-surface-container-high)',
+                color: 'var(--color-surface-container-high-content)',
+                userSelect: 'none',
+            },
+            // `display` must not defeat the `hidden` zero sets once the image
+            // has loaded.
+            selectors: { '&:not([hidden])': { display: 'grid' } },
+            states: { loading: {}, loaded: {}, error: {} },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
-    switchRecipe, checkbox, radioGroup, field, slider, progress,
+    switchRecipe, checkbox, radioGroup, field, slider, progress, avatar,
 ];

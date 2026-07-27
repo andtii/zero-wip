@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Collapsible, Dialog, Switch, Tabs, zeroPlugin } from '@sigx/zero';
+import { Avatar, Collapsible, Dialog, Switch, Tabs, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -26,6 +26,10 @@ function page() {
                     <Dialog.Close>Close</Dialog.Close>
                 </Dialog.Popup>
             </Dialog.Root>
+            <Avatar.Root>
+                <Avatar.Image src="/me.png" alt="Me" />
+                <Avatar.Fallback>ME</Avatar.Fallback>
+            </Avatar.Root>
         </div>
     );
 }
@@ -57,5 +61,7 @@ describe('SSR', () => {
         expect(html).not.toMatch(/<dialog[^>]*\sopen/);
         // Variant axes serialize.
         expect(html).toContain('data-color="primary"');
+        // Avatar renders loading on the server; the fallback stays visible.
+        expect(html).toMatch(/data-scope="avatar"[^>]*data-part="root"[^>]*data-state="loading"/);
     });
 });

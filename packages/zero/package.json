@@ -87,6 +87,10 @@
         "./button": {
             "types": "./dist/components/button/index.d.ts",
             "import": "./dist/components/button/index.js"
+        },
+        "./avatar": {
+            "types": "./dist/components/avatar/index.d.ts",
+            "import": "./dist/components/avatar/index.js"
         }
     },
     "files": [

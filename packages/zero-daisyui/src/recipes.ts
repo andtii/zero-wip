@@ -939,7 +939,54 @@ export const button: RecipeInput = {
     defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },
 };
 
+export const avatar: RecipeInput = {
+    component: 'avatar',
+    parts: {
+        root: {
+            base: {
+                position: 'relative',
+                display: 'inline-grid',
+                width: 'calc(var(--size-selector) * 10)',
+                height: 'calc(var(--size-selector) * 10)',
+                borderRadius: '9999px',
+                overflow: 'hidden',
+                verticalAlign: 'middle',
+                background: 'var(--color-base-200)',
+                // daisy's avatar ring, in role color.
+                boxShadow: '0 0 0 2px var(--color-base-100), 0 0 0 4px var(--color-primary)',
+            },
+            states: { loading: {}, loaded: {}, error: {} },
+        },
+        image: {
+            base: {
+                gridArea: '1 / 1',
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+            },
+            states: { loading: {}, loaded: {}, error: {} },
+        },
+        fallback: {
+            base: {
+                gridArea: '1 / 1',
+                placeItems: 'center',
+                width: '100%',
+                height: '100%',
+                background: 'var(--color-neutral)',
+                color: 'var(--color-neutral-content)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-semibold)',
+                userSelect: 'none',
+            },
+            // `display` must not defeat the `hidden` zero sets once the image
+            // has loaded.
+            selectors: { '&:not([hidden])': { display: 'grid' } },
+            states: { loading: {}, loaded: {}, error: {} },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
-    field, checkbox, radioGroup, progress, slider, accordion, select, button,
+    field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar,
 ];

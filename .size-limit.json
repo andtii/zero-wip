@@ -66,5 +66,15 @@
             "sigx/jsx-runtime",
             "sigx/jsx-dev-runtime"
         ]
+    },
+    {
+        "name": "@sigx/zero/avatar",
+        "path": "packages/zero/dist/components/avatar/index.js",
+        "limit": "1.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
     }
 ]

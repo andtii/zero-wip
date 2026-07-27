@@ -662,7 +662,53 @@ export const progress: RecipeInput = {
     skipStates: { root: ['loading', 'complete', 'indeterminate'] },
 };
 
+export const avatar: RecipeInput = {
+    component: 'avatar',
+    parts: {
+        root: {
+            base: {
+                ...inked,
+                position: 'relative',
+                display: 'inline-grid',
+                width: 'calc(var(--size-selector) * 10)',
+                height: 'calc(var(--size-selector) * 10)',
+                overflow: 'hidden',
+                verticalAlign: 'middle',
+                boxShadow: 'var(--shadow-sm)',
+            },
+            states: { loading: {}, loaded: {}, error: {} },
+        },
+        image: {
+            base: {
+                gridArea: '1 / 1',
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                filter: 'grayscale(100%) contrast(1.1)',
+            },
+            states: { loading: {}, loaded: {}, error: {} },
+        },
+        fallback: {
+            base: {
+                ...label,
+                gridArea: '1 / 1',
+                placeItems: 'center',
+                width: '100%',
+                height: '100%',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                fontSize: 'var(--text-sm)',
+                userSelect: 'none',
+            },
+            // `display` must not defeat the `hidden` zero sets once the image
+            // has loaded.
+            selectors: { '&:not([hidden])': { display: 'grid' } },
+            states: { loading: {}, loaded: {}, error: {} },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
-    switchRecipe, checkbox, radioGroup, field, slider, progress,
+    switchRecipe, checkbox, radioGroup, field, slider, progress, avatar,
 ];
