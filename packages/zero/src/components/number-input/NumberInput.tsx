@@ -139,9 +139,13 @@ export type NumberInputRootProps =
     & WithClass
     & Define.Slot<'default'>;
 
+// Decimal syntax only — bare Number() would also accept 0x10/0b10/0o10,
+// which is not what "type a number" means in a form field.
+const DECIMAL_RE = /^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i;
+
 const defaultParse = (text: string): number | null => {
     const t = text.trim();
-    if (t === '') return null;
+    if (!DECIMAL_RE.test(t)) return null;
     const n = Number(t);
     return Number.isFinite(n) ? n : null;
 };

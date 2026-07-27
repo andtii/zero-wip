@@ -285,6 +285,21 @@ describe('NumberInput', () => {
         expect(state.qty).toBe(5);
     });
 
+    it('non-decimal syntaxes like 0x10 revert instead of committing 16', () => {
+        const state = signal({ qty: 5 as number | null });
+        mount(container, { model: [state, 'qty'] });
+        const el = input(container);
+        for (const text of ['0x10', '0b101', 'Infinity']) {
+            type(el, text);
+            el.dispatchEvent(new FocusEvent('blur'));
+            expect(state.qty).toBe(5);
+        }
+        // Scientific notation IS decimal syntax.
+        type(el, '1e2');
+        el.dispatchEvent(new FocusEvent('blur'));
+        expect(state.qty).toBe(100);
+    });
+
     it('step={0} coerces to 1 instead of poisoning the model', () => {
         const state = signal({ qty: 5 as number | null });
         mount(container, { model: [state, 'qty'], step: 0 });
