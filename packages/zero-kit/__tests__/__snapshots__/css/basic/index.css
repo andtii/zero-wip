@@ -751,13 +751,13 @@
         outline: none;
     }
 
+    [data-scope="menu"][data-part="sub-trigger"][data-state="open"] {
+        background: var(--color-base-200);
+    }
+
     [data-scope="menu"][data-part="sub-trigger"][data-highlighted] {
         background: var(--color-primary);
         color: var(--color-primary-content);
-    }
-
-    [data-scope="menu"][data-part="sub-trigger"][data-state="open"] {
-        background: var(--color-base-200);
     }
 
     [data-scope="menu"][data-part="sub-trigger"][data-disabled] {

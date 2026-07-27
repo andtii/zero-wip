@@ -505,9 +505,14 @@ export const menu: RecipeInput = {
                 outline: 'none',
             },
             states: {
-                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                // `open` before `highlighted`: when both apply (pointer on the
+                // trigger while its submenu is open) the later-emitted
+                // `highlighted` must win BOTH properties — declared the other
+                // way round, `open` stole the background while `highlighted`
+                // kept the color: primary-content on base-200, unreadable (#116).
                 open: { background: 'var(--color-base-200)' },
                 closed: {},
+                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
             selectors: {
