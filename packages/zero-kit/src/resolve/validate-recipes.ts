@@ -495,6 +495,15 @@ export function validateRecipes(
                 checkAxisName(axis, `${where}.compoundVariants`);
                 checkAxisValue(axis, value, `${where}.compoundVariants.${axis}`);
                 checkMembership(axis, value, `${where}.compoundVariants.${axis}`);
+                // Same rule as `variants`: a match key is a variant axis, and a
+                // reserved one compiles to a selector the anatomy owns —
+                // `[data-pressed="…"]` never matches a presence-only flag.
+                if (RESERVED_AXES.has(axis)) {
+                    error(
+                        `${where}.compoundVariants`,
+                        `axis "${axis}" is part of the anatomy contract — data-${axis} already means something, and zero refuses to set it from \`axes\``,
+                    );
+                }
                 wire(axis, value);
             }
         }

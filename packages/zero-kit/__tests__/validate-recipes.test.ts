@@ -257,6 +257,20 @@ describe('variants', () => {
         }).errors).toContainEqual(expect.stringContaining('not a kebab-case identifier'));
     });
 
+    it('errors on a compound-variant match keyed on a reserved axis', () => {
+        // Same rule as `variants`: `match: { pressed: … }` compiles to
+        // `[data-pressed="…"]`, which never matches a presence-only flag —
+        // dead CSS minted silently.
+        expect(check({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            compoundVariants: [{
+                match: { pressed: 'yes' },
+                parts: { tab: { base: { color: 'red' } } },
+            }],
+        }).errors).toContainEqual(expect.stringContaining('part of the anatomy contract'));
+    });
+
     it('errors on a compound-variant match value that would break out', () => {
         expect(check({
             component: 'tabs',
