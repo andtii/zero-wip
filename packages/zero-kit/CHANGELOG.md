@@ -2,7 +2,35 @@
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Declared axis vocabularies** (RFC 0002 phase 1, #129): `TokensInput`
+  gains `variants` (the `variant` axis value set) and `axes` (custom axis
+  name → value set). Both are validated like `sizes` (non-empty, kebab-case,
+  no duplicates); axis names are additionally rejected against the named-prop
+  axes and `RESERVED_AXES` — the validator rejects exactly what the zero
+  runtime refuses to render. Once declared, a recipe `variants.variant` or
+  custom-axis value outside the list is an error listing the declared set,
+  wiring an undeclared custom axis is an error, and a declared value no
+  recipe wires warns. Both fields flow into `CompiledDesignSystem.tokens`,
+  `dist/manifest.json` and `tokens.schema.json`. Omitting them preserves
+  previous behaviour exactly.
+- **`defaultVariants` validation**, unconditional: every key must name an
+  axis the recipe wires and every value must be one the axis wires
+  (`variants` keys plus `compoundVariants` matches). Previously
+  `defaultVariants: { variant: 'ghots' }` was a silent no-op.
+
+### Changed
+
+- **An explicit declaration closes its set**: a `variants.size` value off an
+  *explicitly declared* `tokens.sizes` ramp is now an error (previously a
+  warning); the default recommended ramp still warns. No shipped design
+  system declares `tokens.sizes`, so nothing shipped changes behaviour.
+- The duplicate colour-variant warning in `validateDesignSystem` was removed;
+  the same condition is already an error in `validateRecipes`, and every
+  violation used to report twice at two severities.
+- All four design systems declare `variants: ['solid', 'outline', 'soft',
+  'ghost']`.
 
 ## [0.1.0] - 2026-07-27
 

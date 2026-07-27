@@ -156,6 +156,20 @@ describe('tokens.schema.json', () => {
         }))).toBe(false);
     });
 
+    it('rejects a variant value that is not a kebab-case identifier', () => {
+        expect(validateTokens(asJson({
+            ...basicDS.tokens,
+            variants: ['solid', 'Not Kebab'],
+        }))).toBe(false);
+    });
+
+    it('rejects a custom axis whose name is not kebab-case', () => {
+        expect(validateTokens(asJson({
+            ...basicDS.tokens,
+            axes: { 'Not Kebab': ['tight'] },
+        }))).toBe(false);
+    });
+
     it('rejects an unknown category under system (the category set is closed)', () => {
         expect(validateTokens(asJson({
             ...basicDS.tokens,

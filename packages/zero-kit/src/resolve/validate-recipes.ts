@@ -168,6 +168,14 @@ export function validateRecipes(
     /** component scope → the roles its `color` axis wires. Compared at the end. */
     const colorAxisByComponent = new Map<string, Set<string>>();
 
+    /** axis → every value any recipe wires, for the declared-but-unwired check. */
+    const wiredByAxis = new Map<string, Set<string>>();
+    const wire = (axis: string, value: string): void => {
+        let set = wiredByAxis.get(axis);
+        if (!set) wiredByAxis.set(axis, (set = new Set()));
+        set.add(value);
+    };
+
     // ── every component the manifest declares should be styled ──
     const styled = new Set(recipes.map((r) => r.component));
     const unstyled = manifest.components.map((c) => c.scope).filter((s) => !styled.has(s));
@@ -416,10 +424,55 @@ export function validateRecipes(
         }
 
         // ── variant axes and values ──
+        // Vocabulary membership is checked per axis. The rule is one
+        // principle: an EXPLICIT declaration closes its set — colour against
+        // `roles` (always declared, if only by default), variant against
+        // `tokens.variants`, a custom axis against `tokens.axes`, size against
+        // an explicitly declared `tokens.sizes` — all errors. Only the size
+        // ramp resolved by DEFAULT stays advisory: the author never wrote the
+        // set down, so a step outside it may be deliberate.
+        const checkMembership = (axis: string, value: string, where_: string): void => {
+            if (axis === 'color') {
+                // A colour key that names no declared role is dead CSS: zero
+                // passes `data-color` through verbatim, so the selector is
+                // emitted and simply never matches anything the design system
+                // can produce.
+                if (!vocabulary.roles.has(value)) {
+                    error(where_, `"${value}" is not a declared role (${[...vocabulary.roles].join(', ')})`);
+                }
+            } else if (axis === 'size') {
+                // Checked against the DESIGN SYSTEM's ramp, not a fixed one:
+                // `tokens.sizes` if it declared its own (Material's density
+                // steps, a numbered ramp), else the recommended xs–xl.
+                if (!vocabulary.sizes.includes(value)) {
+                    if (vocabulary.sizesDeclared) {
+                        error(where_, `"${value}" is not on this design system's declared size ramp (${vocabulary.sizes.join(', ')})`);
+                    } else {
+                        warn(where_, `"${value}" is not on this design system's size ramp (${vocabulary.sizes.join(', ')}) — declare it in tokens.sizes if it belongs there`);
+                    }
+                }
+            } else if (axis === 'variant') {
+                if (vocabulary.variants && !vocabulary.variants.includes(value)) {
+                    error(where_, `"${value}" is not a declared variant (${vocabulary.variants.join(', ')})`);
+                }
+            } else if (vocabulary.axes && !RESERVED_AXES.has(axis)) {
+                // Reserved axes already get their own error — a membership
+                // complaint on top would be noise about the wrong problem.
+                const declared = vocabulary.axes[axis];
+                if (!declared) {
+                    error(where_, `axis "${axis}" is not declared in tokens.axes (declared: ${Object.keys(vocabulary.axes).join(', ') || 'none'})`);
+                } else if (!declared.includes(value)) {
+                    error(where_, `"${value}" is not a declared value of axis "${axis}" (${declared.join(', ')})`);
+                }
+            }
+        };
+
         for (const [axis, values_] of Object.entries(recipe.variants ?? {})) {
             checkAxisName(axis, `${where}.variants`);
             for (const value of Object.keys(values_)) {
                 checkAxisValue(axis, value, `${where}.variants.${axis}`);
+                checkMembership(axis, value, `${where}.variants.${axis}`);
+                wire(axis, value);
             }
             // An axis outside the three with named props is fine — an app
             // sets it through zero's `axes` prop. What is NOT fine is taking a
@@ -432,32 +485,7 @@ export function validateRecipes(
                     `axis "${axis}" is part of the anatomy contract — data-${axis} already means something, and zero refuses to set it from \`axes\``,
                 );
             }
-            if (axis === 'size') {
-                // Checked against the DESIGN SYSTEM's ramp, not a fixed one:
-                // `tokens.sizes` if it declared its own (Material's density
-                // steps, a numbered ramp), else the recommended xs–xl.
-                for (const value of Object.keys(values_)) {
-                    if (!vocabulary.sizes.includes(value)) {
-                        warn(
-                            `${where}.variants.size`,
-                            `"${value}" is not on this design system's size ramp (${vocabulary.sizes.join(', ')}) — declare it in tokens.sizes if it belongs there`,
-                        );
-                    }
-                }
-            }
             if (axis === 'color') {
-                // A colour key that names no declared role is dead CSS: zero
-                // passes `data-color` through verbatim, so the selector is
-                // emitted and simply never matches anything the design system
-                // can produce.
-                for (const value of Object.keys(values_)) {
-                    if (!vocabulary.roles.has(value)) {
-                        error(
-                            `${where}.variants.color`,
-                            `"${value}" is not a declared role (${[...vocabulary.roles].join(', ')})`,
-                        );
-                    }
-                }
                 colorAxisByComponent.set(recipe.component, new Set(Object.keys(values_)));
             }
         }
@@ -466,6 +494,30 @@ export function validateRecipes(
             for (const [axis, value] of Object.entries(compound.match)) {
                 checkAxisName(axis, `${where}.compoundVariants`);
                 checkAxisValue(axis, value, `${where}.compoundVariants.${axis}`);
+                checkMembership(axis, value, `${where}.compoundVariants.${axis}`);
+                wire(axis, value);
+            }
+        }
+
+        // ── defaultVariants must select among what the recipe wires ──
+        // Unconditional — it validates the recipe against ITSELF, so it needs
+        // no declaration. `defaultVariants: { variant: 'ghots' }` is otherwise
+        // a silent no-op: the default selects nothing and nothing reports it.
+        for (const [axis, value] of Object.entries(recipe.defaultVariants ?? {})) {
+            const wired = new Set([
+                ...Object.keys(recipe.variants?.[axis] ?? {}),
+                ...(recipe.compoundVariants ?? []).flatMap((c) => (c.match[axis] !== undefined ? [c.match[axis]] : [])),
+            ]);
+            if (wired.size === 0) {
+                error(
+                    `${where}.defaultVariants`,
+                    `"${axis}" names an axis this recipe does not wire (wired: ${Object.keys(recipe.variants ?? {}).join(', ') || 'none'})`,
+                );
+            } else if (!wired.has(value)) {
+                error(
+                    `${where}.defaultVariants.${axis}`,
+                    `"${value}" is not a value this recipe wires for "${axis}" (${[...wired].join(', ')})`,
+                );
             }
         }
 
@@ -505,6 +557,27 @@ export function validateRecipes(
                     + `color="${missing[0]}" renders as the default here but not elsewhere `
                     + `(missing: ${missing.join(', ')})`,
                 );
+            }
+        }
+    }
+
+    // ── declared but wired by nothing ──
+    // The inverse of the membership errors. A declared value no recipe
+    // anywhere keys on reads as broken rather than as deliberately absent:
+    // the app passes it, the attribute renders, nothing matches.
+    if (vocabulary.variants) {
+        const wired = wiredByAxis.get('variant') ?? new Set();
+        for (const value of vocabulary.variants) {
+            if (!wired.has(value)) {
+                warn('tokens.variants', `"${value}" is declared but no recipe wires it — variant="${value}" selects nothing`);
+            }
+        }
+    }
+    for (const [axis, values] of Object.entries(vocabulary.axes ?? {})) {
+        const wired = wiredByAxis.get(axis) ?? new Set();
+        for (const value of values) {
+            if (!wired.has(value)) {
+                warn(`tokens.axes.${axis}`, `"${value}" is declared but no recipe wires it — axes={{ ${axis}: '${value}' }} selects nothing`);
             }
         }
     }

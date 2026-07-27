@@ -194,6 +194,24 @@ export interface TokensInput<R extends RolesDecl = RolesDecl, T extends SystemTo
      * property — `--size-*` is control sizing, a different thing entirely.
      */
     sizes?: readonly string[];
+    /**
+     * The `variant` axis vocabulary — the fill/chrome styles this design
+     * system offers (`solid`, `outline`, …). Declared for the same reason
+     * `sizes` is: it flows into the manifest, and once declared the validator
+     * closes the set — a recipe `variants.variant` value outside it is an
+     * error rather than a silently minted vocabulary entry. Omitted → the
+     * axis stays undeclared and recipe values are unchecked, exactly as today.
+     */
+    variants?: readonly string[];
+    /**
+     * Additional variant axes: axis name → its value vocabulary. Axis names
+     * must not re-declare an axis with a named prop (`color`, `size`,
+     * `variant`) and must not take a name the anatomy contract reserves —
+     * the validator rejects exactly what the zero runtime refuses to render.
+     * Once an axis is declared here, recipe values outside its list are
+     * errors, and wiring an undeclared axis is too.
+     */
+    axes?: Record<string, readonly string[]>;
     /** Role/base token names sampled into theme swatches. Default: first four roles + base. */
     swatch?: (RoleName<R> | typeof BASE_SURFACE_TOKEN_LIST[number])[];
     /** DS-declared custom tokens: name → metadata. Values live per-theme in `custom`. */
