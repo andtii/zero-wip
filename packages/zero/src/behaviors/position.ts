@@ -49,7 +49,10 @@ export function pointAnchor(x: number, y: number, size = 0): VirtualAnchor {
     const rect = {
         x, y, width: size, height: size,
         top: y, left: x, right: x + size, bottom: y + size,
-        toJSON: () => ({ x, y, width: size, height: size }),
+        toJSON(): unknown {
+            const { x: rx, y: ry, width, height, top, right, bottom, left } = this;
+            return { x: rx, y: ry, width, height, top, right, bottom, left };
+        },
     } as DOMRectReadOnly;
     return { getBoundingClientRect: () => rect };
 }
