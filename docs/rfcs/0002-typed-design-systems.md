@@ -61,10 +61,12 @@ export type WithVariant = Define.Prop<'variant', string, false>;
 | `<Checkbox.Root color="success">` | compiles, matches nothing in **any** shipped design system (#103) | error |
 
 There is no augmentation seam anywhere in the repo to fix this with: an exhaustive
-search for `declare module` across `packages/`, `docs/` and `examples/` finds exactly
-one hit, a CSS-import shim in the playground. The idiom is nonetheless established
-one layer down — `@sigx/runtime-core` ships `ComponentAttributeExtensions` for exactly
-this purpose and documents the pattern.
+search for `declare module` across `packages/` and `examples/` finds exactly one hit,
+and it is a CSS-import shim (`examples/playground/src/env.d.ts:5`), not a contract
+hook. (The sketches below are the only other occurrences in the tree, and they are
+this document.) The idiom is nonetheless established one layer down —
+`@sigx/runtime-core` ships `ComponentAttributeExtensions` for exactly this purpose and
+documents the pattern.
 
 ### 1.2 `variant` and the extra axes are never declared
 
@@ -113,12 +115,21 @@ variants?: readonly string[];
 axes?: Record<string, readonly string[]>;
 ```
 
-Validation reuses the `sizes` rules already in `resolve/validate.ts:364-376`
-(non-empty, kebab-case, no duplicates). Axis *names* additionally must not be
-reserved by the anatomy contract (`RESERVED_AXES`, `contract.ts:329`) and must not
-re-declare one of the three named axes (`VARIANT_AXES`, `contract.ts:316`) — the
-runtime already throws on both, and the validator must reject exactly what the
-runtime refuses to render.
+Validation reuses the `sizes` rules already in
+`packages/zero-kit/src/resolve/validate.ts:364-376` (non-empty, kebab-case, no
+duplicates). Axis *names* additionally must not be reserved by the anatomy contract,
+and must not re-declare one of the three axes that have named props. The validator
+must reject exactly what the runtime refuses to render, and the runtime already
+throws on both:
+
+| Rule | Runtime guard | Kit-side set |
+|---|---|---|
+| axis shadows a named prop | `packages/zero/src/contract/props.ts:149-158` | `VARIANT_AXES`, `packages/zero-kit/src/contract.ts:316` |
+| axis is owned by the anatomy contract | `packages/zero/src/contract/props.ts:159-163` | `RESERVED_AXES`, `packages/zero-kit/src/contract.ts:329` |
+
+(The kit keeps its own copy of both sets so it stays a pure Node tool with no runtime
+dependency on zero; the duplication is held honest by the existing
+`contract-parity.test.ts`.)
 
 In `validate-recipes.ts`, a `variants.variant` value outside the declared list becomes
 an **error** carrying the existing Levenshtein "did you mean", mirroring the rule
