@@ -27,22 +27,27 @@ export interface ListController {
     find(value: string): ListItem | undefined;
 }
 
+/**
+ * DOM-order a registered collection: items with mounted elements sort by
+ * document position, items without keep registration order at the end
+ * (the SSR-safe fallback). Shared by the flat list and the tree.
+ */
+export function sortByDomOrder<T extends ListItem>(registered: readonly T[]): T[] {
+    const withEl = registered.filter((i) => i.el());
+    if (withEl.length < 2) return [...registered];
+    const sorted = [...withEl].sort((a, b) => {
+        const ae = a.el()!, be = b.el()!;
+        if (ae === be) return 0;
+        return ae.compareDocumentPosition(be) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+    });
+    const withoutEl = registered.filter((i) => !i.el());
+    return [...sorted, ...withoutEl];
+}
+
 export function createListController(): ListController {
     const registered: ListItem[] = [];
 
-    const items = (): ListItem[] => {
-        const withEl = registered.filter((i) => i.el());
-        if (withEl.length < 2) return [...registered];
-        // Sort a copy by document position; items without elements keep
-        // their registration position at the end.
-        const sorted = [...withEl].sort((a, b) => {
-            const ae = a.el()!, be = b.el()!;
-            if (ae === be) return 0;
-            return ae.compareDocumentPosition(be) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
-        });
-        const withoutEl = registered.filter((i) => !i.el());
-        return [...sorted, ...withoutEl];
-    };
+    const items = (): ListItem[] => sortByDomOrder(registered);
 
     return {
         register(item) {

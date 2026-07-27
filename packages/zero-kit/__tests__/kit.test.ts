@@ -193,7 +193,7 @@ describe('the shipped design systems', () => {
         expect(Object.keys(compiled.componentCss).sort()).toEqual([
             'accordion', 'avatar', 'button', 'checkbox', 'collapsible', 'combobox', 'dialog', 'field', 'menu',
             'number-input', 'popover', 'progress', 'radio-group', 'rating-group', 'select', 'slider', 'switch', 'tabs',
-            'toast', 'toggle', 'toggle-group', 'tooltip',
+            'toast', 'toggle', 'toggle-group', 'tooltip', 'tree-view',
         ]);
         expect(compiled.indexCss).toContain('@layer zero.tokens');
         expect(compiled.themes.length).toBe(2);

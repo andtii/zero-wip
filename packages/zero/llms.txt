@@ -216,6 +216,21 @@ component renders; the root is called out separately where it carries props.
   = smallest step, End = count, RTL flips horizontal. Pointer x decides
   halves; tap commits with the same math; pointerleave on control clears
   the preview.
+- TreeView: Root(model=selected value, model:expandedValues=string[] —
+  named-models convention)/Label/Tree(role=tree)/Item(value, asChild,
+  role=treeitem leaf)/Branch(value — the treeitem ELEMENT wrapping its
+  group: aria-expanded+aria-level live here, it owns focus)/
+  BranchTrigger(the clickable row — mirrors branch state + focus so
+  recipes ring the row, never the subtree)/BranchIndicator/
+  BranchContent(role=group, hidden when closed — content stays MOUNTED,
+  just invisible to navigation). Keyboard walks VISIBLE nodes (the tree
+  controller implements the flat list interface over them — roving and
+  typeahead unchanged): Up/Down/Home/End rove, ArrowRight expands a
+  closed branch then steps to first child, ArrowLeft collapses then
+  climbs to the parent (RTL-mirrored), Enter/Space select — selection
+  and expansion are separate acts. One tab stop: selected, else first
+  visible enabled. No aria-posinset/setsize — the full tree is in the
+  DOM, AT computes them. Single selection v1.
 - Toggle: Root(model=pressed, defaultPressed, label, asChild) — one
   two-state <button> (aria-pressed, data-state on|off; `label` →
   aria-label for icon-only toggles). A mode you flip, not a form value

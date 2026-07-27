@@ -1632,8 +1632,99 @@ export const ratingGroup: RecipeInput = {
     },
 };
 
+// daisy "menu" row, shared by the two clickable tree rows (item and
+// branch-trigger) the way `btn` is shared across button-shaped parts.
+const treeRow: NonNullable<PartStyles['base']> = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.625rem',
+    padding: 'var(--space-sm) var(--space-md)',
+    fontSize: 'var(--text-sm)',
+    fontWeight: 'var(--weight-medium)',
+    borderRadius: 'var(--radius-field)',
+    cursor: 'pointer',
+    outline: 'none',
+    transition: 'background var(--duration-fast) var(--ease-standard), '
+        + 'color var(--duration-fast) var(--ease-standard)',
+};
+
+const treeRowStates: NonNullable<PartStyles['states']> = {
+    hover: { background: 'var(--color-base-200)' },
+    // daisy menu's active row: primary fill, -content ink.
+    selected: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+    disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+    // Rows sit flush inside the tree, so an offset ring would collide with
+    // the neighbouring rows — inset it, as toggle-group does.
+    'focus-visible': {
+        outline: '2px solid var(--color-base-content)',
+        outlineOffset: '-2px',
+    },
+};
+
+const treeRowSelectors: NonNullable<PartStyles['selectors']> = {
+    // Selection must outrank the hover wash — equal specificity
+    // ([data-selected]:hover vs :hover:not([data-disabled])), later in
+    // source, so selected wins.
+    '&[data-selected]:hover': { background: 'var(--color-primary)' },
+    // Pressed: the runtime's press feedback, not `:active` — see button.
+    // Rows sink by tint (toggle-row idiom), not translate; excluded on
+    // selected rows so base-300 never sits under -content ink.
+    '&[data-pressed]:not([data-disabled]):not([data-selected])': {
+        background: 'var(--color-base-300)',
+    },
+};
+
+export const treeView: RecipeInput = {
+    component: 'tree-view',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
+        },
+        tree: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+        },
+        item: {
+            base: treeRow,
+            states: treeRowStates,
+            selectors: treeRowSelectors,
+        },
+        // Structural wrapper — the row look lives on branch-trigger; the
+        // wrapper only stacks trigger over content and stays invisible.
+        branch: {
+            base: { display: 'flex', flexDirection: 'column', outline: 'none' },
+            states: { open: {}, closed: {}, selected: {}, disabled: {} },
+        },
+        'branch-trigger': {
+            base: { ...treeRow, userSelect: 'none' },
+            states: { ...treeRowStates, open: {}, closed: {} },
+            selectors: treeRowSelectors,
+        },
+        'branch-indicator': {
+            base: {
+                display: 'inline-block',
+                opacity: '0.6',
+                transition: 'transform var(--duration-fast) var(--ease-standard)',
+            },
+            states: { open: { transform: 'rotate(90deg)' }, closed: {} },
+            at: {
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+        // Indentation comes from this inline padding — depth is the DOM
+        // nesting, no per-level rules needed.
+        'branch-content': {
+            base: { display: 'flex', flexDirection: 'column', paddingInlineStart: 'var(--space-lg)' },
+            states: { open: {}, closed: {} },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup,
+    toggle, toggleGroup, numberInput, ratingGroup, treeView,
 ];

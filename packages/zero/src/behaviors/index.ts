@@ -21,6 +21,8 @@ export { createDismissable } from './dismiss.js';
 export type { DismissableOptions } from './dismiss.js';
 export { createSpinPress } from './spin.js';
 export type { SpinPressOptions, SpinPressHandlers } from './spin.js';
+export { createTreeController } from './tree.js';
+export type { TreeItem, TreeController } from './tree.js';
 
 export { createFocusRestore, focusFirst, getTabbables } from './focus.js';
 
