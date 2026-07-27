@@ -274,6 +274,7 @@ const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots })
                 const detach = (): void => {
                     window.removeEventListener('pointerup', onUp, true);
                     window.removeEventListener('pointercancel', onCancel, true);
+                    window.removeEventListener('blur', onCancel);
                 };
                 const onUp = (): void => {
                     detach();
@@ -282,6 +283,7 @@ const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots })
                 const onCancel = (): void => detach();
                 window.addEventListener('pointerup', onUp, { capture: true });
                 window.addEventListener('pointercancel', onCancel, { capture: true });
+                window.addEventListener('blur', onCancel);
             } else {
                 openDeferred();
             }
