@@ -93,12 +93,12 @@ export const App = component(() => {
                         <Toggle.Root>Mute</Toggle.Root>
                         <Toggle.Root color="warning" defaultPressed>Pinned</Toggle.Root>
                         <Toggle.Root disabled>Disabled</Toggle.Root>
-                        <ToggleGroup.Root model={() => state.align} deselectable={false}>
+                        <ToggleGroup.Root model={() => state.align} deselectable={false} label="Alignment">
                             <ToggleGroup.Item value="left">Left</ToggleGroup.Item>
                             <ToggleGroup.Item value="center">Center</ToggleGroup.Item>
                             <ToggleGroup.Item value="right">Right</ToggleGroup.Item>
                         </ToggleGroup.Root>
-                        <ToggleGroup.Root multiple defaultValue={['bold']}>
+                        <ToggleGroup.Root multiple defaultValue={['bold']} label="Formatting">
                             <ToggleGroup.Item value="bold"><b>B</b></ToggleGroup.Item>
                             <ToggleGroup.Item value="italic"><i>I</i></ToggleGroup.Item>
                             <ToggleGroup.Item value="underline"><u>U</u></ToggleGroup.Item>

@@ -2,7 +2,7 @@
  * Toggle — a two-state button (WAI-ARIA button with `aria-pressed`).
  *
  * ```tsx
- * <Toggle.Root model={() => state.bold} aria-label="Bold">B</Toggle.Root>
+ * <Toggle.Root model={() => state.bold} label="Bold">B</Toggle.Root>
  * ```
  *
  * Button plus one bit of state: `on|off` rides `data-state`, `aria-pressed`
@@ -35,6 +35,8 @@ export type ToggleRootProps =
     & Define.Model<boolean>
     & Define.Prop<'defaultPressed', boolean, false>
     & Define.Event<'pressedChange', boolean>
+    /** Accessible name (`aria-label`) — required for icon-only toggles. */
+    & Define.Prop<'label', string, false>
     & WithColor
     & WithSize
     & WithVariant
@@ -64,6 +66,7 @@ const ToggleRoot = component<ToggleRootProps>(({ props, slots, emit, signal }) =
         'data-disabled': dataAttr(props.disabled),
         'data-focus-visible': dataAttr(focus.visible),
         'aria-pressed': state.value ? 'true' : 'false',
+        'aria-label': props.label,
         // A native <button disabled> is inert already; an asChild element is
         // not, so disabled has to be conveyed and enforced by hand there.
         'aria-disabled': props.asChild && props.disabled ? 'true' : undefined,

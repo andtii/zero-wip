@@ -2,7 +2,7 @@
  * ToggleGroup — a set of two-state buttons under one value model.
  *
  * ```tsx
- * <ToggleGroup.Root model={() => state.align} aria-label="Text alignment">
+ * <ToggleGroup.Root model={() => state.align} label="Text alignment">
  *     <ToggleGroup.Item value="left">Left</ToggleGroup.Item>
  *     <ToggleGroup.Item value="center">Center</ToggleGroup.Item>
  *     <ToggleGroup.Item value="right">Right</ToggleGroup.Item>
@@ -80,6 +80,8 @@ export type ToggleGroupRootProps =
     /** In single mode, clicking the on item turns it off (default true). */
     & Define.Prop<'deselectable', boolean, false>
     & Define.Prop<'loop', boolean, false>
+    /** Accessible name for the `role="group"` container (`aria-label`). */
+    & Define.Prop<'label', string, false>
     & WithOrientation
     & WithColor
     & WithSize
@@ -143,6 +145,7 @@ const ToggleGroupRoot = component<ToggleGroupRootProps>(({ props, slots, emit })
     return () => (
         <div
             role="group"
+            aria-label={props.label}
             data-scope={SCOPE}
             data-part="root"
             data-orientation={orientation()}

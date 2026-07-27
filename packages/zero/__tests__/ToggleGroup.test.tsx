@@ -85,6 +85,12 @@ describe('Toggle', () => {
         expect(span.getAttribute('data-part')).toBe('root');
         expect(span.getAttribute('aria-pressed')).toBe('false');
     });
+
+    it('label lands as aria-label for icon-only toggles', () => {
+        render(<Toggle.Root label="Bold">B</Toggle.Root>, container);
+        const root = container.querySelector<HTMLElement>('[data-scope="toggle"]')!;
+        expect(root.getAttribute('aria-label')).toBe('Bold');
+    });
 });
 
 describe('ToggleGroup', () => {
@@ -97,6 +103,17 @@ describe('ToggleGroup', () => {
     it('renders a valid anatomy', () => {
         mountGroup(container, { defaultValue: ['left'] });
         expectAnatomy(container, toggleGroupAnatomy);
+    });
+
+    it('label names the role=group container', () => {
+        render(
+            <ToggleGroup.Root label="Alignment">
+                <ToggleGroup.Item value="a">A</ToggleGroup.Item>
+            </ToggleGroup.Root>,
+            container,
+        );
+        const root = container.querySelector<HTMLElement>('[data-part="root"]')!;
+        expect(root.getAttribute('aria-label')).toBe('Alignment');
     });
 
     it('renders role=group with aria-pressed items', () => {
