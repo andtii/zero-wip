@@ -72,7 +72,7 @@ test('a submenu opens inside the context menu', async ({ page }) => {
 test('Shift+F10 opens anchored to the surface element', async ({ page }) => {
     await surface(page).scrollIntoViewIfNeeded();
     // The demo surface content carries tabIndex=0 — focus it and invoke.
-    await surface(page).locator('div').first().focus();
+    await surface(page).focus();
     await page.keyboard.press('Shift+F10');
     await expect(await popup(page)).toHaveAttribute('data-state', 'open');
     const sb = (await surface(page).boundingBox())!;
@@ -83,7 +83,7 @@ test('Shift+F10 opens anchored to the surface element', async ({ page }) => {
 
 test('Escape closes and restores focus to the surface content', async ({ page }) => {
     await surface(page).scrollIntoViewIfNeeded();
-    const inner = surface(page).locator('div').first();
+    const inner = surface(page);
     await inner.focus();
     await page.keyboard.press('Shift+F10');
     await expect(await popup(page)).toHaveAttribute('data-state', 'open');

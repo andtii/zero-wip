@@ -1,4 +1,5 @@
 import { component, signal } from 'sigx';
+import type { PartProps } from '@sigx/zero';
 import {
     Accordion, Avatar, Button, Checkbox, Collapsible, Combobox, Dialog, Field, Menu, NumberInput, Popover,
     Progress, RadioGroup, Select, Slider, Switch, Tabs, Toast, Toggle, ToggleGroup, Tooltip, toast,
@@ -202,19 +203,22 @@ export const App = component(() => {
                         right-click repositions in place — no close/reopen flicker.
                     </p>
                     <Menu.Root onSelect={(v) => console.log('context select:', v)}>
-                        <Menu.ContextTrigger>
-                            <div
-                                tabIndex={0}
-                                style={{
-                                    border: '2px dashed var(--color-base-300)',
-                                    borderRadius: '0.5rem',
-                                    padding: '2rem',
-                                    textAlign: 'center',
-                                    userSelect: 'none',
-                                }}
-                            >
-                                Right-click (or Shift+F10) anywhere in this box
-                            </div>
+                        <Menu.ContextTrigger asChild>
+                            {(p: PartProps) => (
+                                <div
+                                    {...p}
+                                    tabIndex={0}
+                                    style={{
+                                        border: '2px dashed var(--color-base-300)',
+                                        borderRadius: '0.5rem',
+                                        padding: '2rem',
+                                        textAlign: 'center',
+                                        userSelect: 'none',
+                                    }}
+                                >
+                                    Right-click (or Shift+F10) anywhere in this box
+                                </div>
+                            )}
                         </Menu.ContextTrigger>
                         <Menu.Popup>
                             <Menu.Item value="copy">Copy</Menu.Item>
