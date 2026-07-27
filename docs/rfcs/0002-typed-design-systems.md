@@ -330,17 +330,18 @@ the whole props bag, and a mapped `AxesFor<S>` with optional members
 
 ```ts
 export function variantAttrs(props: {
-    color?: string;
-    size?: string;
+    color?: ColorValue;
+    size?: SizeScale;
     variant?: string;
     axes?: Record<string, string | undefined>;
 }): Record<string, string | undefined>
 ```
 
 with the axes loop skipping `undefined` values before the guards run — an `undefined`
-axis value must neither throw nor emit `data-<axis>="undefined"`. The narrowed
-`ColorValueFor<S>` / `SizeScaleFor<S>` / `VariantValueFor<S>` are all assignable to
-plain `string` params, including the `never` case, so only `axes` forces the change.
+axis value must neither throw nor emit `data-<axis>="undefined"`. The named props keep
+their current parameter types: the narrowed `ColorValueFor<S>` / `SizeScaleFor<S>` /
+`VariantValueFor<S>` are all assignable to them, including the `never` case, so only
+`axes` forces the change.
 One thing deliberately does **not** change: `PartProps` keeps
 `'data-color'?: string`; it is an attribute bag handed to an `asChild` slot, not a
 prop surface.
