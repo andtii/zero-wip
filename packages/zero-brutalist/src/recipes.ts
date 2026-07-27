@@ -439,9 +439,11 @@ export const menu: RecipeInput = {
                 cursor: 'pointer',
             },
             states: {
-                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                // `open` before `highlighted` — the pointer state must win both
+                // background and color when the submenu is open (#116).
                 open: { background: 'var(--color-base-200)' },
                 closed: {},
+                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
