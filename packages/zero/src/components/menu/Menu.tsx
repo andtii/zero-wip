@@ -268,7 +268,20 @@ const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots })
                 setTimeout(() => menu.openAt(clientX, clientY), 0);
             };
             if (e.buttons !== 0) {
-                window.addEventListener('pointerup', openDeferred, { once: true, capture: true });
+                // Paired teardown: a canceled gesture (or one that never
+                // completes) must not leave a listener alive to open the
+                // menu at stale coordinates on some later pointerup.
+                const detach = (): void => {
+                    window.removeEventListener('pointerup', onUp, true);
+                    window.removeEventListener('pointercancel', onCancel, true);
+                };
+                const onUp = (): void => {
+                    detach();
+                    openDeferred();
+                };
+                const onCancel = (): void => detach();
+                window.addEventListener('pointerup', onUp, { capture: true });
+                window.addEventListener('pointercancel', onCancel, { capture: true });
             } else {
                 openDeferred();
             }

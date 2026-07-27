@@ -361,6 +361,17 @@ describe('Menu submenus', () => {
         expect(surface.getAttribute('data-state')).toBe('open');
     });
 
+    it('context trigger: a canceled gesture never opens, even on a later pointerup', async () => {
+        mountContext();
+        const surface = container.querySelector<HTMLElement>('[data-part="context-trigger"]')!;
+        const e = new MouseEvent('contextmenu', { clientX: 10, clientY: 10, buttons: 2, bubbles: true, cancelable: true });
+        surface.dispatchEvent(e);
+        window.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true }));
+        window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        await tick();
+        expect(surface.getAttribute('data-state')).toBe('closed');
+    });
+
     it('context trigger: a second right-click while open keeps it open (repositions in place)', async () => {
         mountContext();
         const surface = container.querySelector<HTMLElement>('[data-part="context-trigger"]')!;
