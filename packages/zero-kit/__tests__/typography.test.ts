@@ -10,7 +10,7 @@ import { describe, it, expect } from 'vitest';
 import { compileTokensCss, defineTokens, generateTypeScale, validateDesignSystem } from '@sigx/zero-kit';
 import type { DesignSystemInput, ManifestComponent } from '@sigx/zero-kit';
 import { anatomies } from '@sigx/zero/anatomy';
-import { tokenVocabulary } from '../src/vocabulary.js';
+import { tokenVocabulary } from '../src/resolve/vocabulary.js';
 
 const manifest = {
     components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],

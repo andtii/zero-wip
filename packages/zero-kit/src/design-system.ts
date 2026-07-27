@@ -6,9 +6,9 @@
 import type { ManifestComponent, RoleDecl, ZeroManifest } from './contract.js';
 import { DEFAULT_ROLES, defaultSwatch, resolveRoles, resolveSizes } from './contract.js';
 import type { CustomTokenDecl, RolesDecl, SystemTokens, TokensInput } from './tokens.js';
-import { compileTokensCss } from './tokens.js';
+import { compileTokensCss } from './targets/web/tokens-css.js';
 import type { RecipeInput } from './recipes.js';
-import { compileRecipeCss } from './recipes.js';
+import { compileRecipeCss } from './targets/web/recipe-css.js';
 
 export interface DesignSystemInput<
     R extends RolesDecl = RolesDecl,
