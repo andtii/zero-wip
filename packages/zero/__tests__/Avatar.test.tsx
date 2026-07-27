@@ -40,6 +40,24 @@ describe('Avatar', () => {
         expect(fallback.hasAttribute('hidden')).toBe(false);
     });
 
+    it('exactly one representation is in the accessibility tree at a time', () => {
+        render(
+            <Avatar.Root>
+                <Avatar.Image src="/me.png" alt="Me" />
+                <Avatar.Fallback>ME</Avatar.Fallback>
+            </Avatar.Root>,
+            container,
+        );
+        const { image, fallback } = parts();
+        // Loading: the fallback speaks, the image stays silent.
+        expect(image.getAttribute('aria-hidden')).toBe('true');
+        expect(fallback.hasAttribute('hidden')).toBe(false);
+        image.dispatchEvent(new Event('load'));
+        // Loaded: the image speaks, the fallback is gone entirely.
+        expect(image.hasAttribute('aria-hidden')).toBe(false);
+        expect(fallback.hasAttribute('hidden')).toBe(true);
+    });
+
     it('load event moves every part to loaded and hides the fallback', () => {
         const events: AvatarStatus[] = [];
         render(

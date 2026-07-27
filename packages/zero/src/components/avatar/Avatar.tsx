@@ -119,6 +119,9 @@ const AvatarImage = component<AvatarImageProps>(({ props, slots, onMounted }) =>
         src: props.src,
         alt: props.alt ?? '',
         hidden: avatar.status() === 'error' ? true : undefined,
+        // Until the image is what the avatar shows, the fallback is the one
+        // accessible representation — otherwise AT announces initials AND alt.
+        'aria-hidden': avatar.status() === 'loaded' ? undefined : 'true',
         onLoad: () => avatar.setStatus('loaded'),
         onError: () => avatar.setStatus('error'),
         ref: (node: HTMLElement | null) => { el = node; },
