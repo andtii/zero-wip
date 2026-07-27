@@ -192,7 +192,7 @@ describe('the shipped design systems', () => {
         const compiled = compileDesignSystem(ds, manifest);
         expect(Object.keys(compiled.componentCss).sort()).toEqual([
             'accordion', 'avatar', 'button', 'checkbox', 'collapsible', 'combobox', 'dialog', 'field', 'menu',
-            'popover', 'progress', 'radio-group', 'select', 'slider', 'switch', 'tabs',
+            'number-input', 'popover', 'progress', 'radio-group', 'select', 'slider', 'switch', 'tabs',
             'toast', 'toggle', 'toggle-group', 'tooltip',
         ]);
         expect(compiled.indexCss).toContain('@layer zero.tokens');

@@ -1435,8 +1435,128 @@ export const toggleGroup: RecipeInput = {
     defaultVariants: { color: 'primary' },
 };
 
+// daisy "join" of an input and two btns: one bordered capsule (the control),
+// hairline seams on the triggers' inner edges, neutral btn fills for the steppers.
+export const numberInput: RecipeInput = {
+    component: 'number-input',
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-sm)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--color-error)' },
+                required: {},
+            },
+        },
+        // The field chrome (combobox split): the ring and the invalid border
+        // draw on the box; input and triggers sit joined inside it.
+        control: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'stretch',
+                background: 'var(--color-base-100)',
+                border: 'var(--border) solid var(--color-base-300)',
+                borderRadius: 'var(--radius-field)',
+                overflow: 'hidden',
+                transition: 'border-color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { borderColor: 'var(--color-base-content)' },
+                invalid: { borderColor: 'var(--color-error)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                readonly: {},
+                ...focusRing,
+            },
+        },
+        input: {
+            base: {
+                width: '5rem',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                textAlign: 'center',
+                padding: 'var(--space-sm) var(--space-md)',
+            },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                readonly: {},
+                invalid: {},
+                required: {},
+            },
+            selectors: {
+                '&::placeholder': { opacity: '0.5' },
+            },
+        },
+        // Steppers: compact join-item btns flanking the input. The decrement
+        // renders before the input, the increment after — each seam is a
+        // hairline on the trigger's inner edge.
+        'increment-trigger': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                fontFamily: 'inherit',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-none)',
+                paddingInline: 'var(--space-lg)',
+                cursor: 'pointer',
+                userSelect: 'none',
+                borderInlineStart: 'var(--border) solid var(--color-base-300)',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            selectors: {
+                // Pressed: the runtime's press feedback, not `:active` — see
+                // the button recipe for why the :not matters.
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+        'decrement-trigger': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                fontFamily: 'inherit',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-none)',
+                paddingInline: 'var(--space-lg)',
+                cursor: 'pointer',
+                userSelect: 'none',
+                borderInlineEnd: 'var(--border) solid var(--color-base-300)',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+    },
+    // The visible ring lives on `control`; the input delegates.
+    skipStates: { input: ['focus-visible'] },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
-    toggle, toggleGroup,
+    toggle, toggleGroup, numberInput,
 ];

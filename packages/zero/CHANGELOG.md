@@ -4,6 +4,21 @@
 
 ### Added
 
+- **NumberInput** (`@sigx/zero/number-input`) — a WAI-ARIA spinbutton over a
+  real `type="text" inputmode="decimal"` input. Model is `number | null`
+  (empty is not 0); typing edits an uncommitted draft committed on
+  blur/Enter (parse → clamp → step-snap anchored at `min`,
+  decimal-precision-safe), stepping (arrows, PageUp/Down ×10, Home/End,
+  hold-to-repeat triggers, opt-in focus-gated `allowWheel`) commits
+  immediately. `hidden-input` posts the canonical decimal — the visible
+  input never carries `name`, so a custom display `format` can't corrupt
+  form data. `clampOnBlur` (default true) opt-out keeps out-of-range
+  commits and flags `data-invalid`.
+- **`createSpinPress` behavior** (`behaviors/spin.ts`) — press-and-hold
+  auto-repeat for stepper triggers: one spin on press, repeat after
+  `delay` (400ms) every `interval` (64ms), release-anywhere via a one-shot
+  window listener, stops on drag-off and on going disabled mid-hold.
+
 - **Toggle** (`@sigx/zero/toggle`) — a two-state button (`aria-pressed`,
   `on|off` on `data-state`). A mode you flip, not a form value; Switch keeps
   the form-participating case.

@@ -184,6 +184,17 @@ component renders; the root is called out separately where it carries props.
   The popup is popover="manual" + the dismiss layer (native auto light
   dismiss would close on a caret click). No data-placeholder on the input —
   use :placeholder-shown. Home/End stay with the text caret.
+- NumberInput: Root(model=number|null, min, max, step, allowWheel,
+  clampOnBlur, format, parse, name)/Label/Control/Input/IncrementTrigger/
+  DecrementTrigger/HiddenInput. APG spinbutton on a real text input
+  (inputmode=decimal): typing is an UNCOMMITTED draft, committed on
+  blur/Enter (parse → clamp → step-snap anchored at min); stepping commits
+  immediately (arrows ±step, PageUp/Down ±10 steps, Home/End → min/max,
+  triggers hold-to-repeat, wheel only when allowWheel AND focused).
+  Control is the field chrome (ring/invalid draw there; input delegates
+  focus-visible). hidden-input posts canonical String(value) — the visible
+  input never carries name, so format can't corrupt form data. Empty
+  commits null, never 0. Triggers are tabIndex=-1 satellites.
 - Toggle: Root(model=pressed, defaultPressed, label, asChild) — one
   two-state <button> (aria-pressed, data-state on|off; `label` →
   aria-label for icon-only toggles). A mode you flip, not a form value
