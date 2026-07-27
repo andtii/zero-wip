@@ -87,10 +87,14 @@ export function tokenVocabulary(tokens: TokensInput<any, any>): TokenVocabulary 
         }
         // Every text key also emits its `--text-fixed-<key>` alias (see
         // `TEXT_FIXED_PREFIX`), so a recipe may reference the alias of any
-        // key it could reference directly.
+        // key it could reference directly. A key that itself spells a
+        // `fixed-*` name gets no alias — the compiler skips those too, so
+        // adding one here would accept a token that is never emitted.
         const add = (key: string): void => {
             names.add(tokenProperty(category, key));
-            if (category.id === 'text') names.add(`${TEXT_FIXED_PREFIX}${key}`);
+            if (category.id === 'text' && !key.startsWith('fixed-')) {
+                names.add(`${TEXT_FIXED_PREFIX}${key}`);
+            }
         };
         for (const key of category.recommended) add(key);
         for (const tier of tiers) {

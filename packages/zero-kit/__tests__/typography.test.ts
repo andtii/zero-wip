@@ -172,12 +172,17 @@ describe('the --text-fixed-* aliases', () => {
     it('is part of the vocabulary recipes validate against', () => {
         const vocab = tokenVocabulary(defineTokens({
             roles,
-            system: { typography: { sizes: { display: '4rem' } } },
+            system: { typography: { sizes: { display: '4rem', 'fixed-md': '17px' } } },
             defaultLight: 'l',
             themes: { l: { colorScheme: 'light', colors } },
         }));
         expect(vocab.names.has('--text-fixed-display')).toBe(true); // declared key
         expect(vocab.names.has('--text-fixed-sm')).toBe(true);      // recommended key
+        // A literal fixed-* key is itself in the vocabulary but mints no
+        // second-order alias — the compiler never emits one, and accepting
+        // `var(--text-fixed-fixed-md)` would validate a token that doesn't exist.
+        expect(vocab.names.has('--text-fixed-md')).toBe(true);
+        expect(vocab.names.has('--text-fixed-fixed-md')).toBe(false);
     });
 });
 
