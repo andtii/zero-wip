@@ -393,13 +393,13 @@ interchange, **#14** lynx palette emitter, **#18** docs-site publishing.
 
 ## 9. Migration phases
 
-| Phase | Work | Gate |
-|---|---|---|
-| **1** | §2 declared vocabulary: `TokensInput.variants`/`axes`, validator rules, schema, and the declarations added to all four design systems. | Validation errors on a seeded typo in each design system; no behaviour change otherwise. |
-| **2** | §3 + §4 seam and per-component narrowing, behind an **empty** `ZeroVocabulary`. | Provably a no-op: full test suite, `pnpm typecheck`, and the playground typecheck all unchanged. |
-| **3** | §5 generator + `/register` subpath across the four design systems; §6 theme/property/breakpoint narrowing. | A scratch app importing `@sigx/zero-material/register` gets `tertiary` autocompleted and `primry` rejected; removing the import restores the open unions. |
-| **4** | **#103** — wire the colour/size axes for checkbox, radio-group, slider, progress, select, combobox. | No component generates an empty axis it accepts at runtime. |
-| **5** | §7 daisy multi-theme, `pickThemeFor` fix, contrast audit over every theme. **Independent of 1–4** and may land in any order. | Five daisy themes, all contrast-clean, switchable in the playground. |
+| Phase | Issue | Work | Gate |
+|---|---|---|---|
+| **1** | #129 | §2 declared vocabulary: `TokensInput.variants`/`axes`, validator rules, schema, and the declarations added to all four design systems. | Validation errors on a seeded typo in each design system; no behaviour change otherwise. |
+| **2** | #130 | §3 + §4 seam and per-component narrowing, behind an **empty** `ZeroVocabulary`. | Provably a no-op: full test suite, `pnpm typecheck`, and the playground typecheck all unchanged. |
+| **3** | #131 | §5 generator + `/register` subpath across the four design systems; §6 theme/property/breakpoint narrowing. | A scratch app importing `@sigx/zero-material/register` gets `tertiary` autocompleted and `primry` rejected; removing the import restores the open unions. |
+| **4** | #103 | Wire the colour/size axes for checkbox, radio-group, slider, progress, select, combobox. | No component generates an empty axis it accepts at runtime. |
+| **5** | #132 | §7 daisy multi-theme, `pickThemeFor` fix, contrast audit over every theme. **Independent of 1–4** and may land in any order. | Five daisy themes, all contrast-clean, switchable in the playground. |
 
 Phases 1→2→3→4 are strictly ordered: 2 cannot narrow what 1 did not declare, 3 has
 nothing to generate without 2's seam, and 4's value is only visible once 3 makes the
@@ -430,10 +430,10 @@ gap a type error.
 
 Filed and cross-linked from #127 (this RFC's tracking issue):
 
-- Phase 1 — declared axis vocabulary (`variants`/`axes` + validator + schema)
-- Phase 2 — `ZeroVocabulary` seam and per-component prop narrowing
-- Phase 3 — `register.d.ts` generation, `/register` subpaths, theme/property/breakpoint narrowing
-- Phase 5 — `zero-daisyui` multi-theme, `pickThemeFor`, contrast audit over every theme
+- **#129** — phase 1, declared axis vocabulary (`variants`/`axes` + validator + schema)
+- **#130** — phase 2, `ZeroVocabulary` seam and per-component prop narrowing
+- **#131** — phase 3, `register.d.ts` generation, `/register` subpaths, theme/property/breakpoint narrowing
+- **#132** — phase 5, `zero-daisyui` multi-theme, `pickThemeFor`, contrast audit over every theme
 
 Phase 4 is **#103**, promoted rather than refiled. Related and unchanged by this RFC:
 #51, #10, #118, #120, #125, #126, and RFC 0001's #97.
