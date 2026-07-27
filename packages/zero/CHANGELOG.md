@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [0.1.0] - 2026-07-27
+
 ### Changed (breaking — pre-release, multi-target RFC docs/rfcs/0001, #98)
 
 - **Slider: the styled part is `control`, not `input`** (`Slider.Control`
