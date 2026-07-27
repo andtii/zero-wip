@@ -2211,3 +2211,88 @@
         background: var(--color-base-300);
     }
 }
+
+@layer zero.recipes {
+    [data-scope="rating-group"][data-part="root"] {
+        --rating-size: var(--text-xl);
+    }
+
+    [data-scope="rating-group"][data-part="root"] {
+        display: inline-flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+    }
+
+    [data-scope="rating-group"][data-part="label"] {
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+    }
+
+    [data-scope="rating-group"][data-part="label"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="rating-group"][data-part="label"][data-invalid] {
+        color: var(--color-error);
+    }
+
+    [data-scope="rating-group"][data-part="control"] {
+        display: inline-flex;
+        gap: 0.125rem;
+    }
+
+    [data-scope="rating-group"][data-part="control"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="rating-group"][data-part="control"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+        border-radius: var(--radius-selector);
+    }
+
+    [data-scope="rating-group"][data-part="item"] {
+        font-size: var(--rating-size);
+        line-height: 1;
+        cursor: pointer;
+        user-select: none;
+        color: var(--color-base-300);
+        transition: color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-state="full"] {
+        color: var(--color-warning);
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-state="half"] {
+        color: var(--color-warning);
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-highlighted] {
+        transform: scale(1.15);
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-readonly] {
+        cursor: default;
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-focus-visible] {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 1px;
+        border-radius: var(--radius-selector);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="rating-group"][data-part="item"] {
+            transition: none;
+        }
+
+        [data-scope="rating-group"][data-part="item"][data-highlighted] {
+            transform: none;
+        }
+    }
+}

@@ -4,6 +4,17 @@
 
 ### Added
 
+- **RatingGroup** (`@sigx/zero/rating-group`) — radio semantics over a row
+  of symbols with hover preview and optional half values. The `item` part
+  carries the library's one three-value state set (`full|half|empty`),
+  driven by the DISPLAYED value (preview included);
+  `data-highlighted` marks the preview range. Keyboard moves the VALUE —
+  with `allowHalf` two values share one element, so element roving can't
+  express the step; one tab stop rides `ceil(value)`. Pointer x decides
+  halves (RTL-aware); touch taps commit with the same math; `deselectable`
+  re-click clears; `hidden-input` posts the fractional value; `readonly`
+  renders fractional averages without interaction.
+
 - **Context menu: `Menu.ContextTrigger`** — an additive `context-trigger`
   part on the `menu` anatomy (no separate component: same popup, items,
   submenus, typeahead and focus restore). Wrap any surface; right-click /

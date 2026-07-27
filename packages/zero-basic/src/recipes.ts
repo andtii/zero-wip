@@ -1378,6 +1378,62 @@ export const numberInput: RecipeInput = {
     skipStates: { input: ['focus-visible'] },
 };
 
+export const ratingGroup: RecipeInput = {
+    component: 'rating-group',
+    tokens: { '--rating-size': 'var(--text-xl)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--color-error)' },
+                required: {},
+            },
+        },
+        control: {
+            base: { display: 'inline-flex', gap: '0.125rem' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                readonly: {},
+                'focus-visible': {
+                    outline: '2px solid var(--color-primary)',
+                    outlineOffset: '2px',
+                    borderRadius: 'var(--radius-selector)',
+                },
+            },
+        },
+        item: {
+            base: {
+                fontSize: 'var(--rating-size)',
+                lineHeight: '1',
+                cursor: 'pointer',
+                userSelect: 'none',
+                color: 'var(--color-base-300)',
+                transition: 'color var(--duration-fast) var(--ease-standard), '
+                    + 'transform var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                full: { color: 'var(--color-warning)' },
+                half: { color: 'var(--color-warning)' },
+                empty: {},
+                highlighted: { transform: 'scale(1.15)' },
+                disabled: { cursor: 'not-allowed' },
+                readonly: { cursor: 'default' },
+                // The group ring lives on control; per-item focus still gets
+                // a subtle marker for the value-following tab stop.
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '1px', borderRadius: 'var(--radius-selector)' },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' }, states: { highlighted: { transform: 'none' } } },
+            },
+        },
+    },
+};
+
 export const toggle: RecipeInput = {
     component: 'toggle',
     // Same accent machinery as button: `color` sets the pair once, the on
@@ -1539,5 +1595,5 @@ export const toggleGroup: RecipeInput = {
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput,
+    toggle, toggleGroup, numberInput, ratingGroup,
 ];

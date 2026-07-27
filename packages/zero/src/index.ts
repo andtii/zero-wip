@@ -128,6 +128,15 @@ export type {
     NumberInputTriggerProps,
 } from './components/number-input/index.js';
 
+export { RatingGroup, ratingGroupAnatomy, useRatingGroupContext } from './components/rating-group/index.js';
+export type {
+    RatingGroupRootProps,
+    RatingGroupLabelProps,
+    RatingGroupControlProps,
+    RatingGroupItemProps,
+    RatingItemSlotProps,
+} from './components/rating-group/index.js';
+
 export { Combobox, comboboxAnatomy, useComboboxContext } from './components/combobox/index.js';
 export type {
     ComboboxRootProps,

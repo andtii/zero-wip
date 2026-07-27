@@ -56,7 +56,7 @@ describe('anatomy registry', () => {
         expect(Object.keys(anatomies).sort()).toEqual([
             'accordion', 'avatar', 'button', 'checkbox', 'collapsible', 'combobox', 'dialog', 'field', 'menu',
             'number-input', 'popover',
-            'progress', 'radio-group', 'select', 'slider', 'switch', 'tabs', 'toast', 'toggle', 'toggle-group', 'tooltip',
+            'progress', 'radio-group', 'rating-group', 'select', 'slider', 'switch', 'tabs', 'toast', 'toggle', 'toggle-group', 'tooltip',
         ]);
     });
 
