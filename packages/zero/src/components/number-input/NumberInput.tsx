@@ -221,7 +221,10 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
         const target = edge === 'min' ? props.min : props.max;
         if (target === undefined || disabled() || readonly()) return false;
         draft.current = null;
-        state.value = settle(target);
+        // The edge itself, NOT settle(): max may sit off the step grid
+        // (step 4, max 5) and Home/End promise the documented bound, the
+        // way a clamped commit can already land there.
+        state.value = target;
         return true;
     };
 
@@ -250,7 +253,10 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
         stepTo,
         commit,
         inputKeydown: (e: KeyboardEvent) => {
-            if (disabled()) return;
+            // readonly must not swallow the keys either: preventDefault on a
+            // no-op Arrow/Home/End would block normal caret navigation in a
+            // readable field.
+            if (disabled() || readonly()) return;
             switch (e.key) {
                 case 'ArrowUp':
                     e.preventDefault();

@@ -332,6 +332,22 @@ describe('NumberInput', () => {
         expect(el.getAttribute('aria-valuenow')).toBe('51');
     });
 
+    it('End lands exactly on an off-grid max', () => {
+        const state = signal({ qty: 0 as number | null });
+        mount(container, { model: [state, 'qty'], min: 0, max: 5, step: 4 });
+        input(container).dispatchEvent(key('End'));
+        expect(state.qty).toBe(5);
+    });
+
+    it('readonly leaves arrow keys to the caret (no preventDefault)', () => {
+        const state = signal({ qty: 5 as number | null });
+        mount(container, { model: [state, 'qty'], readonly: true });
+        const e = key('ArrowUp');
+        input(container).dispatchEvent(e);
+        expect(e.defaultPrevented).toBe(false);
+        expect(state.qty).toBe(5);
+    });
+
     it('a trigger press hands focus to the spinbutton', () => {
         mount(container, { defaultValue: 5 });
         inc(container).dispatchEvent(pointerDown());
