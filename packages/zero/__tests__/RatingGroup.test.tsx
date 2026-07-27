@@ -175,6 +175,28 @@ describe('RatingGroup', () => {
         expect(state.stars).toBe(2);
     });
 
+    it('deselect-to-0 parks focus on the new tab stop (item 1)', () => {
+        const state = signal({ stars: 3 });
+        mount(container, { model: [state, 'stars'], deselectable: true });
+        const all = items(container);
+        all[2]!.click();
+        expect(state.stars).toBe(0);
+        expect(document.activeElement).toBe(all[0]);
+        expect(all[0]!.tabIndex).toBe(0);
+    });
+
+    it('keydown clears a lingering hover preview so the commit shows', () => {
+        const state = signal({ stars: 2 });
+        mount(container, { model: [state, 'stars'] });
+        const all = items(container);
+        all[4]!.dispatchEvent(new PointerEvent('pointermove', { bubbles: true }));
+        expect(all[4]!.getAttribute('data-state')).toBe('full');
+        all[1]!.dispatchEvent(key('ArrowRight'));
+        expect(state.stars).toBe(3);
+        expect(all[4]!.getAttribute('data-state')).toBe('empty');
+        expect(all[2]!.getAttribute('data-state')).toBe('full');
+    });
+
     it('End respects a custom count', () => {
         const state = signal({ stars: 0 });
         mount(container, { model: [state, 'stars'], count: 3 });

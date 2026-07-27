@@ -154,19 +154,19 @@ const RatingGroupRoot = component<RatingGroupRootProps>(({ props, slots, emit, s
 
     const clampValue = (v: number): number => Math.min(Math.max(v, 0), count());
 
-    const commit = (value: number): void => {
-        if (disabled() || readonly()) return;
-        const next = clampValue(value);
-        if (props.deselectable && next === state.value) {
-            state.value = 0;
-            return;
-        }
-        state.value = next;
-    };
-
     const focusTabbable = (): void => {
         const index = Math.max(1, Math.ceil(state.value));
         items.get(index)?.focus();
+    };
+
+    const commit = (value: number): void => {
+        if (disabled() || readonly()) return;
+        const next = clampValue(value);
+        state.value = props.deselectable && next === state.value ? 0 : next;
+        // The tab stop follows the value; a click may have focused an item
+        // that just went tabIndex=-1 (deselect clears to item 1) — park
+        // focus on the stop so Tab order stays coherent.
+        focusTabbable();
     };
 
     const ctx: RatingGroupContext = {
@@ -192,6 +192,9 @@ const RatingGroupRoot = component<RatingGroupRootProps>(({ props, slots, emit, s
         commit,
         keydown(e) {
             if (disabled() || readonly()) return;
+            // A lingering hover preview would mask the keyboard commit —
+            // displayed() prefers the preview.
+            hover.current = null;
             const rtl = isRtl();
             let next: number | null = null;
             switch (e.key) {
