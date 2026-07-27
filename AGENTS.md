@@ -116,8 +116,11 @@ To run the playground: `pnpm build` (it loads each design system's compiled CSS
 from `dist/`), then `pnpm --filter zero-playground dev`.
 
 Real-browser interaction tests (Playwright over the playground; press-feedback
-contract on chromium/firefox/webkit plus reduced-motion and forced-colors
-projects): `pnpm build`, then `pnpm --filter zero-playground e2e` (first run:
+contract plus combobox/menu-submenu/toast interaction specs on
+chromium/firefox/webkit plus reduced-motion and forced-colors projects, and
+the state-matrix contrast audit — every text-bearing part × state combination
+× design system × theme, hard-fail below 3:1, chromium-only): `pnpm build`,
+then `pnpm --filter zero-playground e2e` (first run:
 `pnpm --filter zero-playground exec playwright install`). CI runs them on
 every PR. The root `pnpm
 typecheck` excludes `examples/`, so the playground has its own:
