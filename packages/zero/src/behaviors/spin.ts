@@ -54,6 +54,10 @@ export function createSpinPress(opts: SpinPressOptions): SpinPressHandlers {
             e.preventDefault();
             stop();
             opts.onSpin();
+            // The first spin may have parked the value on a bound and
+            // disabled the trigger — nothing left to repeat, so don't arm
+            // timers or window listeners at all.
+            if (opts.isDisabled?.()) return;
             delayHandle = setTimeout(() => {
                 repeatHandle = setInterval(() => {
                     if (opts.isDisabled?.()) {

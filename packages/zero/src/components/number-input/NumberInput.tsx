@@ -306,6 +306,7 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
                         data-part="hidden-input"
                         name={props.name}
                         value={state.value == null ? '' : String(state.value)}
+                        disabled={disabled()}
                     />
                 )
                 : null}
@@ -459,6 +460,11 @@ function makeTrigger(direction: 1 | -1, part: 'increment-trigger' | 'decrement-t
             onPointerdown: (e: PointerEvent) => {
                 press.onPointerdown(e);
                 spin.onPointerdown(e);
+                // The spin's preventDefault keeps native focus from moving —
+                // hand it to the spinbutton instead (Combobox.Trigger's
+                // satellite semantics), so keyboard stepping continues where
+                // the pointer left off.
+                if (!triggerDisabled()) ctx.focusInput();
             },
             onPointerup: (e: PointerEvent) => {
                 press.onPointerup(e);

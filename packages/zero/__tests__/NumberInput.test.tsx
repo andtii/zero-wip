@@ -332,6 +332,18 @@ describe('NumberInput', () => {
         expect(el.getAttribute('aria-valuenow')).toBe('51');
     });
 
+    it('a trigger press hands focus to the spinbutton', () => {
+        mount(container, { defaultValue: 5 });
+        inc(container).dispatchEvent(pointerDown());
+        expect(document.activeElement).toBe(input(container));
+    });
+
+    it('a disabled control does not submit its hidden input', () => {
+        mount(container, { name: 'qty', defaultValue: 5, disabled: true });
+        const hidden = container.querySelector<HTMLInputElement>('[data-part="hidden-input"]')!;
+        expect(hidden.disabled).toBe(true);
+    });
+
     it('disabled and readonly block stepping', () => {
         const state = signal({ qty: 5 as number | null });
         mount(container, { model: [state, 'qty'], disabled: true });
