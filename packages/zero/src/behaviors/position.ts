@@ -24,12 +24,34 @@ export interface PositionOptions {
     flip: boolean;
 }
 
+/**
+ * Anything that can report a client rect — an element, or a virtual anchor
+ * standing in for one (the floating-ui convention). Strategies only ever
+ * read `getBoundingClientRect()`, so an `HTMLElement` satisfies this
+ * structurally and a point in the viewport satisfies it via `pointAnchor`.
+ */
+export interface VirtualAnchor {
+    getBoundingClientRect(): DOMRect;
+}
+
+export type PositionAnchor = HTMLElement | VirtualAnchor;
+
+/**
+ * A virtual anchor at client coordinates — what a context menu anchors to.
+ * The rect is captured once: a moved pointer means a new `pointAnchor` (plus
+ * `AnchorPositionHandle.update()` when already open), not a live rect.
+ */
+export function pointAnchor(x: number, y: number, size = 0): VirtualAnchor {
+    const rect = new DOMRect(x, y, size, size);
+    return { getBoundingClientRect: () => rect };
+}
+
 export interface PositionStrategy {
     /**
      * Position `floating` relative to `anchor` and keep it positioned until
      * the returned cleanup runs.
      */
-    apply(anchor: HTMLElement, floating: HTMLElement, opts: PositionOptions): () => void;
+    apply(anchor: PositionAnchor, floating: HTMLElement, opts: PositionOptions): () => void;
 }
 
 function computeCoords(
@@ -115,7 +137,7 @@ export const fixedPositionStrategy: PositionStrategy = {
 };
 
 export interface AnchorPositionInput {
-    getAnchor(): HTMLElement | null;
+    getAnchor(): PositionAnchor | null;
     getFloating(): HTMLElement | null;
     isOpen(): boolean;
     placement?: () => Placement;
@@ -124,28 +146,52 @@ export interface AnchorPositionInput {
     strategy?: PositionStrategy;
 }
 
+export interface AnchorPositionHandle {
+    /**
+     * Re-resolve the anchor and re-run the strategy now, while open — for
+     * anchors that move without an open/close transition (a second
+     * right-click re-anchoring an open context menu). No-op while closed.
+     */
+    update(): void;
+}
+
 /**
  * Keep a floating element positioned against its anchor while open. Call
  * from component setup; SSR-inert.
  */
-export function createAnchorPosition(input: AnchorPositionInput): void {
-    if (typeof document === 'undefined') return;
+export function createAnchorPosition(input: AnchorPositionInput): AnchorPositionHandle {
+    if (typeof document === 'undefined') return { update: () => {} };
+
+    let reapply: (() => void) | null = null;
 
     watch(
         () => input.isOpen(),
         (open, _prev, onCleanup) => {
+            reapply = null;
             if (!open) return;
-            const anchor = input.getAnchor();
-            const floating = input.getFloating();
-            if (!anchor || !floating) return;
-            const strategy = input.strategy ?? fixedPositionStrategy;
-            const cleanup = strategy.apply(anchor, floating, {
-                placement: input.placement?.() ?? 'bottom',
-                offset: input.offset?.() ?? 6,
-                flip: input.flip?.() ?? true,
+            const apply = (): (() => void) | null => {
+                const anchor = input.getAnchor();
+                const floating = input.getFloating();
+                if (!anchor || !floating) return null;
+                const strategy = input.strategy ?? fixedPositionStrategy;
+                return strategy.apply(anchor, floating, {
+                    placement: input.placement?.() ?? 'bottom',
+                    offset: input.offset?.() ?? 6,
+                    flip: input.flip?.() ?? true,
+                });
+            };
+            let cleanup = apply();
+            reapply = () => {
+                cleanup?.();
+                cleanup = apply();
+            };
+            onCleanup(() => {
+                cleanup?.();
+                reapply = null;
             });
-            onCleanup(cleanup);
         },
         { immediate: true },
     );
+
+    return { update: () => reapply?.() };
 }
