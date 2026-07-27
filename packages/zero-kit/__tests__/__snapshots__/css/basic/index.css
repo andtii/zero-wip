@@ -498,7 +498,7 @@
         [data-scope="dialog"][data-part="popup"] {
             width: calc(100% - 2rem);
             max-width: 32rem;
-            height: auto;
+            height: fit-content;
             max-height: calc(100% - 2rem);
             margin: auto;
             border: var(--border) solid var(--color-base-300);

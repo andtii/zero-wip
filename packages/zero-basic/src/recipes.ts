@@ -323,7 +323,9 @@ export const dialog: RecipeInput = {
                     base: {
                         width: 'calc(100% - 2rem)',
                         maxWidth: '32rem',
-                        height: 'auto',
+                        // `auto` stretches an inset-positioned modal to fill; `fit-content`
+                        // is the UA's own dialog default and hugs the content (#114).
+                        height: 'fit-content',
                         maxHeight: 'calc(100% - 2rem)',
                         margin: 'auto',
                         border: 'var(--border) solid var(--color-base-300)',

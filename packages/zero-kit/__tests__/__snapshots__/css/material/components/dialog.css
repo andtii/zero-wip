@@ -188,7 +188,7 @@
         [data-scope="dialog"][data-part="popup"] {
             width: calc(100% - var(--space-2xl));
             max-width: 35rem;
-            height: auto;
+            height: fit-content;
             max-height: calc(100% - var(--space-2xl));
             margin: auto;
             background: var(--color-surface-container-high);
