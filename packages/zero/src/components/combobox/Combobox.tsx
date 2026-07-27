@@ -406,6 +406,8 @@ const ComboboxInput = component<ComboboxInputProps>(({ props }) => {
 // ── Trigger ──
 
 export type ComboboxTriggerProps =
+    /** Accessible name for the disclosure button (default "Show options"). */
+    & Define.Prop<'label', string, false>
     & WithClass
     & WithAsChild
     & Define.Slot<'default', PartProps>;
@@ -428,7 +430,7 @@ const ComboboxTrigger = component<ComboboxTriggerProps>(({ props, slots, signal 
         'data-focus-visible': dataAttr(focus.visible),
         // Focus lives in the input; the button is a pointer affordance.
         tabIndex: -1,
-        'aria-label': 'Show options',
+        'aria-label': props.label ?? 'Show options',
         'aria-expanded': combobox.open.value ? 'true' : 'false',
         'aria-controls': combobox.ids.popup,
         onClick: () => {
@@ -521,7 +523,7 @@ function optionText(el: HTMLElement | null): string | undefined {
     return trimmed === '' ? undefined : trimmed;
 }
 
-const ComboboxItem = component<ComboboxItemProps>(({ props, slots, onUnmounted }) => {
+const ComboboxItem = component<ComboboxItemProps>(({ props, slots, onMounted, onUnmounted }) => {
     const combobox = useComboboxContext();
     let el: HTMLElement | null = null;
     // Pointer-only press: keyboard selection lives on the input
@@ -539,6 +541,20 @@ const ComboboxItem = component<ComboboxItemProps>(({ props, slots, onUnmounted }
         textValue: () => props.textValue ?? optionText(el) ?? props.value,
     };
     const unregister = combobox.list.register(item);
+    onMounted(() => {
+        // A value set before this item existed (defaultValue, async data)
+        // could not reflect its label into the input. Deferred: a write
+        // during the mount pass is invisible to the already-rendered input.
+        queueMicrotask(() => {
+            if (combobox.state.value !== props.value) return;
+            const current = combobox.inputValue.value;
+            // Never clobber a user-typed query — only fill emptiness or the
+            // raw-value fallback.
+            if (current === '' || current === props.value) {
+                combobox.inputValue.value = item.textValue();
+            }
+        });
+    });
     onUnmounted(() => {
         unregister();
         // Typing filters items away — a dangling highlight would keep

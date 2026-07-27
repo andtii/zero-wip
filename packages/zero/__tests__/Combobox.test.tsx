@@ -204,6 +204,43 @@ describe('Combobox', () => {
         expect(container.querySelector('[data-scope="combobox"][data-part="control"]')!.getAttribute('data-invalid')).toBe('');
     });
 
+    it('a defaultValue reflects its item label into the input on mount', async () => {
+        render(
+            <Combobox.Root defaultValue="banana">
+                <Combobox.Control>
+                    <Combobox.Input />
+                    <Combobox.Trigger label="Open the list" />
+                </Combobox.Control>
+                <Combobox.Popup>
+                    <Combobox.Item value="banana">Banana</Combobox.Item>
+                </Combobox.Popup>
+            </Combobox.Root>,
+            container,
+        );
+        await tick();
+        expect(container.querySelector<HTMLInputElement>('[data-part="input"]')!.value).toBe('Banana');
+        expect(container.querySelector('[data-part="trigger"]')!.getAttribute('aria-label')).toBe('Open the list');
+    });
+
+    it('the mount sync never clobbers a live query', async () => {
+        render(
+            <Combobox.Root defaultValue="banana" defaultInputValue="ban">
+                <Combobox.Control>
+                    <Combobox.Input />
+                    <Combobox.Trigger />
+                </Combobox.Control>
+                <Combobox.Popup>
+                    <Combobox.Item value="banana">Banana</Combobox.Item>
+                </Combobox.Popup>
+            </Combobox.Root>,
+            container,
+        );
+        await tick();
+        // The item mounted with the value already selected, but the text is
+        // a real query ('ban' ≠ '' and ≠ the raw value) — hands off.
+        expect(container.querySelector<HTMLInputElement>('[data-part="input"]')!.value).toBe('ban');
+    });
+
     it('the selected item shows its indicator', () => {
         const { input, items, trigger } = harness();
         key(input, 'ArrowDown');
