@@ -13,7 +13,9 @@
  *   system declares its own role names (via `@sigx/zero-kit`), and every
  *   color token is `--color-<role>`, optionally paired with
  *   `--color-<role>-content` (readable foreground on the role color) and
- *   `--color-<role>-soft` (tinted surface derived against `base-100`).
+ *   `--color-<role>-soft` (tinted surface derived against `base-100`, mixed
+ *   in oklab at the theme's `softMix` — every emit target derives it the
+ *   same way, so one theme tints identically everywhere).
  *   Zero itself knows no role names — only the convention.
  * - The base surfaces (`base-100/200/300/base-content`) are the one fixed
  *   color vocabulary: they anchor soft derivation, `light-dark()` root
@@ -44,6 +46,8 @@
  *              plus the fixed `--color-base-100/200/300` / `--color-base-content`
  * - Categories: `--radius-*`, `--size-*`, `--text-*`, `--border`,
  *              `--disabled-opacity` — see `TOKEN_CATEGORIES`
+ * - Aliases:   every `--text-<key>` also emits `--text-fixed-<key>` — see
+ *              `TEXT_FIXED_PREFIX`
  *
  * Colors stay a separate, stricter mechanism on purpose; the reasoning is on
  * `TokenCategory`.
@@ -184,7 +188,7 @@ export const TOKEN_CATEGORIES = [
     {
         id: 'text', shape: 'scale', prefix: '--text-', path: ['typography', 'sizes'],
         recommended: ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'], syntax: '<length>',
-        description: 'Font-size ramp; may be generated from a modular typography.scale.',
+        description: 'Font-size ramp; may be generated from a modular typography.scale. Every key also emits a --text-fixed-<key> alias for platform-scale-immune control chrome.',
     },
     {
         id: 'weight', shape: 'scale', prefix: '--weight-', path: ['typography', 'weights'],
@@ -242,6 +246,25 @@ export type TokenCategoryId = typeof TOKEN_CATEGORIES[number]['id'];
  * identifier to `var(--color-<role>)`.
  */
 export const TOKEN_KEY_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+/**
+ * Fixed-size alias for the text ramp: for every emitted `--text-<key>` the
+ * token compiler also emits `--text-fixed-<key>`.
+ *
+ * The two names answer different questions. `--text-<key>` is "this step of
+ * the ramp, subject to whatever runtime text scaling the platform applies";
+ * `--text-fixed-<key>` is "the same step, immune to that scaling". On the web
+ * there is no such scaling, so the alias is pure indirection
+ * (`--text-fixed-sm: var(--text-sm)`); an emit target with a runtime font
+ * scale (lynx's `fontScale`) materializes the alias as a literal the scaler
+ * never touches. Recipes reference it for control chrome — button labels,
+ * badges, input affordances — that must not grow with in-app text scaling.
+ *
+ * A design system never authors these: they are derived from the declared
+ * `--text-*` keys. A literal `typography.sizes` key that happens to spell a
+ * `fixed-*` name wins over the derived alias.
+ */
+export const TEXT_FIXED_PREFIX = '--text-fixed-';
 
 /**
  * The custom-property name a category key emits.

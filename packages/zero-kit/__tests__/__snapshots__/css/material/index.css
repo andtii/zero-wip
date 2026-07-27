@@ -103,6 +103,13 @@
         --ease-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
         --border: 1px;
         --disabled-opacity: 0.38;
+        --text-fixed-xs: var(--text-xs);
+        --text-fixed-sm: var(--text-sm);
+        --text-fixed-md: var(--text-md);
+        --text-fixed-lg: var(--text-lg);
+        --text-fixed-xl: var(--text-xl);
+        --text-fixed-2xl: var(--text-2xl);
+        --text-fixed-3xl: var(--text-3xl);
     }
 
     @media (prefers-color-scheme: dark) {

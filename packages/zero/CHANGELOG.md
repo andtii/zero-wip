@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added
+
+- **`--text-fixed-<key>` aliases in the token contract** (`TEXT_FIXED_PREFIX`
+  in `@sigx/zero/contract`): for every emitted `--text-<key>` the compiler
+  also emits `--text-fixed-<key>` — on the web pure indirection
+  (`var(--text-<key>)`); on an emit target with a runtime font scale (lynx's
+  `fontScale`) a materialized literal that scaling never touches. Recipes
+  reference it for control chrome that must not grow with in-app text
+  scaling. `css/base.css` ships fallback aliases for the recommended ramp.
+  Part of the multi-target RFC (docs/rfcs/0001, #96).
+
 ### Changed (breaking — pre-release)
 
 - **The `size` axis is now open, like the color axis.** `SizeScale` was a

@@ -12,7 +12,9 @@
  * declares its own role names (`roles`), and every color token is
  * `--color-<role>` with the suffix semantics `-content` (readable foreground
  * on the role color, contrast-validated) and `-soft` (tinted surface derived
- * against `base-100`). Only the base surfaces are fixed — they anchor soft
+ * against `base-100`, mixed in oklab at the theme's `softMix` — every emit
+ * target derives it the same way, so one theme tints identically
+ * everywhere). Only the base surfaces are fixed — they anchor soft
  * derivation, `light-dark()` root emission and theme swatches.
  */
 
@@ -85,7 +87,7 @@ export const TOKEN_CATEGORIES = [
     {
         id: 'text', shape: 'scale', prefix: '--text-', path: ['typography', 'sizes'],
         recommended: ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'], syntax: '<length>',
-        description: 'Font-size ramp; may be generated from a modular typography.scale.',
+        description: 'Font-size ramp; may be generated from a modular typography.scale. Every key also emits a --text-fixed-<key> alias for platform-scale-immune control chrome.',
     },
     {
         id: 'weight', shape: 'scale', prefix: '--weight-', path: ['typography', 'weights'],
@@ -141,6 +143,18 @@ export type TokenCategoryId = typeof TOKEN_CATEGORIES[number]['id'];
  * may start with a digit (`--text-2xl`).
  */
 export const TOKEN_KEY_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+/**
+ * Fixed-size alias for the text ramp: for every emitted `--text-<key>` the
+ * compiler also emits `--text-fixed-<key>` — on the web a pure indirection
+ * (`--text-fixed-sm: var(--text-sm)`); on a target with a runtime font scale
+ * (lynx's `fontScale`) a materialized literal the scaler never touches.
+ * Recipes reference it for control chrome that must not grow with in-app
+ * text scaling. Derived, never authored — a literal `typography.sizes` key
+ * spelling a `fixed-*` name wins over the derived alias. Mirrors
+ * `TEXT_FIXED_PREFIX` in `@sigx/zero/contract` (parity-tested).
+ */
+export const TEXT_FIXED_PREFIX = '--text-fixed-';
 
 /**
  * Read a category's node out of an authoring object, following the whole
@@ -268,6 +282,12 @@ export function contrastPairs(roles: Record<string, RoleDecl>): readonly (readon
  * reference. `--press-*` come from the press-feedback behavior (press point
  * and farthest-corner radius, in px, on any part whose anatomy declares the
  * `pressed` flag); the percent pair is written by Progress and Slider.
+ *
+ * WEB-ONLY: these exist because the DOM runtime can write custom properties
+ * that stylesheet rules then read. A target whose engine cannot resolve
+ * `var()` written inline (lynx) has no equivalent mechanism, so its
+ * capability set rejects recipes that reference them outside a web-only
+ * target section.
  */
 export const RUNTIME_PROPERTIES = [
     '--press-x',

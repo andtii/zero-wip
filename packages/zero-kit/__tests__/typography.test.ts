@@ -10,6 +10,7 @@ import { describe, it, expect } from 'vitest';
 import { compileTokensCss, defineTokens, generateTypeScale, validateDesignSystem } from '@sigx/zero-kit';
 import type { DesignSystemInput, ManifestComponent } from '@sigx/zero-kit';
 import { anatomies } from '@sigx/zero/anatomy';
+import { tokenVocabulary } from '../src/vocabulary.js';
 
 const manifest = {
     components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
@@ -117,6 +118,71 @@ describe('typography emission', () => {
         const fontDecls = [...css.matchAll(/--font-[\w-]+:\s*([^;]+);/g)].map((m) => m[1]!);
         expect(fontDecls.every((v) => !/^[\d.]+(rem|px|em)$/.test(v.trim()))).toBe(true);
         expect(css).toMatch(/--text-md:\s*[\d.]+rem;/);
+    });
+});
+
+describe('the --text-fixed-* aliases', () => {
+    const themeBlock = (css: string, name: string): string => {
+        const match = css.match(new RegExp(`\\[data-theme="${name}"\\] \\{([^}]*)\\}`));
+        expect(match, `theme block "${name}"`).toBeTruthy();
+        return match![1]!;
+    };
+
+    it('emits a var() alias for every text key, declared or generated', () => {
+        const css = compile({
+            scale: { base: '1rem', ratio: 2 },
+            sizes: { display: '4rem' },
+        });
+        expect(css).toContain('--text-fixed-md: var(--text-md);');
+        expect(css).toContain('--text-fixed-xs: var(--text-xs);');
+        expect(css).toContain('--text-fixed-display: var(--text-display);');
+    });
+
+    it('lets a literal fixed-* key win over the derived alias', () => {
+        const css = compile({ sizes: { md: '1rem', 'fixed-md': '17px' } });
+        expect(css).toContain('--text-fixed-md: 17px;');
+        expect(css).not.toContain('--text-fixed-md: var(--text-md);');
+    });
+
+    it('restates the alias in exactly the theme blocks that re-emit the key', () => {
+        // An alias substitutes its var() where DECLARED, so a theme scope that
+        // redeclares --text-md without restating --text-fixed-md would keep
+        // :root's captured value — the same trap as color-referencing tokens.
+        const css = compileTokensCss(defineTokens({
+            roles,
+            system: { typography: { sizes: { md: '1rem', sm: '0.875rem' } } },
+            defaultLight: 'plain',
+            themes: {
+                plain: { colorScheme: 'light', colors },
+                big: {
+                    colorScheme: 'light',
+                    colors,
+                    system: { typography: { sizes: { md: '1.25rem' } } },
+                },
+            },
+        }));
+        const big = themeBlock(css, 'big');
+        expect(big).toContain('--text-md: 1.25rem;');
+        expect(big).toContain('--text-fixed-md: var(--text-md);');
+        // The untouched key stays inherited — no dead restatement.
+        expect(big).not.toContain('--text-sm');
+        expect(themeBlock(css, 'plain')).not.toContain('--text-fixed');
+    });
+
+    it('is part of the vocabulary recipes validate against', () => {
+        const vocab = tokenVocabulary(defineTokens({
+            roles,
+            system: { typography: { sizes: { display: '4rem', 'fixed-md': '17px' } } },
+            defaultLight: 'l',
+            themes: { l: { colorScheme: 'light', colors } },
+        }));
+        expect(vocab.names.has('--text-fixed-display')).toBe(true); // declared key
+        expect(vocab.names.has('--text-fixed-sm')).toBe(true);      // recommended key
+        // A literal fixed-* key is itself in the vocabulary but mints no
+        // second-order alias — the compiler never emits one, and accepting
+        // `var(--text-fixed-fixed-md)` would validate a token that doesn't exist.
+        expect(vocab.names.has('--text-fixed-md')).toBe(true);
+        expect(vocab.names.has('--text-fixed-fixed-md')).toBe(false);
     });
 });
 
