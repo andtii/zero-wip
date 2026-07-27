@@ -139,12 +139,12 @@ zero-kit for the SPI, the resolve/validate core, and the lowering toolkit.
 
 ```ts
 export interface TargetCapabilities {
-    attributeSelectors: boolean;         // web: true, lynx: false
-    pseudoClasses: ReadonlySet<string>;  // lynx: empty
+    attributeSelectors: boolean;         // false on engines without attribute selectors
+    pseudoClasses: ReadonlySet<string>;  // which pseudo-classes the engine supports (may be empty)
     atRules: boolean;                    // @media/@layer/@property/@container
     colorSyntax: 'css-color-4' | 'hex-rgb';
-    varInCalc: boolean;                  // lynx: false → fold or error
-    colorMix: boolean;                   // lynx: false → materialize or error
+    varInCalc: boolean;                  // false → fold at compile time or error
+    colorMix: boolean;                   // false → materialize at compile time or error
 }
 
 export interface EmitTarget {
@@ -173,7 +173,8 @@ error.
 ### 3.4 Value lowering — the central mechanism
 
 The lowering machinery is an **exported, capability-driven toolkit**
-(`@sigx/zero-kit/lowering`), not private plumbing: any target plugin whose
+(`@sigx/zero-kit/lower`, the `lower/` directory in §3.2), not private
+plumbing: any target plugin whose
 `TargetCapabilities` rule out a construct calls the same folding helpers, so
 a future terminal target reuses them unchanged. Theme values are compile-time
 data (they live in `tokens.ts`), so any expression whose free variables are
