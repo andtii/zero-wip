@@ -15,7 +15,7 @@
  * client-only module state, like the dismiss layer stack.
  */
 import { defineInjectable, signal } from 'sigx';
-import type { ColorValue } from '../../contract/tokens.js';
+import type { ColorValueFor } from '../../contract/vocabulary.js';
 
 export type ToastRole = 'status' | 'alert';
 
@@ -30,7 +30,7 @@ export interface ToastOptions {
     title?: string;
     description?: string;
     /** Passes through as `data-color` on the toast root. */
-    color?: ColorValue;
+    color?: ColorValueFor<'toast'>;
     /** `status` announces politely (default); `alert` interrupts. */
     role?: ToastRole;
     /** Auto-dismiss after this many ms; `Infinity` = sticky. */
@@ -47,7 +47,7 @@ export interface ToastData {
     open: boolean;
     title?: string;
     description?: string;
-    color?: ColorValue;
+    color?: ColorValueFor<'toast'>;
     role: ToastRole;
     duration: number;
     action?: ToastActionData;

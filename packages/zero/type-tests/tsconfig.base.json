@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "strict": true,
+        "noEmit": true,
+        "jsx": "react-jsx",
+        "jsxImportSource": "sigx",
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "types": [],
+        "paths": {
+            "@sigx/zero": ["../src/index.ts"],
+            "@sigx/zero/*": ["../src/*"]
+        }
+    }
+}

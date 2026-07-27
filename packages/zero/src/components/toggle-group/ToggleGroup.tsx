@@ -32,12 +32,9 @@ import type {
     PartProps,
     WithAsChild,
     WithClass,
-    WithColor,
     WithDisabled,
     WithOrientation,
-    WithSize,
-    WithVariant,
-    WithAxes,
+    WithVariantAxes,
 } from '../../contract/props.js';
 import { toggleGroupAnatomy } from './anatomy.js';
 
@@ -83,10 +80,7 @@ export type ToggleGroupRootProps =
     /** Accessible name for the `role="group"` container (`aria-label`). */
     & Define.Prop<'label', string, false>
     & WithOrientation
-    & WithColor
-    & WithSize
-    & WithVariant
-    & WithAxes
+    & WithVariantAxes<'toggle-group'>
     & WithDisabled
     & WithClass
     & Define.Slot<'default'>;

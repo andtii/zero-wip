@@ -55,11 +55,8 @@ import type {
     PartProps,
     WithAsChild,
     WithClass,
-    WithColor,
     WithDisabled,
-    WithSize,
-    WithVariant,
-    WithAxes,
+    WithVariantAxes,
 } from '../../contract/props.js';
 import { comboboxAnatomy } from './anatomy.js';
 
@@ -155,10 +152,7 @@ export type ComboboxRootProps =
     & Define.Prop<'placement', Placement, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     & WithDisabled
-    & WithColor
-    & WithSize
-    & WithVariant
-    & WithAxes
+    & WithVariantAxes<'combobox'>
     & WithClass
     & Define.Slot<'default'>;
 

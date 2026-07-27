@@ -16,7 +16,7 @@ import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { createId } from '../../behaviors/create-id.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithColor, WithSize, WithVariant, WithAxes } from '../../contract/props.js';
+import type { WithClass, WithVariantAxes } from '../../contract/props.js';
 import { progressAnatomy } from './anatomy.js';
 
 const SCOPE = progressAnatomy.scope;
@@ -47,10 +47,7 @@ export type ProgressRootProps =
     & Define.Prop<'value', number | null, false>
     & Define.Prop<'min', number, false>
     & Define.Prop<'max', number, false>
-    & WithColor
-    & WithSize
-    & WithVariant
-    & WithAxes
+    & WithVariantAxes<'progress'>
     & WithClass
     & Define.Slot<'default'>;
 

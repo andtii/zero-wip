@@ -106,6 +106,7 @@ pnpm test -- -t "name of test"        # single test by name (vitest -t)
 pnpm test:watch
 pnpm test:coverage
 pnpm typecheck     # tsgo --noEmit against package sources (path-aliased)
+pnpm test:types    # compile-time type tests (zero's ZeroVocabulary seam), two isolated tsconfig projects
 pnpm lint          # oxlint packages
 pnpm lint:fix
 pnpm verify:catalog  # catalog: usage check for @sigx core deps

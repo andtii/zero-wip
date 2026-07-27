@@ -25,7 +25,7 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithColor, WithDisabled, WithSize, WithVariant, WithAxes } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
 import { sliderAnatomy } from './anatomy.js';
 
 const SCOPE = sliderAnatomy.scope;
@@ -74,10 +74,7 @@ export type SliderRootProps =
     & Define.Prop<'name', string, false>
     & Define.Prop<'invalid', boolean, false>
     & WithDisabled
-    & WithColor
-    & WithSize
-    & WithVariant
-    & WithAxes
+    & WithVariantAxes<'slider'>
     & WithClass
     & Define.Slot<'default'>;
 

@@ -40,11 +40,8 @@ import type {
     PartProps,
     WithAsChild,
     WithClass,
-    WithColor,
     WithDisabled,
-    WithSize,
-    WithVariant,
-    WithAxes,
+    WithVariantAxes,
 } from '../../contract/props.js';
 import { clamp, snapToStep } from './number.js';
 import { numberInputAnatomy } from './anatomy.js';
@@ -132,10 +129,7 @@ export type NumberInputRootProps =
     & Define.Prop<'invalid', boolean, false>
     & Define.Prop<'readonly', boolean, false>
     & WithDisabled
-    & WithColor
-    & WithSize
-    & WithVariant
-    & WithAxes
+    & WithVariantAxes<'number-input'>
     & WithClass
     & Define.Slot<'default'>;
 

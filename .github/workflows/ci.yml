@@ -45,6 +45,11 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      # Isolated projects — module augmentation leaks program-wide, so the
+      # augmented assertions must never share a program with `pnpm typecheck`.
+      - name: Type tests
+        run: pnpm test:types
+
       - name: Build
         run: pnpm build
 

@@ -4,6 +4,28 @@
 
 ### Added
 
+- **The `ZeroVocabulary` augmentation seam** (RFC 0002 phase 2, #130):
+  `@sigx/zero` exports an empty `ZeroVocabulary` interface plus the scoped
+  resolvers `ColorValueFor<S>` / `SizeScaleFor<S>` / `VariantValueFor<S>` /
+  `AxesFor<S>`. The four variant-axis prop fragments become generic on the
+  component scope (defaulting to the open unions), a combined
+  `WithVariantAxes<S>` composes them, and every component carrying the axes
+  names its own scope — toast's `ToastOptions.color`/`ToastData.color`
+  included. With no augmentation every helper resolves to exactly the union
+  it replaced; a design system's generated `/register` module (phase 3) is
+  what narrows them. Also new: `ZeroAnatomies`/`ZeroScope` (the anatomy
+  registry keeps its literal keys), an exported `VARIANT_AXES`
+  (parity-tested against the kit's copy; previously the private
+  `NAMED_AXES`), and compile-time type tests under `pnpm test:types` in two
+  isolated projects, since module augmentation leaks program-wide.
+
+### Changed
+
+- `variantAttrs` accepts `axes` values of `string | undefined` and skips
+  `undefined` entries before its guards — a narrowed `AxesFor<S>` bag has
+  optional members, and an unset one must neither throw nor emit an
+  attribute. The guards themselves are unchanged.
+
 - **TreeView** (`@sigx/zero/tree-view`) — the APG tree pattern. Unnamed
   model = selected value; `model:expandedValues` (named-models convention)
   = the expansion set. ArrowRight expands then descends, ArrowLeft

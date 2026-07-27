@@ -8,6 +8,7 @@ export * from './behaviors/index.js';
 export * from './theme/index.js';
 
 export { anatomies } from './anatomy.js';
+export type { ZeroAnatomies, ZeroScope } from './anatomy.js';
 
 export { Button, buttonAnatomy } from './components/button/index.js';
 export type { ButtonRootProps } from './components/button/index.js';

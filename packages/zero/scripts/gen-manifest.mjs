@@ -17,7 +17,7 @@ const distContract = new URL('../dist/contract/index.js', import.meta.url).href;
 const { anatomies } = await import(distAnatomy);
 const {
     RECOMMENDED_ROLE_LIST, BASE_SURFACE_TOKEN_LIST,
-    TOKEN_CATEGORIES, SIZE_SCALE_LIST, FLAG_VOCABULARY,
+    TOKEN_CATEGORIES, SIZE_SCALE_LIST, FLAG_VOCABULARY, VARIANT_AXES,
 } = await import(distContract);
 
 const manifest = {
@@ -32,11 +32,7 @@ const manifest = {
         // The axes with named props. NOT a closed set — a design system may
         // declare others (density, emphasis, tone) and reach them through the
         // `axes` prop, which spells them by the same rule.
-        variantAxes: {
-            color: 'data-color',
-            size: 'data-size',
-            variant: 'data-variant',
-        },
+        variantAxes: VARIANT_AXES,
         extraAxisForm:
             'data-<axis>, set via the `axes` prop; <axis> is kebab-case and may not '
             + 'collide with the attributes above or with flagVocabulary',

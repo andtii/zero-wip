@@ -5,6 +5,7 @@
 import type { Define } from 'sigx';
 import type { ColorValue, SizeScale } from './tokens.js';
 import { TOKEN_KEY_PATTERN as AXIS_NAME_PATTERN } from './tokens.js';
+import type { AxesFor, ColorValueFor, SizeScaleFor, VariantValueFor } from './vocabulary.js';
 import type { Orientation } from './data-attrs.js';
 import { FLAG_VOCABULARY } from './data-attrs.js';
 
@@ -16,19 +17,22 @@ export type WithDisabled = Define.Prop<'disabled', boolean, false>;
 
 /**
  * Semantic color of the component — passes through as `data-color`.
- * Recommended roles autocomplete; any DS-declared role name is valid.
+ * Recommended roles autocomplete; any DS-declared role name is valid. Generic
+ * on the component scope: with a `/register` module imported, `S` narrows to
+ * exactly what that design system wires for the component; the `string`
+ * default keeps the open union everywhere else.
  */
-export type WithColor = Define.Prop<'color', ColorValue, false>;
+export type WithColor<S extends string = string> = Define.Prop<'color', ColorValueFor<S>, false>;
 
 /** Component size on the shared scale — passes through as `data-size`. */
-export type WithSize = Define.Prop<'size', SizeScale, false>;
+export type WithSize<S extends string = string> = Define.Prop<'size', SizeScaleFor<S>, false>;
 
 /**
  * Design-system fill/chrome variant — passes through as `data-variant`.
  * Values are DS-defined (outline, soft, ghost, …); zero does not interpret
  * them.
  */
-export type WithVariant = Define.Prop<'variant', string, false>;
+export type WithVariant<S extends string = string> = Define.Prop<'variant', VariantValueFor<S>, false>;
 
 /**
  * Additional design-system variant axes, passed through as `data-<axis>`.
@@ -48,7 +52,14 @@ export type WithVariant = Define.Prop<'variant', string, false>;
  * `orientation`, or any flag). Those attributes already carry meaning that
  * zero sets and every design system selects on.
  */
-export type WithAxes = Define.Prop<'axes', Record<string, string>, false>;
+export type WithAxes<S extends string = string> = Define.Prop<'axes', AxesFor<S>, false>;
+
+/**
+ * All four variant axes for one component scope — the usual composition, and
+ * it cannot mix scopes by accident.
+ */
+export type WithVariantAxes<S extends string> =
+    WithColor<S> & WithSize<S> & WithVariant<S> & WithAxes<S>;
 
 /** Layout direction — rendered as `data-orientation`. */
 export type WithOrientation = Define.Prop<'orientation', Orientation, false>;
@@ -118,12 +129,19 @@ export const RESERVED_AXES: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * The axes with named props. Deliberately NOT in `RESERVED_AXES`: a recipe
- * keying `variants.color` is the ordinary case and the validator must keep
- * allowing it. These are only reserved on the runtime `axes` bag, where they
- * would be a second way to write one attribute.
+ * The axes with named props, mapped to the attributes they render.
+ * Deliberately NOT in `RESERVED_AXES`: a recipe keying `variants.color` is
+ * the ordinary case and the validator must keep allowing it. These are only
+ * reserved on the runtime `axes` bag, where they would be a second way to
+ * write one attribute. The kit keeps an identical copy (it is a pure Node
+ * tool with no runtime dependency on zero); `contract-parity.test.ts` holds
+ * the two honest.
  */
-const NAMED_AXES = ['color', 'size', 'variant'] as const;
+export const VARIANT_AXES: Record<string, string> = {
+    color: 'data-color',
+    size: 'data-size',
+    variant: 'data-variant',
+};
 
 /**
  * Build the shared variant pass-through attributes from contract props.
@@ -132,13 +150,15 @@ const NAMED_AXES = ['color', 'size', 'variant'] as const;
  * Extra `axes` become `data-<axis>` alongside the three named ones. An axis
  * name is rejected outright rather than dropped: a silently missing attribute
  * is exactly the failure this whole mechanism exists to remove, and the value
- * comes from application code, not from user input.
+ * comes from application code, not from user input. An `undefined` VALUE is
+ * skipped before the guards run — a narrowed `AxesFor<S>` bag has optional
+ * members, and an unset one must neither throw nor emit `data-<axis>`.
  */
 export function variantAttrs(props: {
     color?: ColorValue;
     size?: SizeScale;
     variant?: string;
-    axes?: Record<string, string>;
+    axes?: Record<string, string | undefined>;
 }): Record<string, string | undefined> {
     const attrs: Record<string, string | undefined> = {
         'data-color': props.color,
@@ -146,7 +166,11 @@ export function variantAttrs(props: {
         'data-variant': props.variant,
     };
     for (const [axis, value] of Object.entries(props.axes ?? {})) {
-        if ((NAMED_AXES as readonly string[]).includes(axis)) {
+        if (value === undefined) continue;
+        // hasOwnProperty.call, not `in` or an index read: a plain object says
+        // yes to `'toString' in …`, and this package targets ES2020, which
+        // predates Object.hasOwn.
+        if (Object.prototype.hasOwnProperty.call(VARIANT_AXES, axis)) {
             // Otherwise this loop, running after the named props are applied,
             // silently wins: `color="primary" axes={{ color: 'x' }}` rendered
             // `data-color="x"`. Two ways to write one attribute, with
