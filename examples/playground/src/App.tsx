@@ -273,7 +273,7 @@ export const App = component(() => {
                     <h2>Slider + Progress</h2>
                     <Slider.Root model={() => state.volume}>
                         <Slider.Label>Volume</Slider.Label>
-                        <Slider.Input />
+                        <Slider.Control />
                         <Slider.ValueText />
                     </Slider.Root>
                     <Progress.Root value={state.volume}>

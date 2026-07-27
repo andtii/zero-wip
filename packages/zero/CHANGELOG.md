@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### Changed (breaking — pre-release, multi-target RFC docs/rfcs/0001, #98)
+
+- **Slider: the styled part is `control`, not `input`** (`Slider.Control`
+  replaces `Slider.Input`), and the anatomy grows the cross-platform superset
+  parts `track`, `range`, `thumb` — the projection for platforms without a
+  native range widget. The web renders only `control`; rules against the new
+  parts are inert here, which is what lets one recipe carry both projections.
+- **Dialog: the backdrop is now a first-class `backdrop` part.** It renders
+  no element on the web — the anatomy declares it
+  `pseudo: { of: 'popup', selector: '::backdrop' }` and recipes style
+  `parts.backdrop` instead of hand-writing
+  `selectors: { '&::backdrop': … }` (states narrow the popup:
+  `[data-state="open"]::backdrop`). Dialog also gains a `footer` part and
+  `Dialog.Footer` component — the shared action row.
+- `defineAnatomy` supports **pseudo parts** (`PartSpec.pseudo`): parts that
+  render no element of their own on the web and project onto a
+  pseudo-element of another part. `selector()` and `toJSON()` compose the
+  host + state fragments + pseudo-element (always last).
+
 ### Added
 
 - **`--text-fixed-<key>` aliases in the token contract** (`TEXT_FIXED_PREFIX`

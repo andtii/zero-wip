@@ -203,6 +203,23 @@
                     "description": "True when the part supports asChild composition.",
                     "type": "boolean"
                 },
+                "pseudo": {
+                    "description": "Present when the part renders no element of its own on the web and projects onto a pseudo-element of another part (dialog's backdrop \u2192 popup's ::backdrop). Consumers compose [data-part=\"<of>\"]<state fragments><selector> \u2014 pseudo-element last, because attributes can only narrow the host.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["of", "selector"],
+                    "properties": {
+                        "of": {
+                            "description": "The rendered part the pseudo-element belongs to.",
+                            "$ref": "#/$defs/kebabToken"
+                        },
+                        "selector": {
+                            "description": "The pseudo-element, including the leading ::.",
+                            "type": "string",
+                            "pattern": "^::"
+                        }
+                    }
+                },
                 "selectors": {
                     "description": "Ready-made CSS selector fragment per state/flag name — states map to [data-state=\"x\"], flags to [data-x]. This is what the recipe compiler consumes.",
                     "type": "object",

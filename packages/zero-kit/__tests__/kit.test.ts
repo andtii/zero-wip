@@ -141,6 +141,45 @@ describe('compileRecipeCss', () => {
         expect(css).toContain('[data-scope="switch"][data-part="root"][data-color="success"] [data-scope="switch"][data-part="control"][data-state="checked"]');
         expect(css).toContain(':not([data-color])');
     });
+
+    it('projects pseudo parts onto their host, pseudo-element last', () => {
+        // Dialog's backdrop renders no element on the web — the anatomy
+        // declares it `pseudo: { of: 'popup', selector: '::backdrop' }` and
+        // the compiler attaches states to the HOST, then the pseudo-element:
+        // an attribute can only narrow the element it sits on.
+        const dialogComponent = manifest.components.find((c) => c.scope === 'dialog')!;
+        const recipe: RecipeInput = {
+            component: 'dialog',
+            parts: {
+                backdrop: {
+                    base: { background: 'rgb(0 0 0 / 0.4)' },
+                    states: { open: { opacity: '1' }, closed: {} },
+                },
+            },
+        };
+        const css = compileRecipeCss(recipe, dialogComponent);
+        expect(css).toContain('[data-scope="dialog"][data-part="popup"]::backdrop {');
+        expect(css).toContain('[data-scope="dialog"][data-part="popup"][data-state="open"]::backdrop {');
+        // The part's own name never reaches a selector — nothing renders it.
+        expect(css).not.toContain('[data-part="backdrop"]');
+    });
+
+    it('rejects a malformed pseudo projection like unknown parts and states', () => {
+        const styled = { component: 'demo', parts: { ghost: { base: { color: 'red' } } } };
+        const demo = (pseudo: { of: string; selector: string }): ManifestComponent => ({
+            scope: 'demo',
+            parts: [
+                { name: 'root', element: 'div', selectors: {} },
+                { name: 'ghost', element: 'div', selectors: {}, pseudo },
+            ],
+        });
+        // A missing host would silently emit selectors matching nothing.
+        expect(() => compileRecipeCss(styled, demo({ of: 'nope', selector: '::backdrop' })))
+            .toThrow(/unknown part "nope"/);
+        // A non-pseudo suffix is written into a selector verbatim — injection.
+        expect(() => compileRecipeCss(styled, demo({ of: 'root', selector: ', [data-part="x"]' })))
+            .toThrow(/not a pseudo-element/);
+    });
 });
 
 describe('the shipped design systems', () => {

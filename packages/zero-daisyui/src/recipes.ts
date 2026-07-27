@@ -358,12 +358,11 @@ export const dialog: RecipeInput = {
                 open: { animation: 'zero-daisy-pop var(--duration-normal) ease-out' },
                 closed: {},
             },
-            selectors: {
-                '&::backdrop': {
-                    background: 'oklch(0% 0 0 / 0.4)',
-                },
-            },
         }),
+        backdrop: {
+            base: { background: 'oklch(0% 0 0 / 0.4)' },
+            states: { open: {}, closed: {} },
+        },
         title: {
             base: { margin: '0 0 var(--space-md)', fontSize: 'var(--text-lg)', fontWeight: 'var(--weight-bold)' },
         },
@@ -728,7 +727,7 @@ export const slider: RecipeInput = {
             base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
             states: { disabled: {} },
         },
-        input: {
+        control: {
             base: { width: '100%', accentColor: 'var(--color-primary)', cursor: 'pointer' },
             states: {
                 disabled: { cursor: 'not-allowed' },

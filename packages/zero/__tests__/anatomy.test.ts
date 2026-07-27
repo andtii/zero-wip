@@ -23,6 +23,32 @@ describe('defineAnatomy', () => {
         // JSON-safe
         expect(() => JSON.stringify(json)).not.toThrow();
     });
+
+    describe('pseudo parts', () => {
+        const withPseudo = defineAnatomy('demo', {
+            popup: { element: 'dialog', states: ['open', 'closed'] },
+            backdrop: {
+                element: 'dialog',
+                states: ['open', 'closed'],
+                pseudo: { of: 'popup', selector: '::backdrop' },
+            },
+        });
+
+        it('projects onto the host with the pseudo-element last', () => {
+            expect(withPseudo.selector('backdrop'))
+                .toBe('[data-scope="demo"][data-part="popup"]::backdrop');
+            // States narrow the HOST — an attribute can't narrow a
+            // pseudo-element, so the suffix always comes after.
+            expect(withPseudo.selector('backdrop', { state: 'open' }))
+                .toBe('[data-scope="demo"][data-part="popup"][data-state="open"]::backdrop');
+        });
+
+        it('flows through toJSON for the recipe compiler', () => {
+            const part = withPseudo.toJSON().parts.find((p) => p.name === 'backdrop')!;
+            expect(part.pseudo).toEqual({ of: 'popup', selector: '::backdrop' });
+        });
+
+    });
 });
 
 describe('anatomy registry', () => {
@@ -39,6 +65,19 @@ describe('anatomy registry', () => {
             expect(anatomy.scope).toMatch(/^[a-z][a-z0-9-]*$/);
             for (const part of anatomy.partNames()) {
                 expect(part).toMatch(/^[a-z][a-z0-9-]*$/);
+            }
+        }
+    });
+
+    it('every pseudo part projects onto a real part', () => {
+        // defineAnatomy carries no runtime guard for this (it is on every
+        // component's size budget), so the registry is checked here instead.
+        for (const anatomy of Object.values(anatomies)) {
+            for (const [name, part] of Object.entries(anatomy.parts)) {
+                if (part.pseudo) {
+                    expect(anatomy.parts[part.pseudo.of], `${anatomy.scope}.${name} → ${part.pseudo.of}`).toBeDefined();
+                    expect(part.pseudo.selector).toMatch(/^::/);
+                }
             }
         }
     });

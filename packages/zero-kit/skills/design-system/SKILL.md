@@ -266,8 +266,8 @@ component's anatomy). No component code is ever written or changed.
      item ripples fire for pointer presses only); toast action+close;
      collapsible/accordion trigger;
      switch/checkbox `control` and radio-group `item-control` (the press
-     lands anywhere in the label row, the feedback on the control); slider
-     input (`data-pressed` only — a drag has no one-shot). Lifecycle: a
+     lands anywhere in the label row, the feedback on the control); slider's
+     `control` (`data-pressed` only — a drag has no one-shot). Lifecycle: a
      press ends when the gesture ends — uncaptured pointerleave cancels it,
      a captured pointer (touch) holds it until release, and drag surfaces
      listen for the release at the window instead of ending on leave.
@@ -330,8 +330,9 @@ component's anatomy). No component code is ever written or changed.
        render in Blink: it ignores thumb-pseudo styling on a native
        (`appearance: auto`) range input, so a halo written against
        `::-webkit-slider-thumb` silently never paints there (Gecko honours
-       `::-moz-range-thumb` either way — skin it anyway, for one look). Skin the input
-       (`appearance: 'none'`, own track and thumb pseudos), then set ONE
+       `::-moz-range-thumb` either way — skin it anyway, for one look). Skin
+       the `control` part (`appearance: 'none'`, own track and thumb
+       pseudos), then set ONE
        custom property from the states and read it in each vendor thumb
        pseudo — the pseudos cannot share a selector list (one unknown
        selector invalidates the whole rule), and the variable defines the

@@ -136,6 +136,36 @@ const partSelector = (scope: string, part: string): string =>
     `[data-scope="${scope}"][data-part="${part}"]`;
 
 /**
+ * A pseudo-element name: `::backdrop`, `::details-content`,
+ * `::-webkit-slider-thumb`. The suffix is written into a selector verbatim,
+ * so this is the same injection surface as axis values — anything else is a
+ * hard error, not something to escape.
+ */
+const PSEUDO_ELEMENT_PATTERN = /^::-?[a-z][a-z-]*$/;
+
+/**
+ * Where a part's rules actually attach: itself, or — for a projected part
+ * (`pseudo` in the anatomy) — the host part plus a pseudo-element suffix.
+ * The projection is manifest data, so it fails fast like unknown parts and
+ * states do: a missing host would silently emit selectors matching nothing,
+ * and a malformed suffix is selector injection.
+ */
+function partProjection(
+    component: ManifestComponent,
+    partName: string,
+): { host: string; suffix: string } {
+    const part = findPart(component, partName);
+    if (!part.pseudo) return { host: partName, suffix: '' };
+    findPart(component, part.pseudo.of);
+    if (!PSEUDO_ELEMENT_PATTERN.test(part.pseudo.selector)) {
+        throw new Error(
+            `[zero-kit] "${component.scope}"."${partName}" projects onto "${part.pseudo.selector}", which is not a pseudo-element — it would be written into a selector verbatim`,
+        );
+    }
+    return { host: part.pseudo.of, suffix: part.pseudo.selector };
+}
+
+/**
  * The part that carries the variant attributes (`data-color` etc.) — by
  * convention the part named `root`, else the first declared part.
  */
@@ -265,6 +295,13 @@ function resolveCondition(
     return seen.condition;
 }
 
+/**
+ * `pseudoSuffix` carries a projected part's pseudo-element (`::backdrop`). It
+ * attaches AFTER every attribute/pseudo-class fragment — states narrow the
+ * host element, which is the only thing an attribute selector can narrow —
+ * so `states.open` on dialog's backdrop compiles to
+ * `[data-part="popup"][data-state="open"]::backdrop`.
+ */
 function emitPartStyles(
     component: ManifestComponent,
     partName: string,
@@ -273,6 +310,7 @@ function emitPartStyles(
     sink: Sink,
     context: RecipeContext,
     registry: ConditionRegistry,
+    pseudoSuffix = '',
     path: readonly Condition[] = [],
 ): void {
     const part = findPart(component, partName);
@@ -280,24 +318,25 @@ function emitPartStyles(
         push(sink, path, `${selector} {\n${declBlock(props, '    ')}\n}`);
 
     if (styles.base && Object.keys(styles.base).length > 0) {
-        rule(baseSelector, styles.base);
+        rule(`${baseSelector}${pseudoSuffix}`, styles.base);
     }
     for (const [state, props] of Object.entries(styles.states ?? {})) {
         const sel = stateSelector(component, part, state);
         // Empty blocks are legal recipe entries (they mark a state as
         // deliberately covered for the validator) but emit no CSS.
         if (Object.keys(props).length === 0) continue;
-        rule(`${baseSelector}${sel}`, props);
+        rule(`${baseSelector}${sel}${pseudoSuffix}`, props);
     }
     for (const [nested, props] of Object.entries(styles.selectors ?? {})) {
         if (Object.keys(props).length === 0) continue;
-        const sel = nested.includes('&') ? nested.replace(/&/g, baseSelector) : `${baseSelector} ${nested}`;
+        const self = `${baseSelector}${pseudoSuffix}`;
+        const sel = nested.includes('&') ? nested.replace(/&/g, self) : `${self} ${nested}`;
         rule(sel, props);
     }
     for (const [key, nested] of Object.entries(styles.at ?? {})) {
         const where = `recipe for "${component.scope}"."${partName}"`;
         const condition = resolveCondition(key, context, where, registry);
-        emitPartStyles(component, partName, nested, baseSelector, sink, context, registry, [...path, condition]);
+        emitPartStyles(component, partName, nested, baseSelector, sink, context, registry, pseudoSuffix, [...path, condition]);
     }
 }
 
@@ -379,23 +418,24 @@ export function compileRecipeCss(
     }
 
     for (const [partName, styles] of Object.entries(recipe.parts)) {
-        emitPartStyles(component, partName, styles, partSelector(component.scope, partName), sink, context, registry);
+        const { host, suffix } = partProjection(component, partName);
+        emitPartStyles(component, partName, styles, partSelector(component.scope, host), sink, context, registry, suffix);
     }
 
     for (const [axis, values] of Object.entries(recipe.variants ?? {})) {
         const attr = axisAttr(axis, component.scope);
         for (const [value, parts] of Object.entries(values)) {
             for (const [partName, styles] of Object.entries(parts)) {
-                findPart(component, partName);
-                const selector = variantSelector(component, partName, `[${attr}="${assertAxisToken('value', value, component.scope)}"]`);
-                emitPartStyles(component, partName, styles, selector, sink, context, registry);
+                const { host, suffix } = partProjection(component, partName);
+                const selector = variantSelector(component, host, `[${attr}="${assertAxisToken('value', value, component.scope)}"]`);
+                emitPartStyles(component, partName, styles, selector, sink, context, registry, suffix);
 
                 // CSS-only default: the same styles apply when the attribute
                 // is absent. Never conflicts with the explicit-value rule —
                 // the attribute is either present or not.
                 if (recipe.defaultVariants?.[axis] === value) {
-                    const dflt = variantSelector(component, partName, `:not([${attr}])`);
-                    emitPartStyles(component, partName, styles, dflt, sink, context, registry);
+                    const dflt = variantSelector(component, host, `:not([${attr}])`);
+                    emitPartStyles(component, partName, styles, dflt, sink, context, registry, suffix);
                 }
             }
         }
@@ -406,8 +446,8 @@ export function compileRecipeCss(
             .map(([axis, value]) => `[${axisAttr(axis, component.scope)}="${assertAxisToken('value', value, component.scope)}"]`)
             .join('');
         for (const [partName, styles] of Object.entries(compoundVariant.parts)) {
-            findPart(component, partName);
-            emitPartStyles(component, partName, styles, variantSelector(component, partName, attrs), sink, context, registry);
+            const { host, suffix } = partProjection(component, partName);
+            emitPartStyles(component, partName, styles, variantSelector(component, host, attrs), sink, context, registry, suffix);
         }
     }
 

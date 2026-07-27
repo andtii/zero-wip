@@ -5,6 +5,7 @@ export type {
     DialogPopupProps,
     DialogTitleProps,
     DialogDescriptionProps,
+    DialogFooterProps,
     DialogCloseProps,
 } from './Dialog.js';
 export { dialogAnatomy } from './anatomy.js';
