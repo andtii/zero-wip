@@ -1,0 +1,93 @@
+/**
+ * NumberInput spin triggers in real engines.
+ *
+ * What the unit suite (fake timers, synthetic events) cannot prove: the
+ * hold-to-repeat cadence against real timers, that a press released
+ * OFF-element stops the spin via the window listener, and that the opt-in
+ * wheel really is focus-gated in a real event pipeline.
+ */
+import { test, expect } from '@playwright/test';
+
+test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+        localStorage.setItem('zero-ds', 'basic');
+    });
+    await page.goto('/');
+    await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', 'basic');
+    await page.getByRole('tab', { name: 'Forms' }).click();
+});
+
+const scope = '[data-scope="number-input"]';
+const qty = (page: import('@playwright/test').Page) =>
+    page.locator(`${scope}[data-part="root"]`).first();
+
+test('holding the increment trigger auto-repeats and release stops it', async ({ page }) => {
+    const root = qty(page);
+    const input = root.locator(`${scope}[data-part="input"]`);
+    const inc = root.locator(`${scope}[data-part="increment-trigger"]`);
+    await expect(input).toHaveValue('2');
+
+    // hover() auto-scrolls the trigger into the viewport — raw page.mouse
+    // coordinates are viewport-relative and never scroll on their own.
+    await inc.hover();
+    await page.mouse.down();
+    // One immediate spin, then repeats after the 400ms delay.
+    await expect(input).toHaveValue('3');
+    await page.waitForTimeout(700);
+    await page.mouse.up();
+    const held = Number(await input.inputValue());
+    expect(held).toBeGreaterThan(3);
+    // Released: the value must not keep climbing.
+    await page.waitForTimeout(400);
+    expect(Number(await input.inputValue())).toBe(held);
+});
+
+test('a press released off-element stops the spin (window listener)', async ({ page }) => {
+    const root = qty(page);
+    const input = root.locator(`${scope}[data-part="input"]`);
+    const inc = root.locator(`${scope}[data-part="increment-trigger"]`);
+
+    await inc.hover();
+    const box = (await inc.boundingBox())!;
+    await page.mouse.down();
+    // Drag off the trigger and release somewhere else entirely.
+    await page.mouse.move(box.x + box.width / 2, box.y - 200, { steps: 3 });
+    await page.mouse.up();
+    const after = Number(await input.inputValue());
+    await page.waitForTimeout(600);
+    expect(Number(await input.inputValue())).toBe(after);
+});
+
+test('wheel steps only the focused opt-in input', async ({ page }) => {
+    const roots = page.locator(`${scope}[data-part="root"]`);
+    const price = roots.nth(1); // the allowWheel demo
+    const priceInput = price.locator(`${scope}[data-part="input"]`);
+    await expect(priceInput).toHaveValue('19.90');
+
+    // Unfocused: wheel scrolls, value holds.
+    await priceInput.hover();
+    await page.mouse.wheel(0, -120);
+    await expect(priceInput).toHaveValue('19.90');
+
+    await priceInput.click();
+    await priceInput.hover();
+    await page.mouse.wheel(0, -120);
+    await expect(priceInput).toHaveValue('20.00');
+
+    // The first input (no allowWheel) never wheel-steps, focused or not.
+    const qtyInput = qty(page).locator(`${scope}[data-part="input"]`);
+    await qtyInput.click();
+    await qtyInput.hover();
+    await page.mouse.wheel(0, -120);
+    await expect(qtyInput).toHaveValue('2');
+});
+
+test('typed drafts commit on blur with clamp and revert on garbage', async ({ page }) => {
+    const input = qty(page).locator(`${scope}[data-part="input"]`);
+    await input.fill('120');
+    await input.blur();
+    await expect(input).toHaveValue('99'); // max clamp
+    await input.fill('abc');
+    await input.blur();
+    await expect(input).toHaveValue('99'); // revert to last committed
+});

@@ -1,7 +1,7 @@
 import { component, signal } from 'sigx';
 import {
-    Accordion, Avatar, Button, Checkbox, Collapsible, Combobox, Dialog, Field, Menu, Popover, Progress,
-    RadioGroup, Select, Slider, Switch, Tabs, Toast, Toggle, ToggleGroup, Tooltip, toast,
+    Accordion, Avatar, Button, Checkbox, Collapsible, Combobox, Dialog, Field, Menu, NumberInput, Popover,
+    Progress, RadioGroup, Select, Slider, Switch, Tabs, Toast, Toggle, ToggleGroup, Tooltip, toast,
 } from '@sigx/zero';
 import { Toolbar } from './Toolbar';
 
@@ -34,6 +34,7 @@ export const App = component(() => {
         countryQuery: '',
         countryOpen: false,
         align: ['left'] as string[],
+        qty: 2 as number | null,
     });
 
     return () => (
@@ -295,6 +296,42 @@ export const App = component(() => {
                         </Combobox.Popup>
                     </Combobox.Root>
                     <p><small>Selected: <code>{state.country || '—'}</code></small></p>
+
+                    <h2>NumberInput</h2>
+                    <p>
+                        A spinbutton over a real text input: typing is an uncommitted
+                        draft (commits on blur/Enter — parse → clamp → snap), stepping
+                        commits immediately, holding a trigger auto-repeats, and the
+                        hidden input posts the canonical decimal whatever the display
+                        format shows.
+                    </p>
+                    <p style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                        <NumberInput.Root model={() => state.qty} min={0} max={99}>
+                            <NumberInput.Label>Quantity (0–99)</NumberInput.Label>
+                            <NumberInput.Control>
+                                <NumberInput.DecrementTrigger>−</NumberInput.DecrementTrigger>
+                                <NumberInput.Input />
+                                <NumberInput.IncrementTrigger>+</NumberInput.IncrementTrigger>
+                            </NumberInput.Control>
+                        </NumberInput.Root>
+                        <NumberInput.Root defaultValue={19.9} min={0} step={0.1} allowWheel format={(v) => v.toFixed(2)}>
+                            <NumberInput.Label>Price (step 0.1, wheel, formatted)</NumberInput.Label>
+                            <NumberInput.Control>
+                                <NumberInput.DecrementTrigger>−</NumberInput.DecrementTrigger>
+                                <NumberInput.Input />
+                                <NumberInput.IncrementTrigger>+</NumberInput.IncrementTrigger>
+                            </NumberInput.Control>
+                        </NumberInput.Root>
+                        <NumberInput.Root defaultValue={5} disabled>
+                            <NumberInput.Label>Disabled</NumberInput.Label>
+                            <NumberInput.Control>
+                                <NumberInput.DecrementTrigger>−</NumberInput.DecrementTrigger>
+                                <NumberInput.Input />
+                                <NumberInput.IncrementTrigger>+</NumberInput.IncrementTrigger>
+                            </NumberInput.Control>
+                        </NumberInput.Root>
+                    </p>
+                    <p><small>Quantity model: <code>{state.qty ?? '—'}</code></small></p>
 
                     <h2>Slider + Progress</h2>
                     <Slider.Root model={() => state.volume}>

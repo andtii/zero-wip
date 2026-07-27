@@ -107,6 +107,10 @@
         "./toggle-group": {
             "types": "./dist/components/toggle-group/index.d.ts",
             "import": "./dist/components/toggle-group/index.js"
+        },
+        "./number-input": {
+            "types": "./dist/components/number-input/index.d.ts",
+            "import": "./dist/components/number-input/index.js"
         }
     },
     "files": [

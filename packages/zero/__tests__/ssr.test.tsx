@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Avatar, Collapsible, Combobox, Dialog, Switch, Tabs, Toast, ToggleGroup, createToaster, zeroPlugin } from '@sigx/zero';
+import { Avatar, Collapsible, Combobox, Dialog, NumberInput, Switch, Tabs, Toast, ToggleGroup, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -44,6 +44,14 @@ function page() {
                 <ToggleGroup.Item value="a">A</ToggleGroup.Item>
                 <ToggleGroup.Item value="b">B</ToggleGroup.Item>
             </ToggleGroup.Root>
+            <NumberInput.Root name="qty" defaultValue={3} min={0} max={9}>
+                <NumberInput.Label>Qty</NumberInput.Label>
+                <NumberInput.Control>
+                    <NumberInput.DecrementTrigger>−</NumberInput.DecrementTrigger>
+                    <NumberInput.Input />
+                    <NumberInput.IncrementTrigger>+</NumberInput.IncrementTrigger>
+                </NumberInput.Control>
+            </NumberInput.Root>
         </div>
     );
 }
@@ -87,5 +95,8 @@ describe('SSR', () => {
         // model (registration order stands in for DOM order).
         expect(html).toMatch(/data-scope="toggle-group"[^>]*data-part="item"[^>]*data-state="off"[^>]*tabindex="-1"/i);
         expect(html).toMatch(/data-scope="toggle-group"[^>]*data-part="item"[^>]*data-state="on"[^>]*tabindex="0"/i);
+        // The number input posts pre-hydration and renders the committed value.
+        expect(html).toMatch(/data-scope="number-input"[^>]*data-part="hidden-input"[^>]*value="3"/);
+        expect(html).toMatch(/role="spinbutton"[^>]*data-scope="number-input"[^>]*data-part="input"/);
     });
 });

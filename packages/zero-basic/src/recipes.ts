@@ -1274,6 +1274,110 @@ export const combobox: RecipeInput = {
     },
 };
 
+export const numberInput: RecipeInput = {
+    component: 'number-input',
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--color-error)' },
+                required: {},
+            },
+        },
+        // The field chrome (combobox split): the ring and the invalid tint
+        // draw on the box, input and triggers sit inside it.
+        control: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'stretch',
+                background: 'var(--color-base-100)',
+                border: 'var(--border) solid var(--color-base-300)',
+                borderRadius: 'var(--radius-field)',
+                overflow: 'hidden',
+            },
+            states: {
+                hover: { borderColor: 'var(--color-base-content)' },
+                invalid: { borderColor: 'var(--color-error)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                readonly: {},
+                'focus-visible': {
+                    outline: '2px solid var(--color-primary)',
+                    outlineOffset: '2px',
+                },
+            },
+        },
+        input: {
+            base: {
+                width: '5rem',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                fontSize: 'var(--text-sm)',
+                textAlign: 'center',
+                padding: '0.5rem 0.5rem',
+            },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                readonly: {},
+                invalid: {},
+                required: {},
+            },
+            selectors: {
+                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' },
+            },
+        },
+        'increment-trigger': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'var(--color-base-200)',
+                color: 'inherit',
+                padding: '0 0.75rem',
+                cursor: 'pointer',
+                userSelect: 'none',
+                borderInlineStart: 'var(--border) solid var(--color-base-300)',
+            },
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+        'decrement-trigger': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'var(--color-base-200)',
+                color: 'inherit',
+                padding: '0 0.75rem',
+                cursor: 'pointer',
+                userSelect: 'none',
+                borderInlineEnd: 'var(--border) solid var(--color-base-300)',
+            },
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+    },
+    // The visible ring lives on `control`; the input delegates.
+    skipStates: { input: ['focus-visible'] },
+};
+
 export const toggle: RecipeInput = {
     component: 'toggle',
     // Same accent machinery as button: `color` sets the pair once, the on
@@ -1435,5 +1539,5 @@ export const toggleGroup: RecipeInput = {
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
-    toggle, toggleGroup,
+    toggle, toggleGroup, numberInput,
 ];

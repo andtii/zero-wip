@@ -1132,8 +1132,123 @@ export const toggleGroup: RecipeInput = {
     defaultVariants: { color: 'primary' },
 };
 
+// ── Number input ──────────────────────────────────────────────────────────
+/**
+ * A framed counting slab: the `control` is one inked box holding the two
+ * stepper plates and the readout between them. The ring and the invalid
+ * frame draw on the box (the combobox split — input delegates focus), and
+ * a stepper press is the stamp, kept shallow because the frame clips it.
+ */
+export const numberInput: RecipeInput = {
+    component: 'number-input',
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { ...label, fontSize: 'var(--text-xs)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--color-error)' },
+                required: {},
+            },
+            selectors: { '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' } },
+        },
+        control: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'stretch',
+                ...inked,
+                boxShadow: 'var(--shadow-xs)',
+                // The frame clips its children, so the stepper stamp stays
+                // inside the slab instead of poking through the border.
+                overflow: 'hidden',
+            },
+            states: {
+                invalid: { borderColor: 'var(--color-error)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                readonly: {},
+                ...focusRing,
+            },
+        },
+        input: {
+            base: {
+                width: '5rem',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                textAlign: 'center',
+                padding: 'var(--space-sm) var(--space-xs)',
+            },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                readonly: {},
+                invalid: {},
+                required: {},
+            },
+            selectors: {
+                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 55%, transparent)', textTransform: 'uppercase' },
+            },
+        },
+        // The stepper plates: hard interior rules against the readout, a
+        // hover wash, and the press stamp — shallow, since the frame clips.
+        'decrement-trigger': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                padding: '0 var(--space-md)',
+                cursor: 'pointer',
+                userSelect: 'none',
+                borderInlineEnd: 'var(--border) solid var(--color-base-content)',
+                transition: motion('background, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-200)', transform: 'translate(1px, 1px)' },
+            },
+        },
+        'increment-trigger': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                padding: '0 var(--space-md)',
+                cursor: 'pointer',
+                userSelect: 'none',
+                borderInlineStart: 'var(--border) solid var(--color-base-content)',
+                transition: motion('background, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-200)', transform: 'translate(1px, 1px)' },
+            },
+        },
+    },
+    // The visible ring lives on `control`; the input delegates.
+    skipStates: { input: ['focus-visible'] },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
-    toggle, toggleGroup,
+    toggle, toggleGroup, numberInput,
 ];

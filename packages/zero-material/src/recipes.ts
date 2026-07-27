@@ -1581,8 +1581,109 @@ export const toggleGroup: RecipeInput = {
     defaultVariants: { color: 'secondary' },
 };
 
+// ── Number input ──────────────────────────────────────────────────────────
+/**
+ * The stepper: an icon button riding inside the outlined field. Bounded
+ * MD3 press feedback (state layer + ripple) clipped to its own pill; the
+ * margin keeps the pill off the field's hairline.
+ */
+const stepper: PartStyles = withPresence(pressable('number-input'), {
+    base: {
+        appearance: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        alignSelf: 'stretch',
+        border: 'none',
+        background: 'transparent',
+        color: 'var(--color-primary)',
+        borderRadius: '624rem',
+        margin: 'var(--space-2xs)',
+        padding: '0 var(--space-md)',
+        ...label,
+        fontSize: 'var(--text-md)',
+        cursor: 'pointer',
+        userSelect: 'none',
+    },
+    states: {
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+    },
+});
+
+/**
+ * Material's outlined text field over the number-input anatomy: a hairline
+ * box, the focus indicator and error tint drawing on the chrome (the
+ * Combobox control/input split), steppers flanking the centered input.
+ */
+export const numberInput: RecipeInput = {
+    component: 'number-input',
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { ...label, color: 'var(--color-base-content)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--color-error)' },
+                required: {},
+            },
+            selectors: { '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' } },
+        },
+        // The field chrome: the ring and the invalid tint draw on the box;
+        // input and steppers sit inside the outline.
+        control: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--color-outline)',
+                borderRadius: 'var(--radius-field)',
+                transition: motion('border-color'),
+            },
+            states: {
+                invalid: { borderColor: 'var(--color-error)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                readonly: {},
+                ...focusRing,
+            },
+        },
+        input: {
+            base: {
+                width: '5rem',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-md)',
+                textAlign: 'center',
+                padding: 'var(--space-sm) var(--space-xs)',
+            },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                readonly: {},
+                invalid: {},
+                required: {},
+            },
+            selectors: {
+                '&::placeholder': { color: 'var(--color-outline)' },
+            },
+        },
+        'increment-trigger': stepper,
+        'decrement-trigger': stepper,
+    },
+    // The visible ring lives on `control`; the input delegates.
+    skipStates: { input: ['focus-visible'] },
+    keyframes: rippleKeyframes('number-input'),
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
-    toggle, toggleGroup,
+    toggle, toggleGroup, numberInput,
 ];

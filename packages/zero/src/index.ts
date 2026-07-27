@@ -118,6 +118,15 @@ export type { ToggleRootProps } from './components/toggle/index.js';
 export { ToggleGroup, toggleGroupAnatomy, useToggleGroupContext } from './components/toggle-group/index.js';
 export type { ToggleGroupRootProps, ToggleGroupItemProps } from './components/toggle-group/index.js';
 
+export { NumberInput, numberInputAnatomy, useNumberInputContext } from './components/number-input/index.js';
+export type {
+    NumberInputRootProps,
+    NumberInputLabelProps,
+    NumberInputControlProps,
+    NumberInputInputProps,
+    NumberInputTriggerProps,
+} from './components/number-input/index.js';
+
 export { Combobox, comboboxAnatomy, useComboboxContext } from './components/combobox/index.js';
 export type {
     ComboboxRootProps,
