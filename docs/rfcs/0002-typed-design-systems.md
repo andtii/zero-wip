@@ -546,10 +546,14 @@ export type ZeroTokenCategory =
     'radius' | 'size' | 'font' | 'text' | 'weight' | 'leading'
     | 'tracking' | 'space' | 'shadow' | 'duration' | 'ease';
 
-type TokenKeysOf<C extends string> =
+/** TOKEN_CATEGORIES is `as const satisfies`, so the recommended keys are literals. */
+type RecommendedKeysOf<C extends ZeroTokenCategory> =
+    Extract<typeof TOKEN_CATEGORIES[number], { id: C }>['recommended'][number];
+
+type TokenKeysOf<C extends ZeroTokenCategory> =
     ZeroVocabulary extends { tokens: infer T }
-        ? (C extends keyof T ? Extract<T[C], string> : string)
-        : string;
+        ? (C extends keyof T ? Extract<T[C], string> : RecommendedKeysOf<C>)
+        : RecommendedKeysOf<C>;
 
 /** Autocomplete-but-open, same policy as ZeroProperty. */
 export type TokenKeyFor<C extends ZeroTokenCategory> = TokenKeysOf<C> | (string & {});
@@ -557,6 +561,15 @@ export type TokenKeyFor<C extends ZeroTokenCategory> = TokenKeysOf<C> | (string 
 /** token('shadow', 'level3') → 'var(--shadow-level3)'. Prefixes come from TOKEN_CATEGORIES. */
 export function token<C extends ZeroTokenCategory>(category: C, key: TokenKeyFor<C>): string;
 ```
+
+The fallback is deliberately not bare `string`: it is the category's *recommended*
+keys, so `TokenKeyFor<'shadow'>` under no augmentation is
+`'xs' | … | 'xl' | (string & {})` — the exact shape of today's
+`SizeScale = RecommendedSize | (string & {})`, and autocomplete works before any
+design system opts in. A bare-`string` fallback would collapse the union to plain
+`string` and lose the autocomplete half of "autocomplete-but-open". The literals are
+free: `TOKEN_CATEGORIES` is already declared `as const satisfies`, so its
+`recommended` arrays carry them.
 
 The generated side is the `tokens` key sketched in §5. The generation rule: for each
 scale-shaped category in `TOKEN_CATEGORIES`, the union is the category's
