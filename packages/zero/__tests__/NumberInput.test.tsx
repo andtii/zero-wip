@@ -285,6 +285,38 @@ describe('NumberInput', () => {
         expect(state.qty).toBe(5);
     });
 
+    it('step={0} coerces to 1 instead of poisoning the model', () => {
+        const state = signal({ qty: 5 as number | null });
+        mount(container, { model: [state, 'qty'], step: 0 });
+        input(container).dispatchEvent(key('ArrowUp'));
+        expect(state.qty).toBe(6);
+    });
+
+    it('a custom parse leaking NaN/Infinity reverts instead of committing', () => {
+        const state = signal({ qty: 5 as number | null });
+        render(
+            <NumberInput.Root model={[state, 'qty']} parse={() => Infinity}>
+                <NumberInput.Control><NumberInput.Input /></NumberInput.Control>
+            </NumberInput.Root>,
+            container,
+        );
+        const el = input(container);
+        type(el, '9');
+        el.dispatchEvent(new FocusEvent('blur'));
+        expect(state.qty).toBe(5);
+    });
+
+    it('aria-valuenow goes silent while a draft is typed; valuetext carries the draft', () => {
+        mount(container, { defaultValue: 5 });
+        const el = input(container);
+        expect(el.getAttribute('aria-valuenow')).toBe('5');
+        type(el, '51');
+        expect(el.getAttribute('aria-valuenow')).toBe(null);
+        expect(el.getAttribute('aria-valuetext')).toBe('51');
+        el.dispatchEvent(new FocusEvent('blur'));
+        expect(el.getAttribute('aria-valuenow')).toBe('51');
+    });
+
     it('disabled and readonly block stepping', () => {
         const state = signal({ qty: 5 as number | null });
         mount(container, { model: [state, 'qty'], disabled: true });

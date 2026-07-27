@@ -7,4 +7,3 @@ export type {
     NumberInputTriggerProps,
 } from './NumberInput.js';
 export { numberInputAnatomy } from './anatomy.js';
-export { clamp, snapToStep, precisionOf } from './number.js';

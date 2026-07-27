@@ -160,7 +160,12 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
 
     const disabled = (): boolean => !!props.disabled || field.disabled();
     const readonly = (): boolean => !!props.readonly;
-    const step = (): number => props.step ?? 1;
+    // Coerced, not trusted: snapToStep divides by this, so step={0} (or a
+    // non-finite value) would poison the model and ARIA with NaN/Infinity.
+    const step = (): number => {
+        const s = props.step;
+        return typeof s === 'number' && Number.isFinite(s) && s > 0 ? s : 1;
+    };
     const format = (v: number): string => (props.format ? props.format(v) : String(v));
     const parse = (t: string): number | null => (props.parse ? props.parse(t) : defaultParse(t));
 
@@ -184,8 +189,9 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
         }
         const parsed = parse(trimmed);
         // Unparseable → revert to the last committed value (draft is gone,
-        // the display falls back to the model).
-        if (parsed === null) return;
+        // the display falls back to the model). The finite check also guards
+        // a custom `parse` leaking NaN/Infinity into the model and ARIA.
+        if (parsed === null || !Number.isFinite(parsed)) return;
         state.value = (props.clampOnBlur ?? true) ? settle(parsed) : snapToStep(parsed, step(), props.min);
     };
 
@@ -377,8 +383,13 @@ const NumberInputInput = component<NumberInputInputProps>(({ props }) => {
             required={ctx.required()}
             aria-valuemin={ctx.min()}
             aria-valuemax={ctx.max()}
-            aria-valuenow={ctx.state.value ?? undefined}
-            aria-valuetext={ctx.state.value != null ? ctx.displayValue() : undefined}
+            /* While a draft is being typed the committed value is stale —
+               announcing it against the visible draft text would read as two
+               different numbers. The draft rides valuetext alone until commit. */
+            aria-valuenow={ctx.draft.current === null ? ctx.state.value ?? undefined : undefined}
+            aria-valuetext={ctx.draft.current !== null
+                ? (ctx.draft.current || undefined)
+                : (ctx.state.value != null ? ctx.displayValue() : undefined)}
             aria-invalid={ctx.invalid() ? 'true' : undefined}
             aria-describedby={ctx.describedBy()}
             class={props.class}
