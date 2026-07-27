@@ -86,7 +86,8 @@ const nextFrame: (cb: () => void) => void =
 
 export function createToaster(options: ToasterOptions = {}): Toaster {
     const defaultDuration = options.duration ?? 5000;
-    const max = options.max ?? 5;
+    // Clamped: max 0 would admit nothing and queue everything forever.
+    const max = Math.max(1, options.max ?? 5);
 
     const state = signal({ items: [] as ToastData[], queued: 0 });
     // Data-only FIFO for toasts past the cap — not rendered, not reactive;

@@ -65,6 +65,9 @@ interface ToastItemContext {
     toast(): ToastData;
     ids: { title: string; description: string };
     dismiss(): void;
+    /** Title/Description report their presence so the root's ARIA refs never dangle. */
+    setTitlePresent(present: boolean): void;
+    setDescriptionPresent(present: boolean): void;
 }
 
 function makeInertItem(): ToastItemContext {
@@ -72,6 +75,8 @@ function makeInertItem(): ToastItemContext {
         toast: () => ({ id: 'zx-toast-inert', open: false, role: 'status', duration: Infinity }),
         ids: { title: 'zx-toast-inert-title', description: 'zx-toast-inert-desc' },
         dismiss: () => {},
+        setTitlePresent: () => {},
+        setDescriptionPresent: () => {},
     };
 }
 
@@ -183,10 +188,14 @@ export type ToastRootProps =
     & WithClass
     & Define.Slot<'default'>;
 
-const ToastRoot = component<ToastRootProps>(({ props, slots, onMounted, onUnmounted }) => {
+const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, onUnmounted }) => {
     const viewport = useToastViewportContext();
     const baseId = createId('zx-toast');
     const ids = { title: `${baseId}-title`, description: `${baseId}-desc` };
+    // Written from Title/Description setup; the initial render misses the
+    // write (it is still executing) but the enter flip re-renders one frame
+    // later, before the toast is announced.
+    const present = signal({ title: false, description: false });
 
     let el: HTMLElement | null = null;
     let seenOpen = false;
@@ -234,6 +243,8 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, onMounted, onUnmoun
         toast: () => props.toast,
         ids,
         dismiss: () => viewport.toaster().dismiss(props.toast.id),
+        setTitlePresent: (p) => { present.title = p; },
+        setDescriptionPresent: (p) => { present.description = p; },
     };
     defineProvide(useToastItemContext, () => ctx);
 
@@ -248,8 +259,8 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, onMounted, onUnmoun
             data-placement={viewport.placement()}
             role={props.toast.role === 'alert' ? 'alert' : 'status'}
             aria-atomic="true"
-            aria-labelledby={ids.title}
-            aria-describedby={ids.description}
+            aria-labelledby={present.title ? ids.title : undefined}
+            aria-describedby={present.description ? ids.description : undefined}
             style={{
                 '--toast-index': String(Math.max(0, index())),
                 '--toast-count': String(viewport.toaster().toasts().length),
@@ -266,8 +277,10 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, onMounted, onUnmoun
 
 export type ToastTitleProps = WithClass & Define.Slot<'default'>;
 
-const ToastTitle = component<ToastTitleProps>(({ props, slots }) => {
+const ToastTitle = component<ToastTitleProps>(({ props, slots, onUnmounted }) => {
     const item = useToastItemContext();
+    item.setTitlePresent(true);
+    onUnmounted(() => item.setTitlePresent(false));
     return () => (
         <div id={item.ids.title} data-scope={SCOPE} data-part="title" class={props.class}>
             {slots.default?.()}
@@ -277,8 +290,10 @@ const ToastTitle = component<ToastTitleProps>(({ props, slots }) => {
 
 export type ToastDescriptionProps = WithClass & Define.Slot<'default'>;
 
-const ToastDescription = component<ToastDescriptionProps>(({ props, slots }) => {
+const ToastDescription = component<ToastDescriptionProps>(({ props, slots, onUnmounted }) => {
     const item = useToastItemContext();
+    item.setDescriptionPresent(true);
+    onUnmounted(() => item.setDescriptionPresent(false));
     return () => (
         <div id={item.ids.description} data-scope={SCOPE} data-part="description" class={props.class}>
             {slots.default?.()}

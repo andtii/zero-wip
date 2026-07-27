@@ -78,6 +78,12 @@ describe('toaster (store)', () => {
         expect(id).toBe('job');
     });
 
+    it('max is clamped to at least 1, so the queue always makes progress', () => {
+        const t = createToaster({ max: 0, duration: Infinity });
+        t.create({ title: 'first' });
+        expect(t.toasts()).toHaveLength(1);
+    });
+
     it('dismiss with no id clears the queue and exits everything', () => {
         const t = createToaster({ max: 1, duration: Infinity });
         t.create({ title: 'a' });
@@ -239,6 +245,16 @@ describe('Toast (component)', () => {
         expect(title.textContent).toBe('custom body');
         expect(root.getAttribute('aria-labelledby')).toBe(title.id);
         expect(root.getAttribute('aria-atomic')).toBe('true');
+    });
+
+    it('ARIA refs only point at parts that are actually rendered', async () => {
+        const t = mount();
+        t.create({ title: 'Only a title' });
+        await settle();
+        const root = container.querySelector<HTMLElement>('[data-part="root"]')!;
+        expect(root.getAttribute('aria-labelledby')).toBe(container.querySelector('[data-part="title"]')!.id);
+        expect(container.querySelector('[data-part="description"]')).toBeNull();
+        expect(root.hasAttribute('aria-describedby')).toBe(false);
     });
 
     it('the stock action runs its callback', async () => {
