@@ -342,17 +342,23 @@ for (const overrides of Object.values(theme.components ?? {})) {
 }
 ```
 
-Worse than unscoped, it cannot work at all. Those properties are emitted inside
-`@layer zero.tokens`, while every `recipe.tokens` declaration is emitted inside
-`@layer zero.recipes`, and `packages/zero/css/base.css:25` orders them:
+Worse than unscoped, it cannot do the one thing it is named for. Those
+properties are emitted inside `@layer zero.tokens`, while every `recipe.tokens`
+declaration is emitted inside `@layer zero.recipes`, and
+`packages/zero/css/base.css:25` orders them:
 
 ```css
 @layer zero.fallback, zero.tokens, zero.recipes;
 ```
 
-Layer order beats specificity unconditionally, so a `theme.components` override
-of a component token can **never** win — and component tokens declared by a
-recipe are 100% of its use case. No design system uses it.
+Layer order beats specificity unconditionally, so a `theme.components` entry can
+**never override a component token the recipe declares** — which is precisely
+what "component overrides" means. It does still *define* a token the recipe only
+references; but in that case it is indistinguishable from `theme.extra`, which
+emits into the same bag at the same scope (the only differences being that
+`extra` normalises a missing `--` prefix, and that `components` carries a scope
+key nothing reads). So the field is dead for its stated purpose and a duplicate
+everywhere else. No design system uses it.
 
 **Remove it.** If a real requirement appears later, the correct design is
 `[data-theme="t"] [data-scope="s"]` emitted into a new layer *after*
