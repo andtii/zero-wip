@@ -15,7 +15,7 @@
             "$ref": "#/$defs/kebabToken"
         },
         "tokens": {
-            "description": "Component-level tokens declared on the carrier part (root, else the first part), overridable per theme via ThemeInput.components.",
+            "description": "Component-level tokens declared on the carrier part (root, else the first part). Emitted in @layer zero.recipes, so a theme-level declaration of the same property cannot override one.",
             "type": "object",
             "additionalProperties": {
                 "type": "string"
