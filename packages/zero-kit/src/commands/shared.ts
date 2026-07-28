@@ -63,7 +63,9 @@ export async function loadManifest(cwd: string, explicit?: string): Promise<Zero
     // at the wrong one of two identically named files is an easy mistake — and
     // without this it surfaces as "components.map is not a function".
     if (!Array.isArray((parsed as ZeroManifest | null)?.components)) {
-        throw new Error(`${resolved} is not a zero anatomy manifest (no "components" array) — expected @sigx/zero's dist/manifest.json`);
+        throw new Error(
+            `${resolved} has no "components" array, so it is not the zero anatomy manifest — expected @sigx/zero/manifest.json, not a design system's own dist/manifest.json`,
+        );
     }
     return parsed as ZeroManifest;
 }

@@ -136,7 +136,7 @@ describe('loadManifest diagnostics', () => {
         // A design system emits its own dist/manifest.json — same filename,
         // different shape, and an easy thing to point --manifest at.
         const dir = projectDir({ 'm.json': JSON.stringify({ name: 'basic', tokens: {} }) });
-        await expect(loadManifest(dir, './m.json')).rejects.toThrow(/is not a zero anatomy manifest/);
+        await expect(loadManifest(dir, './m.json')).rejects.toThrow(/is not the zero anatomy manifest/);
     });
 
     it('accepts a real manifest', async () => {
