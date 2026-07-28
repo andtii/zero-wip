@@ -38,6 +38,18 @@
   `defaultVariants` recorded without widening). All four design-system
   packages gain the `"./register"` exports subpath.
 
+### Fixed
+
+- **Two unvalidated token-name paths** (RFC 0003 §6.3, #162). `recipe.tokens`
+  keys were not checked at all: a key spelled without the leading `--` is
+  passed through by `declBlock` as an ordinary declaration, so
+  `tokens: { color: 'red' }` silently restyled every carrier element of the
+  component instead of defining a token. Now an error. And two roles could
+  derive the same custom property — role `danger-soft` emits
+  `--color-danger-soft`, which role `danger` already derives — with the later
+  one silently winning; now an error naming both roles. A role declaring
+  `soft: false` frees the derived name, and is not flagged.
+
 ### Changed
 
 - **`dist/manifest.json`'s `components` field changed shape**: from a bare

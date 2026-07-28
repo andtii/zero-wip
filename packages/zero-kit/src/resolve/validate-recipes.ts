@@ -15,6 +15,8 @@ import type { ValidationIssue } from './validate.js';
 import type { TokenVocabulary } from './vocabulary.js';
 
 const VAR_REF = /var\(\s*(--[A-Za-z0-9_-]+)\s*(,)?/g;
+/** A component token name. Matches what `VAR_REF` can later resolve. */
+const CUSTOM_PROPERTY_PATTERN = /^--[A-Za-z0-9_-]+$/;
 const HEX = /#[0-9a-fA-F]{3,8}\b/g;
 const COLOR_FN = /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/gi;
 /** A bare time, i.e. not `var(--duration-…)`. */
@@ -192,6 +194,23 @@ export function validateRecipes(
         const where = `recipes.${recipe.component}`;
         const local = locallyDefined(recipe);
         const partsByName = new Map(component.parts.map((p) => [p.name, p]));
+
+        // ── component-token NAMES ──
+        // `recipe.tokens` is emitted verbatim onto the carrier part, and
+        // `declBlock` passes anything that is not a custom property through as
+        // an ordinary declaration. So `tokens: { color: 'red' }` — a token
+        // someone forgot the `--` on — silently restyles every carrier element
+        // of the component instead of defining anything. The values are already
+        // walked below; only the keys were unchecked.
+        for (const name of Object.keys(recipe.tokens ?? {})) {
+            if (!CUSTOM_PROPERTY_PATTERN.test(name)) {
+                error(
+                    `${where}.tokens`,
+                    `"${name}" is not a custom property — component tokens must be spelled --like-this, ` +
+                    'or it is emitted as a plain CSS declaration on every carrier element',
+                );
+            }
+        }
 
         // ── token references and literal values ──
         const values: Array<{ path: string; prop: string; value: string }> = [];

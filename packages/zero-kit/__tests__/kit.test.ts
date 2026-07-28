@@ -343,6 +343,51 @@ describe('extensible color roles', () => {
         expect(result.errors.some((e) => e.message.includes('"base-500" uses the reserved base-* namespace'))).toBe(true);
     });
 
+    it('rejects two roles that derive the same colour property', () => {
+        // `danger` derives `--color-danger-soft`; a role literally NAMED
+        // `danger-soft` emits the same property. Both land in the same block,
+        // the later wins, and nothing said so. `danger-soft` is a real HeroUI
+        // v3 variant name, so this is a collision someone will actually write.
+        const clashing = defineTokens({
+            roles: { danger: {}, 'danger-soft': {} },
+            themes: {
+                day: {
+                    colorScheme: 'light',
+                    colors: {
+                        'base-100': 'white', 'base-200': 'white', 'base-300': 'white', 'base-content': 'black',
+                        danger: 'red', 'danger-content': 'white',
+                        'danger-soft': 'pink', 'danger-soft-content': 'black',
+                    },
+                },
+            },
+            defaultLight: 'day',
+        });
+        const result = validateDesignSystem({ name: 'x', tokens: clashing, recipes: [] }, manifest);
+        expect(result.errors.some((e) => e.message.includes('both emit --color-danger-soft'))).toBe(true);
+    });
+
+    it('lets a role opt out of -soft and free the derived name', () => {
+        // The collision is a consequence of what each role DERIVES, so
+        // `soft: false` on `danger` legitimately leaves `--color-danger-soft`
+        // for a role of that name. The rule must not flag it.
+        const fine = defineTokens({
+            roles: { danger: { soft: false }, 'danger-soft': {} },
+            themes: {
+                day: {
+                    colorScheme: 'light',
+                    colors: {
+                        'base-100': 'white', 'base-200': 'white', 'base-300': 'white', 'base-content': 'black',
+                        danger: 'red', 'danger-content': 'white',
+                        'danger-soft': 'pink', 'danger-soft-content': 'black',
+                    },
+                },
+            },
+            defaultLight: 'day',
+        });
+        const result = validateDesignSystem({ name: 'x', tokens: fine, recipes: [] }, manifest);
+        expect(result.errors.some((e) => e.message.includes('both emit'))).toBe(false);
+    });
+
     it('errors when a declared custom token has no theme value', () => {
         const missing = structuredClone(brandTokens);
         delete missing.themes.day!.custom!['glass-blur'];
