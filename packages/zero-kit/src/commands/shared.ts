@@ -33,10 +33,39 @@ export interface CommandEnv {
 export async function loadManifest(cwd: string, explicit?: string): Promise<ZeroManifest> {
     let path = explicit;
     if (!path) {
-        const require = createRequire(resolve(cwd, 'package.json'));
-        path = require.resolve('@sigx/zero/manifest.json');
+        // Bare MODULE_NOT_FOUND here reads as an internal failure — it means
+        // the project has no @sigx/zero, or the command ran somewhere without
+        // one. Name both the cause and the escape hatch.
+        try {
+            const require = createRequire(resolve(cwd, 'package.json'));
+            path = require.resolve('@sigx/zero/manifest.json');
+        } catch {
+            throw new Error(
+                `cannot resolve @sigx/zero/manifest.json from ${cwd} — install @sigx/zero there, or pass --manifest <path>`,
+            );
+        }
     }
-    return JSON.parse(await readFile(resolve(cwd, path), 'utf8')) as ZeroManifest;
+
+    const resolved = resolve(cwd, path);
+    let source: string;
+    try {
+        source = await readFile(resolved, 'utf8');
+    } catch {
+        throw new Error(`cannot read the anatomy manifest at ${resolved}`);
+    }
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(source);
+    } catch (err) {
+        throw new Error(`${resolved} is not valid JSON: ${err instanceof Error ? err.message : String(err)}`);
+    }
+    // A design system emits its own dist/manifest.json, so pointing --manifest
+    // at the wrong one of two identically named files is an easy mistake — and
+    // without this it surfaces as "components.map is not a function".
+    if (!Array.isArray((parsed as ZeroManifest | null)?.components)) {
+        throw new Error(`${resolved} is not a zero anatomy manifest (no "components" array) — expected @sigx/zero's dist/manifest.json`);
+    }
+    return parsed as ZeroManifest;
 }
 
 export async function loadDesignSystem(cwd: string, entry: string): Promise<DesignSystemInput> {

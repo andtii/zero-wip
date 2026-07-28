@@ -19,6 +19,7 @@ import { join } from 'node:path';
 import { parseArgs, ParseError } from '@sigx/args';
 import type { ArgsShape } from '@sigx/args';
 import plugin from '../src/plugin.js';
+import { loadManifest } from '../src/commands/shared.js';
 
 /** A throwaway project directory; `detect` only ever reads from disk. */
 function projectDir(files: Record<string, string>): string {
@@ -109,6 +110,38 @@ describe('zero:build args', () => {
 
     it('rejects a value flag with no value', () => {
         expect(() => parseArgs(['--out'], shape)).toThrow(ParseError);
+    });
+});
+
+describe('loadManifest diagnostics', () => {
+    // Every one of these surfaces as `error: <message>` and a non-zero exit.
+    // Raw MODULE_NOT_FOUND / "components.map is not a function" read as
+    // internal failures, so each names the cause and what to do about it.
+    // The default-resolution branch (no --manifest, `@sigx/zero` missing from
+    // the project) is deliberately not covered here: this suite runs under the
+    // vitest config's `@sigx/zero` alias, which satisfies `require.resolve`
+    // from any directory, so the failure can't be reproduced in-process.
+
+    it('reports an unreadable explicit manifest', async () => {
+        const dir = projectDir({ 'package.json': pkg({}) });
+        await expect(loadManifest(dir, './missing.json')).rejects.toThrow(/cannot read the anatomy manifest/);
+    });
+
+    it('reports invalid JSON', async () => {
+        const dir = projectDir({ 'm.json': '{ not json' });
+        await expect(loadManifest(dir, './m.json')).rejects.toThrow(/is not valid JSON/);
+    });
+
+    it('rejects a well-formed file that is not an anatomy manifest', async () => {
+        // A design system emits its own dist/manifest.json — same filename,
+        // different shape, and an easy thing to point --manifest at.
+        const dir = projectDir({ 'm.json': JSON.stringify({ name: 'basic', tokens: {} }) });
+        await expect(loadManifest(dir, './m.json')).rejects.toThrow(/is not a zero anatomy manifest/);
+    });
+
+    it('accepts a real manifest', async () => {
+        const dir = projectDir({ 'm.json': JSON.stringify({ components: [] }) });
+        await expect(loadManifest(dir, './m.json')).resolves.toEqual({ components: [] });
     });
 });
 
