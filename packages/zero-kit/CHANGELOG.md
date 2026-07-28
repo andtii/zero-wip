@@ -89,7 +89,11 @@
   there is no axis to wire. The generator now distinguishes the two:
   *"heroui declares no color axis at all"* versus *"no heroui recipe wires
   it"*, decided per axis rather than per design system, so a declared-but-
-  unwired `variant` still reads as the recipe gap it is. Surfaced by the first
+  unwired `variant` still reads as the recipe gap it is. Only `color` and
+  `size` can be declared away — via `roles: {}` / `sizes: []`, which are
+  distinguishable from an omission because omitting either yields the
+  recommended set. Omitting `tokens.variants` means "check nothing", not "no
+  variant axis", so `variant` is never reported that way. Surfaced by the first
   design system with no colour axis; the four existing goldens are unchanged.
 
 - **Two unvalidated token-name paths** (RFC 0003 §6.3, #162). `recipe.tokens`

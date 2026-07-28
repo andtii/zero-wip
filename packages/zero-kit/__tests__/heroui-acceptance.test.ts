@@ -34,9 +34,15 @@ describe('a design system with no colour axis', () => {
 
     it('declares no roles, so no --color-<role> is emitted', () => {
         expect(compiled.tokens.roles).toEqual({});
-        // The four base surfaces are fixed and remain; nothing invents a role.
-        expect(compiled.tokensCss).toContain('--color-base-content:');
-        expect(compiled.tokensCss).not.toMatch(/--color-(primary|secondary|neutral|error):/);
+        // Every `--color-*` the stylesheet defines, not a spot-check of a few
+        // role names someone might have minted: the claim is that NO role
+        // token exists, so the assertion has to be over the whole set.
+        const emitted = new Set(
+            [...compiled.tokensCss.matchAll(/^\s*(--color-[\w-]+)\s*:/gm)].map((m) => m[1]!),
+        );
+        expect([...emitted].sort()).toEqual([
+            '--color-base-100', '--color-base-200', '--color-base-300', '--color-base-content',
+        ]);
     });
 
     it('types every component colour as never', () => {

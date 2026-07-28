@@ -38,20 +38,28 @@ function tokenUnions(compiled: CompiledDesignSystem): Array<[string, string]> {
 }
 
 /**
- * Axes this design system has no vocabulary for AT ALL — `roles: {}`,
- * `sizes: []`, or an undeclared `variants`.
+ * Axes this design system has declared OUT OF EXISTENCE, as opposed to merely
+ * left unwired.
  *
  * The distinction matters in the diagnostic: "no recipe wires it" tells an
- * author to go wire one, which is wrong advice when the design system has
- * deliberately declared the axis out of existence. A HeroUI-shaped system has
- * no colour axis by design, and saying otherwise sends people looking for a
- * recipe bug that isn't there.
+ * author to go wire one, which is wrong advice when there is no axis to wire.
+ *
+ * Only `color` and `size` can be declared away, and only by an *explicitly
+ * empty* declaration — `resolveRoles(undefined)` yields the recommended eight
+ * and `resolveSizes(undefined)` the recommended ramp, so an empty result here
+ * can only have come from `roles: {}` or `sizes: []`.
+ *
+ * `variant` is deliberately absent: omitting `tokens.variants` means "declared
+ * nothing, check nothing", NOT "this design system has no variant axis", and
+ * `compileDesignSystem` normalises the omission to `[]`. Treating that as
+ * out-of-existence would mislabel every unwired `variant` in a design system
+ * that simply never declared the vocabulary — the exact error this function
+ * exists to avoid, pointed the other way.
  */
 function undeclaredAxes(compiled: CompiledDesignSystem): ReadonlySet<string> {
     const out = new Set<string>();
     if (Object.keys(compiled.tokens.roles).length === 0) out.add('color');
     if (compiled.tokens.sizes.length === 0) out.add('size');
-    if (compiled.tokens.variants.length === 0) out.add('variant');
     return out;
 }
 

@@ -75,6 +75,21 @@ describe('the generated shapes', () => {
         });
     });
 
+    it('blames an unwired axis on the recipe, not on the declaration', () => {
+        // `tokens.variants` omitted means "declared nothing, check nothing" —
+        // NOT "this design system has no variant axis". `compileDesignSystem`
+        // normalises the omission to `[]`, so a naive emptiness check would
+        // tell an author the axis does not exist when they simply never
+        // declared the vocabulary.
+        const dts = compileRegisterDts(compile({
+            component: 'button',
+            parts: { root: { base: { padding: '0' } } },
+            variants: { color: { primary: { root: { base: { color: 'var(--color-primary)' } } } } },
+        }));
+        expect(dts).toContain('no probe recipe wires it');
+        expect(dts).not.toContain('declares no variant axis at all');
+    });
+
     it('emits never for unwired axes and Record<string, never> for empty axes', () => {
         const dts = compileRegisterDts(compile({
             component: 'button',
