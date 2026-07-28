@@ -44,7 +44,7 @@
 
     [data-scope="tree-view"][data-part="item"][data-selected] {
         background: var(--tree-accent);
-        color: var(--color-primary-content);
+        color: var(--tree-on-accent);
     }
 
     [data-scope="tree-view"][data-part="item"][data-disabled] {
@@ -91,7 +91,7 @@
 
     [data-scope="tree-view"][data-part="branch-trigger"][data-selected] {
         background: var(--tree-accent);
-        color: var(--color-primary-content);
+        color: var(--tree-on-accent);
     }
 
     [data-scope="tree-view"][data-part="branch-trigger"][data-disabled] {

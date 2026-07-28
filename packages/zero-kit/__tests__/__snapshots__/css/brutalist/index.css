@@ -3128,35 +3128,35 @@
     }
 
     [data-scope="rating-group"][data-part="root"][data-color="primary"] {
-        --rating-fill: color-mix(in oklab, var(--color-primary) 70%%, var(--color-primary-content));
+        --rating-fill: color-mix(in oklab, var(--color-primary) 70%, var(--color-primary-content));
     }
 
     [data-scope="rating-group"][data-part="root"][data-color="secondary"] {
-        --rating-fill: color-mix(in oklab, var(--color-secondary) 70%%, var(--color-secondary-content));
+        --rating-fill: color-mix(in oklab, var(--color-secondary) 70%, var(--color-secondary-content));
     }
 
     [data-scope="rating-group"][data-part="root"][data-color="accent"] {
-        --rating-fill: color-mix(in oklab, var(--color-accent) 70%%, var(--color-accent-content));
+        --rating-fill: color-mix(in oklab, var(--color-accent) 70%, var(--color-accent-content));
     }
 
     [data-scope="rating-group"][data-part="root"][data-color="neutral"] {
-        --rating-fill: color-mix(in oklab, var(--color-neutral) 70%%, var(--color-neutral-content));
+        --rating-fill: color-mix(in oklab, var(--color-neutral) 70%, var(--color-neutral-content));
     }
 
     [data-scope="rating-group"][data-part="root"][data-color="info"] {
-        --rating-fill: color-mix(in oklab, var(--color-info) 70%%, var(--color-info-content));
+        --rating-fill: color-mix(in oklab, var(--color-info) 70%, var(--color-info-content));
     }
 
     [data-scope="rating-group"][data-part="root"][data-color="success"] {
-        --rating-fill: color-mix(in oklab, var(--color-success) 70%%, var(--color-success-content));
+        --rating-fill: color-mix(in oklab, var(--color-success) 70%, var(--color-success-content));
     }
 
     [data-scope="rating-group"][data-part="root"][data-color="warning"] {
-        --rating-fill: color-mix(in oklab, var(--color-warning) 70%%, var(--color-warning-content));
+        --rating-fill: color-mix(in oklab, var(--color-warning) 70%, var(--color-warning-content));
     }
 
     [data-scope="rating-group"][data-part="root"][data-color="error"] {
-        --rating-fill: color-mix(in oklab, var(--color-error) 70%%, var(--color-error-content));
+        --rating-fill: color-mix(in oklab, var(--color-error) 70%, var(--color-error-content));
     }
 
     [data-scope="rating-group"][data-part="root"][data-size="xs"] {

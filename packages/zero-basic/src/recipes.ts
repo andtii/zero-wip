@@ -1605,7 +1605,7 @@ export const ratingGroup: RecipeInput = {
         // hue and clears 3:1 in both schemes — the same 70/30 mix daisy's
         // default already uses.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--rating-fill': `color-mix(in oklab, var(--color-${c}) 70%%, var(--color-${c}-content))`,
+            '--rating-fill': `color-mix(in oklab, var(--color-${c}) 70%, var(--color-${c}-content))`,
         } } }])),
         size: {
             xs: { root: { base: { '--rating-size': 'var(--text-sm)' } } },

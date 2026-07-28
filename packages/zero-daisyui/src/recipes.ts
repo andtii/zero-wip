@@ -1813,7 +1813,7 @@ export const ratingGroup: RecipeInput = {
         // hue and clears 3:1 in both schemes — the same 70/30 mix daisy's
         // default already uses.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--rating-fill': `color-mix(in oklab, var(--color-${c}) 70%%, var(--color-${c}-content))`,
+            '--rating-fill': `color-mix(in oklab, var(--color-${c}) 70%, var(--color-${c}-content))`,
         } } }])),
         size: {
             xs: { root: { base: { '--rating-size': 'calc(var(--size-selector) * 4)' } } },
@@ -1843,8 +1843,9 @@ const treeRow: NonNullable<PartStyles['base']> = {
 
 const treeRowStates: NonNullable<PartStyles['states']> = {
     hover: { background: 'var(--color-base-200)' },
-    // daisy menu's active row: primary fill, -content ink.
-    selected: { background: 'var(--tree-accent)', color: 'var(--color-primary-content)' },
+    // daisy menu's active row: role fill, its own -content ink. Both track
+    // `color`, or a secondary row would keep primary's ink on a secondary fill.
+    selected: { background: 'var(--tree-accent)', color: 'var(--tree-on-accent)' },
     disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
     // Rows sit flush inside the tree, so an offset ring would collide with
     // the neighbouring rows — inset it, as toggle-group does.
