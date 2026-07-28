@@ -64,6 +64,31 @@
         line-height: var(--leading-normal);
     }
 
+    [data-scope="tabs"][data-part="root"][data-size="xs"] [data-scope="tabs"][data-part="tab"] {
+        font-size: var(--text-xs);
+        padding: var(--space-2xs) var(--space-sm);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-size="sm"] [data-scope="tabs"][data-part="tab"] {
+        font-size: var(--text-xs);
+        padding: var(--space-xs) var(--space-md);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-size="md"] [data-scope="tabs"][data-part="tab"] {
+        font-size: var(--text-sm);
+        padding: var(--space-sm) var(--space-lg);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-size="lg"] [data-scope="tabs"][data-part="tab"] {
+        font-size: var(--text-md);
+        padding: var(--space-md) var(--space-xl);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-size="xl"] [data-scope="tabs"][data-part="tab"] {
+        font-size: var(--text-lg);
+        padding: var(--space-lg) var(--space-2xl);
+    }
+
     [data-scope="tabs"][data-part="root"][data-color="primary"] {
         --tabs-accent: var(--color-primary);
         --tabs-on-accent: var(--color-primary-content);

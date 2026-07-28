@@ -241,6 +241,13 @@ export const tabs: RecipeInput = {
         },
     },
     variants: {
+        size: {
+            xs: { tab: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-sm)' } } },
+            sm: { tab: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-md)' } } },
+            md: { tab: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-sm) var(--space-lg)' } } },
+            lg: { tab: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-xl)' } } },
+            xl: { tab: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-2xl)' } } },
+        },
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--tabs-accent': `var(--color-${c})`,
             '--tabs-on-accent': `var(--color-${c}-content)`,
@@ -605,6 +612,13 @@ export const switchRecipe: RecipeInput = {
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
     },
     variants: {
+        size: {
+            xs: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 10)', '--switch-height': 'calc(var(--size-selector) * 5)' } } },
+            sm: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 12)', '--switch-height': 'calc(var(--size-selector) * 6)' } } },
+            md: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 14)', '--switch-height': 'calc(var(--size-selector) * 7)' } } },
+            lg: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 16)', '--switch-height': 'calc(var(--size-selector) * 8)' } } },
+            xl: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 18)', '--switch-height': 'calc(var(--size-selector) * 9)' } } },
+        },
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--switch-accent': `var(--color-${c})`,
         } } }])),
@@ -836,14 +850,20 @@ export const progress: RecipeInput = {
 
 export const avatar: RecipeInput = {
     component: 'avatar',
+    tokens: {
+        '--avatar-size': 'calc(var(--size-selector) * 10)',
+        '--avatar-text': 'var(--text-sm)',
+        '--avatar-accent': 'var(--color-base-200)',
+        '--avatar-on-accent': 'var(--color-base-content)',
+    },
     parts: {
         root: {
             base: {
                 ...inked,
                 position: 'relative',
                 display: 'inline-grid',
-                width: 'calc(var(--size-selector) * 10)',
-                height: 'calc(var(--size-selector) * 10)',
+                width: 'var(--avatar-size)',
+                height: 'var(--avatar-size)',
                 overflow: 'hidden',
                 verticalAlign: 'middle',
                 boxShadow: 'var(--shadow-sm)',
@@ -867,15 +887,30 @@ export const avatar: RecipeInput = {
                 placeItems: 'center',
                 width: '100%',
                 height: '100%',
-                background: 'var(--color-base-200)',
-                color: 'var(--color-base-content)',
-                fontSize: 'var(--text-sm)',
+                background: 'var(--avatar-accent)',
+                color: 'var(--avatar-on-accent)',
+                fontSize: 'var(--avatar-text)',
                 userSelect: 'none',
             },
             // `display` must not defeat the `hidden` zero sets once the image
             // has loaded.
             selectors: { '&:not([hidden])': { display: 'grid' } },
             states: { loading: {}, loaded: {}, error: {} },
+        },
+    },
+    variants: {
+        // A flat fill in the role itself — brutalism has no tints, so the
+        // fallback takes the full colour and its own content ink.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--avatar-accent': `var(--color-${c})`,
+            '--avatar-on-accent': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 6)', '--avatar-text': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 8)', '--avatar-text': 'var(--text-xs)' } } },
+            md: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 10)', '--avatar-text': 'var(--text-sm)' } } },
+            lg: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 12)', '--avatar-text': 'var(--text-md)' } } },
+            xl: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 16)', '--avatar-text': 'var(--text-lg)' } } },
         },
     },
 };
@@ -1281,6 +1316,15 @@ export const toggleGroup: RecipeInput = {
         },
     },
     variants: {
+        // The group is a frame around its items, so the ramp lands on the
+        // items and the frame follows their box.
+        size: {
+            xs: { item: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-sm)' } } },
+            sm: { item: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-md)' } } },
+            md: { item: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-sm) var(--space-lg)' } } },
+            lg: { item: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-xl)' } } },
+            xl: { item: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-2xl)' } } },
+        },
         color: Object.fromEntries(ROLES.map((c) => [
             c,
             {
@@ -1305,6 +1349,7 @@ export const toggleGroup: RecipeInput = {
  */
 export const numberInput: RecipeInput = {
     component: 'number-input',
+    tokens: { '--number-input-accent': 'var(--color-primary)' },
     parts: {
         root: {
             base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-xs)' },
@@ -1333,7 +1378,10 @@ export const numberInput: RecipeInput = {
                 invalid: { borderColor: 'var(--color-error)' },
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 readonly: {},
-                ...focusRing,
+                'focus-visible': {
+                    outline: 'var(--border) solid var(--number-input-accent)',
+                    outlineOffset: '3px',
+                },
             },
         },
         input: {
@@ -1409,11 +1457,30 @@ export const numberInput: RecipeInput = {
     },
     // The visible ring lives on `control`; the input delegates.
     skipStates: { input: ['focus-visible'] },
+    variants: {
+        // The field's own ring carries the role — the chrome is neutral, so
+        // the focus state is the only place a number input can show colour.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--number-input-accent': `var(--color-${c})`,
+        } } }])),
+        // The readout carries the ramp; the steppers follow it so the frame
+        // stays proportional.
+        size: {
+            xs: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } } },
+            sm: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-xs) var(--space-sm)' } } },
+            md: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-sm) var(--space-md)' } } },
+            lg: { input: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-lg)' } } },
+            xl: { input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-xl)' } } },
+        },
+    },
 };
 
 export const ratingGroup: RecipeInput = {
     component: 'rating-group',
-    tokens: { '--rating-size': 'var(--text-xl)' },
+    tokens: {
+        '--rating-size': 'var(--text-xl)',
+        '--rating-fill': 'var(--color-base-content)',
+    },
     parts: {
         root: {
             base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-xs)' },
@@ -1449,8 +1516,8 @@ export const ratingGroup: RecipeInput = {
                 transition: motion('color, background'),
             },
             states: {
-                full: { color: 'var(--color-base-content)' },
-                half: { color: 'var(--color-base-content)' },
+                full: { color: 'var(--rating-fill)' },
+                half: { color: 'var(--rating-fill)' },
                 empty: {},
                 // Hover preview: a hard wash behind the glyph. Brutalism does
                 // not swell — no scaling.
@@ -1463,6 +1530,23 @@ export const ratingGroup: RecipeInput = {
             },
         },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
+    },
+    variants: {
+        // A rating glyph is text on the page background, so the raw role is
+        // not always safe: daisy measured `--color-warning` at 1.62:1 on light
+        // base-100. Deepening every role toward its own content pair keeps the
+        // hue and clears 3:1 in both schemes — the same 70/30 mix daisy's
+        // default already uses.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--rating-fill': `color-mix(in oklab, var(--color-${c}) 70%%, var(--color-${c}-content))`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--rating-size': 'var(--text-sm)' } } },
+            sm: { root: { base: { '--rating-size': 'var(--text-md)' } } },
+            md: { root: { base: { '--rating-size': 'var(--text-xl)' } } },
+            lg: { root: { base: { '--rating-size': 'var(--text-2xl)' } } },
+            xl: { root: { base: { '--rating-size': 'var(--text-3xl)' } } },
+        },
     },
 };
 
@@ -1487,7 +1571,7 @@ const treeRow: PartStyles = {
     states: {
         hover: { background: 'var(--color-base-200)' },
         // Selected = stamped: full ink slab, page colour for the glyphs.
-        selected: { background: 'var(--color-base-content)', color: 'var(--color-base-100)' },
+        selected: { background: 'var(--tree-accent)', color: 'var(--tree-on-accent)' },
         disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
         ...focusRing,
     },
@@ -1501,6 +1585,10 @@ const treeRow: PartStyles = {
 
 export const treeView: RecipeInput = {
     component: 'tree-view',
+    tokens: {
+        '--tree-accent': 'var(--color-base-content)',
+        '--tree-on-accent': 'var(--color-base-100)',
+    },
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' },
@@ -1541,6 +1629,21 @@ export const treeView: RecipeInput = {
                 borderInlineStart: 'var(--border) solid var(--color-base-content)',
             },
             states: { open: {}, closed: {} },
+        },
+    },
+    variants: {
+        // A tree colours one thing: the selected row. Everything else is
+        // structure, and tinting it would fight the content.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--tree-accent': `var(--color-${c})`,
+            '--tree-on-accent': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { tree: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { tree: { base: { fontSize: 'var(--text-xs)' } } },
+            md: { tree: { base: { fontSize: 'var(--text-sm)' } } },
+            lg: { tree: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { tree: { base: { fontSize: 'var(--text-lg)' } } },
         },
     },
 };

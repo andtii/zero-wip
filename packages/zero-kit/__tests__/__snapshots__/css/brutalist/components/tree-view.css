@@ -1,5 +1,10 @@
 @layer zero.recipes {
     [data-scope="tree-view"][data-part="root"] {
+        --tree-accent: var(--color-base-content);
+        --tree-on-accent: var(--color-base-100);
+    }
+
+    [data-scope="tree-view"][data-part="root"] {
         display: flex;
         flex-direction: column;
         gap: var(--space-xs);
@@ -47,8 +52,8 @@
     }
 
     [data-scope="tree-view"][data-part="item"][data-selected] {
-        background: var(--color-base-content);
-        color: var(--color-base-100);
+        background: var(--tree-accent);
+        color: var(--tree-on-accent);
     }
 
     [data-scope="tree-view"][data-part="item"][data-disabled] {
@@ -95,8 +100,8 @@
     }
 
     [data-scope="tree-view"][data-part="branch-trigger"][data-selected] {
-        background: var(--color-base-content);
-        color: var(--color-base-100);
+        background: var(--tree-accent);
+        color: var(--tree-on-accent);
     }
 
     [data-scope="tree-view"][data-part="branch-trigger"][data-disabled] {
@@ -132,5 +137,65 @@
         margin-inline-start: var(--space-sm);
         padding-inline-start: var(--space-sm);
         border-inline-start: var(--border) solid var(--color-base-content);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-color="primary"] {
+        --tree-accent: var(--color-primary);
+        --tree-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-color="secondary"] {
+        --tree-accent: var(--color-secondary);
+        --tree-on-accent: var(--color-secondary-content);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-color="accent"] {
+        --tree-accent: var(--color-accent);
+        --tree-on-accent: var(--color-accent-content);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-color="neutral"] {
+        --tree-accent: var(--color-neutral);
+        --tree-on-accent: var(--color-neutral-content);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-color="info"] {
+        --tree-accent: var(--color-info);
+        --tree-on-accent: var(--color-info-content);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-color="success"] {
+        --tree-accent: var(--color-success);
+        --tree-on-accent: var(--color-success-content);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-color="warning"] {
+        --tree-accent: var(--color-warning);
+        --tree-on-accent: var(--color-warning-content);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-color="error"] {
+        --tree-accent: var(--color-error);
+        --tree-on-accent: var(--color-error-content);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-size="xs"] [data-scope="tree-view"][data-part="tree"] {
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-size="sm"] [data-scope="tree-view"][data-part="tree"] {
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-size="md"] [data-scope="tree-view"][data-part="tree"] {
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-size="lg"] [data-scope="tree-view"][data-part="tree"] {
+        font-size: var(--text-md);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-size="xl"] [data-scope="tree-view"][data-part="tree"] {
+        font-size: var(--text-lg);
     }
 }

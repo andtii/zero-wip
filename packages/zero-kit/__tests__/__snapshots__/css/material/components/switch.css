@@ -97,6 +97,31 @@
         opacity: 0;
     }
 
+    [data-scope="switch"][data-part="root"][data-size="xs"] {
+        --switch-width: calc(var(--size-selector) * 9);
+        --switch-height: calc(var(--size-selector) * 5.5);
+    }
+
+    [data-scope="switch"][data-part="root"][data-size="sm"] {
+        --switch-width: calc(var(--size-selector) * 11);
+        --switch-height: calc(var(--size-selector) * 6.5);
+    }
+
+    [data-scope="switch"][data-part="root"][data-size="md"] {
+        --switch-width: calc(var(--size-selector) * 13);
+        --switch-height: calc(var(--size-selector) * 8);
+    }
+
+    [data-scope="switch"][data-part="root"][data-size="lg"] {
+        --switch-width: calc(var(--size-selector) * 15);
+        --switch-height: calc(var(--size-selector) * 9);
+    }
+
+    [data-scope="switch"][data-part="root"][data-size="xl"] {
+        --switch-width: calc(var(--size-selector) * 17);
+        --switch-height: calc(var(--size-selector) * 10);
+    }
+
     [data-scope="switch"][data-part="root"][data-color="primary"] {
         --switch-accent: var(--color-primary);
         --switch-on-accent: var(--color-primary-content);
