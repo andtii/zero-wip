@@ -29,6 +29,13 @@ export interface ThemeInfo {
 
 const themes = new Map<string, ThemeInfo>();
 
+/**
+ * The source-declared scheme defaults. With one theme per scheme they change
+ * nothing; with three, they are what keeps `pickThemeFor` from returning
+ * whichever dark theme happened to register first.
+ */
+const schemeDefaults: { light?: string; dark?: string } = {};
+
 export function registerTheme(info: ThemeInfo): void {
     themes.set(info.name, info);
 }
@@ -54,6 +61,14 @@ export interface ThemeSource {
         pair?: string;
         colors: Record<string, string>;
     }>;
+    /**
+     * The theme `:root` uses under a light system — `pickThemeFor('light')`
+     * prefers it over first-registered. Flows structurally from the kit's
+     * `TokensInput`, so no design-system package passes it explicitly.
+     */
+    defaultLight?: string;
+    /** The `defaultLight` counterpart for system dark. */
+    defaultDark?: string;
 }
 
 /**
@@ -86,6 +101,8 @@ export function registerThemes(source: ThemeSource): void {
             ),
         });
     }
+    if (source.defaultLight) schemeDefaults.light = source.defaultLight;
+    if (source.defaultDark) schemeDefaults.dark = source.defaultDark;
 }
 
 /**
@@ -106,6 +123,8 @@ export function clearThemes(): void {
         );
     }
     themes.clear();
+    delete schemeDefaults.light;
+    delete schemeDefaults.dark;
 }
 
 export function getTheme(name: ZeroThemeNameOrCustom): ThemeInfo | undefined {
@@ -121,8 +140,16 @@ export function pairOf(name: ZeroThemeNameOrCustom): string | undefined {
     return themes.get(name)?.pair;
 }
 
-/** First registered theme matching a color scheme. */
+/**
+ * The theme to use for a color scheme: the source's declared
+ * `defaultLight`/`defaultDark` when it is registered with the matching
+ * scheme, else the first registered match. First-registered was correct by
+ * construction with one theme per scheme and arbitrary with three — the
+ * latent bug only a third theme exposes (RFC 0002 §7).
+ */
 export function pickThemeFor(scheme: 'light' | 'dark'): string | undefined {
+    const preferred = schemeDefaults[scheme];
+    if (preferred && themes.get(preferred)?.colorScheme === scheme) return preferred;
     for (const t of themes.values()) {
         if (t.colorScheme === scheme) return t.name;
     }

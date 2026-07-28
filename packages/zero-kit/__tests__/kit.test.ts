@@ -184,9 +184,11 @@ describe('compileRecipeCss', () => {
 
 describe('the shipped design systems', () => {
     it.each([
-        ['basic', basicDS],
-        ['daisyui', daisyDS],
-    ] as const)('%s validates cleanly and compiles', (_name, ds) => {
+        // The theme list is asserted by name: daisyui is the N-theme proof
+        // (#132) and must keep all five; the others stay a pair.
+        ['basic', basicDS, ['basic', 'basic-dark']],
+        ['daisyui', daisyDS, ['light', 'dark', 'dim', 'nord', 'sunset']],
+    ] as const)('%s validates cleanly and compiles', (_name, ds, themeNames) => {
         const result = validateDesignSystem(ds, manifest);
         expect(result.errors).toEqual([]);
         const compiled = compileDesignSystem(ds, manifest);
@@ -196,7 +198,7 @@ describe('the shipped design systems', () => {
             'toast', 'toggle', 'toggle-group', 'tooltip', 'tree-view',
         ]);
         expect(compiled.indexCss).toContain('@layer zero.tokens');
-        expect(compiled.themes.length).toBe(2);
+        expect(compiled.themes.map((t) => t.name)).toEqual([...themeNames]);
     });
 
     it('validation catches missing tokens and bad contrast', () => {

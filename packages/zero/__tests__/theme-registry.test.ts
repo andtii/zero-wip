@@ -46,6 +46,56 @@ describe('theme registry', () => {
         expect(pickThemeFor('dark')).toBe('dark');
     });
 
+    // The RFC 0002 §7 latent bug: with one dark theme, first-registered was
+    // correct by construction; with three, it silently picked whichever was
+    // declared first. The source's declared default must win regardless of
+    // declaration order.
+    it('pickThemeFor prefers the declared scheme default over first-registered', () => {
+        registerThemes({
+            themes: {
+                dim: { colorScheme: 'dark', colors: {} },
+                sunset: { colorScheme: 'dark', colors: {} },
+                nord: { colorScheme: 'light', colors: {} },
+                light: { colorScheme: 'light', pair: 'dark', colors: {} },
+                dark: { colorScheme: 'dark', pair: 'light', colors: {} },
+            },
+            defaultLight: 'light',
+            defaultDark: 'dark',
+        });
+        // `dim` and `nord` registered first — the defaults still win.
+        expect(pickThemeFor('dark')).toBe('dark');
+        expect(pickThemeFor('light')).toBe('light');
+    });
+
+    it('a default naming a theme of the WRONG scheme falls back to the scan', () => {
+        registerThemes({
+            themes: {
+                dusk: { colorScheme: 'dark', colors: {} },
+                day: { colorScheme: 'light', colors: {} },
+            },
+            // Misdeclared: points at a light theme for the dark slot.
+            defaultDark: 'day',
+        });
+        expect(pickThemeFor('dark')).toBe('dusk');
+    });
+
+    it('clearThemes drops the scheme defaults with the themes', () => {
+        registerThemes({
+            themes: {
+                aurora: { colorScheme: 'dark', colors: {} },
+                nightfall: { colorScheme: 'dark', colors: {} },
+            },
+            defaultDark: 'nightfall',
+        });
+        expect(pickThemeFor('dark')).toBe('nightfall');
+
+        clearThemes();
+        registerTheme({ name: 'aurora', colorScheme: 'dark' });
+        registerTheme({ name: 'nightfall', colorScheme: 'dark' });
+        // No defaults re-declared — back to first-registered.
+        expect(pickThemeFor('dark')).toBe('aurora');
+    });
+
     // The playground's switcher path: seed from a whole declaration, then
     // replace it with another design system's.
     it('clears themes seeded through registerThemes', () => {
