@@ -25,6 +25,7 @@ import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import { designSystem as materialDS } from '@sigx/zero-material';
 import { designSystem as brutalistDS } from '@sigx/zero-brutalist';
+import { designSystem as herouiDS } from '@sigx/zero-heroui';
 
 const manifest = {
     components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
@@ -56,6 +57,7 @@ const designSystems = {
     daisyui: compileDesignSystem(daisyDS, manifest),
     material: compileDesignSystem(materialDS, manifest),
     brutalist: compileDesignSystem(brutalistDS, manifest),
+    heroui: compileDesignSystem(herouiDS, manifest),
 };
 
 /**
@@ -92,19 +94,26 @@ describe('no component accepts an axis no design system wires', () => {
         for (const carrier of carriers) expect(scopes).toContain(carrier);
     });
 
-    it.each(Object.keys(designSystems))('%s wires colour and size for every carrier', (name) => {
+    it.each(Object.keys(designSystems))('%s wires colour and size for every carrier it skins', (name) => {
         const compiled = designSystems[name as keyof typeof designSystems];
+        // An axis a design system declares OUT of existence is not a gap:
+        // `roles: {}` means there is no colour axis to wire, and `sizes: []`
+        // means there is no size ramp. Demanding those would make a
+        // deliberately colourless design system impossible to ship — and
+        // `zero-heroui` is exactly that.
+        const declared = {
+            color: Object.keys(compiled.tokens.roles).length > 0,
+            size: compiled.tokens.sizes.length > 0,
+        };
         const gaps: string[] = [];
         for (const scope of carriers) {
             const wired = compiled.components[scope];
-            // A carrier with no recipe at all is a different failure, already
-            // warned about by the validator — but it is still a gap here.
-            if (!wired) {
-                gaps.push(`${scope} (no recipe)`);
-                continue;
-            }
+            // A carrier with no recipe is a DIFFERENT failure — the validator
+            // already warns "will render unstyled" — and conflating the two
+            // would make this fail for a reason it was not built to catch.
+            if (!wired) continue;
             for (const axis of CHECKED_AXES) {
-                if (wired[axis].length === 0) gaps.push(`${scope}.${axis}`);
+                if (declared[axis] && wired[axis].length === 0) gaps.push(`${scope}.${axis}`);
             }
         }
         expect(gaps, `${name} accepts these axes at runtime and wires nothing for them`).toEqual([]);

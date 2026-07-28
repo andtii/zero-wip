@@ -20,6 +20,7 @@ import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import { designSystem as materialDS } from '@sigx/zero-material';
 import { designSystem as brutalistDS } from '@sigx/zero-brutalist';
+import { designSystem as herouiDS } from '@sigx/zero-heroui';
 
 const manifest = {
     components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
@@ -31,6 +32,7 @@ describe('register.d.ts goldens', () => {
         ['daisyui', daisyDS as DesignSystemInput, '../__goldens__/register/daisyui.register.d.ts'],
         ['material', materialDS as DesignSystemInput, '../../zero/type-tests/generated/material.register.d.ts'],
         ['brutalist', brutalistDS as DesignSystemInput, '../__goldens__/register/brutalist.register.d.ts'],
+        ['heroui', herouiDS as DesignSystemInput, '../__goldens__/register/heroui.register.d.ts'],
     ])('%s matches its golden', async (_name, ds, golden) => {
         const compiled = compileDesignSystem(ds, manifest);
         await expect(compileRegisterDts(compiled)).toMatchFileSnapshot(golden);
@@ -71,6 +73,21 @@ describe('the generated shapes', () => {
             axes: {},
             mods: [],
         });
+    });
+
+    it('blames an unwired axis on the recipe, not on the declaration', () => {
+        // `tokens.variants` omitted means "declared nothing, check nothing" —
+        // NOT "this design system has no variant axis". `compileDesignSystem`
+        // normalises the omission to `[]`, so a naive emptiness check would
+        // tell an author the axis does not exist when they simply never
+        // declared the vocabulary.
+        const dts = compileRegisterDts(compile({
+            component: 'button',
+            parts: { root: { base: { padding: '0' } } },
+            variants: { color: { primary: { root: { base: { color: 'var(--color-primary)' } } } } },
+        }));
+        expect(dts).toContain('no probe recipe wires it');
+        expect(dts).not.toContain('declares no variant axis at all');
     });
 
     it('emits never for unwired axes and Record<string, never> for empty axes', () => {

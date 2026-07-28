@@ -44,6 +44,7 @@ installThemes();
 | [`@sigx/zero-daisyui`](packages/zero-daisyui) | daisyUI-flavored skin — daisy's tokens and component look as pure data, no Tailwind required |
 | [`@sigx/zero-material`](packages/zero-material) | Material-flavored skin — the acceptance test that a foreign design language (13 colour roles, `level1`–`level5` elevation, its own easings and breakpoints) fits the contract with no special-casing |
 | [`@sigx/zero-brutalist`](packages/zero-brutalist) | Brutalist skin — generated from a one-line style brief through the design-system agent skill, as the end-to-end proof that a look is data |
+| [`@sigx/zero-heroui`](packages/zero-heroui) | HeroUI-flavoured skin — the acceptance test for non-orthogonal axis surfaces: no colour axis at all, colour fused into a seven-member `variant`, and presence-only `data-mod-*` modifiers |
 
 `examples/playground` is the kitchen sink — `pnpm --filter zero-playground dev`.
 

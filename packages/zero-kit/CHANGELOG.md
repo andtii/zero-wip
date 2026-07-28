@@ -82,6 +82,20 @@
 
 ### Fixed
 
+- **The register artifact said the wrong thing about an axis a design system
+  declares out of existence** (#99). A `never` axis was always explained as
+  "no `<ds>` recipe wires it", which sends an author looking for a recipe gap —
+  wrong advice when the design system declared `roles: {}` or `sizes: []` and
+  there is no axis to wire. The generator now distinguishes the two:
+  *"heroui declares no color axis at all"* versus *"no heroui recipe wires
+  it"*, decided per axis rather than per design system, so a declared-but-
+  unwired `variant` still reads as the recipe gap it is. Only `color` and
+  `size` can be declared away — via `roles: {}` / `sizes: []`, which are
+  distinguishable from an omission because omitting either yields the
+  recommended set. Omitting `tokens.variants` means "check nothing", not "no
+  variant axis", so `variant` is never reported that way. Surfaced by the first
+  design system with no colour axis; the four existing goldens are unchanged.
+
 - **Two unvalidated token-name paths** (RFC 0003 §6.3, #162). `recipe.tokens`
   keys were not checked at all: a key spelled without the leading `--` is
   passed through by `declBlock` as an ordinary declaration, so
