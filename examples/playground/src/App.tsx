@@ -6,7 +6,7 @@ import {
     TreeView, toast,
 } from '@sigx/zero';
 import { Toolbar } from './Toolbar';
-import { activeDesignSystem } from './design-systems';
+import { activeVocabulary } from './design-systems';
 
 /**
  * Four roles is enough to read a variant row; eight or thirteen turns it into
@@ -51,7 +51,7 @@ export const App = component(() => {
 
     // Read inside the render closure, so switching design systems re-renders
     // the rows against the newly active vocabulary.
-    const axes = () => activeDesignSystem().vocabulary;
+    const axes = activeVocabulary;
     const swatchColors = () => axes().colors.slice(0, SWATCH_LIMIT);
 
     return () => (
