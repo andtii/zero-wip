@@ -56,7 +56,7 @@
         "@sigx/args": "^0.9.0",
         "@sigx/zero": "workspace:^",
         "@types/culori": "^4.0.1",
-        "@types/node": "^22.10.0",
+        "@types/node": "^26.1.2",
         "ajv": "^8.20.0",
         "typescript": "^6.0.3"
     },
