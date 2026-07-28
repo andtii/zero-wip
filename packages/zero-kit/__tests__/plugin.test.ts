@@ -61,20 +61,24 @@ describe('detect', () => {
         expect(plugin.detect(projectDir({ 'package.json': pkg({ dependencies: { '@sigx/zero-kit': '^0.1.0' } }) }))).toBe(true);
     });
 
-    it('claims a package with the conventional source entry', () => {
-        // A generated design system before anything is installed.
-        expect(plugin.detect(projectDir({ 'src/design-system.ts': 'export const designSystem = {};' }))).toBe(true);
-    });
-
     it('ignores unrelated projects', () => {
         expect(plugin.detect(projectDir({ 'package.json': pkg({ dependencies: { vite: '^8.0.0' } }) }))).toBe(false);
         expect(plugin.detect(projectDir({}))).toBe(false);
     });
 
+    it('does not claim the kit itself', () => {
+        // zero-kit ships src/design-system.ts as library code — no source-shape
+        // heuristic may mistake that for a design system to compile.
+        const dir = projectDir({
+            'package.json': JSON.stringify({ name: '@sigx/zero-kit' }),
+            'src/design-system.ts': 'export function defineDesignSystem() {}',
+        });
+        expect(plugin.detect(dir)).toBe(false);
+    });
+
     it('survives an unparseable package.json', () => {
         // A broken manifest must not crash discovery for every other plugin.
         expect(plugin.detect(projectDir({ 'package.json': '{ not json' }))).toBe(false);
-        expect(plugin.detect(projectDir({ 'package.json': '{ not json', 'src/design-system.ts': '' }))).toBe(true);
     });
 });
 

@@ -28,24 +28,28 @@ const manifestArg = a
     .describe('Anatomy manifest path (default: @sigx/zero/manifest.json, resolved from this directory)');
 
 /**
- * A design-system package: one that pulls in the kit, or that has the
- * conventional source entry. The dependency check is first because it is what
- * a generated package looks like before anything is written.
+ * A design-system package is one that pulls in the kit.
+ *
+ * Nothing looser would earn its keep: the CLI only loads this plugin after
+ * finding `@sigx/zero-kit` among the project's own dependencies, so by the
+ * time `detect` runs that much is already established. A source-shape
+ * heuristic on top of it could only ever produce false positives — the kit's
+ * own `src/design-system.ts` is library code, not a design system.
  */
 function isDesignSystemProject(cwd: string): boolean {
     const pkgPath = join(cwd, 'package.json');
-    if (existsSync(pkgPath)) {
-        try {
-            const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as {
-                dependencies?: Record<string, string>;
-                devDependencies?: Record<string, string>;
-            };
-            if (pkg.dependencies?.['@sigx/zero-kit'] || pkg.devDependencies?.['@sigx/zero-kit']) return true;
-        } catch {
-            // Unparseable package.json — fall through to the source-entry check.
-        }
+    if (!existsSync(pkgPath)) return false;
+    try {
+        const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as {
+            name?: string;
+            dependencies?: Record<string, string>;
+            devDependencies?: Record<string, string>;
+        };
+        if (pkg.name === '@sigx/zero-kit') return false; // the kit itself, not a consumer
+        return Boolean(pkg.dependencies?.['@sigx/zero-kit'] || pkg.devDependencies?.['@sigx/zero-kit']);
+    } catch {
+        return false; // unparseable manifest — claim nothing
     }
-    return existsSync(join(cwd, 'src', 'design-system.ts'));
 }
 
 export default definePlugin({
