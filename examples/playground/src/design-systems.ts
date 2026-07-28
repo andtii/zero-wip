@@ -39,17 +39,91 @@
  * removed before any frame in which both would be live. Sampling per animation
  * frame, the number of links with a non-null `.sheet` never exceeds one.
  */
+import { signal } from 'sigx';
 import { clearThemes, getTheme, themeController } from '@sigx/zero';
 
 import basicCss from '@sigx/zero-basic/css?url';
 import daisyuiCss from '@sigx/zero-daisyui/css?url';
 import materialCss from '@sigx/zero-material/css?url';
 import brutalistCss from '@sigx/zero-brutalist/css?url';
+import herouiCss from '@sigx/zero-heroui/css?url';
 
 import { installThemes as installBasic } from '@sigx/zero-basic';
 import { installThemes as installDaisyui } from '@sigx/zero-daisyui';
 import { installThemes as installMaterial } from '@sigx/zero-material';
 import { installThemes as installBrutalist } from '@sigx/zero-brutalist';
+import { installThemes as installHeroui } from '@sigx/zero-heroui';
+
+// The DECLARED vocabulary, read from each compiled manifest rather than
+// retyped here. Retyping is what made the axis rows lie: they iterated a
+// literal `['solid','outline','soft','ghost']`, so a design system with a
+// different vocabulary rendered buttons that matched nothing — silently, since
+// an unmatched `data-variant` is just an attribute nobody styled.
+//
+// Fetched, not imported, for the same reason the CSS above is `?url`: a
+// compiled manifest is ~11 kB of themes, per-component axes and the whole
+// token payload, and the four arrays this file wants are a sliver of it.
+// Statically importing five of them would inline ~57 kB into the bundle and
+// grow with every design system added. `?url` makes each an asset fetched
+// only when its design system is activated.
+import basicManifestUrl from '@sigx/zero-basic/manifest.json?url';
+import daisyuiManifestUrl from '@sigx/zero-daisyui/manifest.json?url';
+import materialManifestUrl from '@sigx/zero-material/manifest.json?url';
+import brutalistManifestUrl from '@sigx/zero-brutalist/manifest.json?url';
+import herouiManifestUrl from '@sigx/zero-heroui/manifest.json?url';
+
+/**
+ * What a design system says it offers, straight from its manifest.
+ *
+ * `colors` is empty for a design system with no colour axis — HeroUI v3
+ * removed the prop entirely — and the playground renders no colour row rather
+ * than four buttons that match nothing.
+ */
+export interface AxisVocabulary {
+    colors: string[];
+    sizes: string[];
+    variants: string[];
+    modifiers: string[];
+}
+
+interface DesignSystemManifest {
+    tokens: {
+        roles: Record<string, unknown>;
+        sizes: string[];
+        variants: string[];
+        modifiers?: string[];
+    };
+}
+
+const EMPTY_VOCABULARY: AxisVocabulary = { colors: [], sizes: [], variants: [], modifiers: [] };
+
+const vocabularyOf = (manifest: DesignSystemManifest): AxisVocabulary => ({
+    colors: Object.keys(manifest.tokens.roles),
+    sizes: [...manifest.tokens.sizes],
+    variants: [...manifest.tokens.variants],
+    // Optional: a manifest built before modifiers existed has no such key.
+    modifiers: [...(manifest.tokens.modifiers ?? [])],
+});
+
+/** Parsed manifests, kept so a re-visited design system re-reads nothing. */
+const vocabularies = new Map<string, AxisVocabulary>();
+
+async function loadVocabulary(entry: DesignSystemEntry): Promise<AxisVocabulary> {
+    const cached = vocabularies.get(entry.id);
+    if (cached) return cached;
+    try {
+        const response = await fetch(entry.manifestHref);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const vocabulary = vocabularyOf(await response.json() as DesignSystemManifest);
+        vocabularies.set(entry.id, vocabulary);
+        return vocabulary;
+    } catch (cause) {
+        // The stylesheet is the design system; the manifest only describes it.
+        // A failed fetch costs the demo its axis rows, not the page.
+        console.error(`[playground] could not read the ${entry.id} manifest`, cause);
+        return EMPTY_VOCABULARY;
+    }
+}
 
 export interface DesignSystemEntry {
     id: string;
@@ -58,6 +132,8 @@ export interface DesignSystemEntry {
     href: string;
     /** Seeds the zero theme registry with this DS's themes. */
     installThemes: () => void;
+    /** Compiled manifest URL — where the declared axes are read from. */
+    manifestHref: string;
     blurb: string;
 }
 
@@ -67,6 +143,7 @@ export const designSystems: DesignSystemEntry[] = [
         label: 'Basic',
         href: basicCss,
         installThemes: installBasic,
+        manifestHref: basicManifestUrl,
         blurb: 'Neutral starter — readable defaults, eight colour roles.',
     },
     {
@@ -74,6 +151,7 @@ export const designSystems: DesignSystemEntry[] = [
         label: 'daisyUI',
         href: daisyuiCss,
         installThemes: installDaisyui,
+        manifestHref: daisyuiManifestUrl,
         blurb: 'daisyUI token values over zero anatomy. No Tailwind involved.',
     },
     {
@@ -81,6 +159,7 @@ export const designSystems: DesignSystemEntry[] = [
         label: 'Material',
         href: materialCss,
         installThemes: installMaterial,
+        manifestHref: materialManifestUrl,
         blurb: 'Thirteen colour roles, a level1–level5 elevation ramp, its own breakpoints.',
     },
     {
@@ -88,7 +167,17 @@ export const designSystems: DesignSystemEntry[] = [
         label: 'Brutalist',
         href: brutalistCss,
         installThemes: installBrutalist,
+        manifestHref: brutalistManifestUrl,
         blurb: 'Generated from a style brief through the design-system skill.',
+    },
+    {
+        id: 'heroui',
+        label: 'HeroUI',
+        href: herouiCss,
+        installThemes: installHeroui,
+        manifestHref: herouiManifestUrl,
+        blurb: 'No colour axis at all — colour is fused into a seven-member variant. '
+            + 'Component coverage is deliberately partial; it exists to test the axis surface.',
     },
 ];
 
@@ -96,6 +185,25 @@ const STORAGE_KEY = 'zero-ds';
 const LINK_ATTR = 'data-zero-ds';
 
 export const DEFAULT_DESIGN_SYSTEM = designSystems[0]!;
+
+/**
+ * The live design system, reactively.
+ *
+ * `activeDesignSystemId()` reads the document, which is the truth but is not
+ * observable — and the axis rows have to re-render when the vocabulary
+ * changes. The toolbar keeps its own copy for its busy/label handling; this is
+ * the shared one, updated only after a swap actually commits.
+ */
+const active = signal({ id: DEFAULT_DESIGN_SYSTEM.id, vocabulary: EMPTY_VOCABULARY });
+
+export function activeDesignSystem(): DesignSystemEntry {
+    return designSystems.find((ds) => ds.id === active.id) ?? DEFAULT_DESIGN_SYSTEM;
+}
+
+/** The active design system's declared axes — empty until its manifest lands. */
+export function activeVocabulary(): AxisVocabulary {
+    return active.vocabulary;
+}
 
 /** The persisted choice, falling back to the default for an unknown id. */
 export function resolvePersistedDesignSystem(): DesignSystemEntry {
@@ -157,6 +265,12 @@ export async function activateDesignSystem(entry: DesignSystemEntry): Promise<bo
     clearThemes();
     entry.installThemes();
     reconcileTheme();
+
+    // Only now — a failed load leaves the previous design system live, and
+    // the vocabulary the demo renders must describe the CSS that is actually
+    // in the document. Both fields move together for the same reason.
+    active.vocabulary = await loadVocabulary(entry);
+    active.id = entry.id;
 
     try {
         localStorage.setItem(STORAGE_KEY, entry.id);
