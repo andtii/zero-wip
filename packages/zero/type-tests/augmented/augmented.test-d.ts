@@ -11,6 +11,7 @@
 import type {
     AxesFor,
     ColorValue,
+    ModsFor,
     ColorValueFor,
     SizeScaleFor,
     VariantValueFor,
@@ -39,6 +40,16 @@ const mintedAxis: AxesFor<'button'> = { density: 'compact' };
 const toggleColor: ColorValueFor<'toggle'> = 'secondary';
 // @ts-expect-error — toggle wires no variant, so ANY value errors (never)
 const toggleVariant: VariantValueFor<'toggle'> = 'solid';
+
+// ── modifiers: presence-only, so the value type is boolean and the NAMES
+//    are the vocabulary ──
+const mods: ModsFor<'button'> = { block: true, 'icon-only': false };
+// @ts-expect-error — a modifier this design system never declared
+const mintedMod: ModsFor<'button'> = { wide: true };
+// @ts-expect-error — a modifier has no vocabulary of values; it is on or off
+const valuedMod: ModsFor<'button'> = { block: 'yes' };
+// @ts-expect-error — toggle declares no modifiers, so Record<string, never> rejects every entry
+const noMods: ModsFor<'toggle'> = { block: true };
 
 // ── custom axes narrow per axis name and value ──
 const density: AxesFor<'tabs'> = { density: 'compact' };

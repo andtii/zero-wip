@@ -399,6 +399,11 @@ export function validateDesignSystem<R extends RolesDecl>(
         }
     };
     if (ds.tokens.variants) checkAxisValues('tokens.variants', ds.tokens.variants);
+    // Modifier NAMES take the same grammar axis values do — they become the
+    // tail of `data-mod-<name>`. No reserved-name check is needed: the prefix
+    // puts every modifier outside the anatomy contract's namespace, which is
+    // the whole reason it exists.
+    if (ds.tokens.modifiers) checkAxisValues('tokens.modifiers', ds.tokens.modifiers);
     for (const [axis, values] of Object.entries(ds.tokens.axes ?? {})) {
         if (!TOKEN_KEY_PATTERN.test(axis)) {
             error('tokens.axes', `"${axis}" is not a kebab-case identifier — it becomes the attribute name data-${axis}`);

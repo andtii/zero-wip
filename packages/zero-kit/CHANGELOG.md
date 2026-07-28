@@ -14,6 +14,23 @@
 
 ### Added
 
+- **Presence-only modifiers** (RFC 0003 §3, #166): `TokensInput.modifiers`
+  declares them, `RecipeInput.modifiers` (name → part → styles) wires them, and
+  the compiler emits `[data-mod-<name>]` — valueless, because a modifier has no
+  vocabulary; the names are the vocabulary. `compoundVariants[].match` accepts
+  `true` for a modifier, which is also how a presence-only condition joins a
+  compound at all. Harvested into `CompiledComponentAxes.mods` and emitted by
+  the register generator as `mods: { 'block': boolean }` (or
+  `Record<string, never>` when a design system declares none), so an undeclared
+  modifier is a type error under an opted-in design system. Declared-but-unwired
+  modifiers warn like any other declared vocabulary. There is no
+  `defaultVariants` analogue — absence already is a modifier's default.
+
+  This closes the one thing the axis grammar could not express: daisyUI's
+  `btn-block`/`btn-wide`, Radix's `highContrast`, Ant's boolean `danger`,
+  HeroUI v3's `isIconOnly`. The closest previous encoding was a one-member axis
+  (`axes: { block: ['block'] }`), which restates the name as its own value.
+
 - **The kit is a `sigx` CLI plugin** (#154): a `"sigx-cli"` manifest field and
   a new `@sigx/zero-kit/plugin` export, built on `definePlugin` and
   `@sigx/args`. Auto-discovered in any package that depends on the kit. This

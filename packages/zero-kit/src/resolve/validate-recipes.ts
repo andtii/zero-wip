@@ -170,6 +170,8 @@ export function validateRecipes(
 
     /** axis → every value any recipe wires, for the declared-but-unwired check. */
     const wiredByAxis = new Map<string, Set<string>>();
+    /** Every modifier any recipe wires — same check, but names have no values. */
+    const wiredMods = new Set<string>();
     const wire = (axis: string, value: string): void => {
         let set = wiredByAxis.get(axis);
         if (!set) wiredByAxis.set(axis, (set = new Set()));
@@ -467,6 +469,22 @@ export function validateRecipes(
             }
         };
 
+        // A modifier has no vocabulary of values — the NAMES are the
+        // vocabulary — so this is the whole membership rule for one.
+        const checkModifier = (name: string, where_: string): void => {
+            if (!TOKEN_KEY_PATTERN.test(name)) {
+                error(where_, `modifier "${name}" is not a kebab-case identifier — it becomes the attribute name data-mod-${name}`);
+            }
+            if (vocabulary.modifiers && !vocabulary.modifiers.includes(name)) {
+                error(where_, `"${name}" is not a declared modifier (${vocabulary.modifiers.join(', ') || 'none'})`);
+            }
+        };
+
+        for (const name of Object.keys(recipe.modifiers ?? {})) {
+            checkModifier(name, `${where}.modifiers`);
+            wiredMods.add(name);
+        }
+
         for (const [axis, values_] of Object.entries(recipe.variants ?? {})) {
             checkAxisName(axis, `${where}.variants`);
             for (const value of Object.keys(values_)) {
@@ -492,6 +510,13 @@ export function validateRecipes(
 
         for (const compound of recipe.compoundVariants ?? []) {
             for (const [axis, value] of Object.entries(compound.match)) {
+                // `true` means "this modifier must be present" — a different
+                // grammar from an axis equality, so a different check.
+                if (value === true) {
+                    checkModifier(axis, `${where}.compoundVariants`);
+                    wiredMods.add(axis);
+                    continue;
+                }
                 checkAxisName(axis, `${where}.compoundVariants`);
                 checkAxisValue(axis, value, `${where}.compoundVariants.${axis}`);
                 checkMembership(axis, value, `${where}.compoundVariants.${axis}`);
@@ -532,6 +557,7 @@ export function validateRecipes(
 
         // ── variants need a `root` part to hang the attribute on ──
         const hasVariants = Object.keys(recipe.variants ?? {}).length > 0
+            || Object.keys(recipe.modifiers ?? {}).length > 0
             || (recipe.compoundVariants?.length ?? 0) > 0;
         if (hasVariants && !partsByName.has('root')) {
             error(
@@ -588,6 +614,11 @@ export function validateRecipes(
             if (!wired.has(value)) {
                 warn(`tokens.axes.${axis}`, `"${value}" is declared but no recipe wires it — axes={{ ${axis}: '${value}' }} selects nothing`);
             }
+        }
+    }
+    for (const name of vocabulary.modifiers ?? []) {
+        if (!wiredMods.has(name)) {
+            warn('tokens.modifiers', `"${name}" is declared but no recipe wires it — mods={{ '${name}': true }} selects nothing`);
         }
     }
 

@@ -142,6 +142,37 @@ describe('compileRecipeCss', () => {
         expect(css).toContain(':not([data-color])');
     });
 
+    it('emits modifiers as presence-only attributes', () => {
+        // An axis answers "which one" and carries a value; a modifier answers
+        // "is it on" and carries none — so the selector has no `="…"` to
+        // compare against. daisyUI's `btn-block` is the shape being encoded.
+        const buttonComponent = manifest.components.find((c) => c.scope === 'button')!;
+        const css = compileRecipeCss({
+            component: 'button',
+            parts: {},
+            modifiers: { block: { root: { base: { width: '100%' } } } },
+        }, buttonComponent);
+        expect(css).toContain('[data-scope="button"][data-part="root"][data-mod-block] {');
+        expect(css).not.toContain('data-mod-block="');
+    });
+
+    it('lets a modifier participate in a compound match', () => {
+        // The flag-in-a-compound case the axis grammar could not express:
+        // `match: { variant: 'solid', block: true }`.
+        const buttonComponent = manifest.components.find((c) => c.scope === 'button')!;
+        const css = compileRecipeCss({
+            component: 'button',
+            parts: {},
+            variants: { variant: { solid: { root: { base: { background: 'blue' } } } } },
+            modifiers: { block: { root: { base: { width: '100%' } } } },
+            compoundVariants: [{
+                match: { variant: 'solid', block: true },
+                parts: { root: { base: { borderRadius: '0' } } },
+            }],
+        }, buttonComponent);
+        expect(css).toContain('[data-variant="solid"][data-mod-block]');
+    });
+
     it('projects pseudo parts onto their host, pseudo-element last', () => {
         // Dialog's backdrop renders no element on the web — the anatomy
         // declares it `pseudo: { of: 'popup', selector: '::backdrop' }` and

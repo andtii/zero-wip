@@ -33,6 +33,7 @@ export type {
     SizeScaleFor,
     VariantValueFor,
     AxesFor,
+    ModsFor,
     ZeroThemeName,
     ZeroThemeNameOrCustom,
     ZeroProperty,
@@ -55,10 +56,11 @@ export type {
     WithSize,
     WithVariant,
     WithAxes,
+    WithMods,
     WithVariantAxes,
     WithOrientation,
     WithAsChild,
     PartProps,
 } from './props.js';
-export { variantAttrs, RESERVED_AXES, VARIANT_AXES } from './props.js';
+export { variantAttrs, RESERVED_AXES, VARIANT_AXES, MOD_ATTR_PREFIX } from './props.js';
 export { renderAsChild } from './as-child.js';

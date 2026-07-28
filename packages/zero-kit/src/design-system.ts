@@ -49,6 +49,8 @@ export interface CompiledComponentAxes {
     variant: string[];
     /** Custom axes: axis name → wired values. */
     axes: Record<string, string[]>;
+    /** Presence-only modifiers this recipe wires — rendered `data-mod-<name>`. */
+    mods: string[];
     /**
      * The recipe's `defaultVariants`, validated against the wired sets in
      * `validateRecipes`. Manifest/docs only — never widens a union.
@@ -75,6 +77,8 @@ export interface CompiledDesignSystem {
         variants: string[];
         /** Declared custom variant axes: axis name → values ({} when undeclared). */
         axes: Record<string, string[]>;
+        /** Declared presence-only modifiers ([] when undeclared). */
+        modifiers: string[];
         custom: Record<string, CustomTokenDecl>;
         breakpoints: Record<string, string>;
         /** DS-level values per category id, e.g. `{ radius: { field: '0.5rem' } }`. */
@@ -109,8 +113,15 @@ function harvestAxes(recipe: RecipeInput): CompiledComponentAxes {
     for (const [axis, values] of Object.entries(recipe.variants ?? {})) {
         byAxis.set(axis, new Set(Object.keys(values)));
     }
+    // `true` in a match is a modifier, not an axis value — it must not be
+    // harvested as one, or the generated types would offer the string "true".
+    const mods = new Set(Object.keys(recipe.modifiers ?? {}));
     for (const compound of recipe.compoundVariants ?? []) {
         for (const [axis, value] of Object.entries(compound.match)) {
+            if (value === true) {
+                mods.add(axis);
+                continue;
+            }
             let set = byAxis.get(axis);
             if (!set) byAxis.set(axis, (set = new Set()));
             set.add(value);
@@ -126,6 +137,7 @@ function harvestAxes(recipe: RecipeInput): CompiledComponentAxes {
         size: take('size'),
         variant: take('variant'),
         axes: Object.fromEntries([...byAxis.entries()].map(([axis, values]) => [axis, [...values]])),
+        mods: [...mods],
     };
     if (recipe.defaultVariants && Object.keys(recipe.defaultVariants).length > 0) {
         result.defaults = { ...recipe.defaultVariants };
@@ -198,6 +210,7 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
             axes: Object.fromEntries(
                 Object.entries(ds.tokens.axes ?? {}).map(([axis, values]) => [axis, [...values]]),
             ),
+            modifiers: [...(ds.tokens.modifiers ?? [])],
             custom: ds.tokens.custom ?? {},
             breakpoints: ds.tokens.breakpoints ?? {},
             system: (ds.tokens.system ?? {}) as Record<string, unknown>,

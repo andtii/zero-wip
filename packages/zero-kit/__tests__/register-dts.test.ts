@@ -69,6 +69,7 @@ describe('the generated shapes', () => {
             size: ['lg'],          // reaches the type through the compound match alone
             variant: [],
             axes: {},
+            mods: [],
         });
     });
 
@@ -82,8 +83,37 @@ describe('the generated shapes', () => {
         expect(dts).toContain('size: never;');
         expect(dts).toContain('variant: never;');
         expect(dts).toContain('axes: Record<string, never>;');
+        expect(dts).toContain('mods: Record<string, never>;');
         // `{}` would be the top object type — the failure class this exists to remove.
         expect(dts).not.toMatch(/axes: \{\};/);
+        expect(dts).not.toMatch(/mods: \{\};/);
+    });
+
+    it('harvests modifiers from both the modifiers block and compound matches', () => {
+        const compiled = compile({
+            component: 'button',
+            parts: { root: { base: { padding: '0' } } },
+            variants: { color: { primary: { root: { base: { color: 'var(--color-primary)' } } } } },
+            modifiers: { block: { root: { base: { width: '100%' } } } },
+            compoundVariants: [{
+                match: { color: 'primary', 'icon-only': true },
+                parts: { root: { base: { padding: '0.5rem' } } },
+            }],
+        });
+        // `true` is a modifier, not an axis value: harvesting it as one would
+        // offer the literal string "true" on a `data-icon-only` axis.
+        expect(compiled.components['button']!.mods.sort()).toEqual(['block', 'icon-only']);
+        expect(compiled.components['button']!.axes).toEqual({});
+    });
+
+    it('types modifiers as booleans, since a modifier has no vocabulary', () => {
+        const dts = compileRegisterDts(compile({
+            component: 'button',
+            parts: { root: { base: { padding: '0' } } },
+            modifiers: { block: { root: { base: { width: '100%' } } } },
+        }));
+        expect(dts).toContain("mods: { 'block': boolean };");
+        expect(dts).toContain('button — mods.block wired.');
     });
 
     it('emits custom axes as a per-axis map, keys quoted for kebab-case names', () => {

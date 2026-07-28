@@ -47,6 +47,11 @@ const SHARED: Record<string, [unknown, unknown]> = {
     // The named-prop axes and the attributes they render. Zero's copy guards
     // the runtime `axes` bag; the kit's drives selector emission.
     VARIANT_AXES: [zero.VARIANT_AXES, kit.VARIANT_AXES],
+    // The modifier namespace. The compiler emits `[data-mod-<name>]` and the
+    // runtime sets exactly those attributes, so a drifting prefix would mean
+    // rules that can never match — silently, since a presence-only selector
+    // has nothing to compare against.
+    MOD_ATTR_PREFIX: [zero.MOD_ATTR_PREFIX, kit.MOD_ATTR_PREFIX],
 };
 
 /**

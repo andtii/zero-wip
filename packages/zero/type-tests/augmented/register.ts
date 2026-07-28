@@ -1,8 +1,9 @@
 /**
  * A hand-written stand-in for a generated `dist/register.d.ts` (RFC 0002 §5)
  * — the shape `zero-kit build` will emit in phase 3. Kept small but covering
- * every case class: fully wired (button), partially wired (toggle: no
- * variant), wired custom axes (tabs), and nothing wired (checkbox).
+ * every case class: fully wired (button, plus presence-only modifiers),
+ * partially wired (toggle: no variant), wired custom axes (tabs), and nothing
+ * wired (checkbox).
  *
  * A `.ts` module, not a `.d.ts`: this project keeps `skipLibCheck` on for
  * dependency declarations, and that flag skips declaration files — the one
@@ -18,6 +19,7 @@ declare module '@sigx/zero' {
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 variant: 'solid' | 'outline' | 'soft' | 'ghost';
                 axes: Record<string, never>;
+                mods: { 'block': boolean; 'icon-only': boolean };
             };
             /** toggle — colour and size wired, variant not. */
             toggle: {
@@ -25,6 +27,7 @@ declare module '@sigx/zero' {
                 size: 'sm' | 'md';
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** tabs — a custom density axis. */
             tabs: {
@@ -32,9 +35,13 @@ declare module '@sigx/zero' {
                 size: never;
                 variant: never;
                 axes: { density: 'compact' | 'comfortable' };
+                mods: Record<string, never>;
             };
             /** checkbox — accepts the props at runtime, nothing wired. */
-            checkbox: { color: never; size: never; variant: never; axes: Record<string, never> };
+            checkbox: {
+                color: never; size: never; variant: never;
+                axes: Record<string, never>; mods: Record<string, never>;
+            };
         };
     }
 }

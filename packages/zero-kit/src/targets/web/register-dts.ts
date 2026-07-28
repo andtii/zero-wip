@@ -40,7 +40,8 @@ function tokenUnions(compiled: CompiledDesignSystem): Array<[string, string]> {
 function componentEntry(scope: string, axes: CompiledComponentAxes, dsName: string): string {
     const named = (['color', 'size', 'variant'] as const).filter((a) => axes[a].length > 0);
     const custom = Object.keys(axes.axes);
-    const wired = [...named, ...custom.map((a) => `axes.${a}`)];
+    const mods = [...axes.mods].sort();
+    const wired = [...named, ...custom.map((a) => `axes.${a}`), ...mods.map((m) => `mods.${m}`)];
     const summary = wired.length > 0
         ? `${scope} — ${wired.join(', ')} wired.`
         : `${scope} — no axis wired by ${dsName}; every axis errors under this register module.`;
@@ -59,6 +60,12 @@ function componentEntry(scope: string, axes: CompiledComponentAxes, dsName: stri
     const axesLine = custom.length > 0
         ? `                axes: { ${custom.map((a) => `'${a}': ${union(axes.axes[a]!)}`).join('; ')} };`
         : '                axes: Record<string, never>;';
+    // Modifiers are presence-only, so the value type is `boolean` and there is
+    // no vocabulary to union — the NAMES are the vocabulary. `Record<string,
+    // never>` for the empty case, same `{}`-is-the-top-type trap as `axes`.
+    const modsLine = mods.length > 0
+        ? `                mods: { ${mods.map((m) => `'${m}': boolean`).join('; ')} };`
+        : '                mods: Record<string, never>;';
 
     return [
         `            /** ${summary} */`,
@@ -69,6 +76,7 @@ function componentEntry(scope: string, axes: CompiledComponentAxes, dsName: stri
         axisLine('size'),
         axisLine('variant'),
         axesLine,
+        modsLine,
         '            };',
     ].join('\n');
 }

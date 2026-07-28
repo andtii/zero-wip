@@ -5,7 +5,7 @@
 import type { Define } from 'sigx';
 import type { ColorValue, SizeScale } from './tokens.js';
 import { TOKEN_KEY_PATTERN as AXIS_NAME_PATTERN } from './tokens.js';
-import type { AxesFor, ColorValueFor, SizeScaleFor, VariantValueFor } from './vocabulary.js';
+import type { AxesFor, ColorValueFor, ModsFor, SizeScaleFor, VariantValueFor } from './vocabulary.js';
 import type { Orientation } from './data-attrs.js';
 import { FLAG_VOCABULARY } from './data-attrs.js';
 
@@ -55,11 +55,33 @@ export type WithVariant<S extends string = string> = Define.Prop<'variant', Vari
 export type WithAxes<S extends string = string> = Define.Prop<'axes', AxesFor<S>, false>;
 
 /**
- * All four variant axes for one component scope — the usual composition, and
+ * Presence-only design-system modifiers, rendered as `data-mod-<name>`.
+ *
+ * An axis answers "which one" and always carries a value; a modifier answers
+ * "is it on" and carries none — daisyUI's `btn-block`, Radix's `highContrast`,
+ * HeroUI's `isIconOnly`. Encoding those as one-member axes
+ * (`axes={{ block: 'block' }}`) works but restates the name as its own value.
+ *
+ * ```tsx
+ * <Button.Root color="primary" mods={{ block: true }}>Save</Button.Root>
+ * ```
+ *
+ * The `mod-` prefix is not decoration. Zero's own flag vocabulary
+ * (`data-disabled`, `data-pressed`, …) is presence-only too and it is
+ * VERSIONED: an unprefixed design-system modifier named `busy` would start
+ * matching a `data-busy` flag zero adds later, silently and with exactly the
+ * right shape. Valued axes cannot fail that way — a collision there simply
+ * never matches, and `variantAttrs` throws. Different hazard, different
+ * treatment: prefix modifiers, don't prefix axes.
+ */
+export type WithMods<S extends string = string> = Define.Prop<'mods', ModsFor<S>, false>;
+
+/**
+ * Every variant surface for one component scope — the usual composition, and
  * it cannot mix scopes by accident.
  */
 export type WithVariantAxes<S extends string> =
-    WithColor<S> & WithSize<S> & WithVariant<S> & WithAxes<S>;
+    WithColor<S> & WithSize<S> & WithVariant<S> & WithAxes<S> & WithMods<S>;
 
 /** Layout direction — rendered as `data-orientation`. */
 export type WithOrientation = Define.Prop<'orientation', Orientation, false>;
@@ -144,6 +166,14 @@ export const VARIANT_AXES: Record<string, string> = {
 };
 
 /**
+ * The namespace design-system modifiers render into. Prefixed so it can never
+ * collide with `FLAG_VOCABULARY`, which zero owns and extends between versions
+ * — see `WithMods`. The kit keeps an identical copy; `contract-parity.test.ts`
+ * holds the two honest.
+ */
+export const MOD_ATTR_PREFIX = 'data-mod-';
+
+/**
  * Build the shared variant pass-through attributes from contract props.
  * Returns only the attributes whose props are set.
  *
@@ -159,6 +189,7 @@ export function variantAttrs(props: {
     size?: SizeScale;
     variant?: string;
     axes?: Record<string, string | undefined>;
+    mods?: Record<string, boolean | undefined>;
 }): Record<string, string | undefined> {
     const attrs: Record<string, string | undefined> = {
         'data-color': props.color,
@@ -191,6 +222,22 @@ export function variantAttrs(props: {
             );
         }
         attrs[`data-${axis}`] = value;
+    }
+    // Presence-only: `false` and `undefined` both mean "absent", and the
+    // attribute carries the empty string when on — the same shape the anatomy
+    // contract's own flags use (`data-disabled=""`, never `="false"`).
+    //
+    // No reserved-name guard is needed here, unlike `axes`: the `data-mod-`
+    // prefix puts every modifier outside the contract's namespace by
+    // construction, so there is nothing to shadow.
+    for (const [name, on] of Object.entries(props.mods ?? {})) {
+        if (!on) continue;
+        if (!AXIS_NAME_PATTERN.test(name)) {
+            throw new Error(
+                `[zero] mods: "${name}" is not a kebab-case identifier — it becomes the attribute name ${MOD_ATTR_PREFIX}${name}`,
+            );
+        }
+        attrs[`${MOD_ATTR_PREFIX}${name}`] = '';
     }
     return attrs;
 }

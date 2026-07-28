@@ -34,6 +34,13 @@
                 "$ref": "#/$defs/tokenKey"
             }
         },
+        "modifiers": {
+            "description": "Presence-only modifiers this design system offers — daisyUI's block/wide, Radix's high-contrast, HeroUI's icon-only. Rendered as data-mod-<name>, set from zero's `mods` prop. An axis answers \"which one\" and always carries a value; a modifier answers \"is it on\" and carries none. Once declared, a recipe wiring a modifier outside the list is an error. The mod- prefix keeps these disjoint from zero's own presence-only flag vocabulary, which is versioned.",
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/tokenKey"
+            }
+        },
         "axes": {
             "description": "Additional variant axes: axis name → its value vocabulary. Axis names must not re-declare an axis with a named prop (color, size, variant) and must not take a name the anatomy contract reserves — the validator rejects exactly what the zero runtime refuses to render. Once declared, wiring an undeclared axis or an undeclared value is an error.",
             "type": "object",

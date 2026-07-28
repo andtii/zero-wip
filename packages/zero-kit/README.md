@@ -61,22 +61,50 @@ export const designSystem = defineDesignSystem({
 Only the base surfaces (`base-100/200/300/base-content`) are fixed — they
 anchor `-soft` derivation, `light-dark()` emission and theme swatches.
 Declared roles are `@property`-registered in the compiled CSS and surfaced,
-with `sizes`, `variants`, `axes`, `system`, `custom` and `breakpoints`, in the
-DS's `dist/manifest.json` (which also lists every custom property the design
-system emits, and the axis values each recipe wires, per component).
+with `sizes`, `variants`, `modifiers`, `axes`, `system`, `custom` and
+`breakpoints`, in the DS's `dist/manifest.json` (which also lists every custom
+property the design system emits, and the axis values each recipe wires, per
+component).
 `writeArtifacts` additionally emits `dist/register.d.ts` — a **generated,
 never authored** augmentation of `@sigx/zero`'s `ZeroVocabulary`, so an app
 importing `@sigx/<ds>/register` gets the design system's themes, tokens and
 per-component axis values as closed types.
 
 Every variant axis works this way. `roles` names what `color` accepts,
-`sizes` what `size` accepts, `variants` what `variant` accepts, and `axes`
-declares any further axes. The rule is one principle: **an explicit
-declaration closes its set** — recipe values outside a declared vocabulary
-are errors, while the default recommended ramps stay advisory warnings.
-(`variants`/`axes` have no recommended default, so omitting them leaves those
-axes unchecked.) `sizes` is the `data-size` axis — not `system.size`, which
-is the `--size-*` control-sizing unit.
+`sizes` what `size` accepts, `variants` what `variant` accepts, `modifiers`
+what `mods` accepts, and `axes` declares any further axes. The rule is one
+principle: **an explicit declaration closes its set** — recipe values outside a
+declared vocabulary are errors, while the default recommended ramps stay
+advisory warnings. (`variants`/`modifiers`/`axes` have no recommended default,
+so omitting them leaves those axes unchecked.) `sizes` is the `data-size` axis
+— not `system.size`, which is the `--size-*` control-sizing unit.
+
+Not every modifier is an axis, either. An axis answers *which one* and always
+carries a value; some design-system modifiers answer *is it on* and carry none
+— daisyUI's `block` and `wide`, Radix's `high-contrast`, HeroUI's `icon-only`.
+Declare those in `modifiers`, wire them in a recipe's `modifiers` block, and
+consumers set them through zero's `mods` prop:
+
+```ts
+// tokens.ts
+modifiers: ['block', 'icon-only'],
+
+// recipes.ts
+modifiers: { block: { root: { base: { width: '100%' } } } },
+```
+
+```tsx
+<Button.Root mods={{ block: true }}>Save</Button.Root>   // → data-mod-block
+```
+
+They render into their own `data-mod-*` namespace rather than as bare
+`data-<name>` flags. Zero owns the unprefixed presence-only vocabulary
+(`data-disabled`, `data-pressed`, …) and **extends it between versions**, so an
+unprefixed modifier named `busy` would silently start matching a `data-busy`
+flag a later zero adds — with exactly the right shape and no error. A valued
+axis cannot fail that way: a collision there simply never matches, and the
+runtime throws. Different hazard, different treatment. A modifier has no
+`defaultVariants` analogue, because absence already is its default.
 
 Nor is the SET of axes closed. `color` / `size` / `variant` have named props
 because almost every design language has them; key `variants` on any other

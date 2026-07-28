@@ -51,7 +51,7 @@ halo and slider-thumb halo — expressible as pure CSS.
 
 ## Typed vocabulary (opt-in)
 
-The variant-axis props (`color`, `size`, `variant`, `axes`) are open unions
+The variant-axis props (`color`, `size`, `variant`, `axes`, `mods`) are open unions
 by default — any design-system-declared value is valid, recommended names
 autocomplete. They are generic on the component scope through an empty
 `ZeroVocabulary` interface: a design system's **generated** `/register`
