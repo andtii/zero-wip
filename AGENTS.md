@@ -161,6 +161,14 @@ typecheck` excludes `examples/`, so the playground has its own:
   generated from a style brief through the design-system agent skill. The
   end-to-end proof of the thesis, and the regression test for the skill
   itself. Private.
+- `packages/zero-heroui` → `@sigx/zero-heroui` — HeroUI-flavoured skin, and
+  the acceptance test for **non-orthogonal axis surfaces**: no colour axis at
+  all (`roles: {}`), colour fused into a seven-member `variant`
+  (`danger-soft` is one member), a declared three-step size ramp, and
+  HeroUI's `isIconOnly`/`isPending` as `data-mod-*` modifiers. Where
+  zero-material proves vocabularies can be *extended*, this proves they can be
+  a different *shape*. Component coverage is deliberately partial (eight
+  recipes) — it exercises the axis surface, not a product. Private.
 - `examples/playground` — private kitchen-sink app; switches between
   basic / daisyui / material / brutalist **at runtime** from its toolbar. A
   design system compiles to one stylesheet, so switching is a `<link>` swap

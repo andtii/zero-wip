@@ -172,6 +172,18 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  packages/zero-heroui:
+    devDependencies:
+      '@sigx/zero':
+        specifier: workspace:^
+        version: link:../zero
+      '@sigx/zero-kit':
+        specifier: workspace:^
+        version: link:../zero-kit
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   packages/zero-kit:
     dependencies:
       '@sigx/cli':

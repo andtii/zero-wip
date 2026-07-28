@@ -1,0 +1,71 @@
+@layer zero.recipes {
+    [data-scope="switch"][data-part="root"] {
+        --switch-width: calc(var(--size-selector) * 11);
+        --switch-height: calc(var(--size-selector) * 6);
+        --switch-pad: calc(var(--size-selector) * 0.5);
+    }
+
+    [data-scope="switch"][data-part="root"] {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-sm);
+        cursor: pointer;
+    }
+
+    [data-scope="switch"][data-part="root"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="switch"][data-part="control"] {
+        position: relative;
+        flex: none;
+        width: var(--switch-width);
+        height: var(--switch-height);
+        border-radius: 9999px;
+        background: var(--color-base-300);
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="switch"][data-part="control"][data-state="checked"] {
+        background: var(--hero-primary);
+    }
+
+    [data-scope="switch"][data-part="control"][data-focus-visible] {
+        outline: 2px solid var(--hero-focus);
+        outline-offset: 2px;
+    }
+
+    [data-scope="switch"][data-part="thumb"] {
+        position: absolute;
+        top: var(--switch-pad);
+        inset-inline-start: var(--switch-pad);
+        width: calc(var(--switch-height) - var(--switch-pad) * 2);
+        height: calc(var(--switch-height) - var(--switch-pad) * 2);
+        border-radius: 9999px;
+        background: var(--color-base-100);
+        box-shadow: var(--shadow-sm);
+        transition: translate var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="switch"][data-part="thumb"][data-state="checked"] {
+        translate: calc(var(--switch-width) - var(--switch-height)) 0;
+    }
+
+    [data-scope="switch"][data-part="label"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        color: var(--color-base-content);
+    }
+
+    [data-scope="switch"][data-part="root"][data-size="sm"] {
+        --switch-width: calc(var(--size-selector) * 9);
+        --switch-height: calc(var(--size-selector) * 5);
+    }
+
+    [data-scope="switch"][data-part="root"][data-size="lg"] {
+        --switch-width: calc(var(--size-selector) * 13);
+        --switch-height: calc(var(--size-selector) * 7);
+    }
+}

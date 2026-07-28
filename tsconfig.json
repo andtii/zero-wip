@@ -17,7 +17,8 @@
       "@sigx/zero-basic": ["./packages/zero-basic/src/index.ts"],
       "@sigx/zero-daisyui": ["./packages/zero-daisyui/src/index.ts"],
       "@sigx/zero-material": ["./packages/zero-material/src/index.ts"],
-      "@sigx/zero-brutalist": ["./packages/zero-brutalist/src/index.ts"]
+      "@sigx/zero-brutalist": ["./packages/zero-brutalist/src/index.ts"],
+      "@sigx/zero-heroui": ["./packages/zero-heroui/src/index.ts"]
     }
   },
   "include": [
