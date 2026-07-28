@@ -1,5 +1,9 @@
 @layer zero.recipes {
     [data-scope="tabs"][data-part="root"] {
+        --tabs-accent: var(--color-primary);
+    }
+
+    [data-scope="tabs"][data-part="root"] {
         display: flex;
         flex-direction: column;
         gap: var(--space-md);
@@ -30,8 +34,8 @@
     }
 
     [data-scope="tabs"][data-part="tab"][data-state="active"] {
-        color: var(--color-primary);
-        border-bottom-color: var(--color-primary);
+        color: var(--tabs-accent);
+        border-bottom-color: var(--tabs-accent);
     }
 
     [data-scope="tabs"][data-part="tab"][data-disabled] {
@@ -46,5 +50,37 @@
 
     [data-scope="tabs"][data-part="panel"] {
         font-size: var(--text-md);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="primary"] {
+        --tabs-accent: var(--color-primary);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="secondary"] {
+        --tabs-accent: var(--color-secondary);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="accent"] {
+        --tabs-accent: var(--color-accent);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="neutral"] {
+        --tabs-accent: var(--color-neutral);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="info"] {
+        --tabs-accent: var(--color-info);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="success"] {
+        --tabs-accent: var(--color-success);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="warning"] {
+        --tabs-accent: var(--color-warning);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="error"] {
+        --tabs-accent: var(--color-error);
     }
 }

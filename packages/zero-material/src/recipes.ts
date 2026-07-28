@@ -417,6 +417,9 @@ export const button: RecipeInput = {
 // ── Tabs ──────────────────────────────────────────────────────────────────
 export const tabs: RecipeInput = {
     component: 'tabs',
+    // Accent default in `tokens:` — the un-attributed render IS the primary
+    // variant; `variants.color` only rebinds the custom property.
+    tokens: { '--tabs-accent': 'var(--color-primary)' },
     parts: {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' } },
         list: {
@@ -428,7 +431,7 @@ export const tabs: RecipeInput = {
         },
         // NOTE: `active` on a tab is the SELECTED anatomy state, not the
         // `:active` pseudo-class — press styling must stay in `selectors`.
-        tab: withPresence(pressable('tab'), {
+        tab: withPresence(pressable('tab', 'var(--tabs-accent)'), {
             base: {
                 appearance: 'none',
                 background: 'none',
@@ -442,7 +445,7 @@ export const tabs: RecipeInput = {
                 transition: motion('color, border-color'),
             },
             states: {
-                active: { color: 'var(--color-primary)', borderBottomColor: 'var(--color-primary)' },
+                active: { color: 'var(--tabs-accent)', borderBottomColor: 'var(--tabs-accent)' },
                 inactive: {},
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
@@ -454,6 +457,11 @@ export const tabs: RecipeInput = {
         },
     },
     keyframes: rippleKeyframes('tab'),
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--tabs-accent': `var(--color-${c})`,
+        } } }])),
+    },
 };
 
 // ── Disclosure ────────────────────────────────────────────────────────────
@@ -749,10 +757,16 @@ export const menu: RecipeInput = {
 
 export const select: RecipeInput = {
     component: 'select',
+    // Accent defaults in `tokens:` — the un-attributed render IS the primary
+    // variant; `variants.color` only rebinds the custom properties.
+    tokens: {
+        '--select-accent': 'var(--color-primary)',
+        '--select-soft': 'var(--color-primary-soft)',
+    },
     parts: {
         root: { base: { display: 'inline-flex', position: 'relative' } },
         // The ripple clip inherits the field's asymmetric radius.
-        trigger: withPresence(pressable('select'), {
+        trigger: withPresence(pressable('select', 'var(--select-accent)'), {
             base: {
                 appearance: 'none',
                 display: 'inline-flex',
@@ -771,9 +785,10 @@ export const select: RecipeInput = {
                 transition: motion('border-color'),
             },
             states: {
-                open: { borderBottomColor: 'var(--color-primary)' },
+                open: { borderBottomColor: 'var(--select-accent)' },
                 closed: {},
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                // Semantic role state, deliberately NOT the accent.
                 invalid: { borderBottomColor: 'var(--color-error)' },
                 ...focusRing,
             },
@@ -781,7 +796,7 @@ export const select: RecipeInput = {
         value: { base: { flex: '1', textAlign: 'start' } },
         indicator: { base: { opacity: '0.7', transition: motion('transform') }, states: { open: { transform: 'rotate(180deg)' }, closed: {} } },
         popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } }),
-        item: withPresence(pressable('select'), {
+        item: withPresence(pressable('select', 'var(--select-accent)'), {
             base: {
                 display: 'flex',
                 alignItems: 'center',
@@ -792,16 +807,34 @@ export const select: RecipeInput = {
                 cursor: 'pointer',
             },
             states: {
-                highlighted: { background: 'var(--color-primary-soft)' },
+                highlighted: { background: 'var(--select-soft)' },
+                // MD3's secondary-container fill for a selected row — the
+                // pairing tree-view and the segmented button use. Deliberately
+                // NOT the accent.
                 selected: { background: 'var(--color-secondary-soft)' },
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 ...focusRing,
             },
         }),
-        'item-indicator': { base: { color: 'var(--color-primary)' } },
+        'item-indicator': { base: { color: 'var(--select-accent)' } },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0', pointerEvents: 'none' } },
     },
     keyframes: rippleKeyframes('select'),
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--select-accent': `var(--color-${c})`,
+            '--select-soft': `var(--color-${c}-soft)`,
+        } } }])),
+        // The button's ramp rhythm anchored on the field's resting values
+        // (md = the base's padding/fontSize).
+        size: {
+            xs: { trigger: { base: { padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } } },
+            sm: { trigger: { base: { padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-sm)' } } },
+            md: { trigger: { base: { padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--text-md)' } } },
+            lg: { trigger: { base: { padding: 'var(--space-md) var(--space-lg)', fontSize: 'var(--text-lg)' } } },
+            xl: { trigger: { base: { padding: 'var(--space-lg) var(--space-xl)', fontSize: 'var(--text-xl)' } } },
+        },
+    },
 };
 
 // ── Selection controls ────────────────────────────────────────────────────
@@ -810,6 +843,10 @@ export const switchRecipe: RecipeInput = {
     tokens: {
         '--switch-width': 'calc(var(--size-selector) * 13)',
         '--switch-height': 'calc(var(--size-selector) * 8)',
+        // Accent defaults — the un-attributed render IS the primary variant;
+        // `variants.color` only rebinds these (the toast shape).
+        '--switch-accent': 'var(--color-primary)',
+        '--switch-on-accent': 'var(--color-primary-content)',
     },
     parts: {
         root: {
@@ -839,14 +876,15 @@ export const switchRecipe: RecipeInput = {
                 transition: motion('background, border-color'),
             },
             states: {
-                checked: { background: 'var(--color-primary)', borderColor: 'var(--color-primary)' },
+                checked: { background: 'var(--switch-accent)', borderColor: 'var(--switch-accent)' },
                 unchecked: {},
                 ...focusRing,
             },
             selectors: {
                 '&:hover:not([data-disabled]) [data-part="thumb"]::before': { opacity: '0.08' },
                 '&[data-pressed]:not([data-disabled]) [data-part="thumb"]::before': { opacity: '0.12' },
-                // MD3 ink: on-surface while unselected, primary once checked.
+                // MD3 ink: on-surface while unselected (deliberately NOT the
+                // accent), the accent once checked (the thumb's own ::before).
                 '&[data-state="unchecked"] [data-part="thumb"]::before': { background: 'var(--color-base-content)' },
             },
             at: {
@@ -869,7 +907,7 @@ export const switchRecipe: RecipeInput = {
             },
             states: {
                 checked: {
-                    background: 'var(--color-primary-content)',
+                    background: 'var(--switch-on-accent)',
                     width: 'calc(var(--size-selector) * 6)',
                     height: 'calc(var(--size-selector) * 6)',
                     transform: 'translate(calc(var(--switch-width) - 100% - var(--size-selector) * 2), -50%)',
@@ -878,7 +916,9 @@ export const switchRecipe: RecipeInput = {
             },
             selectors: {
                 // Fixed halo (the thumb itself grows 4→6 units) that travels
-                // with the thumb by construction.
+                // with the thumb by construction. Accent ink; the control's
+                // descendant selector overrides it to on-surface while
+                // unchecked.
                 '&::before': {
                     content: '""',
                     position: 'absolute',
@@ -887,7 +927,7 @@ export const switchRecipe: RecipeInput = {
                     width: 'calc(var(--size-selector) * 10)',
                     height: 'calc(var(--size-selector) * 10)',
                     borderRadius: '50%',
-                    background: 'var(--color-primary)',
+                    background: 'var(--switch-accent)',
                     transform: 'translate(-50%, -50%)',
                     opacity: '0',
                     pointerEvents: 'none',
@@ -901,30 +941,54 @@ export const switchRecipe: RecipeInput = {
         label: { base: { fontSize: 'var(--text-md)' }, states: { checked: {}, unchecked: {} } },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
     },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--switch-accent': `var(--color-${c})`,
+            '--switch-on-accent': `var(--color-${c}-content)`,
+        } } }])),
+    },
     skipStates: { root: ['focus-visible'] },
 };
 
-const tickBox: PartStyles = {
+/**
+ * The tick container shared by checkbox and radio. Parameterised because the
+ * two components carry their OWN accent and size tokens (`--checkbox-*` vs
+ * `--radio-*`) — a hardcoded primary here would pin both to one colour and
+ * defeat their `variants.color`. The focus ring stays `--color-secondary`
+ * (via `focusRing`) on purpose: Material's focus indicator does not follow
+ * the accent.
+ */
+const tickBox = (accent: string, size: string): PartStyles => ({
     base: {
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: 'calc(var(--size-selector) * 6)',
-        height: 'calc(var(--size-selector) * 6)',
+        width: size,
+        height: size,
         border: '2px solid var(--color-outline)',
         background: 'transparent',
         transition: motion('background, border-color'),
     },
     states: {
-        checked: { background: 'var(--color-primary)', borderColor: 'var(--color-primary)' },
+        checked: { background: accent, borderColor: accent },
         unchecked: {},
-        indeterminate: { background: 'var(--color-primary)', borderColor: 'var(--color-primary)' },
+        indeterminate: { background: accent, borderColor: accent },
         ...focusRing,
     },
-};
+});
+
+const checkboxTick = tickBox('var(--checkbox-accent)', 'var(--checkbox-size)');
 
 export const checkbox: RecipeInput = {
     component: 'checkbox',
+    // Accent defaults live in `tokens:` — the un-attributed render IS the
+    // primary variant, and `variants.color` only rebinds custom properties
+    // (the toast shape).
+    tokens: {
+        '--checkbox-size': 'calc(var(--size-selector) * 6)',
+        '--checkbox-accent': 'var(--color-primary)',
+        '--checkbox-on-accent': 'var(--color-primary-content)',
+    },
     parts: {
         root: {
             base: {
@@ -937,23 +1001,45 @@ export const checkbox: RecipeInput = {
             states: { checked: {}, unchecked: {}, indeterminate: {}, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
         },
         // MD3 selection-control halo: unbounded, centered, coords ignored.
-        control: withPresence(pressableCentered('checkbox', 'calc(var(--size-selector) * 15)'), {
-            ...tickBox,
-            base: { ...tickBox.base, borderRadius: 'var(--radius-selector)' },
+        // 2.5 × the tick keeps the 15-unit resting diameter and scales with
+        // the size variant.
+        control: withPresence(pressableCentered('checkbox', 'calc(var(--checkbox-size) * 2.5)', 'var(--checkbox-accent)'), {
+            ...checkboxTick,
+            base: { ...checkboxTick.base, borderRadius: 'var(--radius-selector)' },
         }),
         indicator: {
-            base: { color: 'var(--color-primary-content)', fontSize: 'var(--text-xs)' },
+            base: { color: 'var(--checkbox-on-accent)', fontSize: 'var(--text-xs)' },
             states: { checked: {}, unchecked: {}, indeterminate: {} },
         },
         label: { base: { fontSize: 'var(--text-md)' }, states: { checked: {}, unchecked: {}, indeterminate: {} } },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
     },
     keyframes: rippleKeyframes('checkbox'),
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--checkbox-accent': `var(--color-${c})`,
+            '--checkbox-on-accent': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 4)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 5)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
+            md: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 6)' } }, label: { base: { fontSize: 'var(--text-md)' } } },
+            lg: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 7)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
+            xl: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 8)' } }, label: { base: { fontSize: 'var(--text-xl)' } } },
+        },
+    },
     skipStates: { root: ['focus-visible'] },
 };
 
+const radioTick = tickBox('var(--radio-accent)', 'var(--radio-size)');
+
 export const radioGroup: RecipeInput = {
     component: 'radio-group',
+    tokens: {
+        '--radio-size': 'calc(var(--size-selector) * 6)',
+        '--radio-accent': 'var(--color-primary)',
+        '--radio-on-accent': 'var(--color-primary-content)',
+    },
     parts: {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' } },
         label: { base: { ...label, fontSize: 'var(--text-md)' } },
@@ -967,12 +1053,14 @@ export const radioGroup: RecipeInput = {
             },
             states: { disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
         },
-        // Not `tickBox`: a radio has no indeterminate state, and reusing the
-        // checkbox's styles smuggled one in — which the compiler rejected.
-        'item-control': withPresence(pressableCentered('radio', 'calc(var(--size-selector) * 15)'), {
-            base: { ...tickBox.base, borderRadius: '624rem' },
+        // Not the full `tickBox`: a radio has no indeterminate state, and
+        // reusing the checkbox's states smuggled one in — which the compiler
+        // rejected. The halo diameter is 2.5 × the tick (15 units resting),
+        // scaling with the size variant.
+        'item-control': withPresence(pressableCentered('radio', 'calc(var(--radio-size) * 2.5)', 'var(--radio-accent)'), {
+            base: { ...radioTick.base, borderRadius: '624rem' },
             states: {
-                checked: { borderColor: 'var(--color-primary)' },
+                checked: { borderColor: 'var(--radio-accent)' },
                 unchecked: {},
                 ...focusRing,
             },
@@ -981,10 +1069,10 @@ export const radioGroup: RecipeInput = {
             // The dot is always in the DOM, so it has to be hidden when
             // unchecked rather than left to the absence of a rule.
             base: {
-                width: 'calc(var(--size-selector) * 3)',
-                height: 'calc(var(--size-selector) * 3)',
+                width: 'calc(var(--radio-size) / 2)',
+                height: 'calc(var(--radio-size) / 2)',
                 borderRadius: '624rem',
-                background: 'var(--color-primary-content)',
+                background: 'var(--radio-on-accent)',
                 transform: 'scale(0)',
                 transition: motion('transform'),
             },
@@ -997,6 +1085,19 @@ export const radioGroup: RecipeInput = {
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
     },
     keyframes: rippleKeyframes('radio'),
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--radio-accent': `var(--color-${c})`,
+            '--radio-on-accent': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 4)' } }, 'item-label': { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 5)' } }, 'item-label': { base: { fontSize: 'var(--text-sm)' } } },
+            md: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 6)' } }, 'item-label': { base: { fontSize: 'var(--text-md)' } } },
+            lg: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 7)' } }, 'item-label': { base: { fontSize: 'var(--text-lg)' } } },
+            xl: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 8)' } }, 'item-label': { base: { fontSize: 'var(--text-xl)' } } },
+        },
+    },
     // The tick itself carries the selected state; the row, dot and text have
     // no appearance of their own that depends on it.
     skipStates: {
@@ -1023,6 +1124,9 @@ export const field: RecipeInput = {
 
 export const slider: RecipeInput = {
     component: 'slider',
+    // Accent default in `tokens:` — the un-attributed render IS the primary
+    // variant; `variants.color` only rebinds the custom property.
+    tokens: { '--slider-accent': 'var(--color-primary)' },
     parts: {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' }, states: { disabled: { opacity: 'var(--disabled-opacity)' } } },
         label: { base: { ...label } },
@@ -1048,17 +1152,19 @@ export const slider: RecipeInput = {
                 background: 'transparent',
                 cursor: 'pointer',
                 outline: 'none',
-                accentColor: 'var(--color-primary)',
+                accentColor: 'var(--slider-accent)',
                 '--slider-halo': 'transparent',
+                // The remaining track keeps MD3's secondary-container tone —
+                // deliberately NOT the accent (matches the progress track).
                 '--slider-track':
-                    'linear-gradient(to right, var(--color-primary) var(--slider-percent, 50%), var(--color-secondary-soft) 0)',
+                    'linear-gradient(to right, var(--slider-accent) var(--slider-percent, 50%), var(--color-secondary-soft) 0)',
             },
             states: {
                 'focus-visible': {
-                    '--slider-halo': 'color-mix(in oklab, var(--color-primary) 10%, transparent)',
+                    '--slider-halo': 'color-mix(in oklab, var(--slider-accent) 10%, transparent)',
                 },
                 pressed: {
-                    '--slider-halo': 'color-mix(in oklab, var(--color-primary) 12%, transparent)',
+                    '--slider-halo': 'color-mix(in oklab, var(--slider-accent) 12%, transparent)',
                 },
                 disabled: { cursor: 'not-allowed' },
             },
@@ -1075,7 +1181,7 @@ export const slider: RecipeInput = {
                     marginTop: 'calc(var(--size-selector) * -1.5)',
                     borderRadius: '624rem',
                     border: 'none',
-                    background: 'var(--color-primary)',
+                    background: 'var(--slider-accent)',
                     boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)',
                     transition: 'box-shadow var(--duration-fast) var(--ease-standard)',
                 },
@@ -1097,7 +1203,7 @@ export const slider: RecipeInput = {
                     height: 'calc(var(--size-selector) * 5)',
                     borderRadius: '624rem',
                     border: 'none',
-                    background: 'var(--color-primary)',
+                    background: 'var(--slider-accent)',
                     boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo)',
                     transition: 'box-shadow var(--duration-fast) var(--ease-standard)',
                 },
@@ -1117,11 +1223,32 @@ export const slider: RecipeInput = {
         },
         'value-text': { base: { fontSize: 'var(--text-xs)', color: 'var(--color-outline)' } },
     },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--slider-accent': `var(--color-${c})`,
+        } } }])),
+        // The control's box height is the size lever (track and thumb keep
+        // their MD3 metrics); md is the resting height, so it only steps the
+        // label.
+        size: {
+            xs: { control: { base: { height: 'calc(var(--size-selector) * 6)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { control: { base: { height: 'calc(var(--size-selector) * 8)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
+            md: { label: { base: { fontSize: 'var(--text-sm)' } } },
+            lg: { control: { base: { height: 'calc(var(--size-selector) * 12)' } }, label: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { control: { base: { height: 'calc(var(--size-selector) * 14)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
     skipStates: { root: ['invalid', 'focus-visible'] },
 };
 
 export const progress: RecipeInput = {
     component: 'progress',
+    // Accent default in `tokens:` — the un-attributed render IS the primary
+    // variant; `variants.color` only rebinds the custom properties.
+    tokens: {
+        '--progress-accent': 'var(--color-primary)',
+        '--progress-track-size': 'calc(var(--size-field) * 1.5)',
+    },
     keyframes: {
         'material-indeterminate': 'from { transform: translateX(-100%); } to { transform: translateX(300%); }',
     },
@@ -1131,8 +1258,10 @@ export const progress: RecipeInput = {
         track: {
             base: {
                 position: 'relative',
-                height: 'calc(var(--size-field) * 1.5)',
+                height: 'var(--progress-track-size)',
                 borderRadius: '624rem',
+                // MD3's secondary-container track tone — deliberately NOT the
+                // accent (matches the slider's remaining-track colour).
                 background: 'var(--color-secondary-soft)',
                 overflow: 'hidden',
             },
@@ -1141,7 +1270,7 @@ export const progress: RecipeInput = {
             base: {
                 height: '100%',
                 borderRadius: '624rem',
-                background: 'var(--color-primary)',
+                background: 'var(--progress-accent)',
                 transition: motion('width'),
             },
             states: {
@@ -1153,6 +1282,18 @@ export const progress: RecipeInput = {
             at: { 'reduced-motion': { states: { indeterminate: { animation: 'none', width: '100%' } } } },
         },
         'value-text': { base: { fontSize: 'var(--text-xs)', color: 'var(--color-outline)' } },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--progress-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--progress-track-size': 'calc(var(--size-field) * 0.75)' } } },
+            sm: { root: { base: { '--progress-track-size': 'var(--size-field)' } } },
+            md: { root: { base: { '--progress-track-size': 'calc(var(--size-field) * 1.5)' } } },
+            lg: { root: { base: { '--progress-track-size': 'calc(var(--size-field) * 2)' } } },
+            xl: { root: { base: { '--progress-track-size': 'calc(var(--size-field) * 3)' } } },
+        },
     },
     // The track and range carry the state; the wrapper has no appearance of
     // its own that changes with it.
@@ -1327,6 +1468,12 @@ export const toast: RecipeInput = {
 
 export const combobox: RecipeInput = {
     component: 'combobox',
+    // Accent defaults in `tokens:` — the un-attributed render IS the primary
+    // variant; `variants.color` only rebinds the custom properties.
+    tokens: {
+        '--combobox-accent': 'var(--color-primary)',
+        '--combobox-soft': 'var(--color-primary-soft)',
+    },
     parts: {
         root: { base: { display: 'inline-flex', position: 'relative' } },
         // Material's filled text field: rounded top, flat bottom, underline.
@@ -1342,8 +1489,9 @@ export const combobox: RecipeInput = {
                 transition: motion('border-color'),
             },
             states: {
-                open: { borderBottomColor: 'var(--color-primary)' },
+                open: { borderBottomColor: 'var(--combobox-accent)' },
                 closed: {},
+                // Semantic role state, deliberately NOT the accent.
                 invalid: { borderBottomColor: 'var(--color-error)' },
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 ...focusRing,
@@ -1374,7 +1522,7 @@ export const combobox: RecipeInput = {
                 '&::placeholder': { color: 'var(--color-outline)' },
             },
         },
-        trigger: withPresence(pressableCentered('combobox', '2.5rem'), {
+        trigger: withPresence(pressableCentered('combobox', '2.5rem', 'var(--combobox-accent)'), {
             base: {
                 appearance: 'none',
                 border: 'none',
@@ -1392,7 +1540,7 @@ export const combobox: RecipeInput = {
             },
         }),
         popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } }),
-        item: withPresence(pressable('combobox'), {
+        item: withPresence(pressable('combobox', 'var(--combobox-accent)'), {
             base: {
                 display: 'flex',
                 alignItems: 'center',
@@ -1403,12 +1551,14 @@ export const combobox: RecipeInput = {
                 cursor: 'pointer',
             },
             states: {
-                highlighted: { background: 'var(--color-primary-soft)' },
+                highlighted: { background: 'var(--combobox-soft)' },
+                // MD3's secondary-container fill for a selected row —
+                // deliberately NOT the accent.
                 selected: { background: 'var(--color-secondary-soft)' },
                 disabled: { opacity: 'var(--disabled-opacity)' },
             },
         }),
-        'item-indicator': { base: { color: 'var(--color-primary)' } },
+        'item-indicator': { base: { color: 'var(--combobox-accent)' } },
         empty: {
             base: {
                 padding: 'var(--space-md)',
@@ -1417,6 +1567,21 @@ export const combobox: RecipeInput = {
                 textAlign: 'center',
                 color: 'var(--color-outline)',
             },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--combobox-accent': `var(--color-${c})`,
+            '--combobox-soft': `var(--color-${c}-soft)`,
+        } } }])),
+        // The button's ramp rhythm anchored on the field's resting values
+        // (md = the base's padding/fontSize).
+        size: {
+            xs: { input: { base: { padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } } },
+            sm: { input: { base: { padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-sm)' } } },
+            md: { input: { base: { padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--text-md)' } } },
+            lg: { input: { base: { padding: 'var(--space-md) var(--space-lg)', fontSize: 'var(--text-lg)' } } },
+            xl: { input: { base: { padding: 'var(--space-lg) var(--space-xl)', fontSize: 'var(--text-xl)' } } },
         },
     },
     // The visible ring lives on `control`; input and trigger delegate.

@@ -1,5 +1,9 @@
 @layer zero.recipes {
     [data-scope="combobox"][data-part="root"] {
+        --combobox-accent: var(--color-primary);
+    }
+
+    [data-scope="combobox"][data-part="root"] {
         display: inline-flex;
         flex-direction: column;
     }
@@ -19,7 +23,7 @@
     }
 
     [data-scope="combobox"][data-part="control"][data-state="open"] {
-        border-color: var(--color-primary);
+        border-color: var(--combobox-accent);
     }
 
     [data-scope="combobox"][data-part="control"][data-invalid] {
@@ -112,7 +116,7 @@
     }
 
     [data-scope="combobox"][data-part="item"][data-selected] {
-        color: var(--color-primary);
+        color: var(--combobox-accent);
     }
 
     [data-scope="combobox"][data-part="item"][data-disabled] {
@@ -129,6 +133,63 @@
         font-size: var(--text-sm);
         text-align: center;
         opacity: 0.6;
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="primary"] {
+        --combobox-accent: var(--color-primary);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="secondary"] {
+        --combobox-accent: var(--color-secondary);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="accent"] {
+        --combobox-accent: var(--color-accent);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="neutral"] {
+        --combobox-accent: var(--color-neutral);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="info"] {
+        --combobox-accent: var(--color-info);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="success"] {
+        --combobox-accent: var(--color-success);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="warning"] {
+        --combobox-accent: var(--color-warning);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="error"] {
+        --combobox-accent: var(--color-error);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-size="xs"] [data-scope="combobox"][data-part="input"] {
+        padding: var(--space-2xs) var(--space-md);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-size="sm"] [data-scope="combobox"][data-part="input"] {
+        padding: var(--space-xs) var(--space-md);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-size="md"] [data-scope="combobox"][data-part="input"] {
+        padding: var(--space-sm) var(--space-lg);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-size="lg"] [data-scope="combobox"][data-part="input"] {
+        padding: var(--space-md) var(--space-xl);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-size="xl"] [data-scope="combobox"][data-part="input"] {
+        padding: var(--space-lg) var(--space-2xl);
+        font-size: var(--text-lg);
     }
 
     @media (prefers-reduced-motion: reduce) {

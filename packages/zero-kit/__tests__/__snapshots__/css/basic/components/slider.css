@@ -1,5 +1,9 @@
 @layer zero.recipes {
     [data-scope="slider"][data-part="root"] {
+        --slider-accent: var(--color-primary);
+    }
+
+    [data-scope="slider"][data-part="root"] {
         display: flex;
         flex-direction: column;
         gap: var(--space-sm);
@@ -17,7 +21,7 @@
 
     [data-scope="slider"][data-part="control"] {
         width: 100%;
-        accent-color: var(--color-primary);
+        accent-color: var(--slider-accent);
         cursor: pointer;
     }
 
@@ -26,7 +30,7 @@
     }
 
     [data-scope="slider"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-primary);
+        outline: 2px solid var(--slider-accent);
         outline-offset: 2px;
     }
 
@@ -37,5 +41,73 @@
     [data-scope="slider"][data-part="value-text"] {
         font-size: var(--text-xs);
         color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
+    }
+
+    [data-scope="slider"][data-part="root"][data-color="primary"] {
+        --slider-accent: var(--color-primary);
+    }
+
+    [data-scope="slider"][data-part="root"][data-color="secondary"] {
+        --slider-accent: var(--color-secondary);
+    }
+
+    [data-scope="slider"][data-part="root"][data-color="accent"] {
+        --slider-accent: var(--color-accent);
+    }
+
+    [data-scope="slider"][data-part="root"][data-color="neutral"] {
+        --slider-accent: var(--color-neutral);
+    }
+
+    [data-scope="slider"][data-part="root"][data-color="info"] {
+        --slider-accent: var(--color-info);
+    }
+
+    [data-scope="slider"][data-part="root"][data-color="success"] {
+        --slider-accent: var(--color-success);
+    }
+
+    [data-scope="slider"][data-part="root"][data-color="warning"] {
+        --slider-accent: var(--color-warning);
+    }
+
+    [data-scope="slider"][data-part="root"][data-color="error"] {
+        --slider-accent: var(--color-error);
+    }
+
+    [data-scope="slider"][data-part="root"][data-size="xs"] [data-scope="slider"][data-part="control"] {
+        height: calc(var(--size-selector) * 3);
+    }
+
+    [data-scope="slider"][data-part="root"][data-size="xs"] [data-scope="slider"][data-part="label"] {
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="slider"][data-part="root"][data-size="sm"] [data-scope="slider"][data-part="control"] {
+        height: calc(var(--size-selector) * 4);
+    }
+
+    [data-scope="slider"][data-part="root"][data-size="sm"] [data-scope="slider"][data-part="label"] {
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="slider"][data-part="root"][data-size="md"] [data-scope="slider"][data-part="label"] {
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="slider"][data-part="root"][data-size="lg"] [data-scope="slider"][data-part="control"] {
+        height: calc(var(--size-selector) * 7);
+    }
+
+    [data-scope="slider"][data-part="root"][data-size="lg"] [data-scope="slider"][data-part="label"] {
+        font-size: var(--text-md);
+    }
+
+    [data-scope="slider"][data-part="root"][data-size="xl"] [data-scope="slider"][data-part="control"] {
+        height: calc(var(--size-selector) * 8);
+    }
+
+    [data-scope="slider"][data-part="root"][data-size="xl"] [data-scope="slider"][data-part="label"] {
+        font-size: var(--text-lg);
     }
 }

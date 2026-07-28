@@ -1,5 +1,10 @@
 @layer zero.recipes {
     [data-scope="select"][data-part="root"] {
+        --select-accent: var(--color-primary);
+        --select-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="select"][data-part="root"] {
         display: inline-flex;
         flex-direction: column;
     }
@@ -31,7 +36,7 @@
     }
 
     [data-scope="select"][data-part="trigger"][data-state="open"] {
-        border-color: var(--color-primary);
+        border-color: var(--select-accent);
     }
 
     [data-scope="select"][data-part="trigger"][data-invalid] {
@@ -86,8 +91,8 @@
     }
 
     [data-scope="select"][data-part="item"][data-highlighted] {
-        background: var(--color-primary);
-        color: var(--color-primary-content);
+        background: var(--select-accent);
+        color: var(--select-on-accent);
     }
 
     [data-scope="select"][data-part="item"][data-selected] {
@@ -101,6 +106,71 @@
 
     [data-scope="select"][data-part="item-indicator"] {
         font-size: var(--text-xs);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="primary"] {
+        --select-accent: var(--color-primary);
+        --select-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="secondary"] {
+        --select-accent: var(--color-secondary);
+        --select-on-accent: var(--color-secondary-content);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="accent"] {
+        --select-accent: var(--color-accent);
+        --select-on-accent: var(--color-accent-content);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="neutral"] {
+        --select-accent: var(--color-neutral);
+        --select-on-accent: var(--color-neutral-content);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="info"] {
+        --select-accent: var(--color-info);
+        --select-on-accent: var(--color-info-content);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="success"] {
+        --select-accent: var(--color-success);
+        --select-on-accent: var(--color-success-content);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="warning"] {
+        --select-accent: var(--color-warning);
+        --select-on-accent: var(--color-warning-content);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="error"] {
+        --select-accent: var(--color-error);
+        --select-on-accent: var(--color-error-content);
+    }
+
+    [data-scope="select"][data-part="root"][data-size="xs"] [data-scope="select"][data-part="trigger"] {
+        padding: var(--space-2xs) var(--space-xs);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="select"][data-part="root"][data-size="sm"] [data-scope="select"][data-part="trigger"] {
+        padding: var(--space-xs) var(--space-sm);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="select"][data-part="root"][data-size="md"] [data-scope="select"][data-part="trigger"] {
+        padding: var(--space-md) var(--space-xl);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="select"][data-part="root"][data-size="lg"] [data-scope="select"][data-part="trigger"] {
+        padding: var(--space-lg) var(--space-xl);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="select"][data-part="root"][data-size="xl"] [data-scope="select"][data-part="trigger"] {
+        padding: var(--space-xl) var(--space-2xl);
+        font-size: var(--text-lg);
     }
 
     @media (prefers-reduced-motion: reduce) {

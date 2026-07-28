@@ -1,5 +1,9 @@
 @layer zero.recipes {
     [data-scope="tabs"][data-part="root"] {
+        --tabs-accent: var(--color-primary);
+    }
+
+    [data-scope="tabs"][data-part="root"] {
         display: flex;
         flex-direction: column;
         gap: var(--space-md);
@@ -31,8 +35,8 @@
     }
 
     [data-scope="tabs"][data-part="tab"][data-state="active"] {
-        color: var(--color-primary);
-        border-bottom-color: var(--color-primary);
+        color: var(--tabs-accent);
+        border-bottom-color: var(--tabs-accent);
     }
 
     [data-scope="tabs"][data-part="tab"][data-disabled] {
@@ -49,7 +53,7 @@
         content: "";
         position: absolute;
         inset: 0;
-        background: var(--color-primary);
+        background: var(--tabs-accent);
         opacity: 0;
         pointer-events: none;
         transition: opacity var(--duration-fast) var(--ease-standard);
@@ -71,7 +75,7 @@
         width: calc(var(--press-r, 0px) * 2);
         height: calc(var(--press-r, 0px) * 2);
         border-radius: 50%;
-        background: var(--color-primary);
+        background: var(--tabs-accent);
         transform: translate(-50%, -50%) scale(0);
         opacity: 0;
         pointer-events: none;
@@ -85,6 +89,42 @@
         font-family: var(--font-sans);
         font-size: var(--text-md);
         line-height: var(--leading-normal);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="primary"] {
+        --tabs-accent: var(--color-primary);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="secondary"] {
+        --tabs-accent: var(--color-secondary);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="tertiary"] {
+        --tabs-accent: var(--color-tertiary);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="error"] {
+        --tabs-accent: var(--color-error);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="neutral"] {
+        --tabs-accent: var(--color-neutral);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="info"] {
+        --tabs-accent: var(--color-info);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="success"] {
+        --tabs-accent: var(--color-success);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="warning"] {
+        --tabs-accent: var(--color-warning);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="accent"] {
+        --tabs-accent: var(--color-accent);
     }
 
     @media (hover: none) {
