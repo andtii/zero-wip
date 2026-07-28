@@ -2,7 +2,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://signalxjs.github.io/zero/schemas/manifest.schema.json",
     "title": "SignalX Zero anatomy manifest",
-    "description": "The machine-readable face of @sigx/zero, emitted as dist/manifest.json by the zero build: every component's parts, data-state values, boolean flags and token hints (with ready-made selector fragments), plus the contract vocabulary — the attribute spec, the color-token naming convention, the token categories and the recommended role/size defaults. An AI or build tool reads this manifest to enumerate every styleable selector, emit recipes as JSON and iterate against `zero-kit validate` without ever reading component code.",
+    "description": "The machine-readable face of @sigx/zero, emitted as dist/manifest.json by the zero build: every component's parts, data-state values, boolean flags and token hints (with ready-made selector fragments), plus the contract vocabulary — the attribute spec, the color-token naming convention, the token categories and the recommended role/size defaults. An AI or build tool reads this manifest to enumerate every styleable selector, emit recipes as JSON and iterate against `sigx zero:validate` without ever reading component code.",
     "type": "object",
     "additionalProperties": false,
     "required": ["$schema", "zeroVersion", "attributeSpec", "tokens", "components"],

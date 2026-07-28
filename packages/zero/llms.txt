@@ -281,7 +281,7 @@ tokens, recipes}). `roles` declares the color vocabulary ({brand: {}, surface:
 `custom` declares DS-specific tokens (name → {description, syntax?}) valued
 per-theme in `custom` — all surface in the DS's dist/manifest.json, which
 also lists every custom property the DS emits under `tokens.properties`.
-Compile with `zero-kit build`; check with `zero-kit validate` (declared-role
+Compile with `sigx zero:build`; check with `sigx zero:validate` (declared-role
 completeness, WCAG contrast on every declared role/-content pair, state
 coverage). Reference implementation: @sigx/zero-basic; daisyUI-flavored
 skin: @sigx/zero-daisyui.

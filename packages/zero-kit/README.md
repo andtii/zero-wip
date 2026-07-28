@@ -6,8 +6,13 @@ zero anatomy manifest. Node-only — a built design system ships CSS plus a tiny
 runtime module.
 
 ```bash
-npm install -D @sigx/zero-kit
+npm install -D @sigx/zero-kit @sigx/cli
 ```
+
+`@sigx/cli` provides the `sigx` binary; the kit plugs its `zero:build` /
+`zero:validate` commands into it on install (see [CLI](#cli) below). Install it
+alongside — a package manager only links the executables of *direct*
+dependencies.
 
 ```ts
 import { defineTokens, defineRecipe, defineDesignSystem } from '@sigx/zero-kit';
@@ -95,8 +100,8 @@ Omitting a category is fine — `@sigx/zero/css` ships fallbacks for the
 recommended keys, so absence is never a validation error.
 
 ```bash
-zero-kit validate   # tokens, WCAG contrast, recipe structure + content
-zero-kit build      # dist/css/index.css + per-component files + manifest
+sigx zero:validate   # tokens, WCAG contrast, recipe structure + content
+sigx zero:build      # dist/css/index.css + per-component files + manifest
 ```
 
 Conditional styles live in `parts.<part>.at`, keyed by a declared breakpoint
@@ -115,6 +120,30 @@ grows with the design system rather than being a list to maintain.
 The `skills/design-system` folder ships an agent skill that generates a
 complete design system from a style brief and iterates against `validate`.
 
+## CLI
+
+The kit is a plugin for the [`sigx` CLI](https://www.npmjs.com/package/@sigx/cli):
+having `@sigx/zero-kit` in a package's dependencies is the whole wiring. The
+CLI discovers it there and offers its commands in any directory that looks like
+a design-system package.
+
+```
+sigx zero:validate [entry] [--manifest <path>] [--strict]
+sigx zero:build    [entry] [--manifest <path>] [--out <dir>]
+```
+
+`entry` is a compiled ES module (default `./dist/design-system.js`) exporting
+the design system as `designSystem` or as its default export. `--manifest`
+defaults to `@sigx/zero/manifest.json` resolved from the current directory, so
+the contract checked is the one the project ships; it takes either a path or a
+module specifier. `--strict` turns warnings into a failure — the flag to use in
+CI.
+
+The commands are namespaced so another plugin's `build` can't shadow them; the
+bare `sigx build` / `sigx validate` aliases also resolve when nothing else
+claims those names. Both exit non-zero on failure, and `sigx zero:build --help`
+prints the current flags.
+
 ## JSON Schemas
 
 The package ships JSON Schemas (draft 2020-12) for the authoring surfaces.
@@ -131,7 +160,7 @@ URL where they will be served (publishing tracked on the docs repo):
 They close the JSON-first authoring loop: a generator (AI or otherwise) emits
 tokens and recipes as plain JSON, checks them against the schema for
 structural mistakes, wraps them in `defineTokens` / `defineRecipe`, and runs
-`zero-kit validate` for the semantic half — completeness, WCAG contrast,
+`sigx zero:validate` for the semantic half — completeness, WCAG contrast,
 anatomy and token-reference checks the schema can't see. The schemas are kept
 honest by the test suite, which validates every shipped design system's
 tokens and recipes (and the real zero manifest) against them.

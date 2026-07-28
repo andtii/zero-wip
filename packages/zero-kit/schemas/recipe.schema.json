@@ -2,7 +2,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://signalxjs.github.io/zero/schemas/recipe.schema.json",
     "title": "SignalX Zero component recipe (RecipeInput)",
-    "description": "The argument to @sigx/zero-kit's defineRecipe(), as plain JSON data: per-part styles for one component, resolved against that component's anatomy in the zero manifest. An AI (or any tool) can emit this JSON, wrap it in defineRecipe(...) and run `zero-kit validate` \u2014 this schema catches structural mistakes; whether a part, state or var(--\u2026) reference actually exists is the validator's job, because it depends on the anatomy and the token declaration.",
+    "description": "The argument to @sigx/zero-kit's defineRecipe(), as plain JSON data: per-part styles for one component, resolved against that component's anatomy in the zero manifest. An AI (or any tool) can emit this JSON, wrap it in defineRecipe(...) and run `sigx zero:validate` \u2014 this schema catches structural mistakes; whether a part, state or var(--\u2026) reference actually exists is the validator's job, because it depends on the anatomy and the token declaration.",
     "type": "object",
     "additionalProperties": false,
     "required": [

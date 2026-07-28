@@ -2,7 +2,7 @@
  * The augmentation seam — how a compiled design system types the app.
  *
  * `ZeroVocabulary` is empty here, so zero itself stays design-system-neutral.
- * A design system's GENERATED `/register` module (emitted by `zero-kit build`,
+ * A design system's GENERATED `/register` module (emitted by `sigx zero:build`,
  * never authored) augments it with the vocabulary its compiled CSS actually
  * answers to; one `import '@sigx/<ds>/register'` at the app's entry narrows
  * every scoped prop. No augmentation means no change for anyone: every
