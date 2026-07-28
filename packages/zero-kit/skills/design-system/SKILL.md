@@ -16,7 +16,7 @@ component's anatomy). No component code is ever written or changed.
    component's parts, their `data-state` values (as ready-made selectors),
    boolean flags, and token hints. Style ONLY what the manifest declares.
 
-2. **Set up the package.** There is no `zero-kit init` yet (see issue #10),
+2. **Set up the package.** There is no `sigx zero:init` yet (see issue #10),
    so copy the shape of an existing design system — `@sigx/zero-basic` is the
    smallest:
 
@@ -441,12 +441,12 @@ component's anatomy). No component code is ever written or changed.
 5. **Assemble** (`src/design-system.ts`): `{ name, tokens, recipes }` exported
    as `designSystem`.
 
-6. **Validate and iterate**: `zero-kit validate` (after building the TS), or
+6. **Validate and iterate**: `sigx zero:validate` (after building the TS), or
    programmatically `validateDesignSystem(ds, manifest)`. Fix every error and
    drive warnings to zero unless deliberate. This loop is the point: generate
    → validate → fix → repeat.
 
-7. **Build**: `zero-kit build` (or the package's `build.mjs`) emits
+7. **Build**: `sigx zero:build` (or the package's `build.mjs`) emits
    `dist/css/index.css` + per-component files. The app consumes it with two
    lines: `import '<pkg>/css'` and `installThemes()`.
 

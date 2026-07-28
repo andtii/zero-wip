@@ -141,11 +141,13 @@ typecheck` excludes `examples/`, so the playground has its own:
   design system by the kit, since only it knows the declared role names).
 - `packages/zero-kit` → `@sigx/zero-kit` — Node-only authoring kit:
   `defineTokens` / `defineRecipe` / `defineDesignSystem`, the tokens/recipes →
-  plain-CSS compiler, the `zero-kit` CLI (`build | validate`; `init` and
-  `eject` are planned — see issues #10/#11), and the design-system generation
-  agent skill, and the JSON schemas for manifest/tokens/recipes (shipped in
-  `schemas/`, referenced by `manifest.json`). devDependency of DS packages;
-  never a runtime dependency.
+  plain-CSS compiler, the `sigx` CLI plugin (`zero:build | zero:validate`,
+  aliased `build | validate`; `init` and `eject` are planned — see issues
+  #10/#11), and the design-system generation agent skill, and the JSON schemas
+  for manifest/tokens/recipes (shipped in `schemas/`, referenced by
+  `manifest.json`). devDependency of DS packages; never a runtime dependency.
+  It ships no binary of its own — commands are discovered by `@sigx/cli`
+  through the `"sigx-cli"` field in its package.json.
 - `packages/zero-basic` → `@sigx/zero-basic` — neutral starter design system
   (readable defaults). Dogfoods zero-kit; reference pair for the AI skill.
 - `packages/zero-daisyui` → `@sigx/zero-daisyui` — daisyUI-flavored skin:

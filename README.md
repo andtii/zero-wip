@@ -13,7 +13,7 @@ Zero splits UI into two artifacts that evolve independently:
    to plain, layered CSS by **`@sigx/zero-kit`**. Swapping the app's whole
    look is an import swap; generating a *new* look is something an AI (or a
    human afternoon) can do against the published anatomy manifest, with
-   `zero-kit validate` checking token completeness, WCAG contrast and state
+   `sigx zero:validate` checking token completeness, WCAG contrast and state
    coverage.
 
 ```tsx

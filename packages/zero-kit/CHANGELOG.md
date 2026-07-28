@@ -2,7 +2,26 @@
 
 ## [Unreleased]
 
+### Removed
+
+- **BREAKING — the `zero-kit` binary is gone.** Its two commands are now
+  contributed to the [`sigx` CLI](https://www.npmjs.com/package/@sigx/cli) as a
+  plugin: `zero-kit build` → `sigx zero:build`, `zero-kit validate` →
+  `sigx zero:validate` (the bare `sigx build` / `sigx validate` aliases resolve
+  when no other plugin claims them). Install `@sigx/cli` alongside the kit to
+  get the `sigx` executable. Flags are unchanged, and each design-system
+  package's own `build.mjs` — which calls the library directly — is unaffected.
+
 ### Added
+
+- **The kit is a `sigx` CLI plugin** (#154): a `"sigx-cli"` manifest field and
+  a new `@sigx/zero-kit/plugin` export, built on `definePlugin` and
+  `@sigx/args`. Auto-discovered in any package that depends on the kit. This
+  replaces ~113 lines of hand-rolled argv parsing with declared, typed args and
+  brings `--help`/`-h` per command, `--flag=value` as well as `--flag value`,
+  kebab↔camel flag names, rejection of unknown flags and of value flags given
+  no value, and generated help text — none of which the old parser had. The
+  command surface gains its first tests.
 
 - **The generated register artifact** (RFC 0002 phase 3, #131):
   `writeArtifacts` emits `dist/register.d.ts` + `dist/register.js` per design

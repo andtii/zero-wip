@@ -55,7 +55,7 @@ The variant-axis props (`color`, `size`, `variant`, `axes`) are open unions
 by default — any design-system-declared value is valid, recommended names
 autocomplete. They are generic on the component scope through an empty
 `ZeroVocabulary` interface: a design system's **generated** `/register`
-module (emitted by `zero-kit build`; RFC 0002) augments it, and one
+module (emitted by `sigx zero:build`; RFC 0002) augments it, and one
 `import '@sigx/<ds>/register'` at the app entry narrows every component's
 props to exactly what that design system's compiled CSS answers to — plus
 theme names on the authoring surface (`setTheme('dimm')` becomes an error),
