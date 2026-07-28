@@ -1,5 +1,10 @@
 @layer zero.recipes {
     [data-scope="select"][data-part="root"] {
+        --select-accent: var(--color-primary);
+        --select-soft: var(--color-primary-soft);
+    }
+
+    [data-scope="select"][data-part="root"] {
         display: inline-flex;
         position: relative;
     }
@@ -25,7 +30,7 @@
     }
 
     [data-scope="select"][data-part="trigger"][data-state="open"] {
-        border-bottom-color: var(--color-primary);
+        border-bottom-color: var(--select-accent);
     }
 
     [data-scope="select"][data-part="trigger"][data-disabled] {
@@ -46,7 +51,7 @@
         content: "";
         position: absolute;
         inset: 0;
-        background: var(--color-primary);
+        background: var(--select-accent);
         opacity: 0;
         pointer-events: none;
         transition: opacity var(--duration-fast) var(--ease-standard);
@@ -68,7 +73,7 @@
         width: calc(var(--press-r, 0px) * 2);
         height: calc(var(--press-r, 0px) * 2);
         border-radius: 50%;
-        background: var(--color-primary);
+        background: var(--select-accent);
         transform: translate(-50%, -50%) scale(0);
         opacity: 0;
         pointer-events: none;
@@ -124,7 +129,7 @@
     }
 
     [data-scope="select"][data-part="item"][data-highlighted] {
-        background: var(--color-primary-soft);
+        background: var(--select-soft);
     }
 
     [data-scope="select"][data-part="item"][data-selected] {
@@ -144,7 +149,7 @@
         content: "";
         position: absolute;
         inset: 0;
-        background: var(--color-primary);
+        background: var(--select-accent);
         opacity: 0;
         pointer-events: none;
         transition: opacity var(--duration-fast) var(--ease-standard);
@@ -166,7 +171,7 @@
         width: calc(var(--press-r, 0px) * 2);
         height: calc(var(--press-r, 0px) * 2);
         border-radius: 50%;
-        background: var(--color-primary);
+        background: var(--select-accent);
         transform: translate(-50%, -50%) scale(0);
         opacity: 0;
         pointer-events: none;
@@ -177,7 +182,7 @@
     }
 
     [data-scope="select"][data-part="item-indicator"] {
-        color: var(--color-primary);
+        color: var(--select-accent);
     }
 
     [data-scope="select"][data-part="hidden-input"] {
@@ -186,6 +191,76 @@
         height: 1px;
         opacity: 0;
         pointer-events: none;
+    }
+
+    [data-scope="select"][data-part="root"][data-color="primary"] {
+        --select-accent: var(--color-primary);
+        --select-soft: var(--color-primary-soft);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="secondary"] {
+        --select-accent: var(--color-secondary);
+        --select-soft: var(--color-secondary-soft);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="tertiary"] {
+        --select-accent: var(--color-tertiary);
+        --select-soft: var(--color-tertiary-soft);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="error"] {
+        --select-accent: var(--color-error);
+        --select-soft: var(--color-error-soft);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="neutral"] {
+        --select-accent: var(--color-neutral);
+        --select-soft: var(--color-neutral-soft);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="info"] {
+        --select-accent: var(--color-info);
+        --select-soft: var(--color-info-soft);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="success"] {
+        --select-accent: var(--color-success);
+        --select-soft: var(--color-success-soft);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="warning"] {
+        --select-accent: var(--color-warning);
+        --select-soft: var(--color-warning-soft);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="accent"] {
+        --select-accent: var(--color-accent);
+        --select-soft: var(--color-accent-soft);
+    }
+
+    [data-scope="select"][data-part="root"][data-size="xs"] [data-scope="select"][data-part="trigger"] {
+        padding: var(--space-2xs) var(--space-xs);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="select"][data-part="root"][data-size="sm"] [data-scope="select"][data-part="trigger"] {
+        padding: var(--space-xs) var(--space-sm);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="select"][data-part="root"][data-size="md"] [data-scope="select"][data-part="trigger"] {
+        padding: var(--space-sm) var(--space-md);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="select"][data-part="root"][data-size="lg"] [data-scope="select"][data-part="trigger"] {
+        padding: var(--space-md) var(--space-lg);
+        font-size: var(--text-lg);
+    }
+
+    [data-scope="select"][data-part="root"][data-size="xl"] [data-scope="select"][data-part="trigger"] {
+        padding: var(--space-lg) var(--space-xl);
+        font-size: var(--text-xl);
     }
 
     @media (hover: none) {

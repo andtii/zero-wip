@@ -202,6 +202,13 @@ export const button: RecipeInput = {
 // ── Tabs ──────────────────────────────────────────────────────────────────
 export const tabs: RecipeInput = {
     component: 'tabs',
+    // Accent defaults live in `tokens:` so the un-attributed render IS the
+    // primary variant and `variants.color` only rebinds custom properties —
+    // the toast shape.
+    tokens: {
+        '--tabs-accent': 'var(--color-primary)',
+        '--tabs-on-accent': 'var(--color-primary-content)',
+    },
     parts: {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' } },
         list: { base: { display: 'flex', gap: 'var(--space-sm)' } },
@@ -218,8 +225,8 @@ export const tabs: RecipeInput = {
             },
             states: {
                 active: {
-                    background: 'var(--color-primary)',
-                    color: 'var(--color-primary-content)',
+                    background: 'var(--tabs-accent)',
+                    color: 'var(--tabs-on-accent)',
                     boxShadow: 'var(--shadow-sm)',
                 },
                 inactive: {},
@@ -232,6 +239,12 @@ export const tabs: RecipeInput = {
             base: { ...inked, padding: 'var(--space-lg)', boxShadow: 'var(--shadow-md)', lineHeight: 'var(--leading-normal)' },
             states: { active: {}, inactive: {} },
         },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--tabs-accent': `var(--color-${c})`,
+            '--tabs-on-accent': `var(--color-${c}-content)`,
+        } } }])),
     },
 };
 
@@ -467,6 +480,13 @@ export const menu: RecipeInput = {
 
 export const select: RecipeInput = {
     component: 'select',
+    // Accent defaults live in `tokens:` so the un-attributed render IS the
+    // primary variant and `variants.color` only rebinds custom properties —
+    // the toast shape.
+    tokens: {
+        '--select-accent': 'var(--color-primary)',
+        '--select-on-accent': 'var(--color-primary-content)',
+    },
     parts: {
         root: { base: { display: 'inline-flex', position: 'relative' } },
         trigger: {
@@ -505,7 +525,10 @@ export const select: RecipeInput = {
                 cursor: 'pointer',
             },
             states: {
-                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                highlighted: { background: 'var(--select-accent)', color: 'var(--select-on-accent)' },
+                // Deliberate two-accent design: selected stays the fixed `accent`
+                // role — semantic contrast against highlighted, not the component
+                // accent, so it does not follow `color`.
                 selected: { background: 'var(--color-accent)', color: 'var(--color-accent-content)' },
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 ...focusRing,
@@ -514,14 +537,33 @@ export const select: RecipeInput = {
         'item-indicator': { base: { fontWeight: 'var(--weight-bold)' } },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0', pointerEvents: 'none' } },
     },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--select-accent': `var(--color-${c})`,
+            '--select-on-accent': `var(--color-${c}-content)`,
+        } } }])),
+        // The button ramp's shape, anchored so md IS the resting look:
+        // vertical and horizontal padding one space step apart.
+        size: {
+            xs: { trigger: { base: { padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } } },
+            sm: { trigger: { base: { padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-xs)' } } },
+            md: { trigger: { base: { padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--text-xs)' } } },
+            lg: { trigger: { base: { padding: 'var(--space-md) var(--space-lg)', fontSize: 'var(--text-sm)' } } },
+            xl: { trigger: { base: { padding: 'var(--space-lg) var(--space-xl)', fontSize: 'var(--text-md)' } } },
+        },
+    },
 };
 
 // ── Selection controls ────────────────────────────────────────────────────
 export const switchRecipe: RecipeInput = {
     component: 'switch',
+    // The accent default lives in `tokens:` so the un-attributed render IS the
+    // primary variant and `variants.color` only rebinds a custom property —
+    // the toast shape.
     tokens: {
         '--switch-width': 'calc(var(--size-selector) * 14)',
         '--switch-height': 'calc(var(--size-selector) * 7)',
+        '--switch-accent': 'var(--color-primary)',
     },
     parts: {
         root: {
@@ -539,7 +581,7 @@ export const switchRecipe: RecipeInput = {
                 transition: motion('background'),
             },
             states: {
-                checked: { background: 'var(--color-primary)' },
+                checked: { background: 'var(--switch-accent)' },
                 unchecked: {},
                 ...focusRing,
             },
@@ -562,48 +604,91 @@ export const switchRecipe: RecipeInput = {
         label: { base: { ...label, fontSize: 'var(--text-xs)' }, states: { checked: {}, unchecked: {} } },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
     },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--switch-accent': `var(--color-${c})`,
+        } } }])),
+    },
     skipStates: { root: ['focus-visible'] },
 };
 
-const tickBox: CssProps = {
+/**
+ * The shared square control chrome, parameterized on the owning component's
+ * size token so `variants.size` can rebind each independently.
+ */
+const tickBox = (size: string): CssProps => ({
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 'calc(var(--size-selector) * 6)',
-    height: 'calc(var(--size-selector) * 6)',
+    width: size,
+    height: size,
     ...inked,
     boxShadow: 'var(--shadow-xs)',
     transition: motion('background'),
-};
+});
 
 export const checkbox: RecipeInput = {
     component: 'checkbox',
+    // Accent defaults live in `tokens:` so the un-attributed render IS the
+    // primary variant and `variants.color` only rebinds custom properties —
+    // the toast shape.
+    tokens: {
+        '--checkbox-size': 'calc(var(--size-selector) * 6)',
+        '--checkbox-accent': 'var(--color-primary)',
+        '--checkbox-on-accent': 'var(--color-primary-content)',
+    },
     parts: {
         root: {
             base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
             states: { checked: {}, unchecked: {}, indeterminate: {}, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
         },
         control: {
-            base: tickBox,
+            base: tickBox('var(--checkbox-size)'),
             states: {
-                checked: { background: 'var(--color-primary)' },
+                checked: { background: 'var(--checkbox-accent)' },
                 unchecked: {},
+                // Deliberate two-accent design: indeterminate stays the fixed
+                // `accent` role — semantic contrast against checked, not the
+                // component accent, so it does not follow `color`.
                 indeterminate: { background: 'var(--color-accent)' },
                 ...focusRing,
             },
         },
         indicator: {
-            base: { color: 'var(--color-primary-content)', fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-xs)' },
+            base: { color: 'var(--checkbox-on-accent)', fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-xs)' },
+            // Deliberate two-accent design: the indeterminate glyph stays the
+            // fixed `accent-content`, pairing the fixed `accent` fill above.
             states: { checked: {}, unchecked: {}, indeterminate: { color: 'var(--color-accent-content)' } },
         },
         label: { base: { ...label, fontSize: 'var(--text-xs)' }, states: { checked: {}, unchecked: {}, indeterminate: {} } },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--checkbox-accent': `var(--color-${c})`,
+            '--checkbox-on-accent': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 4)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 5)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            md: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 6)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            lg: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 7)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
+            xl: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 8)' } }, label: { base: { fontSize: 'var(--text-md)' } } },
+        },
     },
     skipStates: { root: ['focus-visible'] },
 };
 
 export const radioGroup: RecipeInput = {
     component: 'radio-group',
+    // Accent defaults live in `tokens:` so the un-attributed render IS the
+    // primary variant and `variants.color` only rebinds custom properties —
+    // the toast shape.
+    tokens: {
+        '--radio-size': 'calc(var(--size-selector) * 6)',
+        '--radio-accent': 'var(--color-primary)',
+        '--radio-on-accent': 'var(--color-primary-content)',
+    },
     parts: {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' } },
         label: { base: { ...label, fontSize: 'var(--text-sm)' } },
@@ -613,14 +698,16 @@ export const radioGroup: RecipeInput = {
         },
         // Square, like everything else. A brutalist radio is not a circle.
         'item-control': {
-            base: tickBox,
-            states: { checked: { background: 'var(--color-primary)' }, unchecked: {}, ...focusRing },
+            base: tickBox('var(--radio-size)'),
+            states: { checked: { background: 'var(--radio-accent)' }, unchecked: {}, ...focusRing },
         },
         'item-indicator': {
             base: {
-                width: 'calc(var(--size-selector) * 2.5)',
-                height: 'calc(var(--size-selector) * 2.5)',
-                background: 'var(--color-primary-content)',
+                // /2.4 keeps the resting dot at the original selector * 2.5
+                // while letting it follow the box through the size ramp.
+                width: 'calc(var(--radio-size) / 2.4)',
+                height: 'calc(var(--radio-size) / 2.4)',
+                background: 'var(--radio-on-accent)',
                 transform: 'scale(0)',
                 transition: motion('transform'),
             },
@@ -628,6 +715,19 @@ export const radioGroup: RecipeInput = {
         },
         'item-label': { base: { ...label, fontSize: 'var(--text-xs)' } },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--radio-accent': `var(--color-${c})`,
+            '--radio-on-accent': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 4)' } }, 'item-label': { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 5)' } }, 'item-label': { base: { fontSize: 'var(--text-xs)' } } },
+            md: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 6)' } }, 'item-label': { base: { fontSize: 'var(--text-xs)' } } },
+            lg: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 7)' } }, 'item-label': { base: { fontSize: 'var(--text-sm)' } } },
+            xl: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 8)' } }, 'item-label': { base: { fontSize: 'var(--text-md)' } } },
+        },
     },
     skipStates: { item: ['focus-visible', 'checked', 'unchecked'], 'item-label': ['checked', 'unchecked'] },
 };
@@ -650,20 +750,45 @@ export const field: RecipeInput = {
 
 export const slider: RecipeInput = {
     component: 'slider',
+    // The accent default lives in `tokens:` so the un-attributed render IS the
+    // primary variant and `variants.color` only rebinds a custom property —
+    // the toast shape.
+    tokens: { '--slider-accent': 'var(--color-primary)' },
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' },
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
         },
         label: { base: { ...label, fontSize: 'var(--text-xs)' } },
-        control: { base: { width: '100%', accentColor: 'var(--color-primary)' }, states: { ...focusRing } },
+        control: { base: { width: '100%', accentColor: 'var(--slider-accent)' }, states: { ...focusRing } },
         'value-text': { base: { ...label, fontSize: 'var(--text-xs)' } },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--slider-accent': `var(--color-${c})`,
+        } } }])),
+        // A native range widget: only its box height is size-able without an
+        // appearance:none rebuild, so the ramp moves the box and the text.
+        size: {
+            xs: { control: { base: { height: 'calc(var(--size-selector) * 3)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { control: { base: { height: 'calc(var(--size-selector) * 4)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            md: { label: { base: { fontSize: 'var(--text-xs)' } } },
+            lg: { control: { base: { height: 'calc(var(--size-selector) * 7)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
+            xl: { control: { base: { height: 'calc(var(--size-selector) * 8)' } }, label: { base: { fontSize: 'var(--text-md)' } } },
+        },
     },
     skipStates: { root: ['invalid', 'focus-visible'] },
 };
 
 export const progress: RecipeInput = {
     component: 'progress',
+    // Accent defaults live in `tokens:` so the un-attributed render IS the
+    // primary variant and `variants.color` only rebinds custom properties —
+    // the toast shape.
+    tokens: {
+        '--progress-accent': 'var(--color-primary)',
+        '--progress-track-size': 'calc(var(--size-field) * 5)',
+    },
     keyframes: {
         'brutalist-indeterminate': 'from { transform: translateX(-100%); } to { transform: translateX(250%); }',
     },
@@ -673,15 +798,17 @@ export const progress: RecipeInput = {
         track: {
             base: {
                 position: 'relative',
-                height: 'calc(var(--size-field) * 5)',
+                height: 'var(--progress-track-size)',
                 ...inked,
                 boxShadow: 'var(--shadow-xs)',
                 overflow: 'hidden',
             },
         },
         range: {
-            base: { height: '100%', background: 'var(--color-primary)', transition: motion('width') },
+            base: { height: '100%', background: 'var(--progress-accent)', transition: motion('width') },
             states: {
+                // `complete` is a semantic state, not an accent: it stays
+                // success regardless of the colour variant, on purpose.
                 complete: { background: 'var(--color-success)' },
                 loading: {},
                 // Literal duration on purpose: a loop must stop under reduced
@@ -691,6 +818,18 @@ export const progress: RecipeInput = {
             at: { 'reduced-motion': { states: { indeterminate: { animation: 'none', width: '100%' } } } },
         },
         'value-text': { base: { ...label, fontSize: 'var(--text-xs)' } },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--progress-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--progress-track-size': 'calc(var(--size-field) * 2)' } } },
+            sm: { root: { base: { '--progress-track-size': 'calc(var(--size-field) * 3)' } } },
+            md: { root: { base: { '--progress-track-size': 'calc(var(--size-field) * 5)' } } },
+            lg: { root: { base: { '--progress-track-size': 'calc(var(--size-field) * 7)' } } },
+            xl: { root: { base: { '--progress-track-size': 'calc(var(--size-field) * 9)' } } },
+        },
     },
     skipStates: { root: ['loading', 'complete', 'indeterminate'] },
 };
@@ -866,6 +1005,13 @@ export const toast: RecipeInput = {
 
 export const combobox: RecipeInput = {
     component: 'combobox',
+    // Accent defaults live in `tokens:` so the un-attributed render IS the
+    // primary variant and `variants.color` only rebinds custom properties —
+    // the toast shape.
+    tokens: {
+        '--combobox-accent': 'var(--color-primary)',
+        '--combobox-on-accent': 'var(--color-primary-content)',
+    },
     parts: {
         root: { base: { display: 'inline-flex', position: 'relative' } },
         control: {
@@ -937,7 +1083,10 @@ export const combobox: RecipeInput = {
                 cursor: 'pointer',
             },
             states: {
-                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                highlighted: { background: 'var(--combobox-accent)', color: 'var(--combobox-on-accent)' },
+                // Deliberate two-accent design: selected stays the fixed `accent`
+                // role — semantic contrast against highlighted, not the component
+                // accent, so it does not follow `color`.
                 selected: { background: 'var(--color-accent)', color: 'var(--color-accent-content)' },
                 disabled: { opacity: 'var(--disabled-opacity)' },
             },
@@ -951,6 +1100,21 @@ export const combobox: RecipeInput = {
                 textAlign: 'center',
                 opacity: '0.7',
             },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--combobox-accent': `var(--color-${c})`,
+            '--combobox-on-accent': `var(--color-${c}-content)`,
+        } } }])),
+        // The button ramp's shape, anchored so md IS the resting look:
+        // vertical and horizontal padding one space step apart.
+        size: {
+            xs: { input: { base: { padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } } },
+            sm: { input: { base: { padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-xs)' } } },
+            md: { input: { base: { padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--text-xs)' } } },
+            lg: { input: { base: { padding: 'var(--space-md) var(--space-lg)', fontSize: 'var(--text-sm)' } } },
+            xl: { input: { base: { padding: 'var(--space-lg) var(--space-xl)', fontSize: 'var(--text-md)' } } },
         },
     },
     // The visible ring lives on `control`; input and trigger delegate.

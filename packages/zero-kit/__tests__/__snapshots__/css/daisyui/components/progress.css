@@ -1,5 +1,10 @@
 @layer zero.recipes {
     [data-scope="progress"][data-part="root"] {
+        --progress-accent: var(--color-primary);
+        --progress-track-size: calc(var(--size-selector) * 2.5);
+    }
+
+    [data-scope="progress"][data-part="root"] {
         display: flex;
         flex-direction: column;
         gap: var(--space-sm);
@@ -13,7 +18,7 @@
 
     [data-scope="progress"][data-part="track"] {
         width: 100%;
-        height: calc(var(--size-selector) * 2.5);
+        height: var(--progress-track-size);
         background: var(--color-base-300);
         border-radius: var(--radius-selector);
         overflow: hidden;
@@ -21,7 +26,7 @@
 
     [data-scope="progress"][data-part="range"] {
         height: 100%;
-        background: var(--color-primary);
+        background: var(--progress-accent);
         border-radius: var(--radius-selector);
         transition: width var(--duration-slow) var(--ease-standard);
     }
@@ -38,6 +43,58 @@
     [data-scope="progress"][data-part="value-text"] {
         font-size: var(--text-xs);
         opacity: 0.6;
+    }
+
+    [data-scope="progress"][data-part="root"][data-color="primary"] {
+        --progress-accent: var(--color-primary);
+    }
+
+    [data-scope="progress"][data-part="root"][data-color="secondary"] {
+        --progress-accent: var(--color-secondary);
+    }
+
+    [data-scope="progress"][data-part="root"][data-color="accent"] {
+        --progress-accent: var(--color-accent);
+    }
+
+    [data-scope="progress"][data-part="root"][data-color="neutral"] {
+        --progress-accent: var(--color-neutral);
+    }
+
+    [data-scope="progress"][data-part="root"][data-color="info"] {
+        --progress-accent: var(--color-info);
+    }
+
+    [data-scope="progress"][data-part="root"][data-color="success"] {
+        --progress-accent: var(--color-success);
+    }
+
+    [data-scope="progress"][data-part="root"][data-color="warning"] {
+        --progress-accent: var(--color-warning);
+    }
+
+    [data-scope="progress"][data-part="root"][data-color="error"] {
+        --progress-accent: var(--color-error);
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="xs"] {
+        --progress-track-size: var(--size-selector);
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="sm"] {
+        --progress-track-size: calc(var(--size-selector) * 1.5);
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="md"] {
+        --progress-track-size: calc(var(--size-selector) * 2.5);
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="lg"] {
+        --progress-track-size: calc(var(--size-selector) * 3.5);
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="xl"] {
+        --progress-track-size: calc(var(--size-selector) * 4.5);
     }
 
     @media (prefers-reduced-motion: reduce) {

@@ -1,5 +1,9 @@
 @layer zero.recipes {
     [data-scope="select"][data-part="root"] {
+        --select-accent: var(--color-primary);
+    }
+
+    [data-scope="select"][data-part="root"] {
         display: inline-flex;
         flex-direction: column;
     }
@@ -34,7 +38,7 @@
     }
 
     [data-scope="select"][data-part="trigger"][data-state="open"] {
-        border-color: var(--color-primary);
+        border-color: var(--select-accent);
     }
 
     [data-scope="select"][data-part="trigger"][data-invalid] {
@@ -95,7 +99,7 @@
     }
 
     [data-scope="select"][data-part="item"][data-selected] {
-        color: var(--color-primary);
+        color: var(--select-accent);
         font-weight: var(--weight-bold);
     }
 
@@ -106,7 +110,69 @@
 
     [data-scope="select"][data-part="item-indicator"] {
         font-size: var(--text-xs);
-        color: var(--color-primary);
+        color: var(--select-accent);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="primary"] {
+        --select-accent: var(--color-primary);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="secondary"] {
+        --select-accent: var(--color-secondary);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="accent"] {
+        --select-accent: var(--color-accent);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="neutral"] {
+        --select-accent: var(--color-neutral);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="info"] {
+        --select-accent: var(--color-info);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="success"] {
+        --select-accent: var(--color-success);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="warning"] {
+        --select-accent: var(--color-warning);
+    }
+
+    [data-scope="select"][data-part="root"][data-color="error"] {
+        --select-accent: var(--color-error);
+    }
+
+    [data-scope="select"][data-part="root"][data-size="xs"] [data-scope="select"][data-part="trigger"] {
+        height: calc(var(--size-field) * 8);
+        padding-inline: calc(var(--size-field) * 2);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="select"][data-part="root"][data-size="sm"] [data-scope="select"][data-part="trigger"] {
+        height: calc(var(--size-field) * 10);
+        padding-inline: calc(var(--size-field) * 3);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="select"][data-part="root"][data-size="md"] [data-scope="select"][data-part="trigger"] {
+        height: calc(var(--size-field) * 12);
+        padding-inline: calc(var(--size-field) * 4);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="select"][data-part="root"][data-size="lg"] [data-scope="select"][data-part="trigger"] {
+        height: calc(var(--size-field) * 14);
+        padding-inline: calc(var(--size-field) * 5);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="select"][data-part="root"][data-size="xl"] [data-scope="select"][data-part="trigger"] {
+        height: calc(var(--size-field) * 16);
+        padding-inline: calc(var(--size-field) * 6);
+        font-size: var(--text-lg);
     }
 
     @media (prefers-reduced-motion: reduce) {

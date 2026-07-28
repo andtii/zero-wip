@@ -1,6 +1,7 @@
 @layer zero.recipes {
     [data-scope="radio-group"][data-part="root"] {
         --radio-size: calc(var(--size-selector) * 5);
+        --radio-accent: var(--color-primary);
     }
 
     [data-scope="radio-group"][data-part="root"] {
@@ -43,11 +44,11 @@
     }
 
     [data-scope="radio-group"][data-part="item-control"][data-state="checked"] {
-        border-color: var(--color-primary);
+        border-color: var(--radio-accent);
     }
 
     [data-scope="radio-group"][data-part="item-control"][data-focus-visible] {
-        outline: 2px solid var(--color-primary);
+        outline: 2px solid var(--radio-accent);
         outline-offset: 2px;
     }
 
@@ -60,10 +61,82 @@
     }
 
     [data-scope="radio-group"][data-part="item-indicator"][data-state="checked"] {
-        background: var(--color-primary);
+        background: var(--radio-accent);
     }
 
     [data-scope="radio-group"][data-part="item-label"] {
         font-size: var(--text-sm);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="primary"] {
+        --radio-accent: var(--color-primary);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="secondary"] {
+        --radio-accent: var(--color-secondary);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="accent"] {
+        --radio-accent: var(--color-accent);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="neutral"] {
+        --radio-accent: var(--color-neutral);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="info"] {
+        --radio-accent: var(--color-info);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="success"] {
+        --radio-accent: var(--color-success);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="warning"] {
+        --radio-accent: var(--color-warning);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="error"] {
+        --radio-accent: var(--color-error);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="xs"] {
+        --radio-size: calc(var(--size-selector) * 4);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="xs"] [data-scope="radio-group"][data-part="item-label"] {
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="sm"] {
+        --radio-size: calc(var(--size-selector) * 4.5);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="sm"] [data-scope="radio-group"][data-part="item-label"] {
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="md"] {
+        --radio-size: calc(var(--size-selector) * 5);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="md"] [data-scope="radio-group"][data-part="item-label"] {
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="lg"] {
+        --radio-size: calc(var(--size-selector) * 6);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="lg"] [data-scope="radio-group"][data-part="item-label"] {
+        font-size: var(--text-md);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="xl"] {
+        --radio-size: calc(var(--size-selector) * 7);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="xl"] [data-scope="radio-group"][data-part="item-label"] {
+        font-size: var(--text-lg);
     }
 }

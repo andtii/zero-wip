@@ -56,9 +56,15 @@ const buttonSize: SizeScaleFor<'button'> = 'md';
 // @ts-expect-error — `surface-container` is declared but deliberately not wired on button
 const tonal: ColorValueFor<'button'> = 'surface-container';
 
-// ── unwired components error instead of silently matching nothing ──
-// @ts-expect-error — checkbox accepts data-color at runtime; material wires none
+// ── phase 4 (#103) wired the six: checkbox narrows instead of erroring ──
 const checkboxColor: ColorValueFor<'checkbox'> = 'primary';
+const checkboxSize: SizeScaleFor<'checkbox'> = 'lg';
+// @ts-expect-error — wired means CLOSED: a typo still errors
+const checkboxTypo: ColorValueFor<'checkbox'> = 'primry';
+
+// ── still-unwired components keep the visible break ──
+// @ts-expect-error — avatar accepts data-color at runtime; material wires none
+const avatarColor: ColorValueFor<'avatar'> = 'primary';
 // @ts-expect-error — empty declared axes reject every bag entry
 const mintedAxis: AxesFor<'button'> = { density: 'compact' };
 
@@ -68,4 +74,4 @@ export type _scopesValid = MustBeTrue<
     keyof ZeroVocabulary['components'] extends ZeroScope ? true : false
 >;
 
-export { tertiary, typo, buttonVariant, buttonSize, tonal, checkboxColor, mintedAxis };
+export { tertiary, typo, buttonVariant, buttonSize, tonal, checkboxColor, checkboxSize, checkboxTypo, avatarColor, mintedAxis };

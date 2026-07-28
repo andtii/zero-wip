@@ -1,5 +1,11 @@
 @layer zero.recipes {
     [data-scope="radio-group"][data-part="root"] {
+        --radio-size: calc(var(--size-selector) * 6);
+        --radio-accent: var(--color-primary);
+        --radio-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"] {
         display: flex;
         flex-direction: column;
         gap: var(--space-sm);
@@ -29,8 +35,8 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: calc(var(--size-selector) * 6);
-        height: calc(var(--size-selector) * 6);
+        width: var(--radio-size);
+        height: var(--radio-size);
         border: var(--border) solid var(--color-base-content);
         border-radius: 0;
         background: var(--color-base-100);
@@ -40,7 +46,7 @@
     }
 
     [data-scope="radio-group"][data-part="item-control"][data-state="checked"] {
-        background: var(--color-primary);
+        background: var(--radio-accent);
     }
 
     [data-scope="radio-group"][data-part="item-control"][data-focus-visible] {
@@ -49,9 +55,9 @@
     }
 
     [data-scope="radio-group"][data-part="item-indicator"] {
-        width: calc(var(--size-selector) * 2.5);
-        height: calc(var(--size-selector) * 2.5);
-        background: var(--color-primary-content);
+        width: calc(var(--radio-size) / 2.4);
+        height: calc(var(--radio-size) / 2.4);
+        background: var(--radio-on-accent);
         transform: scale(0);
         transition: transform var(--duration-fast) var(--ease-standard);
     }
@@ -73,5 +79,85 @@
         width: 1px;
         height: 1px;
         opacity: 0;
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="primary"] {
+        --radio-accent: var(--color-primary);
+        --radio-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="secondary"] {
+        --radio-accent: var(--color-secondary);
+        --radio-on-accent: var(--color-secondary-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="accent"] {
+        --radio-accent: var(--color-accent);
+        --radio-on-accent: var(--color-accent-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="neutral"] {
+        --radio-accent: var(--color-neutral);
+        --radio-on-accent: var(--color-neutral-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="info"] {
+        --radio-accent: var(--color-info);
+        --radio-on-accent: var(--color-info-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="success"] {
+        --radio-accent: var(--color-success);
+        --radio-on-accent: var(--color-success-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="warning"] {
+        --radio-accent: var(--color-warning);
+        --radio-on-accent: var(--color-warning-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-color="error"] {
+        --radio-accent: var(--color-error);
+        --radio-on-accent: var(--color-error-content);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="xs"] {
+        --radio-size: calc(var(--size-selector) * 4);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="xs"] [data-scope="radio-group"][data-part="item-label"] {
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="sm"] {
+        --radio-size: calc(var(--size-selector) * 5);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="sm"] [data-scope="radio-group"][data-part="item-label"] {
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="md"] {
+        --radio-size: calc(var(--size-selector) * 6);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="md"] [data-scope="radio-group"][data-part="item-label"] {
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="lg"] {
+        --radio-size: calc(var(--size-selector) * 7);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="lg"] [data-scope="radio-group"][data-part="item-label"] {
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="xl"] {
+        --radio-size: calc(var(--size-selector) * 8);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="xl"] [data-scope="radio-group"][data-part="item-label"] {
+        font-size: var(--text-md);
     }
 }

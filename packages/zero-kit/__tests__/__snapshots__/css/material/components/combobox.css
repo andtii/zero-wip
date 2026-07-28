@@ -1,5 +1,10 @@
 @layer zero.recipes {
     [data-scope="combobox"][data-part="root"] {
+        --combobox-accent: var(--color-primary);
+        --combobox-soft: var(--color-primary-soft);
+    }
+
+    [data-scope="combobox"][data-part="root"] {
         display: inline-flex;
         position: relative;
     }
@@ -16,7 +21,7 @@
     }
 
     [data-scope="combobox"][data-part="control"][data-state="open"] {
-        border-bottom-color: var(--color-primary);
+        border-bottom-color: var(--combobox-accent);
     }
 
     [data-scope="combobox"][data-part="control"][data-invalid] {
@@ -83,7 +88,7 @@
         width: 2.5rem;
         height: 2.5rem;
         border-radius: 50%;
-        background: var(--color-primary);
+        background: var(--combobox-accent);
         transform: translate(-50%, -50%);
         opacity: 0;
         pointer-events: none;
@@ -114,7 +119,7 @@
         width: 2.5rem;
         height: 2.5rem;
         border-radius: 50%;
-        background: var(--color-primary);
+        background: var(--combobox-accent);
         transform: translate(-50%, -50%) scale(0);
         opacity: 0;
         pointer-events: none;
@@ -156,7 +161,7 @@
     }
 
     [data-scope="combobox"][data-part="item"][data-highlighted] {
-        background: var(--color-primary-soft);
+        background: var(--combobox-soft);
     }
 
     [data-scope="combobox"][data-part="item"][data-selected] {
@@ -171,7 +176,7 @@
         content: "";
         position: absolute;
         inset: 0;
-        background: var(--color-primary);
+        background: var(--combobox-accent);
         opacity: 0;
         pointer-events: none;
         transition: opacity var(--duration-fast) var(--ease-standard);
@@ -193,7 +198,7 @@
         width: calc(var(--press-r, 0px) * 2);
         height: calc(var(--press-r, 0px) * 2);
         border-radius: 50%;
-        background: var(--color-primary);
+        background: var(--combobox-accent);
         transform: translate(-50%, -50%) scale(0);
         opacity: 0;
         pointer-events: none;
@@ -204,7 +209,7 @@
     }
 
     [data-scope="combobox"][data-part="item-indicator"] {
-        color: var(--color-primary);
+        color: var(--combobox-accent);
     }
 
     [data-scope="combobox"][data-part="empty"] {
@@ -213,6 +218,76 @@
         font-size: var(--text-sm);
         text-align: center;
         color: var(--color-outline);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="primary"] {
+        --combobox-accent: var(--color-primary);
+        --combobox-soft: var(--color-primary-soft);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="secondary"] {
+        --combobox-accent: var(--color-secondary);
+        --combobox-soft: var(--color-secondary-soft);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="tertiary"] {
+        --combobox-accent: var(--color-tertiary);
+        --combobox-soft: var(--color-tertiary-soft);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="error"] {
+        --combobox-accent: var(--color-error);
+        --combobox-soft: var(--color-error-soft);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="neutral"] {
+        --combobox-accent: var(--color-neutral);
+        --combobox-soft: var(--color-neutral-soft);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="info"] {
+        --combobox-accent: var(--color-info);
+        --combobox-soft: var(--color-info-soft);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="success"] {
+        --combobox-accent: var(--color-success);
+        --combobox-soft: var(--color-success-soft);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="warning"] {
+        --combobox-accent: var(--color-warning);
+        --combobox-soft: var(--color-warning-soft);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-color="accent"] {
+        --combobox-accent: var(--color-accent);
+        --combobox-soft: var(--color-accent-soft);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-size="xs"] [data-scope="combobox"][data-part="input"] {
+        padding: var(--space-2xs) var(--space-xs);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-size="sm"] [data-scope="combobox"][data-part="input"] {
+        padding: var(--space-xs) var(--space-sm);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-size="md"] [data-scope="combobox"][data-part="input"] {
+        padding: var(--space-sm) var(--space-md);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-size="lg"] [data-scope="combobox"][data-part="input"] {
+        padding: var(--space-md) var(--space-lg);
+        font-size: var(--text-lg);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-size="xl"] [data-scope="combobox"][data-part="input"] {
+        padding: var(--space-lg) var(--space-xl);
+        font-size: var(--text-xl);
     }
 
     @media (hover: none) {

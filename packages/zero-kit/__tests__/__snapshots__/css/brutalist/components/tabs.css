@@ -1,5 +1,10 @@
 @layer zero.recipes {
     [data-scope="tabs"][data-part="root"] {
+        --tabs-accent: var(--color-primary);
+        --tabs-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="tabs"][data-part="root"] {
         display: flex;
         flex-direction: column;
         gap: var(--space-lg);
@@ -28,8 +33,8 @@
     }
 
     [data-scope="tabs"][data-part="tab"][data-state="active"] {
-        background: var(--color-primary);
-        color: var(--color-primary-content);
+        background: var(--tabs-accent);
+        color: var(--tabs-on-accent);
         box-shadow: var(--shadow-sm);
     }
 
@@ -57,5 +62,45 @@
         padding: var(--space-lg);
         box-shadow: var(--shadow-md);
         line-height: var(--leading-normal);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="primary"] {
+        --tabs-accent: var(--color-primary);
+        --tabs-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="secondary"] {
+        --tabs-accent: var(--color-secondary);
+        --tabs-on-accent: var(--color-secondary-content);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="accent"] {
+        --tabs-accent: var(--color-accent);
+        --tabs-on-accent: var(--color-accent-content);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="neutral"] {
+        --tabs-accent: var(--color-neutral);
+        --tabs-on-accent: var(--color-neutral-content);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="info"] {
+        --tabs-accent: var(--color-info);
+        --tabs-on-accent: var(--color-info-content);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="success"] {
+        --tabs-accent: var(--color-success);
+        --tabs-on-accent: var(--color-success-content);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="warning"] {
+        --tabs-accent: var(--color-warning);
+        --tabs-on-accent: var(--color-warning-content);
+    }
+
+    [data-scope="tabs"][data-part="root"][data-color="error"] {
+        --tabs-accent: var(--color-error);
+        --tabs-on-accent: var(--color-error-content);
     }
 }

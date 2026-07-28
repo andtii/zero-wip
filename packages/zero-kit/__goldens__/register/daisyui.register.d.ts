@@ -99,42 +99,34 @@ declare module '@sigx/zero' {
                 variant: never;
                 axes: Record<string, never>;
             };
-            /** checkbox — no axis wired by daisyui; every axis errors under this register module. */
+            /** checkbox — color, size wired. */
             'checkbox': {
-                /** Accepts `color` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
             };
-            /** radio-group — no axis wired by daisyui; every axis errors under this register module. */
+            /** radio-group — color, size wired. */
             'radio-group': {
-                /** Accepts `color` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
             };
-            /** progress — no axis wired by daisyui; every axis errors under this register module. */
+            /** progress — color, size wired. */
             'progress': {
-                /** Accepts `color` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
             };
-            /** slider — no axis wired by daisyui; every axis errors under this register module. */
+            /** slider — color, size wired. */
             'slider': {
-                /** Accepts `color` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -149,12 +141,10 @@ declare module '@sigx/zero' {
                 variant: never;
                 axes: Record<string, never>;
             };
-            /** select — no axis wired by daisyui; every axis errors under this register module. */
+            /** select — color, size wired. */
             'select': {
-                /** Accepts `color` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -185,12 +175,10 @@ declare module '@sigx/zero' {
                 variant: never;
                 axes: Record<string, never>;
             };
-            /** combobox — no axis wired by daisyui; every axis errors under this register module. */
+            /** combobox — color, size wired. */
             'combobox': {
-                /** Accepts `color` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
