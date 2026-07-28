@@ -471,7 +471,12 @@ export function validateRecipes(
                 // `tokens.sizes` if it declared its own (Material's density
                 // steps, a numbered ramp), else the recommended xs–xl.
                 if (!vocabulary.sizes.includes(value)) {
-                    if (vocabulary.sizesDeclared) {
+                    if (vocabulary.sizes.length === 0) {
+                        // `sizes: []` — the design system says it has no size
+                        // axis at all, so this is not a value off the ramp but
+                        // a whole axis that should not exist.
+                        error(where_, `this design system declares no size axis (tokens.sizes is empty), so "${axis}" cannot be wired`);
+                    } else if (vocabulary.sizesDeclared) {
                         error(where_, `"${value}" is not on this design system's declared size ramp (${vocabulary.sizes.join(', ')})`);
                     } else {
                         warn(where_, `"${value}" is not on this design system's size ramp (${vocabulary.sizes.join(', ')}) — declare it in tokens.sizes if it belongs there`);

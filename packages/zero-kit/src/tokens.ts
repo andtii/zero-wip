@@ -183,7 +183,9 @@ export interface TokensInput<R extends RolesDecl = RolesDecl, T extends SystemTo
     /**
      * The design system's `size` axis vocabulary — the values its recipes may
      * key `variants.size` on and consumers may pass as `size`. Omitted → the
-     * recommended ramp (`xs`, `sm`, `md`, `lg`, `xl`).
+     * recommended ramp (`xs`, `sm`, `md`, `lg`, `xl`); `[]` → this design
+     * system has **no size axis**, the same claim `roles: {}` makes about
+     * colour. Absence means "I didn't say"; empty means "there isn't one".
      *
      * Declared rather than inferred, for the same reason `roles` is: it
      * flows into the DS manifest, so tooling, the docs site and the

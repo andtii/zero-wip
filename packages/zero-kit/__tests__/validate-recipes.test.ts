@@ -479,7 +479,30 @@ describe('declared axis vocabularies (RFC 0002 phase 1)', () => {
             .toContainEqual(expect.stringContaining('"loose" is declared but no recipe wires it'));
     });
 
-    it('validates the declaration itself like sizes: non-empty, kebab-case, no duplicates', () => {
+    it('accepts sizes: [] as "this design system has no size axis"', () => {
+        // The same claim `roles: {}` already makes about colour. Omitting
+        // `sizes` still takes the recommended ramp, so absence ("I didn't
+        // say") and empty ("there isn't one") are different statements.
+        const noSizes = dsWith(tabsWith({ color: 'var(--color-primary)' }));
+        noSizes.tokens.sizes = [];
+        expect(validateDesignSystem(noSizes, manifest).errors).toEqual([]);
+    });
+
+    it('errors when a recipe wires size under sizes: []', () => {
+        const noSizes = dsWith({
+            component: 'tabs',
+            parts: {
+                root: { base: { display: 'flex' } },
+                tab: { states: { 'focus-visible': { outline: '1px solid' } } },
+            },
+            variants: { size: { md: { tab: { base: { fontSize: '1rem' } } } } },
+        });
+        noSizes.tokens.sizes = [];
+        expect(validateDesignSystem(noSizes, manifest).errors.map((e) => e.message))
+            .toContainEqual(expect.stringContaining('declares no size axis'));
+    });
+
+    it('validates variants/axes declarations: non-empty, kebab-case, no duplicates', () => {
         const clean = (): DesignSystemInput => dsWith(tabsWith({ color: 'var(--color-primary)' }));
 
         const empty = clean();

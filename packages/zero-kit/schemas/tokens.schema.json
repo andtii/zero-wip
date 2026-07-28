@@ -21,7 +21,7 @@
             }
         },
         "sizes": {
-            "description": "The design system's `size` axis vocabulary \u2014 the values recipes may key variants.size on. Omitted \u2192 the recommended ramp (xs, sm, md, lg, xl). Entries become [data-size=\"\u2026\"] selector values, hence the kebab-case grammar.",
+            "description": "The design system's `size` axis vocabulary \u2014 the values recipes may key variants.size on. Omitted \u2192 the recommended ramp (xs, sm, md, lg, xl); [] \u2192 this design system has no size axis at all. Entries become [data-size=\"\u2026\"] selector values, hence the kebab-case grammar.",
             "type": "array",
             "items": {
                 "$ref": "#/$defs/tokenKey"
