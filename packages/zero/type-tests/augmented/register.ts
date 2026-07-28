@@ -3,6 +3,10 @@
  * — the shape `zero-kit build` will emit in phase 3. Kept small but covering
  * every case class: fully wired (button), partially wired (toggle: no
  * variant), wired custom axes (tabs), and nothing wired (checkbox).
+ *
+ * A `.ts` module, not a `.d.ts`: this project keeps `skipLibCheck` on for
+ * dependency declarations, and that flag skips declaration files — the one
+ * file this project exists to check semantically must not be one.
  */
 declare module '@sigx/zero' {
     interface ZeroVocabulary {
