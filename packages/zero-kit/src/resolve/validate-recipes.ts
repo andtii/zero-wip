@@ -15,8 +15,6 @@ import type { ValidationIssue } from './validate.js';
 import type { TokenVocabulary } from './vocabulary.js';
 
 const VAR_REF = /var\(\s*(--[A-Za-z0-9_-]+)\s*(,)?/g;
-/** A component token name. Matches what `VAR_REF` can later resolve. */
-const CUSTOM_PROPERTY_PATTERN = /^--[A-Za-z0-9_-]+$/;
 const HEX = /#[0-9a-fA-F]{3,8}\b/g;
 const COLOR_FN = /\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\(/gi;
 /** A bare time, i.e. not `var(--duration-…)`. */
@@ -202,12 +200,21 @@ export function validateRecipes(
         // someone forgot the `--` on — silently restyles every carrier element
         // of the component instead of defining anything. The values are already
         // walked below; only the keys were unchecked.
+        // The grammar is `--` plus the same kebab-case identifier every other
+        // declared name uses, not merely "is a custom property": `--Btn_Accent`
+        // is legal CSS and still wrong here, and a token nobody can predict the
+        // spelling of is one nothing else can reference.
         for (const name of Object.keys(recipe.tokens ?? {})) {
-            if (!CUSTOM_PROPERTY_PATTERN.test(name)) {
+            if (!name.startsWith('--')) {
                 error(
                     `${where}.tokens`,
                     `"${name}" is not a custom property — component tokens must be spelled --like-this, ` +
                     'or it is emitted as a plain CSS declaration on every carrier element',
+                );
+            } else if (!TOKEN_KEY_PATTERN.test(name.slice(2))) {
+                error(
+                    `${where}.tokens`,
+                    `component token "${name}" is not kebab-case — every other declared name in a design system is`,
                 );
             }
         }

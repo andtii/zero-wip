@@ -141,7 +141,11 @@ export function validateDesignSystem<R extends RolesDecl>(
         for (const prop of props) {
             const clash = emittedByRole.get(prop);
             if (clash !== undefined && clash !== name) {
-                error('tokens.roles', `roles "${clash}" and "${name}" both emit ${prop} — rename one`);
+                error(
+                    'tokens.roles',
+                    `roles "${clash}" and "${name}" both emit ${prop} — rename one, ` +
+                    'or opt the deriving role out with `soft: false` / `content: false`',
+                );
             } else {
                 emittedByRole.set(prop, name);
             }

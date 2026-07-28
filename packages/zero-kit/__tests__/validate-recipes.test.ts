@@ -293,6 +293,17 @@ describe('variants', () => {
         }).errors).toContainEqual(expect.stringContaining('must be spelled --like-this'));
     });
 
+    it('errors on a component token that is not kebab-case', () => {
+        // `--Tabs_Accent` is legal CSS and still wrong: every other declared
+        // name in a design system is kebab-case, and a token whose spelling
+        // nobody can predict is one nothing else will reference.
+        expect(check({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            tokens: { '--Tabs_Accent': 'red' },
+        }).errors).toContainEqual(expect.stringContaining('is not kebab-case'));
+    });
+
     it('accepts a properly spelled component token', () => {
         expect(check({
             component: 'tabs',
