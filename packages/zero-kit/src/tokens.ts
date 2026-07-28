@@ -204,6 +204,22 @@ export interface TokensInput<R extends RolesDecl = RolesDecl, T extends SystemTo
      */
     variants?: readonly string[];
     /**
+     * Presence-only modifiers this design system offers — daisyUI's `block`
+     * and `wide`, Radix's `high-contrast`, HeroUI's `icon-only`. Rendered as
+     * `data-mod-<name>`, set from zero's `mods` prop.
+     *
+     * An axis answers "which one" and always carries a value; a modifier
+     * answers "is it on" and carries none. Declared for the same reason
+     * `variants` is: it flows into the manifest, and once declared a recipe
+     * wiring a modifier outside the list is an error rather than a silently
+     * minted attribute.
+     *
+     * The `mod-` prefix keeps these disjoint from zero's own presence-only
+     * flag vocabulary, which is versioned — an unprefixed modifier would start
+     * matching a flag a later zero adds, silently and with the right shape.
+     */
+    modifiers?: readonly string[];
+    /**
      * Additional variant axes: axis name → its value vocabulary. Axis names
      * must not re-declare an axis with a named prop (`color`, `size`,
      * `variant`) and must not take a name the anatomy contract reserves —

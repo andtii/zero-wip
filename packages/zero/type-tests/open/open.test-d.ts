@@ -9,6 +9,7 @@
 import type {
     AxesFor,
     ColorValue,
+    ModsFor,
     ColorValueFor,
     SizeScale,
     SizeScaleFor,
@@ -22,6 +23,7 @@ export type _colorIsOpen = MustBeTrue<Equal<ColorValueFor<'button'>, ColorValue>
 export type _sizeIsOpen = MustBeTrue<Equal<SizeScaleFor<'button'>, SizeScale>>;
 export type _variantIsOpen = MustBeTrue<Equal<VariantValueFor<'button'>, string>>;
 export type _axesAreOpen = MustBeTrue<Equal<AxesFor<'button'>, Record<string, string>>>;
+export type _modsAreOpen = MustBeTrue<Equal<ModsFor<'button'>, Record<string, boolean>>>;
 
 // A scope no component declares behaves the same — unaugmented, everything
 // falls back; there is nothing to be wrong about.

@@ -57,6 +57,30 @@ export type AxesFor<S extends string = string> =
             ? { [K in keyof A]?: Extract<A[K], string> }
             : Record<string, string>;
 
+/**
+ * The `mods` bag for one component scope — presence-only design-system
+ * modifiers, rendered as `data-mod-<name>`.
+ *
+ * Same three-case shape as `AxesFor`, and for the same reason: unaugmented, or
+ * a component this design system never styled, keeps the open bag; a design
+ * system that declares no modifiers gets `Record<string, never>`, so any entry
+ * errors rather than silently minting an attribute that matches nothing.
+ *
+ * Values are `boolean` rather than a literal union because a modifier has no
+ * vocabulary — it is present or it is not. The value type is nonetheless
+ * projected through `Extract<…, boolean>` rather than written as a flat
+ * `boolean`: `keyof Record<string, never>` is `string`, so a hardcoded value
+ * type would turn the empty case into an index signature accepting every
+ * name — silently restoring exactly what `Record<string, never>` is there to
+ * forbid. Extracting from the declared member keeps `never` as `never`.
+ */
+export type ModsFor<S extends string = string> =
+    [Scoped<S>] extends [never]
+        ? Record<string, boolean>
+        : Scoped<S> extends { mods: infer M }
+            ? { [K in keyof M]?: Extract<M[K], boolean> }
+            : Record<string, boolean>;
+
 type Wide<K extends string> =
     ZeroVocabulary extends Record<K, infer V> ? (V extends string ? V : never) : never;
 

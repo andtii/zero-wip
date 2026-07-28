@@ -40,8 +40,18 @@
                 }
             }
         },
+        "modifiers": {
+            "description": "Presence-only modifiers: name → part → styles, emitted as [data-mod-<name>]. Names must be declared in tokens.modifiers. There is no defaultVariants analogue — a modifier is absent by nature, so absence already is the default.",
+            "type": "object",
+            "propertyNames": {
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            },
+            "additionalProperties": {
+                "$ref": "#/$defs/partsRecord"
+            }
+        },
         "compoundVariants": {
-            "description": "Styles applied when several axis values hold at once.",
+            "description": "Styles applied when several axis values (and/or modifiers) hold at once.",
             "type": "array",
             "items": {
                 "type": "object",
@@ -52,13 +62,16 @@
                 ],
                 "properties": {
                     "match": {
-                        "description": "axis \u2192 value; every pair must match for the styles to apply.",
+                        "description": "axis \u2192 value, or modifier \u2192 true; every entry must hold for the styles to apply. A true entry compiles to the presence-only [data-mod-<name>].",
                         "type": "object",
                         "propertyNames": {
                             "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
                         },
                         "additionalProperties": {
-                            "$ref": "#/$defs/kebabToken"
+                            "anyOf": [
+                                { "$ref": "#/$defs/kebabToken" },
+                                { "const": true }
+                            ]
                         },
                         "minProperties": 1
                     },

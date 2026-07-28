@@ -69,8 +69,21 @@ export interface RecipeInput {
     parts: Record<string, PartStyles>;
     /** axis → value → part → styles. Contract axes: color, size, variant. */
     variants?: Record<string, Record<string, Record<string, PartStyles>>>;
+    /**
+     * Presence-only modifiers: name → part → styles, emitted as
+     * `[data-mod-<name>]`. Names must be declared in `tokens.modifiers`.
+     *
+     * There is no `defaultVariants` analogue — a modifier is absent by nature,
+     * so absence already is the default.
+     */
+    modifiers?: Record<string, Record<string, PartStyles>>;
+    /**
+     * A conjunction over axis values, plus `true` for a modifier that must be
+     * present. `{ variant: 'solid', block: true }` compiles to
+     * `[data-variant="solid"][data-mod-block]`.
+     */
     compoundVariants?: Array<{
-        match: Record<string, string>;
+        match: Record<string, string | true>;
         parts: Record<string, PartStyles>;
     }>;
     /** Values applied when the axis attribute is absent (CSS-only defaults). */

@@ -320,6 +320,18 @@ export const VARIANT_AXES: Record<string, string> = {
 };
 
 /**
+ * The namespace design-system modifiers render into. Mirrors
+ * `MOD_ATTR_PREFIX` in `@sigx/zero/contract` (parity-tested): the compiler
+ * emits `[data-mod-<name>]` selectors and the runtime sets exactly those
+ * attributes, so the two spellings cannot be allowed to drift.
+ *
+ * Prefixed because zero's own presence-only flags are versioned — see
+ * `WithMods` in zero — and an unprefixed modifier would silently collide with
+ * a flag added later.
+ */
+export const MOD_ATTR_PREFIX = 'data-mod-';
+
+/**
  * Axis names that are NOT available, because the anatomy contract already
  * gives `data-<name>` a meaning. Mirrors `RESERVED_AXES` in
  * `@sigx/zero/contract` (parity-tested): the validator must reject exactly

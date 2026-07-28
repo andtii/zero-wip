@@ -11,7 +11,7 @@
  * and failing the build is how recipes stay in lockstep with core.
  */
 import type { ManifestComponent, ManifestPart } from '../../contract.js';
-import { INTERACTION_STATES, TOKEN_KEY_PATTERN, VARIANT_AXES } from '../../contract.js';
+import { INTERACTION_STATES, MOD_ATTR_PREFIX, TOKEN_KEY_PATTERN, VARIANT_AXES } from '../../contract.js';
 import type { CssProps, PartStyles, RecipeContext, RecipeInput } from '../../recipes.js';
 import { BUILTIN_CONDITIONS } from '../../recipes.js';
 
@@ -286,6 +286,11 @@ function axisAttr(axis: string, scope: string): string {
     return VARIANT_AXES[axis] ?? `data-${assertAxisToken('axis', axis, scope)}`;
 }
 
+/** A presence-only modifier's attribute — `[data-mod-block]`, never valued. */
+function modAttr(name: string, scope: string): string {
+    return `${MOD_ATTR_PREFIX}${assertAxisToken('modifier', name, scope)}`;
+}
+
 /**
  * Axis names and values become `[data-<axis>="<value>"]`, so they have to be
  * spellable as an identifier.
@@ -303,7 +308,7 @@ function axisAttr(axis: string, scope: string): string {
  * as a collected error with a friendlier message; this is the backstop for
  * calling `compileRecipeCss` directly, which is public API.
  */
-function assertAxisToken(kind: 'axis' | 'value', token: string, scope: string): string {
+function assertAxisToken(kind: 'axis' | 'value' | 'modifier', token: string, scope: string): string {
     if (!TOKEN_KEY_PATTERN.test(token)) {
         throw new Error(
             `[zero-kit] recipe for "${scope}" uses ${kind} "${token}", which is not a kebab-case identifier — it would be written into a [data-…] selector`,
@@ -356,9 +361,23 @@ export function compileRecipeCss(
         }
     }
 
+    // Presence-only modifiers: `[data-mod-<name>]`, no value to match on.
+    for (const [name, parts] of Object.entries(recipe.modifiers ?? {})) {
+        const attr = modAttr(name, component.scope);
+        for (const [partName, styles] of Object.entries(parts)) {
+            const { host, suffix } = partProjection(component, partName);
+            const selector = variantSelector(component, host, `[${attr}]`);
+            emitPartStyles(component, partName, styles, selector, sink, context, registry, suffix);
+        }
+    }
+
     for (const compoundVariant of recipe.compoundVariants ?? []) {
         const attrs = Object.entries(compoundVariant.match)
-            .map(([axis, value]) => `[${axisAttr(axis, component.scope)}="${assertAxisToken('value', value, component.scope)}"]`)
+            .map(([axis, value]) => (value === true
+                // A modifier in a match is presence-only, so it contributes a
+                // valueless attribute selector rather than an equality test.
+                ? `[${modAttr(axis, component.scope)}]`
+                : `[${axisAttr(axis, component.scope)}="${assertAxisToken('value', value, component.scope)}"]`))
             .join('');
         for (const [partName, styles] of Object.entries(compoundVariant.parts)) {
             const { host, suffix } = partProjection(component, partName);

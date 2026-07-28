@@ -90,6 +90,34 @@ describe('Button', () => {
         expect(root().getAttribute('data-color')).toBe('primary');
     });
 
+    it('renders modifiers as presence-only attributes', () => {
+        // Presence-only, like the contract's own flags: the attribute is
+        // there or it is not, and it never carries `="false"`. `false` and an
+        // omitted key are the same statement.
+        render(
+            <Button.Root color="primary" mods={{ block: true, wide: false }}>Save</Button.Root>,
+            container,
+        );
+        expect(root().getAttribute('data-mod-block')).toBe('');
+        expect(root().hasAttribute('data-mod-wide')).toBe(false);
+    });
+
+    it('a modifier cannot shadow a contract flag, because of the prefix', () => {
+        // The whole reason modifiers are namespaced. `axes={{ disabled: … }}`
+        // throws; a modifier NAMED `disabled` is harmless, because it lands on
+        // `data-mod-disabled` and leaves zero's own `data-disabled` alone.
+        render(<Button.Root mods={{ disabled: true }}>Save</Button.Root>, container);
+        expect(root().getAttribute('data-mod-disabled')).toBe('');
+        expect(root().hasAttribute('data-disabled')).toBe(false);
+    });
+
+    it('refuses a modifier name that could not be an attribute', () => {
+        expect(() => render(
+            <Button.Root mods={{ 'Not Kebab': true }}>Save</Button.Root>,
+            container,
+        )).toThrow(/not a kebab-case identifier/);
+    });
+
     it('refuses an axis that would shadow the anatomy contract', () => {
         // Overwriting `data-state` from userland would make every
         // [data-state="open"] rule in the design system match the wrong

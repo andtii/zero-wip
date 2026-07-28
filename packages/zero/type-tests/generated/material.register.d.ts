@@ -27,6 +27,7 @@ declare module '@sigx/zero' {
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 variant: 'solid' | 'outline' | 'soft' | 'ghost';
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** tabs — color wired. */
             'tabs': {
@@ -36,6 +37,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** collapsible — no axis wired by material; every axis errors under this register module. */
             'collapsible': {
@@ -46,6 +48,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** accordion — no axis wired by material; every axis errors under this register module. */
             'accordion': {
@@ -56,6 +59,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** dialog — no axis wired by material; every axis errors under this register module. */
             'dialog': {
@@ -66,6 +70,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** popover — no axis wired by material; every axis errors under this register module. */
             'popover': {
@@ -76,6 +81,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** tooltip — no axis wired by material; every axis errors under this register module. */
             'tooltip': {
@@ -86,6 +92,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** menu — no axis wired by material; every axis errors under this register module. */
             'menu': {
@@ -96,6 +103,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** select — color, size wired. */
             'select': {
@@ -104,6 +112,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** switch — color wired. */
             'switch': {
@@ -113,6 +122,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** checkbox — color, size wired. */
             'checkbox': {
@@ -121,6 +131,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** radio-group — color, size wired. */
             'radio-group': {
@@ -129,6 +140,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** field — no axis wired by material; every axis errors under this register module. */
             'field': {
@@ -139,6 +151,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** slider — color, size wired. */
             'slider': {
@@ -147,6 +160,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** progress — color, size wired. */
             'progress': {
@@ -155,6 +169,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** avatar — no axis wired by material; every axis errors under this register module. */
             'avatar': {
@@ -165,6 +180,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** toast — color wired. */
             'toast': {
@@ -174,6 +190,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** combobox — color, size wired. */
             'combobox': {
@@ -182,6 +199,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** toggle — color, size wired. */
             'toggle': {
@@ -190,6 +208,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** toggle-group — color wired. */
             'toggle-group': {
@@ -199,6 +218,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** number-input — no axis wired by material; every axis errors under this register module. */
             'number-input': {
@@ -209,6 +229,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** rating-group — no axis wired by material; every axis errors under this register module. */
             'rating-group': {
@@ -219,6 +240,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
             /** tree-view — no axis wired by material; every axis errors under this register module. */
             'tree-view': {
@@ -229,6 +251,7 @@ declare module '@sigx/zero' {
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
+                mods: Record<string, never>;
             };
         };
     }

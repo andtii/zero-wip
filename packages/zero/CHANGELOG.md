@@ -4,6 +4,22 @@
 
 ### Added
 
+- **The `mods` prop — presence-only design-system modifiers** (RFC 0003 §3,
+  #166). An axis answers *which one* and always carries a value; a modifier
+  answers *is it on* and carries none. `<Button.Root mods={{ block: true }}>`
+  renders `data-mod-block=""`, and `false` or an omitted key render nothing —
+  the same presence-only shape the anatomy contract's own flags use. Added to
+  `WithVariantAxes`, so every component already accepting the axis props
+  accepts `mods` too, and narrowed per component by a design system's
+  `/register` module through the new `ModsFor<S>`.
+
+  They render into a `data-mod-*` namespace rather than as bare `data-<name>`
+  flags. Zero owns the unprefixed presence-only vocabulary and **extends it
+  between versions**, so an unprefixed modifier named `busy` would silently
+  start matching a `data-busy` flag a later zero adds. A valued axis cannot
+  fail that way — a collision there never matches, and `variantAttrs` throws.
+  New exports: `WithMods`, `ModsFor`, `MOD_ATTR_PREFIX`.
+
 - **`ThemeSource.defaultLight` / `defaultDark`** (RFC 0002 phase 5, #132):
   the registry stores the source's declared scheme defaults (they flow
   structurally from the kit's `TokensInput`, so `installThemes()` calls need

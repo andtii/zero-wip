@@ -39,6 +39,8 @@ export interface TokenVocabulary {
     variants: readonly string[] | undefined;
     /** Declared custom axes: axis name → values — undefined when undeclared. */
     axes: Readonly<Record<string, readonly string[]>> | undefined;
+    /** Declared presence-only modifiers — undefined when undeclared. */
+    modifiers: readonly string[] | undefined;
     /** Closest known name, for a "did you mean" hint. */
     nearest(name: string): string | undefined;
 }
@@ -138,6 +140,7 @@ export function tokenVocabulary(tokens: TokensInput<any, any>): TokenVocabulary 
         roles: new Set(Object.keys(roles)),
         variants: tokens.variants,
         axes: tokens.axes,
+        modifiers: tokens.modifiers,
         nearest(name) {
             let best: string | undefined;
             let bestDistance = 4; // anything further apart isn't a typo
