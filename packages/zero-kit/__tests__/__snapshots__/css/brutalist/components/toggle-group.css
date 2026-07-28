@@ -87,18 +87,13 @@
         padding: var(--space-xs) var(--space-md);
     }
 
-    [data-scope="toggle-group"][data-part="root"][data-size="md"] [data-scope="toggle-group"][data-part="item"] {
-        font-size: var(--text-sm);
-        padding: var(--space-sm) var(--space-lg);
-    }
-
     [data-scope="toggle-group"][data-part="root"][data-size="lg"] [data-scope="toggle-group"][data-part="item"] {
-        font-size: var(--text-md);
+        font-size: var(--text-sm);
         padding: var(--space-md) var(--space-xl);
     }
 
     [data-scope="toggle-group"][data-part="root"][data-size="xl"] [data-scope="toggle-group"][data-part="item"] {
-        font-size: var(--text-lg);
+        font-size: var(--text-md);
         padding: var(--space-lg) var(--space-2xl);
     }
 

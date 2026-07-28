@@ -1,6 +1,7 @@
 @layer zero.recipes {
     [data-scope="tree-view"][data-part="root"] {
         --tree-accent: var(--color-base-content);
+        --tree-text: var(--text-xs);
         --tree-on-accent: var(--color-base-100);
     }
 
@@ -42,7 +43,7 @@
         font-weight: var(--weight-semibold);
         letter-spacing: var(--tracking-wide);
         text-transform: uppercase;
-        font-size: var(--text-xs);
+        font-size: var(--tree-text);
         cursor: pointer;
         transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
     }
@@ -89,7 +90,7 @@
         font-weight: var(--weight-semibold);
         letter-spacing: var(--tracking-wide);
         text-transform: uppercase;
-        font-size: var(--text-xs);
+        font-size: var(--tree-text);
         cursor: pointer;
         transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
         user-select: none;
@@ -179,23 +180,19 @@
         --tree-on-accent: var(--color-error-content);
     }
 
-    [data-scope="tree-view"][data-part="root"][data-size="xs"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-xs);
+    [data-scope="tree-view"][data-part="root"][data-size="xs"] {
+        --tree-text: var(--text-xs);
     }
 
-    [data-scope="tree-view"][data-part="root"][data-size="sm"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-xs);
+    [data-scope="tree-view"][data-part="root"][data-size="sm"] {
+        --tree-text: var(--text-xs);
     }
 
-    [data-scope="tree-view"][data-part="root"][data-size="md"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-sm);
+    [data-scope="tree-view"][data-part="root"][data-size="lg"] {
+        --tree-text: var(--text-md);
     }
 
-    [data-scope="tree-view"][data-part="root"][data-size="lg"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-md);
-    }
-
-    [data-scope="tree-view"][data-part="root"][data-size="xl"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-lg);
+    [data-scope="tree-view"][data-part="root"][data-size="xl"] {
+        --tree-text: var(--text-lg);
     }
 }

@@ -93,27 +93,22 @@
 
     [data-scope="tabs"][data-part="root"][data-size="xs"] [data-scope="tabs"][data-part="tab"] {
         font-size: var(--text-xs);
-        padding: var(--space-2xs) var(--space-sm);
+        padding: var(--space-2xs) var(--space-2xs);
     }
 
     [data-scope="tabs"][data-part="root"][data-size="sm"] [data-scope="tabs"][data-part="tab"] {
         font-size: var(--text-xs);
-        padding: var(--space-xs) var(--space-md);
-    }
-
-    [data-scope="tabs"][data-part="root"][data-size="md"] [data-scope="tabs"][data-part="tab"] {
-        font-size: var(--text-sm);
-        padding: var(--space-sm) var(--space-lg);
+        padding: var(--space-2xs) var(--space-xs);
     }
 
     [data-scope="tabs"][data-part="root"][data-size="lg"] [data-scope="tabs"][data-part="tab"] {
-        font-size: var(--text-md);
-        padding: var(--space-md) var(--space-xl);
+        font-size: var(--text-sm);
+        padding: var(--space-xs) var(--space-md);
     }
 
     [data-scope="tabs"][data-part="root"][data-size="xl"] [data-scope="tabs"][data-part="tab"] {
-        font-size: var(--text-lg);
-        padding: var(--space-lg) var(--space-2xl);
+        font-size: var(--text-md);
+        padding: var(--space-sm) var(--space-lg);
     }
 
     [data-scope="tabs"][data-part="root"][data-color="primary"] {

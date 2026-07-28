@@ -107,11 +107,6 @@
         --switch-height: calc(var(--size-selector) * 6.5);
     }
 
-    [data-scope="switch"][data-part="root"][data-size="md"] {
-        --switch-width: calc(var(--size-selector) * 13);
-        --switch-height: calc(var(--size-selector) * 8);
-    }
-
     [data-scope="switch"][data-part="root"][data-size="lg"] {
         --switch-width: calc(var(--size-selector) * 15);
         --switch-height: calc(var(--size-selector) * 9);

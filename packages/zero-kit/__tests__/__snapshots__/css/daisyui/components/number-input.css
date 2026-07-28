@@ -168,13 +168,8 @@
     }
 
     [data-scope="number-input"][data-part="root"][data-size="sm"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-sm);
+        font-size: var(--text-xs);
         padding: var(--space-xs) var(--space-sm);
-    }
-
-    [data-scope="number-input"][data-part="root"][data-size="md"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-sm);
-        padding: var(--space-sm) var(--space-md);
     }
 
     [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="input"] {

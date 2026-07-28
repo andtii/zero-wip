@@ -82,11 +82,6 @@
         --avatar-text: var(--text-xs);
     }
 
-    [data-scope="avatar"][data-part="root"][data-size="md"] {
-        --avatar-size: calc(var(--size-selector) * 10);
-        --avatar-text: var(--text-sm);
-    }
-
     [data-scope="avatar"][data-part="root"][data-size="lg"] {
         --avatar-size: calc(var(--size-selector) * 12);
         --avatar-text: var(--text-md);

@@ -113,10 +113,6 @@
         --rating-size: var(--text-md);
     }
 
-    [data-scope="rating-group"][data-part="root"][data-size="md"] {
-        --rating-size: var(--text-xl);
-    }
-
     [data-scope="rating-group"][data-part="root"][data-size="lg"] {
         --rating-size: var(--text-2xl);
     }

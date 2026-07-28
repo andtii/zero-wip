@@ -176,26 +176,21 @@
 
     [data-scope="number-input"][data-part="root"][data-size="xs"] [data-scope="number-input"][data-part="input"] {
         font-size: var(--text-xs);
-        padding: var(--space-2xs) var(--space-xs);
+        padding: var(--space-2xs) var(--space-2xs);
     }
 
     [data-scope="number-input"][data-part="root"][data-size="sm"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-sm);
-        padding: var(--space-xs) var(--space-sm);
-    }
-
-    [data-scope="number-input"][data-part="root"][data-size="md"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-sm);
-        padding: var(--space-sm) var(--space-md);
+        font-size: var(--text-xs);
+        padding: var(--space-xs) var(--space-2xs);
     }
 
     [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-md);
-        padding: var(--space-md) var(--space-lg);
+        font-size: var(--text-sm);
+        padding: var(--space-md) var(--space-sm);
     }
 
     [data-scope="number-input"][data-part="root"][data-size="xl"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-lg);
-        padding: var(--space-lg) var(--space-xl);
+        font-size: var(--text-md);
+        padding: var(--space-lg) var(--space-md);
     }
 }

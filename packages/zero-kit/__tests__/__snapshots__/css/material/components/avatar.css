@@ -108,14 +108,6 @@
         font-size: var(--text-xs);
     }
 
-    [data-scope="avatar"][data-part="root"][data-size="md"] {
-        --avatar-size: calc(var(--size-selector) * 10);
-    }
-
-    [data-scope="avatar"][data-part="root"][data-size="md"] [data-scope="avatar"][data-part="fallback"] {
-        font-size: var(--text-sm);
-    }
-
     [data-scope="avatar"][data-part="root"][data-size="lg"] {
         --avatar-size: calc(var(--size-selector) * 12);
     }

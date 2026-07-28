@@ -148,11 +148,14 @@ export const tabs: RecipeInput = {
     },
     variants: {
         size: {
-            xs: { tab: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-sm)' } } },
-            sm: { tab: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-md)' } } },
-            md: { tab: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-sm) var(--space-lg)' } } },
-            lg: { tab: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-xl)' } } },
-            xl: { tab: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-2xl)' } } },
+            xs: { tab: { base: { fontSize: 'var(--text-xs)', padding: '0.25rem 0.5rem' } } },
+            sm: { tab: { base: { fontSize: 'var(--text-xs)', padding: '0.375rem 0.75rem' } } },
+            // `md` is the un-attributed render: the base already IS the
+            // middle step, so restating it here would be a second copy free
+            // to drift. An empty entry emits no rule and keeps the base.
+            md: {},
+            lg: { tab: { base: { fontSize: 'var(--text-md)', padding: '0.625rem 1.125rem' } } },
+            xl: { tab: { base: { fontSize: 'var(--text-lg)', padding: '0.75rem 1.375rem' } } },
         },
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--tabs-accent': `var(--color-${c})`,
@@ -269,7 +272,9 @@ export const switchRecipe: RecipeInput = {
         size: {
             xs: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 8)', '--switch-height': 'calc(var(--size-selector) * 4.5)' } } },
             sm: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 9.5)', '--switch-height': 'calc(var(--size-selector) * 5.25)' } } },
-            md: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 11)', '--switch-height': 'calc(var(--size-selector) * 6)' } } },
+            // `md` is the un-attributed render — the defaults in `tokens:`
+            // already ARE the middle step.
+            md: {},
             lg: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 13)', '--switch-height': 'calc(var(--size-selector) * 7)' } } },
             xl: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 15)', '--switch-height': 'calc(var(--size-selector) * 8)' } } },
         },
@@ -1158,7 +1163,9 @@ export const avatar: RecipeInput = {
         size: {
             xs: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 6)', '--avatar-text': 'var(--text-xs)' } } },
             sm: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 8)', '--avatar-text': 'var(--text-xs)' } } },
-            md: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 10)', '--avatar-text': 'var(--text-sm)' } } },
+            // `md` is the un-attributed render — the defaults in `tokens:`
+            // already ARE the middle step.
+            md: {},
             lg: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 12)', '--avatar-text': 'var(--text-md)' } } },
             xl: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 16)', '--avatar-text': 'var(--text-lg)' } } },
         },
@@ -1532,11 +1539,14 @@ export const numberInput: RecipeInput = {
         // The readout carries the ramp; the steppers follow it so the frame
         // stays proportional.
         size: {
-            xs: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } } },
-            sm: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-xs) var(--space-sm)' } } },
-            md: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-sm) var(--space-md)' } } },
-            lg: { input: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-lg)' } } },
-            xl: { input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-xl)' } } },
+            xs: { input: { base: { fontSize: 'var(--text-xs)', padding: '0.25rem 0.375rem' } } },
+            sm: { input: { base: { fontSize: 'var(--text-xs)', padding: '0.375rem 0.4375rem' } } },
+            // `md` is the un-attributed render: the base already IS the
+            // middle step, so restating it here would be a second copy free
+            // to drift. An empty entry emits no rule and keeps the base.
+            md: {},
+            lg: { input: { base: { fontSize: 'var(--text-md)', padding: '0.625rem 0.625rem' } } },
+            xl: { input: { base: { fontSize: 'var(--text-lg)', padding: '0.75rem 0.75rem' } } },
         },
     },
 };
@@ -1610,7 +1620,9 @@ export const ratingGroup: RecipeInput = {
         size: {
             xs: { root: { base: { '--rating-size': 'var(--text-sm)' } } },
             sm: { root: { base: { '--rating-size': 'var(--text-md)' } } },
-            md: { root: { base: { '--rating-size': 'var(--text-xl)' } } },
+            // `md` is the un-attributed render — the defaults in `tokens:`
+            // already ARE the middle step.
+            md: {},
             lg: { root: { base: { '--rating-size': 'var(--text-2xl)' } } },
             xl: { root: { base: { '--rating-size': 'var(--text-3xl)' } } },
         },
@@ -1621,6 +1633,7 @@ export const treeView: RecipeInput = {
     component: 'tree-view',
     tokens: {
         '--tree-accent': 'var(--color-primary)',
+        '--tree-text': 'var(--text-sm)',
         '--tree-on-accent': 'var(--color-primary-content)',
     },
     parts: {
@@ -1632,7 +1645,7 @@ export const treeView: RecipeInput = {
             base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
         },
         tree: {
-            base: { display: 'flex', flexDirection: 'column', fontSize: 'var(--text-sm)' },
+            base: { display: 'flex', flexDirection: 'column', fontSize: 'var(--tree-text)' },
         },
         // Indentation comes from branch-content's inline padding — depth is
         // the DOM nesting, no per-level rules needed.
@@ -1704,11 +1717,13 @@ export const treeView: RecipeInput = {
             '--tree-on-accent': `var(--color-${c}-content)`,
         } } }])),
         size: {
-            xs: { tree: { base: { fontSize: 'var(--text-xs)' } } },
-            sm: { tree: { base: { fontSize: 'var(--text-xs)' } } },
-            md: { tree: { base: { fontSize: 'var(--text-sm)' } } },
-            lg: { tree: { base: { fontSize: 'var(--text-md)' } } },
-            xl: { tree: { base: { fontSize: 'var(--text-lg)' } } },
+            xs: { root: { base: { '--tree-text': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--tree-text': 'var(--text-xs)' } } },
+            // `md` is the un-attributed render: `--tree-text`'s default in
+            // `tokens:` already IS the middle step.
+            md: {},
+            lg: { root: { base: { '--tree-text': 'var(--text-md)' } } },
+            xl: { root: { base: { '--tree-text': 'var(--text-lg)' } } },
         },
     },
 };
@@ -1857,11 +1872,14 @@ export const toggleGroup: RecipeInput = {
         // The group is a frame around its items, so the ramp lands on the
         // items and the frame follows their box.
         size: {
-            xs: { item: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-sm)' } } },
-            sm: { item: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-md)' } } },
-            md: { item: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-sm) var(--space-lg)' } } },
-            lg: { item: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-xl)' } } },
-            xl: { item: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-2xl)' } } },
+            xs: { item: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } } },
+            sm: { item: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-sm)' } } },
+            // `md` is the un-attributed render: the base already IS the
+            // middle step, so restating it here would be a second copy free
+            // to drift. An empty entry emits no rule and keeps the base.
+            md: {},
+            lg: { item: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-sm) var(--space-lg)' } } },
+            xl: { item: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-xl)' } } },
         },
         color: Object.fromEntries(
             ROLES.map((c) => [

@@ -1,6 +1,7 @@
 @layer zero.recipes {
     [data-scope="tree-view"][data-part="root"] {
         --tree-accent: var(--color-primary);
+        --tree-text: var(--text-sm);
         --tree-on-accent: var(--color-primary-content);
     }
 
@@ -22,7 +23,7 @@
     [data-scope="tree-view"][data-part="tree"] {
         display: flex;
         flex-direction: column;
-        font-size: var(--text-sm);
+        font-size: var(--tree-text);
     }
 
     [data-scope="tree-view"][data-part="item"] {
@@ -151,24 +152,20 @@
         --tree-on-accent: var(--color-error-content);
     }
 
-    [data-scope="tree-view"][data-part="root"][data-size="xs"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-xs);
+    [data-scope="tree-view"][data-part="root"][data-size="xs"] {
+        --tree-text: var(--text-xs);
     }
 
-    [data-scope="tree-view"][data-part="root"][data-size="sm"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-xs);
+    [data-scope="tree-view"][data-part="root"][data-size="sm"] {
+        --tree-text: var(--text-xs);
     }
 
-    [data-scope="tree-view"][data-part="root"][data-size="md"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-sm);
+    [data-scope="tree-view"][data-part="root"][data-size="lg"] {
+        --tree-text: var(--text-md);
     }
 
-    [data-scope="tree-view"][data-part="root"][data-size="lg"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-md);
-    }
-
-    [data-scope="tree-view"][data-part="root"][data-size="xl"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-lg);
+    [data-scope="tree-view"][data-part="root"][data-size="xl"] {
+        --tree-text: var(--text-lg);
     }
 
     @media (prefers-reduced-motion: reduce) {

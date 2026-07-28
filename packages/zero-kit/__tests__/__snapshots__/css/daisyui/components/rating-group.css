@@ -114,10 +114,6 @@
         --rating-size: calc(var(--size-selector) * 5);
     }
 
-    [data-scope="rating-group"][data-part="root"][data-size="md"] {
-        --rating-size: calc(var(--size-selector) * 6);
-    }
-
     [data-scope="rating-group"][data-part="root"][data-size="lg"] {
         --rating-size: calc(var(--size-selector) * 7);
     }

@@ -299,22 +299,17 @@
 
     [data-scope="tabs"][data-part="root"][data-size="xs"] [data-scope="tabs"][data-part="tab"] {
         font-size: var(--text-xs);
-        padding: var(--space-2xs) var(--space-sm);
+        padding: var(--space-2xs) var(--space-md);
     }
 
     [data-scope="tabs"][data-part="root"][data-size="sm"] [data-scope="tabs"][data-part="tab"] {
         font-size: var(--text-xs);
-        padding: var(--space-xs) var(--space-md);
-    }
-
-    [data-scope="tabs"][data-part="root"][data-size="md"] [data-scope="tabs"][data-part="tab"] {
-        font-size: var(--text-sm);
-        padding: var(--space-sm) var(--space-lg);
+        padding: var(--space-xs) var(--space-lg);
     }
 
     [data-scope="tabs"][data-part="root"][data-size="lg"] [data-scope="tabs"][data-part="tab"] {
         font-size: var(--text-md);
-        padding: var(--space-md) var(--space-xl);
+        padding: var(--space-md) var(--space-2xl);
     }
 
     [data-scope="tabs"][data-part="root"][data-size="xl"] [data-scope="tabs"][data-part="tab"] {
@@ -503,11 +498,6 @@
     [data-scope="switch"][data-part="root"][data-size="sm"] {
         --switch-width: calc(var(--size-selector) * 10);
         --switch-height: calc(var(--size-selector) * 5.5);
-    }
-
-    [data-scope="switch"][data-part="root"][data-size="md"] {
-        --switch-width: calc(var(--size-selector) * 12);
-        --switch-height: calc(var(--size-selector) * 6.5);
     }
 
     [data-scope="switch"][data-part="root"][data-size="lg"] {
@@ -2167,11 +2157,6 @@
         --avatar-text: var(--text-xs);
     }
 
-    [data-scope="avatar"][data-part="root"][data-size="md"] {
-        --avatar-size: calc(var(--size-selector) * 10);
-        --avatar-text: var(--text-sm);
-    }
-
     [data-scope="avatar"][data-part="root"][data-size="lg"] {
         --avatar-size: calc(var(--size-selector) * 12);
         --avatar-text: var(--text-md);
@@ -2821,11 +2806,6 @@
         padding: var(--space-xs) var(--space-md);
     }
 
-    [data-scope="toggle-group"][data-part="root"][data-size="md"] [data-scope="toggle-group"][data-part="item"] {
-        font-size: var(--text-sm);
-        padding: var(--space-sm) var(--space-lg);
-    }
-
     [data-scope="toggle-group"][data-part="root"][data-size="lg"] [data-scope="toggle-group"][data-part="item"] {
         font-size: var(--text-md);
         padding: var(--space-md) var(--space-xl);
@@ -3052,13 +3032,8 @@
     }
 
     [data-scope="number-input"][data-part="root"][data-size="sm"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-sm);
+        font-size: var(--text-xs);
         padding: var(--space-xs) var(--space-sm);
-    }
-
-    [data-scope="number-input"][data-part="root"][data-size="md"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-sm);
-        padding: var(--space-sm) var(--space-md);
     }
 
     [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="input"] {
@@ -3188,10 +3163,6 @@
         --rating-size: calc(var(--size-selector) * 5);
     }
 
-    [data-scope="rating-group"][data-part="root"][data-size="md"] {
-        --rating-size: calc(var(--size-selector) * 6);
-    }
-
     [data-scope="rating-group"][data-part="root"][data-size="lg"] {
         --rating-size: calc(var(--size-selector) * 7);
     }
@@ -3214,6 +3185,7 @@
 @layer zero.recipes {
     [data-scope="tree-view"][data-part="root"] {
         --tree-accent: var(--color-primary);
+        --tree-text: var(--text-sm);
         --tree-on-accent: var(--color-primary-content);
     }
 
@@ -3243,7 +3215,7 @@
         align-items: center;
         gap: 0.625rem;
         padding: var(--space-sm) var(--space-md);
-        font-size: var(--text-sm);
+        font-size: var(--tree-text);
         font-weight: var(--weight-medium);
         border-radius: var(--radius-field);
         cursor: pointer;
@@ -3289,7 +3261,7 @@
         align-items: center;
         gap: 0.625rem;
         padding: var(--space-sm) var(--space-md);
-        font-size: var(--text-sm);
+        font-size: var(--tree-text);
         font-weight: var(--weight-medium);
         border-radius: var(--radius-field);
         cursor: pointer;
@@ -3381,24 +3353,20 @@
         --tree-on-accent: var(--color-error-content);
     }
 
-    [data-scope="tree-view"][data-part="root"][data-size="xs"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-xs);
+    [data-scope="tree-view"][data-part="root"][data-size="xs"] {
+        --tree-text: var(--text-xs);
     }
 
-    [data-scope="tree-view"][data-part="root"][data-size="sm"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-xs);
+    [data-scope="tree-view"][data-part="root"][data-size="sm"] {
+        --tree-text: var(--text-xs);
     }
 
-    [data-scope="tree-view"][data-part="root"][data-size="md"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-sm);
+    [data-scope="tree-view"][data-part="root"][data-size="lg"] {
+        --tree-text: var(--text-md);
     }
 
-    [data-scope="tree-view"][data-part="root"][data-size="lg"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-md);
-    }
-
-    [data-scope="tree-view"][data-part="root"][data-size="xl"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-lg);
+    [data-scope="tree-view"][data-part="root"][data-size="xl"] {
+        --tree-text: var(--text-lg);
     }
 
     @media (prefers-reduced-motion: reduce) {

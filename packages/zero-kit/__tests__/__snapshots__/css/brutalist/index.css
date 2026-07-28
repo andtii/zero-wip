@@ -427,18 +427,13 @@
         padding: var(--space-xs) var(--space-md);
     }
 
-    [data-scope="tabs"][data-part="root"][data-size="md"] [data-scope="tabs"][data-part="tab"] {
-        font-size: var(--text-sm);
-        padding: var(--space-sm) var(--space-lg);
-    }
-
     [data-scope="tabs"][data-part="root"][data-size="lg"] [data-scope="tabs"][data-part="tab"] {
-        font-size: var(--text-md);
+        font-size: var(--text-sm);
         padding: var(--space-md) var(--space-xl);
     }
 
     [data-scope="tabs"][data-part="root"][data-size="xl"] [data-scope="tabs"][data-part="tab"] {
-        font-size: var(--text-lg);
+        font-size: var(--text-md);
         padding: var(--space-lg) var(--space-2xl);
     }
 
@@ -1364,11 +1359,6 @@
         --switch-height: calc(var(--size-selector) * 6);
     }
 
-    [data-scope="switch"][data-part="root"][data-size="md"] {
-        --switch-width: calc(var(--size-selector) * 14);
-        --switch-height: calc(var(--size-selector) * 7);
-    }
-
     [data-scope="switch"][data-part="root"][data-size="lg"] {
         --switch-width: calc(var(--size-selector) * 16);
         --switch-height: calc(var(--size-selector) * 8);
@@ -2095,11 +2085,6 @@
         --avatar-text: var(--text-xs);
     }
 
-    [data-scope="avatar"][data-part="root"][data-size="md"] {
-        --avatar-size: calc(var(--size-selector) * 10);
-        --avatar-text: var(--text-sm);
-    }
-
     [data-scope="avatar"][data-part="root"][data-size="lg"] {
         --avatar-size: calc(var(--size-selector) * 12);
         --avatar-text: var(--text-md);
@@ -2775,18 +2760,13 @@
         padding: var(--space-xs) var(--space-md);
     }
 
-    [data-scope="toggle-group"][data-part="root"][data-size="md"] [data-scope="toggle-group"][data-part="item"] {
-        font-size: var(--text-sm);
-        padding: var(--space-sm) var(--space-lg);
-    }
-
     [data-scope="toggle-group"][data-part="root"][data-size="lg"] [data-scope="toggle-group"][data-part="item"] {
-        font-size: var(--text-md);
+        font-size: var(--text-sm);
         padding: var(--space-md) var(--space-xl);
     }
 
     [data-scope="toggle-group"][data-part="root"][data-size="xl"] [data-scope="toggle-group"][data-part="item"] {
-        font-size: var(--text-lg);
+        font-size: var(--text-md);
         padding: var(--space-lg) var(--space-2xl);
     }
 
@@ -3014,27 +2994,22 @@
 
     [data-scope="number-input"][data-part="root"][data-size="xs"] [data-scope="number-input"][data-part="input"] {
         font-size: var(--text-xs);
-        padding: var(--space-2xs) var(--space-xs);
+        padding: var(--space-2xs) var(--space-2xs);
     }
 
     [data-scope="number-input"][data-part="root"][data-size="sm"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-sm);
-        padding: var(--space-xs) var(--space-sm);
-    }
-
-    [data-scope="number-input"][data-part="root"][data-size="md"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-sm);
-        padding: var(--space-sm) var(--space-md);
+        font-size: var(--text-xs);
+        padding: var(--space-xs) var(--space-2xs);
     }
 
     [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-md);
-        padding: var(--space-md) var(--space-lg);
+        font-size: var(--text-sm);
+        padding: var(--space-md) var(--space-sm);
     }
 
     [data-scope="number-input"][data-part="root"][data-size="xl"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-lg);
-        padding: var(--space-lg) var(--space-xl);
+        font-size: var(--text-md);
+        padding: var(--space-lg) var(--space-md);
     }
 }
 
@@ -3167,10 +3142,6 @@
         --rating-size: var(--text-md);
     }
 
-    [data-scope="rating-group"][data-part="root"][data-size="md"] {
-        --rating-size: var(--text-xl);
-    }
-
     [data-scope="rating-group"][data-part="root"][data-size="lg"] {
         --rating-size: var(--text-2xl);
     }
@@ -3183,6 +3154,7 @@
 @layer zero.recipes {
     [data-scope="tree-view"][data-part="root"] {
         --tree-accent: var(--color-base-content);
+        --tree-text: var(--text-xs);
         --tree-on-accent: var(--color-base-100);
     }
 
@@ -3224,7 +3196,7 @@
         font-weight: var(--weight-semibold);
         letter-spacing: var(--tracking-wide);
         text-transform: uppercase;
-        font-size: var(--text-xs);
+        font-size: var(--tree-text);
         cursor: pointer;
         transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
     }
@@ -3271,7 +3243,7 @@
         font-weight: var(--weight-semibold);
         letter-spacing: var(--tracking-wide);
         text-transform: uppercase;
-        font-size: var(--text-xs);
+        font-size: var(--tree-text);
         cursor: pointer;
         transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
         user-select: none;
@@ -3361,23 +3333,19 @@
         --tree-on-accent: var(--color-error-content);
     }
 
-    [data-scope="tree-view"][data-part="root"][data-size="xs"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-xs);
+    [data-scope="tree-view"][data-part="root"][data-size="xs"] {
+        --tree-text: var(--text-xs);
     }
 
-    [data-scope="tree-view"][data-part="root"][data-size="sm"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-xs);
+    [data-scope="tree-view"][data-part="root"][data-size="sm"] {
+        --tree-text: var(--text-xs);
     }
 
-    [data-scope="tree-view"][data-part="root"][data-size="md"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-sm);
+    [data-scope="tree-view"][data-part="root"][data-size="lg"] {
+        --tree-text: var(--text-md);
     }
 
-    [data-scope="tree-view"][data-part="root"][data-size="lg"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-md);
-    }
-
-    [data-scope="tree-view"][data-part="root"][data-size="xl"] [data-scope="tree-view"][data-part="tree"] {
-        font-size: var(--text-lg);
+    [data-scope="tree-view"][data-part="root"][data-size="xl"] {
+        --tree-text: var(--text-lg);
     }
 }
