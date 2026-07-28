@@ -1,5 +1,9 @@
 @layer zero.recipes {
     [data-scope="number-input"][data-part="root"] {
+        --number-input-accent: var(--color-primary);
+    }
+
+    [data-scope="number-input"][data-part="root"] {
         display: inline-flex;
         flex-direction: column;
         gap: var(--space-xs);
@@ -46,7 +50,7 @@
     }
 
     [data-scope="number-input"][data-part="control"][data-focus-visible] {
-        outline: var(--border) solid var(--color-primary);
+        outline: var(--border) solid var(--number-input-accent);
         outline-offset: 3px;
     }
 
@@ -136,5 +140,57 @@
     [data-scope="number-input"][data-part="increment-trigger"][data-pressed]:not([data-disabled]) {
         background: var(--color-base-200);
         transform: translate(1px, 1px);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-color="primary"] {
+        --number-input-accent: var(--color-primary);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-color="secondary"] {
+        --number-input-accent: var(--color-secondary);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-color="accent"] {
+        --number-input-accent: var(--color-accent);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-color="neutral"] {
+        --number-input-accent: var(--color-neutral);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-color="info"] {
+        --number-input-accent: var(--color-info);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-color="success"] {
+        --number-input-accent: var(--color-success);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-color="warning"] {
+        --number-input-accent: var(--color-warning);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-color="error"] {
+        --number-input-accent: var(--color-error);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-size="xs"] [data-scope="number-input"][data-part="input"] {
+        font-size: var(--text-xs);
+        padding: var(--space-2xs) var(--space-2xs);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-size="sm"] [data-scope="number-input"][data-part="input"] {
+        font-size: var(--text-xs);
+        padding: var(--space-xs) var(--space-2xs);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="input"] {
+        font-size: var(--text-sm);
+        padding: var(--space-md) var(--space-sm);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-size="xl"] [data-scope="number-input"][data-part="input"] {
+        font-size: var(--text-md);
+        padding: var(--space-lg) var(--space-md);
     }
 }

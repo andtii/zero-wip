@@ -29,11 +29,10 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** tabs — color wired. */
+            /** tabs — color, size wired. */
             'tabs': {
                 color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
-                /** Accepts `size` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
-                size: never;
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -114,11 +113,10 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** switch — color wired. */
+            /** switch — color, size wired. */
             'switch': {
                 color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
-                /** Accepts `size` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
-                size: never;
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -171,12 +169,10 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** avatar — no axis wired by brutalist; every axis errors under this register module. */
+            /** avatar — color, size wired. */
             'avatar': {
-                /** Accepts `color` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -210,44 +206,37 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** toggle-group — color wired. */
+            /** toggle-group — color, size wired. */
             'toggle-group': {
                 color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
-                /** Accepts `size` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
-                size: never;
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** number-input — no axis wired by brutalist; every axis errors under this register module. */
+            /** number-input — color, size wired. */
             'number-input': {
-                /** Accepts `color` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** rating-group — no axis wired by brutalist; every axis errors under this register module. */
+            /** rating-group — color, size wired. */
             'rating-group': {
-                /** Accepts `color` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** tree-view — no axis wired by brutalist; every axis errors under this register module. */
+            /** tree-view — color, size wired. */
             'tree-view': {
-                /** Accepts `color` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;

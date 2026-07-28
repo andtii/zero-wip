@@ -458,6 +458,16 @@ export const tabs: RecipeInput = {
     },
     keyframes: rippleKeyframes('tab'),
     variants: {
+        size: {
+            xs: { tab: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-2xs)' } } },
+            sm: { tab: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } } },
+            // `md` is the un-attributed render: the base already IS the
+            // middle step, so restating it here would be a second copy free
+            // to drift. An empty entry emits no rule and keeps the base.
+            md: {},
+            lg: { tab: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-xs) var(--space-md)' } } },
+            xl: { tab: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-sm) var(--space-lg)' } } },
+        },
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--tabs-accent': `var(--color-${c})`,
         } } }])),
@@ -942,6 +952,15 @@ export const switchRecipe: RecipeInput = {
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
     },
     variants: {
+        size: {
+            xs: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 9)', '--switch-height': 'calc(var(--size-selector) * 5.5)' } } },
+            sm: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 11)', '--switch-height': 'calc(var(--size-selector) * 6.5)' } } },
+            // `md` is the un-attributed render — the defaults in `tokens:`
+            // already ARE the middle step.
+            md: {},
+            lg: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 15)', '--switch-height': 'calc(var(--size-selector) * 9)' } } },
+            xl: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 17)', '--switch-height': 'calc(var(--size-selector) * 10)' } } },
+        },
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--switch-accent': `var(--color-${c})`,
             '--switch-on-accent': `var(--color-${c}-content)`,
@@ -1302,13 +1321,18 @@ export const progress: RecipeInput = {
 
 export const avatar: RecipeInput = {
     component: 'avatar',
+    tokens: {
+        '--avatar-size': 'calc(var(--size-selector) * 10)',
+        '--avatar-accent': 'var(--color-surface-container-high)',
+        '--avatar-on-accent': 'var(--color-surface-container-high-content)',
+    },
     parts: {
         root: {
             base: {
                 position: 'relative',
                 display: 'inline-grid',
-                width: 'calc(var(--size-selector) * 10)',
-                height: 'calc(var(--size-selector) * 10)',
+                width: 'var(--avatar-size)',
+                height: 'var(--avatar-size)',
                 borderRadius: '9999px',
                 overflow: 'hidden',
                 verticalAlign: 'middle',
@@ -1335,14 +1359,32 @@ export const avatar: RecipeInput = {
                 placeItems: 'center',
                 width: '100%',
                 height: '100%',
-                background: 'var(--color-surface-container-high)',
-                color: 'var(--color-surface-container-high-content)',
+                background: 'var(--avatar-accent)',
+                color: 'var(--avatar-on-accent)',
                 userSelect: 'none',
             },
             // `display` must not defeat the `hidden` zero sets once the image
             // has loaded.
             selectors: { '&:not([hidden])': { display: 'grid' } },
             states: { loading: {}, loaded: {}, error: {} },
+        },
+    },
+    variants: {
+        // A tonal container, per Material's own avatar/monogram treatment —
+        // the tint carries the role, the ink is the role itself. Unattributed
+        // it stays on the neutral surface container it always used.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--avatar-accent': `var(--color-${c}-soft)`,
+            '--avatar-on-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 6)' } }, fallback: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 8)' } }, fallback: { base: { fontSize: 'var(--text-xs)' } } },
+            // `md` is the un-attributed render — the defaults in `tokens:`
+            // already ARE the middle step.
+            md: {},
+            lg: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 12)' } }, fallback: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 16)' } }, fallback: { base: { fontSize: 'var(--text-lg)' } } },
         },
     },
 };
@@ -1731,6 +1773,18 @@ export const toggleGroup: RecipeInput = {
     },
     keyframes: rippleKeyframes('toggle-group'),
     variants: {
+        // The group is a frame around its items, so the ramp lands on the
+        // items and the frame follows their box.
+        size: {
+            xs: { item: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-2xs)' } } },
+            sm: { item: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } } },
+            // `md` is the un-attributed render: the base already IS the
+            // middle step, so restating it here would be a second copy free
+            // to drift. An empty entry emits no rule and keeps the base.
+            md: {},
+            lg: { item: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-xs) var(--space-md)' } } },
+            xl: { item: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-sm) var(--space-lg)' } } },
+        },
         color: Object.fromEntries(ROLES.map((c) => [
             c,
             {
@@ -1782,6 +1836,7 @@ const stepper: PartStyles = withPresence(pressable('number-input'), {
  */
 export const numberInput: RecipeInput = {
     component: 'number-input',
+    tokens: { '--number-input-accent': 'var(--color-secondary)' },
     parts: {
         root: {
             base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
@@ -1812,7 +1867,7 @@ export const numberInput: RecipeInput = {
                 invalid: { borderColor: 'var(--color-error)' },
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 readonly: {},
-                ...focusRing,
+                'focus-visible': { ...focusRing['focus-visible'], outline: '3px solid var(--number-input-accent)' },
             },
         },
         input: {
@@ -1845,6 +1900,25 @@ export const numberInput: RecipeInput = {
     // The visible ring lives on `control`; the input delegates.
     skipStates: { input: ['focus-visible'] },
     keyframes: rippleKeyframes('number-input'),
+    variants: {
+        // The field's own ring carries the role — the chrome is neutral, so
+        // the focus state is the only place a number input can show colour.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--number-input-accent': `var(--color-${c})`,
+        } } }])),
+        // The readout carries the ramp; the steppers follow it so the frame
+        // stays proportional.
+        size: {
+            xs: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-2xs) var(--space-2xs)' } } },
+            sm: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-xs) var(--space-2xs)' } } },
+            // `md` is the un-attributed render: the base already IS the
+            // middle step, so restating it here would be a second copy free
+            // to drift. An empty entry emits no rule and keeps the base.
+            md: {},
+            lg: { input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-sm)' } } },
+            xl: { input: { base: { fontSize: 'var(--text-xl)', padding: 'var(--space-lg) var(--space-md)' } } },
+        },
+    },
 };
 
 // ── Rating group ──────────────────────────────────────────────────────────
@@ -1858,7 +1932,10 @@ export const numberInput: RecipeInput = {
  */
 export const ratingGroup: RecipeInput = {
     component: 'rating-group',
-    tokens: { '--rating-size': 'var(--text-xl)' },
+    tokens: {
+        '--rating-size': 'var(--text-xl)',
+        '--rating-fill': 'var(--color-primary)',
+    },
     parts: {
         root: {
             base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
@@ -1897,8 +1974,8 @@ export const ratingGroup: RecipeInput = {
                 transition: motion('color, transform'),
             },
             states: {
-                full: { color: 'var(--color-primary)' },
-                half: { color: 'var(--color-primary)' },
+                full: { color: 'var(--rating-fill)' },
+                half: { color: 'var(--rating-fill)' },
                 empty: {},
                 highlighted: { transform: 'scale(1.12)' },
                 disabled: { cursor: 'not-allowed' },
@@ -1914,6 +1991,25 @@ export const ratingGroup: RecipeInput = {
             at: {
                 'reduced-motion': { base: { transition: 'none' }, states: { highlighted: { transform: 'none' } } },
             },
+        },
+    },
+    variants: {
+        // A rating glyph is text on the page background, so the raw role is
+        // not always safe: daisy measured `--color-warning` at 1.62:1 on light
+        // base-100. Deepening every role toward its own content pair keeps the
+        // hue and clears 3:1 in both schemes — the same 70/30 mix daisy's
+        // default already uses.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--rating-fill': `color-mix(in oklab, var(--color-${c}) 70%, var(--color-${c}-content))`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--rating-size': 'var(--text-sm)' } } },
+            sm: { root: { base: { '--rating-size': 'var(--text-md)' } } },
+            // `md` is the un-attributed render — the defaults in `tokens:`
+            // already ARE the middle step.
+            md: {},
+            lg: { root: { base: { '--rating-size': 'var(--text-2xl)' } } },
+            xl: { root: { base: { '--rating-size': 'var(--text-3xl)' } } },
         },
     },
 };
@@ -1938,13 +2034,13 @@ const treeRow: PartStyles = {
         gap: 'var(--space-sm)',
         padding: 'var(--space-xs) var(--space-md)',
         borderRadius: 'var(--radius-selector)',
-        fontSize: 'var(--text-sm)',
+        fontSize: 'var(--tree-text)',
         cursor: 'pointer',
         userSelect: 'none',
         transition: motion('background'),
     },
     states: {
-        selected: { background: 'var(--color-secondary-soft)' },
+        selected: { background: 'var(--tree-accent)', color: 'var(--tree-on-accent)' },
         disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
         ...focusRing,
     },
@@ -1952,6 +2048,11 @@ const treeRow: PartStyles = {
 
 export const treeView: RecipeInput = {
     component: 'tree-view',
+    tokens: {
+        '--tree-accent': 'var(--color-secondary-soft)',
+        '--tree-text': 'var(--text-sm)',
+        '--tree-on-accent': 'var(--color-base-content)',
+    },
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
@@ -1990,6 +2091,23 @@ export const treeView: RecipeInput = {
         },
     },
     keyframes: rippleKeyframes('tree-view'),
+    variants: {
+        // A tree colours one thing: the selected row. Everything else is
+        // structure, and tinting it would fight the content.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--tree-accent': `var(--color-${c})`,
+            '--tree-on-accent': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--tree-text': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--tree-text': 'var(--text-xs)' } } },
+            // `md` is the un-attributed render: `--tree-text`'s default in
+            // `tokens:` already IS the middle step.
+            md: {},
+            lg: { root: { base: { '--tree-text': 'var(--text-md)' } } },
+            xl: { root: { base: { '--tree-text': 'var(--text-lg)' } } },
+        },
+    },
 };
 
 export const recipes: RecipeInput[] = [

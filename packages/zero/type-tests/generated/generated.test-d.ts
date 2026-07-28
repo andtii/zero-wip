@@ -62,9 +62,17 @@ const checkboxSize: SizeScaleFor<'checkbox'> = 'lg';
 // @ts-expect-error — wired means CLOSED: a typo still errors
 const checkboxTypo: ColorValueFor<'checkbox'> = 'primry';
 
-// ── still-unwired components keep the visible break ──
-// @ts-expect-error — avatar accepts data-color at runtime; material wires none
+// ── phase 4a (#168) wired the last four: avatar narrows instead of erroring ──
 const avatarColor: ColorValueFor<'avatar'> = 'primary';
+const avatarSize: SizeScaleFor<'avatar'> = 'xl';
+// @ts-expect-error — wired means CLOSED here too
+const avatarTypo: ColorValueFor<'avatar'> = 'primry';
+
+// ── the still-unwired axis keeps the visible break. `variant` is deferred
+//    on purpose (RFC 0003 §1.1): only button wires it, because its
+//    vocabulary is convention rather than contract ──
+// @ts-expect-error — avatar accepts data-variant at runtime; nothing wires it
+const avatarVariant: VariantValueFor<'avatar'> = 'solid';
 // @ts-expect-error — empty declared axes reject every bag entry
 const mintedAxis: AxesFor<'button'> = { density: 'compact' };
 

@@ -71,6 +71,26 @@
         border-block-start: var(--border) solid var(--color-base-300);
     }
 
+    [data-scope="toggle-group"][data-part="root"][data-size="xs"] [data-scope="toggle-group"][data-part="item"] {
+        font-size: var(--text-xs);
+        padding: var(--space-2xs) var(--space-sm);
+    }
+
+    [data-scope="toggle-group"][data-part="root"][data-size="sm"] [data-scope="toggle-group"][data-part="item"] {
+        font-size: var(--text-xs);
+        padding: var(--space-xs) var(--space-md);
+    }
+
+    [data-scope="toggle-group"][data-part="root"][data-size="lg"] [data-scope="toggle-group"][data-part="item"] {
+        font-size: var(--text-md);
+        padding: var(--space-md) var(--space-xl);
+    }
+
+    [data-scope="toggle-group"][data-part="root"][data-size="xl"] [data-scope="toggle-group"][data-part="item"] {
+        font-size: var(--text-lg);
+        padding: var(--space-lg) var(--space-2xl);
+    }
+
     [data-scope="toggle-group"][data-part="root"][data-color="primary"] [data-scope="toggle-group"][data-part="item"] {
         --toggle-group-accent: var(--color-primary);
         --toggle-group-on-accent: var(--color-primary-content);

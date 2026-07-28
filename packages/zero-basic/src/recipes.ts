@@ -147,6 +147,16 @@ export const tabs: RecipeInput = {
         },
     },
     variants: {
+        size: {
+            xs: { tab: { base: { fontSize: 'var(--text-xs)', padding: '0.25rem 0.5rem' } } },
+            sm: { tab: { base: { fontSize: 'var(--text-xs)', padding: '0.375rem 0.75rem' } } },
+            // `md` is the un-attributed render: the base already IS the
+            // middle step, so restating it here would be a second copy free
+            // to drift. An empty entry emits no rule and keeps the base.
+            md: {},
+            lg: { tab: { base: { fontSize: 'var(--text-md)', padding: '0.625rem 1.125rem' } } },
+            xl: { tab: { base: { fontSize: 'var(--text-lg)', padding: '0.75rem 1.375rem' } } },
+        },
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--tabs-accent': `var(--color-${c})`,
         } } }])),
@@ -259,6 +269,15 @@ export const switchRecipe: RecipeInput = {
         },
     },
     variants: {
+        size: {
+            xs: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 8)', '--switch-height': 'calc(var(--size-selector) * 4.5)' } } },
+            sm: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 9.5)', '--switch-height': 'calc(var(--size-selector) * 5.25)' } } },
+            // `md` is the un-attributed render — the defaults in `tokens:`
+            // already ARE the middle step.
+            md: {},
+            lg: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 13)', '--switch-height': 'calc(var(--size-selector) * 7)' } } },
+            xl: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 15)', '--switch-height': 'calc(var(--size-selector) * 8)' } } },
+        },
         color: Object.fromEntries(
             ROLES.map((c) => [
                 c,
@@ -1084,13 +1103,22 @@ export const button: RecipeInput = {
 
 export const avatar: RecipeInput = {
     component: 'avatar',
+    // Defaults live here rather than in `defaultVariants` — the toast shape:
+    // the un-attributed render IS the default, so `variants` only rebind and
+    // no `:not([data-color])` duplicate is emitted.
+    tokens: {
+        '--avatar-size': 'calc(var(--size-selector) * 10)',
+        '--avatar-text': 'var(--text-sm)',
+        '--avatar-accent': 'var(--color-primary-soft)',
+        '--avatar-on-accent': 'var(--color-primary)',
+    },
     parts: {
         root: {
             base: {
                 position: 'relative',
                 display: 'inline-grid',
-                width: 'calc(var(--size-selector) * 10)',
-                height: 'calc(var(--size-selector) * 10)',
+                width: 'var(--avatar-size)',
+                height: 'var(--avatar-size)',
                 borderRadius: 'var(--radius-selector)',
                 overflow: 'hidden',
                 verticalAlign: 'middle',
@@ -1113,9 +1141,9 @@ export const avatar: RecipeInput = {
                 placeItems: 'center',
                 width: '100%',
                 height: '100%',
-                background: 'var(--color-primary-soft)',
-                color: 'var(--color-primary)',
-                fontSize: 'var(--text-sm)',
+                background: 'var(--avatar-accent)',
+                color: 'var(--avatar-on-accent)',
+                fontSize: 'var(--avatar-text)',
                 fontWeight: 'var(--weight-semibold)',
                 userSelect: 'none',
             },
@@ -1123,6 +1151,23 @@ export const avatar: RecipeInput = {
             // has loaded.
             selectors: { '&:not([hidden])': { display: 'grid' } },
             states: { loading: {}, loaded: {}, error: {} },
+        },
+    },
+    variants: {
+        // Colour lands on the initials fallback, the only part an avatar
+        // colours — the image, when it loads, covers everything else.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--avatar-accent': `var(--color-${c}-soft)`,
+            '--avatar-on-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 6)', '--avatar-text': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 8)', '--avatar-text': 'var(--text-xs)' } } },
+            // `md` is the un-attributed render — the defaults in `tokens:`
+            // already ARE the middle step.
+            md: {},
+            lg: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 12)', '--avatar-text': 'var(--text-md)' } } },
+            xl: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 16)', '--avatar-text': 'var(--text-lg)' } } },
         },
     },
 };
@@ -1384,6 +1429,7 @@ export const combobox: RecipeInput = {
 
 export const numberInput: RecipeInput = {
     component: 'number-input',
+    tokens: { '--number-input-accent': 'var(--color-primary)' },
     parts: {
         root: {
             base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
@@ -1413,10 +1459,7 @@ export const numberInput: RecipeInput = {
                 invalid: { borderColor: 'var(--color-error)' },
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 readonly: {},
-                'focus-visible': {
-                    outline: '2px solid var(--color-primary)',
-                    outlineOffset: '2px',
-                },
+                'focus-visible': { ...focusRing['focus-visible'], outline: '2px solid var(--number-input-accent)' },
             },
         },
         input: {
@@ -1484,11 +1527,33 @@ export const numberInput: RecipeInput = {
     },
     // The visible ring lives on `control`; the input delegates.
     skipStates: { input: ['focus-visible'] },
+    variants: {
+        // The field's own ring carries the role — the chrome is neutral, so
+        // the focus state is the only place a number input can show colour.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--number-input-accent': `var(--color-${c})`,
+        } } }])),
+        // The readout carries the ramp; the steppers follow it so the frame
+        // stays proportional.
+        size: {
+            xs: { input: { base: { fontSize: 'var(--text-xs)', padding: '0.25rem 0.375rem' } } },
+            sm: { input: { base: { fontSize: 'var(--text-xs)', padding: '0.375rem 0.4375rem' } } },
+            // `md` is the un-attributed render: the base already IS the
+            // middle step, so restating it here would be a second copy free
+            // to drift. An empty entry emits no rule and keeps the base.
+            md: {},
+            lg: { input: { base: { fontSize: 'var(--text-md)', padding: '0.625rem 0.625rem' } } },
+            xl: { input: { base: { fontSize: 'var(--text-lg)', padding: '0.75rem 0.75rem' } } },
+        },
+    },
 };
 
 export const ratingGroup: RecipeInput = {
     component: 'rating-group',
-    tokens: { '--rating-size': 'var(--text-xl)' },
+    tokens: {
+        '--rating-size': 'var(--text-xl)',
+        '--rating-fill': 'var(--color-warning)',
+    },
     parts: {
         root: {
             base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
@@ -1525,8 +1590,8 @@ export const ratingGroup: RecipeInput = {
                     + 'transform var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                full: { color: 'var(--color-warning)' },
-                half: { color: 'var(--color-warning)' },
+                full: { color: 'var(--rating-fill)' },
+                half: { color: 'var(--rating-fill)' },
                 empty: {},
                 highlighted: { transform: 'scale(1.15)' },
                 disabled: { cursor: 'not-allowed' },
@@ -1540,10 +1605,34 @@ export const ratingGroup: RecipeInput = {
             },
         },
     },
+    variants: {
+        // A rating glyph is text on the page background, so the raw role is
+        // not always safe: daisy measured `--color-warning` at 1.62:1 on light
+        // base-100. Deepening every role toward its own content pair keeps the
+        // hue and clears 3:1 in both schemes — the same 70/30 mix daisy's
+        // default already uses.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--rating-fill': `color-mix(in oklab, var(--color-${c}) 70%, var(--color-${c}-content))`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--rating-size': 'var(--text-sm)' } } },
+            sm: { root: { base: { '--rating-size': 'var(--text-md)' } } },
+            // `md` is the un-attributed render — the defaults in `tokens:`
+            // already ARE the middle step.
+            md: {},
+            lg: { root: { base: { '--rating-size': 'var(--text-2xl)' } } },
+            xl: { root: { base: { '--rating-size': 'var(--text-3xl)' } } },
+        },
+    },
 };
 
 export const treeView: RecipeInput = {
     component: 'tree-view',
+    tokens: {
+        '--tree-accent': 'var(--color-primary)',
+        '--tree-text': 'var(--text-sm)',
+        '--tree-on-accent': 'var(--color-primary-content)',
+    },
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
@@ -1553,7 +1642,7 @@ export const treeView: RecipeInput = {
             base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
         },
         tree: {
-            base: { display: 'flex', flexDirection: 'column', fontSize: 'var(--text-sm)' },
+            base: { display: 'flex', flexDirection: 'column', fontSize: 'var(--tree-text)' },
         },
         // Indentation comes from branch-content's inline padding — depth is
         // the DOM nesting, no per-level rules needed.
@@ -1568,12 +1657,12 @@ export const treeView: RecipeInput = {
             },
             states: {
                 hover: { background: 'var(--color-base-200)' },
-                selected: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                selected: { background: 'var(--tree-accent)', color: 'var(--tree-on-accent)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '-2px' },
             },
             selectors: {
-                '&[data-selected]:hover': { background: 'var(--color-primary)' },
+                '&[data-selected]:hover': { background: 'var(--tree-accent)' },
             },
         },
         branch: {
@@ -1615,6 +1704,23 @@ export const treeView: RecipeInput = {
         'branch-content': {
             base: { display: 'flex', flexDirection: 'column', paddingInlineStart: '1rem' },
             states: { open: {}, closed: {} },
+        },
+    },
+    variants: {
+        // A tree colours one thing: the selected row. Everything else is
+        // structure, and tinting it would fight the content.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--tree-accent': `var(--color-${c})`,
+            '--tree-on-accent': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--tree-text': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--tree-text': 'var(--text-xs)' } } },
+            // `md` is the un-attributed render: `--tree-text`'s default in
+            // `tokens:` already IS the middle step.
+            md: {},
+            lg: { root: { base: { '--tree-text': 'var(--text-md)' } } },
+            xl: { root: { base: { '--tree-text': 'var(--text-lg)' } } },
         },
     },
 };
@@ -1760,6 +1866,18 @@ export const toggleGroup: RecipeInput = {
         },
     },
     variants: {
+        // The group is a frame around its items, so the ramp lands on the
+        // items and the frame follows their box.
+        size: {
+            xs: { item: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } } },
+            sm: { item: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-sm)' } } },
+            // `md` is the un-attributed render: the base already IS the
+            // middle step, so restating it here would be a second copy free
+            // to drift. An empty entry emits no rule and keeps the base.
+            md: {},
+            lg: { item: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-sm) var(--space-lg)' } } },
+            xl: { item: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-xl)' } } },
+        },
         color: Object.fromEntries(
             ROLES.map((c) => [
                 c,
