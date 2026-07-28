@@ -285,6 +285,26 @@ function main() {
         ].join('\n')
     );
 
+    // The generated /register subpath must resolve from the published shape,
+    // and its augmentation must bind against node_modules' @sigx/zero — the
+    // production direction of RFC 0002 §3.2 (the in-repo type tests cover the
+    // src-paths direction). One @ts-expect-error proves the narrowing is
+    // actually in force, not silently absent.
+    writeFileSync(
+        join(appDir, 'src', 'register-check.ts'),
+        [
+            "import '@sigx/zero-basic/register';",
+            "import type { ColorValueFor, VariantValueFor } from '@sigx/zero';",
+            '',
+            "const wired: ColorValueFor<'button'> = 'primary';",
+            "const fill: VariantValueFor<'button'> = 'ghost';",
+            '// @ts-expect-error — a typo must be rejected under the register module',
+            "const typo: ColorValueFor<'button'> = 'primry';",
+            'export { wired, fill, typo };',
+            '',
+        ].join('\n')
+    );
+
     // The authoring kit is Node-only and never enters an app bundle, so a
     // consumer uses it type-only from a DS package's build script. Prove the
     // published types resolve that way.

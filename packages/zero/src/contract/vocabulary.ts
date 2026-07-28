@@ -9,6 +9,7 @@
  * resolver falls back to the open union it replaced.
  */
 import type { ColorValue, SizeScale } from './tokens.js';
+import { TOKEN_CATEGORIES, tokenProperty } from './tokens.js';
 
 /**
  * Extension point: a design system's generated `/register` module augments
@@ -55,3 +56,72 @@ export type AxesFor<S extends string = string> =
         : Scoped<S> extends { axes: infer A }
             ? { [K in keyof A]?: Extract<A[K], string> }
             : Record<string, string>;
+
+type Wide<K extends string> =
+    ZeroVocabulary extends Record<K, infer V> ? (V extends string ? V : never) : never;
+
+/**
+ * Theme names, CLOSED on the authoring surface — `setTheme('dimm')` becoming
+ * an error is most of the value. Resolves to `string` while unaugmented.
+ */
+export type ZeroThemeName = [Wide<'theme'>] extends [never] ? string : Wide<'theme'>;
+
+/**
+ * Theme names on the LOOKUP surface — `getTheme`, `pairOf`, and anything a
+ * value can reach without the app having typed it (persisted storage, a
+ * runtime-registered tenant theme). Open with autocomplete: authoring is
+ * closed; anything that round-trips through storage or the registry is not.
+ */
+export type ZeroThemeNameOrCustom = ZeroThemeName | (string & {});
+
+/**
+ * Custom-property names, open with autocomplete: the design system is not the
+ * only writer — `--press-x/y/r` and friends are runtime-published, and an
+ * app's own properties are legal. Closing this would reject valid code.
+ */
+export type ZeroProperty = Wide<'property'> | (string & {});
+
+/** Breakpoint names, open with autocomplete — an app's own media queries are not confined to the ramp. */
+export type ZeroBreakpoint = Wide<'breakpoint'> | (string & {});
+
+/**
+ * The scale-shaped token categories — `border` and `disabled-opacity` are
+ * scalar (keyless) and excluded. Closed even unaugmented: declaring a new
+ * category root is a hard kit error, so there is no open case to preserve.
+ */
+export type ZeroTokenCategory =
+    Extract<typeof TOKEN_CATEGORIES[number], { shape: 'scale' }>['id'];
+
+/** A category's recommended keys — literal, because TOKEN_CATEGORIES is `as const satisfies`. */
+type RecommendedKeysOf<C extends ZeroTokenCategory> =
+    Extract<typeof TOKEN_CATEGORIES[number], { id: C }>['recommended'][number];
+
+/**
+ * The fallback is the category's RECOMMENDED keys, not bare `string`:
+ * unaugmented, `TokenKeyFor<'shadow'>` is `'xs' | … | 'xl' | (string & {})` —
+ * the exact shape of `SizeScale` — so autocomplete works before any design
+ * system opts in. A bare-`string` fallback would collapse the union and lose
+ * the autocomplete half of "autocomplete-but-open".
+ */
+type TokenKeysOf<C extends ZeroTokenCategory> =
+    ZeroVocabulary extends { tokens: infer T }
+        ? (C extends keyof T ? Extract<T[C], string> : RecommendedKeysOf<C>)
+        : RecommendedKeysOf<C>;
+
+/** Token keys per category, open with autocomplete — an app may define `--shadow-hero` itself. */
+export type TokenKeyFor<C extends ZeroTokenCategory> = TokenKeysOf<C> | (string & {});
+
+/** `cssVar('--shadow-level3')` → `'var(--shadow-level3)'`, with the property union's autocomplete. */
+export function cssVar(name: ZeroProperty): string {
+    return `var(${name})`;
+}
+
+/**
+ * `token('shadow', 'level3')` → `'var(--shadow-level3)'` — the category
+ * supplies its prefix, the key autocompletes from the design system's
+ * declared-plus-recommended set.
+ */
+export function token<C extends ZeroTokenCategory>(category: C, key: TokenKeyFor<C>): string {
+    const found = TOKEN_CATEGORIES.find((c) => c.id === category)!;
+    return `var(${tokenProperty(found, key)})`;
+}

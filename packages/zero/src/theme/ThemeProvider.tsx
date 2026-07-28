@@ -10,10 +10,11 @@
 import { component, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { createThemeController, useTheme } from './theme-state.js';
+import type { ZeroThemeName } from '../contract/vocabulary.js';
 import { DEFAULT_STORAGE_KEY } from './theme-state.js';
 
 export type ThemeProviderProps =
-    & Define.Prop<'theme', string | null, false>
+    & Define.Prop<'theme', ZeroThemeName | null, false>
     & Define.Prop<'storageKey', string, false>
     & Define.Slot<'default'>;
 
@@ -26,7 +27,7 @@ export const ThemeProvider = component<ThemeProviderProps>(({ props, slots }) =>
 }, { name: 'ThemeProvider' });
 
 export type ThemeScopeProps =
-    & Define.Prop<'theme', string, true>
+    & Define.Prop<'theme', ZeroThemeName, true>
     & Define.Prop<'class', string, false>
     & Define.Slot<'default'>;
 

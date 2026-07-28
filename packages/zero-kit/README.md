@@ -58,7 +58,11 @@ anchor `-soft` derivation, `light-dark()` emission and theme swatches.
 Declared roles are `@property`-registered in the compiled CSS and surfaced,
 with `sizes`, `variants`, `axes`, `system`, `custom` and `breakpoints`, in the
 DS's `dist/manifest.json` (which also lists every custom property the design
-system emits).
+system emits, and the axis values each recipe wires, per component).
+`writeArtifacts` additionally emits `dist/register.d.ts` — a **generated,
+never authored** augmentation of `@sigx/zero`'s `ZeroVocabulary`, so an app
+importing `@sigx/<ds>/register` gets the design system's themes, tokens and
+per-component axis values as closed types.
 
 Every variant axis works this way. `roles` names what `color` accepts,
 `sizes` what `size` accepts, `variants` what `variant` accepts, and `axes`

@@ -57,8 +57,11 @@ autocomplete. They are generic on the component scope through an empty
 `ZeroVocabulary` interface: a design system's **generated** `/register`
 module (emitted by `zero-kit build`; RFC 0002) augments it, and one
 `import '@sigx/<ds>/register'` at the app entry narrows every component's
-props to exactly what that design system's compiled CSS answers to. No
-import, no change — the open unions stay.
+props to exactly what that design system's compiled CSS answers to — plus
+theme names on the authoring surface (`setTheme('dimm')` becomes an error),
+custom-property and breakpoint autocomplete, and per-category token keys
+through the `cssVar(name)` and `token(category, key)` helpers. No import,
+no change — the open unions stay.
 
 ## For tooling / AI
 

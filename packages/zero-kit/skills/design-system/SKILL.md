@@ -406,13 +406,29 @@ component's anatomy). No component code is ever written or changed.
      Note `sizes` is the `data-size` axis — unrelated to `system.size`
      (`--size-*`, the control-sizing unit) and to `system.typography.sizes`
      (the `--text-*` ramp).
+   - **Declare the `variant` axis and any custom axes** (`tokens.variants` /
+     `tokens.axes`) with the values your recipes key on — declaring closes
+     the set, so a recipe typo is a build error instead of a silently minted
+     value, and the vocabulary reaches the manifest and the generated types:
+     ```ts
+     variants: ['solid', 'outline', 'soft', 'ghost'],
+     axes: { density: ['compact', 'comfortable'] },
+     ```
    - **You are not limited to three axes.** `color`, `size` and `variant` have
      named props because almost every design language has them. If the brief
-     needs another — density, emphasis, tone, elevation — key `variants` on it
-     and consumers reach it through zero's `axes` prop:
+     needs another — density, emphasis, tone, elevation — declare it in
+     `tokens.axes`, key `variants` on it, and consumers reach it through
+     zero's `axes` prop:
      ```ts
      variants: { density: { compact: { root: { base: { paddingBlock: 'var(--space-2xs)' } } } } },
      ```
+   - **`dist/register.d.ts` is generated, never authored.** `writeArtifacts`
+     emits it (with `dist/register.js`) from the compiled system: it augments
+     `@sigx/zero`'s `ZeroVocabulary`, so an app that adds
+     `import '@sigx/<your-ds>/register'` gets your themes, tokens and
+     per-component axis values as types. Add the `"./register"` entry to your
+     `package.json` `exports` (copy it from `@sigx/zero-basic`) and never
+     edit the emitted file.
      ```tsx
      <Button.Root color="primary" axes={{ density: 'compact' }}>Save</Button.Root>
      ```
