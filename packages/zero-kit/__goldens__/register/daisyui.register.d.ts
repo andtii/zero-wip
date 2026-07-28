@@ -4,7 +4,7 @@
 // vocabulary. Opt in with:  import '@sigx/<ds>/register';
 declare module '@sigx/zero' {
     interface ZeroVocabulary {
-        theme: 'light' | 'dark';
+        theme: 'light' | 'dark' | 'dim' | 'nord' | 'sunset';
         breakpoint: never;
         property: '--border' | '--color-accent' | '--color-accent-content' | '--color-accent-soft' | '--color-base-100' | '--color-base-200' | '--color-base-300' | '--color-base-content' | '--color-error' | '--color-error-content' | '--color-error-soft' | '--color-info' | '--color-info-content' | '--color-info-soft' | '--color-neutral' | '--color-neutral-content' | '--color-neutral-soft' | '--color-primary' | '--color-primary-content' | '--color-primary-soft' | '--color-secondary' | '--color-secondary-content' | '--color-secondary-soft' | '--color-success' | '--color-success-content' | '--color-success-soft' | '--color-warning' | '--color-warning-content' | '--color-warning-soft' | '--disabled-opacity' | '--duration-fast' | '--duration-normal' | '--duration-slow' | '--ease-standard' | '--font-mono' | '--font-sans' | '--leading-none' | '--leading-normal' | '--leading-tight' | '--radius-box' | '--radius-field' | '--radius-selector' | '--shadow-lg' | '--shadow-md' | '--shadow-sm' | '--shadow-xl' | '--shadow-xs' | '--size-field' | '--size-selector' | '--space-2xl' | '--space-2xs' | '--space-lg' | '--space-md' | '--space-sm' | '--space-xl' | '--space-xs' | '--tracking-normal' | '--tracking-wide' | '--weight-bold' | '--weight-medium' | '--weight-normal' | '--weight-semibold';
         tokens: {

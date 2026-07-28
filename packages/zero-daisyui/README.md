@@ -9,7 +9,7 @@ Tailwind, no daisyUI plugin — the whole skin is compiled CSS.
 import '@sigx/zero/css';
 import '@sigx/zero-daisyui/css';
 import { installThemes } from '@sigx/zero-daisyui';
-installThemes();   // registers the `light` / `dark` themes
+installThemes();   // registers the `light`/`dark` pair plus `dim`, `nord` and `sunset`
 ```
 
 Swap with `@sigx/zero-basic` (or your own generated design system) — same

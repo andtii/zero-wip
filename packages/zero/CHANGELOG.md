@@ -4,6 +4,13 @@
 
 ### Added
 
+- **`ThemeSource.defaultLight` / `defaultDark`** (RFC 0002 phase 5, #132):
+  the registry stores the source's declared scheme defaults (they flow
+  structurally from the kit's `TokensInput`, so `installThemes()` calls need
+  no change) and `pickThemeFor` prefers them over first-registered — the
+  latent bug only a third theme exposes. `clearThemes` drops them with the
+  themes. With one theme per scheme nothing changes.
+
 - **Theme, property, breakpoint and token-key narrowing** (RFC 0002 phase 3,
   #131): `ZeroThemeName` (closed on the authoring surface — `setTheme`, the
   `ThemeProvider`/`ThemeScope` `theme` props, `ThemeControllerOptions.initial`)
