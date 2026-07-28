@@ -30,7 +30,10 @@ const manifest = {
     components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
 };
 
-const COMPONENTS_DIR = resolve(import.meta.dirname, '../../zero/src/components');
+// Resolved from the vitest root, like every other filesystem-reading test
+// here: `import.meta.url` is rewritten by the test server and does not hit
+// disk (see `schemas.test.ts` and `contract-parity.test.ts`).
+const COMPONENTS_DIR = resolve(process.cwd(), 'packages/zero/src/components');
 
 /**
  * Component scopes whose props compose `WithVariantAxes`. The directory name

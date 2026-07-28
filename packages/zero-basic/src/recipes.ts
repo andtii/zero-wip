@@ -1459,10 +1459,7 @@ export const numberInput: RecipeInput = {
                 invalid: { borderColor: 'var(--color-error)' },
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 readonly: {},
-                'focus-visible': {
-                    outline: '2px solid var(--number-input-accent)',
-                    outlineOffset: '2px',
-                },
+                'focus-visible': { ...focusRing['focus-visible'], outline: '2px solid var(--number-input-accent)' },
             },
         },
         input: {
