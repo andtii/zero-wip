@@ -15,7 +15,7 @@
   3. **Axis vocabularies stay design-system-wide.** Per-component *narrowing*
      already exists in the generated types; per-component *declaration* waits for
      the content tier.
-  4. **A conformance claim is only as good as the artefact that executes it.**
+  4. **A conformance claim is only as good as the artifact that executes it.**
   5. **All of it lands before #17** — nothing is published, so every breaking
      change here is free exactly once.
 
@@ -377,12 +377,12 @@ Two gaps, both one rule each:
 ## 7. The conformance program
 
 An assertion that "any design system can be built on this" is worth nothing
-without artefacts that execute the claim. This section defines how the claim is
+without artifacts that execute the claim. This section defines how the claim is
 recorded, graded and kept honest.
 
-### 7.1 Three artefacts, split by lifetime
+### 7.1 Three artifacts, split by lifetime
 
-| Artefact | Path | Lifetime |
+| Artifact | Path | Lifetime |
 |---|---|---|
 | The rules — tiers, columns, what each fidelity grade means | this RFC | frozen |
 | The data — the matrix itself | `docs/design-system-conformance.md` | living |
@@ -439,12 +439,12 @@ One row per *(system × axis surface)*:
 6. **Fidelity** — `exact` (same prop name and shape) | `renamed` (adapter, same
    shape) | `reshaped` (e.g. boolean → modifier) | `unsupported`
 7. **Blocking gap** — issue number; empty if and only if `exact`
-8. **Proven by** — the in-repo executing artefact
+8. **Proven by** — the in-repo executing artifact
 
 ### 7.4 Staying honest — three mechanisms, no scraping
 
 1. **Column 8 is load-bearing.** A row may claim `exact` or `renamed` only if it
-   names a real, executing artefact: a fixture file, a design-system package, or
+   names a real, executing artifact: a fixture file, a design-system package, or
    a named test. That turns the document from prose into a test manifest.
 2. **A parity test**, in the shape of the existing `contract-parity.test.ts`:
    every Tier-1/2 row must have a fixture and every fixture must have a row.
