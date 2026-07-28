@@ -173,6 +173,56 @@ describe('compileRecipeCss', () => {
         expect(css).toContain('[data-variant="solid"][data-mod-block]');
     });
 
+    it('compound matches survive a defaulted axis being absent', () => {
+        // `defaultVariants` makes an attribute optional, so a compound naming a
+        // defaulted value has to match the ABSENT attribute too. Without the
+        // cross product `<Button color="primary">` — which carries no
+        // `data-variant` at all — misses the compound entirely, and nothing
+        // reports it.
+        const buttonComponent = manifest.components.find((c) => c.scope === 'button')!;
+        const recipe: RecipeInput = {
+            component: 'button',
+            parts: {},
+            variants: {
+                variant: { solid: { root: { base: { background: 'blue' } } } },
+                color: { primary: { root: { base: { color: 'white' } } } },
+            },
+            defaultVariants: { variant: 'solid' },
+            compoundVariants: [{
+                match: { variant: 'solid', color: 'primary' },
+                parts: { root: { base: { boxShadow: 'none' } } },
+            }],
+        };
+        const css = compileRecipeCss(recipe, buttonComponent);
+        expect(css).toContain('[data-variant="solid"][data-color="primary"]');
+        expect(css).toContain(':not([data-variant])[data-color="primary"]');
+    });
+
+    it('crosses every defaulted axis in a compound match', () => {
+        // Two defaulted axes → four rules, because either attribute may be
+        // absent independently.
+        const buttonComponent = manifest.components.find((c) => c.scope === 'button')!;
+        const recipe: RecipeInput = {
+            component: 'button',
+            parts: {},
+            variants: {
+                variant: { solid: { root: { base: { background: 'blue' } } } },
+                size: { md: { root: { base: { padding: '1rem' } } } },
+            },
+            defaultVariants: { variant: 'solid', size: 'md' },
+            compoundVariants: [{
+                match: { variant: 'solid', size: 'md' },
+                parts: { root: { base: { boxShadow: 'none' } } },
+            }],
+        };
+        const css = compileRecipeCss(recipe, buttonComponent);
+        for (const variant of ['[data-variant="solid"]', ':not([data-variant])']) {
+            for (const size of ['[data-size="md"]', ':not([data-size])']) {
+                expect(css).toContain(`${variant}${size}`);
+            }
+        }
+    });
+
     it('projects pseudo parts onto their host, pseudo-element last', () => {
         // Dialog's backdrop renders no element on the web — the anatomy
         // declares it `pseudo: { of: 'popup', selector: '::backdrop' }` and

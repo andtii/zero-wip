@@ -372,16 +372,36 @@ export function compileRecipeCss(
     }
 
     for (const compoundVariant of recipe.compoundVariants ?? []) {
-        const attrs = Object.entries(compoundVariant.match)
-            .map(([axis, value]) => (value === true
-                // A modifier in a match is presence-only, so it contributes a
-                // valueless attribute selector rather than an equality test.
-                ? `[${modAttr(axis, component.scope)}]`
-                : `[${axisAttr(axis, component.scope)}="${assertAxisToken('value', value, component.scope)}"]`))
-            .join('');
+        // `match` is a conjunction over two different grammars. An axis
+        // contributes an equality test, and a modifier — spelled `true` —
+        // contributes a presence-only attribute, which has no value to
+        // compare. On top of that, an axis sitting at its DEFAULT value is
+        // expressed by the attribute being absent as much as by it carrying
+        // the value, the same CSS-only default the single-axis loop emits
+        // above. So each entry contributes one alternative, or two when it is
+        // a defaulted axis value, and the rule set is their cross product.
+        // Without it a compound naming a defaulted axis matches nothing at
+        // all: `<Button color="primary">` under
+        // `defaultVariants: { variant: 'solid' }` carries no `data-variant`.
+        const alternatives = Object.entries(compoundVariant.match).map(([axis, value]) => {
+            if (value === true) return [`[${modAttr(axis, component.scope)}]`];
+            const attr = axisAttr(axis, component.scope);
+            const present = `[${attr}="${assertAxisToken('value', value, component.scope)}"]`;
+            return recipe.defaultVariants?.[axis] === value ? [present, `:not([${attr}])`] : [present];
+        });
+        const matches = alternatives.reduce<string[]>(
+            (acc, alts) => acc.flatMap((prefix) => alts.map((alt) => `${prefix}${alt}`)),
+            [''],
+        );
         for (const [partName, styles] of Object.entries(compoundVariant.parts)) {
             const { host, suffix } = partProjection(component, partName);
-            emitPartStyles(component, partName, styles, variantSelector(component, host, attrs), sink, context, registry, suffix);
+            // Separate rules rather than one comma-joined selector:
+            // `emitPartStyles` appends pseudo-element suffixes, state selectors
+            // and `&` substitutions to what it is handed, and those bind only to
+            // the last selector of a list.
+            for (const attrs of matches) {
+                emitPartStyles(component, partName, styles, variantSelector(component, host, attrs), sink, context, registry, suffix);
+            }
         }
     }
 

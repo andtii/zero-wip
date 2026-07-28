@@ -94,6 +94,25 @@
   one silently winning; now an error naming both roles. A role declaring
   `soft: false` frees the derived name, and is not flagged.
 
+- **`compoundVariants` silently ignored `defaultVariants`** (RFC 0003 §6.1,
+  #158). The single-axis loop mirrors a defaulted value onto the attribute's
+  absence (`:not([data-variant])`); the compound loop did not, so a compound
+  matching `{ variant: 'solid', color: 'primary' }` under
+  `defaultVariants: { variant: 'solid' }` never applied to
+  `<Button.Root color="primary">` — which carries no `data-variant` at all —
+  and nothing reported it. The compound selector is now the cross product of
+  each matched axis's alternatives, emitted as one rule per combination
+  (`emitPartStyles` appends pseudo-element suffixes and state selectors to what
+  it is handed, so a comma-joined list would bind them to the last selector
+  only). No shipped design system used `compoundVariants`, so no emitted CSS
+  changes.
+
+- **Two new compound-variant validator rules** (#158): an **error** when a
+  compound matches an axis the recipe never wires in `variants` — the generated
+  types harvest compound match values into the axis union, so such an axis
+  type-checks on its own and then matches nothing — and a **warning** when the
+  axis is wired but has no rule for that particular value.
+
 ### Changed
 
 - **`dist/manifest.json`'s `components` field changed shape**: from a bare

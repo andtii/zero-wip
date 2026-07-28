@@ -551,6 +551,26 @@ export function validateRecipes(
                 checkAxisName(axis, `${where}.compoundVariants`);
                 checkAxisValue(axis, value, `${where}.compoundVariants.${axis}`);
                 checkMembership(axis, value, `${where}.compoundVariants.${axis}`);
+                // A compound REFINES single-axis rules; it cannot be the only
+                // thing an axis or a value is wired by. The generated types
+                // harvest compound match values into the axis union, so an axis
+                // reachable only through a compound type-checks on its own and
+                // then matches nothing — the exact "accepts it, styles nothing"
+                // failure the axis vocabulary exists to make impossible.
+                const axisValues = recipe.variants?.[axis];
+                if (!axisValues) {
+                    error(
+                        `${where}.compoundVariants.${axis}`,
+                        `"${axis}" is matched by a compound but this recipe never wires it in \`variants\` — ` +
+                        `\`${axis}\` would be offered on its own and match nothing`,
+                    );
+                } else if (!Object.hasOwn(axisValues, value)) {
+                    warn(
+                        `${where}.compoundVariants.${axis}`,
+                        `"${value}" is matched by a compound but "${axis}" wires no rule for it ` +
+                        `(${Object.keys(axisValues).join(', ')}) — the combination styles it, the value alone does not`,
+                    );
+                }
                 // Same rule as `variants`: a match key is a variant axis, and a
                 // reserved one compiles to a selector the anatomy owns —
                 // `[data-pressed="…"]` never matches a presence-only flag.

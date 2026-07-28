@@ -312,6 +312,40 @@ describe('variants', () => {
         }).errors).not.toContainEqual(expect.stringContaining('must be spelled --like-this'));
     });
 
+    it('errors on a compound matching an axis the recipe never wires', () => {
+        // A compound REFINES single-axis rules. The generated types harvest
+        // compound match values into the axis union, so an axis reachable only
+        // through a compound type-checks on its own and then matches nothing.
+        expect(check({
+            component: 'tabs',
+            parts: {
+                root: { base: { display: 'flex' } },
+                tab: { states: { 'focus-visible': { outline: '1px solid' } } },
+            },
+            compoundVariants: [{
+                match: { color: 'primary' },
+                parts: { tab: { base: { color: 'red' } } },
+            }],
+        }).errors).toContainEqual(expect.stringContaining('never wires it in `variants`'));
+    });
+
+    it('warns on a compound refining a value the axis wires no rule for', () => {
+        // Weaker than the rule above: the axis IS wired, so it is not offered
+        // wholesale unstyled — only this one value styles nothing on its own.
+        expect(check({
+            component: 'tabs',
+            parts: {
+                root: { base: { display: 'flex' } },
+                tab: { states: { 'focus-visible': { outline: '1px solid' } } },
+            },
+            variants: { size: { md: { tab: { base: { fontSize: '1rem' } } } } },
+            compoundVariants: [{
+                match: { size: 'lg' },
+                parts: { tab: { base: { color: 'red' } } },
+            }],
+        }).warnings).toContainEqual(expect.stringContaining('the combination styles it, the value alone does not'));
+    });
+
     it('errors on a colour value that names no declared role', () => {
         // `data-color` passes through verbatim, so the selector is emitted and
         // simply never matches — dead CSS with no diagnostic. The probe design
