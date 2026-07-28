@@ -23,21 +23,15 @@ import type {
     PartProps,
     WithAsChild,
     WithClass,
-    WithColor,
     WithDisabled,
-    WithSize,
-    WithVariant,
-    WithAxes,
+    WithVariantAxes,
 } from '../../contract/props.js';
 import { buttonAnatomy } from './anatomy.js';
 
 const SCOPE = buttonAnatomy.scope;
 
 export type ButtonRootProps =
-    & WithColor
-    & WithSize
-    & WithVariant
-    & WithAxes
+    & WithVariantAxes<'button'>
     & WithDisabled
     & WithClass
     & WithAsChild

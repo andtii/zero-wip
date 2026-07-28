@@ -37,11 +37,8 @@ import type {
     PartProps,
     WithAsChild,
     WithClass,
-    WithColor,
     WithDisabled,
-    WithSize,
-    WithVariant,
-    WithAxes,
+    WithVariantAxes,
 } from '../../contract/props.js';
 import { selectAnatomy } from './anatomy.js';
 
@@ -103,10 +100,7 @@ export type SelectRootProps =
     & Define.Prop<'placement', Placement, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     & WithDisabled
-    & WithColor
-    & WithSize
-    & WithVariant
-    & WithAxes
+    & WithVariantAxes<'select'>
     & WithClass
     & Define.Slot<'default'>;
 

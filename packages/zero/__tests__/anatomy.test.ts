@@ -74,9 +74,12 @@ describe('anatomy registry', () => {
         // defineAnatomy carries no runtime guard for this (it is on every
         // component's size budget), so the registry is checked here instead.
         for (const anatomy of Object.values(anatomies)) {
-            for (const [name, part] of Object.entries(anatomy.parts)) {
+            // Widened: the registry carries literal part keys per scope now,
+            // and `pseudo.of` is a plain string being checked against them.
+            const parts: Record<string, { pseudo?: { of: string; selector: string } }> = anatomy.parts;
+            for (const [name, part] of Object.entries(parts)) {
                 if (part.pseudo) {
-                    expect(anatomy.parts[part.pseudo.of], `${anatomy.scope}.${name} → ${part.pseudo.of}`).toBeDefined();
+                    expect(parts[part.pseudo.of], `${anatomy.scope}.${name} → ${part.pseudo.of}`).toBeDefined();
                     expect(part.pseudo.selector).toMatch(/^::/);
                 }
             }

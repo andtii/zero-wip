@@ -27,6 +27,14 @@ export {
     defaultSwatch,
 } from './tokens.js';
 
+export type {
+    ZeroVocabulary,
+    ColorValueFor,
+    SizeScaleFor,
+    VariantValueFor,
+    AxesFor,
+} from './vocabulary.js';
+
 export type { FlagName, Orientation } from './data-attrs.js';
 export { FLAG_VOCABULARY, dataAttr, stateAttr } from './data-attrs.js';
 
@@ -40,9 +48,10 @@ export type {
     WithSize,
     WithVariant,
     WithAxes,
+    WithVariantAxes,
     WithOrientation,
     WithAsChild,
     PartProps,
 } from './props.js';
-export { variantAttrs, RESERVED_AXES } from './props.js';
+export { variantAttrs, RESERVED_AXES, VARIANT_AXES } from './props.js';
 export { renderAsChild } from './as-child.js';

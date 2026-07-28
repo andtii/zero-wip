@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "strict": true,
+        "noEmit": true,
+        "jsx": "react-jsx",
+        "jsxImportSource": "sigx",
+        "esModuleInterop": true,
+        // skipLibCheck stays on for DEPENDENCY declarations (runtime-core's
+        // shipped d.ts currently fails a full lib check), so the register
+        // stand-in is a .ts module rather than a .d.ts — skipLibCheck skips
+        // only declaration files, and the whole point of the augmented
+        // project is that the register file itself is semantically checked.
+        // Phase 3's generator gate must compile the real EMITTED .d.ts with
+        // lib checking on, since an app's skipLibCheck would skip it.
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "types": [],
+        "paths": {
+            "@sigx/zero": ["../src/index.ts"],
+            "@sigx/zero/*": ["../src/*"]
+        }
+    }
+}

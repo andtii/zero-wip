@@ -40,7 +40,7 @@ export {
     ratingGroupAnatomy, treeViewAnatomy,
 };
 
-export const anatomies: Record<string, Anatomy> = {
+export const anatomies = {
     button: buttonAnatomy,
     tabs: tabsAnatomy,
     collapsible: collapsibleAnatomy,
@@ -64,4 +64,19 @@ export const anatomies: Record<string, Anatomy> = {
     'number-input': numberInputAnatomy,
     'rating-group': ratingGroupAnatomy,
     'tree-view': treeViewAnatomy,
-};
+} as const satisfies Record<string, Anatomy>;
+
+/**
+ * The registry with its literal keys — `as const satisfies` rather than a
+ * `Record` annotation, which would erase the key set this type exists to
+ * carry.
+ */
+export type ZeroAnatomies = typeof anatomies;
+
+/**
+ * Every component scope, as a closed literal union. A generated
+ * `register.d.ts` asserts its `components` keys against this, so a typo'd or
+ * version-skewed scope fails to compile instead of silently taking the open
+ * fallback (RFC 0002 §3.1).
+ */
+export type ZeroScope = keyof ZeroAnatomies & string;

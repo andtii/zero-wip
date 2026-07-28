@@ -21,11 +21,8 @@ import type {
     PartProps,
     WithAsChild,
     WithClass,
-    WithColor,
     WithDisabled,
-    WithSize,
-    WithVariant,
-    WithAxes,
+    WithVariantAxes,
 } from '../../contract/props.js';
 import { toggleAnatomy } from './anatomy.js';
 
@@ -37,10 +34,7 @@ export type ToggleRootProps =
     & Define.Event<'pressedChange', boolean>
     /** Accessible name (`aria-label`) — required for icon-only toggles. */
     & Define.Prop<'label', string, false>
-    & WithColor
-    & WithSize
-    & WithVariant
-    & WithAxes
+    & WithVariantAxes<'toggle'>
     & WithDisabled
     & WithClass
     & WithAsChild

@@ -44,6 +44,9 @@ const SHARED: Record<string, [unknown, unknown]> = {
     // meaning here, and this is the list the validator must reject by exactly
     // when the runtime refuses to render it.
     RESERVED_AXES: [[...zero.RESERVED_AXES].sort(), [...kit.RESERVED_AXES].sort()],
+    // The named-prop axes and the attributes they render. Zero's copy guards
+    // the runtime `axes` bag; the kit's drives selector emission.
+    VARIANT_AXES: [zero.VARIANT_AXES, kit.VARIANT_AXES],
 };
 
 /**

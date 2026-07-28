@@ -27,7 +27,7 @@ import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr, type Orientation } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import type { PartProps, WithAsChild, WithClass, WithColor, WithDisabled, WithOrientation, WithSize, WithVariant, WithAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithOrientation, WithVariantAxes } from '../../contract/props.js';
 import { tabsAnatomy } from './anatomy.js';
 import { provideTabsContext, useTabsContext, type TabsActivationMode, type TabsContext } from './context.js';
 
@@ -42,10 +42,7 @@ export type TabsRootProps =
     & Define.Prop<'activationMode', TabsActivationMode, false>
     & Define.Prop<'loop', boolean, false>
     & WithOrientation
-    & WithColor
-    & WithSize
-    & WithVariant
-    & WithAxes
+    & WithVariantAxes<'tabs'>
     & WithClass
     & Define.Slot<'default'>;
 

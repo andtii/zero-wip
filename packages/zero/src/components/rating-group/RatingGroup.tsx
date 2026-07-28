@@ -34,11 +34,8 @@ import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
 import type {
     WithClass,
-    WithColor,
     WithDisabled,
-    WithSize,
-    WithVariant,
-    WithAxes,
+    WithVariantAxes,
 } from '../../contract/props.js';
 import { ratingGroupAnatomy } from './anatomy.js';
 
@@ -116,10 +113,7 @@ export type RatingGroupRootProps =
     & Define.Prop<'invalid', boolean, false>
     & Define.Prop<'readonly', boolean, false>
     & WithDisabled
-    & WithColor
-    & WithSize
-    & WithVariant
-    & WithAxes
+    & WithVariantAxes<'rating-group'>
     & WithClass
     & Define.Slot<'default'>;
 

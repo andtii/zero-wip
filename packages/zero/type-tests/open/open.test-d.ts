@@ -1,0 +1,44 @@
+/**
+ * The UNAUGMENTED contract — no register module anywhere in this project.
+ *
+ * This is the regression test for the fallback branch: an empty
+ * `ZeroVocabulary` must resolve every scoped helper to exactly the open union
+ * it replaced, so a project that never imports a `/register` module compiles
+ * byte-for-byte as before (the four-design-system playground depends on it).
+ */
+import type {
+    AxesFor,
+    ColorValue,
+    ColorValueFor,
+    SizeScale,
+    SizeScaleFor,
+    VariantValueFor,
+    ZeroScope,
+} from '@sigx/zero';
+import type { Equal, MustBeTrue } from '../assert.js';
+
+// The scoped forms ARE the open unions — not merely compatible, identical.
+export type _colorIsOpen = MustBeTrue<Equal<ColorValueFor<'button'>, ColorValue>>;
+export type _sizeIsOpen = MustBeTrue<Equal<SizeScaleFor<'button'>, SizeScale>>;
+export type _variantIsOpen = MustBeTrue<Equal<VariantValueFor<'button'>, string>>;
+export type _axesAreOpen = MustBeTrue<Equal<AxesFor<'button'>, Record<string, string>>>;
+
+// A scope no component declares behaves the same — unaugmented, everything
+// falls back; there is nothing to be wrong about.
+export type _unknownScopeIsOpen = MustBeTrue<Equal<ColorValueFor<'no-such-scope'>, ColorValue>>;
+
+// The defaults keep un-scoped usage meaning "open".
+export type _defaultIsOpen = MustBeTrue<Equal<ColorValueFor, ColorValue>>;
+
+// Open means open: any string is accepted, recommended names still narrow in.
+const typo: ColorValueFor<'button'> = 'primry';
+const recommended: ColorValueFor<'button'> = 'primary';
+const anyAxis: AxesFor<'checkbox'> = { density: 'compact', anything: 'goes' };
+
+// The scope union tracks the anatomy registry.
+const button: ZeroScope = 'button';
+const treeView: ZeroScope = 'tree-view';
+// @ts-expect-error — a scope the registry lacks is not a ZeroScope
+const nope: ZeroScope = 'no-such-scope';
+
+export { typo, recommended, anyAxis, button, treeView, nope };

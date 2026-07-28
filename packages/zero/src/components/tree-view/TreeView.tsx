@@ -48,11 +48,8 @@ import type {
     PartProps,
     WithAsChild,
     WithClass,
-    WithColor,
     WithDisabled,
-    WithSize,
-    WithVariant,
-    WithAxes,
+    WithVariantAxes,
 } from '../../contract/props.js';
 import { treeViewAnatomy } from './anatomy.js';
 
@@ -121,10 +118,7 @@ export type TreeViewRootProps =
     & Define.Prop<'defaultExpandedValues', string[], false>
     & Define.Event<'expandedChange', string[]>
     & WithDisabled
-    & WithColor
-    & WithSize
-    & WithVariant
-    & WithAxes
+    & WithVariantAxes<'tree-view'>
     & WithClass
     & Define.Slot<'default'>;
 

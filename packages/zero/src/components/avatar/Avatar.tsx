@@ -19,7 +19,7 @@ import { component, compound, defineInjectable, defineProvide, watch } from 'sig
 import type { Define } from 'sigx';
 import { variantAttrs } from '../../contract/props.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import type { PartProps, WithAsChild, WithClass, WithColor, WithSize, WithVariant, WithAxes } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithVariantAxes } from '../../contract/props.js';
 import { avatarAnatomy } from './anatomy.js';
 
 const SCOPE = avatarAnatomy.scope;
@@ -41,10 +41,7 @@ export const useAvatarContext = defineInjectable<AvatarContext>(() => makeInert(
 
 export type AvatarRootProps =
     & Define.Event<'statusChange', AvatarStatus>
-    & WithColor
-    & WithSize
-    & WithVariant
-    & WithAxes
+    & WithVariantAxes<'avatar'>
     & WithClass
     & Define.Slot<'default'>;
 
