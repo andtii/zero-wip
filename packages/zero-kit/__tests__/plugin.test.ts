@@ -147,6 +147,16 @@ describe('loadManifest diagnostics', () => {
         const dir = projectDir({ 'm.json': JSON.stringify({ components: [] }) });
         await expect(loadManifest(dir, './m.json')).resolves.toEqual({ components: [] });
     });
+
+    it('reports an unresolvable module specifier as such', async () => {
+        // --manifest takes a path, but the documented default is the specifier
+        // `@sigx/zero/manifest.json`, so that form must resolve rather than be
+        // read as a directory named "@sigx".
+        const dir = projectDir({ 'package.json': pkg({}) });
+        await expect(loadManifest(dir, '@sigx/nope/manifest.json')).rejects.toThrow(
+            /cannot resolve the anatomy manifest "@sigx\/nope\/manifest\.json"/,
+        );
+    });
 });
 
 describe('zero:validate args', () => {

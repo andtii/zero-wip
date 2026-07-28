@@ -134,9 +134,10 @@ sigx zero:build    [entry] [--manifest <path>] [--out <dir>]
 
 `entry` is a compiled ES module (default `./dist/design-system.js`) exporting
 the design system as `designSystem` or as its default export. `--manifest`
-defaults to the generated `dist/manifest.json` of whichever `@sigx/zero` the
-project has installed, so the contract checked is the one you ship. `--strict`
-turns warnings into a failure — the flag to use in CI.
+defaults to `@sigx/zero/manifest.json` resolved from the current directory, so
+the contract checked is the one the project ships; it takes either a path or a
+module specifier. `--strict` turns warnings into a failure — the flag to use in
+CI.
 
 The commands are namespaced so another plugin's `build` can't shadow them; the
 bare `sigx build` / `sigx validate` aliases also resolve when nothing else

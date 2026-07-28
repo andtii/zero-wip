@@ -25,25 +25,43 @@ export interface CommandEnv {
     logger: Logger;
 }
 
+/** A bare or scoped package specifier, as opposed to a relative/absolute path. */
+function isModuleSpecifier(value: string): boolean {
+    return !value.startsWith('.') && !value.startsWith('/') && !value.startsWith('\\') && !/^[a-zA-Z]:/.test(value);
+}
+
 /**
  * The anatomy manifest to validate against. Defaults to the manifest generated
  * by whichever `@sigx/zero` the project has installed — resolved from `cwd`,
  * not from this package, so the contract checked is the one the project ships.
+ *
+ * `--manifest` takes a path, but also accepts a module specifier: the default
+ * is documented as `@sigx/zero/manifest.json`, so passing that exact string
+ * must work rather than being read as a directory named `@sigx`.
  */
 export async function loadManifest(cwd: string, explicit?: string): Promise<ZeroManifest> {
-    let path = explicit;
-    if (!path) {
+    const require = createRequire(resolve(cwd, 'package.json'));
+    let path: string;
+
+    if (!explicit) {
         // Bare MODULE_NOT_FOUND here reads as an internal failure — it means
         // the project has no @sigx/zero, or the command ran somewhere without
         // one. Name both the cause and the escape hatch.
         try {
-            const require = createRequire(resolve(cwd, 'package.json'));
             path = require.resolve('@sigx/zero/manifest.json');
         } catch {
             throw new Error(
                 `cannot resolve @sigx/zero/manifest.json from ${cwd} — install @sigx/zero there, or pass --manifest <path>`,
             );
         }
+    } else if (isModuleSpecifier(explicit)) {
+        try {
+            path = require.resolve(explicit);
+        } catch {
+            throw new Error(`cannot resolve the anatomy manifest "${explicit}" from ${cwd}`);
+        }
+    } else {
+        path = explicit;
     }
 
     const resolved = resolve(cwd, path);
