@@ -6,6 +6,14 @@ import {
     TreeView, toast,
 } from '@sigx/zero';
 import { Toolbar } from './Toolbar';
+import { activeDesignSystem } from './design-systems';
+
+/**
+ * Four roles is enough to read a variant row; eight or thirteen turns it into
+ * a wall. The design system still decides WHICH four, so a system that renames
+ * or drops them shows its own.
+ */
+const SWATCH_LIMIT = 4;
 
 const avatarSvg = (hue: number): string =>
     'data:image/svg+xml,' + encodeURIComponent(
@@ -41,6 +49,11 @@ export const App = component(() => {
         file: '',
     });
 
+    // Read inside the render closure, so switching design systems re-renders
+    // the rows against the newly active vocabulary.
+    const axes = () => activeDesignSystem().vocabulary;
+    const swatchColors = () => axes().colors.slice(0, SWATCH_LIMIT);
+
     return () => (
         <main style={{ maxWidth: '40rem', margin: '2rem auto', fontFamily: 'system-ui, sans-serif', padding: '0 1rem' }}>
             <h1>SignalX Zero playground</h1>
@@ -58,26 +71,46 @@ export const App = component(() => {
                 <Tabs.Panel value="components">
                     <h2>Button</h2>
                     <p>
-                        The variant axes the contract has always advertised, now with
-                        somewhere to apply them. <code>color</code> sets an accent pair;
-                        <code>variant</code> decides how the accent is used — so the two
-                        axes compose instead of multiplying.
+                        Every row below is read from the active design system's compiled
+                        manifest, not from a list written here — so a design system with
+                        seven variants shows seven, and one with no <code>color</code>{' '}
+                        axis shows no colour row at all. Nothing in this file knows which
+                        design system is loaded.
                     </p>
-                    {(['solid', 'outline', 'soft', 'ghost'] as const).map((variant) => (
+                    {axes().variants.map((variant) => (
                         <p style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                            <code style={{ width: '4rem' }}>{variant}</code>
-                            {(['primary', 'success', 'warning', 'error'] as const).map((color) => (
-                                <Button.Root color={color} variant={variant}>{color}</Button.Root>
-                            ))}
+                            <code style={{ width: '7rem' }}>{variant}</code>
+                            {/*
+                              * A colourless design system fuses colour into `variant`,
+                              * so there is nothing to cross it with — one button per
+                              * variant is the whole story there.
+                              */}
+                            {axes().colors.length === 0
+                                ? <Button.Root variant={variant}>{variant}</Button.Root>
+                                : swatchColors().map((color) => (
+                                    <Button.Root color={color} variant={variant}>{color}</Button.Root>
+                                ))}
                             <Button.Root variant={variant} disabled>disabled</Button.Root>
                         </p>
                     ))}
                     <p style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <code style={{ width: '4rem' }}>size</code>
-                        {(['xs', 'sm', 'md', 'lg', 'xl'] as const).map((size) => (
+                        <code style={{ width: '7rem' }}>size</code>
+                        {axes().sizes.map((size) => (
                             <Button.Root size={size}>{size}</Button.Root>
                         ))}
                     </p>
+                    {axes().modifiers.length > 0 && (
+                        <p style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                            {/*
+                              * Presence-only: `mods` renders `data-mod-<name>` with no
+                              * value, the way the anatomy's own flags do.
+                              */}
+                            <code style={{ width: '7rem' }}>mods</code>
+                            {axes().modifiers.map((mod) => (
+                                <Button.Root mods={{ [mod]: true }}>{mod}</Button.Root>
+                            ))}
+                        </p>
+                    )}
 
                     <h2>Switch</h2>
                     <Switch.Root model={() => state.switchOn}>Notifications</Switch.Root>

@@ -17,7 +17,8 @@
         "@sigx/zero-daisyui": "workspace:^",
         "sigx": "catalog:",
         "@sigx/zero-material": "workspace:^",
-        "@sigx/zero-brutalist": "workspace:^"
+        "@sigx/zero-brutalist": "workspace:^",
+        "@sigx/zero-heroui": "workspace:^"
     },
     "devDependencies": {
         "@sigx/vite": "catalog:",

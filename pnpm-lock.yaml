@@ -77,6 +77,9 @@ importers:
       '@sigx/zero-daisyui':
         specifier: workspace:^
         version: link:../../packages/zero-daisyui
+      '@sigx/zero-heroui':
+        specifier: workspace:^
+        version: link:../../packages/zero-heroui
       '@sigx/zero-material':
         specifier: workspace:^
         version: link:../../packages/zero-material
