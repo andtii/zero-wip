@@ -54,9 +54,10 @@ function componentEntry(scope: string, axes: CompiledComponentAxes, dsName: stri
         ].join('\n');
     };
     // Empty axes MUST be Record<string, never>, not {} — `{}` is the top
-    // object type and would silently permit any bag (RFC 0002 §5).
+    // object type and would silently permit any bag (RFC 0002 §5). Axis keys
+    // are quoted for the same reason scope keys are: they are kebab-case.
     const axesLine = custom.length > 0
-        ? `                axes: { ${custom.map((a) => `${a}: ${union(axes.axes[a]!)}`).join('; ')} };`
+        ? `                axes: { ${custom.map((a) => `'${a}': ${union(axes.axes[a]!)}`).join('; ')} };`
         : '                axes: Record<string, never>;';
 
     return [

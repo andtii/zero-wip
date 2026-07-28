@@ -86,13 +86,18 @@ describe('the generated shapes', () => {
         expect(dts).not.toMatch(/axes: \{\};/);
     });
 
-    it('emits custom axes as a per-axis map', () => {
+    it('emits custom axes as a per-axis map, keys quoted for kebab-case names', () => {
         const dts = compileRegisterDts(compile({
             component: 'tabs',
             parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
-            variants: { density: { compact: { tab: { base: { padding: '0' } } }, comfortable: { tab: { base: { padding: '1rem' } } } } },
+            variants: {
+                density: { compact: { tab: { base: { padding: '0' } } }, comfortable: { tab: { base: { padding: '1rem' } } } },
+                // A hyphenated axis name is valid vocabulary but not a valid
+                // bare TS identifier — unquoted it is a syntax error.
+                'tone-map': { high: { tab: { base: { filter: 'contrast(1.2)' } } } },
+            },
         }));
-        expect(dts).toContain("axes: { density: 'compact' | 'comfortable' };");
+        expect(dts).toContain("axes: { 'density': 'compact' | 'comfortable'; 'tone-map': 'high' };");
     });
 
     it('records defaultVariants in the manifest harvest without widening any union', () => {
