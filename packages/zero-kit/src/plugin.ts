@@ -25,7 +25,7 @@ const entryArg = a
 const manifestArg = a
     .string()
     .valueHint('path')
-    .describe("Anatomy manifest path (default: the installed @sigx/zero's)");
+    .describe("Anatomy manifest path (default: the installed @sigx/zero's manifest.json)");
 
 /**
  * A design-system package: one that pulls in the kit, or that has the
