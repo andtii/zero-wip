@@ -4,6 +4,18 @@
 
 ### Removed
 
+- **BREAKING — `ThemeInput.components` is gone** (RFC 0003 §6.2, #160). It was
+  documented as per-component theme overrides, but the emitter discarded the
+  component key and wrote every value at theme scope. Worse, those values land
+  in `@layer zero.tokens` while `recipe.tokens` declarations land in
+  `@layer zero.recipes`, which `packages/zero/css/base.css` orders later — so a
+  `theme.components` entry could never override a component token a recipe
+  declares, which is exactly what the field was named for. Where it did work
+  (defining a token a recipe only references) it was indistinguishable from
+  `theme.extra`. No design system used it, and the emitted CSS is unchanged.
+  Migration: `components: { button: { '--btn-radius': v } }` →
+  `extra: { '--btn-radius': v }`, with the same cascade-layer caveat.
+
 - **BREAKING — the `zero-kit` binary is gone.** Its two commands are now
   contributed to the [`sigx` CLI](https://www.npmjs.com/package/@sigx/cli) as a
   plugin: `zero-kit build` → `sigx zero:build`, `zero-kit validate` →

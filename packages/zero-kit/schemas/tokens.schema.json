@@ -371,16 +371,6 @@
                     "additionalProperties": {
                         "type": "string"
                     }
-                },
-                "components": {
-                    "description": "Component-token overrides: component scope \u2192 { custom property \u2192 value }, e.g. { \"button\": { \"--btn-radius\": \"9999px\" } }.",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "string"
-                        }
-                    }
                 }
             }
         }

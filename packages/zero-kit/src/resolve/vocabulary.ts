@@ -119,20 +119,16 @@ export function tokenVocabulary(tokens: TokensInput<any, any>): TokenVocabulary 
     // reference them even though no design system declares them ──
     for (const name of RUNTIME_PROPERTIES) names.add(name);
 
-    // ── declared custom tokens, plus the untyped escape hatches. `extra` and
-    // `components` are emitted verbatim, so a reference to one resolves —
-    // they get their own "declare it instead" warning elsewhere. ──
+    // ── declared custom tokens, plus the untyped escape hatch. `extra` is
+    // emitted verbatim, so a reference to one resolves — it gets its own
+    // "declare it instead" warning elsewhere. ──
     for (const name of Object.keys(tokens.custom ?? {})) names.add(normProp(name));
     for (const theme of Object.values(tokens.themes ?? {})) {
         const t = theme as {
             custom?: Record<string, string>;
             extra?: Record<string, string>;
-            components?: Record<string, Record<string, string>>;
         };
         for (const name of Object.keys(t.extra ?? {})) names.add(normProp(name));
-        for (const overrides of Object.values(t.components ?? {})) {
-            for (const name of Object.keys(overrides)) names.add(normProp(name));
-        }
     }
 
     return {

@@ -170,8 +170,6 @@ export interface ThemeInput<R extends RolesDecl = RolesDecl, T extends SystemTok
     custom?: Record<string, string>;
     /** DS-specific extra tokens, emitted verbatim (undeclared escape hatch — prefer `custom`). */
     extra?: Record<string, string>;
-    /** Component-token overrides: `{ button: { '--btn-radius': '9999px' } }`. */
-    components?: Record<string, Record<string, string>>;
 }
 
 export interface TokensInput<R extends RolesDecl = RolesDecl, T extends SystemTokens = SystemTokens> {

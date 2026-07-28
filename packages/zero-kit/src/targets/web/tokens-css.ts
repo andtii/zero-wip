@@ -161,11 +161,6 @@ function themeOwnProps(theme: AnyTheme): Record<string, string> {
     for (const [name, value] of Object.entries(theme.extra ?? {})) {
         props[customProp(name)] = value;
     }
-    for (const overrides of Object.values(theme.components ?? {})) {
-        for (const [name, value] of Object.entries(overrides)) {
-            props[name] = value;
-        }
-    }
     return props;
 }
 
