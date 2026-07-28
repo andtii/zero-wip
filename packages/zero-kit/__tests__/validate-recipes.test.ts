@@ -282,6 +282,36 @@ describe('variants', () => {
         }).errors).toContainEqual(expect.stringContaining('not a kebab-case identifier'));
     });
 
+    it('errors on a component token spelled without the leading --', () => {
+        // `recipe.tokens` is emitted verbatim onto the carrier part, so a
+        // forgotten `--` does not define a token — it emits `color: red` on
+        // every carrier element of the component, silently.
+        expect(check({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            tokens: { color: 'red' },
+        }).errors).toContainEqual(expect.stringContaining('must be spelled --like-this'));
+    });
+
+    it('errors on a component token that is not kebab-case', () => {
+        // `--Tabs_Accent` is legal CSS and still wrong: every other declared
+        // name in a design system is kebab-case, and a token whose spelling
+        // nobody can predict is one nothing else will reference.
+        expect(check({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            tokens: { '--Tabs_Accent': 'red' },
+        }).errors).toContainEqual(expect.stringContaining('is not kebab-case'));
+    });
+
+    it('accepts a properly spelled component token', () => {
+        expect(check({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            tokens: { '--tabs-accent': 'var(--color-primary)' },
+        }).errors).not.toContainEqual(expect.stringContaining('must be spelled --like-this'));
+    });
+
     it('errors on a colour value that names no declared role', () => {
         // `data-color` passes through verbatim, so the selector is emitted and
         // simply never matches — dead CSS with no diagnostic. The probe design

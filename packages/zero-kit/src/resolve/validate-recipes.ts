@@ -193,6 +193,32 @@ export function validateRecipes(
         const local = locallyDefined(recipe);
         const partsByName = new Map(component.parts.map((p) => [p.name, p]));
 
+        // ── component-token NAMES ──
+        // `recipe.tokens` is emitted verbatim onto the carrier part, and
+        // `declBlock` passes anything that is not a custom property through as
+        // an ordinary declaration. So `tokens: { color: 'red' }` — a token
+        // someone forgot the `--` on — silently restyles every carrier element
+        // of the component instead of defining anything. The values are already
+        // walked below; only the keys were unchecked.
+        // The grammar is `--` plus the same kebab-case identifier every other
+        // declared name uses, not merely "is a custom property": `--Btn_Accent`
+        // is legal CSS and still wrong here, and a token nobody can predict the
+        // spelling of is one nothing else can reference.
+        for (const name of Object.keys(recipe.tokens ?? {})) {
+            if (!name.startsWith('--')) {
+                error(
+                    `${where}.tokens`,
+                    `"${name}" is not a custom property — component tokens must be spelled --like-this, ` +
+                    'or it is emitted as a plain CSS declaration on every carrier element',
+                );
+            } else if (!TOKEN_KEY_PATTERN.test(name.slice(2))) {
+                error(
+                    `${where}.tokens`,
+                    `component token "${name}" is not kebab-case — every other declared name in a design system is`,
+                );
+            }
+        }
+
         // ── token references and literal values ──
         const values: Array<{ path: string; prop: string; value: string }> = [];
         for (const { path, props } of declarations(recipe)) {

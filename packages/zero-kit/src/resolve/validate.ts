@@ -127,6 +127,30 @@ export function validateDesignSystem<R extends RolesDecl>(
             error('tokens.roles', `role "${name}" is a CSS keyword — resolveColorToken would never resolve it to var(--color-${name})`);
         }
     }
+    // A role emits `--color-<role>` plus `-content`/`-soft` per its
+    // declaration, so two roles can quietly emit the same property: role
+    // "danger-soft" lands on `--color-danger-soft`, which is exactly what role
+    // "danger" derives. Both are written into the same block, the later one
+    // wins, and nothing says so. Same rule `tokens.custom` already gets — and
+    // not hypothetical: `danger-soft` is a real HeroUI v3 variant name.
+    const emittedByRole = new Map<string, string>();
+    for (const [name, decl] of Object.entries(roles)) {
+        const props = [`--color-${name}`];
+        if (decl.content !== false) props.push(`--color-${name}-content`);
+        if (decl.soft !== false) props.push(`--color-${name}-soft`);
+        for (const prop of props) {
+            const clash = emittedByRole.get(prop);
+            if (clash !== undefined && clash !== name) {
+                error(
+                    'tokens.roles',
+                    `roles "${clash}" and "${name}" both emit ${prop} — rename one, ` +
+                    'or opt the deriving role out with `soft: false` / `content: false`',
+                );
+            } else {
+                emittedByRole.set(prop, name);
+            }
+        }
+    }
     // Custom names may be spelled with or without the leading `--` — compare
     // through the normalized property name everywhere.
     const normProp = (name: string) => (name.startsWith('--') ? name : `--${name}`);
