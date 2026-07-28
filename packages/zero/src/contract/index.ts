@@ -33,7 +33,14 @@ export type {
     SizeScaleFor,
     VariantValueFor,
     AxesFor,
+    ZeroThemeName,
+    ZeroThemeNameOrCustom,
+    ZeroProperty,
+    ZeroBreakpoint,
+    ZeroTokenCategory,
+    TokenKeyFor,
 } from './vocabulary.js';
+export { cssVar, token } from './vocabulary.js';
 
 export type { FlagName, Orientation } from './data-attrs.js';
 export { FLAG_VOCABULARY, dataAttr, stateAttr } from './data-attrs.js';

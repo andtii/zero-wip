@@ -36,6 +36,26 @@ export interface CompiledTheme {
     swatch: Record<string, string>;
 }
 
+/**
+ * The axis vocabulary one component's recipe actually wires — `variants`
+ * keys unioned with every `compoundVariants[].match` value, since the
+ * compiler emits CSS for both and a generated type must cover everything the
+ * CSS matches. An absent axis is an empty array (the register generator
+ * emits it as `never`).
+ */
+export interface CompiledComponentAxes {
+    color: string[];
+    size: string[];
+    variant: string[];
+    /** Custom axes: axis name → wired values. */
+    axes: Record<string, string[]>;
+    /**
+     * The recipe's `defaultVariants`, validated against the wired sets in
+     * `validateRecipes`. Manifest/docs only — never widens a union.
+     */
+    defaults?: Record<string, string>;
+}
+
 export interface CompiledDesignSystem {
     name: string;
     tokensCss: string;
@@ -44,6 +64,8 @@ export interface CompiledDesignSystem {
     /** tokens + all components + raw css, in order. */
     indexCss: string;
     themes: CompiledTheme[];
+    /** scope → the axis vocabulary the recipes actually wire. */
+    components: Record<string, CompiledComponentAxes>;
     /** The DS's declared token vocabulary — emitted into the DS manifest. */
     tokens: {
         roles: Record<string, RoleDecl>;
@@ -81,6 +103,36 @@ function emittedProperties(tokensCss: string): string[] {
     return [...found].sort();
 }
 
+/** The wired-axis harvest for one recipe — see `CompiledComponentAxes`. */
+function harvestAxes(recipe: RecipeInput): CompiledComponentAxes {
+    const byAxis = new Map<string, Set<string>>();
+    for (const [axis, values] of Object.entries(recipe.variants ?? {})) {
+        byAxis.set(axis, new Set(Object.keys(values)));
+    }
+    for (const compound of recipe.compoundVariants ?? []) {
+        for (const [axis, value] of Object.entries(compound.match)) {
+            let set = byAxis.get(axis);
+            if (!set) byAxis.set(axis, (set = new Set()));
+            set.add(value);
+        }
+    }
+    const take = (axis: string): string[] => {
+        const values = [...(byAxis.get(axis) ?? [])];
+        byAxis.delete(axis);
+        return values;
+    };
+    const result: CompiledComponentAxes = {
+        color: take('color'),
+        size: take('size'),
+        variant: take('variant'),
+        axes: Object.fromEntries([...byAxis.entries()].map(([axis, values]) => [axis, [...values]])),
+    };
+    if (recipe.defaultVariants && Object.keys(recipe.defaultVariants).length > 0) {
+        result.defaults = { ...recipe.defaultVariants };
+    }
+    return result;
+}
+
 export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>(
     ds: DesignSystemInput<R, T>,
     manifest: Pick<ZeroManifest, 'components'>,
@@ -92,6 +144,7 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
     const tokensCss = compileTokensCss(ds.tokens);
 
     const componentCss: Record<string, string> = {};
+    const components: Record<string, CompiledComponentAxes> = {};
     for (const recipe of ds.recipes) {
         const component = byScope.get(recipe.component);
         if (!component) {
@@ -106,6 +159,7 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
         componentCss[recipe.component] = compileRecipeCss(recipe, component, {
             breakpoints: ds.tokens.breakpoints,
         });
+        components[recipe.component] = harvestAxes(recipe);
     }
 
     const rawCss = (ds.css ?? []).join('\n');
@@ -136,6 +190,7 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
         componentCss,
         indexCss,
         themes,
+        components,
         tokens: {
             roles,
             sizes: [...resolveSizes(ds.tokens.sizes)],

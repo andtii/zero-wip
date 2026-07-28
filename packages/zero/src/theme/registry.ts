@@ -16,6 +16,7 @@
  * SSR request — that would race concurrent renders sharing this module.
  */
 import { RECOMMENDED_ROLE_LIST, defaultSwatch } from '../contract/tokens.js';
+import type { ZeroThemeNameOrCustom } from '../contract/vocabulary.js';
 
 export interface ThemeInfo {
     name: string;
@@ -107,7 +108,7 @@ export function clearThemes(): void {
     themes.clear();
 }
 
-export function getTheme(name: string): ThemeInfo | undefined {
+export function getTheme(name: ZeroThemeNameOrCustom): ThemeInfo | undefined {
     return themes.get(name);
 }
 
@@ -116,7 +117,7 @@ export function listThemes(): ThemeInfo[] {
 }
 
 /** The registered pair of a theme, if any. */
-export function pairOf(name: string): string | undefined {
+export function pairOf(name: ZeroThemeNameOrCustom): string | undefined {
     return themes.get(name)?.pair;
 }
 

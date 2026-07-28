@@ -13,21 +13,31 @@
  */
 import { defineInjectable, signal } from 'sigx';
 import { getTheme, pairOf, pickThemeFor } from './registry.js';
+import type { ZeroThemeName, ZeroThemeNameOrCustom } from '../contract/vocabulary.js';
 
 export interface ThemeControllerOptions {
     /** localStorage key for the persisted explicit choice. */
     storageKey?: string;
     /** Initial explicit theme (e.g. from a request cookie under SSR). */
-    initial?: string | null;
+    initial?: ZeroThemeName | null;
 }
 
 export interface ThemeController {
-    /** The explicit theme name, or `null` when following the system. */
-    theme(): string | null;
+    /**
+     * The explicit theme name, or `null` when following the system. OPEN
+     * (`ZeroThemeNameOrCustom`), not closed: the value can come from
+     * persisted storage written by an older app version or a
+     * runtime-registered tenant theme, so a closed return type would lie.
+     */
+    theme(): ZeroThemeNameOrCustom | null;
     /** The effective color scheme (explicit theme's, else the system's). */
     resolvedScheme(): 'light' | 'dark';
-    /** Set an explicit theme, or `null` to follow the system again. */
-    setTheme(name: string | null): void;
+    /**
+     * Set an explicit theme, or `null` to follow the system again. CLOSED
+     * (`ZeroThemeName`) — the authoring surface, where `setTheme('dimm')`
+     * becoming an error is most of the value of a register module.
+     */
+    setTheme(name: ZeroThemeName | null): void;
     /** Switch to the current theme's registered pair (or the other scheme's default). */
     toggle(): void;
 }

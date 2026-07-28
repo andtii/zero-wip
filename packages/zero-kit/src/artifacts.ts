@@ -6,12 +6,15 @@
  * dist/css/tokens.css
  * dist/css/components/<scope>.css
  * dist/css/index.css
- * dist/manifest.json        (DS-level: name, themes, declared tokens, styled components)
+ * dist/manifest.json        (DS-level: name, themes, declared tokens, per-component wired axes)
+ * dist/register.d.ts        (GENERATED ZeroVocabulary augmentation — RFC 0002 §5)
+ * dist/register.js          (empty module so the /register subpath resolves)
  * ```
  */
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { CompiledDesignSystem } from './design-system.js';
+import { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
 
 export async function writeArtifacts(compiled: CompiledDesignSystem, outDir: string): Promise<string[]> {
     const cssDir = join(outDir, 'css');
@@ -36,11 +39,15 @@ export async function writeArtifacts(compiled: CompiledDesignSystem, outDir: str
                 name: compiled.name,
                 themes: compiled.themes,
                 tokens: compiled.tokens,
-                components: Object.keys(compiled.componentCss),
+                // Scope → wired axes (was a bare scope-name array; the scope
+                // names remain reachable as this record's keys).
+                components: compiled.components,
             },
             null,
             2,
         ),
     );
+    await write(join(outDir, 'register.d.ts'), compileRegisterDts(compiled));
+    await write(join(outDir, 'register.js'), compileRegisterJs(compiled));
     return written;
 }

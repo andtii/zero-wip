@@ -42,7 +42,9 @@ export type {
     DesignSystemInput,
     CompiledDesignSystem,
     CompiledTheme,
+    CompiledComponentAxes,
 } from './design-system.js';
+export { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
 export { defineDesignSystem, compileDesignSystem } from './design-system.js';
 
 export type { ValidationIssue, ValidationResult } from './resolve/validate.js';

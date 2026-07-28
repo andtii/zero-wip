@@ -4,6 +4,18 @@
 
 ### Added
 
+- **Theme, property, breakpoint and token-key narrowing** (RFC 0002 phase 3,
+  #131): `ZeroThemeName` (closed on the authoring surface — `setTheme`, the
+  `ThemeProvider`/`ThemeScope` `theme` props, `ThemeControllerOptions.initial`)
+  and `ZeroThemeNameOrCustom` (the lookup surface — `getTheme`, `pairOf`, and
+  `theme()`'s return, which can carry persisted or tenant-registered names);
+  `ZeroProperty` and `ZeroBreakpoint` (open with autocomplete);
+  `ZeroTokenCategory` and `TokenKeyFor<C>`, whose unaugmented fallback is the
+  category's *recommended* keys so autocomplete works before any design
+  system opts in. Two one-line runtime helpers: `cssVar(name)` and
+  `token(category, key)` → `var(--<prefix>-<key>)`. All resolve to today's
+  open types until a `/register` module is imported.
+
 - **The `ZeroVocabulary` augmentation seam** (RFC 0002 phase 2, #130):
   `@sigx/zero` exports an empty `ZeroVocabulary` interface plus the scoped
   resolvers `ColorValueFor<S>` / `SizeScaleFor<S>` / `VariantValueFor<S>` /

@@ -4,6 +4,28 @@
 
 ### Added
 
+- **The generated register artifact** (RFC 0002 phase 3, #131):
+  `writeArtifacts` emits `dist/register.d.ts` + `dist/register.js` per design
+  system — a generated (never authored) augmentation of `@sigx/zero`'s
+  `ZeroVocabulary` carrying theme names, breakpoints, the emitted
+  custom-property union, per-category token unions (recommended ∪ declared
+  keys), and per-component wired axis values, `never` where nothing is wired
+  and `Record<string, never>` for empty axes. Every recipe scope is emitted,
+  scope keys are quoted (they are kebab-case) and the file carries a
+  compile-time assertion against `ZeroScope`. Exposed as
+  `compileRegisterDts`/`compileRegisterJs` beside the other web-target
+  emitters; `CompiledDesignSystem` gains `components`
+  (`CompiledComponentAxes`: `variants` keys ∪ `compoundVariants` matches,
+  `defaultVariants` recorded without widening). All four design-system
+  packages gain the `"./register"` exports subpath.
+
+### Changed
+
+- **`dist/manifest.json`'s `components` field changed shape**: from a bare
+  scope-name array to the per-scope wired-axes record (scope names remain its
+  keys). In-repo consumers updated; the zero package's own manifest is
+  unaffected.
+
 - **Declared axis vocabularies** (RFC 0002 phase 1, #129): `TokensInput`
   gains `variants` (the `variant` axis value set) and `axes` (custom axis
   name → value set). Both are validated like `sizes` (non-empty, kebab-case,
