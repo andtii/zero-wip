@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **`sizes: []` is now legal and means "this design system has no size axis"**
+  (RFC 0003 §5, #164). It used to be a hard error, and an omitted ramp is
+  silently replaced by the recommended `xs`–`xl`, so *every* compiled manifest
+  advertised a size ramp — including for a design system that has none, which
+  the docs site and the generation skill both read as fact. Absence and
+  emptiness are now different statements: omitting `sizes` still takes the
+  recommended ramp ("I didn't say"), `[]` declares there is no axis ("there
+  isn't one"), matching what `roles: {}` already does for colour. A recipe
+  wiring `variants.size` under an empty ramp is an error naming the missing
+  axis rather than the missing value.
+
 ### Removed
 
 - **BREAKING — `ThemeInput.components` is gone** (RFC 0003 §6.2, #160). It was

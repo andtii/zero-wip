@@ -388,6 +388,29 @@ describe('extensible color roles', () => {
         expect(result.errors.some((e) => e.message.includes('both emit'))).toBe(false);
     });
 
+    it('a design system with no size axis says so in its manifest', () => {
+        // Before this, `sizes: []` was an error and an omitted ramp was
+        // silently replaced, so EVERY compiled manifest advertised xs–xl —
+        // including for a design system that has no size axis at all. The
+        // manifest is what the docs site and the generation skill read.
+        const noSizes = defineTokens({
+            roles: { primary: {} },
+            sizes: [],
+            themes: {
+                day: {
+                    colorScheme: 'light',
+                    colors: {
+                        'base-100': 'white', 'base-200': 'white', 'base-300': 'white', 'base-content': 'black',
+                        primary: 'blue', 'primary-content': 'white',
+                    },
+                },
+            },
+            defaultLight: 'day',
+        });
+        const compiled = compileDesignSystem({ name: 'no-sizes', tokens: noSizes, recipes: [] }, manifest);
+        expect(compiled.tokens.sizes).toEqual([]);
+    });
+
     it('errors when a declared custom token has no theme value', () => {
         const missing = structuredClone(brandTokens);
         delete missing.themes.day!.custom!['glass-blur'];

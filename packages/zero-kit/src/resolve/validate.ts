@@ -387,11 +387,15 @@ export function validateDesignSystem<R extends RolesDecl>(
     // A declared size becomes the value in `[data-size="…"]`, so the open
     // vocabulary stops at what can be an attribute value. Caught at the
     // declaration rather than only where a recipe uses it.
+    //
+    // `sizes: []` is legal and means "this design system has no size axis" —
+    // the same claim `roles: {}` already makes about colour. Omitting `sizes`
+    // still takes the recommended ramp, so the two are not the same statement:
+    // absence means "I didn't say", empty means "there isn't one". Without
+    // this the manifest advertises a ramp to the docs site and the generation
+    // skill for a design system that has none.
     const sizes = ds.tokens.sizes;
     if (sizes) {
-        if (sizes.length === 0) {
-            error('tokens.sizes', 'declared but empty — omit it to take the recommended ramp');
-        }
         for (const size of sizes) {
             if (!TOKEN_KEY_PATTERN.test(size)) {
                 error('tokens.sizes', `"${size}" is not a kebab-case identifier`);
