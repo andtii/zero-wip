@@ -59,7 +59,12 @@ export interface RecipeContext {
 export interface RecipeInput {
     /** The component scope this recipe styles (e.g. `'tabs'`). */
     component: string;
-    /** Component-level tokens declared on the first part, overridable per theme. */
+    /**
+     * Component-level tokens declared on the carrier part (`root`, else the
+     * first part). Emitted in `@layer zero.recipes`, which the layer order in
+     * `zero/css/base.css` puts after `zero.tokens` — so a theme-level
+     * declaration of the same property cannot override one of these.
+     */
     tokens?: Record<string, string>;
     parts: Record<string, PartStyles>;
     /** axis → value → part → styles. Contract axes: color, size, variant. */

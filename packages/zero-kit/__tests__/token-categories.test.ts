@@ -300,9 +300,9 @@ describe('category node traversal', () => {
 
 describe('per-scheme values apply to every token kind, not just colors', () => {
     // light-dark() rescues colors only. Everything else — categories, declared
-    // custom tokens, the `extra` escape hatch and component overrides — needs
-    // the prefers-color-scheme block, and used to silently take the light
-    // theme's value under system dark.
+    // custom tokens and the `extra` escape hatch — needs the
+    // prefers-color-scheme block, and used to silently take the light theme's
+    // value under system dark.
     const css = compileTokensCss(defineTokens({
         roles,
         custom: { 'glass-blur': { description: 'backdrop blur' } },
@@ -316,14 +316,12 @@ describe('per-scheme values apply to every token kind, not just colors', () => {
                 colors,
                 custom: { 'glass-blur': '12px' },
                 extra: { '--scrim': 'oklch(0% 0 0 / 0.3)' },
-                components: { dialog: { '--dialog-shadow': '0 1px 2px' } },
             },
             d: {
                 colorScheme: 'dark',
                 colors,
                 custom: { 'glass-blur': '28px' },
                 extra: { '--scrim': 'oklch(0% 0 0 / 0.7)' },
-                components: { dialog: { '--dialog-shadow': '0 8px 24px' } },
             },
         },
     }));
@@ -334,7 +332,6 @@ describe('per-scheme values apply to every token kind, not just colors', () => {
         ['a token category', '--border', '1px', '3px'],
         ['a declared custom token', '--glass-blur', '12px', '28px'],
         ['an extra token', '--scrim', 'oklch(0% 0 0 / 0.3)', 'oklch(0% 0 0 / 0.7)'],
-        ['a component override', '--dialog-shadow', '0 1px 2px', '0 8px 24px'],
     ])('%s follows the system scheme', (_kind, prop, lightValue, darkValue) => {
         // OS light, no explicit theme.
         expect(blockOf(css, ':where(:root)')).toContain(`${prop}: ${lightValue};`);
@@ -351,8 +348,8 @@ describe('per-scheme values apply to every token kind, not just colors', () => {
 
 describe('a theme that omits a scheme-divergent value', () => {
     it('still states one, rather than inheriting the dark value', () => {
-        // `extra` (and `components`) are untyped escape hatches with no
-        // per-theme completeness requirement, so a third theme can legitimately
+        // `extra` is an untyped escape hatch with no per-theme completeness
+        // requirement, so a third theme can legitimately
         // not mention `--scrim` at all. Under system dark it would otherwise
         // inherit the media block's dark value instead of the :root default it
         // actually resolves to.

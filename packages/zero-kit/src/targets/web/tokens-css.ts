@@ -150,8 +150,8 @@ function colorDecls(theme: AnyTheme, roles: RolesDecl): string[] {
 }
 
 /**
- * A theme's non-category custom properties: declared `custom` values, the
- * untyped `extra` escape hatch, and component-token overrides.
+ * A theme's non-category custom properties: declared `custom` values and the
+ * untyped `extra` escape hatch.
  */
 function themeOwnProps(theme: AnyTheme): Record<string, string> {
     const props: Record<string, string> = {};
@@ -160,11 +160,6 @@ function themeOwnProps(theme: AnyTheme): Record<string, string> {
     }
     for (const [name, value] of Object.entries(theme.extra ?? {})) {
         props[customProp(name)] = value;
-    }
-    for (const overrides of Object.values(theme.components ?? {})) {
-        for (const [name, value] of Object.entries(overrides)) {
-            props[name] = value;
-        }
     }
     return props;
 }
