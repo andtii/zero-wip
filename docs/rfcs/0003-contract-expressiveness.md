@@ -451,7 +451,8 @@ One row per *(system × axis surface)*:
    Drift becomes a failing test rather than a stale document. Each fixture
    asserts the *emitted selector strings*, so a compiler regression breaks the
    conformance claim directly rather than quietly.
-3. **`zero-kit validate --report`** — already scoped in RFC 0002 §8 — emitting
+3. **`sigx zero:validate --report`** — scoped in RFC 0002 §8 as `zero-kit
+   validate --report`, before #155 rebuilt the CLI as a `sigx` plugin — emitting
    components styled, axes wired per component, declared-but-unwired values,
    states covered, the §4 axis partition report, and the minimum contrast margin
    per theme. **Tier-3 rows are generated from the four in-repo reports**, so
@@ -513,7 +514,7 @@ a nicety.
 |---|---|---|---|
 | **1** | this RFC | Decisions recorded; §6 correctness fixes filed and landed independently: the compound×default cross product, `ThemeInput.components` removal, `recipe.tokens` key grammar, role derived-token collisions. | A recipe with `defaultVariants: {variant:'solid'}` and a compound matching `{variant:'solid', color:'primary'}` applies to a `<Button color="primary">` carrying no `data-variant`; a seeded bad `recipe.tokens` key and a seeded role collision both error. |
 | **2** | §3, §5 | `TokensInput.modifiers` + `RecipeInput.modifiers` + `mods` prop + `data-mod-*` emission + register narrowing + compound participation; `sizes: []` opt-out. | Golden `register.d.ts` shows `mods` narrowing and `size: never` under an opted-out ramp; `pnpm test:types` has positive and `@ts-expect-error` assertions for both; `contract-parity.test.ts` covers the new prefix. |
-| **3** | §7 | `zero-kit validate --report` including the §4 axis partition report; `docs/design-system-conformance.md`; the Tier-1/2 fixtures and the row↔fixture parity test. | `pnpm test -- conformance` green; every Tier-1/2 row compiles and emits the selectors it claims; Tier-3 rows regenerate from the four in-repo reports. |
+| **3** | §7 | `sigx zero:validate --report` including the §4 axis partition report; `docs/design-system-conformance.md`; the Tier-1/2 fixtures and the row↔fixture parity test. | `pnpm test -- conformance` green; every Tier-1/2 row compiles and emits the selectors it claims; Tier-3 rows regenerate from the four in-repo reports. |
 | **4** | #99 re-scoped | `zero-heroui` per §8, plus the playground reading the declared vocabulary. | The checklist in §8, end to end: a scratch app importing `@sigx/zero-heroui/register` accepts `variant="danger-soft"`, rejects `variant="solid"`, rejects `color` entirely, and autocompletes `mods={{ 'icon-only': true }}`. |
 | **5** | #103 follow-on | RFC 0002 phase-4 leftovers: the three `size` gaps (tabs, switch, toggle-group) and the four unwired components; then `variant` on the remaining ten — wire or record per component, **after** phase 4. | No component accepts an axis no design system wires, or the divergence is recorded per component with its reason. |
 
@@ -557,7 +558,7 @@ Filed and cross-linked from **#156** (this RFC's tracking issue):
 - **§3** — design-system modifiers: `tokens.modifiers`, `recipe.modifiers`, the
   `mods` prop, `data-mod-*` emission, register narrowing
 - **§5** — `sizes: []` opts out of the size axis
-- **§7.4** — `zero-kit validate --report` plus the axis partition report
+- **§7.4** — `sigx zero:validate --report` plus the axis partition report
 - **§7** — the conformance matrix, its fixtures and the parity test
 - **§8** — `zero-heroui`, **re-scoping #99 in place**
 - **§8/§1.1** — the playground reads the declared axis vocabulary
