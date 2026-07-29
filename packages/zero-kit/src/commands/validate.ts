@@ -24,25 +24,31 @@ export interface ValidateOptions {
 /**
  * The report, or `undefined` when the design system does not compile.
  *
- * The catch is narrow on purpose. A design system that fails to compile has
- * already been reported — `validateDesignSystem` compiles inside its own
- * try/catch and records the throw as an error on `recipes` — so swallowing it
- * here is what keeps `--report` failing the same way plain `zero:validate`
- * does. But if validation PASSED, nothing in this path is allowed to throw,
- * and a swallow would leave `--report-json -` exiting 0 with empty stdout over
- * a bug in report generation. That one rethrows.
+ * Only the COMPILE is guarded, and only when validation already failed. Those
+ * are the two halves of the one case worth swallowing: `validateDesignSystem`
+ * compiles inside its own try/catch and records the throw as an error on
+ * `recipes`, so re-throwing it here would make `--report` fail differently
+ * from plain `zero:validate` on the same input.
+ *
+ * Everything else propagates. A compile that throws while `result.ok` is true
+ * contradicts the validator and is a bug in one of them; and `buildReport`
+ * itself sits outside the `try` entirely, so a bug there always surfaces —
+ * including for a design system that fails validation, which is exactly when
+ * its report matters most.
  */
 function tryBuildReport(
     ds: DesignSystemInput,
     manifest: ZeroManifest,
     result: ValidationResult,
 ): DesignSystemReport | undefined {
+    let compiled;
     try {
-        return buildReport(compileDesignSystem(ds, manifest), ds, manifest, result);
+        compiled = compileDesignSystem(ds, manifest);
     } catch (err) {
         if (result.ok) throw err;
         return undefined;
     }
+    return buildReport(compiled, ds, manifest, result);
 }
 
 export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promise<void> {
