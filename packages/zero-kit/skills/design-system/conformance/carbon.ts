@@ -12,11 +12,16 @@
 import type { RecipeInput, TokensInput } from '@sigx/zero-kit';
 import { defineApi } from '@sigx/zero-kit';
 
-/** §7.2 placement and the artifact column 8 of this system's rows points at. */
+/**
+ * §7.2 placement. Tier 2, proven by the shipped package: `zero-carbon`
+ * graduated this fixture's api (#183), so column 8 points at the artifact
+ * that renders it — the fixture remains the matrix's row source and the
+ * vocabulary is pinned verbatim to the package by `conformance.test.ts`.
+ */
 export const matrix = {
     system: 'Carbon',
     tier: 2,
-    provenBy: 'skills/design-system/conformance/carbon.ts',
+    provenBy: 'packages/zero-carbon',
 } as const;
 
 export const source = {

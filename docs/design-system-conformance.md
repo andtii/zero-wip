@@ -46,9 +46,9 @@ adapter would be its own fixture with an `api` declaration.
 | Ant Design | [antd v5](https://ant.design/components/button) (2026-07-29) | `danger` | presence-flag | boolean | `mods.danger` | reshaped | #179 (shipped) | `skills/design-system/conformance/ant.ts` |
 | Ant Design | [antd v5](https://ant.design/components/button) (2026-07-29) | `ghost` | presence-flag | boolean | `mods.ghost` | reshaped | #179 (shipped) | `skills/design-system/conformance/ant.ts` |
 | Ant Design | [antd v5](https://ant.design/components/button) (2026-07-29) | `block` | presence-flag | boolean | `mods.block` | reshaped | #179 (shipped) | `skills/design-system/conformance/ant.ts` |
-| Carbon | [@carbon/react v11](https://react.carbondesignsystem.com/?path=/docs/components-button--overview) (2026-07-29) | `kind` | enumeration | primary, secondary, tertiary, ghost, danger, danger--tertiary, danger--ghost | `variant` | reshaped | #179 (shipped) | `skills/design-system/conformance/carbon.ts` |
-| Carbon | [@carbon/react v11](https://react.carbondesignsystem.com/?path=/docs/components-button--overview) (2026-07-29) | `hasIconOnly` | presence-flag | boolean | `mods.icon-only` | reshaped | #179 (shipped) | `skills/design-system/conformance/carbon.ts` |
-| Carbon | [@carbon/react v11](https://react.carbondesignsystem.com/?path=/docs/components-button--overview) (2026-07-29) | `isExpressive` | presence-flag | boolean | `mods.expressive` | reshaped | #179 (shipped) | `skills/design-system/conformance/carbon.ts` |
+| Carbon | [@carbon/react v11](https://react.carbondesignsystem.com/?path=/docs/components-button--overview) (2026-07-29) | `kind` | enumeration | primary, secondary, tertiary, ghost, danger, danger--tertiary, danger--ghost | `variant` | reshaped | #179 (shipped) | `packages/zero-carbon` |
+| Carbon | [@carbon/react v11](https://react.carbondesignsystem.com/?path=/docs/components-button--overview) (2026-07-29) | `hasIconOnly` | presence-flag | boolean | `mods.icon-only` | reshaped | #179 (shipped) | `packages/zero-carbon` |
+| Carbon | [@carbon/react v11](https://react.carbondesignsystem.com/?path=/docs/components-button--overview) (2026-07-29) | `isExpressive` | presence-flag | boolean | `mods.expressive` | reshaped | #179 (shipped) | `packages/zero-carbon` |
 
 ## Tier 3 — in-repo coverage (generated from the reports)
 
@@ -74,3 +74,7 @@ api-derived grades where a system declares one.
 | heroui | `variant` | enumeration | primary, secondary, tertiary, outline, ghost, danger, danger-soft | `variant` | exact | `packages/zero-heroui` |
 | heroui | `isIconOnly` | presence-flag | boolean | `mods.icon-only` | reshaped | `packages/zero-heroui` |
 | heroui | `isPending` | presence-flag | boolean | `mods.pending` | reshaped | `packages/zero-heroui` |
+| carbon | `size` | enumeration | sm, md, lg, xl, 2xl | `size` | exact | `packages/zero-carbon` |
+| carbon | `kind` | enumeration | primary, secondary, tertiary, ghost, danger, danger-tertiary, danger-ghost | `variant` | reshaped | `packages/zero-carbon` |
+| carbon | `isExpressive` | presence-flag | boolean | `mods.expressive` | reshaped | `packages/zero-carbon` |
+| carbon | `hasIconOnly` | presence-flag | boolean | `mods.icon-only` | reshaped | `packages/zero-carbon` |
