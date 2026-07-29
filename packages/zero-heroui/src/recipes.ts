@@ -57,6 +57,947 @@ const popupPresence = (from: string): PartStyles => ({
     },
 });
 
+/**
+ * Enter/exit for a disclosure panel, which is not in the top layer.
+ *
+ * Collapsible and Accordion are native `<details>`, so the height animation
+ * lives on the browser's own `::details-content` wrapper —
+ * `interpolate-size: allow-keywords` (set on the element, not globally) makes
+ * `auto` a legal endpoint.
+ */
+const disclosurePresence: PartStyles = {
+    base: { interpolateSize: 'allow-keywords' },
+    selectors: {
+        '&::details-content': {
+            blockSize: '0',
+            overflow: 'hidden',
+            transition: 'block-size var(--duration-normal) var(--ease-standard), '
+                + 'content-visibility var(--duration-normal) allow-discrete',
+        },
+        '&[open]::details-content': { blockSize: 'auto' },
+    },
+    at: {
+        'reduced-motion': { selectors: { '&::details-content': { transition: 'none' } } },
+    },
+};
+
+/**
+ * The shared disclosure row — collapsible IS the accordion language minus the
+ * dividers, so both take this trigger and panel verbatim. The chevron is
+ * drawn (two borders, rotated) rather than glyphed so it can turn about its
+ * own center, and a row presses with a deeper tint — a scale would visibly
+ * shear something full-width.
+ */
+const disclosureTrigger: PartStyles = {
+    base: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 'var(--space-md)',
+        padding: 'var(--space-md) var(--space-xs)',
+        borderRadius: 'var(--radius-field)',
+        fontFamily: 'var(--font-sans)',
+        fontSize: 'var(--text-md)',
+        fontWeight: 'var(--weight-medium)',
+        color: 'var(--color-base-content)',
+        cursor: 'pointer',
+        listStyle: 'none',
+        transition: motion('background'),
+    },
+    states: {
+        hover: { background: 'var(--color-base-200)' },
+        open: {},
+        closed: {},
+        // The dim lives on the owning part (root / item); the row only re-cursors.
+        disabled: { cursor: 'not-allowed' },
+        ...focusRing,
+    },
+    selectors: {
+        '&::after': {
+            content: '""',
+            flex: 'none',
+            width: '0.4em',
+            height: '0.4em',
+            border: 'solid var(--hero-muted)',
+            borderWidth: '0 2px 2px 0',
+            marginInlineEnd: 'var(--space-2xs)',
+            transform: 'rotate(45deg)',
+            transition: motion('transform'),
+        },
+        '&[data-state="open"]::after': { transform: 'rotate(225deg)' },
+        '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+    },
+};
+
+const disclosurePanel: PartStyles = {
+    base: {
+        padding: '0 var(--space-xs) var(--space-md)',
+        fontFamily: 'var(--font-sans)',
+        fontSize: 'var(--text-sm)',
+        color: 'var(--hero-muted)',
+    },
+    states: { open: {}, closed: {} },
+};
+
+// ── Tabs ──────────────────────────────────────────────────────────────────
+export const tabs: RecipeInput = {
+    component: 'tabs',
+    tokens: { '--tabs-text': 'var(--text-sm)' },
+    parts: {
+        root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' } },
+        list: {
+            base: {
+                display: 'inline-flex',
+                gap: 'var(--space-2xs)',
+                padding: 'var(--space-2xs)',
+                background: 'var(--color-base-200)',
+                borderRadius: 'var(--radius-box)',
+                width: 'fit-content',
+            },
+        },
+        tab: {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                padding: 'var(--space-xs) var(--space-md)',
+                borderRadius: 'var(--radius-field)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--tabs-text)',
+                fontWeight: 'var(--weight-medium)',
+                color: 'var(--hero-muted)',
+                cursor: 'pointer',
+                transition: motion('background, color'),
+            },
+            states: {
+                // v3's segmented look: the active tab is a raised pill.
+                active: {
+                    background: 'var(--color-base-100)',
+                    color: 'var(--color-base-content)',
+                    boxShadow: 'var(--shadow-sm)',
+                },
+                inactive: {},
+                hover: { color: 'var(--color-base-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+        panel: {
+            base: { fontFamily: 'var(--font-sans)', fontSize: 'var(--text-md)', color: 'var(--color-base-content)' },
+            states: { active: {}, inactive: {} },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--tabs-text': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--tabs-text': 'var(--text-md)' } } },
+        },
+    },
+};
+
+// ── Collapsible ───────────────────────────────────────────────────────────
+export const collapsible: RecipeInput = {
+    component: 'collapsible',
+    parts: {
+        root: withPresence(disclosurePresence, {
+            base: { color: 'var(--color-base-content)' },
+            states: {
+                open: {},
+                closed: {},
+                disabled: { opacity: 'var(--disabled-opacity)' },
+            },
+        }),
+        trigger: disclosureTrigger,
+        panel: disclosurePanel,
+    },
+};
+
+// ── Switch ────────────────────────────────────────────────────────────────
+export const switchRecipe: RecipeInput = {
+    component: 'switch',
+    tokens: {
+        '--switch-width': 'calc(var(--size-selector) * 11)',
+        '--switch-height': 'calc(var(--size-selector) * 6)',
+        '--switch-pad': 'calc(var(--size-selector) * 0.5)',
+    },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
+            states: {
+                checked: {}, unchecked: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                invalid: {}, required: {},
+            },
+        },
+        control: {
+            base: {
+                position: 'relative',
+                flex: 'none',
+                width: 'var(--switch-width)',
+                height: 'var(--switch-height)',
+                borderRadius: '9999px',
+                background: 'var(--color-base-300)',
+                transition: motion('background'),
+            },
+            states: {
+                checked: { background: 'var(--hero-primary)' },
+                unchecked: {},
+                disabled: {},
+                ...focusRing,
+            },
+        },
+        thumb: {
+            base: {
+                position: 'absolute',
+                top: 'var(--switch-pad)',
+                insetInlineStart: 'var(--switch-pad)',
+                width: 'calc(var(--switch-height) - var(--switch-pad) * 2)',
+                height: 'calc(var(--switch-height) - var(--switch-pad) * 2)',
+                borderRadius: '9999px',
+                background: 'var(--color-base-100)',
+                boxShadow: 'var(--shadow-sm)',
+                transition: motion('translate'),
+            },
+            states: {
+                checked: { translate: 'calc(var(--switch-width) - var(--switch-height)) 0' },
+                unchecked: {},
+            },
+        },
+        label: {
+            base: { ...label },
+            states: { checked: {}, unchecked: {}, disabled: {} },
+        },
+    },
+    variants: {
+        size: {
+            sm: {
+                root: {
+                    base: {
+                        '--switch-width': 'calc(var(--size-selector) * 9)',
+                        '--switch-height': 'calc(var(--size-selector) * 5)',
+                    },
+                },
+            },
+            md: {},
+            lg: {
+                root: {
+                    base: {
+                        '--switch-width': 'calc(var(--size-selector) * 13)',
+                        '--switch-height': 'calc(var(--size-selector) * 7)',
+                    },
+                },
+            },
+        },
+    },
+    // The ring draws on `control`; the root only groups it with its text.
+    skipStates: { root: ['focus-visible'] },
+};
+
+// ── Dialog ────────────────────────────────────────────────────────────────
+export const dialog: RecipeInput = {
+    component: 'dialog',
+    parts: {
+        trigger: {
+            base: { cursor: 'pointer' },
+            states: { open: {}, closed: {}, disabled: { cursor: 'not-allowed' }, ...focusRing },
+        },
+        popup: withPresence(popupPresence('translateY(8px) scale(0.98)'), {
+            base: {
+                border: 'none',
+                borderRadius: 'var(--radius-box)',
+                padding: 'var(--space-xl)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                boxShadow: 'var(--shadow-xl)',
+                maxWidth: 'min(32rem, calc(100vw - var(--space-2xl)))',
+            },
+        }),
+        backdrop: {
+            base: {
+                background: 'oklch(0% 0 0 / 0.45)',
+                backdropFilter: 'blur(2px)',
+                transition: 'opacity var(--duration-fast) var(--ease-standard), '
+                    + 'display var(--duration-fast) allow-discrete, '
+                    + 'overlay var(--duration-fast) allow-discrete',
+                opacity: '0',
+            },
+            states: { open: { opacity: '1' }, closed: {} },
+            at: {
+                'starting-style': { states: { open: { opacity: '0' } } },
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+        title: {
+            base: {
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-lg)',
+                fontWeight: 'var(--weight-semibold)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        description: {
+            base: {
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--hero-muted)',
+                marginBlockStart: 'var(--space-xs)',
+            },
+        },
+        footer: {
+            base: { display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)', marginBlockStart: 'var(--space-xl)' },
+        },
+        close: {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--hero-muted)',
+                borderRadius: 'var(--radius-selector)',
+                padding: 'var(--space-2xs)',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: { color: 'var(--color-base-content)', background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+    },
+};
+
+// ── Popover ───────────────────────────────────────────────────────────────
+export const popover: RecipeInput = {
+    component: 'popover',
+    parts: {
+        trigger: {
+            base: { cursor: 'pointer' },
+            states: { open: {}, closed: {}, disabled: { cursor: 'not-allowed' }, ...focusRing },
+        },
+        // Dialog's surface, one step lighter: hairline instead of borderless,
+        // `lg` shadow instead of `xl`, and it rises into place from below.
+        popup: withPresence(popupPresence('translateY(4px)'), {
+            base: {
+                margin: '0',
+                padding: 'var(--space-lg)',
+                minWidth: '14rem',
+                maxWidth: 'min(20rem, calc(100vw - var(--space-2xl)))',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                boxShadow: 'var(--shadow-lg)',
+            },
+        }),
+        title: {
+            base: {
+                margin: '0 0 var(--space-xs)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-md)',
+                fontWeight: 'var(--weight-semibold)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        close: {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--hero-muted)',
+                borderRadius: 'var(--radius-selector)',
+                padding: 'var(--space-2xs)',
+                cursor: 'pointer',
+                transition: motion('background, color'),
+            },
+            states: {
+                hover: { color: 'var(--color-base-content)', background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+    },
+};
+
+// ── Tooltip ───────────────────────────────────────────────────────────────
+export const tooltip: RecipeInput = {
+    component: 'tooltip',
+    parts: {
+        trigger: {
+            base: {},
+            states: { open: {}, closed: {}, disabled: {} },
+        },
+        // The one inverted surface in the system: content ink as the fill.
+        popup: withPresence(popupPresence('translateY(2px)'), {
+            base: {
+                margin: '0',
+                padding: 'var(--space-xs) var(--space-sm)',
+                maxWidth: '18rem',
+                border: 'none',
+                borderRadius: 'var(--radius-selector)',
+                background: 'var(--color-base-content)',
+                color: 'var(--color-base-100)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-tight)',
+                boxShadow: 'var(--shadow-sm)',
+            },
+        }),
+    },
+};
+
+// ── Menu ──────────────────────────────────────────────────────────────────
+export const menu: RecipeInput = {
+    component: 'menu',
+    parts: {
+        trigger: {
+            base: { cursor: 'pointer' },
+            states: { open: {}, closed: {}, disabled: { cursor: 'not-allowed' }, ...focusRing },
+        },
+        // The select popup's surface, verbatim — one floating-list look.
+        popup: withPresence(popupPresence('translateY(-4px)'), {
+            base: {
+                margin: '0',
+                padding: 'var(--space-2xs)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                boxShadow: 'var(--shadow-lg)',
+                minWidth: '12rem',
+            },
+        }),
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                borderRadius: 'var(--radius-selector)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+                cursor: 'pointer',
+                outline: 'none',
+            },
+            states: {
+                highlighted: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+        // The item look, plus an `open` state that keeps it lit after focus
+        // moves into the submenu. `open` before `highlighted`, so the pointer
+        // hover wins both properties when the two apply at once (#116).
+        'sub-trigger': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                borderRadius: 'var(--radius-selector)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+                cursor: 'pointer',
+                outline: 'none',
+            },
+            states: {
+                open: { background: 'var(--color-base-200)' },
+                closed: {},
+                highlighted: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&::after': { content: '"\\203A"', marginInlineStart: 'auto', color: 'var(--hero-muted)' },
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+        // The popup surface again, entering from the side it attaches on.
+        'sub-popup': withPresence(popupPresence('translateX(-4px)'), {
+            base: {
+                margin: '0',
+                padding: 'var(--space-2xs)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                boxShadow: 'var(--shadow-lg)',
+                minWidth: '12rem',
+            },
+        }),
+        'context-trigger': {
+            base: {},
+            states: { open: {}, closed: {}, disabled: {} },
+        },
+        group: { base: {} },
+        'group-label': {
+            base: {
+                padding: 'var(--space-xs) var(--space-sm)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                color: 'var(--hero-muted)',
+            },
+        },
+        separator: {
+            base: {
+                height: 'var(--border)',
+                margin: 'var(--space-2xs) 0',
+                background: 'var(--hero-line)',
+            },
+        },
+    },
+};
+
+// ── Field ─────────────────────────────────────────────────────────────────
+export const field: RecipeInput = {
+    component: 'field',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' }, invalid: {}, required: {} },
+        },
+        label: {
+            base: { ...label },
+            states: {
+                disabled: {},
+                invalid: { color: 'var(--hero-danger)' },
+                // v3 marks required with the label's own weight, not an asterisk.
+                required: { fontWeight: 'var(--weight-semibold)' },
+            },
+        },
+        description: {
+            base: { fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', color: 'var(--hero-muted)' },
+        },
+        error: {
+            base: { fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', color: 'var(--hero-danger)' },
+            states: { invalid: {} },
+        },
+    },
+};
+
+// ── Checkbox ──────────────────────────────────────────────────────────────
+export const checkbox: RecipeInput = {
+    component: 'checkbox',
+    tokens: { '--checkbox-size': 'calc(var(--size-selector) * 5)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
+            states: {
+                checked: {}, unchecked: {}, indeterminate: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                invalid: {}, required: {},
+            },
+        },
+        control: {
+            base: {
+                display: 'inline-grid',
+                placeItems: 'center',
+                flex: 'none',
+                width: 'var(--checkbox-size)',
+                height: 'var(--checkbox-size)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-selector)',
+                background: 'var(--color-base-100)',
+                transition: motion('background, border-color'),
+            },
+            states: {
+                checked: { background: 'var(--hero-primary)', borderColor: 'var(--hero-primary)' },
+                indeterminate: { background: 'var(--hero-primary)', borderColor: 'var(--hero-primary)' },
+                unchecked: {},
+                invalid: { borderColor: 'var(--hero-danger)' },
+                disabled: {},
+                ...focusRing,
+            },
+        },
+        indicator: {
+            base: { color: 'var(--hero-primary-ink)', lineHeight: 'var(--leading-none)' },
+            states: { checked: {}, unchecked: {}, indeterminate: {} },
+        },
+        label: {
+            base: { ...label },
+            states: { checked: {}, unchecked: {}, indeterminate: {}, disabled: {} },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 4)' } } },
+            md: {},
+            lg: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 6)' } } },
+        },
+    },
+    skipStates: { root: ['focus-visible'] },
+};
+
+// ── Radio group ───────────────────────────────────────────────────────────
+export const radioGroup: RecipeInput = {
+    component: 'radio-group',
+    tokens: { '--radio-size': 'calc(var(--size-selector) * 5)' },
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: {}, required: {},
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'row' },
+                // `invalid` lands on the root; the border that shows it lives
+                // on each control.
+                '&[data-invalid] [data-part="item-control"]': { borderColor: 'var(--hero-danger)' },
+            },
+        },
+        label: {
+            base: { ...label },
+            states: {
+                disabled: {},
+                invalid: { color: 'var(--hero-danger)' },
+                // v3 marks required with the label's own weight, not an asterisk.
+                required: { fontWeight: 'var(--weight-semibold)' },
+            },
+        },
+        item: {
+            base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
+            states: {
+                checked: {}, unchecked: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        'item-control': {
+            base: {
+                display: 'inline-grid',
+                placeItems: 'center',
+                flex: 'none',
+                width: 'var(--radio-size)',
+                height: 'var(--radio-size)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: '9999px',
+                background: 'var(--color-base-100)',
+                transition: motion('border-color, transform'),
+            },
+            states: {
+                checked: { borderColor: 'var(--hero-primary)' },
+                unchecked: {},
+                disabled: {},
+                ...focusRing,
+            },
+            // v3 presses inward rather than darkening further.
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' },
+            },
+        },
+        'item-indicator': {
+            base: {
+                width: 'calc(var(--radio-size) / 2)',
+                height: 'calc(var(--radio-size) / 2)',
+                borderRadius: '9999px',
+                background: 'transparent',
+                transition: motion('background'),
+            },
+            states: {
+                checked: { background: 'var(--hero-primary)' },
+                unchecked: {},
+            },
+        },
+        'item-label': {
+            base: { ...label },
+            states: { checked: {}, unchecked: {}, disabled: {} },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 4)' } } },
+            md: {},
+            lg: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 6)' } } },
+        },
+    },
+    // The ring draws on `item-control`; `item` is the <label> row around it.
+    skipStates: { item: ['focus-visible'] },
+};
+
+// ── Progress ──────────────────────────────────────────────────────────────
+export const progress: RecipeInput = {
+    component: 'progress',
+    tokens: { '--progress-height': 'calc(var(--size-selector) * 2)' },
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)', width: '100%' },
+            states: { loading: {}, complete: {}, indeterminate: {} },
+        },
+        label: {
+            base: { ...label },
+        },
+        track: {
+            base: {
+                width: '100%',
+                height: 'var(--progress-height)',
+                background: 'var(--color-base-300)',
+                borderRadius: '9999px',
+                overflow: 'hidden',
+            },
+        },
+        range: {
+            base: {
+                height: '100%',
+                background: 'var(--hero-primary)',
+                borderRadius: '9999px',
+                transition: motion('width'),
+            },
+            states: {
+                // v3 keeps its one accent — a finished bar is a full bar, not
+                // a recoloured one.
+                loading: {}, complete: {},
+                indeterminate: { width: '40%', animation: 'hero-indeterminate 1.2s ease-in-out infinite' },
+            },
+            // A looping animation must STOP under reduced motion, not speed
+            // up — which is why its duration is a literal rather than a
+            // `var(--duration-*)` that would collapse to 0.
+            at: {
+                'reduced-motion': {
+                    states: { indeterminate: { animation: 'none', width: '100%' } },
+                },
+            },
+        },
+        'value-text': {
+            base: { fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', color: 'var(--hero-muted)' },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--progress-height': 'calc(var(--size-selector) * 1.5)' } } },
+            md: {},
+            lg: { root: { base: { '--progress-height': 'calc(var(--size-selector) * 3)' } } },
+        },
+    },
+    keyframes: {
+        'hero-indeterminate': 'from { margin-left: -40%; } to { margin-left: 100%; }',
+    },
+};
+
+// ── Slider ────────────────────────────────────────────────────────────────
+export const slider: RecipeInput = {
+    component: 'slider',
+    tokens: {
+        '--slider-accent': 'var(--hero-primary)',
+        '--slider-track-size': 'calc(var(--size-selector) * 2)',
+        '--slider-thumb-size': 'calc(var(--size-selector) * 5)',
+    },
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)', width: '100%' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        label: {
+            base: { ...label },
+            states: { disabled: {} },
+        },
+        // A custom skin (`appearance: none`): Blink ignores thumb-pseudo
+        // styling on a native slider, and Chrome treats range inputs as
+        // always `:focus-visible` — so the offset ring would read as stuck.
+        // Each state sets ONE custom property the vendor thumb pseudos read
+        // (they cannot share a selector list), and the filled track reads the
+        // runtime-published `--slider-percent` as a gradient stop.
+        control: {
+            base: {
+                appearance: 'none',
+                width: '100%',
+                height: 'calc(var(--slider-thumb-size) + var(--size-selector) * 2)',
+                margin: '0',
+                background: 'transparent',
+                cursor: 'pointer',
+                outline: 'none',
+                accentColor: 'var(--slider-accent)',
+                '--slider-ring': 'transparent',
+                '--slider-thumb-scale': '1',
+                '--slider-track': 'linear-gradient(to right, '
+                    + 'var(--slider-accent) var(--slider-percent, 50%), var(--color-base-300) 0)',
+            },
+            states: {
+                // The ring IS the focus indicator here — see the skin comment.
+                'focus-visible': { '--slider-ring': 'var(--hero-focus)' },
+                pressed: { '--slider-thumb-scale': '0.94' },
+                // `invalid` is semantic: the whole fill turns danger.
+                invalid: { '--slider-accent': 'var(--hero-danger)' },
+                disabled: { cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&::-webkit-slider-runnable-track': {
+                    height: 'var(--slider-track-size)',
+                    borderRadius: '9999px',
+                    background: 'var(--slider-track)',
+                },
+                '&::-webkit-slider-thumb': {
+                    appearance: 'none',
+                    width: 'var(--slider-thumb-size)',
+                    height: 'var(--slider-thumb-size)',
+                    marginTop: 'calc((var(--slider-track-size) - var(--slider-thumb-size)) / 2)',
+                    borderRadius: '9999px',
+                    border: 'var(--border) solid var(--hero-line)',
+                    background: 'var(--color-base-100)',
+                    boxShadow: '0 0 0 2px var(--slider-ring), var(--shadow-sm)',
+                    transform: 'scale(var(--slider-thumb-scale))',
+                    transition: motion('box-shadow, transform'),
+                },
+                '&::-moz-range-track': {
+                    height: 'var(--slider-track-size)',
+                    borderRadius: '9999px',
+                    background: 'var(--slider-track)',
+                },
+                '&::-moz-range-thumb': {
+                    width: 'var(--slider-thumb-size)',
+                    height: 'var(--slider-thumb-size)',
+                    borderRadius: '9999px',
+                    border: 'var(--border) solid var(--hero-line)',
+                    background: 'var(--color-base-100)',
+                    boxShadow: '0 0 0 2px var(--slider-ring), var(--shadow-sm)',
+                    transform: 'scale(var(--slider-thumb-scale))',
+                    transition: motion('box-shadow, transform'),
+                },
+            },
+            at: {
+                // Native rendering knows forced colors better than a custom
+                // skin; the retained accentColor keeps the fallback branded.
+                'forced-colors': {
+                    base: { appearance: 'auto', '--slider-ring': 'transparent' },
+                },
+            },
+        },
+        'value-text': {
+            base: { fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', color: 'var(--hero-muted)' },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--slider-thumb-size': 'calc(var(--size-selector) * 4)' } } },
+            md: {},
+            lg: {
+                root: {
+                    base: {
+                        '--slider-thumb-size': 'calc(var(--size-selector) * 6)',
+                        '--slider-track-size': 'calc(var(--size-selector) * 2.5)',
+                    },
+                },
+            },
+        },
+    },
+    // The focus indicator lives on the control's thumb; `invalid` recolours
+    // the fill there too.
+    skipStates: { root: ['invalid', 'focus-visible'] },
+};
+
+// ── Accordion ─────────────────────────────────────────────────────────────
+export const accordion: RecipeInput = {
+    component: 'accordion',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', color: 'var(--color-base-content)' },
+        },
+        // Hairline-divided rows, no outer box — v3 keeps the frame this light.
+        item: withPresence(disclosurePresence, {
+            base: { borderBlockEnd: 'var(--border) solid var(--hero-line)' },
+            states: {
+                open: {},
+                closed: {},
+                disabled: { opacity: 'var(--disabled-opacity)' },
+            },
+            selectors: {
+                '&:last-child': { borderBlockEnd: 'none' },
+            },
+        }),
+        trigger: disclosureTrigger,
+        panel: disclosurePanel,
+    },
+};
+
+// ── Select ────────────────────────────────────────────────────────────────
+export const select: RecipeInput = {
+    component: 'select',
+    tokens: { '--select-text': 'var(--text-sm)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column' },
+            states: { disabled: {}, invalid: {}, required: {} },
+        },
+        trigger: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 'var(--space-md)',
+                minWidth: '12rem',
+                padding: 'var(--space-sm) var(--space-md)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-field)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--select-text)',
+                cursor: 'pointer',
+                transition: motion('border-color'),
+            },
+            states: {
+                open: { borderColor: 'var(--hero-primary)' },
+                closed: {},
+                hover: { borderColor: 'var(--color-base-content)' },
+                invalid: { borderColor: 'var(--hero-danger)' },
+                placeholder: { color: 'var(--hero-muted)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+        value: {
+            base: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+            states: { placeholder: { color: 'var(--hero-muted)' } },
+        },
+        indicator: {
+            base: { flex: 'none', color: 'var(--hero-muted)', transition: motion('rotate') },
+            states: { open: { rotate: '180deg' }, closed: {} },
+        },
+        popup: withPresence(popupPresence('translateY(-4px)'), {
+            base: {
+                margin: '0',
+                padding: 'var(--space-2xs)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                boxShadow: 'var(--shadow-lg)',
+                minWidth: '12rem',
+            },
+        }),
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                borderRadius: 'var(--radius-selector)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--select-text)',
+                color: 'var(--color-base-content)',
+                cursor: 'pointer',
+            },
+            states: {
+                highlighted: { background: 'var(--color-base-200)' },
+                selected: { color: 'var(--hero-primary)', fontWeight: 'var(--weight-medium)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        'item-indicator': {
+            base: { flex: 'none', color: 'var(--hero-primary)' },
+            states: { selected: {} },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--select-text': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--select-text': 'var(--text-md)' } } },
+        },
+    },
+};
+
 // ── Button ────────────────────────────────────────────────────────────────
 export const button: RecipeInput = {
     component: 'button',
@@ -152,381 +1093,55 @@ export const button: RecipeInput = {
     ],
 };
 
-// ── Tabs ──────────────────────────────────────────────────────────────────
-export const tabs: RecipeInput = {
-    component: 'tabs',
-    tokens: { '--tabs-text': 'var(--text-sm)' },
-    parts: {
-        root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' } },
-        list: {
-            base: {
-                display: 'inline-flex',
-                gap: 'var(--space-2xs)',
-                padding: 'var(--space-2xs)',
-                background: 'var(--color-base-200)',
-                borderRadius: 'var(--radius-box)',
-                width: 'fit-content',
-            },
-        },
-        tab: {
-            base: {
-                appearance: 'none',
-                border: 'none',
-                background: 'transparent',
-                padding: 'var(--space-xs) var(--space-md)',
-                borderRadius: 'var(--radius-field)',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--tabs-text)',
-                fontWeight: 'var(--weight-medium)',
-                color: 'var(--hero-muted)',
-                cursor: 'pointer',
-                transition: motion('background, color'),
-            },
-            states: {
-                // v3's segmented look: the active tab is a raised pill.
-                active: {
-                    background: 'var(--color-base-100)',
-                    color: 'var(--color-base-content)',
-                    boxShadow: 'var(--shadow-sm)',
-                },
-                inactive: {},
-                hover: { color: 'var(--color-base-content)' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
-            },
-        },
-        panel: {
-            base: { fontFamily: 'var(--font-sans)', fontSize: 'var(--text-md)', color: 'var(--color-base-content)' },
-            states: { active: {}, inactive: {} },
-        },
-    },
-    variants: {
-        size: {
-            sm: { root: { base: { '--tabs-text': 'var(--text-xs)' } } },
-            md: {},
-            lg: { root: { base: { '--tabs-text': 'var(--text-md)' } } },
-        },
-    },
-};
-
-// ── Switch ────────────────────────────────────────────────────────────────
-export const switchRecipe: RecipeInput = {
-    component: 'switch',
+// ── Avatar ────────────────────────────────────────────────────────────────
+export const avatar: RecipeInput = {
+    component: 'avatar',
     tokens: {
-        '--switch-width': 'calc(var(--size-selector) * 11)',
-        '--switch-height': 'calc(var(--size-selector) * 6)',
-        '--switch-pad': 'calc(var(--size-selector) * 0.5)',
+        '--avatar-size': 'calc(var(--size-selector) * 10)',
+        '--avatar-text': 'var(--text-sm)',
     },
     parts: {
         root: {
-            base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
-            states: {
-                checked: {}, unchecked: {},
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                invalid: {}, required: {},
-            },
-        },
-        control: {
             base: {
                 position: 'relative',
-                flex: 'none',
-                width: 'var(--switch-width)',
-                height: 'var(--switch-height)',
-                borderRadius: '9999px',
-                background: 'var(--color-base-300)',
-                transition: motion('background'),
-            },
-            states: {
-                checked: { background: 'var(--hero-primary)' },
-                unchecked: {},
-                disabled: {},
-                ...focusRing,
-            },
-        },
-        thumb: {
-            base: {
-                position: 'absolute',
-                top: 'var(--switch-pad)',
-                insetInlineStart: 'var(--switch-pad)',
-                width: 'calc(var(--switch-height) - var(--switch-pad) * 2)',
-                height: 'calc(var(--switch-height) - var(--switch-pad) * 2)',
-                borderRadius: '9999px',
-                background: 'var(--color-base-100)',
-                boxShadow: 'var(--shadow-sm)',
-                transition: motion('translate'),
-            },
-            states: {
-                checked: { translate: 'calc(var(--switch-width) - var(--switch-height)) 0' },
-                unchecked: {},
-            },
-        },
-        label: {
-            base: { ...label },
-            states: { checked: {}, unchecked: {}, disabled: {} },
-        },
-    },
-    variants: {
-        size: {
-            sm: {
-                root: {
-                    base: {
-                        '--switch-width': 'calc(var(--size-selector) * 9)',
-                        '--switch-height': 'calc(var(--size-selector) * 5)',
-                    },
-                },
-            },
-            md: {},
-            lg: {
-                root: {
-                    base: {
-                        '--switch-width': 'calc(var(--size-selector) * 13)',
-                        '--switch-height': 'calc(var(--size-selector) * 7)',
-                    },
-                },
-            },
-        },
-    },
-    // The ring draws on `control`; the root only groups it with its text.
-    skipStates: { root: ['focus-visible'] },
-};
-
-// ── Checkbox ──────────────────────────────────────────────────────────────
-export const checkbox: RecipeInput = {
-    component: 'checkbox',
-    tokens: { '--checkbox-size': 'calc(var(--size-selector) * 5)' },
-    parts: {
-        root: {
-            base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
-            states: {
-                checked: {}, unchecked: {}, indeterminate: {},
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                invalid: {}, required: {},
-            },
-        },
-        control: {
-            base: {
                 display: 'inline-grid',
+                width: 'var(--avatar-size)',
+                height: 'var(--avatar-size)',
+                // v3 avatars are circles, not rounded squares.
+                borderRadius: '9999px',
+                overflow: 'hidden',
+                verticalAlign: 'middle',
+                background: 'var(--color-base-200)',
+            },
+            states: { loading: {}, loaded: {}, error: {} },
+        },
+        image: {
+            base: { gridArea: '1 / 1', width: '100%', height: '100%', objectFit: 'cover' },
+            states: { loading: {}, loaded: {}, error: {} },
+        },
+        fallback: {
+            base: {
+                gridArea: '1 / 1',
                 placeItems: 'center',
-                flex: 'none',
-                width: 'var(--checkbox-size)',
-                height: 'var(--checkbox-size)',
-                border: 'var(--border) solid var(--hero-line)',
-                borderRadius: 'var(--radius-selector)',
-                background: 'var(--color-base-100)',
-                transition: motion('background, border-color'),
+                width: '100%',
+                height: '100%',
+                color: 'var(--color-base-content)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--avatar-text)',
+                fontWeight: 'var(--weight-medium)',
+                userSelect: 'none',
             },
-            states: {
-                checked: { background: 'var(--hero-primary)', borderColor: 'var(--hero-primary)' },
-                indeterminate: { background: 'var(--hero-primary)', borderColor: 'var(--hero-primary)' },
-                unchecked: {},
-                invalid: { borderColor: 'var(--hero-danger)' },
-                disabled: {},
-                ...focusRing,
-            },
-        },
-        indicator: {
-            base: { color: 'var(--hero-primary-ink)', lineHeight: 'var(--leading-none)' },
-            states: { checked: {}, unchecked: {}, indeterminate: {} },
-        },
-        label: {
-            base: { ...label },
-            states: { checked: {}, unchecked: {}, indeterminate: {}, disabled: {} },
+            // `display` must not defeat the `hidden` zero sets once the image
+            // has loaded.
+            selectors: { '&:not([hidden])': { display: 'grid' } },
+            states: { loading: {}, loaded: {}, error: {} },
         },
     },
     variants: {
         size: {
-            sm: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 4)' } } },
+            sm: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 8)', '--avatar-text': 'var(--text-xs)' } } },
             md: {},
-            lg: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 6)' } } },
-        },
-    },
-    skipStates: { root: ['focus-visible'] },
-};
-
-// ── Select ────────────────────────────────────────────────────────────────
-export const select: RecipeInput = {
-    component: 'select',
-    tokens: { '--select-text': 'var(--text-sm)' },
-    parts: {
-        root: {
-            base: { display: 'inline-flex', flexDirection: 'column' },
-            states: { disabled: {}, invalid: {}, required: {} },
-        },
-        trigger: {
-            base: {
-                appearance: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 'var(--space-md)',
-                minWidth: '12rem',
-                padding: 'var(--space-sm) var(--space-md)',
-                border: 'var(--border) solid var(--hero-line)',
-                borderRadius: 'var(--radius-field)',
-                background: 'var(--color-base-100)',
-                color: 'var(--color-base-content)',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--select-text)',
-                cursor: 'pointer',
-                transition: motion('border-color'),
-            },
-            states: {
-                open: { borderColor: 'var(--hero-primary)' },
-                closed: {},
-                hover: { borderColor: 'var(--color-base-content)' },
-                invalid: { borderColor: 'var(--hero-danger)' },
-                placeholder: { color: 'var(--hero-muted)' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
-            },
-        },
-        value: {
-            base: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-            states: { placeholder: { color: 'var(--hero-muted)' } },
-        },
-        indicator: {
-            base: { flex: 'none', color: 'var(--hero-muted)', transition: motion('rotate') },
-            states: { open: { rotate: '180deg' }, closed: {} },
-        },
-        popup: withPresence(popupPresence('translateY(-4px)'), {
-            base: {
-                margin: '0',
-                padding: 'var(--space-2xs)',
-                border: 'var(--border) solid var(--hero-line)',
-                borderRadius: 'var(--radius-box)',
-                background: 'var(--color-base-100)',
-                boxShadow: 'var(--shadow-lg)',
-                minWidth: '12rem',
-            },
-        }),
-        item: {
-            base: {
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 'var(--space-sm)',
-                padding: 'var(--space-xs) var(--space-sm)',
-                borderRadius: 'var(--radius-selector)',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--select-text)',
-                color: 'var(--color-base-content)',
-                cursor: 'pointer',
-            },
-            states: {
-                highlighted: { background: 'var(--color-base-200)' },
-                selected: { color: 'var(--hero-primary)', fontWeight: 'var(--weight-medium)' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-            },
-        },
-        'item-indicator': {
-            base: { flex: 'none', color: 'var(--hero-primary)' },
-            states: { selected: {} },
-        },
-    },
-    variants: {
-        size: {
-            sm: { root: { base: { '--select-text': 'var(--text-xs)' } } },
-            md: {},
-            lg: { root: { base: { '--select-text': 'var(--text-md)' } } },
-        },
-    },
-};
-
-// ── Dialog ────────────────────────────────────────────────────────────────
-export const dialog: RecipeInput = {
-    component: 'dialog',
-    parts: {
-        trigger: {
-            base: { cursor: 'pointer' },
-            states: { open: {}, closed: {}, disabled: { cursor: 'not-allowed' }, ...focusRing },
-        },
-        popup: withPresence(popupPresence('translateY(8px) scale(0.98)'), {
-            base: {
-                border: 'none',
-                borderRadius: 'var(--radius-box)',
-                padding: 'var(--space-xl)',
-                background: 'var(--color-base-100)',
-                color: 'var(--color-base-content)',
-                boxShadow: 'var(--shadow-xl)',
-                maxWidth: 'min(32rem, calc(100vw - var(--space-2xl)))',
-            },
-        }),
-        backdrop: {
-            base: {
-                background: 'oklch(0% 0 0 / 0.45)',
-                backdropFilter: 'blur(2px)',
-                transition: 'opacity var(--duration-fast) var(--ease-standard), '
-                    + 'display var(--duration-fast) allow-discrete, '
-                    + 'overlay var(--duration-fast) allow-discrete',
-                opacity: '0',
-            },
-            states: { open: { opacity: '1' }, closed: {} },
-            at: {
-                'starting-style': { states: { open: { opacity: '0' } } },
-                'reduced-motion': { base: { transition: 'none' } },
-            },
-        },
-        title: {
-            base: {
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--text-lg)',
-                fontWeight: 'var(--weight-semibold)',
-                color: 'var(--color-base-content)',
-            },
-        },
-        description: {
-            base: {
-                fontFamily: 'var(--font-sans)',
-                fontSize: 'var(--text-sm)',
-                color: 'var(--hero-muted)',
-                marginBlockStart: 'var(--space-xs)',
-            },
-        },
-        footer: {
-            base: { display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)', marginBlockStart: 'var(--space-xl)' },
-        },
-        close: {
-            base: {
-                appearance: 'none',
-                border: 'none',
-                background: 'transparent',
-                color: 'var(--hero-muted)',
-                borderRadius: 'var(--radius-selector)',
-                padding: 'var(--space-2xs)',
-                cursor: 'pointer',
-            },
-            states: {
-                hover: { color: 'var(--color-base-content)', background: 'var(--color-base-200)' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
-            },
-        },
-    },
-};
-
-// ── Field ─────────────────────────────────────────────────────────────────
-export const field: RecipeInput = {
-    component: 'field',
-    parts: {
-        root: {
-            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
-            states: { disabled: { opacity: 'var(--disabled-opacity)' }, invalid: {}, required: {} },
-        },
-        label: {
-            base: { ...label },
-            states: {
-                disabled: {},
-                invalid: { color: 'var(--hero-danger)' },
-                // v3 marks required with the label's own weight, not an asterisk.
-                required: { fontWeight: 'var(--weight-semibold)' },
-            },
-        },
-        description: {
-            base: { fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', color: 'var(--hero-muted)' },
-        },
-        error: {
-            base: { fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', color: 'var(--hero-danger)' },
-            states: { invalid: {} },
+            lg: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 12)', '--avatar-text': 'var(--text-md)' } } },
         },
     },
 };
@@ -610,6 +1225,536 @@ export const toast: RecipeInput = {
     },
 };
 
+// ── Combobox ──────────────────────────────────────────────────────────────
+export const combobox: RecipeInput = {
+    component: 'combobox',
+    tokens: { '--combobox-text': 'var(--text-sm)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column' },
+            states: { disabled: {}, invalid: {}, required: {} },
+        },
+        // The field chrome — the select trigger's language, split so the
+        // input and the disclosure button sit joined inside one border.
+        control: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                minWidth: '12rem',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-field)',
+                background: 'var(--color-base-100)',
+                transition: motion('border-color'),
+            },
+            states: {
+                open: { borderColor: 'var(--hero-primary)' },
+                closed: {},
+                hover: { borderColor: 'var(--color-base-content)' },
+                invalid: { borderColor: 'var(--hero-danger)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                ...focusRing,
+            },
+        },
+        input: {
+            base: {
+                flex: '1',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                padding: 'var(--space-sm) var(--space-md)',
+                color: 'var(--color-base-content)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--combobox-text)',
+            },
+            states: {
+                open: {}, closed: {},
+                disabled: { cursor: 'not-allowed' },
+                invalid: {}, required: {}, readonly: {},
+            },
+            selectors: {
+                '&::placeholder': { color: 'var(--hero-muted)' },
+            },
+        },
+        trigger: {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--hero-muted)',
+                padding: '0 var(--space-md)',
+                cursor: 'pointer',
+                transition: motion('rotate'),
+            },
+            states: {
+                open: { rotate: '180deg' },
+                closed: {},
+                disabled: { cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' },
+            },
+        },
+        popup: withPresence(popupPresence('translateY(-4px)'), {
+            base: {
+                margin: '0',
+                padding: 'var(--space-2xs)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                boxShadow: 'var(--shadow-lg)',
+                minWidth: '12rem',
+            },
+        }),
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                borderRadius: 'var(--radius-selector)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--combobox-text)',
+                color: 'var(--color-base-content)',
+                cursor: 'pointer',
+            },
+            states: {
+                highlighted: { background: 'var(--color-base-200)' },
+                selected: { color: 'var(--hero-primary)', fontWeight: 'var(--weight-medium)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        'item-indicator': {
+            base: { flex: 'none', color: 'var(--hero-primary)' },
+            states: { selected: {} },
+        },
+        empty: {
+            base: {
+                padding: 'var(--space-md)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--combobox-text)',
+                color: 'var(--hero-muted)',
+                textAlign: 'center',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--combobox-text': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--combobox-text': 'var(--text-md)' } } },
+        },
+    },
+    // The ring draws on `control`; the input and the trigger sit inside it.
+    skipStates: { input: ['focus-visible'], trigger: ['focus-visible'] },
+};
+
+// ── Number input ──────────────────────────────────────────────────────────
+export const numberInput: RecipeInput = {
+    component: 'number-input',
+    tokens: { '--number-input-text': 'var(--text-sm)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { ...label },
+            states: {
+                disabled: {},
+                invalid: { color: 'var(--hero-danger)' },
+                // v3 marks required with the label's own weight, not an asterisk.
+                required: { fontWeight: 'var(--weight-semibold)' },
+            },
+        },
+        // The field chrome (the combobox split): the ring and the invalid
+        // border draw on the box; input and steppers sit joined inside it.
+        control: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'stretch',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-field)',
+                background: 'var(--color-base-100)',
+                transition: motion('border-color'),
+            },
+            states: {
+                hover: { borderColor: 'var(--color-base-content)' },
+                invalid: { borderColor: 'var(--hero-danger)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                readonly: {},
+                ...focusRing,
+            },
+        },
+        input: {
+            base: {
+                width: '4.5rem',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                padding: 'var(--space-sm) var(--space-md)',
+                color: 'var(--color-base-content)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--number-input-text)',
+                textAlign: 'center',
+            },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                invalid: {}, required: {}, readonly: {},
+            },
+            selectors: {
+                '&::placeholder': { color: 'var(--hero-muted)' },
+            },
+        },
+        // Steppers as ghost squares flanking the readout — muted until
+        // hovered, no seams; the shared border already frames them.
+        'increment-trigger': {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--hero-muted)',
+                borderRadius: 'var(--radius-selector)',
+                padding: '0 var(--space-md)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--number-input-text)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                userSelect: 'none',
+                transition: motion('background, color, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)', color: 'var(--color-base-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' },
+            },
+        },
+        'decrement-trigger': {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--hero-muted)',
+                borderRadius: 'var(--radius-selector)',
+                padding: '0 var(--space-md)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--number-input-text)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                userSelect: 'none',
+                transition: motion('background, color, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)', color: 'var(--color-base-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: {
+                root: { base: { '--number-input-text': 'var(--text-xs)' } },
+                input: { base: { padding: 'var(--space-xs) var(--space-sm)' } },
+            },
+            md: {},
+            lg: {
+                root: { base: { '--number-input-text': 'var(--text-md)' } },
+                input: { base: { padding: 'var(--space-md) var(--space-lg)' } },
+            },
+        },
+    },
+    // The ring draws on `control`; the input delegates.
+    skipStates: { input: ['focus-visible'] },
+};
+
+// ── Rating group ──────────────────────────────────────────────────────────
+export const ratingGroup: RecipeInput = {
+    component: 'rating-group',
+    tokens: { '--rating-size': 'calc(var(--size-selector) * 6)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { ...label },
+            states: {
+                disabled: {},
+                invalid: { color: 'var(--hero-danger)' },
+                // v3 marks required with the label's own weight, not an asterisk.
+                required: { fontWeight: 'var(--weight-semibold)' },
+            },
+        },
+        control: {
+            base: { display: 'inline-flex', gap: 'var(--space-2xs)', borderRadius: 'var(--radius-selector)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                readonly: {},
+                ...focusRing,
+            },
+        },
+        item: {
+            base: {
+                fontSize: 'var(--rating-size)',
+                lineHeight: 'var(--leading-none)',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+                userSelect: 'none',
+                // Unfilled symbols read as secondary ink, not chrome.
+                color: 'var(--hero-muted)',
+                transition: motion('color, transform'),
+            },
+            states: {
+                full: { color: 'var(--hero-primary)' },
+                half: { color: 'var(--hero-primary)' },
+                empty: {},
+                // The hover-preview range lifts gently — v3 never jumps.
+                highlighted: { transform: 'scale(1.1)' },
+                disabled: { cursor: 'not-allowed' },
+                readonly: { cursor: 'default' },
+                // The group ring lives on control; per-item focus still gets
+                // a marker for the value-following tab stop.
+                ...focusRing,
+            },
+            at: {
+                'reduced-motion': {
+                    base: { transition: 'none' },
+                    states: { highlighted: { transform: 'none' } },
+                },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--rating-size': 'calc(var(--size-selector) * 5)' } } },
+            md: {},
+            lg: { root: { base: { '--rating-size': 'calc(var(--size-selector) * 7)' } } },
+        },
+    },
+};
+
+// ── Tree view ─────────────────────────────────────────────────────────────
+export const treeView: RecipeInput = {
+    component: 'tree-view',
+    tokens: { '--tree-text': 'var(--text-sm)' },
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        label: {
+            base: { ...label, fontWeight: 'var(--weight-semibold)' },
+        },
+        tree: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-2xs)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--tree-text)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        // Rows speak the menu-item language: quiet until highlighted, and a
+        // selected row keeps its ink rather than taking a fill.
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+                transition: motion('background, color'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                selected: { color: 'var(--hero-primary)', fontWeight: 'var(--weight-medium)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                // Rows sit flush — an offset ring would collide with the
+                // neighbours, so it draws inward.
+                'focus-visible': { outline: '2px solid var(--hero-focus)', outlineOffset: '-2px' },
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+        branch: {
+            base: { display: 'flex', flexDirection: 'column', outline: 'none' },
+            states: { open: {}, closed: {}, selected: {}, disabled: {} },
+        },
+        'branch-trigger': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+                userSelect: 'none',
+                transition: motion('background, color'),
+            },
+            states: {
+                open: {}, closed: {},
+                hover: { background: 'var(--color-base-200)' },
+                selected: { color: 'var(--hero-primary)', fontWeight: 'var(--weight-medium)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                'focus-visible': { outline: '2px solid var(--hero-focus)', outlineOffset: '-2px' },
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+        'branch-indicator': {
+            base: { display: 'inline-block', flex: 'none', color: 'var(--hero-muted)', transition: motion('rotate') },
+            states: { open: { rotate: '90deg' }, closed: {} },
+        },
+        // Depth is the DOM nesting; a hairline guide traces each level.
+        'branch-content': {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                marginInlineStart: 'var(--space-md)',
+                paddingInlineStart: 'var(--space-sm)',
+                borderInlineStart: 'var(--border) solid var(--hero-line)',
+            },
+            states: { open: {}, closed: {} },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--tree-text': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--tree-text': 'var(--text-md)' } } },
+        },
+    },
+};
+
+// ── Toggle ────────────────────────────────────────────────────────────────
+export const toggle: RecipeInput = {
+    component: 'toggle',
+    parts: {
+        root: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 'var(--space-sm)',
+                width: 'fit-content',
+                padding: 'var(--space-sm) var(--space-md)',
+                border: 'none',
+                borderRadius: 'var(--radius-field)',
+                background: 'transparent',
+                color: 'var(--hero-muted)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: motion('background, color, transform'),
+            },
+            states: {
+                // v3's toggle reads as a ghost button until it holds.
+                on: { background: 'var(--color-base-200)', color: 'var(--color-base-content)' },
+                off: {},
+                hover: { color: 'var(--color-base-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { padding: 'var(--space-md) var(--space-lg)', fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
+// ── Toggle group ──────────────────────────────────────────────────────────
+export const toggleGroup: RecipeInput = {
+    component: 'toggle-group',
+    tokens: { '--toggle-group-text': 'var(--text-sm)' },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                gap: 'var(--space-2xs)',
+                padding: 'var(--space-2xs)',
+                background: 'var(--color-base-200)',
+                borderRadius: 'var(--radius-box)',
+                width: 'fit-content',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        item: {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                padding: 'var(--space-xs) var(--space-md)',
+                borderRadius: '9999px',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--toggle-group-text)',
+                fontWeight: 'var(--weight-medium)',
+                color: 'var(--hero-muted)',
+                cursor: 'pointer',
+                transition: motion('background, color, transform'),
+            },
+            states: {
+                // The tabs-list look: a held item is a raised pill.
+                on: {
+                    background: 'var(--color-base-100)',
+                    color: 'var(--color-base-content)',
+                    boxShadow: 'var(--shadow-sm)',
+                },
+                off: {},
+                // `data-selected` mirrors `on` in a group — the raised pill
+                // above already says it.
+                selected: {},
+                hover: { color: 'var(--color-base-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--toggle-group-text': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--toggle-group-text': 'var(--text-md)' } } },
+        },
+    },
+};
+
 /**
  * Merge presence into a part's own styles per KEY, so a recipe that already
  * writes `states: { open: {} }` does not replace the open state presence needs.
@@ -632,5 +1777,7 @@ function withPresence(presence: PartStyles, styles: PartStyles): PartStyles {
 }
 
 export const recipes: RecipeInput[] = [
-    button, tabs, switchRecipe, checkbox, select, dialog, field, toast,
+    tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
+    field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
+    toggle, toggleGroup, numberInput, ratingGroup, treeView,
 ];
