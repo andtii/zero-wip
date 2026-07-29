@@ -23,7 +23,7 @@
         font-family: var(--font-sans);
         font-size: var(--select-text);
         cursor: pointer;
-        transition: border-color var(--duration-fast) var(--ease-standard);
+        transition: border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="select"][data-part="trigger"][data-state="open"] {
@@ -50,6 +50,10 @@
     [data-scope="select"][data-part="trigger"][data-focus-visible] {
         outline: 2px solid var(--hero-focus);
         outline-offset: 2px;
+    }
+
+    [data-scope="select"][data-part="trigger"][data-pressed]:not([data-disabled]) {
+        background: var(--color-base-200);
     }
 
     [data-scope="select"][data-part="value"] {
@@ -115,6 +119,10 @@
     [data-scope="select"][data-part="item"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;
+    }
+
+    [data-scope="select"][data-part="item"][data-pressed]:not([data-disabled]) {
+        background: var(--color-base-300);
     }
 
     [data-scope="select"][data-part="item-indicator"] {

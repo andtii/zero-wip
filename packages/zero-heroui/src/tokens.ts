@@ -54,6 +54,7 @@ export const custom = {
     'hero-muted': { description: 'Secondary text and disabled ink.', syntax: '<color>' },
     'hero-line': { description: 'Hairlines and outlined borders.', syntax: '<color>' },
     'hero-focus': { description: 'The focus ring.', syntax: '<color>' },
+    'hero-scrim': { description: 'The dialog backdrop scrim.', syntax: '<color>' },
 } as const satisfies Record<string, CustomTokenDecl>;
 
 export const system = {
@@ -172,6 +173,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'hero-muted': 'oklch(45% 0.008 286)',
                 'hero-line': 'oklch(89% 0.005 286)',
                 'hero-focus': 'oklch(54.6% 0.192 259)',
+                'hero-scrim': 'oklch(0% 0 0 / 0.45)',
             },
         },
         'hero-dark': {
@@ -193,6 +195,9 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'hero-muted': 'oklch(72% 0.008 286)',
                 'hero-line': 'oklch(34% 0.008 286)',
                 'hero-focus': 'oklch(70.5% 0.155 259)',
+                // Deeper than light's — 45% black over a 17%-lightness page
+                // would barely register, so the dark scrim doubles down.
+                'hero-scrim': 'oklch(0% 0 0 / 0.65)',
             },
         },
     },

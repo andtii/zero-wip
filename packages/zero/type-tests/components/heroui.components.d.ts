@@ -6,16 +6,115 @@
 // import is needed or consulted. The rendered attributes are unchanged:
 // a routed vendor value renders the zero-spelled data-* attribute.
 import type { Adapted, AdaptedStatics } from '@sigx/zero/adapt';
-import type { Button as ZButton } from '@sigx/zero/button';
 import type { Tabs as ZTabs } from '@sigx/zero/tabs';
+import type { Collapsible as ZCollapsible } from '@sigx/zero/collapsible';
 import type { Switch as ZSwitch } from '@sigx/zero/switch';
-import type { Checkbox as ZCheckbox } from '@sigx/zero/checkbox';
-import type { Select as ZSelect } from '@sigx/zero/select';
 import type { Dialog as ZDialog } from '@sigx/zero/dialog';
+import type { Popover as ZPopover } from '@sigx/zero/popover';
+import type { Tooltip as ZTooltip } from '@sigx/zero/tooltip';
+import type { Menu as ZMenu } from '@sigx/zero/menu';
 import type { Field as ZField } from '@sigx/zero/field';
+import type { Checkbox as ZCheckbox } from '@sigx/zero/checkbox';
+import type { RadioGroup as ZRadioGroup } from '@sigx/zero/radio-group';
+import type { Progress as ZProgress } from '@sigx/zero/progress';
+import type { Slider as ZSlider } from '@sigx/zero/slider';
+import type { Accordion as ZAccordion } from '@sigx/zero/accordion';
+import type { Select as ZSelect } from '@sigx/zero/select';
+import type { Button as ZButton } from '@sigx/zero/button';
+import type { Avatar as ZAvatar } from '@sigx/zero/avatar';
 import type { Toast as ZToast } from '@sigx/zero/toast';
+import type { Combobox as ZCombobox } from '@sigx/zero/combobox';
+import type { Toggle as ZToggle } from '@sigx/zero/toggle';
+import type { ToggleGroup as ZToggleGroup } from '@sigx/zero/toggle-group';
+import type { NumberInput as ZNumberInput } from '@sigx/zero/number-input';
+import type { RatingGroup as ZRatingGroup } from '@sigx/zero/rating-group';
+import type { TreeView as ZTreeView } from '@sigx/zero/tree-view';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
+
+/** tabs — no vendor route; the wired surface keeps zero's names. */
+type TabsProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type TabsAdapted = Adapted<typeof ZTabs, ZeroAxisProp, TabsProps>;
+export declare const Tabs: TabsAdapted & AdaptedStatics<typeof ZTabs> & { Root: TabsAdapted };
+
+/** collapsible — no vendor route; the wired surface keeps zero's names. */
+type CollapsibleProps = Record<never, never>;
+type CollapsibleAdapted = Adapted<typeof ZCollapsible, ZeroAxisProp, CollapsibleProps>;
+export declare const Collapsible: CollapsibleAdapted & AdaptedStatics<typeof ZCollapsible> & { Root: CollapsibleAdapted };
+
+/** switch — no vendor route; the wired surface keeps zero's names. */
+type SwitchProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type SwitchAdapted = Adapted<typeof ZSwitch, ZeroAxisProp, SwitchProps>;
+export declare const Switch: SwitchAdapted & AdaptedStatics<typeof ZSwitch> & { Root: SwitchAdapted };
+
+/** dialog — no vendor route; the wired surface keeps zero's names. */
+type DialogProps = Record<never, never>;
+type DialogAdapted = Adapted<typeof ZDialog, ZeroAxisProp, DialogProps>;
+export declare const Dialog: DialogAdapted & AdaptedStatics<typeof ZDialog> & { Root: DialogAdapted };
+
+/** popover — no vendor route; the wired surface keeps zero's names. */
+type PopoverProps = Record<never, never>;
+type PopoverAdapted = Adapted<typeof ZPopover, ZeroAxisProp, PopoverProps>;
+export declare const Popover: PopoverAdapted & AdaptedStatics<typeof ZPopover> & { Root: PopoverAdapted };
+
+/** tooltip — no vendor route; the wired surface keeps zero's names. */
+type TooltipProps = Record<never, never>;
+type TooltipAdapted = Adapted<typeof ZTooltip, ZeroAxisProp, TooltipProps>;
+export declare const Tooltip: TooltipAdapted & AdaptedStatics<typeof ZTooltip> & { Root: TooltipAdapted };
+
+/** menu — no vendor route; the wired surface keeps zero's names. */
+type MenuProps = Record<never, never>;
+type MenuAdapted = Adapted<typeof ZMenu, ZeroAxisProp, MenuProps>;
+export declare const Menu: MenuAdapted & AdaptedStatics<typeof ZMenu> & { Root: MenuAdapted };
+
+/** field — no vendor route; the wired surface keeps zero's names. */
+type FieldProps = Record<never, never>;
+type FieldAdapted = Adapted<typeof ZField, ZeroAxisProp, FieldProps>;
+export declare const Field: FieldAdapted & AdaptedStatics<typeof ZField> & { Root: FieldAdapted };
+
+/** checkbox — no vendor route; the wired surface keeps zero's names. */
+type CheckboxProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type CheckboxAdapted = Adapted<typeof ZCheckbox, ZeroAxisProp, CheckboxProps>;
+export declare const Checkbox: CheckboxAdapted & AdaptedStatics<typeof ZCheckbox> & { Root: CheckboxAdapted };
+
+/** radio-group — no vendor route; the wired surface keeps zero's names. */
+type RadioGroupProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type RadioGroupAdapted = Adapted<typeof ZRadioGroup, ZeroAxisProp, RadioGroupProps>;
+export declare const RadioGroup: RadioGroupAdapted & AdaptedStatics<typeof ZRadioGroup> & { Root: RadioGroupAdapted };
+
+/** progress — no vendor route; the wired surface keeps zero's names. */
+type ProgressProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type ProgressAdapted = Adapted<typeof ZProgress, ZeroAxisProp, ProgressProps>;
+export declare const Progress: ProgressAdapted & AdaptedStatics<typeof ZProgress> & { Root: ProgressAdapted };
+
+/** slider — no vendor route; the wired surface keeps zero's names. */
+type SliderProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type SliderAdapted = Adapted<typeof ZSlider, ZeroAxisProp, SliderProps>;
+export declare const Slider: SliderAdapted & AdaptedStatics<typeof ZSlider> & { Root: SliderAdapted };
+
+/** accordion — no vendor route; the wired surface keeps zero's names. */
+type AccordionProps = Record<never, never>;
+type AccordionAdapted = Adapted<typeof ZAccordion, ZeroAxisProp, AccordionProps>;
+export declare const Accordion: AccordionAdapted & AdaptedStatics<typeof ZAccordion> & { Root: AccordionAdapted };
+
+/** select — no vendor route; the wired surface keeps zero's names. */
+type SelectProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type SelectAdapted = Adapted<typeof ZSelect, ZeroAxisProp, SelectProps>;
+export declare const Select: SelectAdapted & AdaptedStatics<typeof ZSelect> & { Root: SelectAdapted };
 
 /** button — variant ← variant; isIconOnly ← mods.icon-only; isPending ← mods.pending. Attributes stay zero-spelled. */
 type ButtonProps = {
@@ -27,45 +126,56 @@ type ButtonProps = {
 type ButtonAdapted = Adapted<typeof ZButton, ZeroAxisProp | 'isIconOnly' | 'isPending' | 'variant', ButtonProps>;
 export declare const Button: ButtonAdapted & { Root: ButtonAdapted };
 
-/** tabs — no vendor route; the wired surface keeps zero's names. */
-type TabsProps = {
+/** avatar — no vendor route; the wired surface keeps zero's names. */
+type AvatarProps = {
     size?: 'sm' | 'md' | 'lg';
 };
-type TabsAdapted = Adapted<typeof ZTabs, ZeroAxisProp, TabsProps>;
-export declare const Tabs: TabsAdapted & AdaptedStatics<typeof ZTabs> & { Root: TabsAdapted };
-
-/** switch — no vendor route; the wired surface keeps zero's names. */
-type SwitchProps = {
-    size?: 'sm' | 'md' | 'lg';
-};
-type SwitchAdapted = Adapted<typeof ZSwitch, ZeroAxisProp, SwitchProps>;
-export declare const Switch: SwitchAdapted & AdaptedStatics<typeof ZSwitch> & { Root: SwitchAdapted };
-
-/** checkbox — no vendor route; the wired surface keeps zero's names. */
-type CheckboxProps = {
-    size?: 'sm' | 'md' | 'lg';
-};
-type CheckboxAdapted = Adapted<typeof ZCheckbox, ZeroAxisProp, CheckboxProps>;
-export declare const Checkbox: CheckboxAdapted & AdaptedStatics<typeof ZCheckbox> & { Root: CheckboxAdapted };
-
-/** select — no vendor route; the wired surface keeps zero's names. */
-type SelectProps = {
-    size?: 'sm' | 'md' | 'lg';
-};
-type SelectAdapted = Adapted<typeof ZSelect, ZeroAxisProp, SelectProps>;
-export declare const Select: SelectAdapted & AdaptedStatics<typeof ZSelect> & { Root: SelectAdapted };
-
-/** dialog — no vendor route; the wired surface keeps zero's names. */
-type DialogProps = Record<never, never>;
-type DialogAdapted = Adapted<typeof ZDialog, ZeroAxisProp, DialogProps>;
-export declare const Dialog: DialogAdapted & AdaptedStatics<typeof ZDialog> & { Root: DialogAdapted };
-
-/** field — no vendor route; the wired surface keeps zero's names. */
-type FieldProps = Record<never, never>;
-type FieldAdapted = Adapted<typeof ZField, ZeroAxisProp, FieldProps>;
-export declare const Field: FieldAdapted & AdaptedStatics<typeof ZField> & { Root: FieldAdapted };
+type AvatarAdapted = Adapted<typeof ZAvatar, ZeroAxisProp, AvatarProps>;
+export declare const Avatar: AvatarAdapted & AdaptedStatics<typeof ZAvatar> & { Root: AvatarAdapted };
 
 /** toast — no vendor route; the wired surface keeps zero's names. */
 type ToastProps = Record<never, never>;
 type ToastAdapted = Adapted<typeof ZToast, ZeroAxisProp, ToastProps>;
 export declare const Toast: ToastAdapted & AdaptedStatics<typeof ZToast> & { Root: ToastAdapted };
+
+/** combobox — no vendor route; the wired surface keeps zero's names. */
+type ComboboxProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type ComboboxAdapted = Adapted<typeof ZCombobox, ZeroAxisProp, ComboboxProps>;
+export declare const Combobox: ComboboxAdapted & AdaptedStatics<typeof ZCombobox> & { Root: ComboboxAdapted };
+
+/** toggle — no vendor route; the wired surface keeps zero's names. */
+type ToggleProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type ToggleAdapted = Adapted<typeof ZToggle, ZeroAxisProp, ToggleProps>;
+export declare const Toggle: ToggleAdapted & { Root: ToggleAdapted };
+
+/** toggle-group — no vendor route; the wired surface keeps zero's names. */
+type ToggleGroupProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type ToggleGroupAdapted = Adapted<typeof ZToggleGroup, ZeroAxisProp, ToggleGroupProps>;
+export declare const ToggleGroup: ToggleGroupAdapted & AdaptedStatics<typeof ZToggleGroup> & { Root: ToggleGroupAdapted };
+
+/** number-input — no vendor route; the wired surface keeps zero's names. */
+type NumberInputProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type NumberInputAdapted = Adapted<typeof ZNumberInput, ZeroAxisProp, NumberInputProps>;
+export declare const NumberInput: NumberInputAdapted & AdaptedStatics<typeof ZNumberInput> & { Root: NumberInputAdapted };
+
+/** rating-group — no vendor route; the wired surface keeps zero's names. */
+type RatingGroupProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type RatingGroupAdapted = Adapted<typeof ZRatingGroup, ZeroAxisProp, RatingGroupProps>;
+export declare const RatingGroup: RatingGroupAdapted & AdaptedStatics<typeof ZRatingGroup> & { Root: RatingGroupAdapted };
+
+/** tree-view — no vendor route; the wired surface keeps zero's names. */
+type TreeViewProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type TreeViewAdapted = Adapted<typeof ZTreeView, ZeroAxisProp, TreeViewProps>;
+export declare const TreeView: TreeViewAdapted & AdaptedStatics<typeof ZTreeView> & { Root: TreeViewAdapted };

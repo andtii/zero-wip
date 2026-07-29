@@ -1,0 +1,94 @@
+@layer zero.recipes {
+    [data-scope="rating-group"][data-part="root"] {
+        --rating-size: calc(var(--size-selector) * 6);
+    }
+
+    [data-scope="rating-group"][data-part="root"] {
+        display: inline-flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+    }
+
+    [data-scope="rating-group"][data-part="label"] {
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        color: var(--color-base-content);
+    }
+
+    [data-scope="rating-group"][data-part="label"][data-invalid] {
+        color: var(--hero-danger);
+    }
+
+    [data-scope="rating-group"][data-part="label"][data-required] {
+        font-weight: var(--weight-semibold);
+    }
+
+    [data-scope="rating-group"][data-part="control"] {
+        display: inline-flex;
+        gap: var(--space-2xs);
+        border-radius: var(--radius-selector);
+    }
+
+    [data-scope="rating-group"][data-part="control"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="rating-group"][data-part="control"][data-focus-visible] {
+        outline: 2px solid var(--hero-focus);
+        outline-offset: 2px;
+    }
+
+    [data-scope="rating-group"][data-part="item"] {
+        font-size: var(--rating-size);
+        line-height: var(--leading-none);
+        border-radius: var(--radius-selector);
+        cursor: pointer;
+        user-select: none;
+        color: var(--hero-muted);
+        transition: color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-state="full"] {
+        color: var(--hero-primary);
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-state="half"] {
+        color: var(--hero-primary);
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-highlighted] {
+        transform: scale(1.1);
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-readonly] {
+        cursor: default;
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-focus-visible] {
+        outline: 2px solid var(--hero-focus);
+        outline-offset: -2px;
+    }
+
+    [data-scope="rating-group"][data-part="root"][data-size="sm"] {
+        --rating-size: calc(var(--size-selector) * 5);
+    }
+
+    [data-scope="rating-group"][data-part="root"][data-size="lg"] {
+        --rating-size: calc(var(--size-selector) * 7);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="rating-group"][data-part="item"] {
+            transition: none;
+        }
+
+        [data-scope="rating-group"][data-part="item"][data-highlighted] {
+            transform: none;
+        }
+    }
+}
