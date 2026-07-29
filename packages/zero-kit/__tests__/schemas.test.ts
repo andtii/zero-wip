@@ -156,30 +156,37 @@ describe('report.schema.json', () => {
             [name, buildReport(compileDesignSystem(ds as DesignSystemInput, reportManifest), ds as DesignSystemInput, reportManifest)] as const,
     );
 
+    /** By name, not by index — the negative cases below need a SPECIFIC system. */
+    const reportNamed = (name: string): unknown =>
+        reports.find(([n]) => n === name)![1];
+
     it.each(reports)('accepts the report emitted for %s', (name, report) => {
         expectValid(validateReport, asJson(report), `${name} report`);
     });
 
     it('rejects an unknown top-level key (the emitter is closed)', () => {
-        expect(validateReport(asJson({ ...reports[0]![1], vendor: 'acme' }))).toBe(false);
+        expect(validateReport(asJson({ ...(reportNamed('basic') as object), vendor: 'acme' }))).toBe(false);
     });
 
     it('rejects `variant` in declaredOut', () => {
         // Only colour and size can be declared out of existence — an omitted
         // `tokens.variants` means "declared nothing", not "no variant axis".
-        const bad = asJson(reports[0]![1]) as { vocabulary: { declaredOut: string[] } };
+        const bad = asJson(reportNamed('basic')) as { vocabulary: { declaredOut: string[] } };
         bad.vocabulary.declaredOut.push('variant');
         expect(validateReport(bad)).toBe(false);
     });
 
     it('rejects an unstyled component that carries axes anyway', () => {
-        const bad = asJson(reports[4]![1]) as { components: Record<string, unknown> };
+        // heroui specifically: it is the only shipped system with an unstyled
+        // component to corrupt.
+        const bad = asJson(reportNamed('heroui')) as { components: Record<string, unknown> };
+        expect(bad.components['accordion']).toEqual({ styled: false, parts: {} });
         bad.components['accordion'] = { styled: false, parts: {}, mods: [] };
         expect(validateReport(bad)).toBe(false);
     });
 
     it('rejects a state landing in no coverage bucket', () => {
-        const bad = asJson(reports[0]![1]) as {
+        const bad = asJson(reportNamed('basic')) as {
             components: Record<string, { parts: Record<string, { flags: Record<string, unknown> }> }>;
         };
         delete bad.components['button']!.parts['root']!.flags['uncovered'];
@@ -187,7 +194,7 @@ describe('report.schema.json', () => {
     });
 
     it('rejects an axis status outside the closed set', () => {
-        const bad = asJson(reports[0]![1]) as {
+        const bad = asJson(reportNamed('basic')) as {
             components: Record<string, { axes: Record<string, { status: string }> }>;
         };
         bad.components['button']!.axes['color']!.status = 'partial';
