@@ -9,14 +9,26 @@
  * dist/manifest.json        (DS-level: name, themes, declared tokens, per-component wired axes)
  * dist/register.d.ts        (GENERATED ZeroVocabulary augmentation — RFC 0002 §5)
  * dist/register.js          (empty module so the /register subpath resolves)
+ * dist/report.json          (coverage report — RFC 0003 §7.4; only when given one)
  * ```
  */
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { CompiledDesignSystem } from './design-system.js';
+import type { DesignSystemReport } from './resolve/report.js';
 import { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
 
-export async function writeArtifacts(compiled: CompiledDesignSystem, outDir: string): Promise<string[]> {
+/**
+ * `report` is a parameter rather than something built here because
+ * `buildReport` needs the authoring input and the anatomy manifest, neither of
+ * which survives into `CompiledDesignSystem`. Optional, so a caller that only
+ * wants CSS keeps working unchanged.
+ */
+export async function writeArtifacts(
+    compiled: CompiledDesignSystem,
+    outDir: string,
+    report?: DesignSystemReport,
+): Promise<string[]> {
     const cssDir = join(outDir, 'css');
     const componentsDir = join(cssDir, 'components');
     await mkdir(componentsDir, { recursive: true });
@@ -49,5 +61,6 @@ export async function writeArtifacts(compiled: CompiledDesignSystem, outDir: str
     );
     await write(join(outDir, 'register.d.ts'), compileRegisterDts(compiled));
     await write(join(outDir, 'register.js'), compileRegisterJs(compiled));
+    if (report) await write(join(outDir, 'report.json'), JSON.stringify(report, null, 2));
     return written;
 }

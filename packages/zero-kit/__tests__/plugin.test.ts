@@ -180,4 +180,37 @@ describe('zero:validate args', () => {
         // Validation writes nothing; offering --out would be a lie.
         expect(() => parseArgs(['--out', 'x'], shape)).toThrow(ParseError);
     });
+
+    it('defaults --report off and takes it as a bare boolean', () => {
+        expect(parseArgs([], shape).args.report).toBe(false);
+        expect(parseArgs(['--report'], shape).args.report).toBe(true);
+    });
+
+    it('takes --report-json as a path, kebab or camel', () => {
+        expect(parseArgs(['--report-json', 'r.json'], shape).args.reportJson).toBe('r.json');
+        expect(parseArgs(['--report-json=r.json'], shape).args.reportJson).toBe('r.json');
+        expect(parseArgs([], shape).args.reportJson).toBeUndefined();
+    });
+
+    it('keeps the two report flags independent', () => {
+        // The human summary and the machine artifact are separate asks — one
+        // must not imply or suppress the other.
+        const { args } = parseArgs(['--report', '--report-json', '-'], shape);
+        expect(args.report).toBe(true);
+        expect(args.reportJson).toBe('-');
+    });
+
+    it('rejects --report-json with no value, which is why the flag is split', () => {
+        // This is the whole reason `--report` and `--report=json` cannot be one
+        // flag: @sigx/args has no optional-value form, so a bare value flag is
+        // a MISSING_VALUE error. Collapses once signalxjs/terminal#102 lands
+        // (tracked as #177) — and this assertion is what will fail then.
+        try {
+            parseArgs(['--report-json'], shape);
+            expect.unreachable('should have thrown');
+        } catch (err) {
+            expect(err).toBeInstanceOf(ParseError);
+            expect((err as ParseError).code).toBe('MISSING_VALUE');
+        }
+    });
 });

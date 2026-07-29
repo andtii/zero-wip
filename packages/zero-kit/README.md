@@ -129,6 +129,7 @@ recommended keys, so absence is never a validation error.
 
 ```bash
 sigx zero:validate   # tokens, WCAG contrast, recipe structure + content
+sigx zero:validate --report   # what the design system covers, not what's wrong
 sigx zero:build      # dist/css/index.css + per-component files + manifest
 ```
 
@@ -157,6 +158,7 @@ a design-system package.
 
 ```
 sigx zero:validate [entry] [--manifest <path>] [--strict]
+                   [--report] [--report-json <path>]
 sigx zero:build    [entry] [--manifest <path>] [--out <dir>]
 ```
 
@@ -172,6 +174,50 @@ bare `sigx build` / `sigx validate` aliases also resolve when nothing else
 claims those names. Both exit non-zero on failure, and `sigx zero:build --help`
 prints the current flags.
 
+## The coverage report
+
+Validation answers "is this correct" and returns a flat list of issues.
+`--report` answers the other question — what the design system actually
+*covers*:
+
+```bash
+sigx zero:validate --report                 # human-readable summary
+sigx zero:validate --report-json report.json
+sigx zero:validate --report-json -          # JSON on stdout, ready to pipe
+```
+
+```
+heroui — coverage report
+  components styled: 8/23 (35%)
+    unstyled: accordion, avatar, collapsible, combobox, menu, …
+  declared out of existence: color
+  color wired: 0/8 (0%) — no such axis
+  size wired: 5/8 (63%)
+  variant wired: 1/8 (13%)
+  states+flags covered: 83/104 (80%) (0 conditionally, 2 skipped deliberately)
+  theme hero-light: min contrast 14.33:1 (base-300 vs base-content)
+```
+
+The report is emitted whether or not validation passes — a design system that
+fails is exactly the one whose coverage is worth reading. Every design system
+build also writes it to `dist/report.json`, so it is available without running
+the CLI at all.
+
+It carries, per design system: components styled against the anatomy manifest;
+the axes each component wires, and which its `register.d.ts` types `never`
+(derived from the same harvest, so the two cannot disagree); declared-but-unwired
+values per axis and per modifier — the only place a declared-but-unused colour
+role or size step surfaces, since the validator has no rule for those; per-part
+state and flag coverage, including what `skipStates` delegates deliberately; the
+**axis-agnostic divergence report**, listing per axis the per-component value
+sets and flagging any component wiring a strict subset of its siblings; and the
+minimum WCAG contrast margin per theme across the declared role pairs.
+
+`--report-json -` makes stdout carry the JSON and nothing else — diagnostics go
+to stderr and pass/fail is the exit code. Two flags rather than one
+`--report=json` because `@sigx/args` has no optional-value form yet; they
+collapse once it does.
+
 ## JSON Schemas
 
 The package ships JSON Schemas (draft 2020-12) for the authoring surfaces.
@@ -184,6 +230,8 @@ URL where they will be served (publishing tracked on the docs repo):
 - `https://signalxjs.github.io/zero/schemas/manifest.schema.json` — the
   `@sigx/zero` anatomy manifest (`dist/manifest.json` declares it as its
   `$schema`)
+- `https://signalxjs.github.io/zero/schemas/report.schema.json` — the coverage
+  report (`dist/report.json` declares it as its `$schema`)
 
 They close the JSON-first authoring loop: a generator (AI or otherwise) emits
 tokens and recipes as plain JSON, checks them against the schema for

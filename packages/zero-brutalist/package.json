@@ -17,7 +17,8 @@
         "./css": "./dist/css/index.css",
         "./css/tokens": "./dist/css/tokens.css",
         "./css/*": "./dist/css/components/*.css",
-        "./manifest.json": "./dist/manifest.json"
+        "./manifest.json": "./dist/manifest.json",
+        "./report.json": "./dist/report.json"
     },
     "files": [
         "dist",
