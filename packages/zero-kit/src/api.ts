@@ -15,7 +15,9 @@
  * from the same objects the web emitter consumes, so a matrix row cannot claim
  * a mapping the artifact doesn't implement — they are the same data.
  */
-import { RESERVED_AXES, VARIANT_AXES } from './contract.js';
+import type { ManifestComponent } from './contract.js';
+import { RESERVED_AXES, VARIANT_AXES, carrierPart } from './contract.js';
+import type { CompiledComponentAxes } from './design-system.js';
 import type { ValidationIssue } from './resolve/validate.js';
 
 /** How one zero axis surfaces on the vendor-named component module. */
@@ -313,4 +315,79 @@ export function validateApi(api: DesignSystemApi, vocabulary: ApiVocabulary): Va
     }
 
     return issues;
+}
+
+/**
+ * One vendor prop's routing in the compiled, per-component form — structurally
+ * the entry type of `AdaptSpec['props']` in `@sigx/zero/adapt`, because the
+ * generated `components.js` inlines these objects verbatim into `adapt()`
+ * calls. `values` is INVERTED from the authoring direction (vendor spelling →
+ * zero value): the runtime looks up what the consumer passed, and identity
+ * entries are omitted because a lookup miss falls through to the value itself.
+ */
+export type CompiledApiRoute =
+    | { axis: string; values?: Record<string, string> }
+    | { modifier: string };
+
+/**
+ * One component's resolved vendor API: the design-system-level declaration
+ * filtered to what this component's recipe actually wires. A declared mapping
+ * for an axis this recipe leaves unwired contributes nothing — the vendor
+ * prop simply doesn't exist on this component, the same closed-world rule the
+ * register artifact applies to zero's own props.
+ */
+export interface CompiledComponentApi {
+    /** The manifest part carrying the variant attributes (`root`, else first). */
+    carrier: string;
+    /** True when the anatomy has exactly one part — the adapted export IS the component. */
+    singlePart: boolean;
+    /** vendor prop → routing, keys sorted for deterministic emission. */
+    props: Record<string, CompiledApiRoute>;
+}
+
+/**
+ * Filter the declaration down to one component's wired surface.
+ *
+ * An axis entry without `as` still produces a route (under the axis's own
+ * name): the generated `.d.ts` replaces the WHOLE variant surface, so even an
+ * unrenamed axis flows through the same door — one mechanism, graded `exact`.
+ */
+export function deriveComponentApi(
+    api: DesignSystemApi,
+    axes: CompiledComponentAxes,
+    component: ManifestComponent,
+): CompiledComponentApi {
+    const props: Record<string, CompiledApiRoute> = {};
+
+    const inverted = (
+        values: Record<string, string> | undefined,
+        wired: readonly string[],
+    ): Record<string, string> | undefined => {
+        const entries = Object.entries(values ?? {})
+            .filter(([zero, vendor]) => vendor !== zero && wired.includes(zero))
+            .map(([zero, vendor]) => [vendor, zero] as const)
+            .sort(([a], [b]) => a.localeCompare(b));
+        return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+    };
+
+    if (api.variant && axes.variant.length > 0) {
+        const values = inverted(api.variant.values, axes.variant);
+        props[api.variant.as ?? 'variant'] = { axis: 'variant', ...(values ? { values } : {}) };
+    }
+    for (const [axis, entry] of Object.entries(api.axes ?? {})) {
+        const wired = axes.axes[axis];
+        if (!wired || wired.length === 0) continue;
+        const values = inverted(entry.values, wired);
+        props[entry.as ?? axis] = { axis, ...(values ? { values } : {}) };
+    }
+    for (const [name, entry] of Object.entries(api.modifiers ?? {})) {
+        if (!axes.mods.includes(name)) continue;
+        props[entry.as ?? name] = { modifier: name };
+    }
+
+    return {
+        carrier: carrierPart(component),
+        singlePart: component.parts.length === 1,
+        props: Object.fromEntries(Object.entries(props).sort(([a], [b]) => a.localeCompare(b))),
+    };
 }

@@ -371,6 +371,16 @@ export interface ManifestComponent {
     parts: ManifestPart[];
 }
 
+/**
+ * The part that carries the variant attributes (`data-color` etc.) — by
+ * convention the part named `root`, else the first declared part. Pure
+ * manifest logic (no target in it): the web recipe compiler anchors variant
+ * selectors on it, and the components emitter adapts it.
+ */
+export function carrierPart(component: ManifestComponent): string {
+    return component.parts.find((p) => p.name === 'root')?.name ?? component.parts[0]!.name;
+}
+
 export interface ZeroManifest {
     zeroVersion: string;
     tokens: {

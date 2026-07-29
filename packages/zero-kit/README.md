@@ -176,11 +176,24 @@ it mechanically (`apiGrade` / `modifierGrade`), so a conformance-matrix row
 and the artifact it points at are the same object. The coverage report gains
 an `api` section listing every vendor prop, where it routes, and its grade.
 
-Currently the kit ships the declaration, its validation and the grades; the
-generated `./components` artifact (narrowed vendor-named types plus a
-data-only runtime over `@sigx/zero`'s generic `adapt()`) lands separately.
-`skills/design-system/conformance/` holds real vendor fixtures (Carbon, Ant,
-Radix Themes, HeroUI) that validate and grade in CI.
+A design system that declares an `api` gets a generated `./components`
+module in its build: `dist/components.d.ts` (self-contained vendor-named
+types — no `/register` import needed, nothing augments `ZeroVocabulary`) and
+`dist/components.js` (data only — one PURE `adapt()` call per component that
+routes anything, a plain re-export otherwise; all behaviour lives in
+`@sigx/zero/adapt`, written once and never generated). Add the subpath to the
+package's exports map:
+
+```json
+"./components": { "types": "./dist/components.d.ts", "import": "./dist/components.js" }
+```
+
+and consumers write `import { Button } from '@sigx/<ds>/components'` —
+`<Button kind="ghost" hasIconOnly>` fully narrowed, rendering the unchanged
+zero attributes. The DS manifest carries the per-component routing under
+`api` for tooling. `skills/design-system/conformance/` holds real vendor
+fixtures (Carbon, Ant, Radix Themes, HeroUI) that validate and grade in CI;
+`@sigx/zero-heroui` ships the first real adapter.
 
 ## CLI
 

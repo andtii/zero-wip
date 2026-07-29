@@ -10,6 +10,8 @@
  * dist/register.d.ts        (GENERATED ZeroVocabulary augmentation — RFC 0002 §5)
  * dist/register.js          (empty module so the /register subpath resolves)
  * dist/report.json          (coverage report — RFC 0003 §7.4; only when given one)
+ * dist/components.d.ts      (vendor-named component types — issue #179; only when the design system declares an `api`)
+ * dist/components.js        (data-only adapt() wiring for the same — issue #179; only with an `api`)
  * ```
  */
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -17,6 +19,7 @@ import { join } from 'node:path';
 import type { CompiledDesignSystem } from './design-system.js';
 import type { DesignSystemReport } from './resolve/report.js';
 import { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
+import { compileComponentsDts, compileComponentsJs } from './targets/web/components-dts.js';
 
 /**
  * `report` is a parameter rather than something built here because
@@ -55,6 +58,9 @@ export async function writeArtifacts(
                 // Scope → wired axes (was a bare scope-name array; the scope
                 // names remain reachable as this record's keys).
                 components: compiled.components,
+                // Scope → the vendor-named API surface, for tooling and the
+                // conformance matrix's generated rows (issue #179).
+                ...(compiled.componentApi ? { api: compiled.componentApi } : {}),
             },
             null,
             2,
@@ -62,6 +68,10 @@ export async function writeArtifacts(
     );
     await write(join(outDir, 'register.d.ts'), compileRegisterDts(compiled));
     await write(join(outDir, 'register.js'), compileRegisterJs(compiled));
+    if (compiled.componentApi) {
+        await write(join(outDir, 'components.d.ts'), compileComponentsDts(compiled));
+        await write(join(outDir, 'components.js'), compileComponentsJs(compiled));
+    }
     if (report) await write(join(outDir, 'report.json'), JSON.stringify(report, null, 2));
     return written;
 }

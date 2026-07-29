@@ -122,6 +122,20 @@ export const systemDark = {
     },
 } as const satisfies Partial<SystemTokens>;
 
+/**
+ * The fused axis. `primary`/`secondary`/`tertiary` are a semantic
+ * HIERARCHY, `danger`/`danger-soft` fold a colour and a treatment into one
+ * member, and `outline`/`ghost` are the only two that would survive a
+ * translation to the neutral vocabulary the other four packages share.
+ *
+ * Exported `as const` so the `api` declaration in `design-system.ts` narrows
+ * against the literal members at the declaration, not just at build time.
+ */
+export const variants = ['primary', 'secondary', 'tertiary', 'outline', 'ghost', 'danger', 'danger-soft'] as const;
+
+/** HeroUI's `isIconOnly` / `isPending`, as presence-only modifiers. */
+export const modifiers = ['icon-only', 'pending'] as const;
+
 export const tokens: TokensInput<typeof roles, typeof system> = {
     roles,
     /**
@@ -130,15 +144,8 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
      * rather than a silently minted step.
      */
     sizes: ['sm', 'md', 'lg'],
-    /**
-     * The fused axis. `primary`/`secondary`/`tertiary` are a semantic
-     * HIERARCHY, `danger`/`danger-soft` fold a colour and a treatment into one
-     * member, and `outline`/`ghost` are the only two that would survive a
-     * translation to the neutral vocabulary the other four packages share.
-     */
-    variants: ['primary', 'secondary', 'tertiary', 'outline', 'ghost', 'danger', 'danger-soft'],
-    /** HeroUI's `isIconOnly` / `isPending`, as presence-only modifiers. */
-    modifiers: ['icon-only', 'pending'],
+    variants,
+    modifiers,
     custom,
     system,
     systemDark,
