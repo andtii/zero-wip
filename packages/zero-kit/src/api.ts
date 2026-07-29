@@ -109,9 +109,18 @@ export function defineApi(first: object, second?: object): DesignSystemApi {
 export type ConformanceGrade = 'exact' | 'renamed' | 'reshaped' | 'unsupported';
 
 /**
+ * The grades a PRESENT mapping can earn. `unsupported` is the absence of a
+ * mapping, so anything derived from an entry — a report row, a generated
+ * artifact — can never carry it; the report schema states the same exclusion.
+ */
+export type MappedGrade = Exclude<ConformanceGrade, 'unsupported'>;
+
+/**
  * The grade an axis mapping earns. `unsupported` — the only grade a human
  * still asserts by hand — is simply the absence of a mapping.
  */
+export function apiGrade(entry: AxisApi): MappedGrade;
+export function apiGrade(entry: AxisApi | undefined): ConformanceGrade;
 export function apiGrade(entry: AxisApi | undefined): ConformanceGrade {
     if (!entry) return 'unsupported';
     if (entry.values && Object.keys(entry.values).length > 0) return 'reshaped';
@@ -124,6 +133,8 @@ export function apiGrade(entry: AxisApi | undefined): ConformanceGrade {
  * prop, zero's is a presence-only attribute — the shape changes even when the
  * name doesn't.
  */
+export function modifierGrade(entry: ModifierApi): 'reshaped';
+export function modifierGrade(entry: ModifierApi | undefined): ConformanceGrade;
 export function modifierGrade(entry: ModifierApi | undefined): ConformanceGrade {
     return entry ? 'reshaped' : 'unsupported';
 }

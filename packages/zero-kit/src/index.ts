@@ -51,6 +51,7 @@ export type {
     ConformanceGrade,
     DesignSystemApi,
     DesignSystemApiFor,
+    MappedGrade,
     ModifierApi,
 } from './api.js';
 export { API_PROP_PATTERN, apiGrade, defineApi, modifierGrade, validateApi } from './api.js';

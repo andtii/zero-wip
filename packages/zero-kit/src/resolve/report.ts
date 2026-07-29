@@ -30,7 +30,7 @@ import { contrastPairs } from '../contract.js';
 import type { CompiledDesignSystem, DesignSystemInput } from '../design-system.js';
 import { undeclaredAxes } from '../design-system.js';
 import type { PartStyles, RecipeInput } from '../recipes.js';
-import type { ConformanceGrade, DesignSystemApi } from '../api.js';
+import type { DesignSystemApi, MappedGrade } from '../api.js';
 import { apiGrade, modifierGrade } from '../api.js';
 import type { ValidationResult } from './validate.js';
 
@@ -156,7 +156,8 @@ export interface ApiSurfaceReport {
     prop: string;
     /** Where it routes: `variant`, `axes.<axis>` or `mods.<modifier>`. */
     zero: string;
-    grade: ConformanceGrade;
+    /** Never `unsupported` — an unmapped surface has no row (see `MappedGrade`). */
+    grade: MappedGrade;
     /** Vendor spellings that differ from the zero value they map to. Sorted. */
     respelled: string[];
 }
