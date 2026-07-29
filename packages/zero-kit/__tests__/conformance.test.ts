@@ -40,6 +40,8 @@ import * as heroui from '../skills/design-system/conformance/heroui.js';
 import * as material from '../skills/design-system/conformance/material.js';
 import { tokens as herouiPackageTokens } from '../../zero-heroui/src/tokens.js';
 import { roles as materialPackageRoles, tokens as materialPackageTokens } from '../../zero-material/src/tokens.js';
+import { tokens as carbonPackageTokens } from '../../zero-carbon/src/tokens.js';
+import { designSystem as carbonPackageDS } from '../../zero-carbon/src/design-system.js';
 
 const manifest = {
     components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
@@ -176,6 +178,15 @@ describe('fixtures describing in-repo packages stay verbatim', () => {
         expect([...material.vocabulary.roles]).toEqual(Object.keys(materialPackageRoles));
         expect([...material.vocabulary.variants]).toEqual([...(materialPackageTokens.variants ?? [])]);
     });
+
+    it('carbon matches @sigx/zero-carbon, api included', () => {
+        // The runtime package graduated the fixture (#183): same vocabulary,
+        // same api object shape — the matrix row, the fixture and the shipped
+        // ./components module all describe one artifact.
+        expect([...carbon.vocabulary.variants]).toEqual([...(carbonPackageTokens.variants ?? [])]);
+        expect([...carbon.vocabulary.modifiers]).toEqual([...(carbonPackageTokens.modifiers ?? [])]);
+        expect(carbonPackageDS.api).toEqual(carbon.api);
+    });
 });
 
 describe('the gap column', () => {
@@ -218,6 +229,7 @@ describe('the living document', () => {
             ['zero-material', materialDS],
             ['zero-brutalist', brutalistDS],
             ['zero-heroui', herouiDS],
+            ['zero-carbon', carbonPackageDS],
         ] as const).flatMap(([pkg, ds]) => {
             const input = ds as DesignSystemInput;
             const compiled = compileDesignSystem(input, manifest);
