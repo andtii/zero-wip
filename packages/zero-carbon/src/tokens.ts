@@ -40,6 +40,7 @@ export const custom = {
     'carbon-danger-ink': { description: 'Ink on the destructive fill.', syntax: '<color>' },
     'carbon-focus': { description: 'The focus outline.', syntax: '<color>' },
     'carbon-line': { description: 'Hairlines and tertiary borders.', syntax: '<color>' },
+    'carbon-toggle-on': { description: 'The toggle ON fill (green 50 / green 40).', syntax: '<color>' },
 } as const satisfies Record<string, CustomTokenDecl>;
 
 /**
@@ -163,6 +164,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'carbon-danger-ink': 'oklch(100% 0 0)',
                 'carbon-focus': 'oklch(53% 0.23 262)',
                 'carbon-line': 'oklch(90.6% 0 0)',
+                'carbon-toggle-on': 'oklch(62% 0.15 152)',
             },
         },
         g100: {
@@ -183,6 +185,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'carbon-danger-ink': 'oklch(100% 0 0)',
                 'carbon-focus': 'oklch(100% 0 0)',
                 'carbon-line': 'oklch(48.4% 0 0)',
+                'carbon-toggle-on': 'oklch(71% 0.16 150)',
             },
         },
     },
