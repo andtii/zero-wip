@@ -169,6 +169,13 @@ typecheck` excludes `examples/`, so the playground has its own:
   zero-material proves vocabularies can be *extended*, this proves they can be
   a different *shape*. Component coverage is deliberately partial (eight
   recipes) — it exercises the axis surface, not a product. Private.
+- `packages/zero-carbon` → `@sigx/zero-carbon` — Carbon-flavoured skin, and
+  the runtime acceptance test for the **api `values` remap** (#183): no
+  colour axis, the fused seven-member `kind` vocabulary declared kebab
+  (`danger-tertiary`), with Carbon's double-hyphen spellings
+  (`danger--tertiary`) restored only at the prop boundary by the generated
+  `./components` module. Deliberately partial (Button only) — it exercises
+  the vendor-named API surface that motivated #179, not a product. Private.
 - `examples/playground` — private kitchen-sink app; switches between
   basic / daisyui / material / brutalist **at runtime** from its toolbar. A
   design system compiles to one stylesheet, so switching is a `<link>` swap

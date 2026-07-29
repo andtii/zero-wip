@@ -18,7 +18,8 @@
       "@sigx/zero-daisyui": ["./packages/zero-daisyui/src/index.ts"],
       "@sigx/zero-material": ["./packages/zero-material/src/index.ts"],
       "@sigx/zero-brutalist": ["./packages/zero-brutalist/src/index.ts"],
-      "@sigx/zero-heroui": ["./packages/zero-heroui/src/index.ts"]
+      "@sigx/zero-heroui": ["./packages/zero-heroui/src/index.ts"],
+      "@sigx/zero-carbon": ["./packages/zero-carbon/src/index.ts"]
     }
   },
   "include": [
