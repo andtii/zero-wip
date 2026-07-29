@@ -63,6 +63,33 @@ custom-property and breakpoint autocomplete, and per-category token keys
 through the `cssVar(name)` and `token(category, key)` helpers. No import,
 no change — the open unions stay.
 
+## Vendor-named surfaces (`@sigx/zero/adapt`)
+
+A design system that declares an `api` (see `@sigx/zero-kit`) ships a
+generated `./components` module — zero's components under the vendor's own
+prop names (`<Button kind="ghost" hasIconOnly>`), fully typed with no
+`/register` import. The behaviour behind every such module is one generic
+helper here:
+
+```ts
+import { adapt } from '@sigx/zero/adapt';
+export const Button = adapt(ZeroButton, {
+    props: {
+        kind: { axis: 'variant', values: { 'danger--tertiary': 'danger-tertiary' } },
+        hasIconOnly: { modifier: 'icon-only' },
+    },
+});
+```
+
+`adapt` delegates the base component's setup with a renaming view over its
+props — one component instance, so slots, events, models, refs and lifecycle
+pass through untouched, and reads stay reactive. The rendered attributes are
+unchanged (`kind="ghost"` renders `data-variant="ghost"`, never `data-kind`):
+renaming lives at the prop boundary, the anatomy contract does not move. The
+spec is kit-generated and kit-validated data; `adapt` performs no validation,
+and the generated `components.d.ts` (instantiating the exported `Adapted`
+type) is the typed surface consumers see.
+
 ## For tooling / AI
 
 - `@sigx/zero/anatomy` — every component's parts × states × flags as typed

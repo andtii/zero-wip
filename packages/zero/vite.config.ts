@@ -9,6 +9,7 @@ export default defineLibConfig({
         'anatomy': 'src/anatomy.ts',
         'contract/index': 'src/contract/index.ts',
         'behaviors/index': 'src/behaviors/index.ts',
+        'adapt/index': 'src/adapt/index.ts',
         'theme/index': 'src/theme/index.ts',
         'components/button/index': 'src/components/button/index.ts',
         'components/tabs/index': 'src/components/tabs/index.ts',

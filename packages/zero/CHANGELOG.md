@@ -4,6 +4,19 @@
 
 ### Added
 
+- **`@sigx/zero/adapt` — the generic runtime behind vendor-named component
+  modules** (issue #179, RFC 0003 §2). `adapt(Base, spec)` returns a factory
+  whose setup delegates to the base component's with a renaming view over its
+  props: vendor props (`kind`, `hasIconOnly`) route onto zero's variant
+  surface (`variant`, `mods`, custom axes) at read time, values respell at
+  the prop boundary, and the rendered attributes keep zero's spelling — the
+  anatomy contract does not move. One component instance: slots, events,
+  models, refs and lifecycle pass through untouched, reactivity included. A
+  vendor prop deliberately shadows same-named base props (Ant's `type`) and
+  is consumed, never leaked to the DOM. Ships with the `Adapted` type the
+  kit-generated `components.d.ts` instantiates. New subpath export, ~0.95 kB;
+  nothing else in zero imports it.
+
 - **The `mods` prop — presence-only design-system modifiers** (RFC 0003 §3,
   #166). An axis answers *which one* and always carries a value; a modifier
   answers *is it on* and carries none. `<Button.Root mods={{ block: true }}>`
