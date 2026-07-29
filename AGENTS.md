@@ -175,8 +175,9 @@ typecheck` excludes `examples/`, so the playground has its own:
   colour axis, the fused seven-member `kind` vocabulary declared kebab
   (`danger-tertiary`), with Carbon's double-hyphen spellings
   (`danger--tertiary`) restored only at the prop boundary by the generated
-  `./components` module. Deliberately partial (Button only) — it exercises
-  the vendor-named API surface that motivated #179, not a product. Private.
+  `./components` module. Full recipe coverage; the `kind` axis and the remap
+  stay Button-only — it exercises the vendor-named API surface that motivated
+  #179, not a product. Private.
 - `examples/playground` — private kitchen-sink app; switches between
   basic / daisyui / material / brutalist **at runtime** from its toolbar. A
   design system compiles to one stylesheet, so switching is a `<link>` swap

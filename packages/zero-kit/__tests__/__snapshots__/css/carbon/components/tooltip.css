@@ -1,0 +1,39 @@
+@layer zero.recipes {
+    [data-scope="tooltip"][data-part="popup"] {
+        opacity: 0;
+        transform: none;
+        transition: opacity var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard), display var(--duration-normal) allow-discrete, overlay var(--duration-normal) allow-discrete;
+        padding: var(--space-sm) var(--space-md);
+        max-width: 18rem;
+        background: var(--color-base-content);
+        color: var(--color-base-100);
+        border: none;
+        border-radius: var(--radius-field);
+        box-shadow: var(--shadow-sm);
+        font-family: var(--font-sans);
+        font-size: var(--text-xs);
+        line-height: var(--leading-normal);
+    }
+
+    [data-scope="tooltip"][data-part="popup"][data-state="open"] {
+        opacity: 1;
+        transform: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="tooltip"][data-part="popup"] {
+            transition: none;
+        }
+
+        [data-scope="tooltip"][data-part="popup"][data-state="open"] {
+            transform: none;
+        }
+    }
+
+    @starting-style {
+        [data-scope="tooltip"][data-part="popup"][data-state="open"] {
+            opacity: 0;
+            transform: none;
+        }
+    }
+}

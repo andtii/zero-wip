@@ -1,16 +1,16 @@
 /**
- * zero-carbon recipes — Carbon's Button over zero's anatomy (issue #183).
+ * zero-carbon recipes — Carbon's language over zero's anatomy (issue #183).
  *
- * Deliberately partial: this package exercises the api surface (the fused
- * `kind` axis, the values remap, the renamed boolean modifiers), not a
- * product. Button is the component that motivated the whole vendor-named-API
- * design, so Button is what ships.
+ * Full coverage: every component in the manifest. The api surface this
+ * package exists to exercise — the fused `kind` axis, the values remap, the
+ * renamed boolean modifiers — stays Button-only, per the repo's deferral:
+ * Button is the component that motivated the whole vendor-named-API design.
  *
  * No `variants.color` anywhere — there are no roles to key it on, the same
  * shape `zero-heroui` proved. Colour reaches the CSS through declared custom
  * tokens; the seven `kind` members each rebind the fill/ink/line channel.
  */
-import type { CssProps, RecipeInput } from '@sigx/zero-kit';
+import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
 
 const motion = (props: string): string =>
     props.split(', ').map((p) => `${p} var(--duration-normal) var(--ease-standard)`).join(', ');
@@ -20,6 +20,1205 @@ const focusRing: Record<string, CssProps> = {
     'focus-visible': {
         outline: '2px solid var(--carbon-focus)',
         outlineOffset: '-2px',
+    },
+};
+
+/**
+ * Layer-aware hover/pressed washes: an ink-mix over whatever layer the part
+ * sits on, so the same value reads correctly on base-100 pages and base-200
+ * floating surfaces — and moves the right way in both schemes (darker on
+ * white, lighter on g100), which a brightness filter cannot do.
+ */
+const layerHover = 'color-mix(in oklab, var(--color-base-content) 8%, transparent)';
+const layerActive = 'color-mix(in oklab, var(--color-base-content) 15%, transparent)';
+
+/**
+ * Enter/exit presence for a top-layer popup — dialog, popover, tooltip, menu.
+ *
+ * The platform mechanism every design system in this repo uses: transition
+ * `display`/`overlay` with `allow-discrete` so the browser keeps the element
+ * (and its top-layer slot) around for the exit, and `@starting-style`
+ * supplies the state the entry animates FROM. Carbon's productive motion —
+ * fast-02 with the standard curve, no theatrics.
+ */
+const popupPresence = (from: string): PartStyles => ({
+    base: {
+        opacity: '0',
+        transform: from,
+        transition: 'opacity var(--duration-normal) var(--ease-standard), '
+            + 'transform var(--duration-normal) var(--ease-standard), '
+            + 'display var(--duration-normal) allow-discrete, '
+            + 'overlay var(--duration-normal) allow-discrete',
+    },
+    states: { open: { opacity: '1', transform: 'none' }, closed: {} },
+    at: {
+        'starting-style': { states: { open: { opacity: '0', transform: from } } },
+        'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+    },
+});
+
+/**
+ * Enter/exit for a disclosure panel — Collapsible and Accordion are native
+ * `<details>`, so the height animation lives on the browser's own
+ * `::details-content` wrapper. `interpolate-size: allow-keywords` unlocks
+ * `auto` as a transition endpoint, set on the element itself so nothing
+ * outside this design system changes behaviour.
+ */
+const disclosurePresence: PartStyles = {
+    base: { interpolateSize: 'allow-keywords' },
+    selectors: {
+        '&::details-content': {
+            blockSize: '0',
+            overflow: 'hidden',
+            transition: 'block-size var(--duration-normal) var(--ease-standard), '
+                + 'content-visibility var(--duration-normal) allow-discrete',
+        },
+        '&[open]::details-content': { blockSize: 'auto' },
+    },
+    at: {
+        'reduced-motion': { selectors: { '&::details-content': { transition: 'none' } } },
+    },
+};
+
+/**
+ * Merge presence into a part's own styles per KEY, not per block — a recipe
+ * that already writes `states: { open: {} }` (the "deliberately unstyled"
+ * idiom every popup here uses) would otherwise replace the open state
+ * presence needs and silently lose the entry animation.
+ */
+const mergeKeyed = <T extends Record<string, CssProps>>(a: T | undefined, b: T | undefined): T =>
+    Object.fromEntries(
+        [...new Set([...Object.keys(a ?? {}), ...Object.keys(b ?? {})])]
+            .map((key) => [key, { ...a?.[key], ...b?.[key] }]),
+    ) as T;
+
+const withPresence = (presence: PartStyles, styles: PartStyles): PartStyles => ({
+    base: { ...presence.base, ...styles.base },
+    states: mergeKeyed(presence.states, styles.states),
+    selectors: mergeKeyed(presence.selectors, styles.selectors),
+    at: Object.fromEntries(
+        [...new Set([...Object.keys(presence.at ?? {}), ...Object.keys(styles.at ?? {})])].map(
+            (key) => [key, withPresence(presence.at?.[key] ?? {}, styles.at?.[key] ?? {})],
+        ),
+    ),
+});
+
+/**
+ * Carbon's ghost treatment for the overlay triggers — transparent fill,
+ * interactive ink, hover/pressed feedback climbing the layer ramp
+ * (base-200/base-300): the same $background-hover language Button's `ghost`
+ * kind speaks.
+ */
+const ghostTrigger: PartStyles = {
+    base: {
+        appearance: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        padding: '0 var(--space-md)',
+        minHeight: '3rem',
+        border: 'none',
+        borderRadius: 'var(--radius-field)',
+        background: 'transparent',
+        color: 'var(--carbon-interactive)',
+        fontFamily: 'var(--font-sans)',
+        fontSize: 'var(--text-sm)',
+        fontWeight: 'var(--weight-normal)',
+        letterSpacing: 'var(--tracking-wide)',
+        lineHeight: 'var(--leading-tight)',
+        cursor: 'pointer',
+        transition: motion('background, color'),
+    },
+    states: {
+        hover: { background: 'var(--color-base-200)' },
+        open: { background: 'var(--color-base-200)' },
+        closed: {},
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+    selectors: {
+        '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+    },
+};
+
+/**
+ * Carbon's ghost icon button — the modal/popover close. Square, of course.
+ * Hover/pressed are the ink washes: this button sits on layered surfaces
+ * (the base-200 modal, the base-100 popover), so a fixed layer step would
+ * vanish on one of them.
+ */
+const ghostIconButton = (size: string, position: CssProps = {}): PartStyles => ({
+    base: {
+        appearance: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: size,
+        height: size,
+        padding: '0',
+        border: 'none',
+        borderRadius: 'var(--radius-field)',
+        background: 'transparent',
+        color: 'var(--color-base-content)',
+        cursor: 'pointer',
+        transition: motion('background'),
+        ...position,
+    },
+    states: {
+        hover: { background: layerHover },
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+    selectors: {
+        '&[data-pressed]:not([data-disabled])': { background: layerActive },
+    },
+});
+
+/**
+ * Carbon's accordion heading, shared by Collapsible and Accordion: 14px
+ * label, layer-fill hover, and Carbon's signature end-of-row chevron —
+ * heading text leads, the glyph sits flush-right, pointing down when closed
+ * and flipping 180° to point up when open.
+ */
+const disclosureTrigger: PartStyles = {
+    base: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 'var(--space-md)',
+        minHeight: '2.5rem',
+        padding: '0 var(--space-md)',
+        fontSize: 'var(--text-sm)',
+        fontWeight: 'var(--weight-normal)',
+        letterSpacing: 'var(--tracking-wide)',
+        borderRadius: 'var(--radius-field)',
+        cursor: 'pointer',
+        listStyle: 'none',
+        transition: motion('background'),
+    },
+    states: {
+        hover: { background: 'var(--color-base-200)' },
+        open: {},
+        closed: {},
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+    selectors: {
+        // `display: flex` already suppresses the list-item marker; legacy
+        // WebKit draws its own and needs telling separately.
+        '&::-webkit-details-marker': { display: 'none' },
+        // The `›` glyph rotated 90° points down; open adds another 180° so
+        // it sweeps through the flip rather than snapping.
+        '&::after': {
+            content: '"\\203A"',
+            flex: 'none',
+            marginInlineStart: 'auto',
+            rotate: '90deg',
+            transition: motion('rotate'),
+        },
+        '&[data-state="open"]::after': { rotate: '270deg' },
+        '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+    },
+};
+
+const disclosurePanel: PartStyles = {
+    base: {
+        padding: 'var(--space-sm) var(--space-md) var(--space-lg)',
+        fontSize: 'var(--text-sm)',
+        letterSpacing: 'var(--tracking-wide)',
+        lineHeight: 'var(--leading-normal)',
+    },
+    states: { open: {}, closed: {} },
+};
+
+/**
+ * The menu surface: square, one step up the layer ramp (Carbon's $layer-01 —
+ * flyouts never sit on the page background), a faint shadow as the secondary
+ * depth cue — no hairline.
+ */
+const menuSurface: CssProps = {
+    padding: 'var(--space-xs) 0',
+    minWidth: '12rem',
+    border: 'none',
+    borderRadius: 'var(--radius-box)',
+    background: 'var(--color-base-200)',
+    color: 'var(--color-base-content)',
+    boxShadow: 'var(--shadow-md)',
+    fontFamily: 'var(--font-sans)',
+};
+
+/** A menu option row — full-bleed against the popup's zero inline padding. */
+const menuItem: CssProps = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-sm)',
+    minHeight: '2.5rem',
+    padding: '0 var(--space-md)',
+    fontSize: 'var(--text-sm)',
+    letterSpacing: 'var(--tracking-wide)',
+    borderRadius: 'var(--radius-selector)',
+    cursor: 'pointer',
+    outline: 'none',
+    transition: motion('background'),
+};
+
+// ── Shared field language ─────────────────────────────────────────────────
+/**
+ * Carbon's field-01: a text-entry surface is a layer fill with a single
+ * assertive bottom stroke ($border-strong — deliberately darker than the
+ * hairline, it IS the field's chrome) — no side chrome, square corners.
+ */
+const field01: CssProps = {
+    background: 'var(--color-base-200)',
+    border: 'none',
+    borderBlockEnd: 'var(--border) solid var(--carbon-border-strong)',
+    borderRadius: 'var(--radius-field)',
+};
+
+/**
+ * Every field-01 surface hovers the same way: a background rebind to
+ * $field-hover — a token, not a filter, so the direction is right in both
+ * schemes (darker on white, lighter on g100) and the text is untouched.
+ */
+const fieldHover: Record<string, CssProps> = {
+    hover: { background: 'var(--carbon-field-hover)' },
+};
+
+/** Carbon's label-01: small, wide-tracked, secondary-ink form labels. */
+const fieldLabel: CssProps = {
+    fontSize: 'var(--text-xs)',
+    letterSpacing: 'var(--tracking-wide)',
+    lineHeight: 'var(--leading-tight)',
+    color: 'color-mix(in oklab, var(--color-base-content) 78%, transparent)',
+};
+
+/**
+ * The slider thumb's focus treatment: the 2px ring plus a base-100 gap so it
+ * stays discernible on the base-content thumb in both schemes, as inset
+ * shadows because a native thumb pseudo has no outline box to inset. The
+ * idle value keeps the same two-layer shape so the ring fades rather than
+ * snapping in.
+ */
+const thumbRing = 'inset 0 0 0 2px var(--carbon-focus), inset 0 0 0 4px var(--color-base-100)';
+const thumbRingIdle = 'inset 0 0 0 2px transparent, inset 0 0 0 4px transparent';
+
+// ── Tabs ──────────────────────────────────────────────────────────────────
+export const tabs: RecipeInput = {
+    component: 'tabs',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' },
+        },
+        list: {
+            base: {
+                display: 'flex',
+                borderBlockEnd: 'var(--border) solid var(--carbon-line)',
+            },
+        },
+        tab: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                background: 'transparent',
+                border: 'none',
+                // Carbon's line tab: the 2px underline is always drawn, only
+                // its colour changes — selection never shifts the label.
+                borderBlockEnd: '2px solid transparent',
+                marginBlockEnd: 'calc(-1 * var(--border))',
+                minHeight: '2.5rem',
+                padding: '0 var(--space-md)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-normal)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: 'var(--leading-tight)',
+                color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
+                cursor: 'pointer',
+                transition: motion('background, border-color, color'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)', color: 'var(--color-base-content)' },
+                active: {
+                    color: 'var(--color-base-content)',
+                    fontWeight: 'var(--weight-semibold)',
+                    borderBlockEndColor: 'var(--carbon-interactive)',
+                },
+                inactive: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+        panel: {
+            base: { fontSize: 'var(--text-sm)', color: 'var(--color-base-content)' },
+            states: { active: {}, inactive: {} },
+        },
+    },
+    variants: {
+        size: {
+            sm: { tab: { base: { minHeight: '2rem', padding: '0 var(--space-sm)' } } },
+            // `md` is the un-attributed render: the base already IS the
+            // middle step, so restating it here would be a second copy free
+            // to drift. An empty entry emits no rule and keeps the base.
+            md: {},
+            lg: { tab: { base: { minHeight: '3rem' } } },
+        },
+    },
+};
+
+// ── Collapsible ───────────────────────────────────────────────────────────
+export const collapsible: RecipeInput = {
+    component: 'collapsible',
+    parts: {
+        root: withPresence(disclosurePresence, {
+            // A standalone accordion row: hairlines above and below, the
+            // layer underneath showing through — Carbon depth is lines, not
+            // shadows.
+            base: {
+                borderBlockStart: 'var(--border) solid var(--carbon-line)',
+                borderBlockEnd: 'var(--border) solid var(--carbon-line)',
+                borderRadius: 'var(--radius-box)',
+                color: 'var(--color-base-content)',
+                fontFamily: 'var(--font-sans)',
+            },
+            states: { open: {}, closed: {} },
+        }),
+        trigger: disclosureTrigger,
+        panel: disclosurePanel,
+    },
+};
+
+// ── Switch ────────────────────────────────────────────────────────────────
+export const switchRecipe: RecipeInput = {
+    component: 'switch',
+    /** Carbon's Toggle: 48 × 24 at the default size, a 3px thumb inset. */
+    tokens: {
+        '--switch-width': 'calc(var(--size-selector) * 12)',
+        '--switch-height': 'calc(var(--size-selector) * 6)',
+        '--switch-pad': 'calc(var(--size-selector) * 0.75)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                fontFamily: 'var(--font-sans)',
+                cursor: 'pointer',
+            },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {},
+                unchecked: {},
+            },
+        },
+        control: {
+            // The one place Carbon rounds a corner: the toggle is a pill.
+            // The off track is the assertive mid-gray ($toggle-off), so the
+            // base-100 thumb stays clearly visible on it in both schemes.
+            base: {
+                display: 'inline-block',
+                position: 'relative',
+                width: 'var(--switch-width)',
+                height: 'var(--switch-height)',
+                borderRadius: '9999px',
+                background: 'var(--carbon-border-strong)',
+                transition: motion('background'),
+            },
+            states: {
+                checked: { background: 'var(--carbon-toggle-on)' },
+                unchecked: {},
+                disabled: {},
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { filter: 'brightness(0.8)' },
+            },
+        },
+        thumb: {
+            base: {
+                position: 'absolute',
+                top: 'var(--switch-pad)',
+                left: 'var(--switch-pad)',
+                width: 'calc(var(--switch-height) - var(--switch-pad) * 2)',
+                height: 'calc(var(--switch-height) - var(--switch-pad) * 2)',
+                borderRadius: '9999px',
+                background: 'var(--color-base-100)',
+                transition: motion('transform'),
+            },
+            states: {
+                checked: { transform: 'translateX(calc(var(--switch-width) - var(--switch-height)))' },
+                unchecked: {},
+            },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', letterSpacing: 'var(--tracking-wide)' },
+            states: { checked: {}, unchecked: {}, disabled: {} },
+        },
+    },
+    variants: {
+        /** Carbon ships default and small toggles; `lg` extends the ramp's shape. */
+        size: {
+            sm: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 8)', '--switch-height': 'calc(var(--size-selector) * 4)' } } },
+            // `md` is the un-attributed render — the defaults in `tokens:`
+            // already ARE the middle step.
+            md: {},
+            lg: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 14)', '--switch-height': 'calc(var(--size-selector) * 7)' } } },
+        },
+    },
+    // The visible ring lives on `control`; the <label> root only groups the
+    // control and its text. Declared rather than left implicit so the
+    // delegation reads as a decision.
+    skipStates: { root: ['focus-visible'] },
+};
+
+// ── Dialog ────────────────────────────────────────────────────────────────
+export const dialog: RecipeInput = {
+    component: 'dialog',
+    parts: {
+        trigger: ghostTrigger,
+        // Carbon's Modal: a square card sliding down from above the centre,
+        // on the $layer-01 step so it separates from the page in both
+        // schemes; depth from the scrim and the shadow ramp — never a border.
+        popup: withPresence(popupPresence('translateY(-16px)'), {
+            base: {
+                width: 'calc(100% - 2rem)',
+                maxWidth: '36rem',
+                maxHeight: 'calc(100% - 2rem)',
+                // The popup owns no padding: each region carries its own, so
+                // the footer's button bar can reach the edges (below).
+                padding: '0',
+                border: 'none',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                boxShadow: 'var(--shadow-xl)',
+                fontFamily: 'var(--font-sans)',
+            },
+            states: { open: {}, closed: {} },
+        }),
+        backdrop: {
+            // Carbon's overlay: gray-100 at half strength. Achromatic alpha —
+            // a scrim, not palette.
+            base: {
+                background: 'oklch(0% 0 0 / 0.5)',
+                opacity: '0',
+                transition: 'opacity var(--duration-normal) var(--ease-standard), '
+                    + 'display var(--duration-normal) allow-discrete, '
+                    + 'overlay var(--duration-normal) allow-discrete',
+            },
+            states: { open: { opacity: '1' }, closed: {} },
+            at: {
+                'starting-style': { states: { open: { opacity: '0' } } },
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+        title: {
+            base: {
+                margin: '0',
+                // Inline-end clearance ≥ the 3rem close button parked in the
+                // corner, so a long title never runs under its hit area.
+                padding: 'var(--space-md) calc(var(--space-2xl) + var(--space-sm)) var(--space-md) var(--space-md)',
+                fontSize: 'var(--text-xl)',
+                // Carbon's heading-03 runs at the normal weight — hierarchy
+                // comes from size, not boldness.
+                fontWeight: 'var(--weight-normal)',
+                lineHeight: 'var(--leading-tight)',
+            },
+        },
+        description: {
+            base: {
+                margin: '0',
+                padding: '0 var(--space-md) var(--space-lg)',
+                fontSize: 'var(--text-sm)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: 'var(--leading-normal)',
+                color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        footer: {
+            // The flush button bar: full-width 64px actions splitting the row
+            // evenly, square against the modal's own corners.
+            base: {
+                display: 'flex',
+                marginBlockStart: 'var(--space-lg)',
+            },
+            selectors: {
+                '& > *': {
+                    flex: '1 1 0',
+                    minHeight: '4rem',
+                    margin: '0',
+                    borderRadius: '0',
+                },
+            },
+        },
+        // Carbon parks the close in the modal's top-right corner — the popup
+        // (fixed, top layer) is its containing block, so no wrapper needed.
+        close: ghostIconButton('3rem', {
+            position: 'absolute',
+            insetBlockStart: '0',
+            insetInlineEnd: '0',
+        }),
+    },
+};
+
+// ── Popover ───────────────────────────────────────────────────────────────
+export const popover: RecipeInput = {
+    component: 'popover',
+    parts: {
+        trigger: ghostTrigger,
+        // The one floating surface that carries a hairline: a popover sits on
+        // the same layer language as a card, so it gets the line AND the
+        // shadow.
+        popup: withPresence(popupPresence('translateY(-4px)'), {
+            base: {
+                padding: 'var(--space-md)',
+                minWidth: '14rem',
+                border: 'var(--border) solid var(--carbon-line)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                boxShadow: 'var(--shadow-lg)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: 'var(--leading-normal)',
+            },
+            states: { open: {}, closed: {} },
+        }),
+        title: {
+            base: {
+                margin: '0 0 var(--space-sm)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-semibold)',
+            },
+        },
+        close: ghostIconButton('2rem'),
+    },
+};
+
+// ── Tooltip ───────────────────────────────────────────────────────────────
+export const tooltip: RecipeInput = {
+    component: 'tooltip',
+    parts: {
+        trigger: {
+            base: {},
+            states: { open: {}, closed: {}, disabled: {} },
+        },
+        // Inverted — the one surface that swaps the scheme: background-inverse
+        // under text-inverse ink. Carbon tooltips fade in place, no travel.
+        popup: withPresence(popupPresence('none'), {
+            base: {
+                padding: 'var(--space-sm) var(--space-md)',
+                maxWidth: '18rem',
+                background: 'var(--color-base-content)',
+                color: 'var(--color-base-100)',
+                border: 'none',
+                borderRadius: 'var(--radius-field)',
+                boxShadow: 'var(--shadow-sm)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-normal)',
+            },
+            states: { open: {}, closed: {} },
+        }),
+    },
+};
+
+// ── Menu ──────────────────────────────────────────────────────────────────
+export const menu: RecipeInput = {
+    component: 'menu',
+    parts: {
+        trigger: ghostTrigger,
+        popup: withPresence(popupPresence('translateY(-4px)'), {
+            base: menuSurface,
+            states: { open: {}, closed: {} },
+        }),
+        item: {
+            base: menuItem,
+            states: {
+                // The ink wash, not a layer step — the popup already sits on
+                // base-200, so a base-200 highlight would be invisible.
+                highlighted: { background: layerHover },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+            },
+        },
+        // The item look, plus a chevron and an `open` state that keeps it
+        // visually active after focus moves into the submenu.
+        'sub-trigger': {
+            base: menuItem,
+            states: {
+                open: { background: layerHover },
+                closed: {},
+                highlighted: { background: layerHover },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&::after': { content: '"\\203A"', marginLeft: 'auto', opacity: '0.6' },
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+            },
+        },
+        // The same surface, entering from the side it attaches on.
+        'sub-popup': withPresence(popupPresence('translateX(-4px)'), {
+            base: menuSurface,
+            states: { open: {}, closed: {} },
+        }),
+        'context-trigger': {
+            base: {},
+            states: { open: {}, closed: {}, disabled: {} },
+        },
+        group: { base: {} },
+        'group-label': {
+            base: {
+                padding: 'var(--space-xs) var(--space-md)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
+            },
+        },
+        separator: {
+            base: {
+                height: 'var(--border)',
+                margin: 'var(--space-xs) 0',
+                background: 'var(--carbon-line)',
+            },
+        },
+    },
+};
+
+// ── Field ─────────────────────────────────────────────────────────────────
+export const field: RecipeInput = {
+    component: 'field',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-sm)',
+                fontFamily: 'var(--font-sans)',
+            },
+        },
+        label: {
+            // Carbon's label-01: 12px, regular weight, wide tracking, muted.
+            base: {
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-normal)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklab, var(--color-base-content) 65%, transparent)',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            selectors: {
+                '&[data-required]::after': { content: '" *"', color: 'var(--carbon-danger)' },
+            },
+        },
+        description: {
+            base: {
+                margin: '0',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklab, var(--color-base-content) 65%, transparent)',
+            },
+        },
+        error: {
+            base: {
+                margin: '0',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'var(--carbon-danger)',
+            },
+        },
+    },
+    skipStates: { label: ['invalid', 'required'], error: ['invalid'] },
+};
+
+// ── Checkbox ──────────────────────────────────────────────────────────────
+export const checkbox: RecipeInput = {
+    component: 'checkbox',
+    /** Carbon's 16px control; checked is a base-content fill, base-100 check. */
+    tokens: {
+        '--checkbox-size': 'calc(var(--size-selector) * 4)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                fontFamily: 'var(--font-sans)',
+                cursor: 'pointer',
+            },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {},
+                unchecked: {},
+                indeterminate: {},
+            },
+        },
+        control: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 'var(--checkbox-size)',
+                height: 'var(--checkbox-size)',
+                border: 'var(--border) solid var(--color-base-content)',
+                borderRadius: 'var(--radius-selector)',
+                background: 'transparent',
+                transition: motion('background, border-color'),
+            },
+            states: {
+                checked: { background: 'var(--color-base-content)' },
+                indeterminate: { background: 'var(--color-base-content)' },
+                unchecked: {},
+                invalid: { borderColor: 'var(--carbon-danger)' },
+                disabled: {},
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { filter: 'brightness(0.8)' },
+            },
+        },
+        indicator: {
+            base: {
+                color: 'var(--color-base-100)',
+                lineHeight: 'var(--leading-none)',
+                fontSize: 'calc(var(--checkbox-size) * 0.75)',
+            },
+            states: { checked: {}, unchecked: {}, indeterminate: {} },
+            selectors: {
+                '&[data-state="checked"]::after': { content: '"✓"' },
+                '&[data-state="indeterminate"]::after': { content: '"−"' },
+            },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', letterSpacing: 'var(--tracking-wide)' },
+            states: { checked: {}, unchecked: {}, indeterminate: {}, disabled: {} },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 3.5)' } } },
+            // `md` is the un-attributed render — the defaults in `tokens:`
+            // already ARE the middle step.
+            md: {},
+            lg: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 5)' } } },
+        },
+    },
+    // The visible ring lives on `control`; the <label> root only groups the
+    // control and its text. Declared rather than left implicit so the
+    // delegation reads as a decision.
+    skipStates: { root: ['focus-visible'] },
+};
+
+// ── Radio group ───────────────────────────────────────────────────────────
+export const radioGroup: RecipeInput = {
+    component: 'radio-group',
+    /** Carbon's 18px radio — with the toggle, the only rounded controls. */
+    tokens: {
+        '--radio-size': 'calc(var(--size-selector) * 4.5)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-sm)',
+                fontFamily: 'var(--font-sans)',
+            },
+        },
+        label: {
+            // The group legend speaks label-01, same as Field's label.
+            base: {
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-normal)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklab, var(--color-base-content) 65%, transparent)',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        item: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                cursor: 'pointer',
+            },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {},
+                unchecked: {},
+            },
+        },
+        'item-control': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 'var(--radio-size)',
+                height: 'var(--radio-size)',
+                border: 'var(--border) solid var(--color-base-content)',
+                borderRadius: '9999px',
+                background: 'transparent',
+            },
+            states: {
+                checked: {},
+                unchecked: {},
+                disabled: {},
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { filter: 'brightness(0.8)' },
+            },
+        },
+        'item-indicator': {
+            // Carbon's checked radio is circle + dot, both in base-content.
+            base: {
+                width: 'calc(var(--radio-size) / 2)',
+                height: 'calc(var(--radio-size) / 2)',
+                borderRadius: '9999px',
+                background: 'transparent',
+                transition: motion('background'),
+            },
+            states: {
+                checked: { background: 'var(--color-base-content)' },
+                unchecked: {},
+            },
+        },
+        'item-label': {
+            base: { fontSize: 'var(--text-sm)', letterSpacing: 'var(--tracking-wide)' },
+            states: { checked: {}, unchecked: {}, disabled: {} },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 4)' } } },
+            // `md` is the un-attributed render — the defaults in `tokens:`
+            // already ARE the middle step.
+            md: {},
+            lg: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 5.5)' } } },
+        },
+    },
+    // The visible ring lives on `item-control`; `item` is the <label> that
+    // wraps it. Declared rather than left implicit so the delegation reads
+    // as a decision.
+    skipStates: { label: ['invalid', 'required'], item: ['focus-visible'] },
+};
+
+// ── Progress ──────────────────────────────────────────────────────────────
+export const progress: RecipeInput = {
+    component: 'progress',
+    /** Carbon's 4px bar — the size ramp only rebinds the thickness. */
+    tokens: { '--progress-track-size': '0.25rem' },
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)', width: '100%' },
+            states: { loading: {}, complete: {}, indeterminate: {} },
+        },
+        label: { base: { ...fieldLabel } },
+        track: {
+            base: {
+                width: '100%',
+                height: 'var(--progress-track-size)',
+                background: 'var(--color-base-300)',
+                overflow: 'hidden',
+            },
+        },
+        range: {
+            base: {
+                height: '100%',
+                background: 'var(--carbon-interactive)',
+                transition: motion('width'),
+            },
+            states: {
+                loading: {},
+                // No success role in this vocabulary — the fill stays interactive.
+                complete: {},
+                indeterminate: { width: '40%', animation: 'carbon-indeterminate 1.4s ease-in-out infinite' },
+            },
+            // A looping animation must STOP under reduced motion, not speed
+            // up — which is why its duration is a literal rather than a
+            // `var(--duration-*)` that would collapse to ~0.
+            at: { 'reduced-motion': { states: { indeterminate: { animation: 'none', width: '100%' } } } },
+        },
+        'value-text': { base: { ...fieldLabel } },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--progress-track-size': '0.125rem' } } },
+            md: {},
+            lg: { root: { base: { '--progress-track-size': '0.5rem' } } },
+        },
+    },
+    // Transform, not margin: no layout work per frame. The percentages are
+    // of the 40%-wide bar itself — -100% hides it before the track, 250%
+    // (100/40 of the track) carries it past the far edge.
+    keyframes: {
+        'carbon-indeterminate': 'from { translate: -100% 0; } to { translate: 250% 0; }',
+    },
+};
+
+// ── Slider ────────────────────────────────────────────────────────────────
+export const slider: RecipeInput = {
+    component: 'slider',
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)', width: '100%' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        label: {
+            base: { ...fieldLabel },
+            states: { disabled: {} },
+        },
+        // A custom skin (`appearance: none`): Blink ignores thumb-pseudo
+        // styling on a native slider, so Carbon's square thumb and its inset
+        // focus ring could never render there. Both ring states set one
+        // custom property the thumb pseudos read — vendor thumb pseudos
+        // cannot share a selector list (an unrecognized selector invalidates
+        // the whole rule), and the variable keeps the ring defined once per
+        // engine instead of once per state per engine. The filled track
+        // reads the runtime-published `--slider-percent` (set on the slider
+        // root, inherited here) as a gradient stop.
+        control: {
+            base: {
+                appearance: 'none',
+                width: '100%',
+                height: '2.5rem',
+                margin: '0',
+                background: 'transparent',
+                cursor: 'pointer',
+                outline: 'none',
+                accentColor: 'var(--carbon-interactive)',
+                '--slider-ring': thumbRingIdle,
+                '--slider-track':
+                    'linear-gradient(to right, var(--carbon-interactive) var(--slider-percent, 50%), var(--carbon-line) 0)',
+            },
+            states: {
+                'focus-visible': { '--slider-ring': thumbRing },
+                // A drag has no one-shot — the ring doubling as the held
+                // feedback is the whole press treatment.
+                pressed: { '--slider-ring': thumbRing },
+                invalid: {
+                    '--slider-track':
+                        'linear-gradient(to right, var(--carbon-danger) var(--slider-percent, 50%), var(--carbon-line) 0)',
+                },
+                disabled: { cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&::-webkit-slider-runnable-track': {
+                    height: '0.125rem',
+                    background: 'var(--slider-track)',
+                },
+                '&::-webkit-slider-thumb': {
+                    appearance: 'none',
+                    width: '0.875rem',
+                    height: '0.875rem',
+                    marginTop: '-0.375rem',
+                    border: 'none',
+                    borderRadius: 'var(--radius-selector)',
+                    background: 'var(--color-base-content)',
+                    boxShadow: 'var(--slider-ring)',
+                    transition: 'box-shadow var(--duration-fast) var(--ease-standard)',
+                },
+                '&::-moz-range-track': {
+                    height: '0.125rem',
+                    background: 'var(--slider-track)',
+                },
+                '&::-moz-range-thumb': {
+                    width: '0.875rem',
+                    height: '0.875rem',
+                    border: 'none',
+                    borderRadius: 'var(--radius-selector)',
+                    background: 'var(--color-base-content)',
+                    boxShadow: 'var(--slider-ring)',
+                    transition: 'box-shadow var(--duration-fast) var(--ease-standard)',
+                },
+            },
+            at: {
+                // Native rendering knows forced colors better than a custom
+                // skin; the retained accentColor keeps the fallback branded.
+                'forced-colors': { base: { appearance: 'auto' } },
+            },
+        },
+        'value-text': { base: { ...fieldLabel } },
+    },
+    variants: {
+        // The control's box height is the size lever — track and thumb keep
+        // their Carbon metrics; md is the resting height, so it emits nothing.
+        size: {
+            sm: { control: { base: { height: '2rem' } } },
+            md: {},
+            lg: { control: { base: { height: '3rem' } } },
+        },
+    },
+    // The ring lives on the control's thumb; invalid draws on the track.
+    skipStates: { root: ['invalid', 'focus-visible'] },
+};
+
+// ── Accordion ─────────────────────────────────────────────────────────────
+export const accordion: RecipeInput = {
+    component: 'accordion',
+    parts: {
+        root: {
+            // Items carry their own block-start hairline; the root closes the
+            // run with the final edge.
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                borderBlockEnd: 'var(--border) solid var(--carbon-line)',
+                borderRadius: 'var(--radius-box)',
+                color: 'var(--color-base-content)',
+                fontFamily: 'var(--font-sans)',
+            },
+        },
+        item: withPresence(disclosurePresence, {
+            base: { borderBlockStart: 'var(--border) solid var(--carbon-line)' },
+            states: { open: {}, closed: {} },
+        }),
+        trigger: disclosureTrigger,
+        panel: disclosurePanel,
+    },
+};
+
+// ── Select ────────────────────────────────────────────────────────────────
+export const select: RecipeInput = {
+    component: 'select',
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column' },
+        },
+        trigger: {
+            // Carbon's field-01: a base-200 fill with ONLY the assertive
+            // bottom stroke — the square input language every text-entry
+            // surface here speaks (shared shape inlined: this trigger is a
+            // flex row, not a wrapper box).
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 'var(--space-md)',
+                minWidth: '12rem',
+                minHeight: '2.5rem',
+                padding: '0 var(--space-md)',
+                border: 'none',
+                borderBlockEnd: 'var(--border) solid var(--carbon-border-strong)',
+                borderRadius: 'var(--radius-field)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-normal)',
+                letterSpacing: 'var(--tracking-wide)',
+                cursor: 'pointer',
+                transition: motion('background, border-color'),
+            },
+            states: {
+                ...fieldHover,
+                disabled: {
+                    opacity: 'var(--disabled-opacity)',
+                    cursor: 'not-allowed',
+                },
+                open: {},
+                closed: {},
+                // Carbon marks an invalid field the way it marks a focused one:
+                // a 2px inset outline, in the danger ink. Declared before the
+                // focus ring so focus wins while both apply.
+                invalid: { outline: '2px solid var(--carbon-danger)', outlineOffset: '-2px' },
+                placeholder: {},
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--carbon-field-hover)' },
+            },
+        },
+        value: {
+            base: {},
+            states: {
+                placeholder: { color: 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' },
+            },
+        },
+        indicator: {
+            base: { display: 'inline-flex', transition: motion('transform') },
+            states: { open: { transform: 'rotate(180deg)' }, closed: {} },
+        },
+        popup: {
+            // A Carbon flyout: square, flush, borderless, on the $layer-01
+            // step — the shadow is the secondary depth cue. Presence is the
+            // standard top-layer pattern: zero keeps the node mounted and
+            // toggles `data-state`, so `display`/`overlay` with
+            // `allow-discrete` hold the exit and `@starting-style` supplies
+            // the entry's FROM state.
+            base: {
+                opacity: '0',
+                transform: 'translateY(-0.25rem)',
+                padding: '0',
+                minWidth: '12rem',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                fontFamily: 'var(--font-sans)',
+                borderRadius: 'var(--radius-box)',
+                boxShadow: 'var(--shadow-md)',
+                transition: 'opacity var(--duration-normal) var(--ease-standard), '
+                    + 'transform var(--duration-normal) var(--ease-standard), '
+                    + 'display var(--duration-normal) allow-discrete, '
+                    + 'overlay var(--duration-normal) allow-discrete',
+            },
+            states: {
+                open: { opacity: '1', transform: 'none' },
+                closed: {},
+            },
+            at: {
+                'starting-style': { states: { open: { opacity: '0', transform: 'translateY(-0.25rem)' } } },
+                'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+            },
+        },
+        item: {
+            // Carbon's list-box option: a subtle divider under every row but
+            // the last — the same treatment the combobox options carry.
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 'var(--space-md)',
+                minHeight: '2.5rem',
+                padding: '0 var(--space-md)',
+                fontSize: 'var(--text-sm)',
+                letterSpacing: 'var(--tracking-wide)',
+                borderBlockEnd: 'var(--border) solid var(--carbon-line)',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                highlighted: { background: layerHover },
+                selected: { fontWeight: 'var(--weight-semibold)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&:last-child': { borderBlockEnd: 'none' },
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+            },
+        },
+        'item-indicator': {
+            base: { fontSize: 'var(--text-xs)' },
+            states: { selected: {} },
+        },
+    },
+    variants: {
+        /** Carbon's three field heights: 32 / 40 / 48. */
+        size: {
+            sm: { trigger: { base: { minHeight: '2rem' } } },
+            // `md` is the un-attributed render — the defaults in `base`
+            // already ARE the middle step.
+            md: {},
+            lg: { trigger: { base: { minHeight: '3rem' } } },
+        },
     },
 };
 
@@ -33,6 +1232,16 @@ export const button: RecipeInput = {
         '--btn-fill': 'var(--carbon-interactive)',
         '--btn-ink': 'var(--carbon-interactive-ink)',
         '--btn-line': 'transparent',
+        // Hover/pressed are per-kind rebinds, not a filter — a brightness
+        // filter on a transparent fill only dims the ink, so the four
+        // transparent kinds would show no feedback at all. Solid kinds
+        // derive their darker steps from their own fill; transparent kinds
+        // rebind all three outright (below), matching Carbon: ghost hovers
+        // the layer ramp, tertiary fills solid and flips its ink.
+        '--btn-fill-hover': 'color-mix(in oklab, var(--btn-fill) 90%, black)',
+        '--btn-fill-active': 'color-mix(in oklab, var(--btn-fill) 78%, black)',
+        '--btn-ink-hover': 'var(--btn-ink)',
+        '--btn-ink-active': 'var(--btn-ink-hover)',
     },
     component: 'button',
     parts: {
@@ -60,16 +1269,18 @@ export const button: RecipeInput = {
                 transition: motion('background, border-color, color'),
             },
             states: {
-                hover: { filter: 'brightness(0.9)' },
+                hover: { background: 'var(--btn-fill-hover)', color: 'var(--btn-ink-hover)' },
                 disabled: {
                     opacity: 'var(--disabled-opacity)',
                     cursor: 'not-allowed',
-                    filter: 'none',
                 },
                 ...focusRing,
             },
             selectors: {
-                '&[data-pressed]:not([data-disabled])': { filter: 'brightness(0.8)' },
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'var(--btn-fill-active)',
+                    color: 'var(--btn-ink-active)',
+                },
             },
         },
     },
@@ -77,29 +1288,65 @@ export const button: RecipeInput = {
         variant: {
             primary: {},
             secondary: { root: { base: { '--btn-fill': 'var(--carbon-secondary)', '--btn-ink': 'var(--carbon-secondary-ink)' } } },
+            // Tertiary hover fills solid and flips the ink to inverse — the
+            // Carbon $button-tertiary-hover treatment.
             tertiary: {
                 root: {
                     base: {
                         '--btn-fill': 'transparent',
                         '--btn-ink': 'var(--carbon-interactive)',
                         '--btn-line': 'var(--carbon-interactive)',
+                        '--btn-fill-hover': 'var(--carbon-interactive)',
+                        '--btn-fill-active': 'color-mix(in oklab, var(--carbon-interactive) 78%, black)',
+                        '--btn-ink-hover': 'var(--carbon-interactive-ink)',
                     },
                 },
             },
-            ghost: { root: { base: { '--btn-fill': 'transparent', '--btn-ink': 'var(--carbon-interactive)' } } },
+            // Ghost hovers the layer ramp — the same base-200/base-300
+            // feedback the overlay ghost triggers use ($background-hover).
+            // The pressed ink mixes toward base-content: scheme-aware, it
+            // darkens on white and lightens on g100, keeping the label above
+            // 3:1 on the base-300 pressed fill in both.
+            ghost: {
+                root: {
+                    base: {
+                        '--btn-fill': 'transparent',
+                        '--btn-ink': 'var(--carbon-interactive)',
+                        '--btn-fill-hover': 'var(--color-base-200)',
+                        '--btn-fill-active': 'var(--color-base-300)',
+                        '--btn-ink-hover': 'var(--carbon-interactive)',
+                        '--btn-ink-active': 'color-mix(in oklab, var(--carbon-interactive) 80%, var(--color-base-content))',
+                    },
+                },
+            },
             danger: { root: { base: { '--btn-fill': 'var(--carbon-danger)', '--btn-ink': 'var(--carbon-danger-ink)' } } },
             // Carbon's `danger--tertiary` / `danger--ghost`, in the attribute
             // grammar's spelling — the api's values remap owns the vendor one.
+            // Both hover to the solid danger fill with inverse ink, Carbon's
+            // $button-danger-hover.
             'danger-tertiary': {
                 root: {
                     base: {
                         '--btn-fill': 'transparent',
                         '--btn-ink': 'var(--carbon-danger)',
                         '--btn-line': 'var(--carbon-danger)',
+                        '--btn-fill-hover': 'var(--carbon-danger)',
+                        '--btn-fill-active': 'color-mix(in oklab, var(--carbon-danger) 78%, black)',
+                        '--btn-ink-hover': 'var(--carbon-danger-ink)',
                     },
                 },
             },
-            'danger-ghost': { root: { base: { '--btn-fill': 'transparent', '--btn-ink': 'var(--carbon-danger)' } } },
+            'danger-ghost': {
+                root: {
+                    base: {
+                        '--btn-fill': 'transparent',
+                        '--btn-ink': 'var(--carbon-danger)',
+                        '--btn-fill-hover': 'var(--carbon-danger)',
+                        '--btn-fill-active': 'color-mix(in oklab, var(--carbon-danger) 78%, black)',
+                        '--btn-ink-hover': 'var(--carbon-danger-ink)',
+                    },
+                },
+            },
         },
         /** Carbon's five field heights: 32 / 40 / 48 / 64 / 80. */
         size: {
@@ -127,4 +1374,753 @@ export const button: RecipeInput = {
     },
 };
 
-export const recipes: RecipeInput[] = [button];
+// ── Avatar ────────────────────────────────────────────────────────────────
+export const avatar: RecipeInput = {
+    component: 'avatar',
+    tokens: {
+        '--avatar-size': 'calc(var(--size-selector) * 10)',
+        '--avatar-text': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                position: 'relative',
+                display: 'inline-grid',
+                width: 'var(--avatar-size)',
+                height: 'var(--avatar-size)',
+                // Square — the radius token resolves to 0, and the corner is
+                // the identity statement, same as every other Carbon box.
+                borderRadius: 'var(--radius-selector)',
+                overflow: 'hidden',
+                verticalAlign: 'middle',
+                background: 'var(--color-base-300)',
+            },
+            states: { loading: {}, loaded: {}, error: {} },
+        },
+        image: {
+            base: {
+                gridArea: '1 / 1',
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+            },
+            states: { loading: {}, loaded: {}, error: {} },
+        },
+        fallback: {
+            base: {
+                gridArea: '1 / 1',
+                placeItems: 'center',
+                width: '100%',
+                height: '100%',
+                color: 'var(--color-base-content)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--avatar-text)',
+                fontWeight: 'var(--weight-normal)',
+                letterSpacing: 'var(--tracking-wide)',
+                userSelect: 'none',
+            },
+            // `display` must not defeat the `hidden` zero sets once the image
+            // has loaded.
+            selectors: { '&:not([hidden])': { display: 'grid' } },
+            states: { loading: {}, loaded: {}, error: {} },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 8)', '--avatar-text': 'var(--text-xs)' } } },
+            // `md` is the un-attributed render — the defaults in `tokens:`
+            // already ARE the middle step.
+            md: {},
+            lg: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 12)', '--avatar-text': 'var(--text-md)' } } },
+        },
+    },
+};
+
+// ── Toast ─────────────────────────────────────────────────────────────────
+export const toast: RecipeInput = {
+    component: 'toast',
+    tokens: { '--toast-from': '8px' },
+    parts: {
+        viewport: {
+            base: {
+                position: 'fixed',
+                inset: 'auto',
+                margin: '0',
+                padding: 'var(--space-lg)',
+                border: 'none',
+                background: 'transparent',
+                overflow: 'visible',
+                width: 'min(24rem, 100vw)',
+                listStyle: 'none',
+                flexDirection: 'column',
+                gap: 'var(--space-sm)',
+                pointerEvents: 'none',
+            },
+            selectors: {
+                // The UA hides closed popovers by unsetting display — an
+                // unconditional `display: flex` would defeat that.
+                '&:popover-open': { display: 'flex' },
+                '&[data-placement="top-start"]': { top: '0', left: '0' },
+                '&[data-placement="top"]': { top: '0', left: '50%', transform: 'translateX(-50%)' },
+                '&[data-placement="top-end"]': { top: '0', right: '0' },
+                '&[data-placement="bottom-start"]': { bottom: '0', left: '0', flexDirection: 'column-reverse' },
+                '&[data-placement="bottom"]': { bottom: '0', left: '50%', transform: 'translateX(-50%)', flexDirection: 'column-reverse' },
+                '&[data-placement="bottom-end"]': { bottom: '0', right: '0', flexDirection: 'column-reverse' },
+            },
+        },
+        // Carbon's notification: a $layer-01 surface under an overlay shadow,
+        // square, with the 3px inset-start accent bar. Presence is
+        // runtime-managed (toasts must eventually unmount), so this is a
+        // plain two-state transition — no `@starting-style`.
+        root: {
+            base: {
+                pointerEvents: 'auto',
+                display: 'grid',
+                gridTemplateColumns: '1fr auto auto',
+                alignItems: 'center',
+                columnGap: 'var(--space-md)',
+                padding: 'var(--space-md)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--carbon-line)',
+                borderInlineStart: '3px solid var(--carbon-interactive)',
+                borderRadius: 'var(--radius-box)',
+                boxShadow: 'var(--shadow-lg)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: 'var(--leading-tight)',
+                opacity: '0',
+                transform: 'translateY(var(--toast-from))',
+                transition: motion('opacity, transform'),
+            },
+            selectors: {
+                '&[data-placement^="top"]': { '--toast-from': '-8px' },
+            },
+            states: {
+                open: { opacity: '1', transform: 'none' },
+                closed: {},
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+            },
+        },
+        title: {
+            base: { gridColumn: '1', fontWeight: 'var(--weight-semibold)' },
+        },
+        description: {
+            base: {
+                gridColumn: '1',
+                fontSize: 'var(--text-sm)',
+                color: 'color-mix(in oklab, var(--color-base-content) 78%, transparent)',
+            },
+        },
+        action: {
+            base: {
+                appearance: 'none',
+                gridColumn: '2',
+                gridRow: '1',
+                border: 'none',
+                background: 'transparent',
+                padding: 'var(--space-2xs) var(--space-sm)',
+                font: 'inherit',
+                fontSize: 'var(--text-sm)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'var(--carbon-interactive)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                // Ink washes — the toast surface is already base-200.
+                hover: { background: layerHover },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+            },
+        },
+        close: {
+            base: {
+                appearance: 'none',
+                gridColumn: '3',
+                gridRow: '1',
+                border: 'none',
+                background: 'transparent',
+                padding: 'var(--space-2xs) var(--space-xs)',
+                font: 'inherit',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: layerHover },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+            },
+        },
+    },
+};
+
+// ── Combobox ──────────────────────────────────────────────────────────────
+export const combobox: RecipeInput = {
+    component: 'combobox',
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column' },
+        },
+        // The field chrome (field-01) lives on the box wrapping input +
+        // trigger; the inset ring draws here from the input's forwarded
+        // focus-visible. Invalid is Carbon's 2px danger outline, same inset.
+        control: {
+            base: {
+                ...field01,
+                display: 'inline-flex',
+                alignItems: 'center',
+                minWidth: '12rem',
+                minHeight: '2.5rem',
+                color: 'var(--color-base-content)',
+                transition: motion('background'),
+            },
+            states: {
+                ...fieldHover,
+                open: {},
+                closed: {},
+                invalid: { outline: '2px solid var(--carbon-danger)', outlineOffset: '-2px' },
+                disabled: { opacity: 'var(--disabled-opacity)', borderBlockEndColor: 'transparent' },
+                ...focusRing,
+            },
+        },
+        input: {
+            base: {
+                flex: '1',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                padding: '0 var(--space-md)',
+            },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                readonly: {},
+                open: {},
+                closed: {},
+                invalid: {},
+                required: {},
+            },
+            selectors: {
+                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' },
+            },
+        },
+        trigger: {
+            base: {
+                appearance: 'none',
+                alignSelf: 'stretch',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                padding: '0 var(--space-md)',
+                cursor: 'pointer',
+                transition: motion('background, transform'),
+            },
+            states: {
+                open: { transform: 'rotate(180deg)' },
+                closed: {},
+                disabled: { cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+            },
+        },
+        // A layer under an overlay shadow — no border, no padding: Carbon
+        // menus are flush lists. Presence is the popup pattern: entry from
+        // `@starting-style`, exit held open by the two allow-discrete
+        // transitions (`overlay` is Chromium-only; elsewhere the exit
+        // degrades to instant).
+        popup: {
+            base: {
+                minWidth: '12rem',
+                padding: '0',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                borderRadius: 'var(--radius-box)',
+                boxShadow: 'var(--shadow-md)',
+                opacity: '0',
+                transform: 'translateY(-2px)',
+                transition: 'opacity var(--duration-fast) var(--ease-standard), '
+                    + 'transform var(--duration-fast) var(--ease-standard), '
+                    + 'display var(--duration-fast) allow-discrete, '
+                    + 'overlay var(--duration-fast) allow-discrete',
+            },
+            states: {
+                open: { opacity: '1', transform: 'none' },
+                closed: {},
+            },
+            at: {
+                'starting-style': { states: { open: { opacity: '0', transform: 'translateY(-2px)' } } },
+                'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 'var(--space-md)',
+                minHeight: '2.5rem',
+                padding: '0 var(--space-md)',
+                fontSize: 'var(--text-sm)',
+                letterSpacing: 'var(--tracking-wide)',
+                borderBlockEnd: 'var(--border) solid var(--carbon-line)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                highlighted: { background: layerHover },
+                selected: { fontWeight: 'var(--weight-semibold)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&:last-child': { borderBlockEnd: 'none' },
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+            },
+        },
+        'item-indicator': {
+            base: { fontSize: 'var(--text-xs)', color: 'var(--carbon-interactive)' },
+            states: { selected: {} },
+        },
+        empty: {
+            base: {
+                padding: 'var(--space-md)',
+                fontSize: 'var(--text-sm)',
+                color: 'color-mix(in oklab, var(--color-base-content) 55%, transparent)',
+            },
+        },
+    },
+    variants: {
+        /** Carbon's three field heights: 32 / 40 / 48. */
+        size: {
+            sm: { control: { base: { minHeight: '2rem' } } },
+            md: {},
+            lg: { control: { base: { minHeight: '3rem' } } },
+        },
+    },
+    // The visible ring lives on `control`; input and trigger delegate.
+    skipStates: {
+        input: ['focus-visible'],
+        trigger: ['focus-visible'],
+    },
+};
+
+// ── Toggle ────────────────────────────────────────────────────────────────
+export const toggle: RecipeInput = {
+    component: 'toggle',
+    /**
+     * A ghost button that holds a state — the on fill is the selected-layer
+     * gray (base-300), not the interactive blue, matching Carbon's selected
+     * icon buttons.
+     */
+    parts: {
+        root: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 'var(--space-xs)',
+                minHeight: '2.5rem',
+                padding: '0 var(--space-md)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: 'var(--radius-field)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-normal)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: 'var(--leading-tight)',
+                cursor: 'pointer',
+                transition: motion('background, color'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                on: { background: 'var(--color-base-300)' },
+                off: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                // Hover on an on toggle must not fade toward the hover wash —
+                // equal specificity, later in source, so on wins.
+                '&[data-state="on"]:hover:not([data-disabled])': { background: 'var(--color-base-300)' },
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { minHeight: '2rem', padding: '0 var(--space-sm)' } } },
+            md: {},
+            lg: { root: { base: { minHeight: '3rem' } } },
+        },
+    },
+};
+
+// ── Toggle group ──────────────────────────────────────────────────────────
+export const toggleGroup: RecipeInput = {
+    component: 'toggle-group',
+    parts: {
+        root: {
+            // Flush — no outer frame; the items meet at hairlines, the same
+            // language as Carbon's content-switcher row.
+            base: { display: 'inline-flex' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        item: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 'var(--space-xs)',
+                minHeight: '2.5rem',
+                padding: '0 var(--space-md)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-normal)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: 'var(--leading-tight)',
+                cursor: 'pointer',
+                transition: motion('background, color'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                on: { background: 'var(--color-base-300)' },
+                off: {},
+                selected: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-state="on"]:hover:not([data-disabled])': { background: 'var(--color-base-300)' },
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+                // The hairline separators between adjacent items.
+                '&[data-orientation="horizontal"] + &': {
+                    borderInlineStart: 'var(--border) solid var(--carbon-line)',
+                },
+                '&[data-orientation="vertical"] + &': {
+                    borderBlockStart: 'var(--border) solid var(--carbon-line)',
+                },
+            },
+        },
+    },
+    variants: {
+        // The group is flush around its items, so the ramp lands on the items
+        // and the row follows their box.
+        size: {
+            sm: { item: { base: { minHeight: '2rem', padding: '0 var(--space-sm)' } } },
+            md: {},
+            lg: { item: { base: { minHeight: '3rem' } } },
+        },
+    },
+};
+
+// ── Number input ──────────────────────────────────────────────────────────
+export const numberInput: RecipeInput = {
+    component: 'number-input',
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { ...fieldLabel },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--carbon-danger)' },
+                required: {},
+            },
+        },
+        // The field chrome (field-01, the combobox split): the inset ring and
+        // the invalid outline draw on the box, input and steppers sit inside.
+        control: {
+            base: {
+                ...field01,
+                display: 'inline-flex',
+                alignItems: 'stretch',
+                minHeight: '2.5rem',
+                color: 'var(--color-base-content)',
+                transition: motion('background'),
+            },
+            states: {
+                ...fieldHover,
+                invalid: { outline: '2px solid var(--carbon-danger)', outlineOffset: '-2px' },
+                disabled: { opacity: 'var(--disabled-opacity)', borderBlockEndColor: 'transparent' },
+                readonly: {},
+                ...focusRing,
+            },
+        },
+        input: {
+            base: {
+                width: '6rem',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                padding: '0 var(--space-md)',
+            },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                readonly: {},
+                invalid: {},
+                required: {},
+            },
+            selectors: {
+                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' },
+            },
+        },
+        // Square ghost steppers, separated from the readout (and each other)
+        // by hairline dividers — Carbon's [input | − | +] row.
+        'increment-trigger': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                borderInlineStart: 'var(--border) solid var(--carbon-line)',
+                background: 'transparent',
+                color: 'inherit',
+                width: '2.5rem',
+                cursor: 'pointer',
+                userSelect: 'none',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)', filter: 'brightness(0.9)' },
+            },
+        },
+        'decrement-trigger': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                borderInlineStart: 'var(--border) solid var(--carbon-line)',
+                background: 'transparent',
+                color: 'inherit',
+                width: '2.5rem',
+                cursor: 'pointer',
+                userSelect: 'none',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)', filter: 'brightness(0.9)' },
+            },
+        },
+    },
+    variants: {
+        /** Carbon's three field heights: 32 / 40 / 48. */
+        size: {
+            sm: { control: { base: { minHeight: '2rem' } } },
+            md: {},
+            lg: { control: { base: { minHeight: '3rem' } } },
+        },
+    },
+    // The visible ring lives on `control`; the input delegates.
+    skipStates: { input: ['focus-visible'] },
+};
+
+// ── Rating group ──────────────────────────────────────────────────────────
+export const ratingGroup: RecipeInput = {
+    component: 'rating-group',
+    /** The glyph size — the size ramp only rebinds it. */
+    tokens: { '--rating-size': 'var(--text-xl)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { ...fieldLabel },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--carbon-danger)' },
+                required: {},
+            },
+        },
+        control: {
+            base: { display: 'inline-flex', gap: 'var(--space-2xs)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                readonly: {},
+                ...focusRing,
+            },
+        },
+        // Interactive fill, hairline-toned empties; the hover preview shows
+        // the fill it would commit. No scale — productive motion is colour.
+        item: {
+            base: {
+                fontSize: 'var(--rating-size)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                userSelect: 'none',
+                color: 'var(--carbon-line)',
+                transition: motion('color'),
+            },
+            states: {
+                full: { color: 'var(--carbon-interactive)' },
+                half: { color: 'var(--carbon-interactive)' },
+                empty: {},
+                highlighted: { color: 'var(--carbon-interactive)' },
+                disabled: { cursor: 'not-allowed' },
+                readonly: { cursor: 'default' },
+                // The group ring lives on control; per-item focus still gets
+                // its own marker for the value-following tab stop.
+                ...focusRing,
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--rating-size': 'var(--text-md)' } } },
+            md: {},
+            lg: { root: { base: { '--rating-size': 'var(--text-2xl)' } } },
+        },
+    },
+};
+
+// ── Tree view ─────────────────────────────────────────────────────────────
+export const treeView: RecipeInput = {
+    component: 'tree-view',
+    tokens: { '--tree-text': 'var(--text-sm)' },
+    parts: {
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        label: {
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-semibold)',
+                letterSpacing: 'var(--tracking-wide)',
+            },
+        },
+        tree: {
+            base: { display: 'flex', flexDirection: 'column', fontSize: 'var(--tree-text)' },
+        },
+        // Indentation comes from branch-content's inline padding — depth is
+        // the DOM nesting, no per-level rules needed.
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                minHeight: '2rem',
+                padding: '0 var(--space-sm)',
+                // The selection accent is a border, not a fill — keep the
+                // slot reserved so rows never shift when it lights up.
+                borderInlineStart: '3px solid transparent',
+                cursor: 'pointer',
+                transition: motion('background, border-color'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                selected: {
+                    background: 'var(--color-base-300)',
+                    borderInlineStartColor: 'var(--carbon-interactive)',
+                },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                // Hover on a selected row must not fade toward the hover wash.
+                '&[data-selected]:hover:not([data-disabled])': { background: 'var(--color-base-300)' },
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+        branch: {
+            base: { display: 'flex', flexDirection: 'column', outline: 'none' },
+            states: { open: {}, closed: {}, selected: {}, disabled: {} },
+        },
+        'branch-trigger': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                minHeight: '2rem',
+                padding: '0 var(--space-sm)',
+                borderInlineStart: '3px solid transparent',
+                cursor: 'pointer',
+                userSelect: 'none',
+                transition: motion('background, border-color'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                open: {},
+                closed: {},
+                selected: {
+                    background: 'var(--color-base-300)',
+                    borderInlineStartColor: 'var(--carbon-interactive)',
+                },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-selected]:hover:not([data-disabled])': { background: 'var(--color-base-300)' },
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+        'branch-indicator': {
+            base: {
+                display: 'inline-block',
+                // The token duration collapses under reduced motion — no
+                // extra `at` block needed.
+                transition: 'transform var(--duration-fast) var(--ease-standard)',
+            },
+            states: { open: { transform: 'rotate(90deg)' }, closed: {} },
+        },
+        'branch-content': {
+            base: { display: 'flex', flexDirection: 'column', paddingInlineStart: 'var(--space-md)' },
+            states: { open: {}, closed: {} },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--tree-text': 'var(--text-xs)' } } },
+            // `md` is the un-attributed render: `--tree-text`'s default in
+            // `tokens:` already IS the middle step.
+            md: {},
+            lg: { root: { base: { '--tree-text': 'var(--text-md)' } } },
+        },
+    },
+};
+
+export const recipes: RecipeInput[] = [
+    tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
+    field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
+    toggle, toggleGroup, numberInput, ratingGroup, treeView,
+];
