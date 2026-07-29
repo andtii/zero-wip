@@ -46,11 +46,11 @@ Every claim above is asserted in `packages/zero-kit/__tests__/heroui-acceptance.
 
 ## Coverage
 
-Deliberately partial: **button, tabs, switch, checkbox, select, dialog, field,
-toast**. The package exists to exercise the *axis surface*, and button carries
-all of it. The validator warns about the components with no recipe, which is
-the honest signal — this is not yet a design system you would ship a product
-on, and it is not wired into the playground for that reason.
+All 23 components carry a recipe (23/23). The package still exists to exercise
+the *axis surface*, and button carries all of it — `variant` is wired on button
+only, matching the repo-wide deferral of variant wiring for the other
+components (issue #175). It is wired into the playground alongside the other
+design systems.
 
 ## Usage
 

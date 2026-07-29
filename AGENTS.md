@@ -167,8 +167,9 @@ typecheck` excludes `examples/`, so the playground has its own:
   (`danger-soft` is one member), a declared three-step size ramp, and
   HeroUI's `isIconOnly`/`isPending` as `data-mod-*` modifiers. Where
   zero-material proves vocabularies can be *extended*, this proves they can be
-  a different *shape*. Component coverage is deliberately partial (eight
-  recipes) — it exercises the axis surface, not a product. Private.
+  a different *shape*. Full component coverage (23 recipes), with `variant`
+  wired on button only (the repo-wide deferral, #175) — it exercises the axis
+  surface, not a product. Private.
 - `packages/zero-carbon` → `@sigx/zero-carbon` — Carbon-flavoured skin, and
   the runtime acceptance test for the **api `values` remap** (#183): no
   colour axis, the fused seven-member `kind` vocabulary declared kebab

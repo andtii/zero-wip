@@ -177,7 +177,7 @@ export const designSystems: DesignSystemEntry[] = [
         installThemes: installHeroui,
         manifestHref: herouiManifestUrl,
         blurb: 'No colour axis at all — colour is fused into a seven-member variant. '
-            + 'Component coverage is deliberately partial; it exists to test the axis surface.',
+            + 'Full component coverage; it exists to test the axis surface.',
     },
 ];
 
