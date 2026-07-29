@@ -90,6 +90,15 @@ export type {
 } from './resolve/report.js';
 export { buildReport, formatReport, REPORT_SCHEMA_URL } from './resolve/report.js';
 
+export type {
+    ConformanceFixtureInput,
+    ConformanceRow,
+    ConformanceSource,
+    ConformanceVocabulary,
+    SurfaceKind,
+} from './resolve/conformance.js';
+export { conformanceRows, formatConformanceMatrix, reportRows } from './resolve/conformance.js';
+
 export type { TokenVocabulary } from './resolve/vocabulary.js';
 export { tokenVocabulary } from './resolve/vocabulary.js';
 export { validateRecipes } from './resolve/validate-recipes.js';

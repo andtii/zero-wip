@@ -192,8 +192,12 @@ and consumers write `import { Button } from '@sigx/<ds>/components'` —
 `<Button kind="ghost" hasIconOnly>` fully narrowed, rendering the unchanged
 zero attributes. The DS manifest carries the per-component routing under
 `api` for tooling. `skills/design-system/conformance/` holds real vendor
-fixtures (Carbon, Ant, Radix Themes, HeroUI) that validate and grade in CI;
-`@sigx/zero-heroui` ships the first real adapter.
+fixtures (Carbon, Ant, Radix Themes, HeroUI, Material 3) that validate,
+compile and grade in CI; `@sigx/zero-heroui` ships the first real adapter,
+and `docs/design-system-conformance.md` — the RFC 0003 §7 conformance
+matrix — is generated from the fixtures and the in-repo coverage reports
+(`conformanceRows` / `reportRows` / `formatConformanceMatrix`), so a matrix
+row and the artifact it cites are the same object.
 
 ## CLI
 
