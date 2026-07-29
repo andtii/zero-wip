@@ -177,10 +177,13 @@ function tableFor(rows: ConformanceRow[], withSource: boolean): string[] {
         const source = row.source
             ? `[${row.source.version}](${row.source.url}) (${row.source.verified})`
             : '—';
-        // Column "gap": empty iff `exact` per §7.3 — and since #179 shipped
-        // the adapter path, a renamed/reshaped surface is implemented, not
-        // blocked, so it points at the mechanism rather than an open gap.
-        const gap = row.grade === 'exact' ? '—' : '#179 (shipped)';
+        // Column "gap": empty iff `exact` per §7.3. A renamed/reshaped
+        // surface points at #179's shipped adapter mechanism rather than an
+        // open gap; an `unsupported` surface has NO mapping, so it must not
+        // claim that coverage — it stays an honest open item.
+        const gap = row.grade === 'exact' ? '—'
+            : row.grade === 'unsupported' ? 'unmapped — no api declaration'
+                : '#179 (shipped)';
         const cells = withSource
             ? [row.system, source, `\`${row.surface}\``, row.kind, vocabularyCell(row), `\`${row.zero}\``, row.grade, gap, `\`${row.provenBy}\``]
             : [row.system, `\`${row.surface}\``, row.kind, vocabularyCell(row), `\`${row.zero}\``, row.grade, `\`${row.provenBy}\``];

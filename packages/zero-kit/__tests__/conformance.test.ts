@@ -178,6 +178,29 @@ describe('fixtures describing in-repo packages stay verbatim', () => {
     });
 });
 
+describe('the gap column', () => {
+    it('never claims the shipped adapter for an unmapped surface', () => {
+        // No current fixture produces an unsupported row, so this pins the
+        // formatter directly: a vocabulary surface with a partial api (variant
+        // mapped, a custom axis not) must render the honest open item.
+        const rows = conformanceRows({
+            system: 'Probe',
+            tier: 2,
+            source: { url: 'https://example.com', version: 'v1', verified: '2026-07-29' },
+            vocabulary: { variants: ['solid'], axes: { tone: ['high'] } },
+            api: { variant: { as: 'kind' } },
+            provenBy: 'probe',
+        });
+        const doc = formatConformanceMatrix(rows, []);
+        const toneRow = doc.split('\n').find((l) => l.includes('`tone`'))!;
+        expect(toneRow).toContain('unsupported');
+        expect(toneRow).toContain('unmapped — no api declaration');
+        expect(toneRow).not.toContain('#179');
+        const kindRow = doc.split('\n').find((l) => l.includes('`kind`'))!;
+        expect(kindRow).toContain('#179 (shipped)');
+    });
+});
+
 describe('the living document', () => {
     it('docs/design-system-conformance.md is exactly what the artifacts derive', async () => {
         const tier12 = FIXTURES.flatMap(([, fixture]) =>
