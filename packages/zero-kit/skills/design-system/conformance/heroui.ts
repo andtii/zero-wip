@@ -13,6 +13,17 @@
  */
 import { defineApi } from '@sigx/zero-kit';
 
+/**
+ * §7.2 placement. Tier 1: the system is buildable as a package, and IS built
+ * — column 8 points at `packages/zero-heroui`, which ships this api. No
+ * fixture tokens/recipe here; the package is the executing artifact.
+ */
+export const matrix = {
+    system: 'HeroUI',
+    tier: 1,
+    provenBy: 'packages/zero-heroui',
+} as const;
+
 export const source = {
     url: 'https://www.heroui.com/docs/components/button',
     version: 'HeroUI v3',

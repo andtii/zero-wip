@@ -4,6 +4,18 @@
 
 ### Added
 
+- **The conformance matrix, generated** (RFC 0003 §7, #174).
+  `conformanceRows` / `reportRows` / `formatConformanceMatrix` derive
+  `docs/design-system-conformance.md` from the conformance fixtures and the
+  in-repo coverage reports; the snapshot test in `conformance.test.ts` IS the
+  row↔fixture parity check, since a row and its declaration are the same
+  object. The Carbon/Ant/Radix fixtures gained the executing half — a
+  Button-only design system each, validated and compiled, with the emitted
+  selector strings asserted (§7.4 mechanism 2); Radix's is the repo's first
+  real `tokens.axes` use and first numeric size ramp. A Material 3 fixture
+  joins as the zero-native Tier-1 row, pinned verbatim to
+  `packages/zero-material`.
+
 - **The vendor-named component API declaration** (issue #179, RFC 0003 §2).
   A design system may declare, beside `tokens` and `recipes`, how zero's axis
   surfaces appear under the vendor's own prop names —
