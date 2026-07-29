@@ -475,10 +475,12 @@ export function buildReport(
             unstyled,
         },
         vocabulary: {
-            // Declared vocabularies keep DECLARATION order — `xs`…`xl` is a
-            // ramp, and sorting it would say something the design system
-            // didn't. Harvested sets are sorted everywhere else, since there
-            // the order is an artifact of recipe authoring rather than intent.
+            // Ordered vocabularies keep DECLARATION order: `xs`…`xl` is a ramp
+            // and `variants` is authored deliberately, so sorting either would
+            // say something the design system didn't. `roles` and `modifiers`
+            // are sets with no meaningful order, and the axis KEYS are a set
+            // too, so those are sorted — as is every harvested value list,
+            // where order is an artifact of recipe authoring rather than intent.
             roles: Object.keys(compiled.tokens.roles).sort(),
             sizes: [...compiled.tokens.sizes],
             variants: [...compiled.tokens.variants],

@@ -1,6 +1,6 @@
 /** `sigx zero:validate` — check a design system against the anatomy manifest. */
-import { writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
 import type { ZeroManifest } from '../contract.js';
 import type { DesignSystemInput } from '../design-system.js';
 import { compileDesignSystem } from '../design-system.js';
@@ -77,8 +77,17 @@ export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promi
                 // Never through the logger: it prefixes every line with
                 // `[sigx] `, which would leave the JSON unparseable.
                 const json = JSON.stringify(report, null, 2);
-                if (stdoutIsJson) process.stdout.write(`${json}\n`);
-                else await writeFile(resolve(env.cwd, opts.reportJson), `${json}\n`);
+                if (stdoutIsJson) {
+                    process.stdout.write(`${json}\n`);
+                } else {
+                    // Parents created, like `zero:build --out` does: a report
+                    // path is usually somewhere that doesn't exist yet
+                    // (`--report-json reports/basic.json`), and failing on that
+                    // would be a worse answer than making the directory.
+                    const path = resolve(env.cwd, opts.reportJson);
+                    await mkdir(dirname(path), { recursive: true });
+                    await writeFile(path, `${json}\n`);
+                }
             }
         }
     }
