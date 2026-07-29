@@ -1,0 +1,314 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://signalxjs.github.io/zero/schemas/report.schema.json",
+    "title": "SignalX Zero design-system coverage report",
+    "description": "What a design system COVERS, as opposed to what is wrong with it — emitted as dist/report.json by the zero build and by `sigx zero:validate --report-json` (RFC 0003 §7.4). Components styled against the anatomy manifest, the axes each component wires and which are typed `never` by its register artifact, declared-but-unwired values per axis and modifier, per-part state and flag coverage including deliberate `skipStates`, the axis-agnostic divergence partition (RFC 0003 §4) and the minimum contrast margin per theme. Machine-readable first: the conformance matrix generates its already-proven-in-repo rows from this file, so they cannot go stale by hand.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["$schema", "reportVersion", "name", "coverage", "vocabulary", "unwired", "components", "divergence", "themes"],
+    "properties": {
+        "$schema": {
+            "description": "Self-reference to this schema — the emitter always writes exactly this URL.",
+            "const": "https://signalxjs.github.io/zero/schemas/report.schema.json"
+        },
+        "reportVersion": {
+            "description": "Shape version of this document. Bumped when a consumer would have to change to keep reading it.",
+            "const": 1
+        },
+        "name": {
+            "description": "The design system's name, as declared on the design-system input.",
+            "type": "string",
+            "minLength": 1
+        },
+        "coverage": {
+            "description": "Components styled, against the anatomy manifest validated to.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["componentsStyled", "componentsTotal", "unstyled"],
+            "properties": {
+                "componentsStyled": { "type": "integer", "minimum": 0 },
+                "componentsTotal": { "type": "integer", "minimum": 0 },
+                "unstyled": {
+                    "description": "Manifest scopes with no recipe — they render unstyled. Sorted.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" }
+                }
+            }
+        },
+        "vocabulary": {
+            "description": "What the design system DECLARES, before any question of what its recipes wire.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["roles", "sizes", "variants", "axes", "modifiers", "declaredOut"],
+            "properties": {
+                "roles": { "$ref": "#/$defs/tokenList" },
+                "sizes": { "$ref": "#/$defs/tokenList" },
+                "variants": { "$ref": "#/$defs/tokenList" },
+                "axes": { "$ref": "#/$defs/tokenListsByAxis" },
+                "modifiers": { "$ref": "#/$defs/tokenList" },
+                "declaredOut": {
+                    "description": "Axes declared OUT of existence rather than merely left unwired — `roles: {}` retires colour, `sizes: []` retires the size ramp. Only these two can be, and `variant` never appears: omitting `tokens.variants` means \"declared nothing\", not \"no variant axis\".",
+                    "type": "array",
+                    "items": { "enum": ["color", "size"] },
+                    "uniqueItems": true
+                }
+            }
+        },
+        "unwired": {
+            "description": "Declared, but wired by no recipe anywhere — the attribute renders and matches nothing. The validator warns for variant, custom axes and modifiers; colour and size have no such check, so for those this is the only place the gap is stated.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["color", "size", "variant", "axes", "modifiers"],
+            "properties": {
+                "color": { "$ref": "#/$defs/tokenList" },
+                "size": { "$ref": "#/$defs/tokenList" },
+                "variant": { "$ref": "#/$defs/tokenList" },
+                "axes": { "$ref": "#/$defs/tokenListsByAxis" },
+                "modifiers": { "$ref": "#/$defs/tokenList" }
+            }
+        },
+        "components": {
+            "description": "Every scope in the anatomy manifest, styled or not.",
+            "type": "object",
+            "propertyNames": { "$ref": "#/$defs/kebabToken" },
+            "additionalProperties": { "$ref": "#/$defs/component" }
+        },
+        "divergence": {
+            "description": "The axis-agnostic partition (RFC 0003 §4): per axis, the per-component value sets, flagging any component wiring a strict subset of its siblings. Keyed by axis name, plus `mods` — modifier names are a value set like any other.",
+            "type": "object",
+            "propertyNames": { "$ref": "#/$defs/kebabToken" },
+            "additionalProperties": { "$ref": "#/$defs/axisDivergence" }
+        },
+        "themes": {
+            "type": "array",
+            "items": { "$ref": "#/$defs/themeContrast" }
+        },
+        "issues": {
+            "description": "Validation counts, present only when the report was built alongside a validation pass. The report is a coverage document and stands without one.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["errors", "warnings"],
+            "properties": {
+                "errors": { "type": "integer", "minimum": 0 },
+                "warnings": { "type": "integer", "minimum": 0 }
+            }
+        }
+    },
+    "$defs": {
+        "kebabToken": {
+            "description": "A kebab-case identifier that may start with a digit — the grammar shared by scope, part, state, flag, axis and axis-value names.",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "tokenList": {
+            "description": "A duplicate-free list of kebab-case names. Harvested sets are sorted; DECLARED vocabularies (`vocabulary.sizes`, `vocabulary.variants`, `vocabulary.axes`) keep declaration order, because a ramp's order is part of what it says.",
+            "type": "array",
+            "items": { "$ref": "#/$defs/kebabToken" },
+            "uniqueItems": true
+        },
+        "tokenListsByAxis": {
+            "description": "Custom axis name → its value list.",
+            "type": "object",
+            "propertyNames": { "$ref": "#/$defs/kebabToken" },
+            "additionalProperties": { "$ref": "#/$defs/tokenList" }
+        },
+        "component": {
+            "description": "One anatomy scope. A scope with no recipe carries `styled: false` and nothing else — the register artifact emits no entry for it either, so it has no axes to report.",
+            "oneOf": [
+                { "$ref": "#/$defs/styledComponent" },
+                { "$ref": "#/$defs/unstyledComponent" }
+            ]
+        },
+        "unstyledComponent": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["styled", "parts"],
+            "properties": {
+                "styled": { "const": false },
+                "parts": {
+                    "description": "Always empty: with no recipe there is nothing to cover, part by part.",
+                    "type": "object",
+                    "maxProperties": 0
+                }
+            }
+        },
+        "styledComponent": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["styled", "axes", "customAxes", "mods", "never", "parts"],
+            "properties": {
+                "styled": { "const": true },
+                "axes": {
+                    "description": "The three contract axes, always all present.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["color", "size", "variant"],
+                    "properties": {
+                        "color": { "$ref": "#/$defs/axisReport" },
+                        "size": { "$ref": "#/$defs/axisReport" },
+                        "variant": { "$ref": "#/$defs/axisReport" }
+                    }
+                },
+                "customAxes": { "$ref": "#/$defs/tokenListsByAxis" },
+                "mods": {
+                    "description": "Presence-only modifiers this recipe wires, rendered `data-mod-<name>`.",
+                    "$ref": "#/$defs/tokenList"
+                },
+                "defaults": {
+                    "description": "The recipe's `defaultVariants`, when it has any. Documentation only — a default never widens a generated union.",
+                    "type": "object",
+                    "propertyNames": { "$ref": "#/$defs/kebabToken" },
+                    "additionalProperties": { "$ref": "#/$defs/kebabToken" }
+                },
+                "never": {
+                    "description": "The contract axes this design system's register artifact types `never` — exactly the axes whose status is not `wired`. Derived from the same harvest as the artifact, so the two cannot disagree.",
+                    "type": "array",
+                    "items": { "enum": ["color", "size", "variant"] },
+                    "uniqueItems": true
+                },
+                "parts": {
+                    "description": "Every part the anatomy declares for this scope, styled by the recipe or not.",
+                    "type": "object",
+                    "propertyNames": { "$ref": "#/$defs/kebabToken" },
+                    "additionalProperties": { "$ref": "#/$defs/part" }
+                }
+            }
+        },
+        "axisReport": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["wired", "status"],
+            "properties": {
+                "wired": { "$ref": "#/$defs/tokenList" },
+                "status": {
+                    "description": "`undeclared` means the design system has no such axis (`roles: {}` / `sizes: []`) and is reachable only for colour and size; `unwired` means the axis exists and this recipe keys nothing on it. Both produce `never` in the register artifact — they differ in what the author should do about it.",
+                    "enum": ["wired", "unwired", "undeclared"]
+                }
+            }
+        },
+        "part": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["styled", "states", "flags"],
+            "properties": {
+                "styled": {
+                    "description": "Whether the recipe styles this part anywhere — `parts.<name>`, a variant or compound block, or a modifier. A part reached only through a variant is styled, so this agrees with the coverage buckets rather than with the shape of the authoring input.",
+                    "type": "boolean"
+                },
+                "states": {
+                    "description": "Coverage of the part's closed `data-state` vocabulary.",
+                    "$ref": "#/$defs/coverageSplit"
+                },
+                "flags": {
+                    "description": "Coverage of the part's presence-only flags.",
+                    "$ref": "#/$defs/coverageSplit"
+                }
+            }
+        },
+        "coverageSplit": {
+            "description": "Every declared name of a part, in exactly one bucket.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["covered", "coveredIndirectly", "skipped", "uncovered"],
+            "properties": {
+                "covered": {
+                    "description": "Styled unconditionally on the part — through `states` or a raw `selectors` key that gates on the state.",
+                    "$ref": "#/$defs/tokenList"
+                },
+                "coveredIndirectly": {
+                    "description": "Styled, but only inside an `at` condition, a variant, a compound or a modifier — real coverage that an attribute has to match first.",
+                    "$ref": "#/$defs/tokenList"
+                },
+                "skipped": {
+                    "description": "Listed in the recipe's `skipStates` — deliberately delegated elsewhere rather than forgotten.",
+                    "$ref": "#/$defs/tokenList"
+                },
+                "uncovered": { "$ref": "#/$defs/tokenList" }
+            }
+        },
+        "axisDivergence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["wiredAnywhere", "byComponent", "subsets"],
+            "properties": {
+                "wiredAnywhere": {
+                    "description": "The union any component wires. Divergence is measured against this rather than against the declared vocabulary, so a value held back everywhere on purpose says nothing while a component lagging behind its siblings does.",
+                    "$ref": "#/$defs/tokenList"
+                },
+                "byComponent": {
+                    "description": "Scope → its value set. Only components wiring at least one value: wiring nothing is `never`, not divergence.",
+                    "type": "object",
+                    "propertyNames": { "$ref": "#/$defs/kebabToken" },
+                    "additionalProperties": { "$ref": "#/$defs/tokenList" }
+                },
+                "subsets": {
+                    "description": "Components wiring a STRICT subset of `wiredAnywhere` — where an axis value renders as the default here but not elsewhere.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["scope", "wired", "missing"],
+                        "properties": {
+                            "scope": { "$ref": "#/$defs/kebabToken" },
+                            "wired": { "$ref": "#/$defs/tokenList" },
+                            "missing": { "$ref": "#/$defs/tokenList" }
+                        }
+                    }
+                }
+            }
+        },
+        "themeContrast": {
+            "description": "Declared-pair contrast for one theme. Role pairs only — what the recipe cascade produces when states combine is measured by the Playwright state-matrix audit, not here.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "colorScheme", "minContrast", "worstPair", "belowMin", "belowAA", "pairs"],
+            "properties": {
+                "name": { "$ref": "#/$defs/kebabToken" },
+                "colorScheme": { "enum": ["light", "dark"] },
+                "pair": {
+                    "description": "The opposite-scheme theme this one pairs with, when it declares one.",
+                    "$ref": "#/$defs/kebabToken"
+                },
+                "minContrast": {
+                    "description": "The smallest ratio across every declared pair — the margin this theme has left. Null when no pair could be measured, which the validator reports as errors of its own.",
+                    "type": ["number", "null"],
+                    "minimum": 1
+                },
+                "worstPair": {
+                    "description": "[background, foreground] of the pair `minContrast` came from.",
+                    "type": ["array", "null"],
+                    "items": { "$ref": "#/$defs/kebabToken" },
+                    "minItems": 2,
+                    "maxItems": 2
+                },
+                "belowMin": {
+                    "description": "Pairs below the 3:1 hard floor — each one is a validator error.",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "belowAA": {
+                    "description": "Pairs below 4.5:1 AA text contrast, `belowMin` included — each one is at least a validator warning.",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "pairs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["bg", "fg", "ratio"],
+                        "properties": {
+                            "bg": { "$ref": "#/$defs/kebabToken" },
+                            "fg": { "$ref": "#/$defs/kebabToken" },
+                            "ratio": {
+                                "description": "WCAG contrast ratio, rounded to two decimals so a committed report is not a diff against itself.",
+                                "type": "number",
+                                "minimum": 1
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -45,10 +45,24 @@ export type {
     CompiledComponentAxes,
 } from './design-system.js';
 export { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
-export { defineDesignSystem, compileDesignSystem } from './design-system.js';
+export { defineDesignSystem, compileDesignSystem, undeclaredAxes } from './design-system.js';
 
 export type { ValidationIssue, ValidationResult } from './resolve/validate.js';
 export { validateDesignSystem } from './resolve/validate.js';
+
+export type {
+    AxisDivergence,
+    AxisReport,
+    AxisStatus,
+    ComponentReport,
+    CoverageSplit,
+    DesignSystemReport,
+    PartReport,
+    StyledComponentReport,
+    ThemeContrastReport,
+    UnstyledComponentReport,
+} from './resolve/report.js';
+export { buildReport, formatReport, REPORT_SCHEMA_URL } from './resolve/report.js';
 
 export type { TokenVocabulary } from './resolve/vocabulary.js';
 export { tokenVocabulary } from './resolve/vocabulary.js';

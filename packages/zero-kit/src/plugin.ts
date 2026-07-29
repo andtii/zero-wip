@@ -76,6 +76,17 @@ export default definePlugin({
                 entry: entryArg,
                 manifest: manifestArg,
                 strict: a.boolean().default(false).describe('Fail on warnings, not just errors'),
+                // Two flags for one concept, because @sigx/args has no
+                // optional-value form: a value flag given no value is a
+                // MISSING_VALUE parse error, so `--report` and `--report=json`
+                // cannot be the same flag. Collapses to
+                // `--report[=text|json]` once signalxjs/terminal#102 lands —
+                // tracked here as #177.
+                report: a.boolean().default(false).describe('Print a coverage report'),
+                reportJson: a
+                    .string()
+                    .valueHint('path')
+                    .describe('Write the coverage report as JSON to <path> ("-" for stdout, which then carries nothing else)'),
             },
             async run(ctx) {
                 const { runValidate } = await import('./commands/validate.js');
@@ -83,6 +94,8 @@ export default definePlugin({
                     entry: ctx.args.entry,
                     manifest: ctx.args.manifest,
                     strict: ctx.args.strict,
+                    report: ctx.args.report,
+                    reportJson: ctx.args.reportJson,
                 });
             },
         },

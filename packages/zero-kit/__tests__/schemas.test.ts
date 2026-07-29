@@ -27,10 +27,13 @@ import {
     SIZE_SCALE_LIST,
     FLAG_VOCABULARY,
 } from '@sigx/zero/contract';
+import { buildReport, compileDesignSystem } from '@sigx/zero-kit';
+import type { DesignSystemInput, ManifestComponent } from '@sigx/zero-kit';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import { designSystem as materialDS } from '@sigx/zero-material';
 import { designSystem as brutalistDS } from '@sigx/zero-brutalist';
+import { designSystem as herouiDS } from '@sigx/zero-heroui';
 
 // Paths resolve from the repo root (vitest's cwd), matching briefs.test.ts —
 // `import.meta.url` is rewritten by the test server and doesn't hit disk.
@@ -46,6 +49,7 @@ const ajv = new Ajv2020({ allErrors: true, strict: true, allowUnionTypes: true }
 const validateManifest = ajv.compile(loadSchema('manifest'));
 const validateTokens = ajv.compile(loadSchema('tokens'));
 const validateRecipe = ajv.compile(loadSchema('recipe'));
+const validateReport = ajv.compile(loadSchema('report'));
 
 /**
  * JSON roundtrip before validating. The design systems are authored as TS
@@ -133,6 +137,68 @@ describe('manifest.schema.json', () => {
         const bad = asJson(manifest) as typeof manifest;
         (bad.attributeSpec.flagVocabulary as string[]).push('Focus_Visible');
         expect(validateManifest(bad)).toBe(false);
+    });
+});
+
+// ── report.schema.json ───────────────────────────────────────────────────
+
+/**
+ * The coverage report as `writeArtifacts` emits it — built here from the same
+ * `buildReport` the build calls, so the schema is checked against real output
+ * rather than a hand-written sample. heroui is included even though the other
+ * three suites skip it: it is the only design system that exercises
+ * `declaredOut`, `mods` divergence and an unstyled-component entry.
+ */
+describe('report.schema.json', () => {
+    const reportManifest = { components: manifest.components as ManifestComponent[] };
+    const reports = [...SYSTEMS, ['heroui', herouiDS] as const].map(
+        ([name, ds]) =>
+            [name, buildReport(compileDesignSystem(ds as DesignSystemInput, reportManifest), ds as DesignSystemInput, reportManifest)] as const,
+    );
+
+    /** By name, not by index — the negative cases below need a SPECIFIC system. */
+    const reportNamed = (name: string): unknown =>
+        reports.find(([n]) => n === name)![1];
+
+    it.each(reports)('accepts the report emitted for %s', (name, report) => {
+        expectValid(validateReport, asJson(report), `${name} report`);
+    });
+
+    it('rejects an unknown top-level key (the emitter is closed)', () => {
+        expect(validateReport(asJson({ ...(reportNamed('basic') as object), vendor: 'acme' }))).toBe(false);
+    });
+
+    it('rejects `variant` in declaredOut', () => {
+        // Only colour and size can be declared out of existence — an omitted
+        // `tokens.variants` means "declared nothing", not "no variant axis".
+        const bad = asJson(reportNamed('basic')) as { vocabulary: { declaredOut: string[] } };
+        bad.vocabulary.declaredOut.push('variant');
+        expect(validateReport(bad)).toBe(false);
+    });
+
+    it('rejects an unstyled component that carries axes anyway', () => {
+        // heroui specifically: it is the only shipped system with an unstyled
+        // component to corrupt.
+        const bad = asJson(reportNamed('heroui')) as { components: Record<string, unknown> };
+        expect(bad.components['accordion']).toEqual({ styled: false, parts: {} });
+        bad.components['accordion'] = { styled: false, parts: {}, mods: [] };
+        expect(validateReport(bad)).toBe(false);
+    });
+
+    it('rejects a state landing in no coverage bucket', () => {
+        const bad = asJson(reportNamed('basic')) as {
+            components: Record<string, { parts: Record<string, { flags: Record<string, unknown> }> }>;
+        };
+        delete bad.components['button']!.parts['root']!.flags['uncovered'];
+        expect(validateReport(bad)).toBe(false);
+    });
+
+    it('rejects an axis status outside the closed set', () => {
+        const bad = asJson(reportNamed('basic')) as {
+            components: Record<string, { axes: Record<string, { status: string }> }>;
+        };
+        bad.components['button']!.axes['color']!.status = 'partial';
+        expect(validateReport(bad)).toBe(false);
     });
 });
 

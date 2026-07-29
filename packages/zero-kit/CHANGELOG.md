@@ -39,6 +39,42 @@
 
 ### Added
 
+- **The coverage report** (RFC 0003 §7.4 / §4, RFC 0002 §8, #173):
+  `sigx zero:validate --report` prints what a design system *covers*, and
+  `--report-json <path>` writes the machine-readable shape (`-` for stdout,
+  which then carries nothing else — diagnostics go to stderr and pass/fail is
+  the exit code). `sigx zero:build` writes the same report to
+  `dist/report.json`, alongside `manifest.json` and `register.d.ts`, so a built
+  design system carries it without anyone running `validate`. Validation
+  returns a flat issue list, which says
+  what is *wrong*; a scored report is what makes a generated design system
+  reviewable, and the conformance matrix generates its already-proven-in-repo
+  rows from this file rather than by hand.
+
+  It carries: components styled against the anatomy manifest; the axes each
+  component wires and which its `register.d.ts` types `never`; declared-but-
+  unwired values per axis and per modifier — the only place an unused colour
+  role or size step surfaces, since the validator has no rule for those (Material
+  declares thirteen roles and wires nine); per-part state and flag coverage,
+  splitting what is styled unconditionally from what only a condition, variant,
+  compound or modifier reaches, and what `skipStates` delegates deliberately;
+  the **axis-agnostic divergence report** promised by RFC 0003 §4 — per axis,
+  the per-component value sets, flagging any component wiring a strict subset of
+  its siblings, generalising the colour-only cross-component warning without
+  adding an authoring surface; and the minimum WCAG contrast margin per theme.
+
+  New exports: `buildReport`, `formatReport`, `REPORT_SCHEMA_URL`, their types,
+  and `undeclaredAxes` — which moved out of the register generator so the report
+  and the register artifact name the same axes by construction rather than by
+  coincidence. `writeArtifacts` takes an optional third argument, the report to
+  emit; callers that pass nothing are unaffected. New JSON Schema
+  `report.schema.json`, shipped in `dist/schemas/` like the other three.
+
+  Two flags rather than one `--report=json` because `@sigx/args` has no
+  optional-value form — a value flag given no value is a `MISSING_VALUE` parse
+  error, and `.required()` governs flag presence, not value presence. They
+  collapse once signalxjs/terminal#102 lands (tracked as #177).
+
 - **Presence-only modifiers** (RFC 0003 §3, #166): `TokensInput.modifiers`
   declares them, `RecipeInput.modifiers` (name → part → styles) wires them, and
   the compiler emits `[data-mod-<name>]` — valueless, because a modifier has no
