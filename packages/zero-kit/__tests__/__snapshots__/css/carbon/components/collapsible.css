@@ -51,15 +51,16 @@
         display: none;
     }
 
-    [data-scope="collapsible"][data-part="trigger"]::before {
+    [data-scope="collapsible"][data-part="trigger"]::after {
         content: "\203A";
         flex: none;
-        rotate: 0deg;
+        margin-inline-start: auto;
+        rotate: 90deg;
         transition: rotate var(--duration-normal) var(--ease-standard);
     }
 
-    [data-scope="collapsible"][data-part="trigger"][data-state="open"]::before {
-        rotate: 90deg;
+    [data-scope="collapsible"][data-part="trigger"][data-state="open"]::after {
+        rotate: 270deg;
     }
 
     [data-scope="collapsible"][data-part="trigger"][data-pressed]:not([data-disabled]) {
@@ -69,6 +70,7 @@
     [data-scope="collapsible"][data-part="panel"] {
         padding: var(--space-sm) var(--space-md) var(--space-lg);
         font-size: var(--text-sm);
+        letter-spacing: var(--tracking-wide);
         line-height: var(--leading-normal);
     }
 

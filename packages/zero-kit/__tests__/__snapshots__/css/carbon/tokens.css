@@ -6,6 +6,8 @@
 @property --carbon-danger-ink { syntax: '<color>'; inherits: true; initial-value: oklch(100% 0 0); }
 @property --carbon-focus { syntax: '<color>'; inherits: true; initial-value: oklch(53% 0.23 262); }
 @property --carbon-line { syntax: '<color>'; inherits: true; initial-value: oklch(90.6% 0 0); }
+@property --carbon-border-strong { syntax: '<color>'; inherits: true; initial-value: oklch(62% 0 0); }
+@property --carbon-field-hover { syntax: '<color>'; inherits: true; initial-value: oklch(93.3% 0 0); }
 @property --carbon-toggle-on { syntax: '<color>'; inherits: true; initial-value: oklch(62% 0.15 152); }
 
 @layer zero.tokens {
@@ -69,6 +71,8 @@
         --carbon-danger-ink: oklch(100% 0 0);
         --carbon-focus: oklch(53% 0.23 262);
         --carbon-line: oklch(90.6% 0 0);
+        --carbon-border-strong: oklch(62% 0 0);
+        --carbon-field-hover: oklch(93.3% 0 0);
         --carbon-toggle-on: oklch(62% 0.15 152);
         --text-fixed-xs: var(--text-xs);
         --text-fixed-sm: var(--text-sm);
@@ -91,6 +95,8 @@
             --carbon-danger: oklch(60% 0.19 25);
             --carbon-focus: oklch(100% 0 0);
             --carbon-line: oklch(48.4% 0 0);
+            --carbon-border-strong: oklch(55% 0 0);
+            --carbon-field-hover: oklch(32% 0 0);
             --carbon-toggle-on: oklch(71% 0.16 150);
         }
     }
@@ -111,6 +117,8 @@
         --carbon-danger: oklch(55.6% 0.213 27);
         --carbon-focus: oklch(53% 0.23 262);
         --carbon-line: oklch(90.6% 0 0);
+        --carbon-border-strong: oklch(62% 0 0);
+        --carbon-field-hover: oklch(93.3% 0 0);
         --carbon-toggle-on: oklch(62% 0.15 152);
     }
 
@@ -130,6 +138,8 @@
         --carbon-danger: oklch(60% 0.19 25);
         --carbon-focus: oklch(100% 0 0);
         --carbon-line: oklch(48.4% 0 0);
+        --carbon-border-strong: oklch(55% 0 0);
+        --carbon-field-hover: oklch(32% 0 0);
         --carbon-toggle-on: oklch(71% 0.16 150);
     }
 

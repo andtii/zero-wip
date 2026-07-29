@@ -54,6 +54,7 @@
         box-shadow: var(--shadow-lg);
         font-family: var(--font-sans);
         font-size: var(--text-sm);
+        letter-spacing: var(--tracking-wide);
         line-height: var(--leading-normal);
     }
 
@@ -85,7 +86,7 @@
     }
 
     [data-scope="popover"][data-part="close"]:hover:not([data-disabled]) {
-        background: var(--color-base-200);
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
     }
 
     [data-scope="popover"][data-part="close"][data-disabled] {
@@ -99,7 +100,7 @@
     }
 
     [data-scope="popover"][data-part="close"][data-pressed]:not([data-disabled]) {
-        background: var(--color-base-300);
+        background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
     }
 
     @media (prefers-reduced-motion: reduce) {

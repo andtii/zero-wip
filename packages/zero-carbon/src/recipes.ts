@@ -24,6 +24,15 @@ const focusRing: Record<string, CssProps> = {
 };
 
 /**
+ * Layer-aware hover/pressed washes: an ink-mix over whatever layer the part
+ * sits on, so the same value reads correctly on base-100 pages and base-200
+ * floating surfaces — and moves the right way in both schemes (darker on
+ * white, lighter on g100), which a brightness filter cannot do.
+ */
+const layerHover = 'color-mix(in oklab, var(--color-base-content) 8%, transparent)';
+const layerActive = 'color-mix(in oklab, var(--color-base-content) 15%, transparent)';
+
+/**
  * Enter/exit presence for a top-layer popup — dialog, popover, tooltip, menu.
  *
  * The platform mechanism every design system in this repo uses: transition
@@ -96,10 +105,9 @@ const withPresence = (presence: PartStyles, styles: PartStyles): PartStyles => (
 
 /**
  * Carbon's ghost treatment for the overlay triggers — transparent fill,
- * interactive ink. The button's brightness filters would be invisible on a
- * transparent background, so hover/pressed feedback climbs the layer ramp
- * (base-200/base-300) instead, the same depth language as the rest of the
- * system.
+ * interactive ink, hover/pressed feedback climbing the layer ramp
+ * (base-200/base-300): the same $background-hover language Button's `ghost`
+ * kind speaks.
  */
 const ghostTrigger: PartStyles = {
     base: {
@@ -133,7 +141,12 @@ const ghostTrigger: PartStyles = {
     },
 };
 
-/** Carbon's ghost icon button — the modal/popover close. Square, of course. */
+/**
+ * Carbon's ghost icon button — the modal/popover close. Square, of course.
+ * Hover/pressed are the ink washes: this button sits on layered surfaces
+ * (the base-200 modal, the base-100 popover), so a fixed layer step would
+ * vanish on one of them.
+ */
 const ghostIconButton = (size: string, position: CssProps = {}): PartStyles => ({
     base: {
         appearance: 'none',
@@ -152,20 +165,20 @@ const ghostIconButton = (size: string, position: CssProps = {}): PartStyles => (
         ...position,
     },
     states: {
-        hover: { background: 'var(--color-base-200)' },
+        hover: { background: layerHover },
         disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
         ...focusRing,
     },
     selectors: {
-        '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+        '&[data-pressed]:not([data-disabled])': { background: layerActive },
     },
 });
 
 /**
  * Carbon's accordion heading, shared by Collapsible and Accordion: 14px
- * label, layer-fill hover, and a flush-left chevron drawn as a rotated glyph
- * in currentColor — closed points along the reading direction, open turns
- * 90° to point at the panel.
+ * label, layer-fill hover, and Carbon's signature end-of-row chevron —
+ * heading text leads, the glyph sits flush-right, pointing down when closed
+ * and flipping 180° to point up when open.
  */
 const disclosureTrigger: PartStyles = {
     base: {
@@ -193,13 +206,16 @@ const disclosureTrigger: PartStyles = {
         // `display: flex` already suppresses the list-item marker; legacy
         // WebKit draws its own and needs telling separately.
         '&::-webkit-details-marker': { display: 'none' },
-        '&::before': {
+        // The `›` glyph rotated 90° points down; open adds another 180° so
+        // it sweeps through the flip rather than snapping.
+        '&::after': {
             content: '"\\203A"',
             flex: 'none',
-            rotate: '0deg',
+            marginInlineStart: 'auto',
+            rotate: '90deg',
             transition: motion('rotate'),
         },
-        '&[data-state="open"]::before': { rotate: '90deg' },
+        '&[data-state="open"]::after': { rotate: '270deg' },
         '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
     },
 };
@@ -208,18 +224,23 @@ const disclosurePanel: PartStyles = {
     base: {
         padding: 'var(--space-sm) var(--space-md) var(--space-lg)',
         fontSize: 'var(--text-sm)',
+        letterSpacing: 'var(--tracking-wide)',
         lineHeight: 'var(--leading-normal)',
     },
     states: { open: {}, closed: {} },
 };
 
-/** The menu surface: square, layer-01, shadow for depth — no hairline. */
+/**
+ * The menu surface: square, one step up the layer ramp (Carbon's $layer-01 —
+ * flyouts never sit on the page background), a faint shadow as the secondary
+ * depth cue — no hairline.
+ */
 const menuSurface: CssProps = {
     padding: 'var(--space-xs) 0',
     minWidth: '12rem',
     border: 'none',
     borderRadius: 'var(--radius-box)',
-    background: 'var(--color-base-100)',
+    background: 'var(--color-base-200)',
     color: 'var(--color-base-content)',
     boxShadow: 'var(--shadow-md)',
     fontFamily: 'var(--font-sans)',
@@ -243,13 +264,23 @@ const menuItem: CssProps = {
 // ── Shared field language ─────────────────────────────────────────────────
 /**
  * Carbon's field-01: a text-entry surface is a layer fill with a single
- * bottom hairline — no side chrome, square corners.
+ * assertive bottom stroke ($border-strong — deliberately darker than the
+ * hairline, it IS the field's chrome) — no side chrome, square corners.
  */
 const field01: CssProps = {
     background: 'var(--color-base-200)',
     border: 'none',
-    borderBlockEnd: 'var(--border) solid var(--carbon-line)',
+    borderBlockEnd: 'var(--border) solid var(--carbon-border-strong)',
     borderRadius: 'var(--radius-field)',
+};
+
+/**
+ * Every field-01 surface hovers the same way: a background rebind to
+ * $field-hover — a token, not a filter, so the direction is right in both
+ * schemes (darker on white, lighter on g100) and the text is untouched.
+ */
+const fieldHover: Record<string, CssProps> = {
+    hover: { background: 'var(--carbon-field-hover)' },
 };
 
 /** Carbon's label-01: small, wide-tracked, secondary-ink form labels. */
@@ -385,13 +416,15 @@ export const switchRecipe: RecipeInput = {
         },
         control: {
             // The one place Carbon rounds a corner: the toggle is a pill.
+            // The off track is the assertive mid-gray ($toggle-off), so the
+            // base-100 thumb stays clearly visible on it in both schemes.
             base: {
                 display: 'inline-block',
                 position: 'relative',
                 width: 'var(--switch-width)',
                 height: 'var(--switch-height)',
                 borderRadius: '9999px',
-                background: 'var(--color-base-300)',
+                background: 'var(--carbon-border-strong)',
                 transition: motion('background'),
             },
             states: {
@@ -447,7 +480,8 @@ export const dialog: RecipeInput = {
     parts: {
         trigger: ghostTrigger,
         // Carbon's Modal: a square card sliding down from above the centre,
-        // depth from the scrim and the shadow ramp — never a border.
+        // on the $layer-01 step so it separates from the page in both
+        // schemes; depth from the scrim and the shadow ramp — never a border.
         popup: withPresence(popupPresence('translateY(-16px)'), {
             base: {
                 width: 'calc(100% - 2rem)',
@@ -458,7 +492,7 @@ export const dialog: RecipeInput = {
                 padding: '0',
                 border: 'none',
                 borderRadius: 'var(--radius-box)',
-                background: 'var(--color-base-100)',
+                background: 'var(--color-base-200)',
                 color: 'var(--color-base-content)',
                 boxShadow: 'var(--shadow-xl)',
                 fontFamily: 'var(--font-sans)',
@@ -484,7 +518,9 @@ export const dialog: RecipeInput = {
         title: {
             base: {
                 margin: '0',
-                padding: 'var(--space-md) var(--space-2xl) var(--space-md) var(--space-md)',
+                // Inline-end clearance ≥ the 3rem close button parked in the
+                // corner, so a long title never runs under its hit area.
+                padding: 'var(--space-md) calc(var(--space-2xl) + var(--space-sm)) var(--space-md) var(--space-md)',
                 fontSize: 'var(--text-xl)',
                 // Carbon's heading-03 runs at the normal weight — hierarchy
                 // comes from size, not boldness.
@@ -497,6 +533,7 @@ export const dialog: RecipeInput = {
                 margin: '0',
                 padding: '0 var(--space-md) var(--space-lg)',
                 fontSize: 'var(--text-sm)',
+                letterSpacing: 'var(--tracking-wide)',
                 lineHeight: 'var(--leading-normal)',
                 color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
             },
@@ -546,6 +583,7 @@ export const popover: RecipeInput = {
                 boxShadow: 'var(--shadow-lg)',
                 fontFamily: 'var(--font-sans)',
                 fontSize: 'var(--text-sm)',
+                letterSpacing: 'var(--tracking-wide)',
                 lineHeight: 'var(--leading-normal)',
             },
             states: { open: {}, closed: {} },
@@ -601,11 +639,13 @@ export const menu: RecipeInput = {
         item: {
             base: menuItem,
             states: {
-                highlighted: { background: 'var(--color-base-200)' },
+                // The ink wash, not a layer step — the popup already sits on
+                // base-200, so a base-200 highlight would be invisible.
+                highlighted: { background: layerHover },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
             selectors: {
-                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
             },
         },
         // The item look, plus a chevron and an `open` state that keeps it
@@ -613,14 +653,14 @@ export const menu: RecipeInput = {
         'sub-trigger': {
             base: menuItem,
             states: {
-                open: { background: 'var(--color-base-200)' },
+                open: { background: layerHover },
                 closed: {},
-                highlighted: { background: 'var(--color-base-200)' },
+                highlighted: { background: layerHover },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
             selectors: {
                 '&::after': { content: '"\\203A"', marginLeft: 'auto', opacity: '0.6' },
-                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
             },
         },
         // The same surface, entering from the side it attaches on.
@@ -915,8 +955,11 @@ export const progress: RecipeInput = {
             lg: { root: { base: { '--progress-track-size': '0.5rem' } } },
         },
     },
+    // Transform, not margin: no layout work per frame. The percentages are
+    // of the 40%-wide bar itself — -100% hides it before the track, 250%
+    // (100/40 of the track) carries it past the far edge.
     keyframes: {
-        'carbon-indeterminate': 'from { margin-left: -40%; } to { margin-left: 100%; }',
+        'carbon-indeterminate': 'from { translate: -100% 0; } to { translate: 250% 0; }',
     },
 };
 
@@ -1050,8 +1093,10 @@ export const select: RecipeInput = {
             base: { display: 'inline-flex', flexDirection: 'column' },
         },
         trigger: {
-            // Carbon's field-01: a base-200 fill with ONLY a bottom hairline —
-            // the square input language every text-entry surface here speaks.
+            // Carbon's field-01: a base-200 fill with ONLY the assertive
+            // bottom stroke — the square input language every text-entry
+            // surface here speaks (shared shape inlined: this trigger is a
+            // flex row, not a wrapper box).
             base: {
                 appearance: 'none',
                 display: 'inline-flex',
@@ -1062,7 +1107,7 @@ export const select: RecipeInput = {
                 minHeight: '2.5rem',
                 padding: '0 var(--space-md)',
                 border: 'none',
-                borderBlockEnd: 'var(--border) solid var(--carbon-line)',
+                borderBlockEnd: 'var(--border) solid var(--carbon-border-strong)',
                 borderRadius: 'var(--radius-field)',
                 background: 'var(--color-base-200)',
                 color: 'var(--color-base-content)',
@@ -1074,11 +1119,10 @@ export const select: RecipeInput = {
                 transition: motion('background, border-color'),
             },
             states: {
-                hover: { filter: 'brightness(0.9)' },
+                ...fieldHover,
                 disabled: {
                     opacity: 'var(--disabled-opacity)',
                     cursor: 'not-allowed',
-                    filter: 'none',
                 },
                 open: {},
                 closed: {},
@@ -1090,7 +1134,7 @@ export const select: RecipeInput = {
                 ...focusRing,
             },
             selectors: {
-                '&[data-pressed]:not([data-disabled])': { filter: 'brightness(0.8)' },
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--carbon-field-hover)' },
             },
         },
         value: {
@@ -1104,17 +1148,18 @@ export const select: RecipeInput = {
             states: { open: { transform: 'rotate(180deg)' }, closed: {} },
         },
         popup: {
-            // A Carbon flyout: square, flush, borderless — the shadow is the
-            // one place depth is allowed. Presence is the standard top-layer
-            // pattern: zero keeps the node mounted and toggles `data-state`,
-            // so `display`/`overlay` with `allow-discrete` hold the exit and
-            // `@starting-style` supplies the entry's FROM state.
+            // A Carbon flyout: square, flush, borderless, on the $layer-01
+            // step — the shadow is the secondary depth cue. Presence is the
+            // standard top-layer pattern: zero keeps the node mounted and
+            // toggles `data-state`, so `display`/`overlay` with
+            // `allow-discrete` hold the exit and `@starting-style` supplies
+            // the entry's FROM state.
             base: {
                 opacity: '0',
                 transform: 'translateY(-0.25rem)',
                 padding: '0',
                 minWidth: '12rem',
-                background: 'var(--color-base-100)',
+                background: 'var(--color-base-200)',
                 color: 'var(--color-base-content)',
                 fontFamily: 'var(--font-sans)',
                 borderRadius: 'var(--radius-box)',
@@ -1134,6 +1179,8 @@ export const select: RecipeInput = {
             },
         },
         item: {
+            // Carbon's list-box option: a subtle divider under every row but
+            // the last — the same treatment the combobox options carry.
             base: {
                 display: 'flex',
                 alignItems: 'center',
@@ -1143,17 +1190,19 @@ export const select: RecipeInput = {
                 padding: '0 var(--space-md)',
                 fontSize: 'var(--text-sm)',
                 letterSpacing: 'var(--tracking-wide)',
+                borderBlockEnd: 'var(--border) solid var(--carbon-line)',
                 borderRadius: 'var(--radius-selector)',
                 cursor: 'pointer',
                 transition: motion('background'),
             },
             states: {
-                highlighted: { background: 'var(--color-base-200)' },
+                highlighted: { background: layerHover },
                 selected: { fontWeight: 'var(--weight-semibold)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
             selectors: {
-                '&[data-pressed]:not([data-disabled])': { filter: 'brightness(0.8)' },
+                '&:last-child': { borderBlockEnd: 'none' },
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
             },
         },
         'item-indicator': {
@@ -1183,6 +1232,16 @@ export const button: RecipeInput = {
         '--btn-fill': 'var(--carbon-interactive)',
         '--btn-ink': 'var(--carbon-interactive-ink)',
         '--btn-line': 'transparent',
+        // Hover/pressed are per-kind rebinds, not a filter — a brightness
+        // filter on a transparent fill only dims the ink, so the four
+        // transparent kinds would show no feedback at all. Solid kinds
+        // derive their darker steps from their own fill; transparent kinds
+        // rebind all three outright (below), matching Carbon: ghost hovers
+        // the layer ramp, tertiary fills solid and flips its ink.
+        '--btn-fill-hover': 'color-mix(in oklab, var(--btn-fill) 90%, black)',
+        '--btn-fill-active': 'color-mix(in oklab, var(--btn-fill) 78%, black)',
+        '--btn-ink-hover': 'var(--btn-ink)',
+        '--btn-ink-active': 'var(--btn-ink-hover)',
     },
     component: 'button',
     parts: {
@@ -1210,16 +1269,18 @@ export const button: RecipeInput = {
                 transition: motion('background, border-color, color'),
             },
             states: {
-                hover: { filter: 'brightness(0.9)' },
+                hover: { background: 'var(--btn-fill-hover)', color: 'var(--btn-ink-hover)' },
                 disabled: {
                     opacity: 'var(--disabled-opacity)',
                     cursor: 'not-allowed',
-                    filter: 'none',
                 },
                 ...focusRing,
             },
             selectors: {
-                '&[data-pressed]:not([data-disabled])': { filter: 'brightness(0.8)' },
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'var(--btn-fill-active)',
+                    color: 'var(--btn-ink-active)',
+                },
             },
         },
     },
@@ -1227,29 +1288,65 @@ export const button: RecipeInput = {
         variant: {
             primary: {},
             secondary: { root: { base: { '--btn-fill': 'var(--carbon-secondary)', '--btn-ink': 'var(--carbon-secondary-ink)' } } },
+            // Tertiary hover fills solid and flips the ink to inverse — the
+            // Carbon $button-tertiary-hover treatment.
             tertiary: {
                 root: {
                     base: {
                         '--btn-fill': 'transparent',
                         '--btn-ink': 'var(--carbon-interactive)',
                         '--btn-line': 'var(--carbon-interactive)',
+                        '--btn-fill-hover': 'var(--carbon-interactive)',
+                        '--btn-fill-active': 'color-mix(in oklab, var(--carbon-interactive) 78%, black)',
+                        '--btn-ink-hover': 'var(--carbon-interactive-ink)',
                     },
                 },
             },
-            ghost: { root: { base: { '--btn-fill': 'transparent', '--btn-ink': 'var(--carbon-interactive)' } } },
+            // Ghost hovers the layer ramp — the same base-200/base-300
+            // feedback the overlay ghost triggers use ($background-hover).
+            // The pressed ink mixes toward base-content: scheme-aware, it
+            // darkens on white and lightens on g100, keeping the label above
+            // 3:1 on the base-300 pressed fill in both.
+            ghost: {
+                root: {
+                    base: {
+                        '--btn-fill': 'transparent',
+                        '--btn-ink': 'var(--carbon-interactive)',
+                        '--btn-fill-hover': 'var(--color-base-200)',
+                        '--btn-fill-active': 'var(--color-base-300)',
+                        '--btn-ink-hover': 'var(--carbon-interactive)',
+                        '--btn-ink-active': 'color-mix(in oklab, var(--carbon-interactive) 80%, var(--color-base-content))',
+                    },
+                },
+            },
             danger: { root: { base: { '--btn-fill': 'var(--carbon-danger)', '--btn-ink': 'var(--carbon-danger-ink)' } } },
             // Carbon's `danger--tertiary` / `danger--ghost`, in the attribute
             // grammar's spelling — the api's values remap owns the vendor one.
+            // Both hover to the solid danger fill with inverse ink, Carbon's
+            // $button-danger-hover.
             'danger-tertiary': {
                 root: {
                     base: {
                         '--btn-fill': 'transparent',
                         '--btn-ink': 'var(--carbon-danger)',
                         '--btn-line': 'var(--carbon-danger)',
+                        '--btn-fill-hover': 'var(--carbon-danger)',
+                        '--btn-fill-active': 'color-mix(in oklab, var(--carbon-danger) 78%, black)',
+                        '--btn-ink-hover': 'var(--carbon-danger-ink)',
                     },
                 },
             },
-            'danger-ghost': { root: { base: { '--btn-fill': 'transparent', '--btn-ink': 'var(--carbon-danger)' } } },
+            'danger-ghost': {
+                root: {
+                    base: {
+                        '--btn-fill': 'transparent',
+                        '--btn-ink': 'var(--carbon-danger)',
+                        '--btn-fill-hover': 'var(--carbon-danger)',
+                        '--btn-fill-active': 'color-mix(in oklab, var(--carbon-danger) 78%, black)',
+                        '--btn-ink-hover': 'var(--carbon-danger-ink)',
+                    },
+                },
+            },
         },
         /** Carbon's five field heights: 32 / 40 / 48 / 64 / 80. */
         size: {
@@ -1371,7 +1468,7 @@ export const toast: RecipeInput = {
                 '&[data-placement="bottom-end"]': { bottom: '0', right: '0', flexDirection: 'column-reverse' },
             },
         },
-        // Carbon's notification: a base-100 surface under an overlay shadow,
+        // Carbon's notification: a $layer-01 surface under an overlay shadow,
         // square, with the 3px inset-start accent bar. Presence is
         // runtime-managed (toasts must eventually unmount), so this is a
         // plain two-state transition — no `@starting-style`.
@@ -1383,7 +1480,7 @@ export const toast: RecipeInput = {
                 alignItems: 'center',
                 columnGap: 'var(--space-md)',
                 padding: 'var(--space-md)',
-                background: 'var(--color-base-100)',
+                background: 'var(--color-base-200)',
                 color: 'var(--color-base-content)',
                 border: 'var(--border) solid var(--carbon-line)',
                 borderInlineStart: '3px solid var(--carbon-interactive)',
@@ -1391,6 +1488,7 @@ export const toast: RecipeInput = {
                 boxShadow: 'var(--shadow-lg)',
                 fontFamily: 'var(--font-sans)',
                 fontSize: 'var(--text-sm)',
+                letterSpacing: 'var(--tracking-wide)',
                 lineHeight: 'var(--leading-tight)',
                 opacity: '0',
                 transform: 'translateY(var(--toast-from))',
@@ -1433,12 +1531,13 @@ export const toast: RecipeInput = {
                 transition: motion('background'),
             },
             states: {
-                hover: { background: 'var(--color-base-200)' },
+                // Ink washes — the toast surface is already base-200.
+                hover: { background: layerHover },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
             selectors: {
-                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
             },
         },
         close: {
@@ -1456,12 +1555,12 @@ export const toast: RecipeInput = {
                 transition: motion('background'),
             },
             states: {
-                hover: { background: 'var(--color-base-200)' },
+                hover: { background: layerHover },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
             selectors: {
-                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
             },
         },
     },
@@ -1485,8 +1584,10 @@ export const combobox: RecipeInput = {
                 minWidth: '12rem',
                 minHeight: '2.5rem',
                 color: 'var(--color-base-content)',
+                transition: motion('background'),
             },
             states: {
+                ...fieldHover,
                 open: {},
                 closed: {},
                 invalid: { outline: '2px solid var(--carbon-danger)', outlineOffset: '-2px' },
@@ -1537,7 +1638,7 @@ export const combobox: RecipeInput = {
                 disabled: { cursor: 'not-allowed' },
             },
             selectors: {
-                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
             },
         },
         // A layer under an overlay shadow — no border, no padding: Carbon
@@ -1549,7 +1650,7 @@ export const combobox: RecipeInput = {
             base: {
                 minWidth: '12rem',
                 padding: '0',
-                background: 'var(--color-base-100)',
+                background: 'var(--color-base-200)',
                 color: 'var(--color-base-content)',
                 borderRadius: 'var(--radius-box)',
                 boxShadow: 'var(--shadow-md)',
@@ -1578,18 +1679,19 @@ export const combobox: RecipeInput = {
                 minHeight: '2.5rem',
                 padding: '0 var(--space-md)',
                 fontSize: 'var(--text-sm)',
+                letterSpacing: 'var(--tracking-wide)',
                 borderBlockEnd: 'var(--border) solid var(--carbon-line)',
                 cursor: 'pointer',
                 transition: motion('background'),
             },
             states: {
-                highlighted: { background: 'var(--color-base-200)' },
+                highlighted: { background: layerHover },
                 selected: { fontWeight: 'var(--weight-semibold)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
             selectors: {
                 '&:last-child': { borderBlockEnd: 'none' },
-                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
             },
         },
         'item-indicator': {
@@ -1763,8 +1865,10 @@ export const numberInput: RecipeInput = {
                 alignItems: 'stretch',
                 minHeight: '2.5rem',
                 color: 'var(--color-base-content)',
+                transition: motion('background'),
             },
             states: {
+                ...fieldHover,
                 invalid: { outline: '2px solid var(--carbon-danger)', outlineOffset: '-2px' },
                 disabled: { opacity: 'var(--disabled-opacity)', borderBlockEndColor: 'transparent' },
                 readonly: {},

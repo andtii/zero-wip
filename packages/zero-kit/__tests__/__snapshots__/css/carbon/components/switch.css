@@ -24,7 +24,7 @@
         width: var(--switch-width);
         height: var(--switch-height);
         border-radius: 9999px;
-        background: var(--color-base-300);
+        background: var(--carbon-border-strong);
         transition: background var(--duration-normal) var(--ease-standard);
     }
 
