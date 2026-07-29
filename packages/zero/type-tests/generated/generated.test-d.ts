@@ -82,4 +82,21 @@ export type _scopesValid = MustBeTrue<
     keyof ZeroVocabulary['components'] extends ZeroScope ? true : false
 >;
 
+// ── coexistence with an adapted surface (issue #179): the register
+//    augmentation above narrows the BASE components through the vocabulary,
+//    but an `Adapted` surface removed its contract props by key — so the
+//    vocabulary-scoped types are never even evaluated in it, and the two
+//    mechanisms cannot fight over the same prop ──
+type VendorButton = import('@sigx/zero/adapt').Adapted<
+    typeof import('@sigx/zero').Button,
+    'color' | 'size' | 'variant' | 'axes' | 'mods',
+    { kind?: 'solid' | 'ghost' }
+>;
+type VendorButtonProps = Parameters<VendorButton>[0];
+const vendorOk: VendorButtonProps = { kind: 'ghost' };
+// @ts-expect-error — the register module narrows base `variant`, but the
+// adapted surface removed it entirely; the augmentation must not resurrect it
+const vendorZeroName: VendorButtonProps = { variant: 'filled' };
+export { vendorOk, vendorZeroName };
+
 export { tertiary, typo, buttonVariant, buttonSize, tonal, checkboxColor, checkboxSize, checkboxTypo, avatarColor, mintedAxis };

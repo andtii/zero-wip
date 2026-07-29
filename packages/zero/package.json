@@ -26,6 +26,10 @@
             "types": "./dist/behaviors/index.d.ts",
             "import": "./dist/behaviors/index.js"
         },
+        "./adapt": {
+            "types": "./dist/adapt/index.d.ts",
+            "import": "./dist/adapt/index.js"
+        },
         "./tabs": {
             "types": "./dist/components/tabs/index.d.ts",
             "import": "./dist/components/tabs/index.js"

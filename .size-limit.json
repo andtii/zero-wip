@@ -10,6 +10,16 @@
         ]
     },
     {
+        "name": "@sigx/zero/adapt",
+        "path": "packages/zero/dist/adapt/index.js",
+        "limit": "1 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
         "name": "@sigx/zero/tabs",
         "path": "packages/zero/dist/components/tabs/index.js",
         "limit": "3.5 kB",
