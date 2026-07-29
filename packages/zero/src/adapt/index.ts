@@ -166,10 +166,10 @@ function propsView(props: Record<string, unknown>, routing: Routing): Record<str
                 keys.push(key);
             }
             for (const [axis, route] of named) {
-                if (props[route.vendorProp] !== undefined && !keys.includes(axis)) keys.push(axis);
+                if (route.vendorProp in props && !keys.includes(axis)) keys.push(axis);
             }
-            if (axes.some((r) => props[r.vendorProp] !== undefined) && !keys.includes('axes')) keys.push('axes');
-            if (mods.some((r) => props[r.vendorProp] !== undefined) && !keys.includes('mods')) keys.push('mods');
+            if (axes.some((r) => r.vendorProp in props) && !keys.includes('axes')) keys.push('axes');
+            if (mods.some((r) => r.vendorProp in props) && !keys.includes('mods')) keys.push('mods');
             return keys;
         },
         // Same descriptor shape as sigx's own props accessor, so spread
