@@ -5,6 +5,7 @@
  */
 import type { ManifestComponent, RoleDecl, ZeroManifest } from './contract.js';
 import { DEFAULT_ROLES, defaultSwatch, resolveRoles, resolveSizes } from './contract.js';
+import type { DesignSystemApi } from './api.js';
 import type { CustomTokenDecl, RolesDecl, SystemTokens, TokensInput } from './tokens.js';
 import { compileTokensCss } from './targets/web/tokens-css.js';
 import type { RecipeInput } from './recipes.js';
@@ -19,6 +20,12 @@ export interface DesignSystemInput<
     recipes: RecipeInput[];
     /** Raw CSS appended verbatim after the compiled recipes (escape hatch). */
     css?: string[];
+    /**
+     * Vendor-named component API: how zero's axes surface on this design
+     * system's `./components` module (issue #179). Validated against the
+     * declared vocabulary; grades for the conformance matrix derive from it.
+     */
+    api?: DesignSystemApi;
 }
 
 /** Identity with typing — the authoring entry point. */
