@@ -2072,7 +2072,7 @@
         outline-offset: -2px;
     }
 
-    [data-scope="toggle"][data-part="root"][data-state="on"]:hover {
+    [data-scope="toggle"][data-part="root"][data-state="on"]:hover:not([data-disabled]) {
         background: var(--color-base-300);
     }
 
@@ -2141,7 +2141,7 @@
         outline-offset: -2px;
     }
 
-    [data-scope="toggle-group"][data-part="item"][data-state="on"]:hover {
+    [data-scope="toggle-group"][data-part="item"][data-state="on"]:hover:not([data-disabled]) {
         background: var(--color-base-300);
     }
 
@@ -2443,7 +2443,7 @@
         outline-offset: -2px;
     }
 
-    [data-scope="tree-view"][data-part="item"][data-selected]:hover {
+    [data-scope="tree-view"][data-part="item"][data-selected]:hover:not([data-disabled]) {
         background: var(--color-base-300);
     }
 
@@ -2488,7 +2488,7 @@
         outline-offset: -2px;
     }
 
-    [data-scope="tree-view"][data-part="branch-trigger"][data-selected]:hover {
+    [data-scope="tree-view"][data-part="branch-trigger"][data-selected]:hover:not([data-disabled]) {
         background: var(--color-base-300);
     }
 

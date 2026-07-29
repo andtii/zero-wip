@@ -1761,7 +1761,7 @@ export const toggle: RecipeInput = {
             selectors: {
                 // Hover on an on toggle must not fade toward the hover wash —
                 // equal specificity, later in source, so on wins.
-                '&[data-state="on"]:hover': { background: 'var(--color-base-300)' },
+                '&[data-state="on"]:hover:not([data-disabled])': { background: 'var(--color-base-300)' },
                 '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
             },
         },
@@ -1817,7 +1817,7 @@ export const toggleGroup: RecipeInput = {
                 ...focusRing,
             },
             selectors: {
-                '&[data-state="on"]:hover': { background: 'var(--color-base-300)' },
+                '&[data-state="on"]:hover:not([data-disabled])': { background: 'var(--color-base-300)' },
                 '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
                 // The hairline separators between adjacent items.
                 '&[data-orientation="horizontal"] + &': {
@@ -2058,7 +2058,7 @@ export const treeView: RecipeInput = {
             },
             selectors: {
                 // Hover on a selected row must not fade toward the hover wash.
-                '&[data-selected]:hover': { background: 'var(--color-base-300)' },
+                '&[data-selected]:hover:not([data-disabled])': { background: 'var(--color-base-300)' },
                 '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
             },
         },
@@ -2090,7 +2090,7 @@ export const treeView: RecipeInput = {
                 ...focusRing,
             },
             selectors: {
-                '&[data-selected]:hover': { background: 'var(--color-base-300)' },
+                '&[data-selected]:hover:not([data-disabled])': { background: 'var(--color-base-300)' },
                 '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
             },
         },

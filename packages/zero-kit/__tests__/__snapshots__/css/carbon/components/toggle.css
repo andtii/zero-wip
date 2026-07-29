@@ -38,7 +38,7 @@
         outline-offset: -2px;
     }
 
-    [data-scope="toggle"][data-part="root"][data-state="on"]:hover {
+    [data-scope="toggle"][data-part="root"][data-state="on"]:hover:not([data-disabled]) {
         background: var(--color-base-300);
     }
 
