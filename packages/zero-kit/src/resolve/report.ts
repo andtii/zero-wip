@@ -72,7 +72,12 @@ export interface CoverageSplit {
 }
 
 export interface PartReport {
-    /** Whether the recipe has a block for this part at all. */
+    /**
+     * Whether the recipe styles this part anywhere — `parts.<name>`, a variant
+     * or compound block, or a modifier. A part reached only through a variant
+     * is styled, so this agrees with the coverage buckets below rather than
+     * with the shape of the authoring input.
+     */
     styled: boolean;
     /** Coverage of `ManifestPart.states` — the closed `data-state` vocabulary. */
     states: CoverageSplit;
@@ -292,7 +297,11 @@ function partReport(
     const scan = byPart.get(part.name);
     const skipped = new Set(recipe.skipStates?.[part.name] ?? []);
     return {
-        styled: Boolean(recipe.parts[part.name]),
+        // Anywhere, not just `parts.<name>`: a part styled only inside a
+        // variant block is styled, and reporting it as unstyled would
+        // contradict the coverage buckets right beside it, which count exactly
+        // that as `coveredIndirectly`.
+        styled: scan !== undefined,
         states: splitCoverage(part.states ?? [], part.selectors, scan, skipped),
         flags: splitCoverage(part.flags ?? [], part.selectors, scan, skipped),
     };

@@ -192,7 +192,7 @@
             "required": ["styled", "states", "flags"],
             "properties": {
                 "styled": {
-                    "description": "Whether the recipe has a block for this part at all.",
+                    "description": "Whether the recipe styles this part anywhere — `parts.<name>`, a variant or compound block, or a modifier. A part reached only through a variant is styled, so this agrees with the coverage buckets rather than with the shape of the authoring input.",
                     "type": "boolean"
                 },
                 "states": {

@@ -295,6 +295,25 @@ describe('state and flag coverage', () => {
         expect(styled(material, 'radio-group').parts['item']!.flags.skipped).toEqual(['focus-visible']);
     });
 
+    it('counts a part styled only inside a variant as styled', () => {
+        // No shipped design system does this today, so the rule is latent —
+        // but `styled: false` beside a non-empty `coveredIndirectly` would be
+        // the report contradicting itself.
+        const ds: DesignSystemInput = {
+            ...(basicDS as DesignSystemInput),
+            recipes: [{
+                component: 'tabs',
+                parts: { root: { states: { active: { color: 'red' } } } },
+                variants: { color: { primary: { panel: { base: { background: 'red' } } } } },
+            }],
+        };
+        const parts = styled(reportFor(ds), 'tabs').parts;
+        expect(parts['panel']!.styled).toBe(true);
+        expect(parts['root']!.styled).toBe(true);
+        // A part named nowhere in the recipe stays unstyled.
+        expect(parts['list']!.styled).toBe(false);
+    });
+
     it('reports every manifest part, styled or not', () => {
         const basic = reportFor(basicDS as DesignSystemInput);
         const select = manifest.components.find((c) => c.scope === 'select')!;
