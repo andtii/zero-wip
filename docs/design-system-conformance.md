@@ -72,5 +72,5 @@ api-derived grades where a system declares one.
 | brutalist | `variant` | enumeration | solid, outline, soft, ghost | `variant` | exact | `packages/zero-brutalist` |
 | heroui | `size` | enumeration | sm, md, lg | `size` | exact | `packages/zero-heroui` |
 | heroui | `variant` | enumeration | primary, secondary, tertiary, outline, ghost, danger, danger-soft | `variant` | exact | `packages/zero-heroui` |
-| heroui | `icon-only` | presence-flag | boolean | `mods.icon-only` | exact | `packages/zero-heroui` |
-| heroui | `pending` | presence-flag | boolean | `mods.pending` | exact | `packages/zero-heroui` |
+| heroui | `isIconOnly` | presence-flag | boolean | `mods.icon-only` | reshaped | `packages/zero-heroui` |
+| heroui | `isPending` | presence-flag | boolean | `mods.pending` | reshaped | `packages/zero-heroui` |
