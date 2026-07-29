@@ -35,6 +35,25 @@ const label: CssProps = {
     color: 'var(--color-base-content)',
 };
 
+/** The ghost dismiss button dialog, popover and toast share — one behaviour. */
+const ghostClose: PartStyles = {
+    base: {
+        appearance: 'none',
+        border: 'none',
+        background: 'transparent',
+        color: 'var(--hero-muted)',
+        borderRadius: 'var(--radius-selector)',
+        padding: 'var(--space-2xs)',
+        cursor: 'pointer',
+        transition: motion('background, color'),
+    },
+    states: {
+        hover: { color: 'var(--color-base-content)', background: 'var(--color-base-200)' },
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+};
+
 /**
  * Enter/exit for a top-layer popup — the same platform mechanism every design
  * system in this repo uses: transition `display`/`overlay` with
@@ -167,7 +186,7 @@ export const tabs: RecipeInput = {
                 fontWeight: 'var(--weight-medium)',
                 color: 'var(--hero-muted)',
                 cursor: 'pointer',
-                transition: motion('background, color'),
+                transition: motion('background, color, transform'),
             },
             states: {
                 // v3's segmented look: the active tab is a raised pill.
@@ -180,6 +199,10 @@ export const tabs: RecipeInput = {
                 hover: { color: 'var(--color-base-content)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
+            },
+            // v3 presses inward rather than darkening further.
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' },
             },
         },
         panel: {
@@ -315,7 +338,7 @@ export const dialog: RecipeInput = {
         }),
         backdrop: {
             base: {
-                background: 'oklch(0% 0 0 / 0.45)',
+                background: 'var(--hero-scrim)',
                 backdropFilter: 'blur(2px)',
                 transition: 'opacity var(--duration-fast) var(--ease-standard), '
                     + 'display var(--duration-fast) allow-discrete, '
@@ -347,22 +370,7 @@ export const dialog: RecipeInput = {
         footer: {
             base: { display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)', marginBlockStart: 'var(--space-xl)' },
         },
-        close: {
-            base: {
-                appearance: 'none',
-                border: 'none',
-                background: 'transparent',
-                color: 'var(--hero-muted)',
-                borderRadius: 'var(--radius-selector)',
-                padding: 'var(--space-2xs)',
-                cursor: 'pointer',
-            },
-            states: {
-                hover: { color: 'var(--color-base-content)', background: 'var(--color-base-200)' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
-            },
-        },
+        close: ghostClose,
     },
 };
 
@@ -398,23 +406,7 @@ export const popover: RecipeInput = {
                 color: 'var(--color-base-content)',
             },
         },
-        close: {
-            base: {
-                appearance: 'none',
-                border: 'none',
-                background: 'transparent',
-                color: 'var(--hero-muted)',
-                borderRadius: 'var(--radius-selector)',
-                padding: 'var(--space-2xs)',
-                cursor: 'pointer',
-                transition: motion('background, color'),
-            },
-            states: {
-                hover: { color: 'var(--color-base-content)', background: 'var(--color-base-200)' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
-            },
-        },
+        close: ghostClose,
     },
 };
 
@@ -599,7 +591,7 @@ export const checkbox: RecipeInput = {
                 border: 'var(--border) solid var(--hero-line)',
                 borderRadius: 'var(--radius-selector)',
                 background: 'var(--color-base-100)',
-                transition: motion('background, border-color'),
+                transition: motion('background, border-color, transform'),
             },
             states: {
                 checked: { background: 'var(--hero-primary)', borderColor: 'var(--hero-primary)' },
@@ -608,6 +600,10 @@ export const checkbox: RecipeInput = {
                 invalid: { borderColor: 'var(--hero-danger)' },
                 disabled: {},
                 ...focusRing,
+            },
+            // v3 presses inward — the radio item-control's language.
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' },
             },
         },
         indicator: {
@@ -934,7 +930,7 @@ export const select: RecipeInput = {
                 fontFamily: 'var(--font-sans)',
                 fontSize: 'var(--select-text)',
                 cursor: 'pointer',
-                transition: motion('border-color'),
+                transition: motion('border-color, background'),
             },
             states: {
                 open: { borderColor: 'var(--hero-primary)' },
@@ -944,6 +940,10 @@ export const select: RecipeInput = {
                 placeholder: { color: 'var(--hero-muted)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
+            },
+            // A tint, not a scale — a full-width field would visibly shear.
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-200)' },
             },
         },
         value: {
@@ -982,6 +982,10 @@ export const select: RecipeInput = {
                 highlighted: { background: 'var(--color-base-200)' },
                 selected: { color: 'var(--hero-primary)', fontWeight: 'var(--weight-medium)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            // The menu-item press — the same row language, one popup over.
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
             },
         },
         'item-indicator': {
@@ -1147,25 +1151,48 @@ export const avatar: RecipeInput = {
 };
 
 // ── Toast ─────────────────────────────────────────────────────────────────
+/**
+ * Toast presence is runtime-managed — the one popup-shaped component where
+ * `@starting-style`/`allow-discrete` must NOT be used: zero mounts the root
+ * `closed`, flips it `open` a frame later, and keeps it mounted after
+ * dismissal until the longest transition here finishes. Both directions are
+ * the ordinary two-state transition. The viewport IS the top-layer popover
+ * (`popover="manual"`), so its recipe neutralizes the UA popover box —
+ * `inset`, border, Canvas fill — and lets `data-placement` position it.
+ */
 export const toast: RecipeInput = {
     component: 'toast',
     parts: {
         viewport: {
             base: {
                 position: 'fixed',
-                insetBlockEnd: 'var(--space-xl)',
-                insetInlineEnd: 'var(--space-xl)',
-                display: 'flex',
+                inset: 'auto',
+                margin: '0',
+                padding: 'var(--space-xl)',
+                border: 'none',
+                background: 'transparent',
+                overflow: 'visible',
+                width: 'min(24rem, 100vw)',
+                listStyle: 'none',
                 flexDirection: 'column',
                 gap: 'var(--space-sm)',
-                margin: '0',
-                padding: '0',
-                listStyle: 'none',
-                zIndex: '9999',
+                pointerEvents: 'none',
+            },
+            selectors: {
+                // The UA hides closed popovers by unsetting display — an
+                // unconditional `display: flex` would defeat that.
+                '&:popover-open': { display: 'flex' },
+                '&[data-placement="top-start"]': { top: '0', left: '0' },
+                '&[data-placement="top"]': { top: '0', left: '50%', transform: 'translateX(-50%)' },
+                '&[data-placement="top-end"]': { top: '0', right: '0' },
+                '&[data-placement="bottom-start"]': { bottom: '0', left: '0', flexDirection: 'column-reverse' },
+                '&[data-placement="bottom"]': { bottom: '0', left: '50%', transform: 'translateX(-50%)', flexDirection: 'column-reverse' },
+                '&[data-placement="bottom-end"]': { bottom: '0', right: '0', flexDirection: 'column-reverse' },
             },
         },
-        root: withPresence(popupPresence('translateX(8px)'), {
+        root: {
             base: {
+                pointerEvents: 'auto',
                 display: 'flex',
                 alignItems: 'flex-start',
                 gap: 'var(--space-md)',
@@ -1175,8 +1202,18 @@ export const toast: RecipeInput = {
                 borderRadius: 'var(--radius-box)',
                 background: 'var(--color-base-100)',
                 boxShadow: 'var(--shadow-lg)',
+                opacity: '0',
+                transform: 'translateX(8px)',
+                transition: motion('opacity, transform'),
             },
-        }),
+            states: {
+                open: { opacity: '1', transform: 'none' },
+                closed: {},
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+            },
+        },
         title: {
             base: {
                 fontFamily: 'var(--font-sans)',
@@ -1207,20 +1244,8 @@ export const toast: RecipeInput = {
             },
         },
         close: {
-            base: {
-                appearance: 'none',
-                border: 'none',
-                background: 'transparent',
-                color: 'var(--hero-muted)',
-                cursor: 'pointer',
-                borderRadius: 'var(--radius-selector)',
-                marginInlineStart: 'auto',
-            },
-            states: {
-                hover: { color: 'var(--color-base-content)' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
-            },
+            ...ghostClose,
+            base: { ...ghostClose.base, marginInlineStart: 'auto' },
         },
     },
 };
@@ -1285,7 +1310,7 @@ export const combobox: RecipeInput = {
                 color: 'var(--hero-muted)',
                 padding: '0 var(--space-md)',
                 cursor: 'pointer',
-                transition: motion('rotate'),
+                transition: motion('rotate, transform'),
             },
             states: {
                 open: { rotate: '180deg' },
@@ -1324,6 +1349,10 @@ export const combobox: RecipeInput = {
                 highlighted: { background: 'var(--color-base-200)' },
                 selected: { color: 'var(--hero-primary)', fontWeight: 'var(--weight-medium)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+            // The menu-item press — the same row language, one popup over.
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
             },
         },
         'item-indicator': {
@@ -1529,9 +1558,10 @@ export const ratingGroup: RecipeInput = {
                 highlighted: { transform: 'scale(1.1)' },
                 disabled: { cursor: 'not-allowed' },
                 readonly: { cursor: 'default' },
-                // The group ring lives on control; per-item focus still gets
-                // a marker for the value-following tab stop.
-                ...focusRing,
+                // The group ring lives on control and the focused item flags
+                // simultaneously — an inward ring keeps the pair from reading
+                // as two identical concentric rings.
+                'focus-visible': { outline: '2px solid var(--hero-focus)', outlineOffset: '-2px' },
             },
             at: {
                 'reduced-motion': {
@@ -1718,7 +1748,7 @@ export const toggleGroup: RecipeInput = {
                 border: 'none',
                 background: 'transparent',
                 padding: 'var(--space-xs) var(--space-md)',
-                borderRadius: '9999px',
+                borderRadius: 'var(--radius-field)',
                 fontFamily: 'var(--font-sans)',
                 fontSize: 'var(--toggle-group-text)',
                 fontWeight: 'var(--weight-medium)',

@@ -1,21 +1,60 @@
 @layer zero.recipes {
     [data-scope="toast"][data-part="viewport"] {
         position: fixed;
-        inset-block-end: var(--space-xl);
-        inset-inline-end: var(--space-xl);
-        display: flex;
+        inset: auto;
+        margin: 0;
+        padding: var(--space-xl);
+        border: none;
+        background: transparent;
+        overflow: visible;
+        width: min(24rem, 100vw);
+        list-style: none;
         flex-direction: column;
         gap: var(--space-sm);
-        margin: 0;
-        padding: 0;
-        list-style: none;
-        z-index: 9999;
+        pointer-events: none;
+    }
+
+    [data-scope="toast"][data-part="viewport"]:popover-open {
+        display: flex;
+    }
+
+    [data-scope="toast"][data-part="viewport"][data-placement="top-start"] {
+        top: 0;
+        left: 0;
+    }
+
+    [data-scope="toast"][data-part="viewport"][data-placement="top"] {
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    [data-scope="toast"][data-part="viewport"][data-placement="top-end"] {
+        top: 0;
+        right: 0;
+    }
+
+    [data-scope="toast"][data-part="viewport"][data-placement="bottom-start"] {
+        bottom: 0;
+        left: 0;
+        flex-direction: column-reverse;
+    }
+
+    [data-scope="toast"][data-part="viewport"][data-placement="bottom"] {
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        flex-direction: column-reverse;
+    }
+
+    [data-scope="toast"][data-part="viewport"][data-placement="bottom-end"] {
+        bottom: 0;
+        right: 0;
+        flex-direction: column-reverse;
     }
 
     [data-scope="toast"][data-part="root"] {
-        opacity: 0;
-        transform: translateX(8px);
-        transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard), display var(--duration-fast) allow-discrete, overlay var(--duration-fast) allow-discrete;
+        pointer-events: auto;
         display: flex;
         align-items: flex-start;
         gap: var(--space-md);
@@ -25,6 +64,9 @@
         border-radius: var(--radius-box);
         background: var(--color-base-100);
         box-shadow: var(--shadow-lg);
+        opacity: 0;
+        transform: translateX(8px);
+        transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="toast"][data-part="root"][data-state="open"] {
@@ -76,13 +118,16 @@
         border: none;
         background: transparent;
         color: var(--hero-muted);
-        cursor: pointer;
         border-radius: var(--radius-selector);
+        padding: var(--space-2xs);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
         margin-inline-start: auto;
     }
 
     [data-scope="toast"][data-part="close"]:hover:not([data-disabled]) {
         color: var(--color-base-content);
+        background: var(--color-base-200);
     }
 
     [data-scope="toast"][data-part="close"][data-disabled] {
@@ -102,13 +147,6 @@
 
         [data-scope="toast"][data-part="root"][data-state="open"] {
             transform: none;
-        }
-    }
-
-    @starting-style {
-        [data-scope="toast"][data-part="root"][data-state="open"] {
-            opacity: 0;
-            transform: translateX(8px);
         }
     }
 }

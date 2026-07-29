@@ -7,6 +7,7 @@
 @property --hero-muted { syntax: '<color>'; inherits: true; initial-value: oklch(45% 0.008 286); }
 @property --hero-line { syntax: '<color>'; inherits: true; initial-value: oklch(89% 0.005 286); }
 @property --hero-focus { syntax: '<color>'; inherits: true; initial-value: oklch(54.6% 0.192 259); }
+@property --hero-scrim { syntax: '<color>'; inherits: true; initial-value: oklch(0% 0 0 / 0.45); }
 
 @layer zero.tokens {
     :where(:root) {
@@ -70,6 +71,7 @@
         --hero-muted: oklch(45% 0.008 286);
         --hero-line: oklch(89% 0.005 286);
         --hero-focus: oklch(54.6% 0.192 259);
+        --hero-scrim: oklch(0% 0 0 / 0.45);
         --text-fixed-xs: var(--text-xs);
         --text-fixed-sm: var(--text-sm);
         --text-fixed-md: var(--text-md);
@@ -95,6 +97,7 @@
             --hero-muted: oklch(72% 0.008 286);
             --hero-line: oklch(34% 0.008 286);
             --hero-focus: oklch(70.5% 0.155 259);
+            --hero-scrim: oklch(0% 0 0 / 0.65);
         }
     }
 
@@ -118,6 +121,7 @@
         --hero-muted: oklch(45% 0.008 286);
         --hero-line: oklch(89% 0.005 286);
         --hero-focus: oklch(54.6% 0.192 259);
+        --hero-scrim: oklch(0% 0 0 / 0.45);
     }
 
     [data-theme="hero-dark"] {
@@ -140,6 +144,7 @@
         --hero-muted: oklch(72% 0.008 286);
         --hero-line: oklch(34% 0.008 286);
         --hero-focus: oklch(70.5% 0.155 259);
+        --hero-scrim: oklch(0% 0 0 / 0.65);
     }
 
     @media (prefers-reduced-motion: reduce) {

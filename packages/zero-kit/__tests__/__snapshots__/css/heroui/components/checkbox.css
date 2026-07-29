@@ -24,7 +24,7 @@
         border: var(--border) solid var(--hero-line);
         border-radius: var(--radius-selector);
         background: var(--color-base-100);
-        transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="checkbox"][data-part="control"][data-state="checked"] {
@@ -44,6 +44,10 @@
     [data-scope="checkbox"][data-part="control"][data-focus-visible] {
         outline: 2px solid var(--hero-focus);
         outline-offset: 2px;
+    }
+
+    [data-scope="checkbox"][data-part="control"][data-pressed]:not([data-disabled]) {
+        transform: scale(0.97);
     }
 
     [data-scope="checkbox"][data-part="indicator"] {

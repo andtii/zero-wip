@@ -67,7 +67,7 @@
         color: var(--hero-muted);
         padding: 0 var(--space-md);
         cursor: pointer;
-        transition: rotate var(--duration-fast) var(--ease-standard);
+        transition: rotate var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="combobox"][data-part="trigger"][data-state="open"] {
@@ -125,6 +125,10 @@
     [data-scope="combobox"][data-part="item"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;
+    }
+
+    [data-scope="combobox"][data-part="item"][data-pressed]:not([data-disabled]) {
+        background: var(--color-base-300);
     }
 
     [data-scope="combobox"][data-part="item-indicator"] {

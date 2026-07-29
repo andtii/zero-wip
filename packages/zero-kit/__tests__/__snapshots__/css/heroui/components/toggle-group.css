@@ -25,7 +25,7 @@
         border: none;
         background: transparent;
         padding: var(--space-xs) var(--space-md);
-        border-radius: 9999px;
+        border-radius: var(--radius-field);
         font-family: var(--font-sans);
         font-size: var(--toggle-group-text);
         font-weight: var(--weight-medium);
