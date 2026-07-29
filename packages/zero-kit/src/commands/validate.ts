@@ -21,7 +21,17 @@ export interface ValidateOptions {
     reportJson?: string;
 }
 
-/** The report, or `undefined` when the design system does not compile. */
+/**
+ * The report, or `undefined` when the design system does not compile.
+ *
+ * The catch is narrow on purpose. A design system that fails to compile has
+ * already been reported — `validateDesignSystem` compiles inside its own
+ * try/catch and records the throw as an error on `recipes` — so swallowing it
+ * here is what keeps `--report` failing the same way plain `zero:validate`
+ * does. But if validation PASSED, nothing in this path is allowed to throw,
+ * and a swallow would leave `--report-json -` exiting 0 with empty stdout over
+ * a bug in report generation. That one rethrows.
+ */
 function tryBuildReport(
     ds: DesignSystemInput,
     manifest: ZeroManifest,
@@ -29,7 +39,8 @@ function tryBuildReport(
 ): DesignSystemReport | undefined {
     try {
         return buildReport(compileDesignSystem(ds, manifest), ds, manifest, result);
-    } catch {
+    } catch (err) {
+        if (result.ok) throw err;
         return undefined;
     }
 }
@@ -51,14 +62,8 @@ export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promi
     if (opts.report || opts.reportJson) {
         // `validateDesignSystem` compiles too, but discards the result behind
         // its own try/catch. Compiling again keeps that seam untouched and costs
-        // nothing measurable.
-        //
-        // Caught for the same reason the validator catches it: a design system
-        // that cannot compile is already an error in `result`, reported through
-        // `loadInputs`. Letting the throw escape here would make
-        // `--report` fail differently from plain `zero:validate` on the same
-        // input — a raw compiler stack instead of the FAILED validation
-        // message — for the one input where the report has nothing to say.
+        // nothing measurable. `undefined` here means only one thing — the design
+        // system does not compile, which `result` already says.
         const report = tryBuildReport(ds, manifest, result);
         if (report) {
             if (opts.report && !stdoutIsJson) for (const line of formatReport(report)) env.logger.log(line);
