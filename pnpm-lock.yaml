@@ -163,6 +163,24 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  packages/zero-carbon:
+    devDependencies:
+      '@sigx/runtime-dom':
+        specifier: 'catalog:'
+        version: 0.13.0
+      '@sigx/zero':
+        specifier: workspace:^
+        version: link:../zero
+      '@sigx/zero-kit':
+        specifier: workspace:^
+        version: link:../zero-kit
+      sigx:
+        specifier: 'catalog:'
+        version: 0.13.0
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   packages/zero-daisyui:
     devDependencies:
       '@sigx/zero':

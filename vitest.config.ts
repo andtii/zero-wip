@@ -21,7 +21,8 @@ export default defineConfig({
             '@sigx/zero-daisyui': new URL('./packages/zero-daisyui/src/index.ts', import.meta.url).pathname,
             '@sigx/zero-material': new URL('./packages/zero-material/src/index.ts', import.meta.url).pathname,
             '@sigx/zero-brutalist': new URL('./packages/zero-brutalist/src/index.ts', import.meta.url).pathname,
-            '@sigx/zero-heroui': new URL('./packages/zero-heroui/src/index.ts', import.meta.url).pathname
+            '@sigx/zero-heroui': new URL('./packages/zero-heroui/src/index.ts', import.meta.url).pathname,
+            '@sigx/zero-carbon': new URL('./packages/zero-carbon/src/index.ts', import.meta.url).pathname
         }
     },
     test: {
