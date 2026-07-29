@@ -9,9 +9,8 @@
  * what Tier-3 rows of the conformance matrix will be generated on top of.
  *
  * The rest asserts the report against the five shipped design systems, each of
- * which stresses a different corner: heroui has no colour axis and only eight
- * recipes, material declares thirteen roles and wires nine, and daisyUI ships
- * five themes.
+ * which stresses a different corner: heroui has no colour axis, material
+ * declares thirteen roles and wires nine, and daisyUI ships five themes.
  */
 import { describe, it, expect } from 'vitest';
 import {
@@ -143,12 +142,22 @@ describe('axis status', () => {
 
 describe('component coverage', () => {
     it('counts styled components against the anatomy manifest', () => {
+        // No shipped system has an unstyled component any more, so the
+        // negative path probes heroui's tokens with a button-only recipe set.
+        const probe: DesignSystemInput = {
+            ...(herouiDS as DesignSystemInput),
+            recipes: (herouiDS as DesignSystemInput).recipes.filter((r) => r.component === 'button'),
+        };
+        const report = reportFor(probe);
+        expect(report.coverage.componentsTotal).toBe(manifest.components.length);
+        expect(report.coverage.componentsStyled).toBe(1);
+        expect(report.coverage.unstyled).toHaveLength(manifest.components.length - 1);
+        expect(report.coverage.unstyled).toContain('accordion');
+        expect(report.components['accordion']).toEqual({ styled: false, parts: {} });
+
         const heroui = reportFor(herouiDS as DesignSystemInput);
-        expect(heroui.coverage.componentsTotal).toBe(manifest.components.length);
-        expect(heroui.coverage.componentsStyled).toBe(8);
-        expect(heroui.coverage.unstyled).toHaveLength(manifest.components.length - 8);
-        expect(heroui.coverage.unstyled).toContain('accordion');
-        expect(heroui.components['accordion']).toEqual({ styled: false, parts: {} });
+        expect(heroui.coverage.componentsStyled).toBe(manifest.components.length);
+        expect(heroui.coverage.unstyled).toEqual([]);
     });
 
     it('reports the four full skins as complete', () => {
@@ -427,8 +436,8 @@ describe('formatReport', () => {
     it('names the design system, the coverage and every theme', () => {
         const lines = formatReport(reportFor(herouiDS as DesignSystemInput));
         expect(lines[0]).toBe('heroui — coverage report');
-        expect(lines.join('\n')).toContain('components styled: 8/23 (35%)');
-        expect(lines.join('\n')).toContain('color wired: 0/8 (0%) — no such axis');
+        expect(lines.join('\n')).toContain('components styled: 23/23 (100%)');
+        expect(lines.join('\n')).toContain('color wired: 0/23 (0%) — no such axis');
         expect(lines.join('\n')).toContain('theme hero-light: min contrast');
     });
 
@@ -437,7 +446,7 @@ describe('formatReport', () => {
         // `variant` exists and only `button` wires it. Same zero, different
         // advice.
         expect(formatReport(reportFor(herouiDS as DesignSystemInput)).join('\n'))
-            .toContain('color wired: 0/8 (0%) — no such axis');
+            .toContain('color wired: 0/23 (0%) — no such axis');
         expect(formatReport(reportFor(basicDS as DesignSystemInput)).join('\n'))
             .toContain('variant wired: 1/23 (4%)');
     });

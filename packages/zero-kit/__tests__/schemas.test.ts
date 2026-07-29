@@ -147,7 +147,7 @@ describe('manifest.schema.json', () => {
  * `buildReport` the build calls, so the schema is checked against real output
  * rather than a hand-written sample. heroui is included even though the other
  * three suites skip it: it is the only design system that exercises
- * `declaredOut`, `mods` divergence and an unstyled-component entry.
+ * `declaredOut` and `mods` divergence.
  */
 describe('report.schema.json', () => {
     const reportManifest = { components: manifest.components as ManifestComponent[] };
@@ -177,9 +177,14 @@ describe('report.schema.json', () => {
     });
 
     it('rejects an unstyled component that carries axes anyway', () => {
-        // heroui specifically: it is the only shipped system with an unstyled
-        // component to corrupt.
-        const bad = asJson(reportNamed('heroui')) as { components: Record<string, unknown> };
+        // No shipped system has an unstyled component any more — probe with
+        // heroui's tokens and a button-only recipe set to get one to corrupt.
+        const probe: DesignSystemInput = {
+            ...(herouiDS as DesignSystemInput),
+            recipes: (herouiDS as DesignSystemInput).recipes.filter((r) => r.component === 'button'),
+        };
+        const report = buildReport(compileDesignSystem(probe, reportManifest), probe, reportManifest);
+        const bad = asJson(report) as { components: Record<string, unknown> };
         expect(bad.components['accordion']).toEqual({ styled: false, parts: {} });
         bad.components['accordion'] = { styled: false, parts: {}, mods: [] };
         expect(validateReport(bad)).toBe(false);
