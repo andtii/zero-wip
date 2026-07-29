@@ -30,6 +30,8 @@ import { contrastPairs } from '../contract.js';
 import type { CompiledDesignSystem, DesignSystemInput } from '../design-system.js';
 import { undeclaredAxes } from '../design-system.js';
 import type { PartStyles, RecipeInput } from '../recipes.js';
+import type { DesignSystemApi, MappedGrade } from '../api.js';
+import { apiGrade, modifierGrade } from '../api.js';
 import type { ValidationResult } from './validate.js';
 
 /** The contract axes, in the order the register artifact emits them. */
@@ -142,6 +144,24 @@ export interface ThemeContrastReport {
     pairs: Array<{ bg: string; fg: string; ratio: number }>;
 }
 
+/**
+ * One surface of the vendor-named component API (issue #179): the prop the
+ * `./components` module exposes, where it routes, and the RFC 0003 §7.3
+ * fidelity grade — derived from the same declaration the emitter consumes, so
+ * a conformance-matrix row generated from this report cannot claim a mapping
+ * the artifact doesn't implement.
+ */
+export interface ApiSurfaceReport {
+    /** The vendor prop consumers write (`kind`, `isIconOnly`). */
+    prop: string;
+    /** Where it routes: `variant`, `axes.<axis>` or `mods.<modifier>`. */
+    zero: string;
+    /** Never `unsupported` — an unmapped surface has no row (see `MappedGrade`). */
+    grade: MappedGrade;
+    /** Vendor spellings that differ from the zero value they map to. Sorted. */
+    respelled: string[];
+}
+
 export interface DesignSystemReport {
     $schema: string;
     reportVersion: 1;
@@ -178,6 +198,11 @@ export interface DesignSystemReport {
     /** Axis name → its per-component partition. `mods` is included as an axis. */
     divergence: Record<string, AxisDivergence>;
     themes: ThemeContrastReport[];
+    /**
+     * The vendor-named component API surfaces, sorted by prop — present only
+     * when the design system declares an `api`.
+     */
+    api?: ApiSurfaceReport[];
     issues?: { errors: number; warnings: number };
 }
 
@@ -418,6 +443,37 @@ function unwired(compiled: CompiledDesignSystem): DesignSystemReport['unwired'] 
  * `result` is optional and only fills the issue counts — the report is about
  * coverage, and stands on its own without a validation pass.
  */
+/**
+ * The declaration flattened to one row per vendor prop — the shape a
+ * conformance-matrix row needs (their name, the zero mapping, the grade),
+ * derived rather than asserted.
+ */
+function apiSurfaces(api: DesignSystemApi): ApiSurfaceReport[] {
+    const respelled = (values?: Record<string, string>): string[] =>
+        sorted(Object.entries(values ?? {}).flatMap(([zero, vendor]) => (vendor === zero ? [] : [vendor])));
+    const surfaces: ApiSurfaceReport[] = [];
+    if (api.variant) {
+        surfaces.push({
+            prop: api.variant.as ?? 'variant',
+            zero: 'variant',
+            grade: apiGrade(api.variant),
+            respelled: respelled(api.variant.values),
+        });
+    }
+    for (const [axis, entry] of Object.entries(api.axes ?? {})) {
+        surfaces.push({
+            prop: entry.as ?? axis,
+            zero: `axes.${axis}`,
+            grade: apiGrade(entry),
+            respelled: respelled(entry.values),
+        });
+    }
+    for (const [name, entry] of Object.entries(api.modifiers ?? {})) {
+        surfaces.push({ prop: entry.as ?? name, zero: `mods.${name}`, grade: modifierGrade(entry), respelled: [] });
+    }
+    return surfaces.sort((a, b) => a.prop.localeCompare(b.prop));
+}
+
 export function buildReport(
     compiled: CompiledDesignSystem,
     ds: DesignSystemInput,
@@ -496,6 +552,7 @@ export function buildReport(
         components,
         divergence: divergence(compiled),
         themes: themeReports(ds, compiled),
+        ...(ds.api ? { api: apiSurfaces(ds.api) } : {}),
         ...(result ? { issues: { errors: result.errors.length, warnings: result.warnings.length } } : {}),
     };
 }
@@ -568,6 +625,12 @@ export function formatReport(report: DesignSystemReport): string[] {
         `  states+flags covered: ${ratio(covered + indirect, total)}`
         + ` (${indirect} conditionally, ${skippedTotal} skipped deliberately)`,
     );
+
+    if (report.api && report.api.length > 0) {
+        lines.push(`  api: ${report.api
+            .map((s) => `${s.prop} ← ${s.zero} (${s.grade}${s.respelled.length > 0 ? `, ${s.respelled.length} respelled` : ''})`)
+            .join(', ')}`);
+    }
 
     for (const theme of report.themes) {
         const margin = theme.minContrast === null ? 'not measurable' : `${theme.minContrast.toFixed(2)}:1`;

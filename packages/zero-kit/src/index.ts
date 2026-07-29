@@ -44,6 +44,17 @@ export type {
     CompiledTheme,
     CompiledComponentAxes,
 } from './design-system.js';
+export type {
+    ApiVocabulary,
+    AxisApi,
+    AxisApiFor,
+    ConformanceGrade,
+    DesignSystemApi,
+    DesignSystemApiFor,
+    MappedGrade,
+    ModifierApi,
+} from './api.js';
+export { API_PROP_PATTERN, apiGrade, defineApi, modifierGrade, validateApi } from './api.js';
 export { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
 export { defineDesignSystem, compileDesignSystem, undeclaredAxes } from './design-system.js';
 
@@ -51,6 +62,7 @@ export type { ValidationIssue, ValidationResult } from './resolve/validate.js';
 export { validateDesignSystem } from './resolve/validate.js';
 
 export type {
+    ApiSurfaceReport,
     AxisDivergence,
     AxisReport,
     AxisStatus,

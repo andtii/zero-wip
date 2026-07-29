@@ -83,6 +83,11 @@
             "type": "array",
             "items": { "$ref": "#/$defs/themeContrast" }
         },
+        "api": {
+            "description": "The vendor-named component API surfaces (issue #179), one row per vendor prop, sorted by prop — present only when the design system declares an `api`. Grades are derived from the declaration the ./components artifact is emitted from, so a conformance-matrix row generated from this section cannot claim a mapping the artifact doesn't implement.",
+            "type": "array",
+            "items": { "$ref": "#/$defs/apiSurface" }
+        },
         "issues": {
             "description": "Validation counts, present only when the report was built alongside a validation pass. The report is a coverage document and stands without one.",
             "type": "object",
@@ -95,6 +100,31 @@
         }
     },
     "$defs": {
+        "apiSurface": {
+            "description": "One surface of the vendor-named component API: the prop consumers write, where it routes on zero, and the RFC 0003 §7.3 fidelity grade.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["prop", "zero", "grade", "respelled"],
+            "properties": {
+                "prop": {
+                    "description": "The vendor prop name — a valid JSX attribute (dashes allowed, no whitespace).",
+                    "type": "string",
+                    "pattern": "^[a-zA-Z_$][a-zA-Z0-9_$-]*$"
+                },
+                "zero": {
+                    "description": "The zero surface the prop routes to: `variant`, `axes.<axis>` or `mods.<modifier>`.",
+                    "type": "string",
+                    "pattern": "^(variant|axes\\.[a-z0-9]+(-[a-z0-9]+)*|mods\\.[a-z0-9]+(-[a-z0-9]+)*)$"
+                },
+                "grade": { "enum": ["exact", "renamed", "reshaped"] },
+                "respelled": {
+                    "description": "Vendor spellings that differ from the zero value they map to, sorted. Non-empty implies grade `reshaped`.",
+                    "type": "array",
+                    "items": { "type": "string", "minLength": 1 },
+                    "uniqueItems": true
+                }
+            }
+        },
         "kebabToken": {
             "description": "A kebab-case identifier that may start with a digit — the grammar shared by scope, part, state, flag, axis and axis-value names.",
             "type": "string",

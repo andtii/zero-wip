@@ -149,6 +149,39 @@ grows with the design system rather than being a list to maintain.
 The `skills/design-system` folder ships an agent skill that generates a
 complete design system from a style brief and iterates against `validate`.
 
+## The vendor-named component API
+
+A design system may declare, beside `tokens` and `recipes`, how zero's axis
+surfaces appear under the vendor's own prop names (issue #179, RFC 0003 §2):
+
+```ts
+import { defineApi } from '@sigx/zero-kit';
+import { variants, modifiers } from './tokens.js';
+
+export const api = defineApi({ variants, modifiers }, {
+    variant: { as: 'kind', values: { 'danger-tertiary': 'danger--tertiary' } },
+    modifiers: { 'icon-only': { as: 'hasIconOnly' } },
+});
+```
+
+`as` renames a surface (Carbon's `kind`, Ant's `type`); `values` respells
+individual members whose vendor spelling the attribute grammar cannot hold —
+the rendered attribute keeps the zero spelling, only the prop surface
+respells. Zero's own components are untouched: `variant` stays `variant`
+everywhere, and the declaration only shapes the design system's *additional*
+`./components` module. The declaration is validated against the declared
+vocabulary (`validateApi`, run inside `validateDesignSystem`), and the
+conformance grade — `exact | renamed | reshaped | unsupported` — derives from
+it mechanically (`apiGrade` / `modifierGrade`), so a conformance-matrix row
+and the artifact it points at are the same object. The coverage report gains
+an `api` section listing every vendor prop, where it routes, and its grade.
+
+Currently the kit ships the declaration, its validation and the grades; the
+generated `./components` artifact (narrowed vendor-named types plus a
+data-only runtime over `@sigx/zero`'s generic `adapt()`) lands separately.
+`skills/design-system/conformance/` holds real vendor fixtures (Carbon, Ant,
+Radix Themes, HeroUI) that validate and grade in CI.
+
 ## CLI
 
 The kit is a plugin for the [`sigx` CLI](https://www.npmjs.com/package/@sigx/cli):

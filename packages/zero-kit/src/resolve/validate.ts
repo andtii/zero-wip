@@ -35,6 +35,7 @@ import {
     resolveRoles,
 } from '../contract.js';
 import type { RolesDecl } from '../tokens.js';
+import { validateApi } from '../api.js';
 import { BUILTIN_CONDITIONS } from '../recipes.js';
 import type { DesignSystemInput } from '../design-system.js';
 import { compileDesignSystem } from '../design-system.js';
@@ -443,6 +444,18 @@ export function validateDesignSystem<R extends RolesDecl>(
             error('tokens.axes', `"${axis}" is part of the anatomy contract — data-${axis} already means something, and zero refuses to set it from \`axes\``);
         }
         checkAxisValues(`tokens.axes.${axis}`, values);
+    }
+
+    // ── Component API (vendor-named props) ──
+    // Validated beside the vocabulary it maps: a mapping may only touch
+    // declared surfaces, and every vendor prop it mints must route one-to-one
+    // back onto zero's axes. The checks live in `validateApi` so a conformance
+    // fixture can run them against its own vocabulary without a full design
+    // system.
+    if (ds.api) {
+        for (const issue of validateApi(ds.api, ds.tokens)) {
+            (issue.level === 'error' ? errors : warnings).push(issue);
+        }
     }
 
     // ── Breakpoints ──

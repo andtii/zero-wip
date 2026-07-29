@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### Added
+
+- **The vendor-named component API declaration** (issue #179, RFC 0003 §2).
+  A design system may declare, beside `tokens` and `recipes`, how zero's axis
+  surfaces appear under the vendor's own prop names —
+  `api: defineApi({ variants, modifiers }, { variant: { as: 'kind' }, … })`.
+  This release ships the declaration only: `defineApi` (with an optional
+  vocabulary argument that narrows `values` keys and modifier names at the
+  declaration), `validateApi` wired into `validateDesignSystem`, and
+  `apiGrade`/`modifierGrade` deriving the RFC 0003 §7.3 conformance grade
+  (`exact | renamed | reshaped | unsupported`) mechanically from the
+  declaration. The coverage report gains an optional `api` section (one row
+  per vendor prop: where it routes, its grade, its respelled values), and
+  `skills/design-system/conformance/` holds four vendor fixtures (Carbon, Ant,
+  Radix Themes, HeroUI) that validate and grade in CI. The `./components`
+  artifact emitted from the declaration lands separately.
+
 ### Changed
 
 - **`sizes: []` is now legal and means "this design system has no size axis"**
