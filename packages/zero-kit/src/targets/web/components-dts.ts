@@ -114,8 +114,23 @@ function needsAdapt(api: CompiledComponentApi): boolean {
     return Object.entries(api.props).some(([prop, route]) => !isTrivial(prop, route));
 }
 
+/**
+ * The emitters only make sense for a design system that declared an `api` —
+ * `writeArtifacts` gates on the same field. Failing fast here turns a
+ * mis-wired direct call into a named error instead of a cryptic undefined
+ * read partway through emission.
+ */
+function componentApiOf(compiled: CompiledDesignSystem): Record<string, CompiledComponentApi> {
+    if (!compiled.componentApi) {
+        throw new Error(
+            `[zero-kit] design system "${compiled.name}" declares no \`api\` — there is no ./components artifact to emit`,
+        );
+    }
+    return compiled.componentApi;
+}
+
 export function compileComponentsDts(compiled: CompiledDesignSystem): string {
-    const componentApi = compiled.componentApi ?? {};
+    const componentApi = componentApiOf(compiled);
     const scopes = Object.keys(compiled.components);
 
     const imports = scopes.map((scope) => {
@@ -162,7 +177,7 @@ export function compileComponentsDts(compiled: CompiledDesignSystem): string {
 }
 
 export function compileComponentsJs(compiled: CompiledDesignSystem): string {
-    const componentApi = compiled.componentApi ?? {};
+    const componentApi = componentApiOf(compiled);
     const scopes = Object.keys(compiled.components);
     const adapted = scopes.filter((scope) => needsAdapt(componentApi[scope]!));
     const reexported = scopes.filter((scope) => !needsAdapt(componentApi[scope]!));

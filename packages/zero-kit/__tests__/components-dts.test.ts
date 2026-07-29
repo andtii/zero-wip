@@ -153,10 +153,13 @@ describe('the generated shapes', () => {
         expect(js).not.toContain("import { adapt }");
     });
 
-    it('a design system with no api emits no components artifact', () => {
+    it('a design system with no api emits no components artifact, and the emitters fail fast', () => {
         const ds = carbonProbe();
         delete ds.api;
-        expect(compileDesignSystem(ds, manifest).componentApi).toBeUndefined();
+        const noApi = compileDesignSystem(ds, manifest);
+        expect(noApi.componentApi).toBeUndefined();
+        expect(() => compileComponentsDts(noApi)).toThrow(/declares no `api`/);
+        expect(() => compileComponentsJs(noApi)).toThrow(/declares no `api`/);
     });
 
     it('compounds intersect AdaptedStatics; single-part components do not', () => {
