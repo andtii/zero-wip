@@ -48,13 +48,27 @@ export type {
     ApiVocabulary,
     AxisApi,
     AxisApiFor,
+    CompiledApiRoute,
+    CompiledComponentApi,
     ConformanceGrade,
     DesignSystemApi,
     DesignSystemApiFor,
     MappedGrade,
     ModifierApi,
 } from './api.js';
-export { API_PROP_PATTERN, apiGrade, defineApi, modifierGrade, validateApi } from './api.js';
+export {
+    API_PROP_PATTERN,
+    apiGrade,
+    defineApi,
+    deriveComponentApi,
+    modifierGrade,
+    validateApi,
+} from './api.js';
+export {
+    compileComponentsDts,
+    compileComponentsJs,
+    componentExportName,
+} from './targets/web/components-dts.js';
 export { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
 export { defineDesignSystem, compileDesignSystem, undeclaredAxes } from './design-system.js';
 
@@ -109,6 +123,7 @@ export {
     ROLE_NAME_PATTERN,
     RESERVED_ROLE_NAMES,
     tokenProperty,
+    carrierPart,
     defaultSwatch,
     resolveRoles,
     systemNodeAt,

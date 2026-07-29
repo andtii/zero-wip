@@ -16,8 +16,23 @@
   declaration. The coverage report gains an optional `api` section (one row
   per vendor prop: where it routes, its grade, its respelled values), and
   `skills/design-system/conformance/` holds four vendor fixtures (Carbon, Ant,
-  Radix Themes, HeroUI) that validate and grade in CI. The `./components`
-  artifact emitted from the declaration lands separately.
+  Radix Themes, HeroUI) that validate and grade in CI.
+
+- **The generated `./components` artifact** (issue #179, phase 2). A design
+  system with an `api` now gets `dist/components.d.ts` + `dist/components.js`
+  from the same build: self-contained vendor-named types (no `/register`
+  needed, no `ZeroVocabulary` augmentation — two design systems' modules can
+  coexist) over a data-only runtime of PURE `adapt()` calls and re-exports.
+  `compileDesignSystem` derives the per-component routing
+  (`CompiledDesignSystem.componentApi`, via `deriveComponentApi` — the
+  design-system-level declaration filtered to what each recipe wires,
+  `values` pre-inverted for the runtime), `writeArtifacts` writes the module
+  when present, and the DS manifest carries the routing under `api`.
+  `carrierPart` moved from the web recipe compiler to `contract.ts` (pure
+  manifest logic) and is now exported. `@sigx/zero-heroui` ships the first
+  real adapter (`variant` exact, `isIconOnly`/`isPending` renamed), and the
+  emitted `.d.ts` goldens are compiled end to end by a fourth isolated
+  type-test project asserting the issue's gate.
 
 ### Changed
 

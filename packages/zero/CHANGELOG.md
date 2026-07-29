@@ -14,8 +14,9 @@
   models, refs and lifecycle pass through untouched, reactivity included. A
   vendor prop deliberately shadows same-named base props (Ant's `type`) and
   is consumed, never leaked to the DOM. Ships with the `Adapted` type the
-  kit-generated `components.d.ts` instantiates. New subpath export, ~0.95 kB;
-  nothing else in zero imports it.
+  kit-generated `components.d.ts` instantiates, and `AdaptedStatics` for a
+  compound's non-carrier statics. New subpath export, ~0.95 kB; nothing else
+  in zero imports it.
 
 - **The `mods` prop — presence-only design-system modifiers** (RFC 0003 §3,
   #166). An axis answers *which one* and always carries a value; a modifier

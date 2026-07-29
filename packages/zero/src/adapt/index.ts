@@ -65,6 +65,19 @@ export type Adapted<
     TAdd extends Record<string, unknown>,
 > = ComponentFactory<Omit<TBase['__events'], TRemove> & TAdd, TBase['__ref'], TBase['__slots']>;
 
+/**
+ * A compound namespace's non-carrier statics — everything except the
+ * self-referential `Root` and the factory's own machinery (call signature and
+ * brands, which the `Adapted` main supplies afresh). The generated
+ * `components.d.ts` intersects this with the adapted main, so `Tabs.List`,
+ * `Menu.Item` and friends keep their real types without the emitter ever
+ * having to know a compound's static names.
+ */
+export type AdaptedStatics<TBase> = Omit<
+    TBase,
+    'Root' | keyof AnyComponentFactory | '__name' | '__islandId'
+>;
+
 /** The spec, indexed once per `adapt` call rather than per instance. */
 interface Routing {
     /** vendor prop → its route (also the set of props the adapter consumes). */

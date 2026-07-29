@@ -11,7 +11,7 @@
  * and failing the build is how recipes stay in lockstep with core.
  */
 import type { ManifestComponent, ManifestPart } from '../../contract.js';
-import { INTERACTION_STATES, MOD_ATTR_PREFIX, TOKEN_KEY_PATTERN, VARIANT_AXES } from '../../contract.js';
+import { INTERACTION_STATES, MOD_ATTR_PREFIX, TOKEN_KEY_PATTERN, VARIANT_AXES, carrierPart } from '../../contract.js';
 import type { CssProps, PartStyles, RecipeContext, RecipeInput } from '../../recipes.js';
 import { BUILTIN_CONDITIONS } from '../../recipes.js';
 
@@ -78,14 +78,6 @@ function partProjection(
         );
     }
     return { host: part.pseudo.of, suffix: part.pseudo.selector };
-}
-
-/**
- * The part that carries the variant attributes (`data-color` etc.) — by
- * convention the part named `root`, else the first declared part.
- */
-function carrierPart(component: ManifestComponent): string {
-    return component.parts.find((p) => p.name === 'root')?.name ?? component.parts[0]!.name;
 }
 
 /**

@@ -5,7 +5,8 @@
  */
 import type { ManifestComponent, RoleDecl, ZeroManifest } from './contract.js';
 import { DEFAULT_ROLES, defaultSwatch, resolveRoles, resolveSizes } from './contract.js';
-import type { DesignSystemApi } from './api.js';
+import type { CompiledComponentApi, DesignSystemApi } from './api.js';
+import { deriveComponentApi } from './api.js';
 import type { CustomTokenDecl, RolesDecl, SystemTokens, TokensInput } from './tokens.js';
 import { compileTokensCss } from './targets/web/tokens-css.js';
 import type { RecipeInput } from './recipes.js';
@@ -75,6 +76,14 @@ export interface CompiledDesignSystem {
     themes: CompiledTheme[];
     /** scope → the axis vocabulary the recipes actually wire. */
     components: Record<string, CompiledComponentAxes>;
+    /**
+     * scope → the vendor-named API filtered to what that scope wires —
+     * present iff the design system declares an `api` (issue #179). Part of
+     * the compiled form (rather than a `writeArtifacts` parameter, the shape
+     * the report took) so the manifest, the emitters and the CLI all read one
+     * derivation.
+     */
+    componentApi?: Record<string, CompiledComponentApi>;
     /** The DS's declared token vocabulary — emitted into the DS manifest. */
     tokens: {
         roles: Record<string, RoleDecl>;
@@ -234,6 +243,15 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
         };
     });
 
+    const componentApi = ds.api
+        ? Object.fromEntries(
+            Object.entries(components).map(([scope, axes]) => [
+                scope,
+                deriveComponentApi(ds.api!, axes, byScope.get(scope)!),
+            ]),
+        )
+        : undefined;
+
     return {
         name: ds.name,
         tokensCss,
@@ -241,6 +259,7 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
         indexCss,
         themes,
         components,
+        ...(componentApi ? { componentApi } : {}),
         tokens: {
             roles,
             sizes: [...resolveSizes(ds.tokens.sizes)],

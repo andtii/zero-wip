@@ -68,3 +68,24 @@ installThemes();
 
 With `/register` imported, `<Button.Root variant="danger-soft" mods={{ 'icon-only': true }}>`
 type-checks, `variant="solid"` does not, and `color` is rejected outright.
+
+## The vendor-named surface (`./components`)
+
+This package also ships the first real vendor-named component module (issue
+#179): HeroUI's own prop spellings over zero's anatomy, generated from the
+`api` declaration in `src/design-system.ts`.
+
+```tsx
+import { Button } from '@sigx/zero-heroui/components';
+
+<Button variant="danger" isIconOnly>×</Button>
+// renders <button data-scope="button" data-variant="danger" data-mod-icon-only="">
+```
+
+No `/register` import is needed — `components.d.ts` is self-contained, so
+`variant` narrows to the fused seven-member union and `isIconOnly`/`isPending`
+are boolean props, while `variant="solid"`, `mods={…}` and `color` are
+rejected. The runtime is data only: one generated `adapt()` call for Button
+(the one component with renamed props), plain re-exports for the rest. The
+rendered attributes are unchanged — the recipes and every existing consumer
+are untouched.
