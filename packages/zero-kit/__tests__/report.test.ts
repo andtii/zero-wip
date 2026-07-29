@@ -356,6 +356,36 @@ describe('contrast margin per theme', () => {
     });
 });
 
+describe('a design system that does not compile', () => {
+    /**
+     * Why `runValidate` catches around `buildReport`.
+     *
+     * `validateDesignSystem` compiles inside its own try/catch and turns the
+     * throw into an error on `recipes`, so plain `zero:validate` reports a
+     * FAILED validation. The report path compiles a second time — and if that
+     * throw escaped, asking for a report would replace that message with a raw
+     * compiler stack, for the one input where the report has nothing to say.
+     *
+     * The command itself is not reachable from this suite: `loadDesignSystem`
+     * dynamic-imports the entry, and under vitest that goes through vite's
+     * module runner, which cannot load a file written outside the project. This
+     * asserts the premise the catch rests on instead.
+     */
+    const broken: DesignSystemInput = {
+        ...(basicDS as DesignSystemInput),
+        recipes: [{ component: 'not-a-component', parts: { root: {} } }],
+    };
+
+    it('throws from the compiler but is only an error from the validator', () => {
+        expect(() => compileDesignSystem(broken, manifest)).toThrow(/unknown component/);
+
+        const result = validateDesignSystem(broken, manifest);
+        expect(result.ok).toBe(false);
+        expect(result.errors.map((e) => `${e.where}: ${e.message}`).join('\n'))
+            .toMatch(/recipes: .*unknown component "not-a-component"/);
+    });
+});
+
 describe('report shape', () => {
     it('is JSON-serialisable and stable across two builds', () => {
         for (const [name, ds] of shipped) {

@@ -43,9 +43,10 @@
   `sigx zero:validate --report` prints what a design system *covers*, and
   `--report-json <path>` writes the machine-readable shape (`-` for stdout,
   which then carries nothing else — diagnostics go to stderr and pass/fail is
-  the exit code). Every design-system build also writes it to
-  `dist/report.json`, alongside `manifest.json` and `register.d.ts`, so a
-  consumer needs no CLI run. Validation returns a flat issue list, which says
+  the exit code). `sigx zero:build` writes the same report to
+  `dist/report.json`, alongside `manifest.json` and `register.d.ts`, so a built
+  design system carries it without anyone running `validate`. Validation
+  returns a flat issue list, which says
   what is *wrong*; a scored report is what makes a generated design system
   reviewable, and the conformance matrix generates its already-proven-in-repo
   rows from this file rather than by hand.

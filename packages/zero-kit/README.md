@@ -199,9 +199,13 @@ heroui — coverage report
 ```
 
 The report is emitted whether or not validation passes — a design system that
-fails is exactly the one whose coverage is worth reading. Every design system
-build also writes it to `dist/report.json`, so it is available without running
-the CLI at all.
+fails is exactly the one whose coverage is worth reading. (The one exception is
+a design system that does not compile at all: that is already an error, and
+there is nothing to report about it.)
+
+`sigx zero:build` writes the same report to `dist/report.json` alongside
+`manifest.json` and `register.d.ts`, as does `writeArtifacts` when handed one —
+so a built design system carries its report without anyone running `validate`.
 
 It carries, per design system: components styled against the anatomy manifest;
 the axes each component wires, and which its `register.d.ts` types `never`
