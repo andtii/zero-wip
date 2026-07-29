@@ -1,7 +1,7 @@
 @layer zero.recipes {
     [data-scope="rating-group"][data-part="root"] {
         --rating-size: var(--text-xl);
-        --rating-fill: var(--color-warning);
+        --rating-fill: color-mix(in oklab, var(--color-warning) 70%, var(--color-warning-content));
     }
 
     [data-scope="rating-group"][data-part="root"] {
@@ -12,7 +12,8 @@
 
     [data-scope="rating-group"][data-part="label"] {
         font-size: var(--text-sm);
-        font-weight: var(--weight-semibold);
+        font-weight: var(--weight-medium);
+        font-variant-numeric: tabular-nums;
     }
 
     [data-scope="rating-group"][data-part="label"][data-disabled] {
@@ -44,7 +45,7 @@
         cursor: pointer;
         user-select: none;
         color: var(--color-base-300);
-        transition: color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+        transition: color var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="rating-group"][data-part="item"][data-state="full"] {
@@ -56,7 +57,7 @@
     }
 
     [data-scope="rating-group"][data-part="item"][data-highlighted] {
-        transform: scale(1.15);
+        color: var(--rating-fill);
     }
 
     [data-scope="rating-group"][data-part="item"][data-disabled] {
@@ -119,15 +120,5 @@
 
     [data-scope="rating-group"][data-part="root"][data-size="xl"] {
         --rating-size: var(--text-3xl);
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        [data-scope="rating-group"][data-part="item"] {
-            transition: none;
-        }
-
-        [data-scope="rating-group"][data-part="item"][data-highlighted] {
-            transform: none;
-        }
     }
 }

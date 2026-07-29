@@ -16,7 +16,8 @@
 
     [data-scope="slider"][data-part="label"] {
         font-size: var(--text-sm);
-        font-weight: var(--weight-semibold);
+        font-weight: var(--weight-medium);
+        font-variant-numeric: tabular-nums;
     }
 
     [data-scope="slider"][data-part="control"] {
@@ -30,7 +31,7 @@
     }
 
     [data-scope="slider"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--slider-accent);
+        outline: 2px solid var(--color-primary);
         outline-offset: 2px;
     }
 
@@ -40,7 +41,8 @@
 
     [data-scope="slider"][data-part="value-text"] {
         font-size: var(--text-xs);
-        color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
+        font-variant-numeric: tabular-nums;
+        color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
     }
 
     [data-scope="slider"][data-part="root"][data-color="primary"] {

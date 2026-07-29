@@ -12,7 +12,8 @@
 
     [data-scope="radio-group"][data-part="label"] {
         font-size: var(--text-sm);
-        font-weight: var(--weight-semibold);
+        font-weight: var(--weight-medium);
+        font-variant-numeric: tabular-nums;
     }
 
     [data-scope="radio-group"][data-part="label"][data-disabled] {
@@ -37,7 +38,7 @@
         justify-content: center;
         width: var(--radio-size);
         height: var(--radio-size);
-        border: calc(var(--border) * 2) solid var(--color-base-300);
+        border: var(--border) solid var(--color-base-300);
         border-radius: 9999px;
         background: var(--color-base-100);
         transition: border-color var(--duration-fast) var(--ease-standard);
@@ -48,8 +49,12 @@
     }
 
     [data-scope="radio-group"][data-part="item-control"][data-focus-visible] {
-        outline: 2px solid var(--radio-accent);
+        outline: 2px solid var(--color-primary);
         outline-offset: 2px;
+    }
+
+    [data-scope="radio-group"][data-part="item-control"][data-state="unchecked"]:hover:not([data-disabled]) {
+        border-color: var(--color-secondary);
     }
 
     [data-scope="radio-group"][data-part="item-indicator"] {
@@ -66,6 +71,7 @@
 
     [data-scope="radio-group"][data-part="item-label"] {
         font-size: var(--text-sm);
+        font-variant-numeric: tabular-nums;
     }
 
     [data-scope="radio-group"][data-part="root"][data-color="primary"] {

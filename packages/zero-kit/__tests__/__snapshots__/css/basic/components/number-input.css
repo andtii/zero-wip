@@ -11,7 +11,8 @@
 
     [data-scope="number-input"][data-part="label"] {
         font-size: var(--text-sm);
-        font-weight: var(--weight-semibold);
+        font-weight: var(--weight-medium);
+        font-variant-numeric: tabular-nums;
     }
 
     [data-scope="number-input"][data-part="label"][data-disabled] {
@@ -29,10 +30,11 @@
         border: var(--border) solid var(--color-base-300);
         border-radius: var(--radius-field);
         overflow: hidden;
+        transition: border-color var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="number-input"][data-part="control"]:hover:not([data-disabled]) {
-        border-color: var(--color-base-content);
+        border-color: var(--color-secondary);
     }
 
     [data-scope="number-input"][data-part="control"][data-invalid] {
@@ -44,8 +46,14 @@
     }
 
     [data-scope="number-input"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--number-input-accent);
+        outline: 2px solid var(--color-primary);
         outline-offset: 2px;
+        border-color: var(--number-input-accent);
+    }
+
+    [data-scope="number-input"][data-part="control"][data-invalid][data-focus-visible] {
+        outline: 2px solid var(--color-error);
+        border-color: var(--color-error);
     }
 
     [data-scope="number-input"][data-part="input"] {
@@ -58,6 +66,7 @@
         color: inherit;
         font: inherit;
         font-size: var(--text-sm);
+        font-variant-numeric: tabular-nums;
         text-align: center;
         padding: 0.5rem 0.5rem;
     }
@@ -67,22 +76,23 @@
     }
 
     [data-scope="number-input"][data-part="input"]::placeholder {
-        color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+        color: color-mix(in oklch, var(--color-base-content) 55%, transparent);
     }
 
     [data-scope="number-input"][data-part="increment-trigger"] {
         appearance: none;
         border: none;
-        background: var(--color-base-200);
+        background: transparent;
         color: inherit;
         padding: 0 0.75rem;
         cursor: pointer;
         user-select: none;
         border-inline-start: var(--border) solid var(--color-base-300);
+        transition: background var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="number-input"][data-part="increment-trigger"]:hover:not([data-disabled]) {
-        background: var(--color-base-300);
+        background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
     }
 
     [data-scope="number-input"][data-part="increment-trigger"][data-disabled] {
@@ -91,22 +101,24 @@
     }
 
     [data-scope="number-input"][data-part="increment-trigger"][data-pressed]:not([data-disabled]) {
-        background: var(--color-base-300);
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+        transition: none;
     }
 
     [data-scope="number-input"][data-part="decrement-trigger"] {
         appearance: none;
         border: none;
-        background: var(--color-base-200);
+        background: transparent;
         color: inherit;
         padding: 0 0.75rem;
         cursor: pointer;
         user-select: none;
         border-inline-end: var(--border) solid var(--color-base-300);
+        transition: background var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="number-input"][data-part="decrement-trigger"]:hover:not([data-disabled]) {
-        background: var(--color-base-300);
+        background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
     }
 
     [data-scope="number-input"][data-part="decrement-trigger"][data-disabled] {
@@ -115,7 +127,8 @@
     }
 
     [data-scope="number-input"][data-part="decrement-trigger"][data-pressed]:not([data-disabled]) {
-        background: var(--color-base-300);
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+        transition: none;
     }
 
     [data-scope="number-input"][data-part="root"][data-color="primary"] {
