@@ -26,6 +26,7 @@ import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import { designSystem as materialDS } from '@sigx/zero-material';
 import { designSystem as brutalistDS } from '@sigx/zero-brutalist';
 import { designSystem as herouiDS } from '@sigx/zero-heroui';
+import { designSystem as carbonDS } from '@sigx/zero-carbon';
 
 const manifest = {
     components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
@@ -58,6 +59,7 @@ const designSystems = {
     material: compileDesignSystem(materialDS, manifest),
     brutalist: compileDesignSystem(brutalistDS, manifest),
     heroui: compileDesignSystem(herouiDS, manifest),
+    carbon: compileDesignSystem(carbonDS, manifest),
 };
 
 /**
