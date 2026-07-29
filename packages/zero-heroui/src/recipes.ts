@@ -1462,7 +1462,6 @@ export const numberInput: RecipeInput = {
             states: {
                 hover: { background: 'var(--color-base-200)', color: 'var(--color-base-content)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
             },
             selectors: {
                 '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' },
@@ -1489,7 +1488,6 @@ export const numberInput: RecipeInput = {
             states: {
                 hover: { background: 'var(--color-base-200)', color: 'var(--color-base-content)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
             },
             selectors: {
                 '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' },

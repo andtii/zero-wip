@@ -2146,11 +2146,6 @@
         cursor: not-allowed;
     }
 
-    [data-scope="number-input"][data-part="increment-trigger"]:focus-visible {
-        outline: 2px solid var(--hero-focus);
-        outline-offset: 2px;
-    }
-
     [data-scope="number-input"][data-part="increment-trigger"][data-pressed]:not([data-disabled]) {
         transform: scale(0.97);
     }
@@ -2181,11 +2176,6 @@
     [data-scope="number-input"][data-part="decrement-trigger"][data-disabled] {
         opacity: var(--disabled-opacity);
         cursor: not-allowed;
-    }
-
-    [data-scope="number-input"][data-part="decrement-trigger"]:focus-visible {
-        outline: 2px solid var(--hero-focus);
-        outline-offset: 2px;
     }
 
     [data-scope="number-input"][data-part="decrement-trigger"][data-pressed]:not([data-disabled]) {
