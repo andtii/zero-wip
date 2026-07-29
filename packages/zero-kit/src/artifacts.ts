@@ -21,8 +21,9 @@ import { compileRegisterDts, compileRegisterJs } from './targets/web/register-dt
 /**
  * `report` is a parameter rather than something built here because
  * `buildReport` needs the authoring input and the anatomy manifest, neither of
- * which survives into `CompiledDesignSystem`. Optional, so a caller that only
- * wants CSS keeps working unchanged.
+ * which survives into `CompiledDesignSystem`. Optional, so a caller that wants
+ * no coverage report keeps working unchanged; every other artifact is written
+ * either way.
  */
 export async function writeArtifacts(
     compiled: CompiledDesignSystem,
