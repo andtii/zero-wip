@@ -1,7 +1,7 @@
 /**
  * Context menu in real engines — the parts happy-dom cannot prove: the
  * popup actually lands at the pointer coordinates (top layer + fixed
- * positioning), a second right-click repositions without closing, and
+ * positioning), a second right-click re-anchors it to the new point, and
  * Escape restores focus to the surface.
  */
 import { test, expect } from '@playwright/test';
@@ -23,8 +23,17 @@ async function popup(page: import('@playwright/test').Page) {
     return page.locator(`#${id}`);
 }
 
-/** The enter transition translates the popup; measure only after it lands. */
+/**
+ * The enter transition translates the popup; measure only after it lands.
+ *
+ * The visibility wait is load-bearing, not politeness: the popup is a native
+ * `popover="auto"`, so while closed the UA gives it `display: none` and
+ * `boundingBox()` returns **null**. Asserting it first turns "the popup was
+ * not showing" into that sentence instead of a `TypeError` on `.x` three
+ * lines later.
+ */
 async function settledBox(loc: import('@playwright/test').Locator) {
+    await expect(loc).toBeVisible();
     await loc.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished.catch(() => {}))));
     return (await loc.boundingBox())!;
 }
@@ -49,15 +58,63 @@ test('right-click opens the popup at the pointer', async ({ page }) => {
     expect(pb.y - y).toBeLessThan(24);
 });
 
-test('a second right-click repositions without closing', async ({ page }) => {
+/**
+ * A second right-click re-anchors the popup to the new point.
+ *
+ * It does NOT keep it continuously open, and no implementation over a native
+ * `popover="auto"` can. Measured in Chromium (`beforetoggle`/`toggle` listeners
+ * on the popup, timestamps relative to the second right-click's `pointerdown`):
+ *
+ *   t=0.7  pointerdown button=2        popup open
+ *   t=1.0  contextmenu buttons=2
+ *   t=1.0  beforetoggle open→closed    cancelable: FALSE
+ *   t=1.0  pointerup                   popup already closed
+ *   t=10.9 beforetoggle closed→open
+ *   t=11.2 toggle       closed→open
+ *
+ * The gesture's own `pointerdown` light-dismisses the popover, and the hide
+ * `beforetoggle` is **not cancelable** — there is no hook to refuse it.
+ * `Menu.ContextTrigger` then reopens a task later (its `setTimeout(…, 0)`,
+ * which exists precisely so the reopen cannot be eaten by the same gesture),
+ * so the popup is genuinely `display: none` for at least one task turn.
+ *
+ * Which is why this test polls the box instead of sampling it once. Sampling
+ * raced that gap: `expect(…).toHaveAttribute('data-state', 'open')` is happy
+ * to match the *pre-dismiss* open state, and the measurement that followed
+ * then landed in the closed window and got `null` from `boundingBox()` —
+ * `TypeError: Cannot read properties of null (reading 'x')`, the failure
+ * reported in #196.
+ *
+ * The `reduced-motion` project is where it actually bit, and that is not a
+ * coincidence: `settledBox` awaits `getAnimations()`, and with animations
+ * suppressed that resolves immediately, so the measurement arrives inside the
+ * ~10 ms window instead of after it. Under machine load the window widens and
+ * the other projects can reach it too.
+ */
+test('a second right-click re-anchors the popup to the new point', async ({ page }) => {
     await rightClickAt(page, 40, 30);
-    await expect(await popup(page)).toHaveAttribute('data-state', 'open');
-    const first = await settledBox(await popup(page));
+    const p = await popup(page);
+    const first = await settledBox(p);
     // Well clear of the open popup — a right-click INSIDE it belongs to the
     // popup, not the surface.
     const { x } = await rightClickAt(page, 420, 20);
-    await expect(await popup(page)).toHaveAttribute('data-state', 'open');
-    const second = await settledBox(await popup(page));
+    // Polls the very fact under test (the popup is showing, at the new point),
+    // so it cannot be satisfied by the stale pre-dismiss popup and cannot read
+    // a box that does not exist yet.
+    await expect
+        .poll(async () => {
+            const b = await p.boundingBox();
+            return b ? Math.abs(b.x - x) : Number.POSITIVE_INFINITY;
+        }, { message: 'popup re-anchored to the second right-click' })
+        .toBeLessThan(24);
+    await expect(p).toHaveAttribute('data-state', 'open');
+    const second = await settledBox(p);
+    // The poll samples a RAW box, so it can be satisfied mid-transition. Assert
+    // the same tolerance on the SETTLED box too, or an enter transition that
+    // animates position could pass through the target and come to rest
+    // somewhere else entirely — the one failure this test exists to catch.
+    // (Under `reduced-motion` the two coincide; on the other four projects they
+    // do not, which is exactly why both assertions are needed.)
     expect(Math.abs(second.x - x)).toBeLessThan(24);
     expect(second.x).not.toBe(first.x);
 });
