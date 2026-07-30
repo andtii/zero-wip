@@ -109,6 +109,13 @@ test('a second right-click re-anchors the popup to the new point', async ({ page
         .toBeLessThan(24);
     await expect(p).toHaveAttribute('data-state', 'open');
     const second = await settledBox(p);
+    // The poll samples a RAW box, so it can be satisfied mid-transition. Assert
+    // the same tolerance on the SETTLED box too, or an enter transition that
+    // animates position could pass through the target and come to rest
+    // somewhere else entirely — the one failure this test exists to catch.
+    // (Under `reduced-motion` the two coincide; on the other four projects they
+    // do not, which is exactly why both assertions are needed.)
+    expect(Math.abs(second.x - x)).toBeLessThan(24);
     expect(second.x).not.toBe(first.x);
 });
 
