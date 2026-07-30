@@ -35,8 +35,14 @@ const singleSelection = (read: () => string | null, write: (value: string) => vo
         return current === null ? [] : [current];
     },
     set value(next: string[]) {
-        // `deselectable={false}` keeps this non-empty; the guard is about the
-        // shape of the contract, not about a case that occurs.
+        // Empty is meaningful on the way OUT — the getter answers `[]` for "no
+        // selection", which is the Theme row's honest state while following the
+        // system — but there is nothing to write for it, and `write` takes a
+        // name. ToggleGroup in single mode only ever sends `[value]` (turning
+        // an off item on), and with `deselectable={false}` sends nothing at all
+        // when the on item is re-clicked, so `[]` does not arrive here today;
+        // the guard keeps a caller that does send it a no-op rather than
+        // `write(undefined)`.
         const [value] = next;
         if (value !== undefined) write(value);
     },
