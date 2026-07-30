@@ -63,10 +63,14 @@ export interface PartSpec {
      * carrying a hardcoded list of the components that work this way, and a
      * generator reads it to know which selectors are not worth emitting.
      *
-     * Every entry must be one of this part's own `states`. Declare it ONLY for
-     * the `hidden` attribute: a part that merely animates out, or that a
-     * design system chooses to `display: none` itself, is still rendered by
-     * zero and still has to look like the state it is in.
+     * Every entry must be one of this part's own `states`, and a part the
+     * runtime never hides OMITS the key rather than declaring `[]` — the
+     * manifest schema rejects an empty array, since a key claiming nothing
+     * reads as a fact where there is none.
+     *
+     * Declare it ONLY for the `hidden` attribute: a part that merely animates
+     * out, or that a design system chooses to `display: none` itself, is still
+     * rendered by zero and still has to look like the state it is in.
      */
     hiddenIn?: readonly string[];
     /** Contract token groups that typically style this part. */

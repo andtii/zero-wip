@@ -357,7 +357,8 @@ export interface ManifestPart {
      * such a state identically to a visible one is correct, not lazy — the
      * difference is presence, and the runtime owns it. Read by the
      * state-legibility guard, which would otherwise need a hardcoded list of
-     * the components that work this way. Always a subset of `states`.
+     * the components that work this way. A non-empty subset of `states` when
+     * present; absent for every part the runtime never hides.
      */
     hiddenIn?: readonly string[];
     tokens?: readonly string[];

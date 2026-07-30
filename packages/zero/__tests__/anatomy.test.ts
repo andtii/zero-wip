@@ -93,7 +93,14 @@ describe('anatomy registry', () => {
         const declared: string[] = [];
         for (const anatomy of Object.values(anatomies)) {
             for (const [name, part] of Object.entries<{ states?: readonly string[]; hiddenIn?: readonly string[] }>(anatomy.parts)) {
-                for (const state of part.hiddenIn ?? []) {
+                if (!part.hiddenIn) continue;
+                // Absent, never empty: `[]` reaches the manifest as a key that
+                // claims nothing, which `manifest.schema.json` rejects
+                // (`minItems: 1`) — fail at the anatomy rather than at the
+                // published artifact.
+                expect(part.hiddenIn.length, `${anatomy.scope}.${name}: empty hiddenIn — omit it`)
+                    .toBeGreaterThan(0);
+                for (const state of part.hiddenIn) {
                     expect(part.states ?? [], `${anatomy.scope}.${name}: hiddenIn "${state}"`).toContain(state);
                     declared.push(`${anatomy.scope}.${name}`);
                 }
