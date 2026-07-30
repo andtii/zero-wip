@@ -111,7 +111,7 @@
         letter-spacing: var(--tracking-wide);
         color: var(--carbon-interactive);
         cursor: pointer;
-        transition: background var(--duration-normal) var(--ease-standard);
+        transition: background var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="toast"][data-part="action"]:hover:not([data-disabled]) {
@@ -130,6 +130,7 @@
 
     [data-scope="toast"][data-part="action"][data-pressed]:not([data-disabled]) {
         background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
+        color: color-mix(in oklab, var(--carbon-interactive) 80%, var(--color-base-content));
     }
 
     [data-scope="toast"][data-part="close"] {

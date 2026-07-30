@@ -39,6 +39,7 @@
 
     [data-scope="dialog"][data-part="trigger"][data-pressed]:not([data-disabled]) {
         background: var(--color-base-300);
+        color: color-mix(in oklab, var(--carbon-interactive) 80%, var(--color-base-content));
     }
 
     [data-scope="dialog"][data-part="popup"] {
