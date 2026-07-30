@@ -490,9 +490,19 @@ export const popover: RecipeInput = {
 export const tooltip: RecipeInput = {
     component: 'tooltip',
     parts: {
+        // daisy's `btn`, exactly as dialog, popover and menu wear it — the row
+        // reads as three buttons because it is three buttons. `cursor: help`
+        // is the one deviation: the trigger explains rather than opens. No
+        // pressed rule: tooltip's anatomy declares no `pressed` flag.
         trigger: {
-            base: {},
-            states: { open: {}, closed: {}, disabled: {} },
+            base: { ...btn, cursor: 'help' },
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                open: { background: 'var(--color-base-300)' },
+                closed: {},
+                ...focusRing,
+            },
         },
         popup: withPresence(popupPresence('translateY(-2px)'), {
             base: {

@@ -411,9 +411,14 @@ export const popover: RecipeInput = {
 export const tooltip: RecipeInput = {
     component: 'tooltip',
     parts: {
+        // The bare reset this used to be contradicted the file's own rule —
+        // "Even 'ghost' keeps the border. Brutalism has no invisible states."
+        // So it takes `overlayTrigger` like dialog, popover and menu, with
+        // `cursor: help` as the one deviation. Nothing to strip: the helper
+        // carries no press rule, and tooltip declares no `pressed` flag.
         trigger: {
-            base: { appearance: 'none', background: 'none', border: 'none', color: 'inherit', cursor: 'help' },
-            states: { open: {}, closed: {}, disabled: {}, ...focusRing },
+            ...overlayTrigger,
+            base: { ...overlayTrigger.base, cursor: 'help' },
         },
         popup: withPresence(popupPresence('translate(3px, 3px)'), {
             base: {

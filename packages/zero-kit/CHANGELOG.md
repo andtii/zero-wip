@@ -4,6 +4,26 @@
 
 ### Added
 
+- **The no-UA-chrome guard** (`__tests__/button-affordance.test.ts`, #213).
+  Reads the `element` each part declares out of the manifest and asserts, over
+  the emitted CSS of all six in-repo design systems, that every part zero
+  renders as a real `<button>` carries an `appearance` declaration in the
+  **unconditional** rule — a reset that only applies in one state, on hover,
+  under a variant or inside a `@media` query leaves the plain render wearing
+  the user agent's bevel, so none of those count. `appearance` is the proxy
+  because it is the one declaration that means "the paint is mine now": a
+  background, a border and a font can each be set while the UA still supplies
+  the chip. Sixteen parts × six design systems; it does not claim the treatment
+  is *good*, only that the design system looked at the part — which is exactly
+  what nothing asked before. `validate-recipes` sees `trigger: { base: {},
+  states: { open: {}, closed: {}, disabled: {} } }` as fully covered, the css
+  goldens recorded the absence faithfully, and the state-legibility guard is
+  satisfied by a sibling part carrying the difference. Caught, on the pre-fix
+  tree: seven cells — the `tooltip/trigger` of basic, daisyui, heroui and
+  carbon, plus heroui's dialog, popover and menu triggers (#214, the only
+  entries in its allowlist, which the guard fails if they ever go stale). Its
+  own failure mode is covered by fixtures, including the three near-misses.
+
 - **`hiddenIn` on `ManifestPart` and in `manifest.schema.json`** (#227): the
   states zero's runtime hides a part in, mirroring `PartSpec.hiddenIn` in
   `@sigx/zero/contract`. The state-legibility guard reads it instead of the

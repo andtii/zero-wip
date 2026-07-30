@@ -339,6 +339,46 @@ export const switchRecipe: RecipeInput = {
     skipStates: { root: ['focus-visible'] },
 };
 
+/**
+ * The control an overlay opens from, in HeroUI's own button language: Button's
+ * `secondary` shape — base-100 fill inside a hairline, content ink, the field
+ * radius — written out rather than reached for, because `--btn-fill` and its
+ * two siblings are tokens the button RECIPE declares and no other recipe can
+ * see. `hover` and `open` take one layer step, matching `ghostClose` above;
+ * Button's own `[data-pressed]` scale is left out here and added per part,
+ * since not every trigger is pressable.
+ *
+ * Only tooltip uses it today. Dialog, popover and menu still ship
+ * `{ cursor: 'pointer' }` and nothing else — the same defect #213 fixed on the
+ * tooltip, in the same package, deferred to #214 so that three components'
+ * worth of visual change gets its own review.
+ */
+const overlayTrigger: PartStyles = {
+    base: {
+        appearance: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 'var(--space-sm)',
+        width: 'fit-content',
+        padding: 'var(--space-sm) var(--space-lg)',
+        border: 'var(--border) solid var(--hero-line)',
+        borderRadius: 'var(--radius-field)',
+        background: 'var(--color-base-100)',
+        ...label,
+        lineHeight: 'var(--leading-none)',
+        cursor: 'pointer',
+        transition: motion('background, border-color, opacity'),
+    },
+    states: {
+        hover: { background: 'var(--color-base-200)' },
+        open: { background: 'var(--color-base-200)' },
+        closed: {},
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+};
+
 // ── Dialog ────────────────────────────────────────────────────────────────
 export const dialog: RecipeInput = {
     component: 'dialog',
@@ -436,9 +476,12 @@ export const popover: RecipeInput = {
 export const tooltip: RecipeInput = {
     component: 'tooltip',
     parts: {
+        // `overlayTrigger` (above), with `cursor: help` as the one deviation:
+        // nothing opens, so the pointer explains rather than acts. No pressed
+        // rule — tooltip's anatomy declares no `pressed` flag.
         trigger: {
-            base: {},
-            states: { open: {}, closed: {}, disabled: {} },
+            ...overlayTrigger,
+            base: { ...overlayTrigger.base, cursor: 'help' },
         },
         // The one inverted surface in the system: content ink as the fill.
         popup: withPresence(popupPresence('translateY(2px)'), {
