@@ -102,11 +102,21 @@ test.describe('half-star pointer and keyboard math', () => {
  * anything, so instead measure the glyph's advance width in the item's OWN
  * computed font and compare it against U+10FFFD, a guaranteed-unmapped
  * codepoint. Equal widths mean both resolved to the same last-resort glyph.
+ *
+ * Chromium-only, like the contrast audit — and for a reason found by running
+ * it everywhere first: the `forced-colors` project returns an EMPTY computed
+ * `font` shorthand, and reassembling one by hand is precisely what this test
+ * must not do (an invalid `ctx.font` is silently ignored rather than throwing,
+ * which would leave the gate measuring some other font and unable to fail).
+ * Font coverage is a property of the platform's font stack, not of the engine
+ * driving it, so it is measured once in the baseline lane.
  */
 test.describe('the default symbol resolves to a real glyph', () => {
     test.beforeEach(pin('material'));
 
-    test('every state\'s symbol measures differently from an unmapped codepoint', async ({ page }) => {
+    test('every state\'s symbol measures differently from an unmapped codepoint', async ({ page }, testInfo) => {
+        test.skip(testInfo.project.name !== 'chromium',
+            'measured once in the baseline lane — see the block comment');
         // The playground's first rating is 3.5: 1–3 full, 4 half, 5 empty.
         await expect(item(page, 4)).toHaveAttribute('data-state', 'half');
 
@@ -116,13 +126,21 @@ test.describe('the default symbol resolves to a real glyph', () => {
             const UNMAPPED = '\u{10FFFD}';
             return [...root.querySelectorAll<HTMLElement>('[data-part="item"]')].map((el) => {
                 const cs = getComputedStyle(el);
-                ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+                // The computed `font` SHORTHAND, never one reassembled by hand:
+                // an invalid `ctx.font` assignment is silently IGNORED (the
+                // canvas keeps its previous font rather than throwing), which
+                // would leave this measuring some other font entirely and make
+                // the whole gate incapable of failing. The asserted
+                // `size`/`applied` pair below is what proves it took.
+                ctx.font = cs.font;
                 const glyph = el.textContent ?? '';
                 return {
                     state: el.getAttribute('data-state'),
                     glyph,
                     children: el.children.length,
-                    font: ctx.font,
+                    computed: cs.font,
+                    size: cs.fontSize,
+                    applied: ctx.font,
                     width: ctx.measureText(glyph).width,
                     unmapped: ctx.measureText(UNMAPPED).width,
                 };
@@ -138,13 +156,22 @@ test.describe('the default symbol resolves to a real glyph', () => {
         expect(measured.map((m) => m.glyph)).toEqual(['★', '★', '★', '★', '☆']);
 
         for (const m of measured) {
-            // The canvas took the item's real font, not the 10px default.
-            expect(m.font).not.toBe('10px sans-serif');
+            // The instrument is wired up: the element HAS a computed shorthand,
+            // the canvas ACCEPTED it (it is no longer at its `10px sans-serif`
+            // default), and what it accepted carries the item's own size. Fail
+            // here rather than measure a font nobody is looking at.
+            expect(m.computed, `${m.state}: no computed font shorthand`).not.toBe('');
+            expect(m.applied, `${m.state}: canvas kept its default font`).not.toBe('10px sans-serif');
+            // Compared as a NUMBER: the canvas re-serialises what it accepted
+            // and rounds (`20.249599px` comes back as `20.2496px`), so a
+            // substring match would fail on the serialisation, not the fact.
+            expect(parseFloat(m.applied), `${m.state}: canvas font ${m.applied} is not the item's ${m.size}`)
+                .toBeCloseTo(parseFloat(m.size), 2);
             expect(m.width).toBeGreaterThan(0);
             // The load-bearing assertion: `⯪` (U+2BEA) measured EXACTLY the
             // unmapped width in all six design systems before the fix.
             expect(Math.abs(m.width - m.unmapped),
-                `${m.state} symbol ${JSON.stringify(m.glyph)} measured the unmapped width in ${m.font}`)
+                `${m.state} symbol ${JSON.stringify(m.glyph)} measured the unmapped width in ${m.applied}`)
                 .toBeGreaterThan(0.01);
         }
     });

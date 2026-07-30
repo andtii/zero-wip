@@ -320,7 +320,7 @@ const RatingGroupControl = component<RatingGroupControlProps>(({ props, slots })
  * `@sigx/zero-heroui`. Wrapping the default in an element would silently
  * disable their stars.
  */
-const defaultSymbol = (state: 'full' | 'half' | 'empty'): string =>
+const defaultSymbol = (state: RatingItemSlotProps['state']): string =>
     (state === 'empty' ? '☆' : '★');
 
 export type RatingGroupItemProps =

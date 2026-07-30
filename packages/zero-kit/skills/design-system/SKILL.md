@@ -289,7 +289,8 @@ component's anatomy). No component code is ever written or changed.
         clipping the runtime's own default symbol instead of drawing your own
         shape, you inherit its font coverage: rating's defaults are `★`/`☆`
         (U+2605/U+2606) and its `half` is a **full** star you are expected to
-        halve, because no half-star codepoint has usable coverage.
+        halve, because the half-star codepoint (U+2BEA) is poorly covered in
+        the common system sans stacks and renders as tofu.
         ```ts
         indicator: {
             base: {

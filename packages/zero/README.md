@@ -110,8 +110,8 @@ type) is the typed surface consumers see.
 
   The one case today is `RatingGroup.Item`, whose default content is
   `★` (full) / `★` (half) / `☆` (empty). `half` is a **full** star on purpose:
-  the half-star codepoint `⯪` (U+2BEA) has no coverage in the system sans
-  stacks and renders as tofu, so rendering a *distinct* half is the design
+  the half-star codepoint `⯪` (U+2BEA) is poorly covered in the common system
+  sans stacks and renders as tofu, so rendering a *distinct* half is the design
   system's job — by drawing geometry, or by masking/clipping this glyph, both
   of which need a full-width star in all three states. The value itself never
   depends on the symbol: it lives on the hidden input, and each item carries

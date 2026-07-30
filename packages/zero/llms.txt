@@ -211,11 +211,11 @@ component renders; the root is called out separately where it carries props.
   driven by the DISPLAYED value (hover preview ?? committed);
   data-highlighted marks the preview range; the default slot receives
   { state, highlighted } for SVG swapping. Without a slot the item's content
-  is a BARE TEXT node ★/★/☆ — half is a FULL star (no half-star codepoint has
-  font coverage), so a distinct half is the DS's job; a consumer symbol is an
-  ELEMENT, which is how a DS tells them apart (:not(:has(> *)) / :has(*)).
-  Keyboard
-  moves the VALUE, not element focus (allowHalf: two values per element):
+  is a BARE TEXT node ★/★/☆ — half is a FULL star (the half-star codepoint
+  U+2BEA is poorly covered in the common system sans stacks and renders as
+  tofu), so a distinct half is the DS's job; a consumer symbol is an ELEMENT,
+  which is how a DS tells them apart (:not(:has(> *)) / :has(*)).
+  Keyboard moves the VALUE, not element focus (allowHalf: two per element):
   single tab stop at ceil(value), arrows ±step (0.5 with allowHalf), Home
   = smallest step, End = count, RTL flips horizontal. Pointer x decides
   halves; tap commits with the same math; pointerleave on control clears
