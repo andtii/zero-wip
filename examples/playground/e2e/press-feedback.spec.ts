@@ -259,9 +259,36 @@ test('forced colors: decorative press layers are hidden', async ({ page }) => {
 
 test('design-system swap mid-ripple leaves no stale press state', async ({ page }) => {
     test.skip(media(test.info().project.name), 'covered by the media-specific tests');
-    await part(page, 'button', 'root').first().click();
-    await page.getByRole('button', { name: 'Basic', exact: true }).click();
+    // Both presses land on the swap control itself, so the ripple in flight
+    // belongs to the control the swap re-renders. This used to be implicit:
+    // `part(page, 'button', 'root').first()` resolved to the header's `Basic`
+    // design-system button, so the two lines pressed the same element by
+    // accident of document order. The toolbar's rows are ToggleGroups now and
+    // `.first()` resolves elsewhere, so the pairing is named rather than
+    // inherited.
+    const swap = page.getByRole('button', { name: 'Basic', exact: true });
+    await swap.click();
+    // Settle the swap before reading it. `activateDesignSystem` appends the
+    // incoming stylesheet and awaits its load BEFORE removing the outgoing one
+    // (design-systems.ts), so both <link> ELEMENTS exist for one frame — with
+    // the incoming `.sheet` still null, which is why "exactly one live
+    // stylesheet" survives it. The strict-mode locator below cannot tell the
+    // two apart, and `expect` does not retry a strict-mode violation, so it
+    // would report that documented window as a stacking bug. Asserting the
+    // settled count first states the invariant outright instead of leaning on
+    // strict mode for it, and fails as `2 !== 1` if links ever really stack.
+    await expect.poll(() => page.locator('link[data-zero-ds]').count()).toBe(1);
     await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', 'basic');
+    // The second press, under the now-settled stylesheet. It is load-bearing,
+    // and was here before: a press restarts the one-shot, and that restart is
+    // the ONLY thing that clears a `data-press-animating` left behind when the
+    // first ripple was destroyed with material's stylesheet rather than
+    // finishing. Drop it and this test fails intermittently on every engine —
+    // at `main` exactly as much as here, measured — because the flag outlives
+    // an animation cancelled by stylesheet teardown. That is #243, a zero
+    // behavior defect this test has always run in the healed configuration of;
+    // fixing it there is what lets this press go away.
+    await swap.click();
     await expect.poll(() => page.locator('[data-press-animating]').count()).toBe(0);
     await expect.poll(() => page.locator('[data-pressed]').count()).toBe(0);
 });
