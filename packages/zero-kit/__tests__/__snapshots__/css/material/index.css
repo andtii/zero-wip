@@ -2229,13 +2229,13 @@
         color: var(--checkbox-on-accent);
         --checkbox-mark-lead: 0;
         --checkbox-mark-lead-angle: 45deg;
-        --checkbox-mark-lead-offset: calc(var(--checkbox-mark-size) * 0.02) calc(var(--checkbox-mark-size) * -0.03);
+        --checkbox-mark-lead-offset: calc(var(--checkbox-mark-stroke) * 0.354) calc(var(--checkbox-mark-size) * -0.025 - var(--checkbox-mark-stroke) * 0.177);
         --checkbox-mark-trail: 0;
     }
 
     [data-scope="checkbox"][data-part="indicator"][data-state="checked"] {
-        --checkbox-mark-lead: 0.48;
-        --checkbox-mark-trail: 0.88;
+        --checkbox-mark-lead: 0.526;
+        --checkbox-mark-trail: 0.79;
     }
 
     [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"] {
@@ -2253,7 +2253,6 @@
         width: 100%;
         height: var(--checkbox-mark-stroke);
         margin-top: calc(var(--checkbox-mark-stroke) / -2);
-        border-radius: var(--checkbox-mark-stroke);
         background: currentColor;
         transform-origin: left center;
         translate: var(--checkbox-mark-lead-offset);
@@ -2270,10 +2269,9 @@
         width: 100%;
         height: var(--checkbox-mark-stroke);
         margin-top: calc(var(--checkbox-mark-stroke) / -2);
-        border-radius: var(--checkbox-mark-stroke);
         background: currentColor;
         transform-origin: left center;
-        translate: calc(var(--checkbox-mark-size) * 0.36) calc(var(--checkbox-mark-size) * 0.31);
+        translate: calc(var(--checkbox-mark-size) * 0.304 + var(--checkbox-mark-stroke) * 0.354) calc(var(--checkbox-mark-size) * 0.279 - var(--checkbox-mark-stroke) * 0.177);
         rotate: -45deg;
         scale: var(--checkbox-mark-trail) 1;
         transition: scale var(--duration-fast) var(--ease-emphasized-decelerate);
@@ -2407,7 +2405,6 @@
             height: auto;
             margin-top: 0;
             background: transparent;
-            border-radius: 0;
             translate: none;
             rotate: none;
             scale: none;
@@ -2441,7 +2438,6 @@
             height: auto;
             margin-top: 0;
             background: transparent;
-            border-radius: 0;
             translate: none;
             rotate: none;
             scale: none;

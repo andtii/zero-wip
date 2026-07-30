@@ -1029,7 +1029,6 @@ const markGlyphFallback: PartStyles = {
             height: 'auto',
             marginTop: '0',
             background: 'transparent',
-            borderRadius: '0',
             translate: 'none',
             rotate: 'none',
             scale: 'none',
@@ -1049,9 +1048,11 @@ export const checkbox: RecipeInput = {
         '--checkbox-size': 'calc(var(--size-selector) * 6)',
         '--checkbox-accent': 'var(--color-primary)',
         '--checkbox-on-accent': 'var(--color-primary-content)',
-        // The mark's own box. Material's check spans 10dp across an 18dp
-        // container (0.555); the arms below span 0.96 of this box, so
-        // 0.58 × the container reproduces that ratio at every step of the ramp.
+        // The mark's own box, and — since #226's re-centring — literally the
+        // mark's ink: the arms below are laid out so the tick's bounding box IS
+        // this square, centred in the container. Material's check spans 10dp
+        // across an 18dp container (0.555), so 0.58 reproduces that ratio at
+        // every step of the ramp.
         '--checkbox-mark-size': 'calc(var(--checkbox-size) * 0.58)',
         // Material's 2dp stroke, kept proportional so it scales with the ramp,
         // with a 2px floor so `xs` still reads as a stroke and not a hairline.
@@ -1080,12 +1081,39 @@ export const checkbox: RecipeInput = {
          * short arm sweeps down-right, then the long arm runs out of the elbow
          * up to the tip. Indeterminate is a single horizontal bar.
          *
-         * Both are the same two arms. Each arm is a rounded stroke pinned by
-         * its LEFT-CENTER to a point on the check's polyline, rotated onto that
+         * Both are the same two arms. Each arm is a stroke pinned by its
+         * LEFT-CENTER to a point on the check's polyline, rotated onto that
          * segment's axis, and scaled along it — so `scale` is literally how
          * much of the stroke has been drawn, and 0 is a check of zero length
          * rather than a hidden one. That is why `unchecked` needs no rule and
          * why `checked` is a draw-on and not a fade.
+         *
+         * ── THE JOINT ───────────────────────────────────────────────────────
+         * Material's tick is ONE polyline: butt caps, a mitre at the elbow
+         * (`_checkbox.scss` draws it as a single closed path, and every end of
+         * that path is a straight cut perpendicular to its arm). Two arms with
+         * rounded caps cannot make that joint — the caps splay and leave a
+         * notch at the outer corner, which reads as two bars laid over each
+         * other rather than a check. So: no `border-radius` anywhere, and the
+         * lead arm runs HALF A STROKE PAST the elbow, which is exactly the
+         * mitre. With `w` the stroke and the arms perpendicular, the mitre tip
+         * sits `w/√2` from the vertex along the outer bisector — and that point
+         * is precisely the far corner of the lead arm extended by `w/2`, so the
+         * two rectangles meet there with nothing left over and nothing missing.
+         * That extension is why `checked` reads 0.526 for a 0.43-long arm
+         * (0.43 + w/2 ÷ mark-size, w/mark-size being the fixed 0.191).
+         *
+         * ── THE PLACEMENT ───────────────────────────────────────────────────
+         * The polyline is positioned so the INK's bounding box is the mark box:
+         * with arms of 0.43 and 0.79 at ±45°, ink width = (0.43 + 0.79)/√2 +
+         * w·√2 = 1.0 of the box, and the start point at x = w/(2√2) puts the
+         * left cap's corner on x = 0. Vertically the same solve against the
+         * mitre tip (the lowest ink) and the long arm's outer tip corner (the
+         * highest) — hence the `-0.025·size - 0.177·stroke` in the offset,
+         * rather than the hand-tuned −0.03 that left the mark a pixel low.
+         * Ink aspect lands at 1 : 0.762, Material's own is 1 : 0.754. Measured
+         * on a 240px control (so sub-pixel snapping cannot flatter it): ink
+         * 139 × 106 with margins L 50.0 / R 51.0 and T 67.5 / B 66.5.
          *
          * The three degrees of freedom go through custom properties so the
          * STATE rules carry the geometry (the package's indirection idiom) and
@@ -1106,12 +1134,18 @@ export const checkbox: RecipeInput = {
                 // Resting: both arms collapsed onto the check's own axes.
                 '--checkbox-mark-lead': '0',
                 '--checkbox-mark-lead-angle': '45deg',
+                // The polyline's start point, solved for a centred ink box —
+                // see THE PLACEMENT above. Both terms are lengths, so the
+                // centring holds at `xs`, where the stroke hits its 2px floor
+                // and stops being 0.191 of the box.
                 '--checkbox-mark-lead-offset':
-                    'calc(var(--checkbox-mark-size) * 0.02) calc(var(--checkbox-mark-size) * -0.03)',
+                    'calc(var(--checkbox-mark-stroke) * 0.354) '
+                    + 'calc(var(--checkbox-mark-size) * -0.025 - var(--checkbox-mark-stroke) * 0.177)',
                 '--checkbox-mark-trail': '0',
             },
             states: {
-                checked: { '--checkbox-mark-lead': '0.48', '--checkbox-mark-trail': '0.88' },
+                // 0.43 of the box, plus the half-stroke that mitres the elbow.
+                checked: { '--checkbox-mark-lead': '0.526', '--checkbox-mark-trail': '0.79' },
                 // The bar is the SAME leading arm, unrotated and run to full
                 // width — so checked ⇄ indeterminate is one continuous morph
                 // (the check unfolding) rather than a swap of two marks.
@@ -1124,9 +1158,9 @@ export const checkbox: RecipeInput = {
                 unchecked: {},
             },
             selectors: {
-                // Leading arm: elbow-ward from (0.02, 0.47) at +45°. The polyline
-                // is offset half a stroke DOWN from a naive centring so the
-                // mark's ink, not its start point, sits on the box's midline.
+                // Leading arm: elbow-ward at +45° from the solved start point,
+                // and half a stroke past the elbow to close the mitre. No
+                // `border-radius`: Material's caps are square cuts.
                 '&::before': {
                     content: '""',
                     position: 'absolute',
@@ -1135,7 +1169,6 @@ export const checkbox: RecipeInput = {
                     width: '100%',
                     height: 'var(--checkbox-mark-stroke)',
                     marginTop: 'calc(var(--checkbox-mark-stroke) / -2)',
-                    borderRadius: 'var(--checkbox-mark-stroke)',
                     background: 'currentColor',
                     transformOrigin: 'left center',
                     translate: 'var(--checkbox-mark-lead-offset)',
@@ -1145,8 +1178,10 @@ export const checkbox: RecipeInput = {
                         + 'rotate var(--duration-fast) var(--ease-emphasized-decelerate), '
                         + 'scale var(--duration-fast) var(--ease-emphasized-decelerate)',
                 },
-                // Trailing arm: out of the elbow at (0.36, 0.81) at −45°, to a
-                // tip at (0.98, 0.19). Fixed axis — only its length animates.
+                // Trailing arm: out of the elbow at −45°, to the tip. Fixed
+                // axis — only its length animates. Its origin IS the elbow the
+                // lead arm ends at, to the pixel: the same solved start point
+                // plus 0.43 of the box along the +45° axis (0.43/√2 = 0.304).
                 '&::after': {
                     content: '""',
                     position: 'absolute',
@@ -1155,10 +1190,11 @@ export const checkbox: RecipeInput = {
                     width: '100%',
                     height: 'var(--checkbox-mark-stroke)',
                     marginTop: 'calc(var(--checkbox-mark-stroke) / -2)',
-                    borderRadius: 'var(--checkbox-mark-stroke)',
                     background: 'currentColor',
                     transformOrigin: 'left center',
-                    translate: 'calc(var(--checkbox-mark-size) * 0.36) calc(var(--checkbox-mark-size) * 0.31)',
+                    translate:
+                        'calc(var(--checkbox-mark-size) * 0.304 + var(--checkbox-mark-stroke) * 0.354) '
+                        + 'calc(var(--checkbox-mark-size) * 0.279 - var(--checkbox-mark-stroke) * 0.177)',
                     rotate: '-45deg',
                     scale: 'var(--checkbox-mark-trail) 1',
                     transition: 'scale var(--duration-fast) var(--ease-emphasized-decelerate)',
