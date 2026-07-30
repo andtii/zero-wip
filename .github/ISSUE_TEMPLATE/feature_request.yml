@@ -38,17 +38,17 @@ body:
     id: scope
     attributes:
       label: Which package(s) would this affect?
-      description: The private skins are not published to npm, but they ship in this repo and render in the playground.
+      description: "`zero-material`, `zero-brutalist`, `zero-heroui` and `zero-carbon` are private skins — not published to npm, but they ship in this repo and render in the playground."
       multiple: true
       options:
         - "@sigx/zero"
         - "@sigx/zero-kit"
         - "@sigx/zero-basic"
         - "@sigx/zero-daisyui"
-        - "@sigx/zero-material (private skin)"
-        - "@sigx/zero-brutalist (private skin)"
-        - "@sigx/zero-heroui (private skin)"
-        - "@sigx/zero-carbon (private skin)"
+        - "@sigx/zero-material"
+        - "@sigx/zero-brutalist"
+        - "@sigx/zero-heroui"
+        - "@sigx/zero-carbon"
         - Not sure
     validations:
       required: true
