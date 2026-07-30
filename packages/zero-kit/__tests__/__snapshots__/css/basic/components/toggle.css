@@ -1,8 +1,8 @@
 @layer zero.recipes {
     [data-scope="toggle"][data-part="root"] {
         --toggle-accent: var(--color-primary);
-        --toggle-on-accent: var(--color-primary-content);
         --toggle-soft: var(--color-primary-soft);
+        --toggle-ink: var(--color-primary);
     }
 
     [data-scope="toggle"][data-part="root"] {
@@ -18,18 +18,19 @@
         font-family: inherit;
         font-weight: var(--weight-medium);
         line-height: var(--leading-none);
+        font-variant-numeric: tabular-nums;
         cursor: pointer;
-        transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+        transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="toggle"][data-part="root"]:hover:not([data-disabled]) {
-        background: var(--color-base-200);
+        background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
     }
 
     [data-scope="toggle"][data-part="root"][data-state="on"] {
-        background: var(--toggle-accent);
-        color: var(--toggle-on-accent);
-        border-color: var(--toggle-accent);
+        background: var(--toggle-soft);
+        color: var(--toggle-ink);
+        border-color: color-mix(in oklch, var(--toggle-accent) 20%, transparent);
     }
 
     [data-scope="toggle"][data-part="root"][data-disabled] {
@@ -38,70 +39,71 @@
     }
 
     [data-scope="toggle"][data-part="root"][data-focus-visible] {
-        outline: 2px solid var(--toggle-accent);
+        outline: 2px solid var(--color-primary);
         outline-offset: 2px;
     }
 
     [data-scope="toggle"][data-part="root"][data-state="on"]:hover {
-        background: var(--toggle-accent);
+        background: color-mix(in oklch, var(--toggle-accent) 6%, var(--toggle-soft));
     }
 
     [data-scope="toggle"][data-part="root"][data-pressed]:not([data-disabled]) {
-        transform: translateY(1px);
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
+        transition: none;
     }
 
     [data-scope="toggle"][data-part="root"][data-color="primary"] {
         --toggle-accent: var(--color-primary);
-        --toggle-on-accent: var(--color-primary-content);
         --toggle-soft: var(--color-primary-soft);
+        --toggle-ink: var(--color-primary);
     }
 
     [data-scope="toggle"][data-part="root"]:not([data-color]) {
         --toggle-accent: var(--color-primary);
-        --toggle-on-accent: var(--color-primary-content);
         --toggle-soft: var(--color-primary-soft);
+        --toggle-ink: var(--color-primary);
     }
 
     [data-scope="toggle"][data-part="root"][data-color="secondary"] {
         --toggle-accent: var(--color-secondary);
-        --toggle-on-accent: var(--color-secondary-content);
         --toggle-soft: var(--color-secondary-soft);
+        --toggle-ink: var(--color-secondary);
     }
 
     [data-scope="toggle"][data-part="root"][data-color="accent"] {
         --toggle-accent: var(--color-accent);
-        --toggle-on-accent: var(--color-accent-content);
         --toggle-soft: var(--color-accent-soft);
+        --toggle-ink: var(--color-accent);
     }
 
     [data-scope="toggle"][data-part="root"][data-color="neutral"] {
         --toggle-accent: var(--color-neutral);
-        --toggle-on-accent: var(--color-neutral-content);
         --toggle-soft: var(--color-neutral-soft);
+        --toggle-ink: var(--color-base-content);
     }
 
     [data-scope="toggle"][data-part="root"][data-color="info"] {
         --toggle-accent: var(--color-info);
-        --toggle-on-accent: var(--color-info-content);
         --toggle-soft: var(--color-info-soft);
+        --toggle-ink: var(--color-info);
     }
 
     [data-scope="toggle"][data-part="root"][data-color="success"] {
         --toggle-accent: var(--color-success);
-        --toggle-on-accent: var(--color-success-content);
         --toggle-soft: var(--color-success-soft);
+        --toggle-ink: var(--color-success);
     }
 
     [data-scope="toggle"][data-part="root"][data-color="warning"] {
         --toggle-accent: var(--color-warning);
-        --toggle-on-accent: var(--color-warning-content);
         --toggle-soft: var(--color-warning-soft);
+        --toggle-ink: color-mix(in oklch, var(--color-warning) 45%, var(--color-base-content));
     }
 
     [data-scope="toggle"][data-part="root"][data-color="error"] {
         --toggle-accent: var(--color-error);
-        --toggle-on-accent: var(--color-error-content);
         --toggle-soft: var(--color-error-soft);
+        --toggle-ink: var(--color-error);
     }
 
     [data-scope="toggle"][data-part="root"][data-size="xs"] {

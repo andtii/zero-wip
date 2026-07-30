@@ -24,16 +24,137 @@ const focusRing: Record<string, PartStyles['base']> = {
 };
 
 /**
+ * The ink a role writes with on its own soft tint and on bare paper —
+ * outline/soft/ghost button text, the on-state of toggles. Six of eight raw
+ * roles compute ≥5.53:1 on the tint in both themes; two are codified
+ * exceptions rather than hoped about:
+ * - `neutral` is a fill, not an ink — near-invisible on its own dark-theme
+ *   tint (1.45:1). Base-content is the correct ink in both themes.
+ * - `warning` is a light ink in the light theme (2.84:1 on its tint).
+ *   A recipe cannot scope a rule to one theme, so the fix must be symmetric:
+ *   deepening toward base-content keeps the warm hue and lands on the
+ *   readable side in BOTH schemes, because base-content flips with them.
+ *   Measured (oklch→sRGB→WCAG, against the shipped token values): the 45/55
+ *   mix computes 6.67:1 on the light warning tint and 7.36:1 on light paper;
+ *   9.90:1 and 12.35:1 in dark — every surface ≥6.3:1, ≥2.1× the audit's
+ *   3:1 hard floor.
+ */
+const softInk = (role: string): string =>
+    role === 'neutral' ? 'var(--color-base-content)'
+        : role === 'warning' ? 'color-mix(in oklch, var(--color-warning) 45%, var(--color-base-content))'
+            : `var(--color-${role})`;
+
+/**
+ * The structural line Monograph draws everything with — regions, popups,
+ * separators, indent guides. Depth is hairlines, not shadows.
+ */
+const hairline = 'var(--border) solid var(--color-base-300)';
+
+/**
+ * Hover and pressed feedback as a translucent film of ink rather than a jump
+ * to a fixed base step: overlay panels sit on `base-200` in dark (see
+ * `overlaySurface`), where a `base-200` wash would vanish. Mixing
+ * `base-content` at 6%/12% reads as one/two steps of ink density on any
+ * surface, in both schemes.
+ *
+ * THE RULE: every piece of furniture — tabs, toggles, triggers, steppers,
+ * rows — hovers with `inkWash` and presses with `inkWashDeep`, one dialect
+ * everywhere. Opaque `base-200`/`base-300` fills are reserved for exactly one
+ * idiom, the button's ghost variant, whose wash-then-ink grammar is its own
+ * signature (see the `ghost` fill in `button`).
+ */
+const inkWash = 'color-mix(in oklch, var(--color-base-content) 6%, transparent)';
+const inkWashDeep = 'color-mix(in oklch, var(--color-base-content) 12%, transparent)';
+
+/**
+ * Pressed is instantaneous ink density — the runtime's press feedback
+ * (`data-pressed`), not `:active`: same sink, with keyboard parity and
+ * drag-off semantics the pseudo-class can't guarantee. Suppressing the colour
+ * transition makes the sink land the frame the pointer does; nothing in
+ * Monograph moves under the pointer, so there is no transform. The `:not`
+ * covers a press that goes disabled mid-gesture, and the flag's extra
+ * attribute outranks the state rules, so pressed wins over any hover or
+ * highlighted wash it lands on.
+ */
+const pressedInk: Record<string, CssProps> = {
+    '&[data-pressed]:not([data-disabled])': { background: inkWashDeep, transition: 'none' },
+};
+
+/**
+ * Every transient surface wears the same costume: a `base-300` hairline plus
+ * the single honest `lg` shadow — die-cut paper in light. In dark, depth
+ * shifts to surface steps, so the panel rises to `base-200` (`light-dark()`
+ * resolves against each theme's declared `color-scheme`) and the `lg`
+ * shadow's inset top highlight from `systemDark` makes it read lit-from-above
+ * rather than merely outlined. The uniformity is the brand.
+ */
+const overlaySurface = 'light-dark(var(--color-base-100), var(--color-base-200))';
+const overlayPanel: NonNullable<PartStyles['base']> = {
+    background: overlaySurface,
+    color: 'var(--color-base-content)',
+    border: hairline,
+    borderRadius: 'var(--radius-box)',
+    boxShadow: 'var(--shadow-lg)',
+};
+
+/**
+ * The quiet trigger an overlay opens from: transparent over the page inside a
+ * hairline frame — furniture until touched. Hover is one film of ink, `open`
+ * holds it while the surface is up, pressed (via `pressedInk`) is two.
+ */
+const quietTrigger: NonNullable<PartStyles['base']> = {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.5em',
+    padding: 'var(--space-md) var(--space-xl)',
+    fontSize: 'var(--text-sm)',
+    fontWeight: 'var(--weight-medium)',
+    fontVariantNumeric: 'tabular-nums',
+    lineHeight: 'var(--leading-none)',
+    color: 'var(--color-base-content)',
+    background: 'transparent',
+    border: hairline,
+    borderRadius: 'var(--radius-field)',
+    cursor: 'pointer',
+    transition: 'background var(--duration-fast) var(--ease-standard), '
+        + 'border-color var(--duration-fast) var(--ease-standard), '
+        + 'color var(--duration-fast) var(--ease-standard)',
+};
+
+/**
+ * The borderless sibling for dismiss/meta buttons that live inside a surface
+ * (dialog/popover/toast close): pure ghost, hover raises one film of ink.
+ */
+const ghostButton: NonNullable<PartStyles['base']> = {
+    appearance: 'none',
+    padding: 'var(--space-xs) var(--space-md)',
+    fontSize: 'var(--text-xs)',
+    fontWeight: 'var(--weight-medium)',
+    fontVariantNumeric: 'tabular-nums',
+    lineHeight: 'var(--leading-none)',
+    color: 'var(--color-base-content)',
+    background: 'transparent',
+    border: 'none',
+    borderRadius: 'var(--radius-field)',
+    cursor: 'pointer',
+    transition: 'background var(--duration-fast) var(--ease-standard)',
+};
+
+/**
  * Enter/exit presence for a top-layer popup — dialog, popover, menu, select,
- * tooltip.
+ * tooltip. The rise: entry is opacity plus a 4px translate toward final
+ * position at `normal`/`standard` (no scale, ever); exit fades at
+ * `fast`/`exit` with no travel — the base state carries no transform, so a
+ * closing panel never moves. Each direction rides the transition declared at
+ * its destination, which is how one element gets two tempos.
  *
  * Zero never unmounts a popup; it toggles `data-state` and calls the native
  * `showPopover()` / `showModal()`. That is all the platform needs: transition
  * `display` and `overlay` with `allow-discrete` and the browser keeps the
- * element in the top layer for the duration of the exit, so the same two
- * declarations buy both directions. `@starting-style` supplies the state the
- * entry animates FROM — without it the element simply appears at its open
- * value.
+ * element in the top layer for the duration of the exit fade, while
+ * `@starting-style` supplies the state the entry animates FROM — without it
+ * the element simply appears at its open value.
  *
  * `overlay` is Chromium-only as of writing; elsewhere the entry still animates
  * and the exit is instant.
@@ -41,20 +162,30 @@ const focusRing: Record<string, PartStyles['base']> = {
 const popupPresence = (from: string): PartStyles => ({
     base: {
         opacity: '0',
-        transform: from,
-        transition: 'opacity var(--duration-fast) var(--ease-standard), '
-            + 'transform var(--duration-fast) var(--ease-standard), '
+        transition: 'opacity var(--duration-fast) var(--ease-exit), '
             + 'display var(--duration-fast) allow-discrete, '
             + 'overlay var(--duration-fast) allow-discrete',
     },
-    states: { open: { opacity: '1', transform: 'none' } },
+    states: {
+        open: {
+            opacity: '1',
+            transform: 'none',
+            transition: 'opacity var(--duration-normal) var(--ease-standard), '
+                + 'transform var(--duration-normal) var(--ease-standard), '
+                + 'display var(--duration-normal) allow-discrete, '
+                + 'overlay var(--duration-normal) allow-discrete',
+        },
+    },
     at: {
         'starting-style': { states: { open: { opacity: '0', transform: from } } },
         // A looping animation would be sped up by the collapsed durations, but
         // a one-shot transition just becomes instant — which is what reduced
         // motion asks for. Stating it anyway keeps the intent explicit and
         // covers the discrete properties, which have no duration to collapse.
-        'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+        'reduced-motion': {
+            base: { transition: 'none' },
+            states: { open: { transition: 'none', transform: 'none' } },
+        },
     },
 });
 
@@ -120,6 +251,10 @@ export const tabs: RecipeInput = {
                 borderBottom: 'var(--border) solid var(--color-base-300)',
             },
         },
+        // The margin-marker grammar, run along the active edge: the tab bar is
+        // a hairline rule and the current tab carries a 2px accent bar over
+        // it — the "current page" marker of a docs sidebar, rotated. No pill,
+        // no radius: shape never signals hierarchy here, the line does.
         tab: {
             base: {
                 appearance: 'none',
@@ -129,20 +264,27 @@ export const tabs: RecipeInput = {
                 marginBottom: 'calc(-1 * var(--border))',
                 padding: '0.5rem 0.875rem',
                 fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
                 color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
                 cursor: 'pointer',
-                borderRadius: 'var(--radius-field) var(--radius-field) 0 0',
+                transition: 'color var(--duration-fast) var(--ease-standard), '
+                    + 'background var(--duration-fast) var(--ease-standard), '
+                    + 'border-color var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                hover: { color: 'var(--color-base-content)', background: 'var(--color-base-200)' },
+                hover: { color: 'var(--color-base-content)', background: inkWash },
+                // Selection stays weight 500 — the accent ink and the 2px bar
+                // do the work, so the label never reflows on activation.
                 active: { color: 'var(--tabs-accent)', borderBottomColor: 'var(--tabs-accent)' },
                 inactive: {},
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
+            selectors: { ...pressedInk },
         },
         panel: {
-            base: { fontSize: 'var(--text-md)' },
+            base: { fontSize: 'var(--text-md)', fontVariantNumeric: 'tabular-nums' },
             states: { active: {}, inactive: {} },
         },
     },
@@ -166,9 +308,10 @@ export const tabs: RecipeInput = {
 export const collapsible: RecipeInput = {
     component: 'collapsible',
     parts: {
+        // A bordered region, not a floating card: the hairline is the depth.
         root: withPresence(disclosurePresence, {
             base: {
-                border: 'var(--border) solid var(--color-base-300)',
+                border: hairline,
                 borderRadius: 'var(--radius-box)',
                 background: 'var(--color-base-100)',
                 color: 'var(--color-base-content)',
@@ -181,21 +324,37 @@ export const collapsible: RecipeInput = {
                 padding: 'var(--space-lg) var(--space-xl)',
                 fontSize: 'var(--text-md)',
                 fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
                 borderRadius: 'var(--radius-box)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard), '
+                    + 'color var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                hover: { background: 'var(--color-base-200)' },
-                open: { borderRadius: 'var(--radius-box) var(--radius-box) 0 0' },
+                hover: { background: inkWash },
+                // Open is the reading position: the heading takes the
+                // protagonist ink and the weight holds 500 — colour does the
+                // work, nothing gets heavier.
+                open: {
+                    color: 'var(--color-primary)',
+                    borderRadius: 'var(--radius-box) var(--radius-box) 0 0',
+                },
                 closed: {},
                 disabled: { opacity: 'var(--disabled-opacity)' },
-                ...focusRing,
+                // Inset ring: the trigger spans the bordered region edge to
+                // edge, so an offset ring would ride on top of the hairline
+                // frame. Still the one petrol ink.
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '-2px' },
             },
+            selectors: { ...pressedInk },
         },
         panel: {
             base: {
                 padding: 'var(--space-lg) var(--space-xl)',
-                borderTop: 'var(--border) solid var(--color-base-300)',
+                borderTop: hairline,
                 fontSize: 'var(--text-md)',
+                lineHeight: 'var(--leading-normal)',
+                fontVariantNumeric: 'tabular-nums',
             },
             states: { open: {}, closed: {} },
         },
@@ -223,6 +382,10 @@ export const switchRecipe: RecipeInput = {
                 unchecked: {},
             },
         },
+        // The track is a drawn surface, not a gray slab: base-200 with an
+        // inset hairline (a box-shadow rather than a border, so the declared
+        // geometry the thumb math relies on never shifts). The pill silhouette
+        // is the component's own; the radius token governs corners, not this.
         control: {
             base: {
                 display: 'inline-block',
@@ -230,11 +393,12 @@ export const switchRecipe: RecipeInput = {
                 width: 'var(--switch-width)',
                 height: 'var(--switch-height)',
                 borderRadius: '9999px',
-                background: 'var(--color-base-300)',
+                background: 'var(--color-base-200)',
+                boxShadow: 'inset 0 0 0 var(--border) var(--color-base-300)',
                 transition: 'background var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                checked: { background: 'var(--color-primary)' },
+                checked: { background: 'var(--color-primary)', boxShadow: 'none' },
                 unchecked: {},
                 'focus-visible': {
                     outline: '2px solid var(--color-primary)',
@@ -243,6 +407,8 @@ export const switchRecipe: RecipeInput = {
                 disabled: {},
             },
         },
+        // Paper thumb with its own hairline; nothing at rest casts a shadow.
+        // On the filled track the line drops — a die-cut disc needs no rule.
         thumb: {
             base: {
                 position: 'absolute',
@@ -252,19 +418,20 @@ export const switchRecipe: RecipeInput = {
                 height: 'calc(var(--switch-height) - var(--switch-pad) * 2)',
                 borderRadius: '9999px',
                 background: 'var(--color-base-100)',
-                boxShadow: 'var(--shadow-xs)',
+                boxShadow: 'inset 0 0 0 var(--border) var(--color-base-300)',
                 transition: 'transform var(--duration-fast) var(--ease-standard)',
             },
             states: {
                 checked: {
                     transform: 'translateX(calc(var(--switch-width) - var(--switch-height)))',
                     background: 'var(--color-primary-content)',
+                    boxShadow: 'none',
                 },
                 unchecked: {},
             },
         },
         label: {
-            base: { fontSize: 'var(--text-sm)' },
+            base: { fontSize: 'var(--text-sm)', fontVariantNumeric: 'tabular-nums' },
             states: { checked: {}, unchecked: {}, disabled: {} },
         },
     },
@@ -278,6 +445,9 @@ export const switchRecipe: RecipeInput = {
             lg: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 13)', '--switch-height': 'calc(var(--size-selector) * 7)' } } },
             xl: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 15)', '--switch-height': 'calc(var(--size-selector) * 8)' } } },
         },
+        // Colour rebinds the checked fill only — the focus ring stays petrol
+        // for every role (one-ink focus: "you are here" is always the same
+        // ink, so keyboard position reads at a page glance).
         color: Object.fromEntries(
             ROLES.map((c) => [
                 c,
@@ -285,7 +455,6 @@ export const switchRecipe: RecipeInput = {
                     control: {
                         states: {
                             checked: { background: `var(--color-${c})` },
-                            'focus-visible': { outline: `2px solid var(--color-${c})` },
                         },
                     },
                 },
@@ -303,32 +472,22 @@ export const dialog: RecipeInput = {
     component: 'dialog',
     parts: {
         trigger: {
-            base: {
-                appearance: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5em',
-                padding: 'var(--space-md) var(--space-xl)',
-                fontSize: 'var(--text-sm)',
-                fontWeight: 'var(--weight-medium)',
-                color: 'var(--color-base-content)',
-                background: 'var(--color-base-200)',
-                border: 'var(--border) solid var(--color-base-300)',
-                borderRadius: 'var(--radius-field)',
-                cursor: 'pointer',
-            },
+            base: quietTrigger,
             states: {
-                hover: { background: 'var(--color-base-300)' },
+                hover: { background: inkWash },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                open: {},
+                open: { background: inkWash },
                 closed: {},
                 ...focusRing,
             },
+            selectors: { ...pressedInk },
         },
-        popup: withPresence(popupPresence('translateY(8px) scale(0.98)'), {
-            // Mobile-first: a full-bleed sheet on small viewports, the
-            // centered card from `sm` up. Below `sm` a 32rem card with a
-            // 1rem gutter is most of the screen anyway, minus the reachability.
+        // Dialogs settle — the same rise grammar as every surface, travelling
+        // 4px down into place. Mobile-first: a full-bleed sheet on small
+        // viewports, the hairline card from `sm` up. Below `sm` a 32rem card
+        // with a 1rem gutter is most of the screen anyway, minus the
+        // reachability.
+        popup: withPresence(popupPresence('translateY(-4px)'), {
             base: {
                 padding: 'var(--space-2xl)',
                 width: '100%',
@@ -336,7 +495,7 @@ export const dialog: RecipeInput = {
                 height: '100dvh',
                 maxHeight: 'none',
                 margin: '0',
-                background: 'var(--color-base-100)',
+                background: overlaySurface,
                 color: 'var(--color-base-content)',
                 border: 'none',
                 borderRadius: '0',
@@ -353,7 +512,7 @@ export const dialog: RecipeInput = {
                         height: 'fit-content',
                         maxHeight: 'calc(100% - 2rem)',
                         margin: 'auto',
-                        border: 'var(--border) solid var(--color-base-300)',
+                        border: hairline,
                         borderRadius: 'var(--radius-box)',
                         boxShadow: 'var(--shadow-lg)',
                     },
@@ -361,7 +520,9 @@ export const dialog: RecipeInput = {
             },
         }),
         backdrop: {
-            base: { background: 'color-mix(in oklab, var(--color-neutral) 45%, transparent)' },
+            // A wash of the slate ink, not smoke — the page dims like paper
+            // under tracing stock.
+            base: { background: 'color-mix(in oklch, var(--color-neutral) 40%, transparent)' },
             states: { open: {}, closed: {} },
         },
         title: {
@@ -369,85 +530,78 @@ export const dialog: RecipeInput = {
                 margin: '0 0 var(--space-md)',
                 fontSize: 'var(--text-lg)',
                 fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-tight)',
+                fontVariantNumeric: 'tabular-nums',
             },
         },
         description: {
             base: {
                 margin: '0 0 var(--space-xl)',
                 fontSize: 'var(--text-sm)',
-                color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
+                lineHeight: 'var(--leading-normal)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        footer: {
+            base: {
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 'var(--space-sm)',
+                marginTop: 'var(--space-xl)',
             },
         },
         close: {
-            base: {
-                appearance: 'none',
-                padding: '0.375rem 0.875rem',
-                fontSize: 'var(--text-sm)',
-                color: 'var(--color-base-content)',
-                background: 'var(--color-base-200)',
-                border: 'var(--border) solid var(--color-base-300)',
-                borderRadius: 'var(--radius-field)',
-                cursor: 'pointer',
-            },
+            base: { ...ghostButton, fontSize: 'var(--text-sm)' },
             states: {
-                hover: { background: 'var(--color-base-300)' },
+                hover: { background: inkWash },
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 ...focusRing,
             },
+            selectors: { ...pressedInk },
         },
     },
-};
-
-const buttonBase: NonNullable<PartStyles['base']> = {
-    appearance: 'none',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.5em',
-    padding: 'var(--space-md) var(--space-xl)',
-    fontSize: 'var(--text-sm)',
-    fontWeight: 'var(--weight-medium)',
-    color: 'var(--color-base-content)',
-    background: 'var(--color-base-200)',
-    border: 'var(--border) solid var(--color-base-300)',
-    borderRadius: 'var(--radius-field)',
-    cursor: 'pointer',
 };
 
 export const popover: RecipeInput = {
     component: 'popover',
     parts: {
         trigger: {
-            base: buttonBase,
+            base: quietTrigger,
             states: {
-                hover: { background: 'var(--color-base-300)' },
+                hover: { background: inkWash },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                open: { background: 'var(--color-base-300)' },
+                open: { background: inkWash },
                 closed: {},
                 ...focusRing,
             },
+            selectors: { ...pressedInk },
         },
-        popup: withPresence(popupPresence('translateY(-4px)'), {
+        popup: withPresence(popupPresence('translateY(4px)'), {
             base: {
+                ...overlayPanel,
                 padding: 'var(--space-xl)',
                 minWidth: '14rem',
-                background: 'var(--color-base-100)',
-                color: 'var(--color-base-content)',
-                border: 'var(--border) solid var(--color-base-300)',
-                borderRadius: 'var(--radius-box)',
-                boxShadow: 'var(--shadow-md)',
             },
             states: { open: {}, closed: {} },
         }),
         title: {
-            base: { margin: '0 0 var(--space-md)', fontSize: 'var(--text-md)', fontWeight: 'var(--weight-semibold)' },
+            base: {
+                margin: '0 0 var(--space-md)',
+                fontSize: 'var(--text-md)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-tight)',
+                fontVariantNumeric: 'tabular-nums',
+            },
         },
         close: {
-            base: { ...buttonBase, padding: 'var(--space-xs) var(--space-lg)', fontSize: 'var(--text-xs)' },
+            base: ghostButton,
             states: {
-                hover: { background: 'var(--color-base-300)' },
+                hover: { background: inkWash },
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 ...focusRing,
             },
+            selectors: { ...pressedInk },
         },
     },
 };
@@ -459,16 +613,18 @@ export const tooltip: RecipeInput = {
             base: {},
             states: { open: {}, closed: {}, disabled: {} },
         },
-        popup: withPresence(popupPresence('translateY(-2px)'), {
+        // Not an inverted bubble: a tooltip here is a printed footnote — the
+        // same paper panel as every other transient surface, scaled down to a
+        // field-radius strip of meta-text.
+        popup: withPresence(popupPresence('translateY(4px)'), {
             base: {
-                padding: '0.375rem 0.625rem',
+                ...overlayPanel,
+                borderRadius: 'var(--radius-field)',
+                padding: 'var(--space-sm) var(--space-lg)',
                 maxWidth: '18rem',
                 fontSize: 'var(--text-xs)',
-                background: 'var(--color-neutral)',
-                color: 'var(--color-neutral-content)',
-                border: 'none',
-                borderRadius: 'var(--radius-field)',
-                boxShadow: 'var(--shadow-sm)',
+                lineHeight: 'var(--leading-tight)',
+                fontVariantNumeric: 'tabular-nums',
             },
             states: { open: {}, closed: {} },
         }),
@@ -479,24 +635,21 @@ export const menu: RecipeInput = {
     component: 'menu',
     parts: {
         trigger: {
-            base: buttonBase,
+            base: quietTrigger,
             states: {
-                hover: { background: 'var(--color-base-300)' },
+                hover: { background: inkWash },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                open: { background: 'var(--color-base-300)' },
+                open: { background: inkWash },
                 closed: {},
                 ...focusRing,
             },
+            selectors: { ...pressedInk },
         },
-        popup: withPresence(popupPresence('translateY(-4px)'), {
+        popup: withPresence(popupPresence('translateY(4px)'), {
             base: {
+                ...overlayPanel,
                 padding: 'var(--space-sm)',
                 minWidth: '12rem',
-                background: 'var(--color-base-100)',
-                color: 'var(--color-base-content)',
-                border: 'var(--border) solid var(--color-base-300)',
-                borderRadius: 'var(--radius-box)',
-                boxShadow: 'var(--shadow-md)',
             },
             states: { open: {}, closed: {} },
         }),
@@ -505,16 +658,32 @@ export const menu: RecipeInput = {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 'var(--space-md)',
-                padding: '0.375rem 0.625rem',
+                padding: 'var(--space-sm) var(--space-lg)',
+                // The marker rail: a transparent 2px border-inline-start with
+                // the padding pulled back by the same 2px, so inking the
+                // marker never reflows the row — and, being logical, the bar
+                // sits on the reading-start edge under RTL too (an inset
+                // box-shadow would stay physically left).
+                borderInlineStart: '2px solid transparent',
+                paddingInlineStart: 'calc(var(--space-lg) - 2px)',
                 fontSize: 'var(--text-sm)',
+                fontVariantNumeric: 'tabular-nums',
                 borderRadius: 'var(--radius-selector)',
                 cursor: 'pointer',
                 outline: 'none',
             },
             states: {
-                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                // The margin marker: the roving position gets a 2px bar of
+                // primary over the soft wash — one line per row, never a
+                // filled block, and dense lists stay readable. The text keeps
+                // the page ink; the marker does the signalling.
+                highlighted: {
+                    background: 'var(--color-primary-soft)',
+                    borderInlineStartColor: 'var(--color-primary)',
+                },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
+            selectors: { ...pressedInk },
         },
         // The item look, plus a chevron and an `open` state that keeps it
         // visually active after focus moves into the submenu.
@@ -523,8 +692,12 @@ export const menu: RecipeInput = {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 'var(--space-md)',
-                padding: '0.375rem 0.625rem',
+                padding: 'var(--space-sm) var(--space-lg)',
+                // The marker rail — see `item`.
+                borderInlineStart: '2px solid transparent',
+                paddingInlineStart: 'calc(var(--space-lg) - 2px)',
                 fontSize: 'var(--text-sm)',
+                fontVariantNumeric: 'tabular-nums',
                 borderRadius: 'var(--radius-selector)',
                 cursor: 'pointer',
                 outline: 'none',
@@ -532,40 +705,43 @@ export const menu: RecipeInput = {
             states: {
                 // `open` before `highlighted`: when both apply (pointer on the
                 // trigger while its submenu is open) the later-emitted
-                // `highlighted` must win BOTH properties — declared the other
-                // way round, `open` stole the background while `highlighted`
-                // kept the color: primary-content on base-200, unreadable (#116).
-                open: { background: 'var(--color-base-200)' },
+                // `highlighted` must win the background — declared the other
+                // way round, the held ink film would flatten the soft wash
+                // and swallow the marker (the #116 lesson).
+                open: { background: inkWash },
                 closed: {},
-                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                highlighted: {
+                    background: 'var(--color-primary-soft)',
+                    borderInlineStartColor: 'var(--color-primary)',
+                },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
             selectors: {
-                '&::after': { content: '"\\203A"', marginLeft: 'auto', opacity: '0.6' },
+                '&::after': { content: '"\\203A"', marginLeft: 'auto', opacity: '0.55' },
+                ...pressedInk,
             },
         },
-        // The popup surface, entering from the side it attaches on.
+        // The popup surface, entering from the side it attaches on — the same
+        // 4px rise, rotated to the attach axis.
         'sub-popup': withPresence(popupPresence('translateX(-4px)'), {
             base: {
+                ...overlayPanel,
                 padding: 'var(--space-sm)',
                 minWidth: '12rem',
-                background: 'var(--color-base-100)',
-                color: 'var(--color-base-content)',
-                border: 'var(--border) solid var(--color-base-300)',
-                borderRadius: 'var(--radius-box)',
-                boxShadow: 'var(--shadow-md)',
             },
             states: { open: {}, closed: {} },
         }),
         group: { base: {} },
+        // The overline: mono meta-text, the engineered tell.
         'group-label': {
             base: {
-                padding: '0.375rem 0.625rem',
+                padding: 'var(--space-sm) var(--space-lg)',
+                fontFamily: 'var(--font-mono)',
                 fontSize: 'var(--text-xs)',
-                fontWeight: 'var(--weight-semibold)',
+                fontWeight: 'var(--weight-medium)',
                 textTransform: 'uppercase',
                 letterSpacing: 'var(--tracking-wide)',
-                color: 'color-mix(in oklab, var(--color-base-content) 55%, transparent)',
+                color: 'color-mix(in oklch, var(--color-base-content) 60%, transparent)',
             },
         },
         separator: {
@@ -584,8 +760,14 @@ export const field: RecipeInput = {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' },
         },
+        // Weight 500, not 600 — semibold is for headings and table headers
+        // only; a form label is chrome.
         label: {
-            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
+            },
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
             selectors: {
                 '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' },
@@ -595,11 +777,17 @@ export const field: RecipeInput = {
             base: {
                 margin: '0',
                 fontSize: 'var(--text-xs)',
-                color: 'color-mix(in oklab, var(--color-base-content) 65%, transparent)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
             },
         },
         error: {
-            base: { margin: '0', fontSize: 'var(--text-xs)', color: 'var(--color-error)' },
+            base: {
+                margin: '0',
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--color-error)',
+            },
         },
     },
     skipStates: { label: ['invalid', 'required'], error: ['invalid'] },
@@ -623,6 +811,9 @@ export const checkbox: RecipeInput = {
                 checked: {}, unchecked: {}, indeterminate: {},
             },
         },
+        // A well cut into the page: paper fill, full-perimeter 1px hairline —
+        // the box is drawn, never floated. Hover darkens the line toward
+        // secondary, the same move fields make.
         control: {
             base: {
                 display: 'inline-flex',
@@ -630,7 +821,7 @@ export const checkbox: RecipeInput = {
                 justifyContent: 'center',
                 width: 'var(--checkbox-size)',
                 height: 'var(--checkbox-size)',
-                border: 'calc(var(--border) * 2) solid var(--color-base-300)',
+                border: 'var(--border) solid var(--color-base-300)',
                 borderRadius: 'var(--radius-selector)',
                 background: 'var(--color-base-100)',
                 transition: 'background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard)',
@@ -639,9 +830,19 @@ export const checkbox: RecipeInput = {
                 checked: { background: 'var(--checkbox-accent)', borderColor: 'var(--checkbox-accent)' },
                 indeterminate: { background: 'var(--checkbox-accent)', borderColor: 'var(--checkbox-accent)' },
                 unchecked: {},
-                'focus-visible': { outline: '2px solid var(--checkbox-accent)', outlineOffset: '2px' },
+                // One-ink focus: the ring is petrol for every role. Only the
+                // fill carries the accent.
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
                 invalid: { borderColor: 'var(--color-error)' },
                 disabled: {},
+            },
+            selectors: {
+                // Scoped to the empty, valid well — a bare `hover` outranks
+                // both the checked fill and the invalid border and would
+                // repaint them secondary.
+                '&[data-state="unchecked"]:hover:not([data-disabled], [data-invalid])': {
+                    borderColor: 'var(--color-secondary)',
+                },
             },
         },
         indicator: {
@@ -653,7 +854,7 @@ export const checkbox: RecipeInput = {
             },
         },
         label: {
-            base: { fontSize: 'var(--text-sm)' },
+            base: { fontSize: 'var(--text-sm)', fontVariantNumeric: 'tabular-nums' },
             states: { checked: {}, unchecked: {}, indeterminate: {}, disabled: {} },
         },
     },
@@ -686,8 +887,14 @@ export const radioGroup: RecipeInput = {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' },
         },
+        // Weight 500, not 600 — semibold is for headings and table headers
+        // only; a form label is chrome.
         label: {
-            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
+            },
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
         },
         item: {
@@ -697,6 +904,9 @@ export const radioGroup: RecipeInput = {
                 checked: {}, unchecked: {},
             },
         },
+        // The same well grammar as checkbox: paper fill, 1px hairline ring.
+        // Checked inks the ring and drops the dot in — a technical-drawing
+        // mark, not a filled pill.
         'item-control': {
             base: {
                 display: 'inline-flex',
@@ -704,7 +914,7 @@ export const radioGroup: RecipeInput = {
                 justifyContent: 'center',
                 width: 'var(--radio-size)',
                 height: 'var(--radio-size)',
-                border: 'calc(var(--border) * 2) solid var(--color-base-300)',
+                border: 'var(--border) solid var(--color-base-300)',
                 borderRadius: '9999px',
                 background: 'var(--color-base-100)',
                 transition: 'border-color var(--duration-fast) var(--ease-standard)',
@@ -712,8 +922,16 @@ export const radioGroup: RecipeInput = {
             states: {
                 checked: { borderColor: 'var(--radio-accent)' },
                 unchecked: {},
-                'focus-visible': { outline: '2px solid var(--radio-accent)', outlineOffset: '2px' },
+                // One-ink focus — petrol for every role.
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
                 disabled: {},
+            },
+            selectors: {
+                // Scoped to the empty well, like checkbox: a bare hover would
+                // outrank the checked ring.
+                '&[data-state="unchecked"]:hover:not([data-disabled])': {
+                    borderColor: 'var(--color-secondary)',
+                },
             },
         },
         'item-indicator': {
@@ -730,7 +948,7 @@ export const radioGroup: RecipeInput = {
             },
         },
         'item-label': {
-            base: { fontSize: 'var(--text-sm)' },
+            base: { fontSize: 'var(--text-sm)', fontVariantNumeric: 'tabular-nums' },
             states: { checked: {}, unchecked: {}, disabled: {} },
         },
     },
@@ -764,13 +982,21 @@ export const progress: RecipeInput = {
             states: { loading: {}, complete: {}, indeterminate: {} },
         },
         label: {
-            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)' },
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
+            },
         },
+        // A drawn channel, not a gray slab: base-200 with an inset hairline
+        // (a box-shadow rather than a border, so the track's declared height
+        // is exactly the range's).
         track: {
             base: {
                 width: '100%',
                 height: 'var(--progress-track-size)',
-                background: 'var(--color-base-300)',
+                background: 'var(--color-base-200)',
+                boxShadow: 'inset 0 0 0 var(--border) var(--color-base-300)',
                 borderRadius: '9999px',
                 overflow: 'hidden',
             },
@@ -801,7 +1027,8 @@ export const progress: RecipeInput = {
         'value-text': {
             base: {
                 fontSize: 'var(--text-xs)',
-                color: 'color-mix(in oklab, var(--color-base-content) 65%, transparent)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
             },
         },
     },
@@ -824,28 +1051,119 @@ export const progress: RecipeInput = {
 
 export const slider: RecipeInput = {
     component: 'slider',
-    tokens: { '--slider-accent': 'var(--color-primary)' },
+    // Track and thumb metrics ride the ramp: the channel matches progress's
+    // sizes step for step, the disc matches checkbox's.
+    tokens: {
+        '--slider-accent': 'var(--color-primary)',
+        '--slider-track-size': 'calc(var(--size-selector) * 2)',
+        '--slider-thumb-size': 'calc(var(--size-selector) * 5)',
+    },
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)', width: '100%' },
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
         },
+        // Weight 500, not 600 — semibold is for headings and table headers
+        // only; a form label is chrome.
         label: {
-            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
+            },
             states: { disabled: {} },
         },
+        // A custom skin (`appearance: none`), drawn with Monograph's own
+        // instruments: the track is the same channel progress draws —
+        // `base-200` under an inset hairline, 9999px — with the filled span
+        // reading the runtime-published `--slider-percent` as a gradient
+        // stop, and the thumb is the switch's paper disc — `base-100` inside
+        // its own hairline, no shadow (nothing at rest casts one).
+        //
+        // The rebuild is also the correctness move (see the kit skill): Blink
+        // ignores thumb-pseudo styling on a native range, and treats range
+        // inputs as ALWAYS `:focus-visible` — even on mouse focus — so a
+        // pseudo-class ring would read as a stuck rectangle after every
+        // pointer drag. The kit compiles this part's `focus-visible` state to
+        // the runtime's `[data-focus-visible]` flag (keyboard semantics), so
+        // the base kills the native outline and the state draws the one
+        // petrol ring only when it means it.
         control: {
-            base: { width: '100%', accentColor: 'var(--slider-accent)', cursor: 'pointer' },
+            base: {
+                appearance: 'none',
+                width: '100%',
+                height: 'var(--slider-thumb-size)',
+                margin: '0',
+                background: 'transparent',
+                cursor: 'pointer',
+                outline: 'none',
+                // Kept for the forced-colors fallback below, where native
+                // rendering takes over and still honours the accent.
+                accentColor: 'var(--slider-accent)',
+                '--slider-thumb-ink': 'var(--color-base-100)',
+                '--slider-track':
+                    'linear-gradient(to right, var(--slider-accent) var(--slider-percent, 50%), var(--color-base-200) 0)',
+            },
             states: {
                 disabled: { cursor: 'not-allowed' },
-                'focus-visible': { outline: '2px solid var(--slider-accent)', outlineOffset: '2px' },
-                invalid: { accentColor: 'var(--color-error)' },
+                // One-ink focus — petrol for every role; the accent shows in
+                // the track, not the ring.
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
+                // `invalid` is semantic: the accent indirection swaps the
+                // fill (and the forced-colors fallback) to error under every
+                // colour variant, on purpose.
+                invalid: { '--slider-accent': 'var(--color-error)' },
+                // Pressed is instantaneous ink on the paper disc — one film
+                // of `base-content`, the same 6% step everything else sinks
+                // by. A drag has no one-shot, so nothing animates.
+                pressed: { '--slider-thumb-ink': 'color-mix(in oklch, var(--color-base-content) 6%, var(--color-base-100))' },
+            },
+            selectors: {
+                // Vendor pseudos cannot share a selector list — one unknown
+                // selector invalidates the whole rule — so each engine gets
+                // its own copy reading the shared custom properties.
+                '&::-webkit-slider-runnable-track': {
+                    height: 'var(--slider-track-size)',
+                    borderRadius: '9999px',
+                    background: 'var(--slider-track)',
+                    boxShadow: 'inset 0 0 0 var(--border) var(--color-base-300)',
+                },
+                '&::-webkit-slider-thumb': {
+                    appearance: 'none',
+                    width: 'var(--slider-thumb-size)',
+                    height: 'var(--slider-thumb-size)',
+                    marginTop: 'calc((var(--slider-track-size) - var(--slider-thumb-size)) / 2)',
+                    borderRadius: '9999px',
+                    border: 'none',
+                    background: 'var(--slider-thumb-ink)',
+                    boxShadow: 'inset 0 0 0 var(--border) var(--color-base-300)',
+                },
+                '&::-moz-range-track': {
+                    height: 'var(--slider-track-size)',
+                    borderRadius: '9999px',
+                    background: 'var(--slider-track)',
+                    boxShadow: 'inset 0 0 0 var(--border) var(--color-base-300)',
+                },
+                '&::-moz-range-thumb': {
+                    width: 'var(--slider-thumb-size)',
+                    height: 'var(--slider-thumb-size)',
+                    borderRadius: '9999px',
+                    border: 'none',
+                    background: 'var(--slider-thumb-ink)',
+                    boxShadow: 'inset 0 0 0 var(--border) var(--color-base-300)',
+                },
+            },
+            at: {
+                // Native rendering knows forced colors better than a custom
+                // skin; the retained accentColor keeps the fallback branded.
+                'forced-colors': { base: { appearance: 'auto' } },
             },
         },
         'value-text': {
             base: {
                 fontSize: 'var(--text-xs)',
-                color: 'color-mix(in oklab, var(--color-base-content) 65%, transparent)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
             },
         },
     },
@@ -853,14 +1171,14 @@ export const slider: RecipeInput = {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--slider-accent': `var(--color-${c})`,
         } } }])),
-        // A native range widget: only its box height is size-able without an
-        // appearance:none rebuild, so the ramp moves the box and the text.
         size: {
-            xs: { control: { base: { height: 'calc(var(--size-selector) * 3)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
-            sm: { control: { base: { height: 'calc(var(--size-selector) * 4)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
-            md: { label: { base: { fontSize: 'var(--text-sm)' } } },
-            lg: { control: { base: { height: 'calc(var(--size-selector) * 7)' } }, label: { base: { fontSize: 'var(--text-md)' } } },
-            xl: { control: { base: { height: 'calc(var(--size-selector) * 8)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
+            xs: { root: { base: { '--slider-track-size': 'var(--size-selector)', '--slider-thumb-size': 'calc(var(--size-selector) * 4)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { '--slider-track-size': 'calc(var(--size-selector) * 1.5)', '--slider-thumb-size': 'calc(var(--size-selector) * 4.5)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
+            // `md` is the un-attributed render — the defaults in `tokens:`
+            // already ARE the middle step.
+            md: {},
+            lg: { root: { base: { '--slider-track-size': 'calc(var(--size-selector) * 3)', '--slider-thumb-size': 'calc(var(--size-selector) * 6)' } }, label: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { '--slider-track-size': 'calc(var(--size-selector) * 4)', '--slider-thumb-size': 'calc(var(--size-selector) * 7)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
         },
     },
     skipStates: { root: ['invalid', 'focus-visible'] },
@@ -869,18 +1187,20 @@ export const slider: RecipeInput = {
 export const accordion: RecipeInput = {
     component: 'accordion',
     parts: {
+        // One bordered region ruled into rows by hairlines — a table of
+        // contents, not a stack of cards.
         root: {
             base: {
                 display: 'flex',
                 flexDirection: 'column',
-                border: 'var(--border) solid var(--color-base-300)',
+                border: hairline,
                 borderRadius: 'var(--radius-box)',
                 background: 'var(--color-base-100)',
                 overflow: 'hidden',
             },
         },
         item: withPresence(disclosurePresence, {
-            base: { borderBottom: 'var(--border) solid var(--color-base-300)' },
+            base: { borderBottom: hairline },
             states: { open: {}, closed: {} },
             selectors: {
                 '&:last-child': { borderBottom: 'none' },
@@ -892,19 +1212,32 @@ export const accordion: RecipeInput = {
                 padding: 'var(--space-lg) var(--space-xl)',
                 fontSize: 'var(--text-md)',
                 fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
                 cursor: 'pointer',
                 listStyle: 'none',
+                transition: 'background var(--duration-fast) var(--ease-standard), '
+                    + 'color var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                hover: { background: 'var(--color-base-200)' },
-                open: {},
+                hover: { background: inkWash },
+                // The open heading takes the protagonist ink at the same 500
+                // weight — colour does the work, rows never reflow.
+                open: { color: 'var(--color-primary)' },
                 closed: {},
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                ...focusRing,
+                // Inset ring: the row runs edge to edge under the root's
+                // clipped corners, so an offset ring would be swallowed.
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '-2px' },
             },
+            selectors: { ...pressedInk },
         },
         panel: {
-            base: { padding: '0 var(--space-xl) var(--space-lg)', fontSize: 'var(--text-md)' },
+            base: {
+                padding: '0 var(--space-xl) var(--space-lg)',
+                fontSize: 'var(--text-md)',
+                lineHeight: 'var(--leading-normal)',
+                fontVariantNumeric: 'tabular-nums',
+            },
             states: { open: {}, closed: {} },
         },
     },
@@ -912,51 +1245,80 @@ export const accordion: RecipeInput = {
 
 export const select: RecipeInput = {
     component: 'select',
+    // The accent pair: the marker ink and its soft wash — no solid selected
+    // fill remains, so no `-on-accent` is needed.
     tokens: {
         '--select-accent': 'var(--color-primary)',
-        '--select-on-accent': 'var(--color-primary-content)',
+        '--select-soft': 'var(--color-primary-soft)',
     },
     parts: {
         root: {
             base: { display: 'inline-flex', flexDirection: 'column' },
         },
+        // Wells are paper: base-100 fill with the full-perimeter hairline,
+        // even on a tinted panel. Hover darkens the line toward secondary
+        // (the same move every field makes); open inks it with the accent.
         trigger: {
             base: {
-                ...buttonBase,
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: 'var(--space-lg)',
                 minWidth: '12rem',
+                padding: 'var(--space-md) var(--space-xl)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--color-base-content)',
                 background: 'var(--color-base-100)',
+                border: hairline,
+                borderRadius: 'var(--radius-field)',
+                cursor: 'pointer',
+                transition: 'border-color var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                hover: { borderColor: 'var(--color-base-content)' },
+                hover: { borderColor: 'var(--color-secondary)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 open: { borderColor: 'var(--select-accent)' },
                 closed: {},
                 invalid: { borderColor: 'var(--color-error)' },
                 placeholder: {},
-                ...focusRing,
+                // One-ink focus: the border swaps to primary under the offset
+                // petrol ring — every field makes the same move; the role
+                // accent surfaces on `open`, not here.
+                'focus-visible': {
+                    outline: '2px solid var(--color-primary)',
+                    outlineOffset: '2px',
+                    borderColor: 'var(--color-primary)',
+                },
+            },
+            selectors: {
+                // The one focus exception: an invalid field rings in error —
+                // the established error-signal convention outranks one-ink.
+                '&[data-invalid][data-focus-visible]': {
+                    outline: '2px solid var(--color-error)',
+                    borderColor: 'var(--color-error)',
+                },
+                ...pressedInk,
             },
         },
         value: {
             base: {},
             states: {
-                placeholder: { color: 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' },
+                placeholder: { color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)' },
             },
         },
         indicator: {
-            base: { opacity: '0.6', transition: 'transform var(--duration-fast) var(--ease-standard)' },
+            base: { opacity: '0.55', transition: 'transform var(--duration-fast) var(--ease-standard)' },
             states: { open: { transform: 'rotate(180deg)' }, closed: {} },
         },
-        popup: withPresence(popupPresence('translateY(-4px)'), {
+        popup: withPresence(popupPresence('translateY(4px)'), {
             base: {
+                ...overlayPanel,
                 padding: 'var(--space-sm)',
                 minWidth: '12rem',
-                background: 'var(--color-base-100)',
-                color: 'var(--color-base-content)',
-                border: 'var(--border) solid var(--color-base-300)',
-                borderRadius: 'var(--radius-box)',
-                boxShadow: 'var(--shadow-md)',
             },
             states: { open: {}, closed: {} },
         }),
@@ -966,14 +1328,32 @@ export const select: RecipeInput = {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: 'var(--space-md)',
-                padding: '0.375rem 0.625rem',
+                padding: 'var(--space-sm) var(--space-lg)',
+                // The marker rail — see menu's `item`: logical, so the bar
+                // flips with the reading direction, padded back so the marker
+                // never reflows the row.
+                borderInlineStart: '2px solid transparent',
+                paddingInlineStart: 'calc(var(--space-lg) - 2px)',
                 fontSize: 'var(--text-sm)',
+                fontVariantNumeric: 'tabular-nums',
                 borderRadius: 'var(--radius-selector)',
                 cursor: 'pointer',
             },
             states: {
-                highlighted: { background: 'var(--select-accent)', color: 'var(--select-on-accent)' },
-                selected: { fontWeight: 'var(--weight-semibold)' },
+                // `highlighted` before `selected`: the roving position is one
+                // film of ink — plain hover grammar — and when it lands on
+                // the chosen row the later-emitted `selected` wash must win
+                // (the #116 lesson, and tree-view's exact ordering).
+                highlighted: { background: inkWash },
+                // The margin marker (density rule) belongs to SELECTION, as
+                // in tree-view: soft wash plus the 2px inset-start accent bar
+                // — one line per chosen row, never a filled block. Weight
+                // stays 500 throughout, so labels never reflow; the indicator
+                // glyph and the marker carry the state.
+                selected: {
+                    background: 'var(--select-soft)',
+                    borderInlineStartColor: 'var(--select-accent)',
+                },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
         },
@@ -985,7 +1365,7 @@ export const select: RecipeInput = {
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--select-accent': `var(--color-${c})`,
-            '--select-on-accent': `var(--color-${c}-content)`,
+            '--select-soft': `var(--color-${c}-soft)`,
         } } }])),
         size: {
             xs: { trigger: { base: { padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } } },
@@ -1001,11 +1381,15 @@ export const button: RecipeInput = {
     component: 'button',
     // The two axes meet here instead of multiplying. `color` sets the accent
     // pair; `variant` decides how the accent is used. 8 + 4 + 5 rules rather
-    // than 8 × 4.
+    // than 8 × 4. Two inks ride along: `--btn-ink` is the role's readable
+    // on-tint ink (see `softInk`), `--btn-ghost-ink` is what a resting ghost
+    // writes with — base-content, except for the destructive role.
     tokens: {
         '--btn-accent': 'var(--color-primary)',
         '--btn-on-accent': 'var(--color-primary-content)',
         '--btn-soft': 'var(--color-primary-soft)',
+        '--btn-ink': softInk('primary'),
+        '--btn-ghost-ink': 'var(--color-base-content)',
     },
     parts: {
         root: {
@@ -1020,31 +1404,35 @@ export const button: RecipeInput = {
                 fontFamily: 'inherit',
                 fontWeight: 'var(--weight-medium)',
                 lineHeight: 'var(--leading-none)',
+                fontVariantNumeric: 'tabular-nums',
                 cursor: 'pointer',
                 transition: 'background var(--duration-fast) var(--ease-standard), '
-                    + 'border-color var(--duration-fast) var(--ease-standard)',
+                    + 'border-color var(--duration-fast) var(--ease-standard), '
+                    + 'color var(--duration-fast) var(--ease-standard)',
             },
             states: {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                // One-ink focus: 2px petrol at 2px offset for every role and
+                // every fill. Outline is not in the transition list, so the
+                // ring lands instantly.
                 'focus-visible': {
-                    outline: '2px solid var(--btn-accent)',
+                    outline: '2px solid var(--color-primary)',
                     outlineOffset: '2px',
                 },
             },
             selectors: {
-                // Pressed: the runtime's press feedback, not `:active` — same
-                // sink, but with keyboard parity and drag-off semantics the
-                // pseudo-class can't guarantee across browsers. The :not
-                // keeps specificity EQUAL to the hover rule — pressed then
-                // wins by source order, as :active did — and covers a press
-                // that goes disabled mid-gesture.
-                '&[data-pressed]:not([data-disabled])': { transform: 'translateY(1px)' },
+                // Press is instantaneous ink, never a transform: the landing
+                // is centralised here (the release still eases back at `fast`)
+                // while each fill variant below supplies its own pressed ink.
+                // Outranks hover by an attribute; the :not covers a press that
+                // goes disabled mid-gesture.
+                '&[data-pressed]:not([data-disabled])': { transition: 'none' },
             },
         },
     },
     variants: {
         // One rule per role rather than per role × fill: the fill
-        // variants below read these two tokens, so adding a colour
+        // variants below read these tokens, so adding a colour
         // costs one rule instead of four.
         color: Object.fromEntries(
             ROLES.map((c) => [
@@ -1055,38 +1443,89 @@ export const button: RecipeInput = {
                             '--btn-accent': `var(--color-${c})`,
                             '--btn-on-accent': `var(--color-${c}-content)`,
                             '--btn-soft': `var(--color-${c}-soft)`,
+                            '--btn-ink': softInk(c),
+                            // Destructive must telegraph before interaction —
+                            // the one ghost that is never furniture.
+                            ...(c === 'error' ? { '--btn-ghost-ink': 'var(--color-error)' } : {}),
                         },
                     },
                 },
             ]),
         ),
+        // Pressed feedback throughout is the runtime's `data-pressed` (same
+        // sink as `:active`, with keyboard parity and drag-off semantics),
+        // and it is pure ink density — nothing translates or scales, and
+        // `transition: none` makes the press land instantly while the
+        // release still eases back at `fast`. The `[data-pressed]` selector
+        // outranks the hover state by one attribute, and the :not covers a
+        // press that goes disabled mid-gesture.
         variant: {
+            // Flat role fill. No border, no shadow, no gradient — hover and
+            // press deepen the ink and nothing else moves.
             solid: {
                 root: {
                     base: { background: 'var(--btn-accent)', color: 'var(--btn-on-accent)' },
-                    states: { hover: { filter: 'brightness(0.92)' } },
+                    states: { hover: { background: 'color-mix(in oklch, var(--btn-accent) 92%, black)' } },
+                    selectors: {
+                        '&[data-pressed]:not([data-disabled])': {
+                            background: 'color-mix(in oklch, var(--btn-accent) 86%, black)',
+                            transition: 'none',
+                        },
+                    },
                 },
             },
+            // A labeled rule in the margin: 1px border in the role itself,
+            // role ink. Hover fills with the soft tint — the line never
+            // thickens — and press deepens the tint.
             outline: {
                 root: {
                     base: {
                         background: 'transparent',
-                        color: 'var(--btn-accent)',
+                        color: 'var(--btn-ink)',
                         borderColor: 'var(--btn-accent)',
                     },
                     states: { hover: { background: 'var(--btn-soft)' } },
+                    selectors: {
+                        '&[data-pressed]:not([data-disabled])': {
+                            background: 'color-mix(in oklch, var(--btn-accent) 6%, var(--btn-soft))',
+                            transition: 'none',
+                        },
+                    },
                 },
             },
+            // A printed 10% screen, drawn: soft tint plus a quiet hairline of
+            // the role at 20%. Hover raises the tint one step, press two.
             soft: {
                 root: {
-                    base: { background: 'var(--btn-soft)', color: 'var(--btn-accent)' },
-                    states: { hover: { filter: 'brightness(0.95)' } },
+                    base: {
+                        background: 'var(--btn-soft)',
+                        color: 'var(--btn-ink)',
+                        borderColor: 'color-mix(in oklch, var(--btn-accent) 20%, transparent)',
+                    },
+                    states: { hover: { background: 'color-mix(in oklch, var(--btn-accent) 6%, var(--btn-soft))' } },
+                    selectors: {
+                        '&[data-pressed]:not([data-disabled])': {
+                            background: 'color-mix(in oklch, var(--btn-accent) 12%, var(--btn-soft))',
+                            transition: 'none',
+                        },
+                    },
                 },
             },
+            // Furniture until touched: base-content at rest (error excepted,
+            // via `--btn-ghost-ink`), then the hover wash brings the role ink
+            // up and press deepens the wash a step.
             ghost: {
                 root: {
-                    base: { background: 'transparent', color: 'var(--btn-accent)' },
-                    states: { hover: { background: 'var(--btn-soft)' } },
+                    base: { background: 'transparent', color: 'var(--btn-ghost-ink)' },
+                    states: {
+                        hover: { background: 'var(--color-base-200)', color: 'var(--btn-ink)' },
+                    },
+                    selectors: {
+                        '&[data-pressed]:not([data-disabled])': {
+                            background: 'var(--color-base-300)',
+                            transition: 'none',
+                        },
+                    },
                 },
             },
         },
@@ -1143,8 +1582,13 @@ export const avatar: RecipeInput = {
                 height: '100%',
                 background: 'var(--avatar-accent)',
                 color: 'var(--avatar-on-accent)',
+                // Initials as mono meta-text: an annotation on the soft tint,
+                // not a candy monogram.
+                fontFamily: 'var(--font-mono)',
                 fontSize: 'var(--avatar-text)',
-                fontWeight: 'var(--weight-semibold)',
+                fontWeight: 'var(--weight-medium)',
+                letterSpacing: 'var(--tracking-wide)',
+                fontVariantNumeric: 'tabular-nums',
                 userSelect: 'none',
             },
             // `display` must not defeat the `hidden` zero sets once the image
@@ -1177,7 +1621,11 @@ export const avatar: RecipeInput = {
  * `@starting-style`/`allow-discrete` must NOT be used: zero mounts the root
  * `closed`, flips it `open` a frame later, and keeps it mounted after
  * dismissal until the longest transition here finishes. Both directions are
- * the ordinary two-state transition.
+ * the ordinary two-state transition, at Monograph's two tempos: entry slides
+ * at `slow`/`standard`, exit fades at `fast`/`exit` with no travel — the
+ * transform rides the same clock on a `step-end` curve, holding its open
+ * position for the whole fade and snapping back only once it has finished,
+ * so dismissal never visibly moves.
  */
 export const toast: RecipeInput = {
     component: 'toast',
@@ -1221,42 +1669,61 @@ export const toast: RecipeInput = {
                 alignItems: 'center',
                 columnGap: 'var(--space-md)',
                 padding: 'var(--space-md) var(--space-lg)',
-                background: 'var(--color-base-100)',
+                background: overlaySurface,
                 color: 'var(--color-base-content)',
-                border: 'var(--border) solid var(--color-base-300)',
-                borderLeft: 'calc(var(--border) * 3) solid var(--toast-accent)',
+                border: hairline,
+                // The margin marker carries the role: the inline-start
+                // hairline thickens to a 2px accent bar — logical, so it
+                // flips with the reading direction. The single honest `lg`
+                // shadow rides alone (in dark it brings the moonlit top edge).
+                borderInlineStart: '2px solid var(--toast-accent)',
                 borderRadius: 'var(--radius-box)',
                 boxShadow: 'var(--shadow-lg)',
                 fontSize: 'var(--text-sm)',
+                fontVariantNumeric: 'tabular-nums',
                 opacity: '0',
                 transform: 'translateY(var(--toast-from))',
-                transition: 'opacity var(--duration-normal) var(--ease-standard), '
-                    + 'transform var(--duration-normal) var(--ease-standard)',
+                // The exit half: fade at `fast`/`exit`; the transform rides
+                // the same `var(--duration-fast)` clock on a `step-end` curve
+                // — held at the open position for the whole fade, snapping
+                // back only at the end — so a dismissed toast never travels.
+                transition: 'opacity var(--duration-fast) var(--ease-exit), '
+                    + 'transform var(--duration-fast) step-end',
             },
             selectors: {
                 '&[data-placement^="top"]': { '--toast-from': '-8px' },
             },
             states: {
-                open: { opacity: '1', transform: 'none' },
+                // The entry half rides the open declaration: the slide, at
+                // `slow`/`standard` — arrive and settle.
+                open: {
+                    opacity: '1',
+                    transform: 'none',
+                    transition: 'opacity var(--duration-slow) var(--ease-standard), '
+                        + 'transform var(--duration-slow) var(--ease-standard)',
+                },
                 closed: {},
             },
             at: {
-                'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+                'reduced-motion': {
+                    base: { transition: 'none' },
+                    states: { open: { transition: 'none', transform: 'none' } },
+                },
             },
         },
         title: {
-            base: { gridColumn: '1', fontWeight: 'var(--weight-semibold)' },
+            base: { gridColumn: '1', fontWeight: 'var(--weight-medium)' },
         },
         description: {
             base: {
                 gridColumn: '1',
                 fontSize: 'var(--text-xs)',
-                color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
             },
         },
         action: {
             base: {
-                ...buttonBase,
+                ...quietTrigger,
                 gridColumn: '2',
                 gridRow: '1',
                 padding: 'var(--space-2xs) var(--space-sm)',
@@ -1264,25 +1731,25 @@ export const toast: RecipeInput = {
                 color: 'var(--toast-accent)',
             },
             states: {
-                hover: { background: 'var(--color-base-200)' },
+                hover: { background: inkWash },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
+            selectors: { ...pressedInk },
         },
         close: {
             base: {
-                ...buttonBase,
+                ...ghostButton,
                 gridColumn: '3',
                 gridRow: '1',
                 padding: 'var(--space-2xs) var(--space-xs)',
-                fontSize: 'var(--text-xs)',
-                border: 'none',
             },
             states: {
-                hover: { background: 'var(--color-base-200)' },
+                hover: { background: inkWash },
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 ...focusRing,
             },
+            selectors: { ...pressedInk },
         },
     },
     variants: {
@@ -1295,32 +1762,52 @@ export const toast: RecipeInput = {
 
 export const combobox: RecipeInput = {
     component: 'combobox',
+    // The accent pair mirrors select: marker ink plus soft wash — no solid
+    // highlighted fill remains, so no `-on-accent` is needed.
     tokens: {
         '--combobox-accent': 'var(--color-primary)',
-        '--combobox-on-accent': 'var(--color-primary-content)',
+        '--combobox-soft': 'var(--color-primary-soft)',
     },
     parts: {
         root: {
             base: { display: 'inline-flex', flexDirection: 'column' },
         },
-        // The field chrome lives on the box wrapping input + trigger; the
-        // focus ring draws here from the input's forwarded focus-visible.
+        // The field chrome lives on the box wrapping input + trigger — a well
+        // of paper with the full-perimeter hairline. Hover darkens the line
+        // toward secondary; open inks it with the accent; the focus ring
+        // draws here from the input's forwarded focus-visible.
         control: {
             base: {
                 display: 'inline-flex',
                 alignItems: 'center',
                 minWidth: '12rem',
                 background: 'var(--color-base-100)',
-                border: 'var(--border) solid var(--color-base-300)',
+                border: hairline,
                 borderRadius: 'var(--radius-field)',
+                transition: 'border-color var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                hover: { borderColor: 'var(--color-base-content)' },
+                hover: { borderColor: 'var(--color-secondary)' },
                 open: { borderColor: 'var(--combobox-accent)' },
                 closed: {},
                 invalid: { borderColor: 'var(--color-error)' },
                 disabled: { opacity: 'var(--disabled-opacity)' },
-                ...focusRing,
+                // One-ink focus: the border swaps to primary under the offset
+                // petrol ring — every field makes the same move; the role
+                // accent surfaces on `open`, not here.
+                'focus-visible': {
+                    outline: '2px solid var(--color-primary)',
+                    outlineOffset: '2px',
+                    borderColor: 'var(--color-primary)',
+                },
+            },
+            selectors: {
+                // The one focus exception: an invalid field rings in error —
+                // the established error-signal convention outranks one-ink.
+                '&[data-invalid][data-focus-visible]': {
+                    outline: '2px solid var(--color-error)',
+                    borderColor: 'var(--color-error)',
+                },
             },
         },
         input: {
@@ -1334,6 +1821,7 @@ export const combobox: RecipeInput = {
                 color: 'inherit',
                 font: 'inherit',
                 fontSize: 'var(--text-sm)',
+                fontVariantNumeric: 'tabular-nums',
                 padding: '0.5rem 0.75rem',
             },
             states: {
@@ -1345,7 +1833,7 @@ export const combobox: RecipeInput = {
                 required: {},
             },
             selectors: {
-                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' },
+                '&::placeholder': { color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)' },
             },
         },
         trigger: {
@@ -1354,7 +1842,7 @@ export const combobox: RecipeInput = {
                 border: 'none',
                 background: 'transparent',
                 color: 'inherit',
-                opacity: '0.6',
+                opacity: '0.55',
                 padding: '0 0.625rem',
                 cursor: 'pointer',
                 transition: 'transform var(--duration-fast) var(--ease-standard)',
@@ -1364,16 +1852,15 @@ export const combobox: RecipeInput = {
                 closed: {},
                 disabled: { cursor: 'not-allowed' },
             },
+            // The chevron is furniture inside the well, so it presses like
+            // furniture: two films of ink, landing instantly.
+            selectors: { ...pressedInk },
         },
-        popup: withPresence(popupPresence('translateY(-4px)'), {
+        popup: withPresence(popupPresence('translateY(4px)'), {
             base: {
+                ...overlayPanel,
                 padding: 'var(--space-sm)',
                 minWidth: '12rem',
-                background: 'var(--color-base-100)',
-                color: 'var(--color-base-content)',
-                border: 'var(--border) solid var(--color-base-300)',
-                borderRadius: 'var(--radius-box)',
-                boxShadow: 'var(--shadow-md)',
             },
             states: { open: {}, closed: {} },
         }),
@@ -1383,14 +1870,32 @@ export const combobox: RecipeInput = {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: 'var(--space-md)',
-                padding: '0.375rem 0.625rem',
+                padding: 'var(--space-sm) var(--space-lg)',
+                // The marker rail — see menu's `item`: logical, so the bar
+                // flips with the reading direction, padded back so the marker
+                // never reflows the row.
+                borderInlineStart: '2px solid transparent',
+                paddingInlineStart: 'calc(var(--space-lg) - 2px)',
                 fontSize: 'var(--text-sm)',
+                fontVariantNumeric: 'tabular-nums',
                 borderRadius: 'var(--radius-selector)',
                 cursor: 'pointer',
             },
             states: {
-                highlighted: { background: 'var(--combobox-accent)', color: 'var(--combobox-on-accent)' },
-                selected: { fontWeight: 'var(--weight-semibold)' },
+                // `highlighted` before `selected`: the roving position is one
+                // film of ink — plain hover grammar — and when it lands on
+                // the chosen row the later-emitted `selected` wash must win
+                // (the #116 lesson, and tree-view's exact ordering).
+                highlighted: { background: inkWash },
+                // The margin marker (density rule) belongs to SELECTION, as
+                // in tree-view: soft wash plus the 2px inset-start accent bar
+                // — one line per chosen row, never a filled block. Weight
+                // stays 500 throughout, so labels never reflow; the indicator
+                // glyph and the marker carry the state.
+                selected: {
+                    background: 'var(--combobox-soft)',
+                    borderInlineStartColor: 'var(--combobox-accent)',
+                },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
         },
@@ -1402,15 +1907,16 @@ export const combobox: RecipeInput = {
             base: {
                 padding: 'var(--space-md)',
                 fontSize: 'var(--text-sm)',
+                fontVariantNumeric: 'tabular-nums',
                 textAlign: 'center',
-                color: 'color-mix(in oklab, var(--color-base-content) 55%, transparent)',
+                color: 'color-mix(in oklch, var(--color-base-content) 60%, transparent)',
             },
         },
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--combobox-accent': `var(--color-${c})`,
-            '--combobox-on-accent': `var(--color-${c}-content)`,
+            '--combobox-soft': `var(--color-${c}-soft)`,
         } } }])),
         size: {
             xs: { input: { base: { padding: '0.25rem 0.5rem', fontSize: 'var(--text-xs)' } } },
@@ -1427,6 +1933,212 @@ export const combobox: RecipeInput = {
     },
 };
 
+export const toggle: RecipeInput = {
+    component: 'toggle',
+    // Same accent machinery as button: `color` sets the trio once, the on
+    // state consumes it — a role costs one rule, not one per state.
+    tokens: {
+        '--toggle-accent': 'var(--color-primary)',
+        '--toggle-soft': 'var(--color-primary-soft)',
+        '--toggle-ink': softInk('primary'),
+    },
+    parts: {
+        // Furniture until pressed on: hairline box, base-content label. The
+        // on state is the soft-chip grammar — softMix wash, role ink, the
+        // hairline re-inked at 20% role — a printed screen, not a solid slab.
+        root: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5em',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--color-base-300)',
+                borderRadius: 'var(--radius-field)',
+                fontFamily: 'inherit',
+                fontWeight: 'var(--weight-medium)',
+                lineHeight: 'var(--leading-none)',
+                fontVariantNumeric: 'tabular-nums',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard), '
+                    + 'color var(--duration-fast) var(--ease-standard), '
+                    + 'border-color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: inkWash },
+                on: {
+                    background: 'var(--toggle-soft)',
+                    color: 'var(--toggle-ink)',
+                    borderColor: 'color-mix(in oklch, var(--toggle-accent) 20%, transparent)',
+                },
+                off: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                // One-ink focus — petrol for every role.
+                'focus-visible': {
+                    outline: '2px solid var(--color-primary)',
+                    outlineOffset: '2px',
+                },
+            },
+            selectors: {
+                // Hover on an on toggle raises the tint one step rather than
+                // fading toward the furniture wash.
+                '&[data-state="on"]:hover': {
+                    background: 'color-mix(in oklch, var(--toggle-accent) 6%, var(--toggle-soft))',
+                },
+                ...pressedInk,
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(
+            ROLES.map((c) => [
+                c,
+                {
+                    root: {
+                        base: {
+                            '--toggle-accent': `var(--color-${c})`,
+                            '--toggle-soft': `var(--color-${c}-soft)`,
+                            '--toggle-ink': softInk(c),
+                        },
+                    },
+                },
+            ]),
+        ),
+        size: {
+            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-sm)' } } },
+            md: { root: { base: { padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--text-md)' } } },
+            lg: { root: { base: { padding: 'var(--space-md) var(--space-lg)', fontSize: 'var(--text-lg)' } } },
+            xl: { root: { base: { padding: 'var(--space-lg) var(--space-xl)', fontSize: 'var(--text-xl)' } } },
+        },
+    },
+    defaultVariants: { color: 'primary', size: 'md' },
+};
+
+export const toggleGroup: RecipeInput = {
+    component: 'toggle-group',
+    tokens: {
+        '--toggle-group-accent': 'var(--color-primary)',
+        '--toggle-group-soft': 'var(--color-primary-soft)',
+        '--toggle-group-ink': softInk('primary'),
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                border: 'var(--border) solid var(--color-base-300)',
+                borderRadius: 'var(--radius-field)',
+                overflow: 'hidden',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        // A dense repeating context, so selection follows the density rule:
+        // soft wash plus the 2px inset-start margin marker — one line per on
+        // segment, no per-item hairline (the items are joined anyway).
+        item: {
+            base: {
+                appearance: 'none',
+                position: 'relative',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5em',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                padding: 'var(--space-xs) var(--space-md)',
+                fontFamily: 'inherit',
+                fontWeight: 'var(--weight-medium)',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+                fontVariantNumeric: 'tabular-nums',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard), '
+                    + 'color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: inkWash },
+                on: {
+                    background: 'var(--toggle-group-soft)',
+                    color: 'var(--toggle-group-ink)',
+                },
+                off: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                'focus-visible': {
+                    // The group clips its children (joined corners), so an
+                    // offset ring would be swallowed — inset it instead. Still
+                    // the one petrol ink, every role.
+                    outline: '2px solid var(--color-primary)',
+                    outlineOffset: '-2px',
+                },
+            },
+            selectors: {
+                // The margin marker, as an overlay: the inline-start edge
+                // doubles as the joined-segment separator, so the bar is a
+                // positioned pseudo rather than a border — logical
+                // `inset-inline-start`, so it flips with the reading
+                // direction (and squares exactly: joined items carry no
+                // radius of their own).
+                '&[data-state="on"]::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlock: '0',
+                    insetInlineStart: '0',
+                    width: '2px',
+                    background: 'var(--toggle-group-accent)',
+                    pointerEvents: 'none',
+                },
+                // Hover on an on segment raises the tint one step; the marker
+                // rides along.
+                '&[data-state="on"]:hover': {
+                    background: 'color-mix(in oklch, var(--toggle-group-accent) 6%, var(--toggle-group-soft))',
+                },
+                '&[data-orientation="horizontal"] + &': {
+                    borderInlineStart: 'var(--border) solid var(--color-base-300)',
+                },
+                '&[data-orientation="vertical"] + &': {
+                    borderBlockStart: 'var(--border) solid var(--color-base-300)',
+                },
+                ...pressedInk,
+            },
+        },
+    },
+    variants: {
+        // The group is a frame around its items, so the ramp lands on the
+        // items and the frame follows their box.
+        size: {
+            xs: { item: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } } },
+            sm: { item: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-sm)' } } },
+            // `md` is the un-attributed render: the base already IS the
+            // middle step, so restating it here would be a second copy free
+            // to drift. An empty entry emits no rule and keeps the base.
+            md: {},
+            lg: { item: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-sm) var(--space-lg)' } } },
+            xl: { item: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-xl)' } } },
+        },
+        color: Object.fromEntries(
+            ROLES.map((c) => [
+                c,
+                {
+                    item: {
+                        base: {
+                            '--toggle-group-accent': `var(--color-${c})`,
+                            '--toggle-group-soft': `var(--color-${c}-soft)`,
+                            '--toggle-group-ink': softInk(c),
+                        },
+                    },
+                },
+            ]),
+        ),
+    },
+    defaultVariants: { color: 'primary' },
+};
+
 export const numberInput: RecipeInput = {
     component: 'number-input',
     tokens: { '--number-input-accent': 'var(--color-primary)' },
@@ -1435,31 +2147,53 @@ export const numberInput: RecipeInput = {
             base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
             states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
         },
+        // Weight 500, not 600 — semibold is for headings and table headers
+        // only; a form label is chrome.
         label: {
-            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
+            },
             states: {
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 invalid: { color: 'var(--color-error)' },
                 required: {},
             },
         },
-        // The field chrome (combobox split): the ring and the invalid tint
-        // draw on the box, input and triggers sit inside it.
+        // The field chrome (combobox split): a well of paper with the
+        // full-perimeter hairline; the ring and the invalid tint draw on the
+        // box, input and steppers sit inside it. Focus swaps the border to
+        // primary under the petrol ring — the same one-ink move select and
+        // combobox make.
         control: {
             base: {
                 display: 'inline-flex',
                 alignItems: 'stretch',
                 background: 'var(--color-base-100)',
-                border: 'var(--border) solid var(--color-base-300)',
+                border: hairline,
                 borderRadius: 'var(--radius-field)',
                 overflow: 'hidden',
+                transition: 'border-color var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                hover: { borderColor: 'var(--color-base-content)' },
+                hover: { borderColor: 'var(--color-secondary)' },
                 invalid: { borderColor: 'var(--color-error)' },
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 readonly: {},
-                'focus-visible': { ...focusRing['focus-visible'], outline: '2px solid var(--number-input-accent)' },
+                'focus-visible': {
+                    outline: '2px solid var(--color-primary)',
+                    outlineOffset: '2px',
+                    borderColor: 'var(--color-primary)',
+                },
+            },
+            selectors: {
+                // The one focus exception: an invalid field rings in error —
+                // the established error-signal convention outranks one-ink.
+                '&[data-invalid][data-focus-visible]': {
+                    outline: '2px solid var(--color-error)',
+                    borderColor: 'var(--color-error)',
+                },
             },
         },
         input: {
@@ -1471,8 +2205,14 @@ export const numberInput: RecipeInput = {
                 outline: 'none',
                 background: 'transparent',
                 color: 'inherit',
+                // Where the role accent surfaces: the caret writes in the
+                // role's ink (a number input has no `open` state to carry
+                // it, and the focus border is one-ink primary like every
+                // other field).
+                caretColor: 'var(--number-input-accent)',
                 font: 'inherit',
                 fontSize: 'var(--text-sm)',
+                fontVariantNumeric: 'tabular-nums',
                 textAlign: 'center',
                 padding: '0.5rem 0.5rem',
             },
@@ -1483,53 +2223,55 @@ export const numberInput: RecipeInput = {
                 required: {},
             },
             selectors: {
-                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' },
+                '&::placeholder': { color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)' },
             },
         },
+        // Steppers are furniture inside the well: transparent over the paper
+        // behind their hairline separators; hover is one film of ink, press
+        // is two and lands instantly.
         'increment-trigger': {
             base: {
                 appearance: 'none',
                 border: 'none',
-                background: 'var(--color-base-200)',
+                background: 'transparent',
                 color: 'inherit',
                 padding: '0 0.75rem',
                 cursor: 'pointer',
                 userSelect: 'none',
-                borderInlineStart: 'var(--border) solid var(--color-base-300)',
+                borderInlineStart: hairline,
+                transition: 'background var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                hover: { background: 'var(--color-base-300)' },
+                hover: { background: inkWash },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
-            selectors: {
-                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
-            },
+            selectors: { ...pressedInk },
         },
         'decrement-trigger': {
             base: {
                 appearance: 'none',
                 border: 'none',
-                background: 'var(--color-base-200)',
+                background: 'transparent',
                 color: 'inherit',
                 padding: '0 0.75rem',
                 cursor: 'pointer',
                 userSelect: 'none',
-                borderInlineEnd: 'var(--border) solid var(--color-base-300)',
+                borderInlineEnd: hairline,
+                transition: 'background var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                hover: { background: 'var(--color-base-300)' },
+                hover: { background: inkWash },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
-            selectors: {
-                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
-            },
+            selectors: { ...pressedInk },
         },
     },
     // The visible ring lives on `control`; the input delegates.
     skipStates: { input: ['focus-visible'] },
     variants: {
-        // The field's own ring carries the role — the chrome is neutral, so
-        // the focus state is the only place a number input can show colour.
+        // The caret carries the role — the chrome is neutral, the ring is
+        // always petrol, and the focus border is one-ink primary, so the
+        // accent surfaces only where the value is written.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--number-input-accent': `var(--color-${c})`,
         } } }])),
@@ -1550,17 +2292,26 @@ export const numberInput: RecipeInput = {
 
 export const ratingGroup: RecipeInput = {
     component: 'rating-group',
+    // The default fill is the same deepened mix the colour variants use —
+    // a rating glyph is text on the page, and the raw role is not always
+    // safe there (see the variants note).
     tokens: {
         '--rating-size': 'var(--text-xl)',
-        '--rating-fill': 'var(--color-warning)',
+        '--rating-fill': 'color-mix(in oklab, var(--color-warning) 70%, var(--color-warning-content))',
     },
     parts: {
         root: {
             base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
             states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
         },
+        // Weight 500, not 600 — semibold is for headings and table headers
+        // only; a form label is chrome.
         label: {
-            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
+            },
             states: {
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 invalid: { color: 'var(--color-error)' },
@@ -1579,6 +2330,8 @@ export const ratingGroup: RecipeInput = {
                 },
             },
         },
+        // Nothing moves on hover — the preview is pure ink: the highlighted
+        // glyph takes the fill colour instead of growing.
         item: {
             base: {
                 fontSize: 'var(--rating-size)',
@@ -1586,22 +2339,18 @@ export const ratingGroup: RecipeInput = {
                 cursor: 'pointer',
                 userSelect: 'none',
                 color: 'var(--color-base-300)',
-                transition: 'color var(--duration-fast) var(--ease-standard), '
-                    + 'transform var(--duration-fast) var(--ease-standard)',
+                transition: 'color var(--duration-fast) var(--ease-standard)',
             },
             states: {
                 full: { color: 'var(--rating-fill)' },
                 half: { color: 'var(--rating-fill)' },
                 empty: {},
-                highlighted: { transform: 'scale(1.15)' },
+                highlighted: { color: 'var(--rating-fill)' },
                 disabled: { cursor: 'not-allowed' },
                 readonly: { cursor: 'default' },
                 // The group ring lives on control; per-item focus still gets
                 // a subtle marker for the value-following tab stop.
                 'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '1px', borderRadius: 'var(--radius-selector)' },
-            },
-            at: {
-                'reduced-motion': { base: { transition: 'none' }, states: { highlighted: { transform: 'none' } } },
             },
         },
     },
@@ -1628,18 +2377,29 @@ export const ratingGroup: RecipeInput = {
 
 export const treeView: RecipeInput = {
     component: 'tree-view',
+    // A tree IS the docs sidebar the margin marker was designed for, so the
+    // accent pair is the marker plus its soft wash — no solid selected fill,
+    // which also keeps the row's text in page ink on every role/theme.
     tokens: {
         '--tree-accent': 'var(--color-primary)',
         '--tree-text': 'var(--text-sm)',
-        '--tree-on-accent': 'var(--color-primary-content)',
+        '--tree-soft': 'var(--color-primary-soft)',
     },
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
         },
+        // The overline above the tree: mono meta-text, the engineered tell.
         label: {
-            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
+            base: {
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-medium)',
+                textTransform: 'uppercase',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklch, var(--color-base-content) 60%, transparent)',
+            },
         },
         tree: {
             base: { display: 'flex', flexDirection: 'column', fontSize: 'var(--tree-text)' },
@@ -1652,18 +2412,35 @@ export const treeView: RecipeInput = {
                 alignItems: 'center',
                 gap: 'var(--space-xs)',
                 padding: '0.25rem 0.5rem',
+                // The marker rail — see menu's `item`: logical, so the bar
+                // flips with the reading direction, padded back so the marker
+                // never reflows the row.
+                borderInlineStart: '2px solid transparent',
+                paddingInlineStart: 'calc(0.5rem - 2px)',
+                fontVariantNumeric: 'tabular-nums',
                 borderRadius: 'var(--radius-selector)',
                 cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                hover: { background: 'var(--color-base-200)' },
-                selected: { background: 'var(--tree-accent)', color: 'var(--tree-on-accent)' },
+                // `hover` before `selected`: when both apply the later-emitted
+                // wash must win, so a selected row never fades back to the
+                // hover film under the pointer (the #116 lesson).
+                hover: { background: inkWash },
+                // The margin marker: the current row gets a 2px bar of the
+                // accent over the soft wash — one line per selection, never a
+                // filled block, and the text keeps the page ink.
+                selected: {
+                    background: 'var(--tree-soft)',
+                    borderInlineStartColor: 'var(--tree-accent)',
+                },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                // Inset ring: rows sit flush against their siblings, so an
+                // offset ring would collide with the next row. Still the one
+                // petrol ink.
                 'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '-2px' },
             },
-            selectors: {
-                '&[data-selected]:hover': { background: 'var(--tree-accent)' },
-            },
+            selectors: { ...pressedInk },
         },
         branch: {
             base: { display: 'flex', flexDirection: 'column', outline: 'none' },
@@ -1675,25 +2452,34 @@ export const treeView: RecipeInput = {
                 alignItems: 'center',
                 gap: 'var(--space-xs)',
                 padding: '0.25rem 0.5rem',
+                // The marker rail — see `item`.
+                borderInlineStart: '2px solid transparent',
+                paddingInlineStart: 'calc(0.5rem - 2px)',
+                fontVariantNumeric: 'tabular-nums',
                 borderRadius: 'var(--radius-selector)',
                 cursor: 'pointer',
                 userSelect: 'none',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                hover: { background: 'var(--color-base-200)' },
+                hover: { background: inkWash },
                 open: {},
                 closed: {},
-                selected: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                // The same marker as `item` — a selected branch heading is a
+                // current position, not a different species of selection.
+                selected: {
+                    background: 'var(--tree-soft)',
+                    borderInlineStartColor: 'var(--tree-accent)',
+                },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '-2px' },
             },
-            selectors: {
-                '&[data-selected]:hover': { background: 'var(--color-primary)' },
-            },
+            selectors: { ...pressedInk },
         },
         'branch-indicator': {
             base: {
                 display: 'inline-block',
+                opacity: '0.55',
                 transition: 'transform var(--duration-fast) var(--ease-standard)',
             },
             states: { open: { transform: 'rotate(90deg)' }, closed: {} },
@@ -1701,17 +2487,25 @@ export const treeView: RecipeInput = {
                 'reduced-motion': { base: { transition: 'none' } },
             },
         },
+        // Each level hangs off a hairline indent guide — the tree draws its
+        // structure the way the rest of Monograph does, with a rule.
         'branch-content': {
-            base: { display: 'flex', flexDirection: 'column', paddingInlineStart: '1rem' },
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                marginInlineStart: '0.5rem',
+                paddingInlineStart: '0.5rem',
+                borderInlineStart: hairline,
+            },
             states: { open: {}, closed: {} },
         },
     },
     variants: {
-        // A tree colours one thing: the selected row. Everything else is
+        // A tree colours one thing: the selection marker. Everything else is
         // structure, and tinting it would fight the content.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--tree-accent': `var(--color-${c})`,
-            '--tree-on-accent': `var(--color-${c}-content)`,
+            '--tree-soft': `var(--color-${c}-soft)`,
         } } }])),
         size: {
             xs: { root: { base: { '--tree-text': 'var(--text-xs)' } } },
@@ -1723,176 +2517,6 @@ export const treeView: RecipeInput = {
             xl: { root: { base: { '--tree-text': 'var(--text-lg)' } } },
         },
     },
-};
-
-export const toggle: RecipeInput = {
-    component: 'toggle',
-    // Same accent machinery as button: `color` sets the pair once, the on
-    // state consumes it — a role costs one rule, not one per state.
-    tokens: {
-        '--toggle-accent': 'var(--color-primary)',
-        '--toggle-on-accent': 'var(--color-primary-content)',
-        '--toggle-soft': 'var(--color-primary-soft)',
-    },
-    parts: {
-        root: {
-            base: {
-                appearance: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5em',
-                background: 'transparent',
-                color: 'var(--color-base-content)',
-                border: 'var(--border) solid var(--color-base-300)',
-                borderRadius: 'var(--radius-field)',
-                fontFamily: 'inherit',
-                fontWeight: 'var(--weight-medium)',
-                lineHeight: 'var(--leading-none)',
-                cursor: 'pointer',
-                transition: 'background var(--duration-fast) var(--ease-standard), '
-                    + 'color var(--duration-fast) var(--ease-standard)',
-            },
-            states: {
-                hover: { background: 'var(--color-base-200)' },
-                on: {
-                    background: 'var(--toggle-accent)',
-                    color: 'var(--toggle-on-accent)',
-                    borderColor: 'var(--toggle-accent)',
-                },
-                off: {},
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                'focus-visible': {
-                    outline: '2px solid var(--toggle-accent)',
-                    outlineOffset: '2px',
-                },
-            },
-            selectors: {
-                // Hover on an on toggle must not fade toward the hover wash —
-                // equal specificity, later in source, so on wins.
-                '&[data-state="on"]:hover': { background: 'var(--toggle-accent)' },
-                '&[data-pressed]:not([data-disabled])': { transform: 'translateY(1px)' },
-            },
-        },
-    },
-    variants: {
-        color: Object.fromEntries(
-            ROLES.map((c) => [
-                c,
-                {
-                    root: {
-                        base: {
-                            '--toggle-accent': `var(--color-${c})`,
-                            '--toggle-on-accent': `var(--color-${c}-content)`,
-                            '--toggle-soft': `var(--color-${c}-soft)`,
-                        },
-                    },
-                },
-            ]),
-        ),
-        size: {
-            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } } },
-            sm: { root: { base: { padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-sm)' } } },
-            md: { root: { base: { padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--text-md)' } } },
-            lg: { root: { base: { padding: 'var(--space-md) var(--space-lg)', fontSize: 'var(--text-lg)' } } },
-            xl: { root: { base: { padding: 'var(--space-lg) var(--space-xl)', fontSize: 'var(--text-xl)' } } },
-        },
-    },
-    defaultVariants: { color: 'primary', size: 'md' },
-};
-
-export const toggleGroup: RecipeInput = {
-    component: 'toggle-group',
-    tokens: {
-        '--toggle-group-accent': 'var(--color-primary)',
-        '--toggle-group-on-accent': 'var(--color-primary-content)',
-    },
-    parts: {
-        root: {
-            base: {
-                display: 'inline-flex',
-                border: 'var(--border) solid var(--color-base-300)',
-                borderRadius: 'var(--radius-field)',
-                overflow: 'hidden',
-            },
-            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
-            selectors: {
-                '&[data-orientation="vertical"]': { flexDirection: 'column' },
-            },
-        },
-        item: {
-            base: {
-                appearance: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5em',
-                background: 'transparent',
-                color: 'var(--color-base-content)',
-                border: 'none',
-                padding: 'var(--space-xs) var(--space-md)',
-                fontFamily: 'inherit',
-                fontWeight: 'var(--weight-medium)',
-                fontSize: 'var(--text-sm)',
-                lineHeight: 'var(--leading-none)',
-                cursor: 'pointer',
-                transition: 'background var(--duration-fast) var(--ease-standard), '
-                    + 'color var(--duration-fast) var(--ease-standard)',
-            },
-            states: {
-                hover: { background: 'var(--color-base-200)' },
-                on: {
-                    background: 'var(--toggle-group-accent)',
-                    color: 'var(--toggle-group-on-accent)',
-                },
-                off: {},
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                'focus-visible': {
-                    // The group clips its children (joined corners), so an
-                    // offset ring would be swallowed — inset it instead.
-                    outline: '2px solid var(--toggle-group-accent)',
-                    outlineOffset: '-2px',
-                },
-            },
-            selectors: {
-                '&[data-state="on"]:hover': { background: 'var(--toggle-group-accent)' },
-                '&[data-orientation="horizontal"] + &': {
-                    borderInlineStart: 'var(--border) solid var(--color-base-300)',
-                },
-                '&[data-orientation="vertical"] + &': {
-                    borderBlockStart: 'var(--border) solid var(--color-base-300)',
-                },
-            },
-        },
-    },
-    variants: {
-        // The group is a frame around its items, so the ramp lands on the
-        // items and the frame follows their box.
-        size: {
-            xs: { item: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } } },
-            sm: { item: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-sm)' } } },
-            // `md` is the un-attributed render: the base already IS the
-            // middle step, so restating it here would be a second copy free
-            // to drift. An empty entry emits no rule and keeps the base.
-            md: {},
-            lg: { item: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-sm) var(--space-lg)' } } },
-            xl: { item: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-xl)' } } },
-        },
-        color: Object.fromEntries(
-            ROLES.map((c) => [
-                c,
-                {
-                    item: {
-                        base: {
-                            '--toggle-group-accent': `var(--color-${c})`,
-                            '--toggle-group-on-accent': `var(--color-${c}-content)`,
-                        },
-                    },
-                },
-            ]),
-        ),
-    },
-    defaultVariants: { color: 'primary' },
 };
 
 export const recipes: RecipeInput[] = [

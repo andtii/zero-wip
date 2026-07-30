@@ -31,8 +31,11 @@
         height: 100%;
         background: var(--avatar-accent);
         color: var(--avatar-on-accent);
+        font-family: var(--font-mono);
         font-size: var(--avatar-text);
-        font-weight: var(--weight-semibold);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+        font-variant-numeric: tabular-nums;
         user-select: none;
     }
 

@@ -14,12 +14,14 @@
     [data-scope="progress"][data-part="label"] {
         font-size: var(--text-sm);
         font-weight: var(--weight-medium);
+        font-variant-numeric: tabular-nums;
     }
 
     [data-scope="progress"][data-part="track"] {
         width: 100%;
         height: var(--progress-track-size);
-        background: var(--color-base-300);
+        background: var(--color-base-200);
+        box-shadow: inset 0 0 0 var(--border) var(--color-base-300);
         border-radius: 9999px;
         overflow: hidden;
     }
@@ -42,7 +44,8 @@
 
     [data-scope="progress"][data-part="value-text"] {
         font-size: var(--text-xs);
-        color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
+        font-variant-numeric: tabular-nums;
+        color: color-mix(in oklch, var(--color-base-content) 70%, transparent);
     }
 
     [data-scope="progress"][data-part="root"][data-color="primary"] {

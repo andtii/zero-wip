@@ -147,7 +147,7 @@ export const designSystems: DesignSystemEntry[] = [
         href: basicCss,
         installThemes: installBasic,
         manifestHref: basicManifestUrl,
-        blurb: 'Neutral starter — readable defaults, eight colour roles.',
+        blurb: 'Monograph — paper surfaces, hairline structure, one petrol ink. Readable defaults, eight colour roles.',
     },
     {
         id: 'daisyui',

@@ -4,6 +4,24 @@ Neutral starter design system for [SignalX Zero](https://npmjs.com/package/@sigx
 readable defaults so a zero app looks sane on day one, and the reference
 implementation for generating your own design system with `@sigx/zero-kit`.
 
+Its visual identity is **Monograph**: documentation-grade calm, engineered for
+UIs people read all day.
+
+- **Paper surfaces** — cool slate-tinted bases (hue 260), no pure white and no
+  pure black anywhere; input wells are always windows of `base-100` cut into
+  whatever surface they sit on.
+- **Hairline structure** — depth is drawn with 1px `base-300` rules, not
+  shadows. A card is a bordered region; the single honest `lg` shadow is
+  reserved for transient overlays (in dark they sit on `base-200` and catch a
+  moonlit inset edge instead).
+- **Printed-ink petrol** — one protagonist hue, a petrol blue-black at hue 205
+  (iron-gall document ink), carries every interactive signal; focus-visible is
+  always the same 2px petrol ring, every role, every variant. Selected items
+  wear a 2px margin marker over a soft wash rather than a solid fill.
+- **Borders, not shadows; ink, not motion** — nothing moves on hover, pressed
+  feedback is instantaneous ink density, overlays enter with a 4px rise and
+  fade out with no travel. Meta-text is mono; numbers are tabular everywhere.
+
 ```ts
 import '@sigx/zero/css';
 import '@sigx/zero-basic/css';

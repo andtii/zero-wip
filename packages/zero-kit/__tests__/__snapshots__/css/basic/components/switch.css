@@ -23,12 +23,14 @@
         width: var(--switch-width);
         height: var(--switch-height);
         border-radius: 9999px;
-        background: var(--color-base-300);
+        background: var(--color-base-200);
+        box-shadow: inset 0 0 0 var(--border) var(--color-base-300);
         transition: background var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="switch"][data-part="control"][data-state="checked"] {
         background: var(--color-primary);
+        box-shadow: none;
     }
 
     [data-scope="switch"][data-part="control"][data-focus-visible] {
@@ -44,17 +46,19 @@
         height: calc(var(--switch-height) - var(--switch-pad) * 2);
         border-radius: 9999px;
         background: var(--color-base-100);
-        box-shadow: var(--shadow-xs);
+        box-shadow: inset 0 0 0 var(--border) var(--color-base-300);
         transition: transform var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="switch"][data-part="thumb"][data-state="checked"] {
         transform: translateX(calc(var(--switch-width) - var(--switch-height)));
         background: var(--color-primary-content);
+        box-shadow: none;
     }
 
     [data-scope="switch"][data-part="label"] {
         font-size: var(--text-sm);
+        font-variant-numeric: tabular-nums;
     }
 
     [data-scope="switch"][data-part="root"][data-size="xs"] {
@@ -81,71 +85,35 @@
         background: var(--color-primary);
     }
 
-    [data-scope="switch"][data-part="root"][data-color="primary"] [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-primary);
-    }
-
     [data-scope="switch"][data-part="root"]:not([data-color]) [data-scope="switch"][data-part="control"][data-state="checked"] {
         background: var(--color-primary);
-    }
-
-    [data-scope="switch"][data-part="root"]:not([data-color]) [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-primary);
     }
 
     [data-scope="switch"][data-part="root"][data-color="secondary"] [data-scope="switch"][data-part="control"][data-state="checked"] {
         background: var(--color-secondary);
     }
 
-    [data-scope="switch"][data-part="root"][data-color="secondary"] [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-secondary);
-    }
-
     [data-scope="switch"][data-part="root"][data-color="accent"] [data-scope="switch"][data-part="control"][data-state="checked"] {
         background: var(--color-accent);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="accent"] [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-accent);
     }
 
     [data-scope="switch"][data-part="root"][data-color="neutral"] [data-scope="switch"][data-part="control"][data-state="checked"] {
         background: var(--color-neutral);
     }
 
-    [data-scope="switch"][data-part="root"][data-color="neutral"] [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-neutral);
-    }
-
     [data-scope="switch"][data-part="root"][data-color="info"] [data-scope="switch"][data-part="control"][data-state="checked"] {
         background: var(--color-info);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="info"] [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-info);
     }
 
     [data-scope="switch"][data-part="root"][data-color="success"] [data-scope="switch"][data-part="control"][data-state="checked"] {
         background: var(--color-success);
     }
 
-    [data-scope="switch"][data-part="root"][data-color="success"] [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-success);
-    }
-
     [data-scope="switch"][data-part="root"][data-color="warning"] [data-scope="switch"][data-part="control"][data-state="checked"] {
         background: var(--color-warning);
     }
 
-    [data-scope="switch"][data-part="root"][data-color="warning"] [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-warning);
-    }
-
     [data-scope="switch"][data-part="root"][data-color="error"] [data-scope="switch"][data-part="control"][data-state="checked"] {
         background: var(--color-error);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="error"] [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-error);
     }
 }
