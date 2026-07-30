@@ -34,12 +34,37 @@ describe('condition keys', () => {
         ['hover-none', '@media (hover: none)'],
         ['prefers-dark', '@media (prefers-color-scheme: dark)'],
         ['forced-colors', '@media (forced-colors: active)'],
+        ['print', '@media print'],
     ])('resolves the built-in %s', (key, prelude) => {
         const css = compile({
             component: 'tabs',
             parts: { tab: { at: { [key]: { base: { color: 'red' } } } } },
         });
         expect(css).toContain(prelude);
+    });
+
+    /*
+     * `print` is a preference-tier condition, like `forced-colors`: it refines
+     * the flat rules and must not be overwritten by a wider viewport. Naming it
+     * is only worth anything if it lands where the raw prelude used to — the
+     * design systems' drawn indicators depend on the print fallback beating
+     * the flat state rule it replaces.
+     */
+    it('sorts print with the other preference queries — after flat rules, before breakpoints', () => {
+        const css = compile({
+            component: 'tabs',
+            parts: {
+                tab: {
+                    base: { background: 'red' },
+                    at: {
+                        print: { base: { background: 'transparent' } },
+                        lg: { base: { padding: '2rem' } },
+                    },
+                },
+            },
+        });
+        expect(css.indexOf('background: red')).toBeLessThan(css.indexOf('@media print'));
+        expect(css.indexOf('@media print')).toBeLessThan(css.indexOf('@media (min-width: 1024px)'));
     });
 
     it('passes an @-prefixed key through verbatim', () => {

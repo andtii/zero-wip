@@ -135,7 +135,7 @@ sigx zero:build      # dist/css/index.css + per-component files + manifest
 
 Conditional styles live in `parts.<part>.at`, keyed by a declared breakpoint
 (`@media (min-width: …)`), a built-in preference query (`reduced-motion`,
-`hover-none`, `prefers-dark`, `forced-colors`) or a raw `@` prelude
+`hover-none`, `prefers-dark`, `forced-colors`, `print`) or a raw `@` prelude
 (`@container`, `@supports`, `@starting-style`). Nesting composes the
 at-rules, and because `variants` hold the same shape, responsive variants
 need nothing extra. Author mobile-first — breakpoints are `min-width`, and

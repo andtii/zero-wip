@@ -166,8 +166,8 @@ component's anatomy). No component code is ever written or changed.
    ```
    A key is a breakpoint declared in `tokens.breakpoints` (emitted as
    `@media (min-width: …)`), a built-in (`reduced-motion`, `hover-none`,
-   `prefers-dark`, `forced-colors`), or anything starting with `@`, used as a
-   raw prelude. Anything else is a hard error listing what was available.
+   `prefers-dark`, `forced-colors`, `print`), or anything starting with `@`,
+   used as a raw prelude. Anything else is a hard error listing what was available.
    - Author **mobile-first**: breakpoints are `min-width`, so `base` is the
      small-screen case. Declare them ascending — declaration order is emission
      order, and the validator enforces it.

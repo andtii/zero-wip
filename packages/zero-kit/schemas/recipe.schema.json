@@ -103,7 +103,7 @@
             "type": "string"
         },
         "skipStates": {
-            "description": "part \u2192 declared states/flags intentionally left unstyled; silences the validator's coverage warning for them.",
+            "description": "part \u2192 declared states/flags intentionally left unstyled; silences the validator's coverage warning for them, and tells the state-legibility guard the state is deliberately indistinguishable from its siblings.",
             "type": "object",
             "propertyNames": {
                 "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
@@ -133,7 +133,7 @@
             }
         },
         "partStyles": {
-            "description": "Styles for one part. `at` maps a condition \u2014 a declared breakpoint name, a built-in (reduced-motion, hover-none, prefers-dark, forced-colors, starting-style) or a raw \"@\u2026\" prelude \u2014 to this same shape, recursively; nesting composes the at-rules.",
+            "description": "Styles for one part. `at` maps a condition \u2014 a declared breakpoint name, a built-in (reduced-motion, hover-none, prefers-dark, forced-colors, print, starting-style) or a raw \"@\u2026\" prelude \u2014 to this same shape, recursively; nesting composes the at-rules.",
             "type": "object",
             "additionalProperties": false,
             "properties": {
