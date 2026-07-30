@@ -43,6 +43,13 @@ export const BUILTIN_CONDITIONS: Readonly<Record<string, string>> = {
     'hover-none': '@media (hover: none)',
     'prefers-dark': '@media (prefers-color-scheme: dark)',
     'forced-colors': '@media (forced-colors: active)',
+    // The other medium where a background-painted mark disappears: printing
+    // drops backgrounds by default (`print-color-adjust: economy`), so a
+    // drawn indicator needs the same glyph fallback `forced-colors` gets.
+    // Named for exactly that reason — `forced-colors` having a name while
+    // `print` did not make the raw prelude look like the only route, which
+    // pushes authors past the tier machinery for no reason.
+    print: '@media print',
     // The state an element animates FROM on its first style change — the
     // entry half of presence. Spellable as the raw `@starting-style` prelude
     // too; naming it makes it discoverable and lets the validator recognise
@@ -98,8 +105,19 @@ export interface RecipeInput {
      */
     css?: string;
     /**
-     * Declared states intentionally left unstyled — silences the validator's
-     * coverage warning for them.
+     * Declared states intentionally left unstyled — part → state names.
+     *
+     * Two consumers read this, and an entry makes BOTH claims:
+     * 1. the validator's coverage warning is silenced for that part+state;
+     * 2. the state-legibility guard (`__tests__/state-legibility.test.ts`)
+     *    accepts that the state is deliberately indistinguishable from its
+     *    siblings — so listing a state here also asserts "this component does
+     *    not need to look different in that state", which is a design claim
+     *    and wants a comment saying why.
+     *
+     * Both readings are scoped to the part the entry names: skipping `checked`
+     * on a `item-label` says nothing about `item-indicator`, and will not stop
+     * the guard from requiring that the indicator draw its mark.
      */
     skipStates?: Record<string, readonly string[]>;
 }

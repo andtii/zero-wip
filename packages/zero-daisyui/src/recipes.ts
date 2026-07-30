@@ -235,10 +235,29 @@ export const collapsible: RecipeInput = {
 // daisy "toggle" flavor.
 export const switchRecipe: RecipeInput = {
     component: 'switch',
+    /**
+     * daisy drives the whole toggle off ONE size, exactly as it drives the
+     * checkbox: `--size` is the height, the padding is a fixed eighth of it,
+     * and the WIDTH is derived — `(size × 2) − (border + pad) × 2`. Declaring
+     * width and height independently (as this recipe used to) puts the knob's
+     * travel and the box's proportions out of daisy's lockstep.
+     *
+     * `--switch-ink` is what the colour axis rebinds: daisy's `--input-color`,
+     * read through `color`, so ONE property drives the border, the knob fill
+     * and the focus ring — its unchecked value is a half-strength base-content
+     * hairline, and checking swaps it for the accent.
+     */
     tokens: {
-        '--switch-width': 'calc(var(--size-selector) * 12)',
-        '--switch-height': 'calc(var(--size-selector) * 6.5)',
-        '--switch-pad': 'calc(var(--size-selector) * 0.75)',
+        '--switch-size': 'calc(var(--size-selector) * 6)',
+        '--switch-p': 'calc(var(--switch-size) * 0.125)',
+        '--switch-accent': 'var(--color-primary)',
+        // daisy's `--input-color` default is a 50% base-content mix, which puts
+        // the unchecked knob at 2.74:1 on `nord` and 3.13:1 on `sunset` —
+        // under the 3:1 floor for a non-text mark. 60% clears every theme this
+        // package ships (light 4.66, dark 6.23, dim 3.85, nord 3.49,
+        // sunset 3.88) and is invisible against daisy at the same hue, the same
+        // deepening `--rating-fill` already makes for the same reason.
+        '--switch-ink': 'color-mix(in oklab, var(--color-base-content) 60%, #0000)',
     },
     parts: {
         root: {
@@ -251,39 +270,71 @@ export const switchRecipe: RecipeInput = {
         },
         control: {
             base: {
-                display: 'inline-block',
+                // The knob slides because the grid's leading column GROWS:
+                // `0fr 1fr 1fr` → `1fr 1fr 0fr`, with the knob parked in
+                // column 2. That is daisy's own mechanism, and unlike a
+                // `translateX` it is RTL-correct for free.
+                display: 'inline-grid',
+                gridTemplateColumns: '0fr 1fr 1fr',
+                placeContent: 'center',
                 position: 'relative',
-                width: 'var(--switch-width)',
-                height: 'var(--switch-height)',
-                borderRadius: 'var(--radius-selector)',
-                border: 'var(--border) solid var(--color-base-300)',
-                background: 'var(--color-base-200)',
-                transition: 'background var(--duration-normal) var(--ease-standard), border-color var(--duration-normal) var(--ease-standard)',
+                verticalAlign: 'middle',
+                flexShrink: '0',
+                boxSizing: 'border-box',
+                width: 'calc((var(--switch-size) * 2) - (var(--border) + var(--switch-p)) * 2)',
+                height: 'var(--switch-size)',
+                padding: 'var(--switch-p)',
+                // daisy's radius formula: the selector radius GROWN by the
+                // padding and the border so the knob's own corner and the
+                // track's stay concentric, each clamped at 3× the token so a
+                // square-cornered theme (cyberpunk, wireframe) stays square.
+                '--switch-radius-max': 'calc(var(--radius-selector) + var(--radius-selector) + var(--radius-selector))',
+                borderRadius: 'calc(var(--radius-selector) + min(var(--switch-p), var(--switch-radius-max)) + min(var(--border), var(--switch-radius-max)))',
+                border: 'var(--border) solid currentColor',
+                color: 'var(--switch-ink)',
+                boxShadow: '0 1px color-mix(in oklab, currentColor calc(var(--depth) * 10%), #0000) inset',
+                userSelect: 'none',
+                transition: 'color var(--duration-slow) var(--ease-standard), '
+                    + 'background-color var(--duration-normal) var(--ease-standard), '
+                    + 'grid-template-columns var(--duration-normal) var(--ease-standard)',
             },
             states: {
-                checked: { background: 'var(--color-primary)', borderColor: 'var(--color-primary)' },
+                // daisy's checked toggle empties its track to base-100 and paints
+                // the KNOB with the accent — so the checked knob's contrast is
+                // accent-on-base-100, not accent-content-on-accent. Same
+                // trade-off as the checkbox's unchecked outline: 1.11:1 at worst
+                // (sunset/`neutral`), 7.68 at best, daisy's own numbers.
+                checked: {
+                    gridTemplateColumns: '1fr 1fr 0fr',
+                    color: 'var(--switch-accent)',
+                    backgroundColor: 'var(--color-base-100)',
+                },
                 unchecked: {},
-                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
+                'focus-visible': { outline: '2px solid var(--switch-accent)', outlineOffset: '2px' },
                 disabled: {},
             },
         },
         thumb: {
             base: {
-                position: 'absolute',
-                top: 'var(--switch-pad)',
-                left: 'var(--switch-pad)',
-                width: 'calc(var(--switch-height) - var(--switch-pad) * 2 - var(--border) * 2)',
-                height: 'calc(var(--switch-height) - var(--switch-pad) * 2 - var(--border) * 2)',
+                // daisy's `.toggle:before`: a square knob that fills its grid
+                // cell and takes the UNGROWN selector radius, so it is a
+                // rounded square in daisy's rounded-square themes and a circle
+                // only where the theme says so.
+                gridRowStart: '1',
+                gridColumnStart: '2',
+                aspectRatio: '1',
+                width: '100%',
+                height: '100%',
                 borderRadius: 'var(--radius-selector)',
-                background: 'var(--color-base-100)',
-                boxShadow: 'var(--shadow-md)',
-                transition: 'transform var(--duration-normal) var(--ease-standard), background var(--duration-normal) var(--ease-standard)',
+                backgroundColor: 'currentColor',
+                backgroundSize: 'auto, calc(var(--noise) * 100%)',
+                backgroundImage: 'none, var(--fx-noise)',
+                boxShadow: '0 -1px var(--depth-shade) inset, 0 8px 0 -4px var(--depth-sheen) inset, '
+                    + '0 1px color-mix(in oklab, currentColor calc(var(--depth) * 10%), #0000)',
+                transition: 'background-color var(--duration-instant) var(--ease-standard)',
             },
             states: {
-                checked: {
-                    transform: 'translateX(calc(var(--switch-width) - var(--switch-height)))',
-                    background: 'var(--color-primary-content)',
-                },
+                checked: {},
                 unchecked: {},
             },
         },
@@ -293,30 +344,19 @@ export const switchRecipe: RecipeInput = {
         },
     },
     variants: {
+        // daisy's toggle ramp is the selector ramp — ×4…×8 of ONE size, with
+        // everything else derived from it.
         size: {
-            xs: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 8.5)', '--switch-height': 'calc(var(--size-selector) * 4.5)' } } },
-            sm: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 10)', '--switch-height': 'calc(var(--size-selector) * 5.5)' } } },
+            xs: { root: { base: { '--switch-size': 'calc(var(--size-selector) * 4)' } } },
+            sm: { root: { base: { '--switch-size': 'calc(var(--size-selector) * 5)' } } },
             // `md` is the un-attributed render — the defaults in `tokens:`
             // already ARE the middle step.
             md: {},
-            lg: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 14)', '--switch-height': 'calc(var(--size-selector) * 7.5)' } } },
-            xl: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 16)', '--switch-height': 'calc(var(--size-selector) * 8.5)' } } },
+            lg: { root: { base: { '--switch-size': 'calc(var(--size-selector) * 7)' } } },
+            xl: { root: { base: { '--switch-size': 'calc(var(--size-selector) * 8)' } } },
         },
         color: Object.fromEntries(
-            ROLES.map((c) => [
-                c,
-                {
-                    control: {
-                        states: {
-                            checked: { background: `var(--color-${c})`, borderColor: `var(--color-${c})` },
-                            'focus-visible': { outline: `2px solid var(--color-${c})` },
-                        },
-                    },
-                    thumb: {
-                        states: { checked: { background: `var(--color-${c}-content)` } },
-                    },
-                },
-            ]),
+            ROLES.map((c) => [c, { root: { base: { '--switch-accent': `var(--color-${c})` } } }]),
         ),
     },
     defaultVariants: { color: 'primary' },
@@ -325,6 +365,10 @@ export const switchRecipe: RecipeInput = {
     // delegation reads as a decision.
     skipStates: { root: ['focus-visible'] },
 };
+
+// --------------------------------------------------------------------------
+// 2. checkbox — the three clip-paths, the fallback helper, then the recipe
+// --------------------------------------------------------------------------
 
 // daisy "modal" flavor (+ "btn" trigger/close).
 const btn: NonNullable<PartStyles['base']> = {
@@ -572,13 +616,72 @@ export const field: RecipeInput = {
     },
 };
 
+/**
+ * daisy's tick, drawn by a clip-path that GROWS.
+ *
+ * The mark is a 45°-rotated bar pair clipped out of a solid box: six points,
+ * three of which start collapsed onto their neighbours, so the "unchecked"
+ * polygon is a degenerate sliver. Checking moves two of them to the top edge
+ * and the tick draws itself — point counts match, so `clip-path` interpolates
+ * instead of popping. Indeterminate un-rotates the same six points into a
+ * horizontal bar and lifts it to the middle. All three verbatim from daisyUI
+ * 5.7.8's `.checkbox:before` / `:checked` / `:indeterminate`.
+ */
+const TICK_COLLAPSED = 'polygon(20% 100%, 20% 80%, 50% 80%, 50% 80%, 70% 80%, 70% 100%)';
+const TICK_DRAWN = 'polygon(20% 100%, 20% 80%, 50% 80%, 50% 0%, 70% 0%, 70% 100%)';
+const DASH_DRAWN = 'polygon(20% 100%, 20% 80%, 50% 80%, 50% 80%, 80% 80%, 80% 100%)';
+
+/**
+ * The geometry-for-glyph swap daisy ships for forced colours and print, where
+ * a clip-path painted with `currentColor` can disappear.
+ *
+ * daisy hangs the glyph on the same `::before` it uses for the geometry, via
+ * `--tw-content`. Our indicator is a real element, and `content` on a
+ * non-pseudo element is Chromium/WebKit-only — so the glyph goes on the
+ * `::after` this recipe already had, and the indicator itself just drops the
+ * geometry. daisyUI 5.7.8 emits the two at-rules as separate blocks; so do we.
+ *
+ * Both are named built-in conditions since #226, so both sort into the
+ * preference tier and land after the flat state rules they override.
+ *
+ * One object under both, and — unlike every other system here — no `color` of
+ * its own: daisy declares none either. Its fallback sets `--tw-content`,
+ * `clip-path: none`, `background-color: #0000` and `rotate` and nothing else,
+ * leaving the glyph to inherit the control's `color` (the on-accent role, or
+ * `base-content` unskinned) and letting the forced palette revalue it. Naming
+ * `CanvasText` here would be a truer forced-colors render and a divergence from
+ * the thing this package exists to reproduce, so it stays daisy's. Verified
+ * against daisyUI 5's own `checkbox.css`, both at-rules.
+ *
+ * Forced colours are fine either way — the UA revalues the inherited ink to its
+ * own text colour, measured at 21:1 against the forced backdrop. On paper it is
+ * not: `primary-content` is a pale lavender over a fill that did not print,
+ * 1.37:1, exactly as real daisy prints it. Same trade as brutalist's, same
+ * issue — #233.
+ */
+const tickGlyphFallback: PartStyles = {
+    states: {
+        checked: { opacity: '1', clipPath: 'none', backgroundColor: '#0000', rotate: '0deg' },
+        indeterminate: { opacity: '1', clipPath: 'none', backgroundColor: '#0000', rotate: '0deg', translate: 'none' },
+    },
+    selectors: {
+        '&[data-state="checked"]::after': { content: '"✔︎"' },
+        '&[data-state="indeterminate"]::after': { content: '"−"' },
+    },
+};
+
 export const checkbox: RecipeInput = {
     component: 'checkbox',
     // The accent defaults live in `tokens:` (emitted flat on the carrier, no
     // added specificity), so the un-attributed render IS the primary variant
     // and `variants.color` only rebinds custom properties — the toast shape.
+    //
+    // `--checkbox-pad` is daisy's `padding`, and it is load-bearing: the
+    // indicator is `100%`/`100%` of the control's CONTENT box, so the padding
+    // is what sizes the tick and what centres it. daisy ramps it with the box.
     tokens: {
         '--checkbox-size': 'calc(var(--size-selector) * 6)',
+        '--checkbox-pad': '0.25rem',
         '--checkbox-accent': 'var(--color-primary)',
         '--checkbox-on-accent': 'var(--color-primary-content)',
     },
@@ -592,20 +695,67 @@ export const checkbox: RecipeInput = {
         },
         control: {
             base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                // daisy's own box: `inline-block` + padding, NOT a flex
+                // centring box. The padding does the centring, which is the
+                // whole geometric trick — as a flex item the indicator would
+                // get `align-self: center` and shrink instead of filling.
+                display: 'inline-block',
+                position: 'relative',
+                verticalAlign: 'middle',
+                flexShrink: '0',
+                // daisy inherits this from Tailwind's global reset; zero's
+                // base.css does not set it, and without it `--checkbox-size`
+                // would be the CONTENT box and every checkbox 2×(pad+border)
+                // too large.
+                boxSizing: 'border-box',
                 width: 'var(--checkbox-size)',
                 height: 'var(--checkbox-size)',
-                border: 'var(--border) solid var(--color-base-content)',
-                borderRadius: 'calc(var(--radius-selector) / 3)',
-                background: 'var(--color-base-100)',
-                boxShadow: 'inset 0 1px 1px oklch(0% 0 0 / 0.1)',
-                transition: 'background var(--duration-normal) var(--ease-standard), border-color var(--duration-normal) var(--ease-standard)',
+                padding: 'var(--checkbox-pad)',
+                // daisy's `--input-color` border, fallback included: the accent
+                // is the UNCHECKED outline too, which is what `.checkbox-primary`
+                // does. Faithful, and faithfully weak for the pale roles —
+                // measured against base-100 the outline is 1.66:1 on
+                // light/`warning`, 1.83 light/`accent`, 1.22 dark/`neutral`
+                // (worst 1.11 on sunset/`neutral`), the same numbers real daisy
+                // ships and the same ones the checked fill, the radio dot and
+                // the toggle knob carry. It is a palette fact, not a geometry
+                // one — the tick itself clears 3:1 in all forty cells — and it
+                // belongs to the indicator-contrast audit (#228).
+                border: 'var(--border) solid var(--checkbox-accent, color-mix(in oklab, var(--color-base-content) 20%, #0000))',
+                borderRadius: 'var(--radius-selector)',
+                // One `color` declaration drives the tick's `currentColor` fill
+                // and the forced-colors glyph, exactly as daisy's does.
+                color: 'var(--checkbox-on-accent)',
+                // No `background-color`: daisy's unchecked `.checkbox` is
+                // TRANSPARENT (computed `rgba(0, 0, 0, 0)`), so the surface it
+                // sits on shows through. Painting `--color-base-100` here is
+                // invisible on a base-100 page and wrong on every tinted one —
+                // a checkbox in a `card` or a `base-200` panel would be an
+                // opaque white chip. `checked`/`indeterminate` fill themselves.
+                boxShadow: '0 1px var(--depth-shade) inset, 0 0 #0000 inset, 0 0 #0000',
+                backgroundSize: 'auto, calc(var(--noise) * 100%)',
+                backgroundImage: 'none, var(--fx-noise)',
+                cursor: 'pointer',
+                transition: 'background-color var(--duration-normal) var(--ease-standard), '
+                    + 'box-shadow var(--duration-normal) var(--ease-standard)',
             },
             states: {
-                checked: { background: 'var(--checkbox-accent)', borderColor: 'var(--checkbox-accent)' },
-                indeterminate: { background: 'var(--checkbox-accent)', borderColor: 'var(--checkbox-accent)' },
+                // `checked` is the one state daisy restates the shadow list in,
+                // and this IS its list, in its order: the inset relief drops
+                // out, a sheen band lights the top of the fill, and the box
+                // gains a 1px drop. Three shadows, matching `base`'s three, so
+                // the depth interpolates rather than switching.
+                checked: {
+                    backgroundColor: 'var(--checkbox-accent)',
+                    boxShadow: '0 0 #0000 inset, 0 8px 0 -4px var(--depth-sheen) inset, 0 1px var(--depth-shade)',
+                },
+                // `indeterminate` takes the fill and NOTHING else: daisy's
+                // `.checkbox:indeterminate` declares no `box-shadow`, so it
+                // keeps the recessed base list — no sheen band, no outer drop.
+                // Restating `checked`'s list here (as this recipe did before)
+                // put a bright band across the top of the bar that real daisy
+                // does not have.
+                indeterminate: { backgroundColor: 'var(--checkbox-accent)' },
                 unchecked: {},
                 'focus-visible': { outline: '2px solid var(--checkbox-accent)', outlineOffset: '2px' },
                 // `invalid` is semantic, not an accent: it stays error under
@@ -615,12 +765,37 @@ export const checkbox: RecipeInput = {
             },
         },
         indicator: {
-            base: { color: 'var(--checkbox-on-accent)', lineHeight: 'var(--leading-none)', fontSize: 'var(--text-xs)', fontWeight: 'var(--weight-bold)' },
-            states: { checked: {}, unchecked: {}, indeterminate: {} },
-            selectors: {
-                '&[data-state="checked"]::after': { content: '"✓"' },
-                '&[data-state="indeterminate"]::after': { content: '"−"' },
+            base: {
+                // daisy's `.checkbox:before`, declaration for declaration.
+                display: 'block',
+                width: '100%',
+                height: '100%',
+                opacity: '0',
+                rotate: '45deg',
+                backgroundColor: 'currentColor',
+                clipPath: TICK_COLLAPSED,
+                boxShadow: '0 3px 0 0 var(--depth-sheen) inset',
+                // Metrics for the forced-colors/print glyph only — daisy
+                // carries them on the same element for the same reason.
+                fontSize: '1rem',
+                lineHeight: '0.75',
+                // daisy's staggered four-property transition: the tick's draw
+                // and rotation are slow, its fade is instant, and everything
+                // waits out the control's fill first. daisy spells the delay
+                // `.1s`; the `instant` duration token is the same 100ms AND
+                // collapses under prefers-reduced-motion, which a literal
+                // cannot.
+                transition: 'clip-path var(--duration-slow) var(--ease-standard) var(--duration-instant), '
+                    + 'opacity var(--duration-instant) var(--ease-standard) var(--duration-instant), '
+                    + 'rotate var(--duration-slow) var(--ease-standard) var(--duration-instant), '
+                    + 'translate var(--duration-slow) var(--ease-standard) var(--duration-instant)',
             },
+            states: {
+                checked: { clipPath: TICK_DRAWN, opacity: '1' },
+                indeterminate: { clipPath: DASH_DRAWN, opacity: '1', translate: '0 -35%', rotate: '0deg' },
+                unchecked: {},
+            },
+            at: { 'forced-colors': tickGlyphFallback, print: tickGlyphFallback },
         },
         label: {
             base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)' },
@@ -632,13 +807,14 @@ export const checkbox: RecipeInput = {
             '--checkbox-accent': `var(--color-${c})`,
             '--checkbox-on-accent': `var(--color-${c}-content)`,
         } } }])),
-        // daisy's own selector ramp: 1 / 1.25 / 1.5 / 2 / 2.25rem.
+        // daisy's own selector ramp — ×4…×8 of `--size-selector`, i.e.
+        // 1 / 1.25 / 1.5 / 1.75 / 2rem, each with its own padding step.
         size: {
-            xs: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 4)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
-            sm: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 5)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
-            md: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 6)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
-            lg: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 8)' } }, label: { base: { fontSize: 'var(--text-md)' } } },
-            xl: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 9)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
+            xs: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 4)', '--checkbox-pad': '0.125rem' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 5)', '--checkbox-pad': '0.1875rem' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
+            md: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 6)', '--checkbox-pad': '0.25rem' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
+            lg: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 7)', '--checkbox-pad': '0.3125rem' } }, label: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 8)', '--checkbox-pad': '0.375rem' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
         },
     },
     // The visible ring lives on `control`; the <label> root only groups the
@@ -647,10 +823,17 @@ export const checkbox: RecipeInput = {
     skipStates: { root: ['focus-visible'] },
 };
 
+// --------------------------------------------------------------------------
+// 3. radioGroup — replace the whole export
+// --------------------------------------------------------------------------
+
 export const radioGroup: RecipeInput = {
     component: 'radio-group',
+    // Same padding-derived geometry as the checkbox: daisy's `.radio:before` is
+    // `100%`/`100%` of the padded box, so `--radio-pad` IS the dot's size.
     tokens: {
         '--radio-size': 'calc(var(--size-selector) * 6)',
+        '--radio-pad': '0.25rem',
         '--radio-accent': 'var(--color-primary)',
     },
     parts: {
@@ -670,18 +853,33 @@ export const radioGroup: RecipeInput = {
         },
         'item-control': {
             base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                // daisy's `.radio`: an inline-block padded box, not a flex
+                // centring box — the padding is what insets the dot.
+                display: 'inline-block',
+                position: 'relative',
+                verticalAlign: 'middle',
+                flexShrink: '0',
+                boxSizing: 'border-box',
                 width: 'var(--radio-size)',
                 height: 'var(--radio-size)',
-                border: 'var(--border) solid var(--color-base-content)',
+                padding: 'var(--radio-pad)',
+                border: 'var(--border) solid var(--radio-accent, color-mix(in srgb, currentColor 20%, #0000))',
                 borderRadius: '9999px',
-                background: 'var(--color-base-100)',
-                transition: 'border-color var(--duration-normal) var(--ease-standard)',
+                color: 'var(--radio-accent)',
+                backgroundColor: 'var(--color-base-100)',
+                boxShadow: '0 1px var(--depth-shade) inset',
+                transition: 'border-color var(--duration-normal) var(--ease-standard), '
+                    + 'box-shadow var(--duration-normal) var(--ease-standard)',
             },
             states: {
-                checked: { borderColor: 'var(--radio-accent)', borderWidth: 'calc(var(--border) * 2)' },
+                // daisy's checked radio squeezes its padding — the dot pops in
+                // rather than fading. The keyframe is daisy's own (5px → 3px
+                // against a 4px base), rewritten as a ratio so it tracks the
+                // size ramp instead of only being right at `md`.
+                checked: {
+                    borderColor: 'currentColor',
+                    animation: 'var(--duration-fast) var(--ease-standard) zero-daisy-radio',
+                },
                 unchecked: {},
                 'focus-visible': { outline: '2px solid var(--radio-accent)', outlineOffset: '2px' },
                 disabled: {},
@@ -689,15 +887,21 @@ export const radioGroup: RecipeInput = {
         },
         'item-indicator': {
             base: {
-                width: 'calc(var(--radio-size) * 0.55)',
-                height: 'calc(var(--radio-size) * 0.55)',
+                // daisy's `.radio:before` — the dot IS the content box.
+                display: 'block',
+                width: '100%',
+                height: '100%',
                 borderRadius: '9999px',
-                background: 'transparent',
-                transition: 'background var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard)',
-                transform: 'scale(0.5)',
+                backgroundColor: 'transparent',
+                backgroundSize: 'auto, calc(var(--noise) * 100%)',
+                backgroundImage: 'none, var(--fx-noise)',
+                transition: 'background-color var(--duration-instant) var(--ease-standard)',
             },
             states: {
-                checked: { background: 'var(--radio-accent)', transform: 'scale(1)' },
+                checked: {
+                    backgroundColor: 'currentColor',
+                    boxShadow: '0 -1px var(--depth-shade) inset, 0 8px 0 -4px var(--depth-sheen) inset, 0 1px var(--depth-shade)',
+                },
                 unchecked: {},
             },
         },
@@ -710,20 +914,28 @@ export const radioGroup: RecipeInput = {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--radio-accent': `var(--color-${c})`,
         } } }])),
-        // Same selector ramp daisy gives its radios: 1 / 1.25 / 1.5 / 2 / 2.25rem.
+        // Same selector ramp daisy gives its radios — ×4…×8 with daisy's own
+        // padding step, which is what sizes the dot.
         size: {
-            xs: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 4)' } }, 'item-label': { base: { fontSize: 'var(--text-xs)' } } },
-            sm: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 5)' } }, 'item-label': { base: { fontSize: 'var(--text-sm)' } } },
-            md: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 6)' } }, 'item-label': { base: { fontSize: 'var(--text-sm)' } } },
-            lg: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 8)' } }, 'item-label': { base: { fontSize: 'var(--text-md)' } } },
-            xl: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 9)' } }, 'item-label': { base: { fontSize: 'var(--text-lg)' } } },
+            xs: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 4)', '--radio-pad': '0.125rem' } }, 'item-label': { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 5)', '--radio-pad': '0.1875rem' } }, 'item-label': { base: { fontSize: 'var(--text-sm)' } } },
+            md: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 6)', '--radio-pad': '0.25rem' } }, 'item-label': { base: { fontSize: 'var(--text-sm)' } } },
+            lg: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 7)', '--radio-pad': '0.3125rem' } }, 'item-label': { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 8)', '--radio-pad': '0.375rem' } }, 'item-label': { base: { fontSize: 'var(--text-lg)' } } },
         },
+    },
+    keyframes: {
+        'zero-daisy-radio': '0% { padding: calc(var(--radio-pad) * 1.25); } 50% { padding: calc(var(--radio-pad) * 0.75); }',
     },
     // The visible ring lives on `item-control`; `item` is the <label> that
     // wraps it. Declared rather than left implicit so the delegation reads
     // as a decision.
     skipStates: { item: ['focus-visible'] },
 };
+
+// --------------------------------------------------------------------------
+// 4. progress — replace the whole export (only the two radius lines move)
+// --------------------------------------------------------------------------
 
 export const progress: RecipeInput = {
     component: 'progress',
@@ -744,7 +956,10 @@ export const progress: RecipeInput = {
                 width: '100%',
                 height: 'var(--progress-track-size)',
                 background: 'var(--color-base-300)',
-                borderRadius: 'var(--radius-selector)',
+                // daisy's `.progress` is a BOX, not a selector control — it
+                // reads --radius-box. Reading --radius-selector only looked
+                // right while that token was 3x too large.
+                borderRadius: 'var(--radius-box)',
                 overflow: 'hidden',
             },
         },
@@ -752,7 +967,7 @@ export const progress: RecipeInput = {
             base: {
                 height: '100%',
                 background: 'var(--progress-accent)',
-                borderRadius: 'var(--radius-selector)',
+                borderRadius: 'var(--radius-box)',
                 transition: 'width var(--duration-slow) var(--ease-standard)',
             },
             states: {
@@ -791,6 +1006,10 @@ export const progress: RecipeInput = {
         'zero-daisy-indeterminate': 'from { margin-left: -40%; } to { margin-left: 100%; }',
     },
 };
+
+// --------------------------------------------------------------------------
+// 5. ratingGroup — replace the whole export (doc comment included)
+// --------------------------------------------------------------------------
 
 export const slider: RecipeInput = {
     component: 'slider',
@@ -1741,17 +1960,45 @@ export const numberInput: RecipeInput = {
     },
 };
 
-// daisy "rating" flavor: a row of orange filled symbols. The default content
-// is a text star, so `color` + `font-size` carry the whole visual.
+/**
+ * daisy "rating" flavor: a row of orange filled symbols. The default content
+ * is a text star, so `color` + `font-size` carry the whole visual — and, for a
+ * HALF, a two-layer mask.
+ *
+ * RATING_HALF_SPLIT — why this is daisy's technique on a different anatomy.
+ * daisy halves a rating by rendering TWO half-width inputs per symbol
+ * (`.rating-half *` → `width: calc(var(--size) * .5)`) and masking each to one
+ * side of the star: `.mask-half-1` is `mask-position: 0; mask-size: 200%`,
+ * `.mask-half-2` is `mask-position: 100%`. Neither half of that is available
+ * here. zero's anatomy gives ONE `item` span per symbol, carrying
+ * `full|half|empty` itself, and that span paints CONTENT (the symbol slot,
+ * defaulting to a text star) where daisy's paints a `mask-image` the design
+ * system owns. So the split moves off two masked siblings and onto one masked
+ * element: two mask layers, an opaque one sized to the filled fraction and a
+ * 25%-alpha one under it, which reproduces daisy's "solid leading half,
+ * ghosted trailing half" on whatever symbol the consumer renders. It is
+ * `mask-size` that differs between the states, so the fill wipes rather than
+ * switches. What is NOT reproduced is daisy's two-hue split (its ghost half is
+ * base-content, ours is the fill at low alpha) — a second hue needs a second
+ * paint layer, and the only way to get one out of a text node is
+ * `background-clip: text`, which would make an SVG symbol slot invisible.
+ */
 export const ratingGroup: RecipeInput = {
     component: 'rating-group',
     tokens: {
         '--rating-size': 'calc(var(--size-selector) * 6)',
         // daisy's rating orange, deepened toward its content pair: raw
         // `--color-warning` sits at 1.62:1 on light base-100 — a nearly
-        // invisible star. The 70/30 oklab mix keeps the warning hue and
-        // clears 3:1 against base-100 in both schemes (3.36:1 light,
-        // 4.71:1 dark).
+        // invisible star. The 70/30 oklab mix keeps the warning hue and was
+        // measured at 3.36:1 light / 4.71:1 dark when those were the only two
+        // themes. Re-measured across all five (#226): 3.34 light, 4.74 dark,
+        // 4.19 dim, 5.32 sunset — and 2.81 on `nord`, whose pale-yellow
+        // warning on a 95%-white base-100 is the one cell under 3:1. It is not
+        // fixable by moving this ratio: deepening to 60% lifts nord to 3.70 but
+        // drops dark's `error` variant to 1.82. The fill/ghost pair needs a
+        // per-role decision (or daisy's own model, where the symbol is
+        // base-content and only its OPACITY changes), which is the
+        // indicator-contrast audit's job (#228).
         '--rating-fill': 'color-mix(in oklab, var(--color-warning) 70%, var(--color-warning-content))',
     },
     parts: {
@@ -1786,13 +2033,25 @@ export const ratingGroup: RecipeInput = {
                 cursor: 'pointer',
                 userSelect: 'none',
                 color: 'color-mix(in oklab, var(--color-base-content) 20%, transparent)',
+                // The split that makes a half a half — see RATING_HALF_SPLIT.
+                // Both stops are ALPHA channels, not palette colours: the top
+                // layer is opaque over the filled fraction, the bottom one
+                // ghosts whatever it does not cover.
+                maskImage: 'linear-gradient(black 0 0), linear-gradient(rgb(0 0 0 / 0.25) 0 0)',
+                maskRepeat: 'no-repeat',
+                maskPosition: '0 0, 0 0',
+                maskSize: '100% 100%, 100% 100%',
                 transition: 'color var(--duration-fast) var(--ease-standard), '
+                    + 'mask-size var(--duration-fast) var(--ease-standard), '
                     + 'transform var(--duration-fast) var(--ease-standard), '
                     + 'filter var(--duration-fast) var(--ease-standard)',
             },
             states: {
                 full: { color: 'var(--rating-fill)' },
-                half: { color: 'var(--rating-fill)' },
+                // Only `mask-size` moves, so the fill WIPES across the symbol
+                // rather than switching — and at rest the split is daisy's
+                // hard 50%.
+                half: { color: 'var(--rating-fill)', maskSize: '50% 100%, 100% 100%' },
                 empty: {},
                 // The hover-preview range: daisy scales and brightens the
                 // symbols under the pointer.
@@ -1807,6 +2066,12 @@ export const ratingGroup: RecipeInput = {
                     borderRadius: 'var(--radius-selector)',
                 },
             },
+            selectors: {
+                // A half fills from the inline START, so the mask origin flips
+                // with the writing mode — daisy flips `.mask-half-*` through
+                // the same guard, and for the same reason.
+                '&:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)': { maskPosition: '100% 0, 0 0' },
+            },
             at: {
                 // The brightness lift stays — only the motion goes.
                 'reduced-motion': {
@@ -1820,8 +2085,10 @@ export const ratingGroup: RecipeInput = {
         // A rating glyph is text on the page background, so the raw role is
         // not always safe: daisy measured `--color-warning` at 1.62:1 on light
         // base-100. Deepening every role toward its own content pair keeps the
-        // hue and clears 3:1 in both schemes — the same 70/30 mix daisy's
-        // default already uses.
+        // hue — the same 70/30 mix the default uses. It does NOT clear 3:1 for
+        // every role in every theme (measured worst cells: dark/`error` 2.25,
+        // light/`secondary` 2.45, dim/`neutral` 1.58); see the note on
+        // `--rating-fill` above for why the ratio cannot fix that alone.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--rating-fill': `color-mix(in oklab, var(--color-${c}) 70%, var(--color-${c}-content))`,
         } } }])),

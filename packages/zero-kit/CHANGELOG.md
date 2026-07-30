@@ -4,6 +4,38 @@
 
 ### Added
 
+- **`print` is a named built-in condition** (#226). `at: { print: … }` emits
+  `@media print` and sorts with the other preference queries — after the flat
+  rules it refines, before any breakpoint. Naming it matters because print is
+  the second medium where a `background`-painted indicator disappears
+  (backgrounds are dropped by default, as author colours are revalued under
+  `forced-colors`), and `forced-colors` having a name while `print` did not
+  made the raw `@media print` prelude look like the only route.
+
+- **The state-legibility guard** (`__tests__/state-legibility.test.ts`, #226).
+  Compiles all six in-repo design systems and asserts, over the *emitted* CSS,
+  that (A) for every component no pair of a part's declared states renders
+  identically in every part, and (B) any `indicator` part that declares states
+  distinguishes all of them itself. It reads compiled CSS rather than the
+  recipe tree because state styling arrives through `states`, `selectors`,
+  variants, compound variants, modifiers, nested `at` and the raw `css` hatch —
+  only the output sees all seven. It judges the **default render**: rules inside
+  any `@media` are excluded (the `forced-colors`/`print` glyph fallback must not
+  be what proves a mark exists), as are declarations that only say how a state
+  arrives (`transition*`, `will-change`, `animation-delay`) — a rule left with
+  nothing else is dropped whole. `skipStates` waives it **per part**, and at
+  component level only when every part carrying those states waives them.
+  Caught, on the pre-fix tree: a rating group
+  whose `full` and `half` were the same declaration in all six design systems,
+  three checkbox indicators that painted no mark at all, and two progress bars
+  where `complete` looked like `loading`. Its own failure mode is covered too:
+  state-blind fixture recipes, including one differentiated only by a
+  forced-colors glyph and one only by a transition, that the assertions must
+  report.
+  The design-system skill now teaches the rule the guard enforces: a state
+  indicator is drawn geometry, interpolating between states, with a glyph
+  fallback under `forced-colors` and `print`.
+
 - **The conformance matrix, generated** (RFC 0003 §7, #174).
   `conformanceRows` / `reportRows` / `formatConformanceMatrix` derive
   `docs/design-system-conformance.md` from the conformance fixtures and the
@@ -47,6 +79,13 @@
   type-test project asserting the issue's gate.
 
 ### Changed
+
+- **`skipStates` documents its second consumer** (#226). An entry has always
+  silenced the validator's coverage warning; it is now also how a design system
+  waives the state-legibility guard, i.e. it asserts "this state is deliberately
+  indistinguishable from its siblings". Same field, same semantics, two readers —
+  spelled out in the JSDoc, the recipe schema, the README and the skill, because
+  an author silencing a warning should know they are also making a design claim.
 
 - **`sizes: []` is now legal and means "this design system has no size axis"**
   (RFC 0003 §5, #164). It used to be a hard error, and an omitted ramp is

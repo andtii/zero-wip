@@ -1,6 +1,7 @@
 @layer zero.recipes {
     [data-scope="checkbox"][data-part="root"] {
         --checkbox-size: calc(var(--size-selector) * 6);
+        --checkbox-tick: calc(var(--checkbox-size) * 0.6);
         --checkbox-accent: var(--color-primary);
         --checkbox-on-accent: var(--color-primary-content);
     }
@@ -46,12 +47,28 @@
 
     [data-scope="checkbox"][data-part="indicator"] {
         color: var(--checkbox-on-accent);
-        font-weight: var(--weight-bold);
-        font-size: var(--text-xs);
+        width: var(--checkbox-tick);
+        height: var(--checkbox-tick);
+        flex-shrink: 0;
+        background: currentColor;
+        clip-path: polygon(10% 100%, 10% 70%, 45% 70%, 45% 70%, 75% 70%, 75% 100%);
+        rotate: 45deg;
+        translate: 0;
+        opacity: 0;
+        transition: clip-path var(--duration-slow) var(--ease-emphasized), opacity var(--duration-fast) var(--ease-standard), rotate var(--duration-fast) var(--ease-standard), translate var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="checkbox"][data-part="indicator"][data-state="checked"] {
+        clip-path: polygon(10% 100%, 10% 70%, 45% 70%, 45% 0%, 75% 0%, 75% 100%);
+        opacity: 1;
     }
 
     [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"] {
         color: var(--color-accent-content);
+        clip-path: polygon(0% 100%, 0% 70%, 50% 70%, 50% 70%, 100% 70%, 100% 100%);
+        rotate: 0deg;
+        translate: 0 -35%;
+        opacity: 1;
     }
 
     [data-scope="checkbox"][data-part="label"] {
@@ -147,5 +164,71 @@
 
     [data-scope="checkbox"][data-part="root"][data-size="xl"] [data-scope="checkbox"][data-part="label"] {
         font-size: var(--text-md);
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="checkbox"][data-part="indicator"] {
+            width: auto;
+            height: auto;
+            background: none;
+            font-weight: var(--weight-bold);
+            font-size: calc(var(--checkbox-size) * 0.8);
+            line-height: var(--leading-none);
+            rotate: 0deg;
+            translate: 0;
+            color: CanvasText;
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="checked"] {
+            clip-path: none;
+            opacity: 1;
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"] {
+            clip-path: none;
+            translate: 0;
+            opacity: 1;
+            color: CanvasText;
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="checked"]::after {
+            content: "✓";
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"]::after {
+            content: "−";
+        }
+    }
+
+    @media print {
+        [data-scope="checkbox"][data-part="indicator"] {
+            width: auto;
+            height: auto;
+            background: none;
+            font-weight: var(--weight-bold);
+            font-size: calc(var(--checkbox-size) * 0.8);
+            line-height: var(--leading-none);
+            rotate: 0deg;
+            translate: 0;
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="checked"] {
+            clip-path: none;
+            opacity: 1;
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"] {
+            clip-path: none;
+            translate: 0;
+            opacity: 1;
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="checked"]::after {
+            content: "✓";
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"]::after {
+            content: "−";
+        }
     }
 }

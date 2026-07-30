@@ -20,14 +20,14 @@
         width: 100%;
         height: var(--progress-track-size);
         background: var(--color-base-300);
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-box);
         overflow: hidden;
     }
 
     [data-scope="progress"][data-part="range"] {
         height: 100%;
         background: var(--progress-accent);
-        border-radius: var(--radius-selector);
+        border-radius: var(--radius-box);
         transition: width var(--duration-slow) var(--ease-standard);
     }
 

@@ -3,7 +3,7 @@
  * zero contract. Values match the daisy presets `@sigx/daisyui` ships, so a
  * zero app skinned with this package sits visually next to a daisy app.
  */
-import type { RoleDecl, SystemTokens, TokensInput } from '@sigx/zero-kit';
+import type { CustomTokenDecl, RoleDecl, SystemTokens, TokensInput } from '@sigx/zero-kit';
 
 /** daisyUI's color vocabulary — the recommended eight roles, declared explicitly. */
 export const roles = {
@@ -13,11 +13,21 @@ export const roles = {
 
 /**
  * daisy's non-color token values — declared once for the design system rather
- * than restated per theme. The pill-shaped toggles come from the large
- * `radius.selector`; both daisy themes share the same structural feel.
+ * than restated per theme, with the three radii per-theme overridden below
+ * where daisy's own themes differ.
+ *
+ * The radii are `light`/`dark`'s real shipped values. They used to be
+ * `selector: 1.5rem` / `field: .5rem` / `box: 1rem`, which no daisyUI 5 theme
+ * declares for any of the three — and `1.5rem` in particular is a value
+ * `--radius-selector` never takes in any of daisy's 35 themes. The error was
+ * masked on the checkbox alone by a compensating `calc(… / 3)` in `recipes.ts`
+ * (`1.5rem / 3` = the `.5rem` daisy uses undivided); every other reader —
+ * `switch.control`, `switch.thumb`, `progress`, the rating focus rings — was
+ * simply 3× too round. Source: daisyUI 5's shipped `themes.css`, parsed across
+ * all 35 themes.
  */
 export const system = {
-    radius: { selector: '1.5rem', field: '0.5rem', box: '1rem' },
+    radius: { selector: '0.5rem', field: '0.25rem', box: '0.5rem' },
     size: { selector: '0.25rem', field: '0.25rem' },
     // Typography. `fonts` is FAMILIES — sizes are the --text-* ramp, which
     // this design system inherits from @sigx/zero's fallbacks.
@@ -50,16 +60,60 @@ export const system = {
         xl: '0 25px 50px -12px oklch(0% 0 0 / 0.4)',
     },
     // daisy's own timings, unchanged in value — 0.15s/0.2s/0.3s as authored.
+    // `instant` is the 100ms daisy writes as a literal `.1s` in the checkbox
+    // tick's and the toggle knob's transition DELAY. Declared as a token so no
+    // literal time appears in a recipe, and — unlike daisy's own — so the kit's
+    // reduced-motion block collapses the delay along with every duration.
     motion: {
-        durations: { fast: '150ms', normal: '200ms', slow: '300ms' },
+        durations: { instant: '100ms', fast: '150ms', normal: '200ms', slow: '300ms' },
         easings: { standard: 'ease' },
     },
     border: '1px',
     disabledOpacity: '0.3',
 } as const satisfies SystemTokens;
 
+/**
+ * daisy's fractal-noise tile, verbatim from its own `:root` — the `--fx-noise`
+ * layer its checkboxes, toggles and buttons carry at `--noise` strength.
+ */
+const FX_NOISE = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.34' numOctaves='4' stitchTiles='stitch'%3E%3C/feTurbulence%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23a)' opacity='0.2'%3E%3C/rect%3E%3C/svg%3E\")";
+
+/**
+ * The two paints `--depth` scales, named rather than inlined.
+ *
+ * daisy writes `oklch(0% 0 0 / calc(var(--depth) * .1))` straight into every
+ * inset box-shadow. Written that way in a recipe the validator flags a
+ * hardcoded colour — its scrim exemption parses the literal, and a
+ * `calc(var(…))` alpha does not survive `stripVars`. Naming them keeps the
+ * recipes var-only, which is the rule the exemption exists to protect.
+ */
+const DEPTH_SHADE = 'oklch(0% 0 0 / calc(var(--depth) * 0.1))';
+const DEPTH_SHEEN = 'oklch(100% 0 0 / calc(var(--depth) * 0.1))';
+
+/**
+ * daisy's two non-contract knobs. `--depth` needs `syntax: '<number>'` so
+ * `calc(var(--depth) * 10%)` interpolates rather than resolving to a guess.
+ */
+export const custom = {
+    depth: { description: "daisy's inset-shadow depth: 1 = shadowed, 0 = flat.", syntax: '<number>' },
+    'depth-shade': { description: 'The black inset paint --depth scales.' },
+    'depth-sheen': { description: 'The white inset paint --depth scales.' },
+    noise: { description: "daisy's fractal-noise overlay strength (0–1).", syntax: '<number>' },
+    'fx-noise': { description: "daisy's fractal-noise tile." },
+} as const satisfies Record<string, CustomTokenDecl>;
+
+/** Per-theme values for `custom` — only `--depth` actually varies. */
+const fx = (depth: '0' | '1'): Record<string, string> => ({
+    depth,
+    'depth-shade': DEPTH_SHADE,
+    'depth-sheen': DEPTH_SHEEN,
+    noise: '0',
+    'fx-noise': FX_NOISE,
+});
+
 export const tokens: TokensInput<typeof roles, typeof system> = {
     roles,
+    custom,
     // The `variant` axis vocabulary — what button's variants.variant keys on.
     // Declared so a recipe typo is a build error, not a minted value.
     variants: ['solid', 'outline', 'soft', 'ghost'],
@@ -93,6 +147,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 error: 'oklch(63.72% 0.237 25.33)',
                 'error-content': 'oklch(12.744% 0.0474 25.33)',
             },
+            custom: fx('1'),
         },
         dark: {
             colorScheme: 'dark',
@@ -120,6 +175,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 error: 'oklch(63.72% 0.237 25.33)',
                 'error-content': 'oklch(12.744% 0.0474 25.33)',
             },
+            custom: fx('1'),
         },
         // The N-theme proof (RFC 0002 §7 / #132): three more of daisyUI's own
         // themes. `defaultLight`/`defaultDark` stay light/dark, so the `:root`
@@ -152,6 +208,8 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 error: 'oklch(82.418% 0.099 33.756)',
                 'error-content': 'oklch(16.483% 0.019 33.756)',
             },
+            system: { radius: { selector: '1rem', field: '0.5rem', box: '1rem' } },
+            custom: fx('0'),
         },
         nord: {
             colorScheme: 'light',
@@ -178,6 +236,9 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 error: 'oklch(60.61% 0.12 15.341)',
                 'error-content': 'oklch(12.122% 0.024 15.341)',
             },
+            // `field`/`box` already match the system default.
+            system: { radius: { selector: '1rem' } },
+            custom: fx('0'),
         },
         sunset: {
             colorScheme: 'dark',
@@ -204,6 +265,8 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 error: 'oklch(85.511% 0.078 16.886)',
                 'error-content': 'oklch(17.102% 0.015 16.886)',
             },
+            system: { radius: { selector: '1rem', field: '0.5rem', box: '1rem' } },
+            custom: fx('0'),
         },
     },
 };

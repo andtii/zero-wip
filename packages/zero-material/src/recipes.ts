@@ -982,6 +982,11 @@ const tickBox = (accent: string, size: string): PartStyles => ({
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
+        // `size` is the container as Material measures it — 18dp INCLUDING the
+        // 2dp stroke, not 18dp of content plus stroke. Without this the box is
+        // 4px larger than the token says and the mark inside it, sized off the
+        // same token, reads small.
+        boxSizing: 'border-box',
         width: size,
         height: size,
         border: '2px solid var(--color-outline)',
@@ -989,6 +994,9 @@ const tickBox = (accent: string, size: string): PartStyles => ({
         transition: motion('background, border-color'),
     },
     states: {
+        // Both selected states take the same filled container — in Material
+        // the fill means "selected", and it is the MARK inside that says which
+        // kind of selected. See `checkbox.indicator`.
         checked: { background: accent, borderColor: accent },
         unchecked: {},
         indeterminate: { background: accent, borderColor: accent },
@@ -997,6 +1005,47 @@ const tickBox = (accent: string, size: string): PartStyles => ({
 });
 
 const checkboxTick = tickBox('var(--checkbox-accent)', 'var(--checkbox-size)');
+
+/**
+ * Forced-colours / print fallback for the checkbox mark: geometry out, glyph in.
+ *
+ * Both arms are painted with `background: currentColor`. A forced palette
+ * repaints backgrounds and print drops them, so in both modes the mark has to
+ * stop being paint and become type. `::before` keeps its role as the leading
+ * mark and becomes the glyph; `::after` is the second half of a stroke that no
+ * longer exists, so it goes away entirely.
+ *
+ * `ink` is the one thing the two renders disagree on, so each condition builds
+ * its own object rather than sharing one. Neither may inherit the indicator's
+ * `--checkbox-on-accent`: on paper that is white on a fill that did not print,
+ * and in forced colours it is an author colour whose ink is then only as good
+ * as the UA's remapping of it — the one mode that exists to make ink
+ * predictable is the last place to leave it implied.
+ */
+const markGlyphFallback = (ink: string): PartStyles => ({
+    base: {
+        display: 'grid',
+        placeItems: 'center',
+        color: ink,
+        fontSize: 'var(--checkbox-mark-size)',
+        lineHeight: 'var(--leading-none)',
+    },
+    selectors: {
+        '&::before': {
+            position: 'static',
+            width: 'auto',
+            height: 'auto',
+            marginTop: '0',
+            background: 'transparent',
+            translate: 'none',
+            rotate: 'none',
+            scale: 'none',
+        },
+        '&::after': { content: 'none' },
+        '&[data-state="checked"]::before': { content: '"\\2713"' },
+        '&[data-state="indeterminate"]::before': { content: '"\\2212"' },
+    },
+});
 
 export const checkbox: RecipeInput = {
     component: 'checkbox',
@@ -1007,6 +1056,15 @@ export const checkbox: RecipeInput = {
         '--checkbox-size': 'calc(var(--size-selector) * 6)',
         '--checkbox-accent': 'var(--color-primary)',
         '--checkbox-on-accent': 'var(--color-primary-content)',
+        // The mark's own box, and — since #226's re-centring — literally the
+        // mark's ink: the arms below are laid out so the tick's bounding box IS
+        // this square, centred in the container. Material's check spans 10dp
+        // across an 18dp container (0.555), so 0.58 reproduces that ratio at
+        // every step of the ramp.
+        '--checkbox-mark-size': 'calc(var(--checkbox-size) * 0.58)',
+        // Material's 2dp stroke, kept proportional so it scales with the ramp,
+        // with a 2px floor so `xs` still reads as a stroke and not a hairline.
+        '--checkbox-mark-stroke': 'max(2px, calc(var(--checkbox-size) * 0.111))',
     },
     parts: {
         root: {
@@ -1017,7 +1075,7 @@ export const checkbox: RecipeInput = {
                 cursor: 'pointer',
                 WebkitTapHighlightColor: 'transparent',
             },
-            states: { checked: {}, unchecked: {}, indeterminate: {}, disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
+            states: { disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' } },
         },
         // MD3 selection-control halo: unbounded, centered, coords ignored.
         // 2.5 × the tick keeps the 15-unit resting diameter and scales with
@@ -1026,11 +1084,148 @@ export const checkbox: RecipeInput = {
             ...checkboxTick,
             base: { ...checkboxTick.base, borderRadius: 'var(--radius-selector)' },
         }),
+        /**
+         * The mark. Material draws a 2dp stroked check, and it DRAWS it: the
+         * short arm sweeps down-right, then the long arm runs out of the elbow
+         * up to the tip. Indeterminate is a single horizontal bar.
+         *
+         * Both are the same two arms. Each arm is a stroke pinned by its
+         * LEFT-CENTER to a point on the check's polyline, rotated onto that
+         * segment's axis, and scaled along it — so `scale` is literally how
+         * much of the stroke has been drawn, and 0 is a check of zero length
+         * rather than a hidden one. That is why `unchecked` needs no rule and
+         * why `checked` is a draw-on and not a fade.
+         *
+         * ── THE JOINT ───────────────────────────────────────────────────────
+         * Material's tick is ONE polyline: butt caps, a mitre at the elbow
+         * (`_checkbox.scss` draws it as a single closed path, and every end of
+         * that path is a straight cut perpendicular to its arm). Two arms with
+         * rounded caps cannot make that joint — the caps splay and leave a
+         * notch at the outer corner, which reads as two bars laid over each
+         * other rather than a check. So: no `border-radius` anywhere, and the
+         * lead arm runs HALF A STROKE PAST the elbow, which is exactly the
+         * mitre. With `w` the stroke and the arms perpendicular, the mitre tip
+         * sits `w/√2` from the vertex along the outer bisector — and that point
+         * is precisely the far corner of the lead arm extended by `w/2`, so the
+         * two rectangles meet there with nothing left over and nothing missing.
+         * That extension is why `checked` reads 0.526 for a 0.43-long arm
+         * (0.43 + w/2 ÷ mark-size, w/mark-size being the fixed 0.191).
+         *
+         * ── THE PLACEMENT ───────────────────────────────────────────────────
+         * The polyline is positioned so the INK's bounding box is the mark box:
+         * with arms of 0.43 and 0.79 at ±45°, ink width = (0.43 + 0.79)/√2 +
+         * w·√2 = 1.0 of the box, and the start point at x = w/(2√2) puts the
+         * left cap's corner on x = 0. Vertically the same solve against the
+         * mitre tip (the lowest ink) and the long arm's outer tip corner (the
+         * highest) — hence the `-0.025·size - 0.177·stroke` in the offset,
+         * rather than the hand-tuned −0.03 that left the mark a pixel low.
+         * Ink aspect lands at 1 : 0.762, Material's own is 1 : 0.754. Measured
+         * on a 240px control (so sub-pixel snapping cannot flatter it): ink
+         * 139 × 106 with margins L 50.0 / R 51.0 and T 67.5 / B 66.5.
+         *
+         * The three degrees of freedom go through custom properties so the
+         * STATE rules carry the geometry (the package's indirection idiom) and
+         * the two arms stay pure paint. Substituting a changed custom property
+         * into `scale`/`rotate`/`translate` still produces a transitionable
+         * computed value, so the indirection costs no motion.
+         */
         indicator: {
-            base: { color: 'var(--checkbox-on-accent)', fontSize: 'var(--text-xs)' },
-            states: { checked: {}, unchecked: {}, indeterminate: {} },
+            base: {
+                position: 'relative',
+                // Above `control`'s state layer and ink ripple, both of which
+                // are its pseudo-elements and would otherwise wash over the
+                // mark mid-press.
+                zIndex: '1',
+                width: 'var(--checkbox-mark-size)',
+                height: 'var(--checkbox-mark-size)',
+                color: 'var(--checkbox-on-accent)',
+                // Resting: both arms collapsed onto the check's own axes.
+                '--checkbox-mark-lead': '0',
+                '--checkbox-mark-lead-angle': '45deg',
+                // The polyline's start point, solved for a centred ink box —
+                // see THE PLACEMENT above. Both terms are lengths, so the
+                // centring holds at `xs`, where the stroke hits its 2px floor
+                // and stops being 0.191 of the box.
+                '--checkbox-mark-lead-offset':
+                    'calc(var(--checkbox-mark-stroke) * 0.354) '
+                    + 'calc(var(--checkbox-mark-size) * -0.025 - var(--checkbox-mark-stroke) * 0.177)',
+                '--checkbox-mark-trail': '0',
+            },
+            states: {
+                // 0.43 of the box, plus the half-stroke that mitres the elbow.
+                checked: { '--checkbox-mark-lead': '0.526', '--checkbox-mark-trail': '0.79' },
+                // The bar is the SAME leading arm, unrotated and run to full
+                // width — so checked ⇄ indeterminate is one continuous morph
+                // (the check unfolding) rather than a swap of two marks.
+                indeterminate: {
+                    '--checkbox-mark-lead': '1',
+                    '--checkbox-mark-lead-angle': '0deg',
+                    '--checkbox-mark-lead-offset': '0 0',
+                    '--checkbox-mark-trail': '0',
+                },
+                unchecked: {},
+            },
+            selectors: {
+                // Leading arm: elbow-ward at +45° from the solved start point,
+                // and half a stroke past the elbow to close the mitre. No
+                // `border-radius`: Material's caps are square cuts.
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    left: '0',
+                    top: '50%',
+                    width: '100%',
+                    height: 'var(--checkbox-mark-stroke)',
+                    marginTop: 'calc(var(--checkbox-mark-stroke) / -2)',
+                    background: 'currentColor',
+                    transformOrigin: 'left center',
+                    translate: 'var(--checkbox-mark-lead-offset)',
+                    rotate: 'var(--checkbox-mark-lead-angle)',
+                    scale: 'var(--checkbox-mark-lead) 1',
+                    transition: 'translate var(--duration-fast) var(--ease-emphasized-decelerate), '
+                        + 'rotate var(--duration-fast) var(--ease-emphasized-decelerate), '
+                        + 'scale var(--duration-fast) var(--ease-emphasized-decelerate)',
+                },
+                // Trailing arm: out of the elbow at −45°, to the tip. Fixed
+                // axis — only its length animates. Its origin IS the elbow the
+                // lead arm ends at, to the pixel: the same solved start point
+                // plus 0.43 of the box along the +45° axis (0.43/√2 = 0.304).
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    left: '0',
+                    top: '50%',
+                    width: '100%',
+                    height: 'var(--checkbox-mark-stroke)',
+                    marginTop: 'calc(var(--checkbox-mark-stroke) / -2)',
+                    background: 'currentColor',
+                    transformOrigin: 'left center',
+                    translate:
+                        'calc(var(--checkbox-mark-size) * 0.304 + var(--checkbox-mark-stroke) * 0.354) '
+                        + 'calc(var(--checkbox-mark-size) * 0.279 - var(--checkbox-mark-stroke) * 0.177)',
+                    rotate: '-45deg',
+                    scale: 'var(--checkbox-mark-trail) 1',
+                    transition: 'scale var(--duration-fast) var(--ease-emphasized-decelerate)',
+                },
+                // Material draws the long arm OUT OF the short one, so the
+                // stagger lives on the destination rule: drawing in waits a
+                // beat for the lead arm, erasing does not wait for anything.
+                '&[data-state="checked"]::after': {
+                    transition:
+                        'scale var(--duration-fast) var(--ease-emphasized-decelerate) var(--duration-fast)',
+                },
+            },
+            at: {
+                // The forced palette's own ink, named rather than left to the
+                // UA's revaluation of a theme colour.
+                'forced-colors': markGlyphFallback('CanvasText'),
+                // Print drops the container fill, so the glyph cannot stay the
+                // on-accent colour or it prints white on white. The accent
+                // itself is the mark's ink on paper.
+                print: markGlyphFallback('var(--checkbox-accent)'),
+            },
         },
-        label: { base: { fontSize: 'var(--text-md)' }, states: { checked: {}, unchecked: {}, indeterminate: {} } },
+        label: { base: { fontSize: 'var(--text-md)' } },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
     },
     keyframes: rippleKeyframes('checkbox'),
@@ -1047,7 +1242,12 @@ export const checkbox: RecipeInput = {
             xl: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 8)' } }, label: { base: { fontSize: 'var(--text-xl)' } } },
         },
     },
-    skipStates: { root: ['focus-visible'] },
+    // The container and the mark carry the selection between them; the row and
+    // the text have no appearance of their own that depends on it.
+    skipStates: {
+        root: ['focus-visible', 'checked', 'unchecked', 'indeterminate'],
+        label: ['checked', 'unchecked', 'indeterminate'],
+    },
 };
 
 const radioTick = tickBox('var(--radio-accent)', 'var(--radio-size)');
@@ -1056,8 +1256,9 @@ export const radioGroup: RecipeInput = {
     component: 'radio-group',
     tokens: {
         '--radio-size': 'calc(var(--size-selector) * 6)',
+        // No `--radio-on-accent`: nothing in a Material radio sits ON the
+        // accent — the ring and the dot both take the accent itself.
         '--radio-accent': 'var(--color-primary)',
-        '--radio-on-accent': 'var(--color-primary-content)',
     },
     parts: {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' } },
@@ -1091,7 +1292,12 @@ export const radioGroup: RecipeInput = {
                 width: 'calc(var(--radio-size) / 2)',
                 height: 'calc(var(--radio-size) / 2)',
                 borderRadius: '624rem',
-                background: 'var(--radio-on-accent)',
+                // The ACCENT, not the on-accent. A Material radio's container
+                // is never filled — only its ring takes the accent — so the
+                // dot sits on the page background, where the on-colour is the
+                // one value guaranteed NOT to be readable: `primary-content`
+                // is pure white, and white on `base-100` measures 1.02:1.
+                background: 'var(--radio-accent)',
                 transform: 'scale(0)',
                 transition: motion('transform'),
             },
@@ -1099,6 +1305,9 @@ export const radioGroup: RecipeInput = {
                 checked: { transform: 'scale(1)' },
                 unchecked: {},
             },
+            // A forced palette repaints backgrounds, which would erase a dot
+            // that is nothing but one. A system colour is honoured as given.
+            at: { 'forced-colors': { base: { background: 'CanvasText' } } },
         },
         'item-label': { base: { fontSize: 'var(--text-md)' } },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
@@ -1107,7 +1316,6 @@ export const radioGroup: RecipeInput = {
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--radio-accent': `var(--color-${c})`,
-            '--radio-on-accent': `var(--color-${c}-content)`,
         } } }])),
         size: {
             xs: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 4)' } }, 'item-label': { base: { fontSize: 'var(--text-xs)' } } },
@@ -1290,10 +1498,22 @@ export const progress: RecipeInput = {
                 height: '100%',
                 borderRadius: '624rem',
                 background: 'var(--progress-accent)',
-                transition: motion('width'),
+                transition: motion('width, background'),
             },
             states: {
-                complete: {},
+                // `complete` is a semantic state, not an accent: it stays
+                // `success` whatever `color` the consumer picked. Without it the
+                // finished bar is conveyed only by an inline width, which no
+                // stylesheet carries and no snapshot can see.
+                // Measured caveat for #228: MD3's `primary` and `success` are
+                // near-equiluminant, so this recolour is 1.01:1 in WCAG in both
+                // themes while being oklab ΔE 0.24 / 0.17 apart — plainly
+                // visible, invisible to a luminance metric. A state-vs-state
+                // audit must use a perceptual metric; keep WCAG for ink vs
+                // surface. It is also the reason a hue swap alone is a weak
+                // completion signal for colour-vision deficiency, in every
+                // design system that uses this convention.
+                complete: { background: 'var(--color-success)' },
                 loading: {},
                 indeterminate: { width: '40%', animation: 'material-indeterminate 1.4s var(--ease-emphasized) infinite' },
             },
@@ -1975,7 +2195,24 @@ export const ratingGroup: RecipeInput = {
             },
             states: {
                 full: { color: 'var(--rating-fill)' },
-                half: { color: 'var(--rating-fill)' },
+                // A half is a HALF FILL, not a second full one. The glyph's own
+                // ink is painted by a hard-stop gradient clipped to the text, so
+                // the difference is GEOMETRIC — half the mark is there — and
+                // holds for whatever symbol the consumer passed in.
+                //
+                // The trailing stop is transparent rather than the inactive
+                // hairline tone on purpose: Material's `outline` and its accents
+                // are near-equiluminant (measured 1.26:1 against each other in
+                // the light theme), so a tinted second half would encode `half`
+                // in a difference some viewers cannot see. An absent half is
+                // legible at any size, in either scheme, and to anyone.
+                half: {
+                    backgroundImage: 'linear-gradient(to right, var(--rating-fill) 50%, transparent 50%)',
+                    WebkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                    color: 'transparent',
+                    WebkitTextFillColor: 'transparent',
+                },
                 empty: {},
                 highlighted: { transform: 'scale(1.12)' },
                 disabled: { cursor: 'not-allowed' },
@@ -1988,8 +2225,27 @@ export const ratingGroup: RecipeInput = {
                     borderRadius: 'var(--radius-selector)',
                 },
             },
+            selectors: {
+                // Gradients have no logical direction, so the hard stop has to
+                // be flipped by hand: the filled half is the LEADING one.
+                '&[data-state="half"]:dir(rtl)': {
+                    backgroundImage: 'linear-gradient(to left, var(--rating-fill) 50%, transparent 50%)',
+                },
+            },
             at: {
                 'reduced-motion': { base: { transition: 'none' }, states: { highlighted: { transform: 'none' } } },
+                // `-webkit-text-fill-color` is outside the forced palette's
+                // reach, so a transparent glyph could stay transparent. Give
+                // the half back its own ink and let the symbol carry the state.
+                'forced-colors': {
+                    states: {
+                        half: {
+                            backgroundImage: 'none',
+                            color: 'CanvasText',
+                            WebkitTextFillColor: 'currentColor',
+                        },
+                    },
+                },
             },
         },
     },

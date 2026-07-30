@@ -166,8 +166,8 @@ component's anatomy). No component code is ever written or changed.
    ```
    A key is a breakpoint declared in `tokens.breakpoints` (emitted as
    `@media (min-width: …)`), a built-in (`reduced-motion`, `hover-none`,
-   `prefers-dark`, `forced-colors`), or anything starting with `@`, used as a
-   raw prelude. Anything else is a hard error listing what was available.
+   `prefers-dark`, `forced-colors`, `print`), or anything starting with `@`,
+   used as a raw prelude. Anything else is a hard error listing what was available.
    - Author **mobile-first**: breakpoints are `min-width`, so `base` is the
      small-screen case. Declare them ascending — declaration order is emission
      order, and the validator enforces it.
@@ -256,6 +256,57 @@ component's anatomy). No component code is ever written or changed.
      }
      ```
      Accordion's `<details>` is its `item` part, not `root`.
+   - **A state indicator is DRAWN GEOMETRY, and it must look different in
+     every state it declares.** An `indicator` part — checkbox's tick, radio's
+     dot, a rating symbol, select's checkmark — exists for exactly one reason:
+     to say which state the thing is in. Three rules, and the first two are
+     enforced in CI by `__tests__/state-legibility.test.ts`:
+     1. **Every pair of a part's declared states must render differently.**
+        Declaring `states` and styling them alike is the one bug the anatomy
+        cannot catch for you: `full` and `half` both setting `color:
+        var(--rating-fill)` draws a half rating as a full one. The guard reads
+        the *compiled* CSS, so the difference may live anywhere — `states`,
+        `selectors`, a variant, a pseudo-element — but it must exist **in the
+        default render**: a difference that only appears inside `@media`
+        (the `forced-colors`/`print` glyph fallback of rule 3, a breakpoint,
+        `hover: none`) does not count, and neither does one made only of
+        `transition`/`will-change`, which changes how a state arrives and not
+        how it looks. The only opt-out is `skipStates`; it is read **per part**
+        (skipping `checked` on `item-label` will not excuse `item-indicator`)
+        and it is a design claim, so comment it.
+     2. **Draw the mark, don't typeset it.** `content: "✓"` hands the mark's
+        weight to whatever font the reader has, cannot express a fraction, and
+        cannot animate. `clip-path` on a `currentColor` slab, two borders of a
+        rotated box, or a masked gradient all scale with the size token and
+        *interpolate* — so the mark draws itself:
+        ```ts
+        indicator: {
+            base: {
+                background: 'currentColor',
+                clipPath: 'polygon(20% 100%, 20% 80%, 50% 80%, 50% 80%, 70% 80%, 70% 100%)',
+                transition: 'clip-path var(--duration-normal) var(--ease-standard)',
+            },
+            states: {
+                // Same point COUNT and order in every state, or the browser
+                // has nothing to interpolate and the mark pops.
+                checked: { clipPath: 'polygon(20% 100%, 20% 80%, 50% 80%, 50% 0%, 70% 0%, 70% 100%)' },
+                unchecked: { opacity: '0' },
+            },
+        }
+        ```
+        Grow it from a degenerate form of *itself* (an arm of zero length, full
+        thickness), not from `scale(0)` — the latter animates the stroke weight
+        too. Every length a percentage of the control, so one declaration rides
+        the whole size ramp.
+     3. **Geometry painted with `background` disappears in two media** —
+        `forced-colors` (author paint is revalued) and `print` (backgrounds are
+        dropped). Give the mark a glyph fallback in both, keyed by the named
+        conditions: `at: { 'forced-colors': fallback, print: fallback }`, where
+        the fallback sets `clip-path: none` and hangs `content: "\2714"` off
+        `::after` in `CanvasText`. The exception is a mark whose state is a
+        *fraction* — a half rating — which no glyph can say: keep the geometry
+        and re-source the paint instead (`background: CanvasText` under forced
+        colors, `print-color-adjust: exact` on paper).
    - **Press feedback: the runtime publishes the press, the recipe styles
      it.** CSS can see `:active` but not *where* a press landed, so on parts
      whose anatomy declares the `pressed` flag zero writes the data below.
@@ -476,6 +527,10 @@ And these are warnings worth driving to zero:
 - a part that declares `focus-visible` and doesn't style it. If the ring
   genuinely belongs on an inner part, say so with
   `skipStates: { root: ['focus-visible'] }` rather than leaving it implicit.
+  Note that `skipStates` has a second reader: the state-legibility guard takes
+  an entry as "this state is deliberately indistinguishable from its
+  siblings". Silencing a coverage warning with it therefore also waives the
+  guard for that state, on **that part only** — write the reason next to it.
 - `var(--x, fallback)` referencing something undeclared — the fallback makes
   it safe, so it's the sanctioned way to read an app-supplied property.
 

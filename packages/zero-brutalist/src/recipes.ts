@@ -646,6 +646,76 @@ const tickBox = (size: string): CssProps => ({
     transition: motion('background'),
 });
 
+/**
+ * The tick is one square slab painted in `currentColor` and carved by
+ * `clip-path`.
+ *
+ * BORROWED, not invented: this is daisyUI 5.7.8's `.checkbox:before`
+ * construction — a six-point polygon carving an L out of a `currentColor` slab,
+ * `rotate: 45deg` to turn the L into a check, the middle points collapsed for
+ * `unchecked`, and the same `translate: 0 -35%` daisy uses to slide the
+ * indeterminate bar up (see `BAR` below). Retuned, not restyled: the arms are
+ * 30% of the slab where daisy's are 20%, and `--ease-emphasized: steps(3, end)`
+ * draws the tick in three hard frames instead of sliding it. Those two are the
+ * whole of what makes it brutalist; a mark with a construction of its own — two
+ * axis-aligned slabs at a hard 90°, no rotation, which suits `steps()` better
+ * than a rotated carve — is still owed. Noted in the README so the lineage does
+ * not have to be re-derived.
+ *
+ * `unchecked` collapses the L's stem down onto its foot, so checking DRAWS the
+ * tick rather than fading one in. All three paths keep the same six points,
+ * which is what makes them interpolable: the mark morphs, it never cross-fades.
+ */
+const TICK = 'polygon(10% 100%, 10% 70%, 45% 70%, 45% 0%, 75% 0%, 75% 100%)';
+const TICK_COLLAPSED = 'polygon(10% 100%, 10% 70%, 45% 70%, 45% 70%, 75% 70%, 75% 100%)';
+/**
+ * Indeterminate is the collapsed foot widened to the full slab and shoved up
+ * to the middle — a fat unrotated bar, and the same six points again. The shove
+ * is `translate: 0 -35%` in the state below, daisy's own number: the foot sits
+ * at 70% of the slab, so lifting it by 35% of the slab's height lands its
+ * centre on the middle.
+ */
+const BAR = 'polygon(0% 100%, 0% 70%, 50% 70%, 50% 70%, 100% 70%, 100% 100%)';
+
+/**
+ * Geometry painted with `background`/`clip-path` is at the mercy of
+ * forced-colors, which overrides both — and it does not print. Both media get
+ * the same treatment daisy gives them: drop the geometry, restore a glyph,
+ * and let the system's own ink carry it.
+ *
+ * Both are named built-in conditions, so both sort into the preference tier and
+ * land after the flat state rules they override.
+ *
+ * The one thing they do NOT share is the ink. Forced colours name `CanvasText`
+ * rather than inherit the indicator's `--checkbox-on-accent`: an author colour
+ * there is only as good as the UA's revaluation of it, and the mode whose whole
+ * job is predictable ink is the last place to leave it implied. It has to be
+ * restated per state as well as on `base`, because `indeterminate`'s flat rule
+ * declares its own `color` and outranks a `base` override on specificity, not
+ * order.
+ *
+ * Print keeps the theme's own ink, and that is a known cost, not an oversight:
+ * `--checkbox-on-accent` is white in the light theme, so the checked tick prints
+ * white on paper the fill did not print — 1.00:1, measured. The obvious swap to
+ * `--color-base-content` only moves the failure to the dark theme, where it and
+ * `CanvasText` both resolve white, so the fix needs a theme-independent paper
+ * ink rather than a one-line substitution. Filed as #233 with the numbers.
+ *
+ * Only for marks a glyph can actually carry: rating-group's meter handles the
+ * two media itself, because its `half` glyph does not exist in system fonts.
+ */
+const glyphFallback = (styles: PartStyles): Record<string, PartStyles> => ({
+    'forced-colors': {
+        ...styles,
+        base: { ...styles.base, color: 'CanvasText' },
+        states: {
+            ...styles.states,
+            indeterminate: { ...styles.states?.indeterminate, color: 'CanvasText' },
+        },
+    },
+    print: styles,
+});
+
 export const checkbox: RecipeInput = {
     component: 'checkbox',
     // Accent defaults live in `tokens:` so the un-attributed render IS the
@@ -653,6 +723,11 @@ export const checkbox: RecipeInput = {
     // the toast shape.
     tokens: {
         '--checkbox-size': 'calc(var(--size-selector) * 6)',
+        // The slab the tick is carved from. 0.6 of the box leaves the rotated
+        // check clear of the 3px frame at every step of the size ramp, and
+        // deriving it from `--checkbox-size` means the ramp needs no extra
+        // entry — daisy reaches the same proportion by padding the control.
+        '--checkbox-tick': 'calc(var(--checkbox-size) * 0.6)',
         '--checkbox-accent': 'var(--color-primary)',
         '--checkbox-on-accent': 'var(--color-primary-content)',
     },
@@ -674,10 +749,62 @@ export const checkbox: RecipeInput = {
             },
         },
         indicator: {
-            base: { color: 'var(--checkbox-on-accent)', fontWeight: 'var(--weight-bold)', fontSize: 'var(--text-xs)' },
-            // Deliberate two-accent design: the indeterminate glyph stays the
-            // fixed `accent-content`, pairing the fixed `accent` fill above.
-            states: { checked: {}, unchecked: {}, indeterminate: { color: 'var(--color-accent-content)' } },
+            base: {
+                // `color` drives the slab (`background: currentColor`) AND the
+                // forced-colors glyph, so one declaration paints the mark
+                // whichever route it takes.
+                color: 'var(--checkbox-on-accent)',
+                width: 'var(--checkbox-tick)',
+                height: 'var(--checkbox-tick)',
+                flexShrink: '0',
+                background: 'currentColor',
+                clipPath: TICK_COLLAPSED,
+                rotate: '45deg',
+                translate: '0',
+                opacity: '0',
+                // The carve is the animation, so it gets the long duration and
+                // the three-frame easing; opacity and the rotate/translate
+                // swap ride along at the short one.
+                transition: 'clip-path var(--duration-slow) var(--ease-emphasized), '
+                    + motion('opacity, rotate, translate'),
+            },
+            states: {
+                checked: { clipPath: TICK, opacity: '1' },
+                unchecked: {},
+                // Deliberate two-accent design: the indeterminate mark stays
+                // the fixed `accent-content`, pairing the fixed `accent` fill
+                // above. The bar is unrotated and centred by its own shove.
+                indeterminate: {
+                    color: 'var(--color-accent-content)',
+                    clipPath: BAR,
+                    rotate: '0deg',
+                    translate: '0 -35%',
+                    opacity: '1',
+                },
+            },
+            at: glyphFallback({
+                // Geometry off — and per state, because the flat state rules
+                // outrank a `base` override on specificity, not order.
+                base: {
+                    width: 'auto',
+                    height: 'auto',
+                    background: 'none',
+                    fontWeight: 'var(--weight-bold)',
+                    fontSize: 'calc(var(--checkbox-size) * 0.8)',
+                    lineHeight: 'var(--leading-none)',
+                    rotate: '0deg',
+                    translate: '0',
+                },
+                states: {
+                    checked: { clipPath: 'none', opacity: '1' },
+                    unchecked: {},
+                    indeterminate: { clipPath: 'none', translate: '0', opacity: '1' },
+                },
+                selectors: {
+                    '&[data-state="checked"]::after': { content: '"✓"' },
+                    '&[data-state="indeterminate"]::after': { content: '"−"' },
+                },
+            }),
         },
         label: { base: { ...label, fontSize: 'var(--text-xs)' }, states: { checked: {}, unchecked: {}, indeterminate: {} } },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
@@ -697,6 +824,11 @@ export const checkbox: RecipeInput = {
     },
     skipStates: { root: ['focus-visible'] },
 };
+
+/**
+ * ── SPLICE 2 — insert RATING_FILL_LEVELS immediately before the recipe, then
+ *    replace the whole `export const ratingGroup` block ────────────────────
+ */
 
 export const radioGroup: RecipeInput = {
     component: 'radio-group',
@@ -1485,10 +1617,38 @@ export const numberInput: RecipeInput = {
     },
 };
 
+/**
+ * A brutalist rating is not a row of stars — it is a row of cells that fill.
+ * Each item is a framed square; the fill is a hard-edged slab clipped to 0%,
+ * 50% or 100% of the cell, so `half` is unmistakably half and no glyph has to
+ * carry the state. The clip snaps in `steps()`, like everything else here.
+ *
+ * `empty`'s 100% inset means nothing paints, so the resting row is five empty
+ * frames — which is also why the fill needs no separate "off" colour.
+ */
+const RATING_FILL_LEVELS: Record<string, CssProps> = {
+    '&::before': {
+        content: '""',
+        position: 'absolute',
+        // Held off the frame by one hairline of paper: the default fill IS
+        // `--color-base-content`, the same ink the frame is drawn in, so a
+        // flush slab would swallow its own cell and a full row would read as
+        // one long bar instead of five marks.
+        inset: 'var(--space-2xs)',
+        background: 'var(--rating-fill)',
+        clipPath: 'inset(0 100% 0 0)',
+        transition: 'clip-path var(--duration-normal) var(--ease-emphasized)',
+    },
+    '&[data-state="half"]::before': { clipPath: 'inset(0 50% 0 0)' },
+    '&[data-state="full"]::before': { clipPath: 'inset(0 0 0 0)' },
+};
+
 export const ratingGroup: RecipeInput = {
     component: 'rating-group',
     tokens: {
-        '--rating-size': 'var(--text-xl)',
+        // A cell side, not a font size — the ramp below moves it in
+        // `--size-selector` steps, which is daisy's own rating ramp.
+        '--rating-size': 'calc(var(--size-selector) * 6)',
         '--rating-fill': 'var(--color-base-content)',
     },
     parts: {
@@ -1506,7 +1666,10 @@ export const ratingGroup: RecipeInput = {
             selectors: { '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' } },
         },
         control: {
-            base: { display: 'inline-flex', gap: 'var(--space-2xs)' },
+            // One step wider than the old glyph row: the cells are solid ink
+            // when full, so the gap is the only thing keeping five of them
+            // from reading as one bar.
+            base: { display: 'inline-flex', gap: 'var(--space-xs)' },
             states: {
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 readonly: {},
@@ -1515,22 +1678,27 @@ export const ratingGroup: RecipeInput = {
         },
         item: {
             base: {
-                fontSize: 'var(--rating-size)',
-                lineHeight: '1',
-                fontWeight: 'var(--weight-bold)',
+                display: 'inline-block',
+                position: 'relative',
+                width: 'var(--rating-size)',
+                height: 'var(--rating-size)',
+                ...inked,
+                // The component's default symbol is a text star. The cell
+                // replaces it outright — in every medium, see `at` below — so
+                // it is collapsed rather than styled.
+                fontSize: '0',
                 cursor: 'pointer',
                 userSelect: 'none',
-                // Empty is the ink at outline strength — same hue, faded hard,
-                // so full vs empty reads as stamped vs ghosted.
-                color: 'color-mix(in oklab, var(--color-base-content) 30%, transparent)',
-                transition: motion('color, background'),
+                transition: motion('background'),
             },
             states: {
-                full: { color: 'var(--rating-fill)' },
-                half: { color: 'var(--rating-fill)' },
+                // The fill lives in `selectors` below — one slab, three clip
+                // levels — so the states themselves carry only the chrome.
+                full: {},
+                half: {},
                 empty: {},
-                // Hover preview: a hard wash behind the glyph. Brutalism does
-                // not swell — no scaling.
+                // Hover preview: a hard wash inside the frame, behind the
+                // slab. Brutalism does not swell — no scaling.
                 highlighted: { background: 'var(--color-base-200)' },
                 disabled: { cursor: 'not-allowed' },
                 readonly: { cursor: 'default' },
@@ -1538,26 +1706,55 @@ export const ratingGroup: RecipeInput = {
                 // stop still gets its own tight frame.
                 'focus-visible': { outline: 'var(--border) solid var(--color-primary)', outlineOffset: '1px' },
             },
+            selectors: RATING_FILL_LEVELS,
+            at: {
+                /**
+                 * The checkbox hands its mark to a glyph under forced colours;
+                 * the meter cannot. `half`'s glyph is U+2BEA (⯪), which most
+                 * system fonts render as tofu — the one state the fallback
+                 * exists to keep legible would be the one it loses.
+                 *
+                 * So the geometry stays and is repainted in SYSTEM ink
+                 * instead: forced colours reverts author colours but honours
+                 * `Canvas`/`CanvasText` (verified in Chromium), which is the
+                 * whole point of the media query.
+                 */
+                'forced-colors': {
+                    base: { borderColor: 'CanvasText', background: 'Canvas' },
+                    selectors: { '&::before': { background: 'CanvasText' } },
+                },
+                // Same reasoning on paper, different mechanism: printing drops
+                // backgrounds by default, which would take the entire meter
+                // with it, so the meter asks for its paint explicitly. A reader
+                // who disables background graphics can still refuse — the meter
+                // then prints blank instead of overstating the value; glyph ink
+                // is the fix if that ever matters (#230).
+                print: { base: { printColorAdjust: 'exact' } },
+            },
         },
         'hidden-input': { base: { position: 'absolute', width: '1px', height: '1px', opacity: '0' } },
     },
     variants: {
-        // A rating glyph is text on the page background, so the raw role is
-        // not always safe: daisy measured `--color-warning` at 1.62:1 on light
-        // base-100. Deepening every role toward its own content pair keeps the
-        // hue and clears 3:1 in both schemes — the same 70/30 mix daisy's
-        // default already uses.
+        // The slab sits on the page, not on a role fill, so the raw role is
+        // not always safe: `--color-accent` measures 2.20:1 on light base-200.
+        // Mixing 70/30 toward the PAGE INK deepens it on paper and lightens it
+        // on ink — `--color-base-content` flips with the scheme, a role's own
+        // `-content` does not — so one declaration clears 3:1 in both
+        // (worst 3.78:1, light `accent` on a hovered cell). Mixing toward the
+        // role's content pair, which is what the other design systems do,
+        // measures 2.42:1 here: brutalist `primary-content` is white, so on
+        // paper it washes the fill out instead of deepening it.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--rating-fill': `color-mix(in oklab, var(--color-${c}) 70%, var(--color-${c}-content))`,
+            '--rating-fill': `color-mix(in oklab, var(--color-${c}) 70%, var(--color-base-content))`,
         } } }])),
         size: {
-            xs: { root: { base: { '--rating-size': 'var(--text-sm)' } } },
-            sm: { root: { base: { '--rating-size': 'var(--text-md)' } } },
+            xs: { root: { base: { '--rating-size': 'calc(var(--size-selector) * 4)' } } },
+            sm: { root: { base: { '--rating-size': 'calc(var(--size-selector) * 5)' } } },
             // `md` is the un-attributed render — the defaults in `tokens:`
             // already ARE the middle step.
             md: {},
-            lg: { root: { base: { '--rating-size': 'var(--text-2xl)' } } },
-            xl: { root: { base: { '--rating-size': 'var(--text-3xl)' } } },
+            lg: { root: { base: { '--rating-size': 'calc(var(--size-selector) * 7)' } } },
+            xl: { root: { base: { '--rating-size': 'calc(var(--size-selector) * 8)' } } },
         },
     },
 };

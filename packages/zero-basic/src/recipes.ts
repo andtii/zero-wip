@@ -793,6 +793,71 @@ export const field: RecipeInput = {
     skipStates: { label: ['invalid', 'required'], error: ['invalid'] },
 };
 
+/**
+ * The checkbox mark, drawn rather than typeset.
+ *
+ * A glyph is at the mercy of the reader's font: `✓` is a different weight in
+ * every family, and the half-star this file's rating group used to lean on
+ * (`⯪`) is missing from most of them outright. Monograph's marks are geometry —
+ * one six-point polygon per state, painted with the on-accent ink.
+ *
+ * THE TECHNIQUE (daisyUI's, generalised): all three polygons carry the SAME
+ * point count and the same topology — left cap, elbow-outer, right cap,
+ * elbow-inner — so `clip-path` interpolates between any two of them, and the
+ * mark animates without a transform. `HOME` is the degenerate form: every
+ * point collapsed onto the elbow's cross-section, which is zero-LENGTH but
+ * full-WEIGHT. So the stroke EXTENDS out of the corner at its final thickness
+ * instead of scaling up from a dot — the one growth Monograph's no-scale rule
+ * still allows, and the one that reads as a pen stroke.
+ *
+ * Coordinates are percentages of the indicator box, computed from a polyline
+ * (6,50) → (37,82) → (95,13) stroked at 19.7% with mitred joins, then fitted
+ * to 1–99%. `DASH` shares the topology so indeterminate ↔ checked morphs too.
+ */
+const CHECK_MARK = 'polygon(15.1% 41.3%, 1% 55%, 37.6% 92.8%, 99% 19.8%, 83.9% 7.2%, 36.6% 63.5%)';
+const CHECK_MARK_HOME = 'polygon(36.6% 63.5%, 37.6% 92.8%, 37.6% 92.8%, 37.6% 92.8%, 36.6% 63.5%, 36.6% 63.5%)';
+const DASH_MARK = 'polygon(8% 40.1%, 8% 59.9%, 37.6% 59.9%, 92% 59.9%, 92% 40.1%, 37.6% 40.1%)';
+
+/**
+ * Where a background-painted mark stops being visible, and what stands in.
+ *
+ * Forced colours rewrites `background-color` to the user's palette, so a
+ * clip-pathed fill becomes Canvas-on-Canvas — invisible. Printing drops
+ * backgrounds entirely by default (`print-color-adjust: economy`), which takes
+ * both the accent fill and the on-accent mark with it. Both fallbacks are the
+ * same one: drop the geometry, set a glyph on `::after` in the system ink.
+ * `clip-path: none` matters as much as the glyph — a clip on the element clips
+ * its pseudo-element too.
+ *
+ * One object under both named conditions rather than one fused prelude: the
+ * declarations are identical, and `forced-colors` and `print` are both built-in
+ * condition names, so nothing here has to reach for a raw `@` string. Sharing
+ * is only legitimate because the ink is already a SYSTEM colour — right in both
+ * media, and predictable in forced colours, where an author colour would be
+ * only as good as the UA's revaluation of it. heroui, material and carbon build
+ * one object per medium precisely because their inks differ.
+ */
+const MARK_FALLBACK: PartStyles = {
+    base: {
+        clipPath: 'none',
+        background: 'transparent',
+        display: 'grid',
+        placeItems: 'center',
+        // The system ink, not the on-accent ink: forced colours rewrites the
+        // well's fill to Canvas, and print drops it.
+        color: 'CanvasText',
+        fontSize: 'calc(var(--checkbox-size) * 0.72)',
+        lineHeight: 'var(--leading-none)',
+    },
+    // Heavy check (U+2714) and minus sign (U+2212) — the heavy form because it
+    // has to survive being the whole mark. `opacity` still comes from the state
+    // rules, so the empty well stays empty.
+    selectors: {
+        '&[data-state="checked"]::after': { content: '"\\2714"' },
+        '&[data-state="indeterminate"]::after': { content: '"\\2212"' },
+    },
+};
+
 export const checkbox: RecipeInput = {
     component: 'checkbox',
     // The accent defaults live in `tokens:` (emitted flat on the carrier, no
@@ -802,6 +867,10 @@ export const checkbox: RecipeInput = {
         '--checkbox-size': 'calc(var(--size-selector) * 5)',
         '--checkbox-accent': 'var(--color-primary)',
         '--checkbox-on-accent': 'var(--color-primary-content)',
+        // The resting geometry — the collapsed stroke the mark grows out of.
+        // Declared here so it is a real token the indicator can reference and
+        // each state can rebind, rather than an undeclared var.
+        '--checkbox-mark': CHECK_MARK_HOME,
     },
     parts: {
         root: {
@@ -816,9 +885,14 @@ export const checkbox: RecipeInput = {
         // secondary, the same move fields make.
         control: {
             base: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                // The mark is positioned against this box rather than centred
+                // as flow content, so the well needs `position` and no longer
+                // needs to centre anything. `flex-shrink: 0` is load-bearing:
+                // the mark's geometry is a percentage of the well, so a well
+                // squeezed by a long label would render a skewed tick.
+                display: 'inline-block',
+                position: 'relative',
+                flexShrink: '0',
                 width: 'var(--checkbox-size)',
                 height: 'var(--checkbox-size)',
                 border: 'var(--border) solid var(--color-base-300)',
@@ -845,13 +919,49 @@ export const checkbox: RecipeInput = {
                 },
             },
         },
+        // The drawn mark. `inset` in percent rather than a padded flow box:
+        // it makes the mark's frame a fixed fraction of the well at every step
+        // of the size ramp, and it is indifferent to `box-sizing` — the
+        // containing block is the well's padding box either way.
+        //
+        // `unchecked` is deliberately empty: the base rule IS the empty well —
+        // the collapsed stroke at zero opacity, which is also the state both
+        // marks animate out of.
         indicator: {
-            base: { color: 'var(--checkbox-on-accent)', lineHeight: 'var(--leading-none)', fontSize: 'var(--text-xs)' },
-            states: { checked: {}, unchecked: {}, indeterminate: {} },
-            selectors: {
-                '&[data-state="checked"]::after': { content: '"✓"' },
-                '&[data-state="indeterminate"]::after': { content: '"−"' },
+            base: {
+                position: 'absolute',
+                inset: '17%',
+                background: 'var(--checkbox-on-accent)',
+                clipPath: 'var(--checkbox-mark)',
+                opacity: '0',
+                // Leaving rides the base transition, arriving rides the
+                // state's own — the two-tempo idiom `popupPresence` uses. The
+                // mark retracts at `fast`/`exit` with no delay: unchecking is
+                // not an event to dwell on.
+                transition: 'clip-path var(--duration-fast) var(--ease-exit), '
+                    + 'opacity var(--duration-fast) var(--ease-exit)',
             },
+            states: {
+                // Arriving: the well inks over at `fast` (the control's own
+                // transition), and only then does the pen touch down — hence
+                // the `fast` delay in both slots. `standard` is the firm
+                // decelerate, so the stroke shoots out of the elbow and
+                // settles rather than easing in politely.
+                checked: {
+                    '--checkbox-mark': CHECK_MARK,
+                    opacity: '1',
+                    transition: 'clip-path var(--duration-normal) var(--ease-standard) var(--duration-fast), '
+                        + 'opacity var(--duration-fast) var(--ease-standard) var(--duration-fast)',
+                },
+                unchecked: {},
+                indeterminate: {
+                    '--checkbox-mark': DASH_MARK,
+                    opacity: '1',
+                    transition: 'clip-path var(--duration-normal) var(--ease-standard) var(--duration-fast), '
+                        + 'opacity var(--duration-fast) var(--ease-standard) var(--duration-fast)',
+                },
+            },
+            at: { 'forced-colors': MARK_FALLBACK, print: MARK_FALLBACK },
         },
         label: {
             base: { fontSize: 'var(--text-sm)', fontVariantNumeric: 'tabular-nums' },
@@ -879,9 +989,16 @@ export const checkbox: RecipeInput = {
 
 export const radioGroup: RecipeInput = {
     component: 'radio-group',
+    // The dot is the ONLY thing that separates checked from unchecked here, and
+    // unlike the checkbox's mark it does not sit on an accent fill — it sits on
+    // the well's paper, so it needs the same deepening the rating's ink needs
+    // (see `ratingGroup`). Measured on the raw role it replaces: `neutral` was
+    // 1.51:1 on dark paper — a checked radio with no visible dot, which is
+    // issue #211's defect in this design system. The 70/30 mix clears 3:1 for
+    // every role in both themes (worst 3.42:1 light, 3.17:1 dark).
     tokens: {
         '--radio-size': 'calc(var(--size-selector) * 5)',
-        '--radio-accent': 'var(--color-primary)',
+        '--radio-accent': 'color-mix(in oklab, var(--color-primary) 70%, var(--color-primary-content))',
     },
     parts: {
         root: {
@@ -953,8 +1070,10 @@ export const radioGroup: RecipeInput = {
         },
     },
     variants: {
+        // Same deepening as the default above, per role — the dot is ink on
+        // paper for every one of them.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--radio-accent': `var(--color-${c})`,
+            '--radio-accent': `color-mix(in oklab, var(--color-${c}) 70%, var(--color-${c}-content))`,
         } } }])),
         size: {
             xs: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 4)' } }, 'item-label': { base: { fontSize: 'var(--text-xs)' } } },
@@ -2290,14 +2409,63 @@ export const numberInput: RecipeInput = {
     },
 };
 
+/**
+ * The rating symbol, drawn rather than typeset — and the reason the checkbox's
+ * mark is geometry too.
+ *
+ * `half` and `full` used to differ only in the runtime's default glyph (`⯪` vs
+ * `★`), and `⯪` (U+2BEA) is absent from the system UI font on every platform we
+ * target: a half rating rendered as a tofu box, or — where the font falls back
+ * to `★` — as a FULL star. The state was real and the paint was not.
+ *
+ * So the symbol is a ten-point polygon painted twice — ghost underneath, ink on
+ * top — and each layer is clipped to the fraction the state names, the way
+ * daisyUI's rating splits a half across `mask-half-1` / `mask-half-2`. Same
+ * degenerate-polygon technique as the checkbox mark (see `CHECK_MARK`): one
+ * point count throughout, so `clip-path` interpolates and a rating FILLS —
+ * the ink wipes in from the left edge while the ghost retreats to the right.
+ *
+ * The two layers are COMPLEMENTARY rather than stacked, and they stop 4% short
+ * of each other, so the two halves of a half-symbol are parted by a hairline of
+ * paper instead of meeting edge to edge. That is what makes the split legible:
+ * measured, ink-on-ghost is 2.47–4.70:1 across the roles — below the 3:1 floor
+ * for more than half of them — while ink-on-paper is 3.17:1 at worst. Neither
+ * colour needs changing; the boundary just has to be drawn against the page.
+ *
+ * `LEFT`/`RIGHT` clamp every point past the parting to it, which encloses
+ * exactly one side (the zero-area spike along the clamp line paints nothing).
+ * `NONE`/`SPENT` collapse onto the left/right extreme — the resting states the
+ * wipe runs between. Radii 50%/21% about the centre, fitted to 2–98%.
+ */
+const STAR = 'polygon(50% 4.3%, 62.5% 37.7%, 98% 39.2%, 70.2% 61.4%, 79.7% 95.7%, 50% 76%, 20.3% 95.7%, 29.8% 61.4%, 2% 39.2%, 37.5% 37.7%)';
+const STAR_LEFT = 'polygon(48% 4.3%, 48% 37.7%, 48% 39.2%, 48% 61.4%, 48% 95.7%, 48% 76%, 20.3% 95.7%, 29.8% 61.4%, 2% 39.2%, 37.5% 37.7%)';
+const STAR_RIGHT = 'polygon(52% 4.3%, 62.5% 37.7%, 98% 39.2%, 70.2% 61.4%, 79.7% 95.7%, 52% 76%, 52% 95.7%, 52% 61.4%, 52% 39.2%, 52% 37.7%)';
+const STAR_NONE = 'polygon(2% 4.3%, 2% 37.7%, 2% 39.2%, 2% 61.4%, 2% 95.7%, 2% 76%, 2% 95.7%, 2% 61.4%, 2% 39.2%, 2% 37.7%)';
+const STAR_SPENT = 'polygon(98% 4.3%, 98% 37.7%, 98% 39.2%, 98% 61.4%, 98% 95.7%, 98% 76%, 98% 95.7%, 98% 61.4%, 98% 39.2%, 98% 37.7%)';
+
+/**
+ * The geometry replaces the runtime's default glyph, so it must NOT replace a
+ * symbol the consumer supplied — `RatingGroup.Item`'s slot receives
+ * `{ state, highlighted }` precisely so an app can render its own SVG. The
+ * default glyph is a TEXT node and a custom symbol is an ELEMENT, which is a
+ * difference CSS can see: everything geometric here hangs off
+ * `:not(:has(> *))`. A consumer's own symbol keeps the plain `color` treatment
+ * the `states` below still carry.
+ */
+const DEFAULT_SYMBOL = '&:not(:has(> *))';
+
 export const ratingGroup: RecipeInput = {
     component: 'rating-group',
     // The default fill is the same deepened mix the colour variants use —
-    // a rating glyph is text on the page, and the raw role is not always
+    // a rating symbol is ink on bare paper, and the raw role is not always
     // safe there (see the variants note).
     tokens: {
         '--rating-size': 'var(--text-xl)',
         '--rating-fill': 'color-mix(in oklab, var(--color-warning) 70%, var(--color-warning-content))',
+        // How much of the symbol each layer covers. Rebound per state, so the
+        // three states differ in paint and not merely in `data-state`.
+        '--rating-mark': STAR_NONE,
+        '--rating-ghost': STAR,
     },
     parts: {
         root: {
@@ -2330,21 +2498,33 @@ export const ratingGroup: RecipeInput = {
                 },
             },
         },
-        // Nothing moves on hover — the preview is pure ink: the highlighted
-        // glyph takes the fill colour instead of growing.
+        // Nothing moves on hover — the preview is pure ink: the symbol fills
+        // instead of growing. What animates is the ink's EXTENT, a wipe from
+        // the left edge, which is the same gesture a filling rating makes.
+        //
+        // The box is squared off `--rating-size` rather than left to the
+        // glyph's own metrics, because the geometry is a percentage of it and
+        // the size ramp has to keep driving it.
         item: {
             base: {
+                position: 'relative',
+                display: 'inline-block',
+                width: 'var(--rating-size)',
+                height: 'var(--rating-size)',
                 fontSize: 'var(--rating-size)',
-                lineHeight: '1',
+                lineHeight: 'var(--leading-none)',
                 cursor: 'pointer',
                 userSelect: 'none',
                 color: 'var(--color-base-300)',
                 transition: 'color var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                full: { color: 'var(--rating-fill)' },
-                half: { color: 'var(--rating-fill)' },
-                empty: {},
+                // The two marks drive the drawn symbol; `color` is what a
+                // consumer's own `currentColor` SVG rides on. Both, so neither
+                // rendering has a state that paints like its neighbour.
+                full: { color: 'var(--rating-fill)', '--rating-mark': STAR, '--rating-ghost': STAR_SPENT },
+                half: { color: 'var(--rating-fill)', '--rating-mark': STAR_LEFT, '--rating-ghost': STAR_RIGHT },
+                empty: { '--rating-mark': STAR_NONE, '--rating-ghost': STAR },
                 highlighted: { color: 'var(--rating-fill)' },
                 disabled: { cursor: 'not-allowed' },
                 readonly: { cursor: 'default' },
@@ -2352,14 +2532,58 @@ export const ratingGroup: RecipeInput = {
                 // a subtle marker for the value-following tab stop.
                 'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '1px', borderRadius: 'var(--radius-selector)' },
             },
+            selectors: {
+                // Retire the runtime's text glyph — `font-size: 0` rather than
+                // a transparent colour, because the `states` above legitimately
+                // set `color` and would win it back.
+                [DEFAULT_SYMBOL]: { fontSize: '0' },
+                // The ghost — the unfilled remainder, in the same structural
+                // grey every hairline in this design system is drawn with. It
+                // is the track, not the mark: it reads against the page, and
+                // never against the ink, because the two never touch.
+                [`${DEFAULT_SYMBOL}::before`]: {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '0',
+                    background: 'var(--color-base-300)',
+                    clipPath: 'var(--rating-ghost)',
+                    printColorAdjust: 'exact',
+                    transition: 'clip-path var(--duration-fast) var(--ease-standard)',
+                },
+                // The ink.
+                [`${DEFAULT_SYMBOL}::after`]: {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '0',
+                    background: 'var(--rating-fill)',
+                    clipPath: 'var(--rating-mark)',
+                    printColorAdjust: 'exact',
+                    transition: 'clip-path var(--duration-fast) var(--ease-standard)',
+                },
+            },
+            at: {
+                // Forced colours rewrites `background-color`, which would paint
+                // ghost and ink alike and lose the distinction the geometry
+                // exists to make. The system palette keeps it: page ink for the
+                // filled fraction, the greyed ink for the empty one. Restoring
+                // the glyph the way `checkbox` does is not an option here — the
+                // glyph is exactly what cannot render a half.
+                'forced-colors': {
+                    selectors: {
+                        [`${DEFAULT_SYMBOL}::before`]: { background: 'GrayText', forcedColorAdjust: 'none' },
+                        [`${DEFAULT_SYMBOL}::after`]: { background: 'CanvasText', forcedColorAdjust: 'none' },
+                    },
+                },
+            },
         },
     },
     variants: {
-        // A rating glyph is text on the page background, so the raw role is
+        // A rating symbol sits on the page background, so the raw role is
         // not always safe: daisy measured `--color-warning` at 1.62:1 on light
         // base-100. Deepening every role toward its own content pair keeps the
         // hue and clears 3:1 in both schemes — the same 70/30 mix daisy's
-        // default already uses.
+        // default already uses. Measured on the drawn symbol: 3.42:1 at worst
+        // in light (accent), 3.17:1 in dark (neutral).
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--rating-fill': `color-mix(in oklab, var(--color-${c}) 70%, var(--color-${c}-content))`,
         } } }])),

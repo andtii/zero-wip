@@ -1,8 +1,9 @@
 @layer zero.recipes {
     [data-scope="switch"][data-part="root"] {
-        --switch-width: calc(var(--size-selector) * 12);
-        --switch-height: calc(var(--size-selector) * 6.5);
-        --switch-pad: calc(var(--size-selector) * 0.75);
+        --switch-size: calc(var(--size-selector) * 6);
+        --switch-p: calc(var(--switch-size) * 0.125);
+        --switch-accent: var(--color-primary);
+        --switch-ink: color-mix(in oklab, var(--color-base-content) 60%, #0000);
     }
 
     [data-scope="switch"][data-part="root"] {
@@ -18,41 +19,48 @@
     }
 
     [data-scope="switch"][data-part="control"] {
-        display: inline-block;
+        display: inline-grid;
+        grid-template-columns: 0fr 1fr 1fr;
+        place-content: center;
         position: relative;
-        width: var(--switch-width);
-        height: var(--switch-height);
-        border-radius: var(--radius-selector);
-        border: var(--border) solid var(--color-base-300);
-        background: var(--color-base-200);
-        transition: background var(--duration-normal) var(--ease-standard), border-color var(--duration-normal) var(--ease-standard);
+        vertical-align: middle;
+        flex-shrink: 0;
+        box-sizing: border-box;
+        width: calc((var(--switch-size) * 2) - (var(--border) + var(--switch-p)) * 2);
+        height: var(--switch-size);
+        padding: var(--switch-p);
+        --switch-radius-max: calc(var(--radius-selector) + var(--radius-selector) + var(--radius-selector));
+        border-radius: calc(var(--radius-selector) + min(var(--switch-p), var(--switch-radius-max)) + min(var(--border), var(--switch-radius-max)));
+        border: var(--border) solid currentColor;
+        color: var(--switch-ink);
+        box-shadow: 0 1px color-mix(in oklab, currentColor calc(var(--depth) * 10%), #0000) inset;
+        user-select: none;
+        transition: color var(--duration-slow) var(--ease-standard), background-color var(--duration-normal) var(--ease-standard), grid-template-columns var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="switch"][data-part="control"][data-state="checked"] {
-        background: var(--color-primary);
-        border-color: var(--color-primary);
+        grid-template-columns: 1fr 1fr 0fr;
+        color: var(--switch-accent);
+        background-color: var(--color-base-100);
     }
 
     [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-primary);
+        outline: 2px solid var(--switch-accent);
         outline-offset: 2px;
     }
 
     [data-scope="switch"][data-part="thumb"] {
-        position: absolute;
-        top: var(--switch-pad);
-        left: var(--switch-pad);
-        width: calc(var(--switch-height) - var(--switch-pad) * 2 - var(--border) * 2);
-        height: calc(var(--switch-height) - var(--switch-pad) * 2 - var(--border) * 2);
+        grid-row-start: 1;
+        grid-column-start: 2;
+        aspect-ratio: 1;
+        width: 100%;
+        height: 100%;
         border-radius: var(--radius-selector);
-        background: var(--color-base-100);
-        box-shadow: var(--shadow-md);
-        transition: transform var(--duration-normal) var(--ease-standard), background var(--duration-normal) var(--ease-standard);
-    }
-
-    [data-scope="switch"][data-part="thumb"][data-state="checked"] {
-        transform: translateX(calc(var(--switch-width) - var(--switch-height)));
-        background: var(--color-primary-content);
+        background-color: currentColor;
+        background-size: auto, calc(var(--noise) * 100%);
+        background-image: none, var(--fx-noise);
+        box-shadow: 0 -1px var(--depth-shade) inset, 0 8px 0 -4px var(--depth-sheen) inset, 0 1px color-mix(in oklab, currentColor calc(var(--depth) * 10%), #0000);
+        transition: background-color var(--duration-instant) var(--ease-standard);
     }
 
     [data-scope="switch"][data-part="label"] {
@@ -61,139 +69,54 @@
     }
 
     [data-scope="switch"][data-part="root"][data-size="xs"] {
-        --switch-width: calc(var(--size-selector) * 8.5);
-        --switch-height: calc(var(--size-selector) * 4.5);
+        --switch-size: calc(var(--size-selector) * 4);
     }
 
     [data-scope="switch"][data-part="root"][data-size="sm"] {
-        --switch-width: calc(var(--size-selector) * 10);
-        --switch-height: calc(var(--size-selector) * 5.5);
+        --switch-size: calc(var(--size-selector) * 5);
     }
 
     [data-scope="switch"][data-part="root"][data-size="lg"] {
-        --switch-width: calc(var(--size-selector) * 14);
-        --switch-height: calc(var(--size-selector) * 7.5);
+        --switch-size: calc(var(--size-selector) * 7);
     }
 
     [data-scope="switch"][data-part="root"][data-size="xl"] {
-        --switch-width: calc(var(--size-selector) * 16);
-        --switch-height: calc(var(--size-selector) * 8.5);
+        --switch-size: calc(var(--size-selector) * 8);
     }
 
-    [data-scope="switch"][data-part="root"][data-color="primary"] [data-scope="switch"][data-part="control"][data-state="checked"] {
-        background: var(--color-primary);
-        border-color: var(--color-primary);
+    [data-scope="switch"][data-part="root"][data-color="primary"] {
+        --switch-accent: var(--color-primary);
     }
 
-    [data-scope="switch"][data-part="root"][data-color="primary"] [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-primary);
+    [data-scope="switch"][data-part="root"]:not([data-color]) {
+        --switch-accent: var(--color-primary);
     }
 
-    [data-scope="switch"][data-part="root"]:not([data-color]) [data-scope="switch"][data-part="control"][data-state="checked"] {
-        background: var(--color-primary);
-        border-color: var(--color-primary);
+    [data-scope="switch"][data-part="root"][data-color="secondary"] {
+        --switch-accent: var(--color-secondary);
     }
 
-    [data-scope="switch"][data-part="root"]:not([data-color]) [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-primary);
+    [data-scope="switch"][data-part="root"][data-color="accent"] {
+        --switch-accent: var(--color-accent);
     }
 
-    [data-scope="switch"][data-part="root"][data-color="primary"] [data-scope="switch"][data-part="thumb"][data-state="checked"] {
-        background: var(--color-primary-content);
+    [data-scope="switch"][data-part="root"][data-color="neutral"] {
+        --switch-accent: var(--color-neutral);
     }
 
-    [data-scope="switch"][data-part="root"]:not([data-color]) [data-scope="switch"][data-part="thumb"][data-state="checked"] {
-        background: var(--color-primary-content);
+    [data-scope="switch"][data-part="root"][data-color="info"] {
+        --switch-accent: var(--color-info);
     }
 
-    [data-scope="switch"][data-part="root"][data-color="secondary"] [data-scope="switch"][data-part="control"][data-state="checked"] {
-        background: var(--color-secondary);
-        border-color: var(--color-secondary);
+    [data-scope="switch"][data-part="root"][data-color="success"] {
+        --switch-accent: var(--color-success);
     }
 
-    [data-scope="switch"][data-part="root"][data-color="secondary"] [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-secondary);
+    [data-scope="switch"][data-part="root"][data-color="warning"] {
+        --switch-accent: var(--color-warning);
     }
 
-    [data-scope="switch"][data-part="root"][data-color="secondary"] [data-scope="switch"][data-part="thumb"][data-state="checked"] {
-        background: var(--color-secondary-content);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="accent"] [data-scope="switch"][data-part="control"][data-state="checked"] {
-        background: var(--color-accent);
-        border-color: var(--color-accent);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="accent"] [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-accent);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="accent"] [data-scope="switch"][data-part="thumb"][data-state="checked"] {
-        background: var(--color-accent-content);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="neutral"] [data-scope="switch"][data-part="control"][data-state="checked"] {
-        background: var(--color-neutral);
-        border-color: var(--color-neutral);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="neutral"] [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-neutral);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="neutral"] [data-scope="switch"][data-part="thumb"][data-state="checked"] {
-        background: var(--color-neutral-content);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="info"] [data-scope="switch"][data-part="control"][data-state="checked"] {
-        background: var(--color-info);
-        border-color: var(--color-info);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="info"] [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-info);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="info"] [data-scope="switch"][data-part="thumb"][data-state="checked"] {
-        background: var(--color-info-content);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="success"] [data-scope="switch"][data-part="control"][data-state="checked"] {
-        background: var(--color-success);
-        border-color: var(--color-success);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="success"] [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-success);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="success"] [data-scope="switch"][data-part="thumb"][data-state="checked"] {
-        background: var(--color-success-content);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="warning"] [data-scope="switch"][data-part="control"][data-state="checked"] {
-        background: var(--color-warning);
-        border-color: var(--color-warning);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="warning"] [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-warning);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="warning"] [data-scope="switch"][data-part="thumb"][data-state="checked"] {
-        background: var(--color-warning-content);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="error"] [data-scope="switch"][data-part="control"][data-state="checked"] {
-        background: var(--color-error);
-        border-color: var(--color-error);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="error"] [data-scope="switch"][data-part="control"][data-focus-visible] {
-        outline: 2px solid var(--color-error);
-    }
-
-    [data-scope="switch"][data-part="root"][data-color="error"] [data-scope="switch"][data-part="thumb"][data-state="checked"] {
-        background: var(--color-error-content);
+    [data-scope="switch"][data-part="root"][data-color="error"] {
+        --switch-accent: var(--color-error);
     }
 }

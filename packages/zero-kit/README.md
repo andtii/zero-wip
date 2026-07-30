@@ -135,7 +135,7 @@ sigx zero:build      # dist/css/index.css + per-component files + manifest
 
 Conditional styles live in `parts.<part>.at`, keyed by a declared breakpoint
 (`@media (min-width: …)`), a built-in preference query (`reduced-motion`,
-`hover-none`, `prefers-dark`, `forced-colors`) or a raw `@` prelude
+`hover-none`, `prefers-dark`, `forced-colors`, `print`) or a raw `@` prelude
 (`@container`, `@supports`, `@starting-style`). Nesting composes the
 at-rules, and because `variants` hold the same shape, responsive variants
 need nothing extra. Author mobile-first — breakpoints are `min-width`, and
@@ -262,7 +262,10 @@ the axes each component wires, and which its `register.d.ts` types `never`
 (derived from the same harvest, so the two cannot disagree); declared-but-unwired
 values per axis and per modifier — the only place a declared-but-unused colour
 role or size step surfaces, since the validator has no rule for those; per-part
-state and flag coverage, including what `skipStates` delegates deliberately; the
+state and flag coverage, including what `skipStates` delegates deliberately
+(that field has a second reader — the state-legibility guard treats an entry as
+"this state is deliberately indistinguishable from its siblings", so it waives
+more than the coverage warning); the
 **axis-agnostic divergence report**, listing per axis the per-component value
 sets and flagging any component wiring a strict subset of its siblings; and the
 minimum WCAG contrast margin per theme across the declared role pairs.
