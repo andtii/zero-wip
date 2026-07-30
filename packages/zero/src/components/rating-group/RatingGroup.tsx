@@ -17,7 +17,9 @@
  * preview while the pointer is over the control, the committed value
  * otherwise — so recipes style fills without distinguishing preview from
  * commit. Symbols are the consumer's: the default slot receives
- * `{ state, highlighted }` for SVG swapping.
+ * `{ state, highlighted }` for SVG swapping. Without a slot each item renders
+ * a bare text `★`/`★`/`☆` — see `defaultSymbol` for why `half` is a full star
+ * and why the default must not become an element.
  *
  * Keyboard moves the VALUE, not focus-among-elements — with `allowHalf`
  * two values share one element, so element roving cannot express the step.
@@ -298,6 +300,29 @@ const RatingGroupControl = component<RatingGroupControlProps>(({ props, slots })
 
 // ── Item ──
 
+/**
+ * The default symbol, used when the consumer supplies no slot content.
+ *
+ * `half` renders a FULL star on purpose. The obvious codepoint — `⯪`
+ * (U+2BEA STAR WITH LEFT HALF BLACK) — has essentially no coverage in the
+ * macOS/Chromium sans stacks and resolves to the last-resort tofu box, so it
+ * stated the value less accurately than a star does (#222). Drawing a *distinct*
+ * half is the design system's job, and every skin already does it: some draw
+ * their own geometry, and `@sigx/zero-daisyui` / `@sigx/zero-material` halve
+ * THIS glyph (a `mask-size: 50% 100%` and a hard-stop gradient under
+ * `background-clip: text`) — both of which need a full-width star in all three
+ * states to cut in two. Nothing is lost to assistive tech either way: the value
+ * lives on the hidden input, and each item carries its own aria-label.
+ *
+ * It must stay a bare TEXT node. A consumer symbol arrives as an ELEMENT, and
+ * design systems gate their drawn geometry on exactly that difference —
+ * `:not(:has(> *))` in `@sigx/zero-basic`, the inverse `:has(*)` in
+ * `@sigx/zero-heroui`. Wrapping the default in an element would silently
+ * disable their stars.
+ */
+const defaultSymbol = (state: RatingItemSlotProps['state']): string =>
+    (state === 'empty' ? '☆' : '★');
+
 export type RatingGroupItemProps =
     & Define.Prop<'index', number, true>
     & WithClass
@@ -372,7 +397,7 @@ const RatingGroupItem = component<RatingGroupItemProps>(({ props, slots, onUnmou
             >
                 {slots.default
                     ? slots.default(slotProps)
-                    : (state === 'full' ? '★' : state === 'half' ? '⯪' : '☆')}
+                    : defaultSymbol(state)}
             </span>
         );
     };

@@ -1039,10 +1039,6 @@ export const progress: RecipeInput = {
     },
 };
 
-// --------------------------------------------------------------------------
-// 5. ratingGroup — replace the whole export (doc comment included)
-// --------------------------------------------------------------------------
-
 export const slider: RecipeInput = {
     component: 'slider',
     tokens: { '--slider-accent': 'var(--color-primary)' },
@@ -2014,6 +2010,11 @@ export const numberInput: RecipeInput = {
  * base-content, ours is the fill at low alpha) — a second hue needs a second
  * paint layer, and the only way to get one out of a text node is
  * `background-clip: text`, which would make an SVG symbol slot invisible.
+ *
+ * The mask HALVES whatever the item paints, so it depends on the symbol being
+ * full width in all three states. zero's default is: `★`/`★`/`☆`, because the
+ * half-star codepoint U+2BEA is tofu in the system stacks and the runtime
+ * therefore does not attempt a half of its own (#222).
  */
 /**
  * How far each role's rating symbol is deepened toward its own content pair.

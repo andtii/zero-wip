@@ -70,6 +70,29 @@ describe('RatingGroup', () => {
         expect(states).toEqual(['full', 'full', 'half', 'empty', 'empty']);
     });
 
+    /**
+     * The default symbol is `★`/`★`/`☆` — `half` is a FULL star, deliberately.
+     *
+     * The half-star codepoint `⯪` (U+2BEA) has no coverage in the macOS/Chromium
+     * sans stacks and resolved to the last-resort tofu box (#222). Rendering a
+     * distinct half belongs to the design system: `@sigx/zero-daisyui` halves
+     * this glyph with `mask-size: 50% 100%` and `@sigx/zero-material` with a
+     * hard-stop gradient under `background-clip: text` — both need a full-width
+     * star in the `half` state to cut in two. Do not "restore" a half glyph.
+     */
+    it('the default symbol is a text star, and half is a full one', () => {
+        mount(container, { defaultValue: 3.5, allowHalf: true });
+        const all = [...items(container)];
+        expect(all.map((i) => i.getAttribute('data-state')))
+            .toEqual(['full', 'full', 'full', 'half', 'empty']);
+        expect([all[2]!, all[3]!, all[4]!].map((i) => i.textContent))
+            .toEqual(['★', '★', '☆']);
+        // A bare text node, not an element: design systems gate their drawn
+        // geometry on `:not(:has(> *))` / `:has(*)` to tell the default apart
+        // from a consumer's own symbol.
+        expect(all[3]!.children.length).toBe(0);
+    });
+
     it('click commits the item index', () => {
         const state = signal({ stars: 0 });
         mount(container, { model: [state, 'stars'] });

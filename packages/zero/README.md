@@ -101,6 +101,21 @@ type) is the typed surface consumers see.
   those states never paint, so a design system may leave them unstyled (and
   need not tell them apart from a visible state), and a generator can skip
   emitting them.
+- **A slotted default is a text node; a consumer's symbol is an element.**
+  Where zero renders default content at all, it renders bare text — no
+  wrapper. That is a difference CSS can see, and design systems depend on it
+  to decide whether to draw their own mark or leave the consumer's alone:
+  `&:not(:has(> *))` selects the default, `&:has(*)` the override. Never wrap
+  a default in an element.
+
+  The one case today is `RatingGroup.Item`, whose default content is
+  `★` (full) / `★` (half) / `☆` (empty). `half` is a **full** star on purpose:
+  the half-star codepoint `⯪` (U+2BEA) is poorly covered in the common system
+  sans stacks and renders as tofu, so rendering a *distinct* half is the design
+  system's job — by drawing geometry, or by masking/clipping this glyph, both
+  of which need a full-width star in all three states. The value itself never
+  depends on the symbol: it lives on the hidden input, and each item carries
+  its own aria-label.
 - `llms.txt` — the compact spec for language models.
 
 MIT © Andreas Ekdahl

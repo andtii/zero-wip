@@ -830,9 +830,11 @@ export const field: RecipeInput = {
  * The checkbox mark, drawn rather than typeset.
  *
  * A glyph is at the mercy of the reader's font: `✓` is a different weight in
- * every family, and the half-star this file's rating group used to lean on
- * (`⯪`) is missing from most of them outright. Monograph's marks are geometry —
- * one six-point polygon per state, painted with the on-accent ink.
+ * every family, and a half-star codepoint (`⯪`, U+2BEA) is missing from most of
+ * them outright — which is why zero's own default half is a full `★` and this
+ * file's rating group draws its halves instead of typesetting them. Monograph's
+ * marks are geometry — one six-point polygon per state, painted with the
+ * on-accent ink.
  *
  * THE TECHNIQUE (daisyUI's, generalised): all three polygons carry the SAME
  * point count and the same topology — left cap, elbow-outer, right cap,
@@ -2446,10 +2448,11 @@ export const numberInput: RecipeInput = {
  * The rating symbol, drawn rather than typeset — and the reason the checkbox's
  * mark is geometry too.
  *
- * `half` and `full` used to differ only in the runtime's default glyph (`⯪` vs
- * `★`), and `⯪` (U+2BEA) is absent from the system UI font on every platform we
- * target: a half rating rendered as a tofu box, or — where the font falls back
- * to `★` — as a FULL star. The state was real and the paint was not.
+ * The runtime's default symbol cannot say `half` at all: `⯪` (U+2BEA) is absent
+ * from the system UI font on every platform we target — it rendered as a tofu
+ * box — so zero settled on a full `★` for both `half` and `full` and left the
+ * distinction to the design system (#222). Typeset, the state is real and the
+ * paint is not.
  *
  * So the symbol is a ten-point polygon painted twice — ghost underneath, ink on
  * top — and each layer is clipped to the fraction the state names, the way

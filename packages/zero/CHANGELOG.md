@@ -81,6 +81,31 @@
   `NAMED_AXES`), and compile-time type tests under `pnpm test:types` in two
   isolated projects, since module augmentation leaks program-wide.
 
+### Fixed
+
+- **`RatingGroup.Item`'s default `half` symbol is now `★`, not `⯪`** (#222).
+  `⯪` (U+2BEA STAR WITH LEFT HALF BLACK) has essentially no coverage in the
+  macOS/Chromium sans stacks: it resolved to the last-resort tofu box, proven
+  by canvas advance-width equality against a guaranteed-unmapped codepoint.
+  The default is now `state === 'empty' ? '☆' : '★'`.
+
+  `★` rather than something cleverer — an inline SVG, a wrapper, a `clip-path`
+  on a child — because the default has to stay a bare **text node**: a
+  consumer's symbol arrives as an element, and design systems tell the two
+  apart with exactly that difference (`:not(:has(> *))` in `@sigx/zero-basic`,
+  the inverse `:has(*)` in `@sigx/zero-heroui`). Wrapping the default would
+  silently switch their drawn stars off. It also repairs the two skins that
+  render a half by masking or clipping this very glyph —
+  `@sigx/zero-daisyui`'s `mask-size: 50% 100%` and `@sigx/zero-material`'s
+  hard-stop gradient under `background-clip: text` — both of which were
+  halving a tofu box and now get the full-width star they were written for.
+
+  The residual, stated plainly: with **no design system loaded at all**, a
+  half now renders identically to a full star. `⯪` was distinguishable but
+  wrong; `★` is correct under every real skin, and rendering a *distinct* half
+  is the design system's job. The value is never lost to assistive tech — the
+  hidden input carries it and each item carries its own aria-label.
+
 ### Changed
 
 - `variantAttrs` accepts `axes` values of `string | undefined` and skips

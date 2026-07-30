@@ -2150,6 +2150,11 @@ export const numberInput: RecipeInput = {
  * (Material's inactive hairline tone). A glyph can't host a bounded state
  * layer, so `highlighted` — the hover preview range — reads as a subtle
  * scale emphasis instead, with the reduced-motion guard that implies.
+ *
+ * `half` is the SAME full star, cut in two by a clipped gradient (see below).
+ * That works because zero's default is `★`/`★`/`☆` — the half-star codepoint
+ * U+2BEA is tofu in the system stacks, so the runtime leaves halving to the
+ * design system (#222) — and because a consumer's own symbol is full width too.
  */
 export const ratingGroup: RecipeInput = {
     component: 'rating-group',

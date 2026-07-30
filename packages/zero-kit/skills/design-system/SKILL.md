@@ -288,7 +288,12 @@ component's anatomy). No component code is ever written or changed.
         weight to whatever font the reader has, cannot express a fraction, and
         cannot animate. `clip-path` on a `currentColor` slab, two borders of a
         rotated box, or a masked gradient all scale with the size token and
-        *interpolate* — so the mark draws itself:
+        *interpolate* — so the mark draws itself. If you paint by masking or
+        clipping the runtime's own default symbol instead of drawing your own
+        shape, you inherit its font coverage: rating's defaults are `★`/`☆`
+        (U+2605/U+2606) and its `half` is a **full** star you are expected to
+        halve, because the half-star codepoint (U+2BEA) is poorly covered in
+        the common system sans stacks and renders as tofu.
         ```ts
         indicator: {
             base: {
