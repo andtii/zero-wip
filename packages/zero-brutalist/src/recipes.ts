@@ -932,10 +932,10 @@ export const slider: RecipeInput = {
     tokens: {
         '--slider-accent': 'var(--color-primary)',
         '--slider-track-size': 'calc(var(--size-field) * 5)',
-        // The handle is the channel's inked box plus one space step of
-        // overhang on each edge — derived, so the ramp moves one lever and
-        // the proportion holds at every step and under the dark theme's
-        // thinner border.
+        // The handle is the channel's inked box plus one space step, which
+        // the centring splits into half a step of overhang on each edge —
+        // derived, so the ramp moves one lever and the proportion holds at
+        // every step and under the dark theme's thinner border.
         '--slider-thumb-size': 'calc(var(--slider-track-size) + var(--border) * 2 + var(--space-sm))',
     },
     parts: {
@@ -979,6 +979,11 @@ export const slider: RecipeInput = {
                 '--slider-thumb-ink': 'var(--color-base-100)',
                 '--slider-thumb-shadow': 'var(--shadow-xs)',
                 '--slider-thumb-shift': 'translate(0, 0)',
+                // The channel's shadow is a lever of its own, for the same
+                // reason the thumb's is: in this design system the hard offset
+                // shadow IS the affordance, so a disabled control has to be
+                // able to put the whole instrument flat, not just its handle.
+                '--slider-track-shadow': 'var(--shadow-xs)',
                 /**
                  * The fill has to grow from the inline start, and a gradient
                  * has no logical direction. Both engines flip a native range
@@ -995,7 +1000,14 @@ export const slider: RecipeInput = {
                     'linear-gradient(var(--slider-fill-dir), var(--slider-accent) var(--slider-percent, 50%), var(--color-base-100) 0)',
             },
             states: {
-                disabled: { cursor: 'not-allowed', '--slider-thumb-shadow': 'none' },
+                // Both shadows go, not just the handle's: a raised offset
+                // shadow reads as pressable here, so a disabled slider lies
+                // flat on the page — the same collapse button makes.
+                disabled: {
+                    cursor: 'not-allowed',
+                    '--slider-track-shadow': 'none',
+                    '--slider-thumb-shadow': 'none',
+                },
                 ...focusRing,
                 // `invalid` is semantic: the accent indirection swaps the fill
                 // (and the forced-colors fallback) to error under every colour
@@ -1015,7 +1027,7 @@ export const slider: RecipeInput = {
                     height: 'calc(var(--slider-track-size) + var(--border) * 2)',
                     ...inked,
                     background: 'var(--slider-track)',
-                    boxShadow: 'var(--shadow-xs)',
+                    boxShadow: 'var(--slider-track-shadow)',
                 },
                 '&::-webkit-slider-thumb': {
                     appearance: 'none',
@@ -1037,7 +1049,7 @@ export const slider: RecipeInput = {
                     height: 'calc(var(--slider-track-size) + var(--border) * 2)',
                     ...inked,
                     background: 'var(--slider-track)',
-                    boxShadow: 'var(--shadow-xs)',
+                    boxShadow: 'var(--slider-track-shadow)',
                 },
                 '&::-moz-range-thumb': {
                     boxSizing: 'border-box',
