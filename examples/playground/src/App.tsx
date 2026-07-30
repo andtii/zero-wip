@@ -254,7 +254,7 @@ export const App = component(() => {
                                     tabIndex={0}
                                     style={{
                                         border: '2px dashed var(--color-base-300)',
-                                        borderRadius: '0.5rem',
+                                        borderRadius: 'var(--radius-box)',
                                         padding: '2rem',
                                         textAlign: 'center',
                                         userSelect: 'none',
@@ -529,7 +529,7 @@ export const App = component(() => {
                         data-theme="brand"
                         style={{
                             padding: '1rem',
-                            borderRadius: '0.5rem',
+                            borderRadius: 'var(--radius-box)',
                             background: 'var(--color-base-100)',
                             color: 'var(--color-base-content)',
                         }}
@@ -540,7 +540,7 @@ export const App = component(() => {
                                 color: 'var(--color-brand-content)',
                                 boxShadow: '0 0 14px var(--brand-glow)',
                                 padding: '0.25rem 0.75rem',
-                                borderRadius: '999px',
+                                borderRadius: 'var(--radius-selector)',
                             }}
                         >
                             brand
@@ -550,7 +550,7 @@ export const App = component(() => {
                             style={{
                                 background: 'var(--color-brand-soft)',
                                 padding: '0.25rem 0.75rem',
-                                borderRadius: '999px',
+                                borderRadius: 'var(--radius-selector)',
                             }}
                         >
                             brand-soft (derived)
