@@ -192,6 +192,12 @@
                     "type": "array",
                     "items": { "$ref": "#/$defs/kebabToken" }
                 },
+                "hiddenIn": {
+                    "description": "States in which the runtime sets the hidden attribute on this part, so it paints nothing and leaves the accessibility tree (avatar's image while \"error\"). Always a subset of `states`. A rule targeting one of these states can never render, so styling it identically to a visible state is correct — the difference is presence, and the runtime owns it. Omitted entirely for parts the runtime never hides.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" },
+                    "minItems": 1
+                },
                 "tokens": {
                     "description": "Contract token groups that typically style this part — a hint for tooling, closed because the hint vocabulary is defined by zero.",
                     "type": "array",

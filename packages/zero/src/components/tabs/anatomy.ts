@@ -19,6 +19,9 @@ export const tabsAnatomy = defineAnatomy('tabs', {
     panel: {
         element: 'div',
         states: ['active', 'inactive'],
+        // The runtime sets `hidden` on every panel but the selected one, so
+        // `[data-state="inactive"]` on a panel can never paint.
+        hiddenIn: ['inactive'],
         tokens: ['color', 'radius-box', 'text'],
     },
 }, { orientation: true });
