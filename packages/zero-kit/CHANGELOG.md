@@ -4,6 +4,15 @@
 
 ### Added
 
+- **`hiddenIn` on `ManifestPart` and in `manifest.schema.json`** (#227): the
+  states zero's runtime hides a part in, mirroring `PartSpec.hiddenIn` in
+  `@sigx/zero/contract`. The state-legibility guard reads it instead of the
+  hardcoded avatar exemption it shipped with — a fact about zero's runtime is
+  the anatomy's to state, not a test's to remember, and not something six
+  design systems should each restate through `skipStates`. Unlike
+  `skipStates`, one part is enough at component level: `hiddenIn` states a
+  difference (a part appearing and disappearing) where a skip waives one.
+
 - **`print` is a named built-in condition** (#226). `at: { print: … }` emits
   `@media print` and sorts with the other preference queries — after the flat
   rules it refines, before any breakpoint. Naming it matters because print is

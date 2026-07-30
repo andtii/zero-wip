@@ -15,6 +15,10 @@ component's anatomy). No component code is ever written or changed.
    (or https://signalxjs.github.io/zero/manifest.json). It lists every
    component's parts, their `data-state` values (as ready-made selectors),
    boolean flags, and token hints. Style ONLY what the manifest declares.
+   A part may also carry `hiddenIn`: the states in which zero's runtime sets
+   the `hidden` attribute on it (`avatar.image` while `error`, `tabs.panel`
+   while `inactive`). Those states never paint — don't style them, and don't
+   worry about telling them apart from the visible ones.
 
 2. **Set up the package.** There is no `sigx zero:init` yet (see issue #10),
    so copy the shape of an existing design system — `@sigx/zero-basic` is the
@@ -271,9 +275,12 @@ component's anatomy). No component code is ever written or changed.
         (the `forced-colors`/`print` glyph fallback of rule 3, a breakpoint,
         `hover: none`) does not count, and neither does one made only of
         `transition`/`will-change`, which changes how a state arrives and not
-        how it looks. The only opt-out is `skipStates`; it is read **per part**
-        (skipping `checked` on `item-label` will not excuse `item-indicator`)
-        and it is a design claim, so comment it.
+        how it looks. The only opt-out you author is `skipStates`; it is read
+        **per part** (skipping `checked` on `item-label` will not excuse
+        `item-indicator`) and it is a design claim, so comment it. The manifest
+        supplies a second one for free: a state in a part's `hiddenIn` paints
+        nothing at all, so the guard never asks you to differentiate it — that
+        is why avatar's three states may be styled identically everywhere.
      2. **Draw the mark, don't typeset it.** `content: "✓"` hands the mark's
         weight to whatever font the reader has, cannot express a fraction, and
         cannot animate. `clip-path` on a `currentColor` slab, two borders of a

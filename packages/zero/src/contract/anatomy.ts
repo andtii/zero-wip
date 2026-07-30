@@ -47,6 +47,28 @@ export interface PartSpec {
     states?: readonly string[];
     /** Boolean `data-*` flags this part can carry (from the flag vocabulary). */
     flags?: readonly string[];
+    /**
+     * States in which the runtime hides this part outright: it sets the
+     * `hidden` attribute, so while the part is in one of these states it
+     * paints nothing and is absent from the accessibility tree.
+     *
+     * This is a STYLING fact, which is why it belongs to the anatomy. A rule
+     * targeting a hidden state can never render, so a recipe that styles such
+     * a state identically to a visible one is correct rather than lazy — the
+     * difference between the two is presence, and the runtime owns it. Avatar
+     * is the canonical case: `image` is hidden while `error` and `fallback`
+     * while `loaded`, so all three of avatar's states are legitimately
+     * CSS-identical. Tooling that asks whether a design system tells two
+     * states apart (zero-kit's state-legibility guard) reads this instead of
+     * carrying a hardcoded list of the components that work this way, and a
+     * generator reads it to know which selectors are not worth emitting.
+     *
+     * Every entry must be one of this part's own `states`. Declare it ONLY for
+     * the `hidden` attribute: a part that merely animates out, or that a
+     * design system chooses to `display: none` itself, is still rendered by
+     * zero and still has to look like the state it is in.
+     */
+    hiddenIn?: readonly string[];
     /** Contract token groups that typically style this part. */
     tokens?: readonly TokenHint[];
     /** True when the part supports `asChild`. */

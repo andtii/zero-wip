@@ -86,35 +86,6 @@ const NATIVE_PROXIES: Readonly<Record<string, readonly string[]>> = {
     indeterminate: [':indeterminate'],
 };
 
-/**
- * The one exemption `skipStates` cannot express, because it is not a design
- * system's claim to make.
- *
- * Avatar's three states ARE CSS-identical in all six design systems, and that
- * is correct: zero toggles the `hidden` attribute, rendering the image while
- * `loaded` and the fallback while `error` (`Avatar.tsx`). Presence is the
- * difference, and the runtime owns it. Expressing this through `skipStates`
- * would mean six design systems each restating three times a fact that belongs
- * to the anatomy — which is why the durable fix is a `hiddenIn` field on
- * `PartSpec`, filed separately. Until then: one entry, with its reason, and the
- * staleness test below so a rename fails loudly instead of widening this.
- */
-const RUNTIME_HIDDEN: ReadonlyArray<{
-    scope: string;
-    parts: readonly string[];
-    states: readonly string[];
-    why: string;
-}> = [
-    {
-        scope: 'avatar',
-        parts: ['image', 'fallback'],
-        states: ['loading', 'loaded', 'error'],
-        why: 'The runtime toggles `hidden`: the image is hidden while `error`, the '
-            + 'fallback while `loaded`. Presence is the difference, so identical CSS is '
-            + 'correct. Replace with the anatomy\'s own `hiddenIn` when that lands.',
-    },
-];
-
 /** Every fragment that means "this rule applies in state `s`". */
 const fragmentsFor = (state: string): readonly string[] =>
     [`[data-state="${state}"]`, ...(NATIVE_PROXIES[state] ?? [])];
@@ -265,12 +236,31 @@ const skipsPair = (c: Case, part: string, a: string, b: string): boolean => {
     return skipped.includes(a) || skipped.includes(b);
 };
 
-/** Is this pair one the runtime differentiates by presence rather than by CSS? */
+/**
+ * Is this pair one the runtime differentiates by PRESENCE rather than by CSS?
+ *
+ * The one exemption `skipStates` cannot express, because it is not a design
+ * system's claim to make. Avatar's three states are CSS-identical in all six
+ * design systems and that is correct: zero sets `hidden` on the image while
+ * `error` and on the fallback while `loaded`, so a rule for those states can
+ * never paint. Stating it through `skipStates` would mean six design systems
+ * each restating a fact about zero's runtime; stating it here (as this file
+ * did until #227) means a test carrying a hand-maintained table of it. It is
+ * the anatomy's fact, so the anatomy declares it — `PartSpec.hiddenIn`, read
+ * back out of the manifest. A part rename now breaks the declaration at its
+ * source instead of quietly widening an allowlist here.
+ *
+ * Unlike `skipStates` this reads with `some` over the parts, not `every`: a
+ * skip is a WAIVER, which every part owning the states has to sign, whereas
+ * `hiddenIn` is a DIFFERENTIATION — one part appearing and disappearing is
+ * enough for the component to tell the two states apart, exactly as one part
+ * painting them differently is.
+ */
 const runtimeHides = (c: Case, parts: readonly string[], a: string, b: string): boolean =>
-    RUNTIME_HIDDEN.some((h) =>
-        h.scope === c.scope
-        && h.states.includes(a) && h.states.includes(b)
-        && parts.some((p) => h.parts.includes(p)));
+    parts.some((name) => {
+        const hidden = c.component.parts.find((p) => p.name === name)?.hiddenIn ?? [];
+        return hidden.includes(a) || hidden.includes(b);
+    });
 
 /**
  * ASSERTION A, for one component — at COMPONENT level, not part level.
@@ -301,8 +291,8 @@ function componentFindings(c: Case): string[] {
             // states. Material's checkbox skips them on `root` and `label`
             // because a row and its text do not change when you tick it — which
             // says nothing about the box and the mark, and must not excuse them
-            // both rendering nothing (#212). `RUNTIME_HIDDEN`, in contrast, IS a
-            // component-level fact, so one matching part is enough.
+            // both rendering nothing (#212). `hiddenIn`, in contrast, states a
+            // difference rather than waiving one, so one matching part is enough.
             if (owners.every((p) => skipsPair(c, p, a, b))) continue;
             if (runtimeHides(c, owners, a, b)) continue;
             if (c.groups.some((g) => distinguishes(c.rules, g, a, b))) continue;
@@ -369,21 +359,21 @@ describe('state legibility', () => {
         expect(findings.sort()).toEqual([]);
     });
 
-    it('every RUNTIME_HIDDEN entry still names a real scope and parts', () => {
-        // Not a formality: a part rename or an anatomy change must fail here
-        // rather than silently widening the exemption to nothing (a stale entry
-        // matches no case, so it stops exempting and stops being noticed).
-        for (const entry of RUNTIME_HIDDEN) {
-            const component = manifest.components.find((c) => c.scope === entry.scope);
-            expect(component, `RUNTIME_HIDDEN names unknown scope "${entry.scope}"`).toBeDefined();
-            const declared = new Set(component!.parts.map((p) => p.name));
-            for (const part of entry.parts) expect(declared).toContain(part);
-            // Every exempted state must still be a state those parts declare.
-            for (const part of entry.parts) {
-                const states = component!.parts.find((p) => p.name === part)!.states ?? [];
-                for (const state of entry.states) expect(states).toContain(state);
-            }
-            expect(entry.why.length).toBeGreaterThan(40);
+    it('the presence exemption comes from the manifest, and avatar still claims it', () => {
+        // The exemption is only as real as the declaration it reads, so assert
+        // the declaration is there: if `hiddenIn` ever stopped reaching the
+        // manifest, every assertion above would still pass — by failing to
+        // exempt anything AND by six design systems quietly having to restate
+        // it. Avatar is the case the field was added for.
+        const avatar = manifest.components.find((c) => c.scope === 'avatar')!;
+        const hiddenIn = Object.fromEntries(
+            avatar.parts.filter((p) => p.hiddenIn?.length).map((p) => [p.name, p.hiddenIn]));
+        expect(hiddenIn).toEqual({ image: ['error'], fallback: ['loaded'] });
+        // …and it covers every pair of avatar's states, which is why avatar is
+        // silent here despite painting all three identically everywhere.
+        const c = CASES.find((x) => x.ds === 'basic' && x.scope === 'avatar')!;
+        for (const [a, b] of pairsOf(['loading', 'loaded', 'error'])) {
+            expect(runtimeHides(c, ['root', 'image', 'fallback'], a, b), `${a}/${b}`).toBe(true);
         }
     });
 });
@@ -406,10 +396,19 @@ describe('the guard\'s own teeth', () => {
     const fixture = (
         parts: RecipeInput['parts'],
         skipStates?: RecipeInput['skipStates'],
+        // The anatomy is a parameter because one exemption — `hiddenIn` —
+        // lives there rather than in the recipe.
+        component: ManifestComponent = checkbox,
     ): { c: Case; css: string } => {
         const recipe: RecipeInput = { component: 'checkbox', parts, ...(skipStates ? { skipStates } : {}) };
-        const css = compileRecipeCss(recipe, checkbox);
-        return { c: caseOf('fixture', checkbox, recipe, css), css };
+        const css = compileRecipeCss(recipe, component);
+        return { c: caseOf('fixture', component, recipe, css), css };
+    };
+
+    /** The same checkbox, but the runtime hides `indicator` while indeterminate. */
+    const hidingIndicator: ManifestComponent = {
+        ...checkbox,
+        parts: checkbox.parts.map((p) => (p.name === 'indicator' ? { ...p, hiddenIn: ['indeterminate'] } : p)),
     };
 
     /** A control that says "selected" without saying which kind — as they all do. */
@@ -527,6 +526,21 @@ describe('the guard\'s own teeth', () => {
             { root: ['checked', 'unchecked', 'indeterminate'], label: ['checked', 'unchecked', 'indeterminate'] },
         );
         expect(componentFindings(c)[0]).toContain('"checked" and "indeterminate"');
+    });
+
+    it('honours the anatomy\'s hiddenIn, for exactly the states it names', () => {
+        // Avatar's shape, run on the fixture: identical CSS, one line of
+        // anatomy between "unstyled" and "correct". Same recipe both times.
+        const before = fixture({ control, indicator: blind });
+        expect(indicatorFindings(before.c)[0]).toContain('"checked"/"indeterminate"');
+        expect(componentFindings(before.c)).toHaveLength(1);
+
+        const { c } = fixture({ control, indicator: blind }, undefined, hidingIndicator);
+        // A state that never paints cannot be reported for not painting…
+        expect(indicatorFindings(c)[0]).not.toContain('"indeterminate"');
+        expect(componentFindings(c)).toEqual([]);
+        // …and every other pair still has to earn its difference.
+        expect(indicatorFindings(c)[0]).toContain('"checked"/"unchecked"');
     });
 
     it('accepts a component whose difference lives on a sibling part', () => {

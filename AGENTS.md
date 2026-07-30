@@ -206,6 +206,12 @@ Publishing is handled by `scripts/publish.js` in topological order.
   `data-focus-visible`, `data-pressed`. Never invent synonyms.
 - Contract variant props pass through as `data-color` / `data-size` /
   `data-variant`. Zero attaches **no styling** to any of these.
+- A part the runtime hides with the `hidden` attribute in some state declares
+  it: `hiddenIn: ['error']` on `avatar.image`. It is a styling fact — a rule
+  for a hidden state can never paint, so identical CSS across it and a visible
+  state is correct — and tooling (the state-legibility guard) reads it from the
+  manifest. Add `hidden` to a part in a new state and the declaration moves
+  with it; `expectAnatomy` fails otherwise.
 - Each component's `anatomy.ts` is the source of truth — the component imports
   part names from it, tests assert against it, and the build emits it into
   `manifest.json` for tooling/AI. Changing an anatomy is a breaking change.

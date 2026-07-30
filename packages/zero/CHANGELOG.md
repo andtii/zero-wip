@@ -4,6 +4,19 @@
 
 ### Added
 
+- **`PartSpec.hiddenIn` — the anatomy declares the states the runtime hides a
+  part in** (#227). Optional and additive: `hiddenIn: ['error']` on avatar's
+  `image` says zero sets the `hidden` attribute there, so a rule for that
+  state can never paint and styling it identically to a visible state is
+  correct rather than lazy — the difference is presence, and the runtime owns
+  it. Declared on the four parts zero hides: `avatar.image` (`error`),
+  `avatar.fallback` (`loaded`), `tabs.panel` (`inactive`) and
+  `tree-view.branch-content` (`closed`). Emitted into `manifest.json` (key
+  omitted for every other part), so tooling reads the fact instead of
+  hardcoding it — zero-kit's state-legibility guard carried exactly such a
+  hardcoded avatar exemption until now. `expectAnatomy` checks the
+  declaration against the DOM in both directions.
+
 - **`@sigx/zero/adapt` — the generic runtime behind vendor-named component
   modules** (issue #179, RFC 0003 §2). `adapt(Base, spec)` returns a factory
   whose setup delegates to the base component's with a renaming view over its

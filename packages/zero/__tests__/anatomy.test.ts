@@ -86,6 +86,27 @@ describe('anatomy registry', () => {
         }
     });
 
+    it('every hiddenIn state is one the part actually declares', () => {
+        // `hiddenIn` names a state the runtime hides the part in, so a value
+        // outside `states` describes a render that cannot happen — and would
+        // silently exempt nothing in the tooling that reads it.
+        const declared: string[] = [];
+        for (const anatomy of Object.values(anatomies)) {
+            for (const [name, part] of Object.entries<{ states?: readonly string[]; hiddenIn?: readonly string[] }>(anatomy.parts)) {
+                for (const state of part.hiddenIn ?? []) {
+                    expect(part.states ?? [], `${anatomy.scope}.${name}: hiddenIn "${state}"`).toContain(state);
+                    declared.push(`${anatomy.scope}.${name}`);
+                }
+            }
+        }
+        // Every part zero hides with the `hidden` attribute, and no other.
+        // Adding one to the runtime without declaring it here is the drift
+        // this pins: the DOM half is asserted by `expectAnatomy`.
+        expect([...new Set(declared)].sort()).toEqual([
+            'avatar.fallback', 'avatar.image', 'tabs.panel', 'tree-view.branch-content',
+        ]);
+    });
+
     it('all flags come from the shared vocabulary', () => {
         const vocabulary = new Set<string>(FLAG_VOCABULARY);
         for (const anatomy of Object.values(anatomies)) {

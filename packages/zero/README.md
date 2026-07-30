@@ -96,6 +96,11 @@ type) is the typed surface consumers see.
   objects with a `selector()` builder.
 - `@sigx/zero/manifest.json` — the same registry as JSON, states as
   ready-made CSS selectors.
+- A part's `hiddenIn` lists the states in which the runtime sets `hidden` on
+  it — `avatar.image` while `error`, `tabs.panel` while `inactive`. Rules for
+  those states never paint, so a design system may leave them unstyled (and
+  need not tell them apart from a visible state), and a generator can skip
+  emitting them.
 - `llms.txt` — the compact spec for language models.
 
 MIT © Andreas Ekdahl
