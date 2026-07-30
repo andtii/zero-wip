@@ -35,8 +35,47 @@ const label: CssProps = {
     color: 'var(--color-base-content)',
 };
 
-/** The ghost dismiss button dialog, popover and toast share — one behaviour. */
-const ghostClose: PartStyles = {
+/**
+ * HeroUI v3's `secondary` button box — base-100 fill inside a hairline, content
+ * ink, the field radius — written out rather than reached for, because
+ * `--btn-fill` and its two siblings are tokens the button RECIPE declares and
+ * no other recipe can see. Every control in this file whose job is to read as a
+ * button, without claiming to be the primary one, starts here.
+ */
+const secondaryButton: CssProps = {
+    appearance: 'none',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 'var(--space-sm)',
+    // v3 sizes to its content — v2's min-widths are gone.
+    width: 'fit-content',
+    padding: 'var(--space-sm) var(--space-lg)',
+    border: 'var(--border) solid var(--hero-line)',
+    borderRadius: 'var(--radius-field)',
+    background: 'var(--color-base-100)',
+    ...label,
+    lineHeight: 'var(--leading-none)',
+    cursor: 'pointer',
+};
+
+/** Button's own gesture: v3 presses inward rather than darkening further. */
+const pressScale: Record<string, CssProps> = {
+    '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' },
+};
+
+/**
+ * The corner ✕ — an icon-only dismiss, and ONLY that.
+ *
+ * Transparent, `2xs` padding and muted ink are right for a glyph that sits in a
+ * corner and must not compete with the surface it is attached to; they are
+ * wrong for anything carrying a word, which is why this is no longer the recipe
+ * dialog and popover reach for (#218). Toast is its one user, and toast is the
+ * one of the three whose anatomy makes the job unambiguous: it declares a
+ * separate `action` part for the labelled job, so its `close` is a glyph by
+ * construction.
+ */
+const iconClose: PartStyles = {
     base: {
         appearance: 'none',
         border: 'none',
@@ -52,6 +91,28 @@ const ghostClose: PartStyles = {
         disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
         ...focusRing,
     },
+};
+
+/**
+ * The labelled dismiss — dialog's `close` and popover's `close` (#218).
+ *
+ * Neither anatomy has an `action` part, so `close` IS the surface's action:
+ * `Dialog.Close` is the dialog's primary dismiss and `Popover.Close` its only
+ * one. A word-carrying control that a person is meant to aim at is a button, so
+ * it gets the button box rather than the ✕'s caption shape, and it presses like
+ * every other button in the system. It stays `secondary` rather than `primary`
+ * because a recipe cannot know whether the label reads "Got it" or "Cancel" —
+ * neutral is the honest default, and the app can wrap the part in a Button when
+ * it wants to say more.
+ */
+const dismissAction: PartStyles = {
+    base: { ...secondaryButton, transition: motion('background, border-color, opacity, transform') },
+    states: {
+        hover: { background: 'var(--color-base-200)' },
+        disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+        ...focusRing,
+    },
+    selectors: pressScale,
 };
 
 /**
@@ -340,36 +401,14 @@ export const switchRecipe: RecipeInput = {
 };
 
 /**
- * The control an overlay opens from, in HeroUI's own button language: Button's
- * `secondary` shape — base-100 fill inside a hairline, content ink, the field
- * radius — written out rather than reached for, because `--btn-fill` and its
- * two siblings are tokens the button RECIPE declares and no other recipe can
- * see. `hover` and `open` take one layer step, matching `ghostClose` above;
- * Button's own `[data-pressed]` scale is left out here and added per part,
- * since not every trigger is pressable.
- *
- * Only tooltip uses it today. Dialog, popover and menu still ship
- * `{ cursor: 'pointer' }` and nothing else — the same defect #213 fixed on the
- * tooltip, in the same package, deferred to #214 so that three components'
- * worth of visual change gets its own review.
+ * The control an overlay opens from: the `secondaryButton` box, with `hover`
+ * and `open` taking one layer step. Button's own `[data-pressed]` scale is left
+ * out here and added by `pressableOverlayTrigger` below, because tooltip — the
+ * one trigger that opens nothing — declares no `pressed` flag, and a rule the
+ * runtime can never satisfy is dead CSS.
  */
 const overlayTrigger: PartStyles = {
-    base: {
-        appearance: 'none',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 'var(--space-sm)',
-        width: 'fit-content',
-        padding: 'var(--space-sm) var(--space-lg)',
-        border: 'var(--border) solid var(--hero-line)',
-        borderRadius: 'var(--radius-field)',
-        background: 'var(--color-base-100)',
-        ...label,
-        lineHeight: 'var(--leading-none)',
-        cursor: 'pointer',
-        transition: motion('background, border-color, opacity'),
-    },
+    base: { ...secondaryButton, transition: motion('background, border-color, opacity') },
     states: {
         hover: { background: 'var(--color-base-200)' },
         open: { background: 'var(--color-base-200)' },
@@ -379,14 +418,24 @@ const overlayTrigger: PartStyles = {
     },
 };
 
+/**
+ * The same control where the anatomy declares `pressed` — dialog, popover and
+ * menu (#214). All three shipped `{ cursor: 'pointer' }` and nothing else, so
+ * Chrome painted them as 13.33px Arial chips with a 2px outset bevel, sitting a
+ * few rows below HeroUI's own tinted buttons on the same page. They are one
+ * control with one treatment, not three inline literals that happen to agree.
+ */
+const pressableOverlayTrigger: PartStyles = {
+    ...overlayTrigger,
+    base: { ...overlayTrigger.base, transition: motion('background, border-color, opacity, transform') },
+    selectors: pressScale,
+};
+
 // ── Dialog ────────────────────────────────────────────────────────────────
 export const dialog: RecipeInput = {
     component: 'dialog',
     parts: {
-        trigger: {
-            base: { cursor: 'pointer' },
-            states: { open: {}, closed: {}, disabled: { cursor: 'not-allowed' }, ...focusRing },
-        },
+        trigger: pressableOverlayTrigger,
         popup: withPresence(popupPresence('translateY(8px) scale(0.98)'), {
             base: {
                 border: 'none',
@@ -432,7 +481,7 @@ export const dialog: RecipeInput = {
         footer: {
             base: { display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)', marginBlockStart: 'var(--space-xl)' },
         },
-        close: ghostClose,
+        close: dismissAction,
     },
 };
 
@@ -440,10 +489,7 @@ export const dialog: RecipeInput = {
 export const popover: RecipeInput = {
     component: 'popover',
     parts: {
-        trigger: {
-            base: { cursor: 'pointer' },
-            states: { open: {}, closed: {}, disabled: { cursor: 'not-allowed' }, ...focusRing },
-        },
+        trigger: pressableOverlayTrigger,
         // Dialog's surface, one step lighter: hairline instead of borderless,
         // `lg` shadow instead of `xl`, and it rises into place from below.
         popup: withPresence(popupPresence('translateY(4px)'), {
@@ -468,7 +514,7 @@ export const popover: RecipeInput = {
                 color: 'var(--color-base-content)',
             },
         },
-        close: ghostClose,
+        close: dismissAction,
     },
 };
 
@@ -506,10 +552,7 @@ export const tooltip: RecipeInput = {
 export const menu: RecipeInput = {
     component: 'menu',
     parts: {
-        trigger: {
-            base: { cursor: 'pointer' },
-            states: { open: {}, closed: {}, disabled: { cursor: 'not-allowed' }, ...focusRing },
-        },
+        trigger: pressableOverlayTrigger,
         // The select popup's surface, verbatim — one floating-list look.
         popup: withPresence(popupPresence('translateY(-4px)'), {
             base: {
@@ -1474,8 +1517,8 @@ export const toast: RecipeInput = {
             },
         },
         close: {
-            ...ghostClose,
-            base: { ...ghostClose.base, marginInlineStart: 'auto' },
+            ...iconClose,
+            base: { ...iconClose.base, marginInlineStart: 'auto' },
         },
     },
 };

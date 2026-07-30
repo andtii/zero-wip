@@ -20,8 +20,9 @@
   goldens recorded the absence faithfully, and the state-legibility guard is
   satisfied by a sibling part carrying the difference. Caught, on the pre-fix
   tree: seven cells — the `tooltip/trigger` of basic, daisyui, heroui and
-  carbon, plus heroui's dialog, popover and menu triggers (#214, the only
-  entries in its allowlist, which the guard fails if they ever go stale). Its
+  carbon, plus heroui's dialog, popover and menu triggers. The latter three
+  shipped as its allowlist and were fixed by #214, so the guard now runs with
+  **no exemptions at all**: 16 parts × 6 design systems, every cell clean. Its
   own failure mode is covered by fixtures, including the three near-misses.
 
 - **`hiddenIn` on `ManifestPart` and in `manifest.schema.json`** (#227): the
