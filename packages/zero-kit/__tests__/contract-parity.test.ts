@@ -230,6 +230,48 @@ describe('kit ↔ zero contract parity', () => {
         expect(fallbackBlock).toContain('--radius-box:');
     });
 
+    it('base.css hides `hidden` parts from a layer no design system outranks', () => {
+        // Parts like `tree-view.branch-content` and `tabs.panel` hide with the
+        // `hidden` attribute alone, which relies on the UA sheet's
+        // `[hidden] { display: none }` — the weakest rule in the document. A
+        // recipe's `display: flex` in `@layer zero.recipes` beats it, which is
+        // how collapsed tree branches stayed on screen in all six design
+        // systems (#209). `zero.structure` must therefore come LAST: every
+        // design-system declaration lands in `zero.recipes`, so layer order
+        // settles it without any specificity arithmetic.
+        //
+        // This can only be asserted structurally here — happy-dom resolves no
+        // layered cascade, so the behaviour itself is proved in the browser by
+        // `examples/playground/e2e/hidden-parts.spec.ts`.
+        const baseCss = readFileSync(
+            resolve(process.cwd(), 'packages/zero/css/base.css'),
+            'utf8',
+        );
+        const layers = /@layer\s+([^;]+);/.exec(baseCss)![1]!.split(',').map((l) => l.trim());
+        expect(layers, 'base.css must declare zero.structure').toContain('zero.structure');
+        expect(
+            layers.indexOf('zero.structure'),
+            'zero.structure must be last — it exists to outrank every design system',
+        ).toBe(layers.length - 1);
+
+        // Bounded to the block, for the same reason as the fallback check
+        // above: an unbounded search would match the order declaration, and a
+        // slice to EOF would pass even if the rule had drifted into a
+        // different layer.
+        const blockStart = baseCss.indexOf('@layer zero.structure {');
+        expect(blockStart, 'no @layer zero.structure block').toBeGreaterThan(-1);
+        const next = baseCss.indexOf('@layer', blockStart + 1);
+        const structureBlock = baseCss.slice(blockStart, next === -1 ? undefined : next);
+        // Scoped to zero's own anatomy — the guard must not claim `[hidden]`
+        // across the whole document.
+        expect(structureBlock).toContain('[data-scope][data-part][hidden]');
+        expect(structureBlock).toMatch(/\[hidden\][^{]*\{[^}]*display:\s*none/);
+        // `hidden="until-found"` is the UA's find-in-page affordance
+        // (`content-visibility: hidden`, not `display: none`); forcing it to
+        // none would make this guard the next thing silently defeating the UA.
+        expect(structureBlock).toContain(':not([hidden="until-found" i])');
+    });
+
     it('base.css ships a fallback for every recommended key', () => {
         // A category a design system never mentions must still resolve, which
         // is what makes "absence is never a validation error" safe.

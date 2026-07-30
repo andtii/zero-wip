@@ -123,7 +123,10 @@ the state-matrix contrast audit — two matrices over every state combination ×
 design system × theme, hard-fail below 3:1, chromium-only: **text legibility**
 for every text-bearing part, and **indicator paint** for every part whose job
 is paint rather than text, measured inside its real ancestor chain — the tick,
-the dot, the thumb, the range, the chevrons, the star): `pnpm build`,
+the dot, the thumb, the range, the chevrons, the star; and the hidden-parts
+guard, which walks all six design systems asserting every
+`[data-scope][data-part][hidden]` computes `display: none` — a layered cascade
+happy-dom cannot resolve): `pnpm build`,
 then `pnpm --filter zero-playground e2e` (first run:
 `pnpm --filter zero-playground exec playwright install`). CI runs them on
 every PR. The root `pnpm

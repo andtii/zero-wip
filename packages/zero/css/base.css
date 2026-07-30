@@ -21,8 +21,13 @@
  * layer means specificity decides, so the fallback beat the design system's
  * default and `--radius-box: 0.75rem` silently rendered as `0.5rem` until a
  * theme was explicitly selected.
+ *
+ * `zero.structure` is the mirror image, at the other end: declarations no
+ * design system may overrule, because they are how the runtime's behavior
+ * reaches the screen at all. It stays a layer (not `!important`) so the
+ * promise above holds — a consumer's unlayered app CSS still wins.
  */
-@layer zero.fallback, zero.tokens, zero.recipes;
+@layer zero.fallback, zero.tokens, zero.recipes, zero.structure;
 
 @layer zero.fallback {
     :root {
@@ -140,5 +145,36 @@
 
     [data-disabled] {
         cursor: not-allowed;
+    }
+}
+
+/*
+ * Structure the design system cannot overrule.
+ *
+ * `hidden` is the only thing hiding a collapsed `tree-view.branch-content`, an
+ * inactive `tabs.panel` or a swapped-out `avatar.image` — the runtime sets the
+ * attribute and leans on the UA sheet's `[hidden] { display: none }`. That is
+ * the weakest declaration in the document: ANY author-origin `display` on the
+ * same element beats it, and a recipe's `display: flex` on a flex container is
+ * the most ordinary line a design system writes. All six shipped one on
+ * branch-content, so collapsing a branch hid nothing anywhere (#209).
+ *
+ * A later layer, not higher specificity: every design-system declaration
+ * compiles into `@layer zero.recipes`, so ordering settles it once and for all
+ * — no arithmetic against a compound-variant selector that can reach (0,8,0),
+ * and no future design system can out-specify it. Not `!important` either:
+ * that would invert the promise at the top of this file that a consumer's
+ * unlayered app CSS always wins.
+ *
+ * `hidden="until-found"` is deliberately exempt. The UA gives it
+ * `content-visibility: hidden` instead of `display: none` precisely so
+ * find-in-page can reveal it, and forcing `display: none` would destroy that
+ * — this guard defeating an intended UA behavior is the very bug it fixes.
+ * Zero emits no `until-found` today; the exclusion is what keeps that door
+ * open. (Case-insensitive: `hidden` is an enumerated attribute.)
+ */
+@layer zero.structure {
+    [data-scope][data-part][hidden]:not([hidden="until-found" i]) {
+        display: none;
     }
 }
