@@ -529,6 +529,11 @@ for (const ds of DESIGN_SYSTEMS) {
                     image.match(/(?:rgba?|hsla?|oklch|oklab|lab|lch|color)\([^()]*\)|#[0-9a-f]{3,8}\b/gi) ?? []
                 ));
 
+                /** A background painted INSIDE the glyph rather than behind it. */
+                const clipsText = (s: CSSStyleDeclaration): boolean =>
+                    s.getPropertyValue('background-clip') === 'text'
+                    || s.getPropertyValue('-webkit-background-clip') === 'text';
+
                 /**
                  * The mark's own stroke, if it has one — the widest edge that
                  * paints.
@@ -601,19 +606,48 @@ for (const ds of DESIGN_SYSTEMS) {
 
                     const cs = getComputedStyle(el);
                     const selfOpacity = num(cs.opacity) * group;
-                    // The element's own fill becomes the backdrop for any glyph
-                    // it draws on top of itself.
-                    const ownBg = hasInk(cs.backgroundColor)
-                        ? blend(resolve(cs.backgroundColor, bg), bg, selfOpacity)
+                    /**
+                     * The element's own fill becomes the backdrop for anything
+                     * it draws on top of itself — and it is needed twice, at two
+                     * different points in the compositing order.
+                     *
+                     * `opacity` makes the element a GROUP: its fill, its glyph
+                     * and its pseudos composite against each other first, and
+                     * only the finished group is faded. So a mark drawn on the
+                     * element meets `localBg`, the fill NOT yet faded; what the
+                     * reader compares it against is `ownBg`, the same fill after
+                     * the fade. Using the faded one for both would dilute the
+                     * mark a second time against a backdrop that is already
+                     * diluted — see the ratio computation below, which applies
+                     * the group fade exactly once, to mark and backdrop alike.
+                     *
+                     * The two are equal whenever the group is opaque, which is
+                     * every cell this audit ASSERTS: only `disabled` fades a
+                     * chain, and disabled cells are measured and reported, never
+                     * asserted.
+                     *
+                     * `background-clip: text` is excluded because such a fill
+                     * paints inside the glyph, not behind it — it is not a
+                     * backdrop for anything.
+                     */
+                    const localBg = hasInk(cs.backgroundColor) && !clipsText(cs)
+                        ? resolve(cs.backgroundColor, bg)
                         : bg;
+                    const ownBg = blend(localBg, bg, selfOpacity);
 
                     /**
                      * Every layer that could carry the mark. A shape is a
                      * `background-color` (clip-path or border-radius only change
                      * its outline, not what is measured) or a `border-color`; a
                      * tick drawn as a glyph — by the recipe via `content`, or by
-                     * zero as default children — is a `color`. `opacity` is
-                     * folded in, because a mark at 0.55 really is 45% backdrop.
+                     * zero as default children — is a `color`.
+                     *
+                     * `alpha` is the layer's OWN transparency — a pseudo at
+                     * `opacity: 0.55` really is 45% backdrop — and it is applied
+                     * inside the group, against `inside`. The group's own
+                     * `opacity` is applied afterwards, once, by the ratio
+                     * computation. `over` is what the reader sees beside the
+                     * mark and is what the ratio is against.
                      *
                      * A glyph is only a carrier when it can print: a design
                      * system that draws its own geometry retires zero's fallback
@@ -622,52 +656,58 @@ for (const ds of DESIGN_SYSTEMS) {
                      * counting a symbol that prints nothing would read as a
                      * 1:1 failure on the very cells the geometry got right.
                      */
-                    const carriers: { carrier: string; ink: string; opacity: number; over: RGB }[] = [];
+                    const carriers: { carrier: string; ink: string; alpha: number; inside: RGB; over: RGB }[] = [];
                     const prints = (s: CSSStyleDeclaration): boolean => parseFloat(s.fontSize) > 0;
-                    const clipsText = (s: CSSStyleDeclaration): boolean =>
-                        s.getPropertyValue('background-clip') === 'text'
-                        || s.getPropertyValue('-webkit-background-clip') === 'text';
                     if (rendered(cs)) {
+                        // The element's own fill and stroke are drawn ON the
+                        // ancestor backdrop, so that is both what they composite
+                        // against and what they are read against.
                         if (hasInk(cs.backgroundColor) && !clipsText(cs)) {
-                            carriers.push({ carrier: 'background', ink: cs.backgroundColor, opacity: selfOpacity, over: bg });
+                            carriers.push({ carrier: 'background', ink: cs.backgroundColor, alpha: 1, inside: bg, over: bg });
                         }
                         const stroke = borderInk(cs);
-                        if (stroke) carriers.push({ carrier: 'border', ink: stroke, opacity: selfOpacity, over: bg });
+                        if (stroke) carriers.push({ carrier: 'border', ink: stroke, alpha: 1, inside: bg, over: bg });
                         if (el.textContent && prints(cs)) {
                             const ink = glyphInk(cs);
                             if (hasInk(ink)) {
-                                carriers.push({ carrier: 'color', ink, opacity: selfOpacity, over: ownBg });
+                                carriers.push({ carrier: 'color', ink, alpha: 1, inside: localBg, over: ownBg });
                             } else if (clipsText(cs)) {
                                 for (const stop of imageInks(cs.backgroundImage)) {
-                                    if (hasInk(stop)) carriers.push({ carrier: 'color(clipped)', ink: stop, opacity: selfOpacity, over: ownBg });
+                                    if (hasInk(stop)) carriers.push({ carrier: 'color(clipped)', ink: stop, alpha: 1, inside: localBg, over: ownBg });
                                 }
                             }
                         }
                         for (const pseudo of ['::before', '::after']) {
                             const ps = getComputedStyle(el, pseudo);
                             if (ps.content === 'none' || !rendered(ps)) continue;
-                            const opacity = num(ps.opacity) * selfOpacity;
+                            const alpha = num(ps.opacity);
                             if (hasInk(ps.backgroundColor)) {
-                                carriers.push({ carrier: `background${pseudo}`, ink: ps.backgroundColor, opacity, over: ownBg });
+                                carriers.push({ carrier: `background${pseudo}`, ink: ps.backgroundColor, alpha, inside: localBg, over: ownBg });
                             }
                             const pseudoStroke = borderInk(ps);
                             if (pseudoStroke) {
-                                carriers.push({ carrier: `border${pseudo}`, ink: pseudoStroke, opacity, over: ownBg });
+                                carriers.push({ carrier: `border${pseudo}`, ink: pseudoStroke, alpha, inside: localBg, over: ownBg });
                             }
                             // A quoted, non-empty `content` is a drawn glyph;
                             // `content: ""` is a box, and has no `color` to read.
                             if (/^(["'])(?:.|\n)+\1$/.test(ps.content) && prints(ps) && hasInk(glyphInk(ps))) {
-                                carriers.push({ carrier: `color${pseudo}`, ink: glyphInk(ps), opacity, over: ownBg });
+                                carriers.push({ carrier: `color${pseudo}`, ink: glyphInk(ps), alpha, inside: localBg, over: ownBg });
                             }
                         }
                     }
 
                     const measured = carriers
-                        .filter((c) => c.opacity > 0)
-                        .map((c) => ({
-                            ...c,
-                            ratio: contrast(blend(resolve(c.ink, c.over), c.over, c.opacity), c.over),
-                        }))
+                        .filter((c) => c.alpha * selfOpacity > 0)
+                        .map((c) => {
+                            // Inside the group: the layer over what it is drawn
+                            // on, at its own transparency (`resolve` composites
+                            // the ink's own alpha channel; `blend` the layer's).
+                            const inGroup = blend(resolve(c.ink, c.inside), c.inside, c.alpha);
+                            // Then the group is faded, once — and `over` was
+                            // faded by the same factor, so both sides of the
+                            // comparison lose the same light.
+                            return { ...c, ratio: contrast(blend(inGroup, bg, selfOpacity), c.over) };
+                        })
                         // The mark is visible if ANY of its layers is: a recipe
                         // that draws the tick on a pseudo still leaves the host
                         // element's own (absent) fill measurable.
