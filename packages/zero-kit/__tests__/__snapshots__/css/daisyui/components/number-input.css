@@ -25,9 +25,12 @@
     [data-scope="number-input"][data-part="control"] {
         display: inline-flex;
         align-items: stretch;
+        box-sizing: border-box;
+        height: calc(var(--size-field) * 12);
         background: var(--color-base-100);
         border: var(--border) solid var(--color-base-300);
         border-radius: var(--radius-field);
+        box-shadow: var(--shadow-xs);
         overflow: hidden;
         transition: border-color var(--duration-fast) var(--ease-standard);
     }
@@ -162,9 +165,17 @@
         --number-input-accent: var(--color-error);
     }
 
+    [data-scope="number-input"][data-part="root"][data-size="xs"] [data-scope="number-input"][data-part="control"] {
+        height: calc(var(--size-field) * 8);
+    }
+
     [data-scope="number-input"][data-part="root"][data-size="xs"] [data-scope="number-input"][data-part="input"] {
         font-size: var(--text-xs);
         padding: var(--space-2xs) var(--space-xs);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-size="sm"] [data-scope="number-input"][data-part="control"] {
+        height: calc(var(--size-field) * 10);
     }
 
     [data-scope="number-input"][data-part="root"][data-size="sm"] [data-scope="number-input"][data-part="input"] {
@@ -172,9 +183,17 @@
         padding: var(--space-xs) var(--space-sm);
     }
 
+    [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="control"] {
+        height: calc(var(--size-field) * 14);
+    }
+
     [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="input"] {
         font-size: var(--text-md);
         padding: var(--space-md) var(--space-lg);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-size="xl"] [data-scope="number-input"][data-part="control"] {
+        height: calc(var(--size-field) * 16);
     }
 
     [data-scope="number-input"][data-part="root"][data-size="xl"] [data-scope="number-input"][data-part="input"] {

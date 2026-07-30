@@ -1803,6 +1803,7 @@
         box-shadow: var(--shadow-xs);
         cursor: pointer;
         transition: background var(--duration-normal) var(--ease-standard);
+        box-sizing: border-box;
         min-width: 13rem;
     }
 
@@ -1976,6 +1977,7 @@
         --btn-accent: var(--color-primary);
         --btn-on-accent: var(--color-primary-content);
         --btn-soft: var(--color-primary-soft);
+        --btn-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"] {
@@ -2000,7 +2002,7 @@
     }
 
     [data-scope="button"][data-part="root"][data-focus-visible] {
-        outline: 2px solid var(--btn-accent);
+        outline: 2px solid var(--btn-ink);
         outline-offset: 2px;
     }
 
@@ -2013,54 +2015,63 @@
         --btn-accent: var(--color-primary);
         --btn-on-accent: var(--color-primary-content);
         --btn-soft: var(--color-primary-soft);
+        --btn-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"]:not([data-color]) {
         --btn-accent: var(--color-primary);
         --btn-on-accent: var(--color-primary-content);
         --btn-soft: var(--color-primary-soft);
+        --btn-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-color="secondary"] {
         --btn-accent: var(--color-secondary);
         --btn-on-accent: var(--color-secondary-content);
         --btn-soft: var(--color-secondary-soft);
+        --btn-ink: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-color="accent"] {
         --btn-accent: var(--color-accent);
         --btn-on-accent: var(--color-accent-content);
         --btn-soft: var(--color-accent-soft);
+        --btn-ink: color-mix(in oklab, var(--color-accent) 55%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-color="neutral"] {
         --btn-accent: var(--color-neutral);
         --btn-on-accent: var(--color-neutral-content);
         --btn-soft: var(--color-neutral-soft);
+        --btn-ink: color-mix(in oklab, var(--color-neutral) 40%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-color="info"] {
         --btn-accent: var(--color-info);
         --btn-on-accent: var(--color-info-content);
         --btn-soft: var(--color-info-soft);
+        --btn-ink: color-mix(in oklab, var(--color-info) 70%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-color="success"] {
         --btn-accent: var(--color-success);
         --btn-on-accent: var(--color-success-content);
         --btn-soft: var(--color-success-soft);
+        --btn-ink: color-mix(in oklab, var(--color-success) 55%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-color="warning"] {
         --btn-accent: var(--color-warning);
         --btn-on-accent: var(--color-warning-content);
         --btn-soft: var(--color-warning-soft);
+        --btn-ink: color-mix(in oklab, var(--color-warning) 45%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-color="error"] {
         --btn-accent: var(--color-error);
         --btn-on-accent: var(--color-error-content);
         --btn-soft: var(--color-error-soft);
+        --btn-ink: color-mix(in oklab, var(--color-error) 95%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-variant="solid"] {
@@ -2083,8 +2094,8 @@
 
     [data-scope="button"][data-part="root"][data-variant="outline"] {
         background: transparent;
-        color: var(--btn-accent);
-        border-color: var(--btn-accent);
+        color: var(--btn-ink);
+        border-color: var(--btn-ink);
     }
 
     [data-scope="button"][data-part="root"][data-variant="outline"]:hover:not([data-disabled]) {
@@ -2093,7 +2104,7 @@
 
     [data-scope="button"][data-part="root"][data-variant="soft"] {
         background: var(--btn-soft);
-        color: var(--btn-accent);
+        color: var(--btn-ink);
     }
 
     [data-scope="button"][data-part="root"][data-variant="soft"]:hover:not([data-disabled]) {
@@ -2102,7 +2113,7 @@
 
     [data-scope="button"][data-part="root"][data-variant="ghost"] {
         background: transparent;
-        color: var(--btn-accent);
+        color: var(--btn-ink);
     }
 
     [data-scope="button"][data-part="root"][data-variant="ghost"]:hover:not([data-disabled]) {
@@ -2450,11 +2461,14 @@
 
     [data-scope="combobox"][data-part="control"] {
         display: inline-flex;
-        align-items: center;
+        align-items: stretch;
         min-width: 13rem;
+        box-sizing: border-box;
+        height: calc(var(--size-field) * 12);
         background: var(--color-base-100);
         border: var(--border) solid var(--color-base-300);
         border-radius: var(--radius-field);
+        box-shadow: var(--shadow-xs);
         transition: border-color var(--duration-fast) var(--ease-standard);
     }
 
@@ -2607,9 +2621,17 @@
         --combobox-accent: var(--color-error);
     }
 
+    [data-scope="combobox"][data-part="root"][data-size="xs"] [data-scope="combobox"][data-part="control"] {
+        height: calc(var(--size-field) * 8);
+    }
+
     [data-scope="combobox"][data-part="root"][data-size="xs"] [data-scope="combobox"][data-part="input"] {
         padding: var(--space-2xs) var(--space-md);
         font-size: var(--text-xs);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-size="sm"] [data-scope="combobox"][data-part="control"] {
+        height: calc(var(--size-field) * 10);
     }
 
     [data-scope="combobox"][data-part="root"][data-size="sm"] [data-scope="combobox"][data-part="input"] {
@@ -2617,14 +2639,26 @@
         font-size: var(--text-sm);
     }
 
+    [data-scope="combobox"][data-part="root"][data-size="md"] [data-scope="combobox"][data-part="control"] {
+        height: calc(var(--size-field) * 12);
+    }
+
     [data-scope="combobox"][data-part="root"][data-size="md"] [data-scope="combobox"][data-part="input"] {
         padding: var(--space-sm) var(--space-lg);
         font-size: var(--text-sm);
     }
 
+    [data-scope="combobox"][data-part="root"][data-size="lg"] [data-scope="combobox"][data-part="control"] {
+        height: calc(var(--size-field) * 14);
+    }
+
     [data-scope="combobox"][data-part="root"][data-size="lg"] [data-scope="combobox"][data-part="input"] {
         padding: var(--space-md) var(--space-xl);
         font-size: var(--text-md);
+    }
+
+    [data-scope="combobox"][data-part="root"][data-size="xl"] [data-scope="combobox"][data-part="control"] {
+        height: calc(var(--size-field) * 16);
     }
 
     [data-scope="combobox"][data-part="root"][data-size="xl"] [data-scope="combobox"][data-part="input"] {
@@ -2956,9 +2990,12 @@
     [data-scope="number-input"][data-part="control"] {
         display: inline-flex;
         align-items: stretch;
+        box-sizing: border-box;
+        height: calc(var(--size-field) * 12);
         background: var(--color-base-100);
         border: var(--border) solid var(--color-base-300);
         border-radius: var(--radius-field);
+        box-shadow: var(--shadow-xs);
         overflow: hidden;
         transition: border-color var(--duration-fast) var(--ease-standard);
     }
@@ -3093,9 +3130,17 @@
         --number-input-accent: var(--color-error);
     }
 
+    [data-scope="number-input"][data-part="root"][data-size="xs"] [data-scope="number-input"][data-part="control"] {
+        height: calc(var(--size-field) * 8);
+    }
+
     [data-scope="number-input"][data-part="root"][data-size="xs"] [data-scope="number-input"][data-part="input"] {
         font-size: var(--text-xs);
         padding: var(--space-2xs) var(--space-xs);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-size="sm"] [data-scope="number-input"][data-part="control"] {
+        height: calc(var(--size-field) * 10);
     }
 
     [data-scope="number-input"][data-part="root"][data-size="sm"] [data-scope="number-input"][data-part="input"] {
@@ -3103,9 +3148,17 @@
         padding: var(--space-xs) var(--space-sm);
     }
 
+    [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="control"] {
+        height: calc(var(--size-field) * 14);
+    }
+
     [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="input"] {
         font-size: var(--text-md);
         padding: var(--space-md) var(--space-lg);
+    }
+
+    [data-scope="number-input"][data-part="root"][data-size="xl"] [data-scope="number-input"][data-part="control"] {
+        height: calc(var(--size-field) * 16);
     }
 
     [data-scope="number-input"][data-part="root"][data-size="xl"] [data-scope="number-input"][data-part="input"] {

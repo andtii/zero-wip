@@ -3,6 +3,7 @@
         --btn-accent: var(--color-primary);
         --btn-on-accent: var(--color-primary-content);
         --btn-soft: var(--color-primary-soft);
+        --btn-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"] {
@@ -27,7 +28,7 @@
     }
 
     [data-scope="button"][data-part="root"][data-focus-visible] {
-        outline: 2px solid var(--btn-accent);
+        outline: 2px solid var(--btn-ink);
         outline-offset: 2px;
     }
 
@@ -40,54 +41,63 @@
         --btn-accent: var(--color-primary);
         --btn-on-accent: var(--color-primary-content);
         --btn-soft: var(--color-primary-soft);
+        --btn-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"]:not([data-color]) {
         --btn-accent: var(--color-primary);
         --btn-on-accent: var(--color-primary-content);
         --btn-soft: var(--color-primary-soft);
+        --btn-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-color="secondary"] {
         --btn-accent: var(--color-secondary);
         --btn-on-accent: var(--color-secondary-content);
         --btn-soft: var(--color-secondary-soft);
+        --btn-ink: color-mix(in oklab, var(--color-secondary) 70%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-color="accent"] {
         --btn-accent: var(--color-accent);
         --btn-on-accent: var(--color-accent-content);
         --btn-soft: var(--color-accent-soft);
+        --btn-ink: color-mix(in oklab, var(--color-accent) 55%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-color="neutral"] {
         --btn-accent: var(--color-neutral);
         --btn-on-accent: var(--color-neutral-content);
         --btn-soft: var(--color-neutral-soft);
+        --btn-ink: color-mix(in oklab, var(--color-neutral) 40%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-color="info"] {
         --btn-accent: var(--color-info);
         --btn-on-accent: var(--color-info-content);
         --btn-soft: var(--color-info-soft);
+        --btn-ink: color-mix(in oklab, var(--color-info) 70%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-color="success"] {
         --btn-accent: var(--color-success);
         --btn-on-accent: var(--color-success-content);
         --btn-soft: var(--color-success-soft);
+        --btn-ink: color-mix(in oklab, var(--color-success) 55%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-color="warning"] {
         --btn-accent: var(--color-warning);
         --btn-on-accent: var(--color-warning-content);
         --btn-soft: var(--color-warning-soft);
+        --btn-ink: color-mix(in oklab, var(--color-warning) 45%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-color="error"] {
         --btn-accent: var(--color-error);
         --btn-on-accent: var(--color-error-content);
         --btn-soft: var(--color-error-soft);
+        --btn-ink: color-mix(in oklab, var(--color-error) 95%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-variant="solid"] {
@@ -110,8 +120,8 @@
 
     [data-scope="button"][data-part="root"][data-variant="outline"] {
         background: transparent;
-        color: var(--btn-accent);
-        border-color: var(--btn-accent);
+        color: var(--btn-ink);
+        border-color: var(--btn-ink);
     }
 
     [data-scope="button"][data-part="root"][data-variant="outline"]:hover:not([data-disabled]) {
@@ -120,7 +130,7 @@
 
     [data-scope="button"][data-part="root"][data-variant="soft"] {
         background: var(--btn-soft);
-        color: var(--btn-accent);
+        color: var(--btn-ink);
     }
 
     [data-scope="button"][data-part="root"][data-variant="soft"]:hover:not([data-disabled]) {
@@ -129,7 +139,7 @@
 
     [data-scope="button"][data-part="root"][data-variant="ghost"] {
         background: transparent;
-        color: var(--btn-accent);
+        color: var(--btn-ink);
     }
 
     [data-scope="button"][data-part="root"][data-variant="ghost"]:hover:not([data-disabled]) {
