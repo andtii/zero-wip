@@ -539,21 +539,28 @@ export const accordion: RecipeInput = {
     keyframes: rippleKeyframes('accordion'),
 };
 
+/**
+ * MD3's outlined button, the shape every overlay opens from — a fully rounded
+ * pill in the primary ink inside a hairline outline. Dialog, popover and menu
+ * wear it under `pressable`; tooltip wears it bare (see there).
+ */
+const outlinedTrigger: CssProps = {
+    appearance: 'none',
+    borderRadius: '624rem',
+    border: 'var(--border) solid var(--color-outline)',
+    background: 'transparent',
+    color: 'var(--color-primary)',
+    padding: 'var(--space-xs) var(--space-lg)',
+    ...label,
+    cursor: 'pointer',
+};
+
 // ── Dialog ────────────────────────────────────────────────────────────────
 export const dialog: RecipeInput = {
     component: 'dialog',
     parts: {
         trigger: withPresence(pressable('dialog'), {
-            base: {
-                appearance: 'none',
-                borderRadius: '624rem',
-                border: 'var(--border) solid var(--color-outline)',
-                background: 'transparent',
-                color: 'var(--color-primary)',
-                padding: 'var(--space-xs) var(--space-lg)',
-                ...label,
-                cursor: 'pointer',
-            },
+            base: outlinedTrigger,
             states: { open: {}, closed: {}, disabled: {}, ...focusRing },
         }),
         popup: withPresence(popupPresence('translateY(24px) scale(0.94)'), {
@@ -632,16 +639,7 @@ export const popover: RecipeInput = {
     component: 'popover',
     parts: {
         trigger: withPresence(pressable('popover'), {
-            base: {
-                appearance: 'none',
-                borderRadius: '624rem',
-                border: 'var(--border) solid var(--color-outline)',
-                background: 'transparent',
-                color: 'var(--color-primary)',
-                padding: 'var(--space-xs) var(--space-lg)',
-                ...label,
-                cursor: 'pointer',
-            },
+            base: outlinedTrigger,
             states: { open: {}, closed: {}, disabled: {}, ...focusRing },
         }),
         popup: withPresence(popupPresence('scale(0.9)'), {
@@ -668,8 +666,20 @@ export const popover: RecipeInput = {
 export const tooltip: RecipeInput = {
     component: 'tooltip',
     parts: {
+        // The outlined trigger its three sibling overlays wear, without
+        // `pressable`. Not all of `pressable` would be dead here — its hover
+        // state layer keys on `:hover:not([data-disabled])` and would work
+        // fine. Its press half would not: `&[data-pressed]…::before` and
+        // `&[data-press-animating]::after` read attributes tooltip's anatomy
+        // does not declare and the runtime never publishes, and the `::after`
+        // ripple geometry keys on `--press-x/y/r`, which nothing sets. Taking
+        // the helper for the hover layer alone would ship those three rules
+        // dead and drag a `rippleKeyframes('tooltip')` along to declare the
+        // animation they name — so the hover layer is not worth it, and the
+        // outlined shape is extracted instead. `cursor: help` is the
+        // deliberate deviation: nothing opens.
         trigger: {
-            base: { appearance: 'none', background: 'none', border: 'none', color: 'inherit', cursor: 'help' },
+            base: { ...outlinedTrigger, cursor: 'help' },
             states: { open: {}, closed: {}, disabled: {}, ...focusRing },
         },
         popup: withPresence(popupPresence('scale(0.85)'), {
@@ -690,16 +700,7 @@ export const menu: RecipeInput = {
     component: 'menu',
     parts: {
         trigger: withPresence(pressable('menu'), {
-            base: {
-                appearance: 'none',
-                borderRadius: '624rem',
-                border: 'var(--border) solid var(--color-outline)',
-                background: 'transparent',
-                color: 'var(--color-primary)',
-                padding: 'var(--space-xs) var(--space-lg)',
-                ...label,
-                cursor: 'pointer',
-            },
+            base: outlinedTrigger,
             states: { open: {}, closed: {}, disabled: {}, ...focusRing },
         }),
         popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } }),

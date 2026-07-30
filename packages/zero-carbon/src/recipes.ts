@@ -615,9 +615,16 @@ export const popover: RecipeInput = {
 export const tooltip: RecipeInput = {
     component: 'tooltip',
     parts: {
+        // `ghostTrigger`, minus its press rule and with `cursor: help`.
+        // Dialog, popover and menu take the helper whole; tooltip takes
+        // everything about it except the two things that do not apply — the
+        // anatomy declares no `pressed` flag, so `&[data-pressed]` here could
+        // only ever be a rule the runtime never satisfies, and the pointer
+        // says "explain" because nothing opens.
         trigger: {
-            base: {},
-            states: { open: {}, closed: {}, disabled: {} },
+            ...ghostTrigger,
+            base: { ...ghostTrigger.base, cursor: 'help' },
+            selectors: {},
         },
         // Inverted — the one surface that swaps the scheme: background-inverse
         // under text-inverse ink. Carbon tooltips fade in place, no travel.

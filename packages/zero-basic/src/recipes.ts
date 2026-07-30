@@ -629,9 +629,22 @@ export const popover: RecipeInput = {
 export const tooltip: RecipeInput = {
     component: 'tooltip',
     parts: {
+        // The same quiet trigger dialog, popover and menu open from — a tooltip
+        // is one more overlay and its trigger is one more control, so it reads
+        // as one. `cursor: help` is the single deliberate deviation: nothing is
+        // going to open, so the pointer says "explain" rather than "act".
+        // No `pressedInk` either — tooltip's anatomy declares no `pressed`
+        // flag and the runtime never publishes one, so a pressed rule here
+        // could only ever be dead CSS.
         trigger: {
-            base: {},
-            states: { open: {}, closed: {}, disabled: {} },
+            base: { ...quietTrigger, cursor: 'help' },
+            states: {
+                hover: { background: inkWash },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                open: { background: inkWash },
+                closed: {},
+                ...focusRing,
+            },
         },
         // Not an inverted bubble: a tooltip here is a printed footnote — the
         // same paper panel as every other transient surface, scaled down to a
