@@ -2260,6 +2260,10 @@ export const ratingGroup: RecipeInput = {
                         '&::after': { background: 'CanvasText' },
                     },
                 },
+                // The mark is background paint, which paper drops by default;
+                // `exact` asks for it back. A reader who disables background
+                // graphics can still refuse, and the row prints blank rather
+                // than misstating the value — glyph ink would survive it, #230.
                 print: {
                     selectors: {
                         '&::before': { printColorAdjust: 'exact' },

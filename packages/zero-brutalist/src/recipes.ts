@@ -1691,7 +1691,10 @@ export const ratingGroup: RecipeInput = {
                 },
                 // Same reasoning on paper, different mechanism: printing drops
                 // backgrounds by default, which would take the entire meter
-                // with it, so the meter asks for its paint explicitly.
+                // with it, so the meter asks for its paint explicitly. A reader
+                // who disables background graphics can still refuse — the meter
+                // then prints blank instead of overstating the value; glyph ink
+                // is the fix if that ever matters (#230).
                 print: { base: { printColorAdjust: 'exact' } },
             },
         },

@@ -1461,6 +1461,14 @@ export const progress: RecipeInput = {
                 // `success` whatever `color` the consumer picked. Without it the
                 // finished bar is conveyed only by an inline width, which no
                 // stylesheet carries and no snapshot can see.
+                // Measured caveat for #228: MD3's `primary` and `success` are
+                // near-equiluminant, so this recolour is 1.01:1 in WCAG in both
+                // themes while being oklab ΔE 0.24 / 0.17 apart — plainly
+                // visible, invisible to a luminance metric. A state-vs-state
+                // audit must use a perceptual metric; keep WCAG for ink vs
+                // surface. It is also the reason a hue swap alone is a weak
+                // completion signal for colour-vision deficiency, in every
+                // design system that uses this convention.
                 complete: { background: 'var(--color-success)' },
                 loading: {},
                 indeterminate: { width: '40%', animation: 'material-indeterminate 1.4s var(--ease-emphasized) infinite' },

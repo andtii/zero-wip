@@ -706,7 +706,7 @@ export const checkbox: RecipeInput = {
                 // ships and the same ones the checked fill, the radio dot and
                 // the toggle knob carry. It is a palette fact, not a geometry
                 // one — the tick itself clears 3:1 in all forty cells — and it
-                // belongs to the indicator-contrast audit (#226 notes).
+                // belongs to the indicator-contrast audit (#228).
                 border: 'var(--border) solid var(--checkbox-accent, color-mix(in oklab, var(--color-base-content) 20%, #0000))',
                 borderRadius: 'var(--radius-selector)',
                 // One `color` declaration drives the tick's `currentColor` fill
@@ -1973,7 +1973,7 @@ export const ratingGroup: RecipeInput = {
         // drops dark's `error` variant to 1.82. The fill/ghost pair needs a
         // per-role decision (or daisy's own model, where the symbol is
         // base-content and only its OPACITY changes), which is the
-        // indicator-contrast audit's job — see the notes on #226.
+        // indicator-contrast audit's job (#228).
         '--rating-fill': 'color-mix(in oklab, var(--color-warning) 70%, var(--color-warning-content))',
     },
     parts: {

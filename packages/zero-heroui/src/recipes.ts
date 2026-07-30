@@ -575,9 +575,9 @@ export const field: RecipeInput = {
  * daisyUI's checkbox does. Zero renders no glyph of its own inside the
  * indicator, so here the mark IS the content.
  *
- * `print` is not a named condition in the kit yet (#226 lands it), so the
- * prelude is written raw; it resolves at TIER.raw, which still emits after
- * every flat rule.
+ * Both are named conditions (#226 added `print` beside `forced-colors`), so
+ * both resolve at the preference tier — after the flat state rules they
+ * replace.
  */
 const drawnMarkFallback: PartStyles = {
     // Near-white ink is right on the primary fill and wrong on paper, where
@@ -1804,6 +1804,9 @@ export const ratingGroup: RecipeInput = {
                 },
                 // Paper drops background paint under `print-color-adjust:
                 // economy`, and the fill IS the value here — so ask for it.
+                // A reader who turns background graphics off can still refuse:
+                // the row then prints blank rather than lying about the value.
+                // Glyph ink would survive that — #230.
                 print: {
                     selectors: {
                         '&::before': { printColorAdjust: 'exact' },
