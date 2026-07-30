@@ -34,10 +34,17 @@
  * surrounding whitespace, which would read as a mismatch and misreport an
  * unregistered property as registered.
  *
- * Nor is the brief two-`<link>` window observable: a stylesheet that is still
- * loading has a null `.sheet` and applies nothing, and the outgoing link is
- * removed before any frame in which both would be live. Sampling per animation
- * frame, the number of links with a non-null `.sheet` never exceeds one.
+ * The brief two-`<link>` window is very nearly unobservable: a stylesheet that
+ * is still loading has a null `.sheet` and applies nothing, so for almost all
+ * of that window only one sheet is live. NOT ALWAYS, though — the claim that
+ * used to stand here ("sampling per animation frame, the number of links with
+ * a non-null `.sheet` never exceeds one") is false, and `ds-smoke.spec.ts`
+ * measured it: a rAF sampler across six swaps caught a two-live-sheet frame in
+ * one run out of ten (chromium). `previous.remove()` runs in the microtask
+ * after the incoming link's `load` event, and the sheet can go live before
+ * that event is dispatched, so the frame in between paints both design
+ * systems' recipes blended. One frame, on a manual switch, in a demo app —
+ * filed as #256 rather than fixed here.
  */
 import { signal } from 'sigx';
 import { clearThemes, getTheme, themeController } from '@sigx/zero';

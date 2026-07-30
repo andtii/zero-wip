@@ -215,6 +215,17 @@ export const App = component(() => {
                             <Avatar.Image src={state.avatarSrc} alt="A swappable avatar" />
                             <Avatar.Fallback>…</Avatar.Fallback>
                         </Avatar.Root>
+                        {/*
+                          * Picked, never named — the same rule the rows above
+                          * follow. `outline` was hardcoded here: five of the
+                          * six design systems declare it and carbon does not,
+                          * so under carbon this button carried a `data-variant`
+                          * nothing in the sheet matched and rendered as the
+                          * bare recipe base. Silent, because an unmatched axis
+                          * value is just an attribute nobody styled — which is
+                          * what the smoke spec's vocabulary invariant exists to
+                          * make loud.
+                          */}
                         <Button.Root
                             variant={pickVariant('outline', 'tertiary', 'secondary')}
                             onClick={() => { state.avatarSrc = state.avatarSrc === AVATAR_A ? AVATAR_B : AVATAR_A; }}
