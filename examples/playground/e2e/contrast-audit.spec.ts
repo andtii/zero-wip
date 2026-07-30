@@ -45,7 +45,7 @@ interface ManifestComponent { scope: string; parts: ManifestPart[] }
 const anatomy: { components: ManifestComponent[] } = JSON.parse(read('packages/zero/dist/manifest.json'));
 const baseCss = read('packages/zero/css/base.css');
 
-const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui'] as const;
+const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'] as const;
 
 /** One renderable attribute combination for a part. */
 interface Combo { state?: string; flag?: string }

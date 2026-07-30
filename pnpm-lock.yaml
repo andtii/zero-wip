@@ -74,6 +74,9 @@ importers:
       '@sigx/zero-brutalist':
         specifier: workspace:^
         version: link:../../packages/zero-brutalist
+      '@sigx/zero-carbon':
+        specifier: workspace:^
+        version: link:../../packages/zero-carbon
       '@sigx/zero-daisyui':
         specifier: workspace:^
         version: link:../../packages/zero-daisyui
