@@ -24,8 +24,12 @@ import type {
 } from '@sigx/zero-kit';
 import type { ConformanceFixture } from './types.js';
 
-// TODO: file before #174 lands — "vendor axis values outside TOKEN_KEY_PATTERN".
-const GAP_VALUE_GRAMMAR = 0;
+/**
+ * Axis values are graded by a token-key grammar. Closing it makes this row
+ * `exact`: Carbon's own `danger--tertiary` becomes declarable and the
+ * `api.values` remap below goes away.
+ */
+const GAP_VALUE_GRAMMAR = 198;
 
 /** No colour prop on a Carbon button — `kind` carries treatment AND destructiveness. */
 export const roles = {} as const satisfies Record<string, RoleDecl>;

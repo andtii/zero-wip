@@ -19,10 +19,10 @@
 import type { RecipeInput, RolesDecl, SystemTokens, TokensInput } from '@sigx/zero-kit';
 import type { ConformanceFixture } from './types.js';
 
-// TODO: file before #174 lands — "DS-level, ancestor-scoped axes".
-const GAP_ANCESTOR_AXES = 0;
-// TODO: file before #174 lands — "responsive / per-breakpoint axis values".
-const GAP_RESPONSIVE_VALUES = 0;
+/** DS-level, ancestor-scoped axes — theme-scope token rebinds. */
+const GAP_ANCESTOR_AXES = 197;
+/** Responsive / per-breakpoint axis values. */
+const GAP_RESPONSIVE_VALUES = 199;
 
 /**
  * Six of Radix's 26 accents. The mapping is per name, so the other twenty are
