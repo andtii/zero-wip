@@ -103,20 +103,35 @@ test.describe('half-star pointer and keyboard math', () => {
  * computed font and compare it against U+10FFFD, a guaranteed-unmapped
  * codepoint. Equal widths mean both resolved to the same last-resort glyph.
  *
- * Chromium-only, like the contrast audit — and for a reason found by running
- * it everywhere first: the `forced-colors` project returns an EMPTY computed
- * `font` shorthand, and reassembling one by hand is precisely what this test
- * must not do (an invalid `ctx.font` is silently ignored rather than throwing,
- * which would leave the gate measuring some other font and unable to fail).
- * Font coverage is a property of the platform's font stack, not of the engine
- * driving it, so it is measured once in the baseline lane.
+ * It runs on EVERY engine, deliberately. Font coverage is a property of the
+ * platform's font stack as each engine resolves it, so a glyph that resolves
+ * in Chromium but tofus in Firefox or WebKit is exactly the defect class this
+ * test exists to catch — measuring only the baseline lane would be blind to
+ * it.
+ *
+ * The one exception is the `forced-colors` project, which returns an EMPTY
+ * computed `font` shorthand (found by running it there). There is no honest
+ * way around that: the only alternative is reassembling the shorthand from
+ * `fontStyle`/`fontWeight`/`fontSize`/`fontFamily` by hand, and an invalid
+ * `ctx.font` assignment is silently IGNORED rather than throwing — so a string
+ * that failed to parse would leave this measuring some other font entirely and
+ * make the gate incapable of failing. Better to skip the one project than to
+ * run a test there that cannot fail.
+ *
+ * One measured caveat, so nobody mistakes a green Firefox run for coverage:
+ * re-running this against a deliberately restored U+2BEA build failed on
+ * chromium, webkit and reduced-motion — and PASSED on firefox, whose advance
+ * width for `⯪` does NOT equal its unmapped-codepoint control. The width
+ * comparison therefore has no teeth on that engine; what catches the
+ * regression there is the `glyph` equality below, which failed on all five
+ * projects. Both assertions are load-bearing — do not drop either.
  */
 test.describe('the default symbol resolves to a real glyph', () => {
     test.beforeEach(pin('material'));
 
     test('every state\'s symbol measures differently from an unmapped codepoint', async ({ page }, testInfo) => {
-        test.skip(testInfo.project.name !== 'chromium',
-            'measured once in the baseline lane — see the block comment');
+        test.skip(testInfo.project.name === 'forced-colors',
+            'forced-colors returns an empty computed font shorthand — see the block comment');
         // The playground's first rating is 3.5: 1–3 full, 4 half, 5 empty.
         await expect(item(page, 4)).toHaveAttribute('data-state', 'half');
 
