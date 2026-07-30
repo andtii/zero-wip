@@ -10,6 +10,11 @@ import '@sigx/zero/css';
 // and that ordering keeps holding.
 import './brand-theme.css';
 
+// The app's own unlayered CSS — the page surface. A design system paints its
+// components; the page behind them is the app's to paint, and this is the one
+// rule that does it (`base-100` / `base-content` on <body>).
+import './app.css';
+
 // The design system is no longer an import pair you edit — it is a compiled
 // stylesheet exchanged at runtime, which is the honest form of the claim that
 // a design system is data. zero-material is the strongest case: thirteen

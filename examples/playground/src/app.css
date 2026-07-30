@@ -1,0 +1,28 @@
+/*
+ * The playground's own app CSS — the page surface, and nothing else.
+ *
+ * A design system paints its components; painting the PAGE is the app's job,
+ * and this playground never did it. `color-scheme` from the DS tokens gave the
+ * right polarity but a generic backdrop: every dark daisyUI theme demoed on
+ * Chromium's `rgb(18,18,18)`, nord on pure white, body prose in UA
+ * `CanvasText` — so components were judged against a surface no design system
+ * ever specified.
+ *
+ * Deliberately UNLAYERED. `@sigx/zero/css` declares
+ * `@layer zero.fallback, zero.tokens, zero.recipes` precisely so that app CSS,
+ * which sits outside every layer, always wins — this is that case, written the
+ * way a real consumer would write it. It also stays correct across a runtime
+ * design-system swap and a theme swap with no JS: the swap replaces the
+ * `<link>` that defines `--color-base-100` / `--color-base-content`, and these
+ * two `var()`s simply re-resolve.
+ *
+ * `body` rather than `html`: with no background on `html`, the body's
+ * background propagates to the canvas, so the whole viewport gets the theme's
+ * surface. It is also the exact rule `e2e/contrast-audit.spec.ts` injects as
+ * "the app baseline every real app provides" — the audit measured against a
+ * backdrop the app itself did not supply. Now the two agree.
+ */
+body {
+    background: var(--color-base-100);
+    color: var(--color-base-content);
+}
