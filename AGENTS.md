@@ -123,7 +123,15 @@ the state-matrix contrast audit — two matrices over every state combination ×
 design system × theme, hard-fail below 3:1, chromium-only: **text legibility**
 for every text-bearing part, and **indicator paint** for every part whose job
 is paint rather than text, measured inside its real ancestor chain — the tick,
-the dot, the thumb, the range, the chevrons, the star; and the hidden-parts
+the dot, the thumb, the range, the chevrons, the star. The text matrix also
+carries each design system's own **axis surface**: every wired `data-variant`
+value (crossed with `data-color` where both exist) and each declared
+`data-mod-*`, for the scopes that wire a variant — `button` today, and the only
+place HeroUI's and carbon's fused colour vocabulary (`danger-soft`,
+`danger-ghost`) exists at all. `data-size` is deliberately out: it moves
+metrics, not ink. `disabled` is no longer dropped — it answers to its own 2:1
+floor, measured on the colour pair the recipe chose *before* the state's
+uniform `opacity` fade, with the faded ratio annotated beside it; and the hidden-parts
 guard, which walks all six design systems asserting every
 `[data-scope][data-part][hidden]` computes `display: none` — a layered cascade
 happy-dom cannot resolve): `pnpm build`,

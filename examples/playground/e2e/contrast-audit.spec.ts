@@ -19,13 +19,24 @@
  *    radio dot shipped at 1.02:1 (#211): pure white painted over an unfilled
  *    control on a 99%-white page.
  *
+ * `disabled` has its own, lower floor in both matrices (#207). Dimming below
+ * AA is the point of the state, so it does not answer to the 3:1 floor — but
+ * "dimmed" is not "gone", and readings that were produced and then dropped let
+ * a 1.05:1 label pass silently. See `DISABLED_FLOOR`, and `inGroup` for the
+ * separation it rests on.
+ *
+ * Both matrices also carry the design system's own axis surface (#207): a
+ * design system whose colour vocabulary rides on `data-variant` — HeroUI's
+ * `danger-soft`, carbon's `danger-ghost` — has no colour to measure at all
+ * until the attribute is set. See `axisCellsFor` for the cell product and why
+ * `size` is not part of it.
+ *
  * What this deliberately does NOT cover:
  * - interaction pseudo-classes (`:hover`, `:focus-visible`) — attributes
  *   can't force them; those styles are exercised by the interaction specs;
- * - `disabled` combinations — dimming below AA is the point of the state;
- *   they are measured and logged, never asserted;
- * - variant axes — the default variant only, to keep the matrix honest
- *   about what it covers rather than exploding into thousands of cells;
+ * - the axis surface of scopes that wire no `variant` — a bare `data-color`
+ *   selects role tokens whose pairing the token validator already checks
+ *   statically, and `data-size` moves metrics, not ink. See `axisCellsFor`;
  * - part nesting, in the TEXT matrix — each part renders directly on the app
  *   surface (base-100/base-content), the same backdrop the real surfaces sit
  *   on in every shipped design system. The INDICATOR matrix is the exception:
@@ -81,7 +92,16 @@ function combosFor(part: ManifestPart): Combo[] {
     return combos;
 }
 
-interface Cell { scope: string; part: string; state?: string; flag?: string }
+interface Cell {
+    scope: string;
+    part: string;
+    state?: string;
+    flag?: string;
+    /** Axis attributes to set on the probe — `variant: 'danger'` → `data-variant="danger"`. */
+    axes?: Record<string, string>;
+    /** Presence-only modifiers to set — `pending` → `data-mod-pending`. */
+    mods?: string[];
+}
 
 const cells: Cell[] = anatomy.components.flatMap((component) =>
     component.parts
@@ -101,8 +121,147 @@ const INTENDED_LOW_CONTRAST = new Set<string>([
     // (none yet)
 ]);
 
+/**
+ * The floors. `FLOOR` is WCAG's non-text/large-text minimum and what every
+ * asserting cell answers to; `AA` is the body-text target, warned about rather
+ * than asserted, because a 3.2:1 label is a finding and not yet a build break.
+ *
+ * `DISABLED_FLOOR` is the state's own, lower bar, and it is measured on the
+ * IN-GROUP ratio (see `inGroup`) rather than on what the reader finally sees.
+ *
+ * The split is the whole point. A disabled control is supposed to recede, and
+ * all six design systems do it the same way: one `opacity` between 0.25 and
+ * 0.5 on the whole control. That fade is uniform, deliberate and the state
+ * working — measured through it, every disabled cell in every design system
+ * lands between 1.3:1 and 2:1, which is a statement about `--disabled-opacity`
+ * and not about any recipe. What IS a recipe decision is the colour pair
+ * chosen underneath the fade, and that is the reading #207 found being
+ * produced and then dropped: a `disabled` label painted `base-300` on
+ * `base-200` measures 1.05:1 before any fade, and used to pass in silence.
+ * So the pair is asserted at 2:1 and the faded reality is annotated beside it.
+ */
+const FLOOR = 3;
+const AA = 4.5;
+const DISABLED_FLOOR = 2;
+
+/** Axis values and modifiers, in a stable spelling — part of a cell's identity. */
+const axisTag = (c: Cell): string => [
+    ...Object.entries(c.axes ?? {}).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}=${v}`),
+    ...(c.mods ?? []).map((m) => `+${m}`),
+].join(',') || '-';
+
 const cellKey = (ds: string, theme: string, c: Cell): string =>
-    [ds, theme, c.scope, c.part, c.state ?? '-', c.flag ?? '-'].join('/');
+    [ds, theme, c.scope, c.part, c.state ?? '-', c.flag ?? '-', axisTag(c)].join('/');
+
+// ── The axis surface (#207) ─────────────────────────────────────────────────
+
+/** One scope's wired axis vocabulary, as `@sigx/zero-kit` emits it. */
+interface WiredAxes {
+    color: string[];
+    size: string[];
+    variant: string[];
+    /** Declared custom axes: name → wired values. */
+    axes: Record<string, string[]>;
+    /** Presence-only modifiers — rendered `data-mod-<name>`. */
+    mods: string[];
+}
+
+interface DesignSystemManifest {
+    themes: { name: string; colorScheme: string }[];
+    components: Record<string, WiredAxes>;
+}
+
+/**
+ * The part a recipe's variant selectors are anchored on — `root`, else the
+ * first declared part. Mirrors `carrierPart` in `@sigx/zero-kit`; the compiler
+ * emits `[data-part="<carrier>"][data-variant="x"]` for the carrier itself and
+ * `[data-part="<carrier>"][data-variant="x"] [data-part="<other>"]` for
+ * everything below it, so the carrier is the only part a ONE-ELEMENT probe can
+ * put an axis attribute on. `axis coverage` below is the guard that says so.
+ */
+const carrierPart = (component: ManifestComponent): string =>
+    component.parts.find((p) => p.name === 'root')?.name ?? component.parts[0]!.name;
+
+/** Which axes of a scope can carry colour — see `axisCellsFor`. */
+function colourBearingAxes(wired: WiredAxes): Record<string, string[]> {
+    const fused: Record<string, string[]> = {};
+    if (wired.variant?.length) fused.variant = wired.variant;
+    // A design system may also declare a custom axis of its own. None of the
+    // six does today — carbon's `kind` is the vendor SPELLING of `variant`,
+    // restored at the prop boundary by the generated `./components` module and
+    // never an attribute — but the manifest has the field, so this reads it.
+    for (const [axis, values] of Object.entries(wired.axes ?? {})) {
+        if (values.length) fused[axis] = values;
+    }
+    return fused;
+}
+
+/**
+ * The axis cells for one design system: every wired value of every
+ * colour-bearing axis, crossed with each declared modifier and with the
+ * carrier part's own state/flag combos.
+ *
+ * **Why the gate is `variant`, and not `color`.** In basic/daisyUI/material/
+ * brutalist, `variant` and `color` are orthogonal and `color` alone selects
+ * role tokens whose pairing `zero-kit`'s token validator already checks. In
+ * HeroUI and carbon there IS no colour axis (`roles: {}`) — colour is fused
+ * INTO the variant, so `danger`, `danger-soft` and `danger-ghost` are the only
+ * place a destructive colour exists at all, and until `data-variant` is set
+ * this matrix measures a stylesheet nobody ships. So the scopes that wire a
+ * variant are exactly the scopes whose colour the cascade decides rather than
+ * the token file, and there `color` joins the product — a raw role token used
+ * as INK on a base surface is the daisyUI #210 bug, and it is per-role
+ * (`neutral` measured 1.12:1 where `primary` passed).
+ *
+ * **Why `size` is not in the product.** It moves padding and font-size, and
+ * this audit's floors do not vary with type size. It would triple the cell
+ * count to re-measure the same colours.
+ *
+ * **Why modifiers are taken one at a time** rather than as a power set: a
+ * modifier is presence-only and the recipes wire each one independently, so
+ * the pairs measure nothing the singles do not. The one that matters is
+ * HeroUI's `pending`, which is `opacity: 0.7` on the root — a group fade that
+ * changes every ratio underneath it.
+ *
+ * Cost: `button` is the only variant-wiring scope in all six design systems,
+ * and its anatomy is one part with three resting flags.
+ */
+function axisCellsFor(components: Record<string, WiredAxes>): Cell[] {
+    const out: Cell[] = [];
+    for (const [scope, wired] of Object.entries(components)) {
+        const fused = colourBearingAxes(wired);
+        if (Object.keys(fused).length === 0) continue;
+        if (wired.color?.length) fused.color = wired.color;
+
+        const component = anatomy.components.find((c) => c.scope === scope);
+        if (!component) continue;
+        const carrier = component.parts.find((p) => p.name === carrierPart(component))!;
+        // Guarded by `axis coverage`: a variant-wiring scope whose carrier
+        // renders no text needs the indicator matrix's chain, not this probe.
+        if (!carrier.tokens?.includes('text')) continue;
+
+        let axisCombos: Record<string, string>[] = [{}];
+        for (const [axis, values] of Object.entries(fused)) {
+            axisCombos = axisCombos.flatMap((base) => values.map((v) => ({ ...base, [axis]: v })));
+        }
+        const modSets: string[][] = [[], ...(wired.mods ?? []).map((m) => [m])];
+
+        for (const axes of axisCombos) {
+            for (const mods of modSets) {
+                for (const combo of combosFor(carrier)) {
+                    out.push({
+                        scope,
+                        part: carrier.name,
+                        ...combo,
+                        axes,
+                        ...(mods.length > 0 ? { mods } : {}),
+                    });
+                }
+            }
+        }
+    }
+    return out;
+}
 
 // ── Colour math, shared by both matrices ────────────────────────────────────
 
@@ -308,7 +467,18 @@ const indicatorCells: IndicatorCell[] = INDICATORS.flatMap((spec) => {
         }));
 });
 
-interface Reading { key: string; color: string; bg: string; ratio: number; disabled: boolean }
+interface Reading {
+    key: string;
+    color: string;
+    bg: string;
+    /** What the reader sees — the group fade applied to ink and backdrop alike. */
+    ratio: number;
+    /** The colour pair the recipe chose, before the group fade. See DISABLED_FLOOR. */
+    inGroup: number;
+    disabled: boolean;
+    /** Painted nowhere in this state (`display: none`, `opacity: 0`, …). */
+    unrendered: boolean;
+}
 
 interface IndicatorReading {
     key: string;
@@ -318,7 +488,10 @@ interface IndicatorReading {
     carrier: string;
     ink: string;
     bg: string;
+    /** What the reader sees — the group fade applied to mark and backdrop alike. */
     ratio: number;
+    /** The mark against what it is drawn on, before the group fade. See DISABLED_FLOOR. */
+    inGroup: number;
     disabled: boolean;
     /** True when nothing is painted in this state — see `collapsed` below. */
     unpainted: boolean;
@@ -339,10 +512,52 @@ test('indicator coverage: every paint-only part has an ancestor chain', ({}, tes
     ).toEqual([]);
 });
 
+/**
+ * The variant surface has to be reachable from the one-element probe the TEXT
+ * matrix builds. It is today — `button` is one part, and that part is its own
+ * carrier — and this test is what says so when it stops being true: a
+ * variant-wiring scope with text below its carrier needs the ancestor chain
+ * the INDICATOR matrix builds, not a bare element, and `axisCellsFor` would
+ * otherwise skip the new surface in silence.
+ */
+test('axis coverage: every variant-wiring scope carries its axes on a text-bearing carrier', ({}, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium', 'one engine is enough');
+
+    const unreachable: string[] = [];
+    for (const ds of DESIGN_SYSTEMS) {
+        const manifest: DesignSystemManifest = JSON.parse(read(`packages/zero-${ds}/dist/manifest.json`));
+        for (const [scope, wired] of Object.entries(manifest.components)) {
+            const fused = Object.keys(colourBearingAxes(wired));
+            if (fused.length === 0) continue;
+            const component = anatomy.components.find((c) => c.scope === scope);
+            if (!component) {
+                unreachable.push(`${ds}/${scope} — the anatomy declares no such component`);
+                continue;
+            }
+            const carrier = carrierPart(component);
+            const textParts = component.parts.filter((p) => p.tokens?.includes('text')).map((p) => p.name);
+            if (!textParts.includes(carrier)) {
+                unreachable.push(`${ds}/${scope} — carrier "${carrier}" is not text-bearing (axes: ${fused.join(', ')})`);
+            }
+            for (const part of textParts) {
+                if (part !== carrier) unreachable.push(`${ds}/${scope}/${part} — text below the carrier "${carrier}"`);
+            }
+        }
+    }
+
+    expect(
+        unreachable,
+        'variant surfaces the one-element probe cannot render — give the scope an ancestor chain like INDICATORS declares, or the axis cells silently measure nothing',
+    ).toEqual([]);
+});
+
 for (const ds of DESIGN_SYSTEMS) {
     const dsCss = read(`packages/zero-${ds}/dist/css/index.css`);
-    const themes: { name: string; colorScheme: string }[] =
-        JSON.parse(read(`packages/zero-${ds}/dist/manifest.json`)).themes;
+    const dsManifest: DesignSystemManifest = JSON.parse(read(`packages/zero-${ds}/dist/manifest.json`));
+    const themes = dsManifest.themes;
+    // The axis surface is per design system — a shared list cannot express
+    // "carbon wires `danger-ghost` and heroui does not".
+    const textCells: Cell[] = [...cells, ...axisCellsFor(dsManifest.components)];
 
     /** The app baseline every real app provides, plus the compiled DS CSS. */
     const stage = async (page: Page, theme: string): Promise<void> => {
@@ -364,8 +579,12 @@ for (const ds of DESIGN_SYSTEMS) {
             await stage(page, theme.name);
 
             const readings: Reading[] = await page.evaluate(({ cells }) => {
-                const { resolve, contrast, hasInk } = window.zeroColorMath;
+                const { resolve, blend, contrast, hasInk } = window.zeroColorMath;
                 const bodyBg = resolve(getComputedStyle(document.body).backgroundColor, [255, 255, 255]);
+                const num = (v: string): number => {
+                    const n = parseFloat(v);
+                    return Number.isFinite(n) ? n : 1;
+                };
                 const out: Reading[] = [];
 
                 for (const cell of cells) {
@@ -374,6 +593,14 @@ for (const ds of DESIGN_SYSTEMS) {
                     el.setAttribute('data-part', cell.part);
                     if (cell.state) el.setAttribute('data-state', cell.state);
                     if (cell.flag) el.setAttribute('data-' + cell.flag, '');
+                    // The design system's own axis surface: `data-variant`,
+                    // `data-color` and any custom axis are all `data-<axis>`
+                    // (VARIANT_AXES in `@sigx/zero-kit`), modifiers are
+                    // presence-only under the `data-mod-` namespace.
+                    for (const [axis, value] of Object.entries(cell.axes ?? {})) {
+                        el.setAttribute('data-' + axis, value);
+                    }
+                    for (const mod of cell.mods ?? []) el.setAttribute('data-mod-' + mod, '');
                     el.textContent = 'Sample';
                     document.body.appendChild(el);
 
@@ -384,31 +611,77 @@ for (const ds of DESIGN_SYSTEMS) {
                     const bg = hasInk(ownBg) ? resolve(ownBg, bodyBg) : bodyBg;
                     // Text renders over that background; semi-transparent ink
                     // (color-mix fades) composites before measuring.
-                    const text = resolve(cs.color, bg);
+                    const ink = resolve(cs.color, bg);
+                    /**
+                     * `opacity` makes the element a GROUP: its fill and its
+                     * text composite against each other first, and only the
+                     * finished group is faded over the page. So the fade is
+                     * applied once, to ink and backdrop alike — the same
+                     * accounting the indicator matrix does.
+                     *
+                     * It is load-bearing rather than pedantic. Every design
+                     * system spells `disabled` as an `opacity` between 0.25 and
+                     * 0.5, and HeroUI's `pending` modifier is `opacity: 0.7`;
+                     * measured without this, those cells report the ratio of a
+                     * state nobody is looking at.
+                     */
+                    const opacity = num(cs.opacity);
+                    const seenInk = blend(ink, bodyBg, opacity);
+                    const seenBg = blend(bg, bodyBg, opacity);
                     out.push({
                         key: cell.key,
                         color: cs.color,
                         bg: hasInk(ownBg) ? ownBg : 'inherit(base-100)',
-                        ratio: Math.round(contrast(text, bg) * 100) / 100,
+                        ratio: Math.round(contrast(seenInk, seenBg) * 100) / 100,
+                        inGroup: Math.round(contrast(ink, bg) * 100) / 100,
                         disabled: cell.flag === 'disabled',
+                        // Nothing painted is nothing to read — the text
+                        // matrix's counterpart to the indicator matrix's
+                        // `unpainted`, and the honest reading for a part a
+                        // recipe hides in this state.
+                        unrendered: cs.display === 'none' || cs.visibility === 'hidden' || opacity <= 0,
                     });
                     el.remove();
                 }
                 return out;
-            }, { cells: cells.map((c) => ({ ...c, key: cellKey(ds, theme.name, c) })) });
+            }, { cells: textCells.map((c) => ({ ...c, key: cellKey(ds, theme.name, c) })) });
 
-            const failures = readings.filter((r) =>
-                !r.disabled && r.ratio < 3 && !INTENDED_LOW_CONTRAST.has(r.key));
-            const warnings = readings.filter((r) =>
-                !r.disabled && r.ratio >= 3 && r.ratio < 4.5 && !INTENDED_LOW_CONTRAST.has(r.key));
+            const visible = readings.filter((r) => !r.unrendered && !INTENDED_LOW_CONTRAST.has(r.key));
+            for (const r of readings.filter((r) => r.unrendered)) {
+                testInfo.annotations.push({ type: 'contrast-unrendered', description: `${r.key} — not painted in this state` });
+            }
+
+            const failures = visible.filter((r) => !r.disabled && r.ratio < FLOOR);
+            const warnings = visible.filter((r) => !r.disabled && r.ratio >= FLOOR && r.ratio < AA);
+            // `disabled` answers to its own floor rather than to none — see
+            // DISABLED_FLOOR.
+            const disabled = visible.filter((r) => r.disabled);
+            const dimmedOut = disabled.filter((r) => r.inGroup < DISABLED_FLOOR);
 
             for (const w of warnings) {
                 testInfo.annotations.push({ type: 'contrast-warning', description: `${w.key} → ${w.ratio}:1 (${w.color} on ${w.bg})` });
             }
+            // The band just above the disabled floor, annotated the same way
+            // the 3–4.5 band is: the pair is on the record with the faded ratio
+            // beside it, which is what makes `--disabled-opacity` arguable
+            // rather than invisible. Above 3:1 there is nothing to say — the
+            // fade is a pure function of one token and carries no information.
+            for (const d of disabled.filter((r) => r.inGroup < FLOOR)) {
+                testInfo.annotations.push({
+                    type: 'disabled-contrast',
+                    description: `${d.key} → ${d.inGroup}:1 before the state's fade, ${d.ratio}:1 as seen (${d.color} on ${d.bg})`,
+                });
+            }
 
-            expect(
+            // Soft, so one run reports every finding in both buckets rather
+            // than stopping at the first — a gate whose output is a work list.
+            expect.soft(
                 failures.map((f) => `${f.key} → ${f.ratio}:1 (${f.color} on ${f.bg})`),
-                'state combinations below 3:1 — a state that changes background must bring a readable color with it',
+                `state combinations below ${FLOOR}:1 — a state that changes background must bring a readable color with it`,
+            ).toEqual([]);
+            expect.soft(
+                dimmedOut.map((f) => `${f.key} → ${f.inGroup}:1 (${f.color} on ${f.bg})`),
+                `disabled colour pairs below ${DISABLED_FLOOR}:1 before the state's own fade — dimming is the state, choosing ink nobody could have read is not`,
             ).toEqual([]);
         });
 
@@ -722,7 +995,14 @@ for (const ds of DESIGN_SYSTEMS) {
                             // Then the group is faded, once — and `over` was
                             // faded by the same factor, so both sides of the
                             // comparison lose the same light.
-                            return { ...c, ratio: contrast(blend(inGroup, bg, selfOpacity), c.over) };
+                            return {
+                                ...c,
+                                ratio: contrast(blend(inGroup, bg, selfOpacity), c.over),
+                                // The mark against what it is drawn on, before
+                                // the group fade — the recipe's own choice, and
+                                // what `DISABLED_FLOOR` answers to.
+                                inGroup: contrast(inGroup, c.inside),
+                            };
                         })
                         // The mark is visible if ANY of its layers is: a recipe
                         // that draws the tick on a pseudo still leaves the host
@@ -738,6 +1018,7 @@ for (const ds of DESIGN_SYSTEMS) {
                         ink: best?.ink ?? 'none',
                         bg: bgLabel,
                         ratio: best ? Math.round(best.ratio * 100) / 100 : 0,
+                        inGroup: best ? Math.round(best.inGroup * 100) / 100 : 0,
                         disabled: cell.flag === 'disabled',
                         unpainted: !best,
                     });
@@ -761,18 +1042,33 @@ for (const ds of DESIGN_SYSTEMS) {
                 });
             }
 
-            const failures = painted.filter((r) =>
-                !r.disabled && r.ratio < 3 && !INTENDED_LOW_CONTRAST.has(r.key));
-            const warnings = painted.filter((r) =>
-                !r.disabled && r.ratio >= 3 && r.ratio < 4.5 && !INTENDED_LOW_CONTRAST.has(r.key));
+            const measurable = painted.filter((r) => !INTENDED_LOW_CONTRAST.has(r.key));
+            const failures = measurable.filter((r) => !r.disabled && r.ratio < FLOOR);
+            const warnings = measurable.filter((r) => !r.disabled && r.ratio >= FLOOR && r.ratio < AA);
+            // The same lower floor the text matrix gives `disabled` — a
+            // disabled tick recedes with its control, but a tick nobody can
+            // find is not a state, it is a missing mark.
+            const disabled = measurable.filter((r) => r.disabled);
+            const dimmedOut = disabled.filter((r) => r.inGroup < DISABLED_FLOOR);
 
             for (const w of warnings) {
                 testInfo.annotations.push({ type: 'indicator-contrast-warning', description: `${w.key} → ${w.ratio}:1 (${w.carrier} ${w.ink} on ${w.bg})` });
             }
+            // Same band, same reasoning as the text matrix's.
+            for (const d of disabled.filter((r) => r.inGroup < FLOOR)) {
+                testInfo.annotations.push({
+                    type: 'indicator-disabled-contrast',
+                    description: `${d.key} → ${d.inGroup}:1 before the state's fade, ${d.ratio}:1 as seen (${d.carrier} ${d.ink} on ${d.bg})`,
+                });
+            }
 
-            expect(
+            expect.soft(
                 failures.map((f) => `${f.key} → ${f.ratio}:1 (${f.carrier} ${f.ink} on ${f.bg})`),
-                'indicator paint below 3:1 — a mark that is painted has to be visible against what it is painted on',
+                `indicator paint below ${FLOOR}:1 — a mark that is painted has to be visible against what it is painted on`,
+            ).toEqual([]);
+            expect.soft(
+                dimmedOut.map((f) => `${f.key} → ${f.inGroup}:1 (${f.carrier} ${f.ink} on ${f.bg})`),
+                `disabled indicator paint below ${DISABLED_FLOOR}:1 before the state's own fade — dimming is the state, drawing a mark nobody could have found is not`,
             ).toEqual([]);
         });
     }
