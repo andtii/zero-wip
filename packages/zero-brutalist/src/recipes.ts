@@ -648,20 +648,32 @@ const tickBox = (size: string): CssProps => ({
 
 /**
  * The tick is one square slab painted in `currentColor` and carved by
- * `clip-path` — daisy's technique at brutalist mass. The polygon cuts an L
- * whose arms are 30% of the slab (daisy's are 20%); `rotate: 45deg` turns the
- * L into a check. `unchecked` collapses the L's stem down onto its foot, so
- * checking DRAWS the tick rather than fading one in — and because the easing
- * is `steps()`, it draws in three hard frames instead of sliding.
+ * `clip-path`.
  *
- * All three paths keep the same six points, which is what makes them
- * interpolable: the mark morphs, it never cross-fades.
+ * BORROWED, not invented: this is daisyUI 5.7.8's `.checkbox:before`
+ * construction — a six-point polygon carving an L out of a `currentColor` slab,
+ * `rotate: 45deg` to turn the L into a check, the middle points collapsed for
+ * `unchecked`, and the same `translate: 0 -35%` daisy uses to slide the
+ * indeterminate bar up (see `BAR` below). Retuned, not restyled: the arms are
+ * 30% of the slab where daisy's are 20%, and `--ease-emphasized: steps(3, end)`
+ * draws the tick in three hard frames instead of sliding it. Those two are the
+ * whole of what makes it brutalist; a mark with a construction of its own — two
+ * axis-aligned slabs at a hard 90°, no rotation, which suits `steps()` better
+ * than a rotated carve — is still owed. Noted in the README so the lineage does
+ * not have to be re-derived.
+ *
+ * `unchecked` collapses the L's stem down onto its foot, so checking DRAWS the
+ * tick rather than fading one in. All three paths keep the same six points,
+ * which is what makes them interpolable: the mark morphs, it never cross-fades.
  */
 const TICK = 'polygon(10% 100%, 10% 70%, 45% 70%, 45% 0%, 75% 0%, 75% 100%)';
 const TICK_COLLAPSED = 'polygon(10% 100%, 10% 70%, 45% 70%, 45% 70%, 75% 70%, 75% 100%)';
 /**
  * Indeterminate is the collapsed foot widened to the full slab and shoved up
- * to the middle — a fat unrotated bar, and the same six points again.
+ * to the middle — a fat unrotated bar, and the same six points again. The shove
+ * is `translate: 0 -35%` in the state below, daisy's own number: the foot sits
+ * at 70% of the slab, so lifting it by 35% of the slab's height lands its
+ * centre on the middle.
  */
 const BAR = 'polygon(0% 100%, 0% 70%, 50% 70%, 50% 70%, 100% 70%, 100% 100%)';
 

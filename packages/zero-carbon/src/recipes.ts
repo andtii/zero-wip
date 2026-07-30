@@ -899,6 +899,15 @@ export const checkbox: RecipeInput = {
                 // The delay in the `width` slot is a token, so reduced motion
                 // collapses it with everything else — `reducedMotionBlock`
                 // rewrites every declared duration, delays included.
+                //
+                // Accepted cost: `width`, `height`, `inset` and
+                // `border-left-width` are all on the layout path, so the draw-on
+                // dirties layout every frame where daisy's `clip-path` and
+                // material's `scale` stay on the compositor. It buys the thing
+                // this mark is for — the check *unfolding* into Carbon's bar,
+                // one element, no cross-fade — and the arms are borders, which
+                // `scale` would thin. Fine for a 16px control; worth knowing
+                // before a thousand of them share a scroll container.
                 transition: 'height var(--duration-fast) var(--ease-decelerate), '
                     + 'width var(--duration-normal) var(--ease-decelerate) var(--duration-fast), '
                     + 'opacity var(--duration-fast) var(--ease-standard), '
