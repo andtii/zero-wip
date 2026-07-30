@@ -923,29 +923,170 @@ export const slider: RecipeInput = {
     component: 'slider',
     // The accent default lives in `tokens:` so the un-attributed render IS the
     // primary variant and `variants.color` only rebinds a custom property —
-    // the toast shape.
-    tokens: { '--slider-accent': 'var(--color-primary)' },
+    // the toast shape. The track metric rides the ramp with it, and is
+    // progress's `--progress-track-size` step for step: the two sit one above
+    // the other on a form and have to read as the same instrument. It is the
+    // CHANNEL, not the box — progress's track is content-box (zero ships no
+    // global `box-sizing` reset), so its ink sits outside its height, and the
+    // pseudo-element below adds the same two borders back.
+    tokens: {
+        '--slider-accent': 'var(--color-primary)',
+        '--slider-track-size': 'calc(var(--size-field) * 5)',
+        // The handle is the channel's inked box plus one space step, which
+        // the centring splits into half a step of overhang on each edge —
+        // derived, so the ramp moves one lever and the proportion holds at
+        // every step and under the dark theme's thinner border.
+        '--slider-thumb-size': 'calc(var(--slider-track-size) + var(--border) * 2 + var(--space-sm))',
+    },
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' },
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
         },
         label: { base: { ...label, fontSize: 'var(--text-xs)' } },
-        control: { base: { width: '100%', accentColor: 'var(--slider-accent)' }, states: { ...focusRing } },
+        /**
+         * A custom skin (`appearance: none`), because the native range widget
+         * is the one control this skin cannot reach: a pill track and a round
+         * accent-coloured disc, no border, no shadow, sitting directly above a
+         * progress bar that is square, 3px-inked and offset-shadowed (#221).
+         * Rebuilt from the vendor pseudo-elements, it is the same two slabs
+         * every other brutalist part is made of — `inked` channel, `inked`
+         * handle, both carrying the hard offset shadow.
+         *
+         * Vendor thumb pseudos cannot share a selector list — one unrecognized
+         * selector invalidates the whole rule — so each engine gets its own
+         * copy of the same two rules, reading the shared custom properties. A
+         * state therefore sets a property, never a pseudo rule.
+         *
+         * The kit compiles this part's `focus-visible` state to the runtime's
+         * `[data-focus-visible]` flag, not the pseudo-class, which matters
+         * here: Blink treats a range input as ALWAYS `:focus-visible`, even
+         * under the mouse, so a pseudo-class ring would stick after every
+         * drag. The base kills the native outline; the flag draws the ring.
+         */
+        control: {
+            base: {
+                appearance: 'none',
+                width: '100%',
+                height: 'var(--slider-thumb-size)',
+                margin: '0',
+                background: 'transparent',
+                cursor: 'pointer',
+                outline: 'none',
+                // Kept for the forced-colors fallback below, where native
+                // rendering takes over and still honours the accent.
+                accentColor: 'var(--slider-accent)',
+                '--slider-thumb-ink': 'var(--color-base-100)',
+                '--slider-thumb-shadow': 'var(--shadow-xs)',
+                '--slider-thumb-shift': 'translate(0, 0)',
+                // The channel's shadow is a lever of its own, for the same
+                // reason the thumb's is: in this design system the hard offset
+                // shadow IS the affordance, so a disabled control has to be
+                // able to put the whole instrument flat, not just its handle.
+                '--slider-track-shadow': 'var(--shadow-xs)',
+                /**
+                 * The fill has to grow from the inline start, and a gradient
+                 * has no logical direction. Both engines flip a native range
+                 * under `direction: rtl` — the thumb travels right-to-left —
+                 * so a hard-coded `to right` would fill away from the thumb
+                 * (the bug #229 reports for the rating meter and the switch
+                 * thumb). The direction is a property the RTL selector below
+                 * rebinds.
+                 */
+                '--slider-fill-dir': 'to right',
+                // The unfilled span is progress's paper, not a grey: the two
+                // tracks are the same box.
+                '--slider-track':
+                    'linear-gradient(var(--slider-fill-dir), var(--slider-accent) var(--slider-percent, 50%), var(--color-base-100) 0)',
+            },
+            states: {
+                // Both shadows go, not just the handle's: a raised offset
+                // shadow reads as pressable here, so a disabled slider lies
+                // flat on the page — the same collapse button makes.
+                disabled: {
+                    cursor: 'not-allowed',
+                    '--slider-track-shadow': 'none',
+                    '--slider-thumb-shadow': 'none',
+                },
+                ...focusRing,
+                // `invalid` is semantic: the accent indirection swaps the fill
+                // (and the forced-colors fallback) to error under every colour
+                // variant, on purpose.
+                invalid: { '--slider-accent': 'var(--color-error)' },
+                // The stamp, at thumb scale — the handle drops its shadow and
+                // shoves itself into where the shadow was, exactly as button
+                // does, by the shadow's own 2px offset.
+                pressed: { '--slider-thumb-shadow': 'none', '--slider-thumb-shift': 'translate(2px, 2px)' },
+            },
+            selectors: {
+                // `:where()` is forgiving, so an engine without `:dir()` drops
+                // that one argument and still matches the attribute forms.
+                '&:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)': { '--slider-fill-dir': 'to left' },
+                '&::-webkit-slider-runnable-track': {
+                    boxSizing: 'border-box',
+                    height: 'calc(var(--slider-track-size) + var(--border) * 2)',
+                    ...inked,
+                    background: 'var(--slider-track)',
+                    boxShadow: 'var(--slider-track-shadow)',
+                },
+                '&::-webkit-slider-thumb': {
+                    appearance: 'none',
+                    boxSizing: 'border-box',
+                    width: 'var(--slider-thumb-size)',
+                    height: 'var(--slider-thumb-size)',
+                    // Blink lays the thumb out against the track's CONTENT
+                    // box — the channel — so the overhang is halved against
+                    // that, not against the inked box. Gecko centres its own.
+                    marginTop: 'calc((var(--slider-track-size) - var(--slider-thumb-size)) / 2)',
+                    ...inked,
+                    background: 'var(--slider-thumb-ink)',
+                    boxShadow: 'var(--slider-thumb-shadow)',
+                    transform: 'var(--slider-thumb-shift)',
+                    transition: motion('box-shadow, transform'),
+                },
+                '&::-moz-range-track': {
+                    boxSizing: 'border-box',
+                    height: 'calc(var(--slider-track-size) + var(--border) * 2)',
+                    ...inked,
+                    background: 'var(--slider-track)',
+                    boxShadow: 'var(--slider-track-shadow)',
+                },
+                '&::-moz-range-thumb': {
+                    boxSizing: 'border-box',
+                    width: 'var(--slider-thumb-size)',
+                    height: 'var(--slider-thumb-size)',
+                    ...inked,
+                    background: 'var(--slider-thumb-ink)',
+                    boxShadow: 'var(--slider-thumb-shadow)',
+                    transform: 'var(--slider-thumb-shift)',
+                    transition: motion('box-shadow, transform'),
+                },
+            },
+            at: {
+                // Native rendering knows forced colors better than a custom
+                // skin does; the retained accentColor keeps the fallback
+                // branded.
+                'forced-colors': { base: { appearance: 'auto' } },
+            },
+        },
         'value-text': { base: { ...label, fontSize: 'var(--text-xs)' } },
     },
     variants: {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--slider-accent': `var(--color-${c})`,
         } } }])),
-        // A native range widget: only its box height is size-able without an
-        // appearance:none rebuild, so the ramp moves the box and the text.
+        // Now that the widget is rebuilt, the ramp sizes what a slider is made
+        // of rather than its box: it moves the channel — progress's own steps,
+        // exactly — and the thumb follows from it, so the two bars step
+        // together and the handle keeps its proportion.
         size: {
-            xs: { control: { base: { height: 'calc(var(--size-selector) * 3)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
-            sm: { control: { base: { height: 'calc(var(--size-selector) * 4)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            xs: { root: { base: { '--slider-track-size': 'calc(var(--size-field) * 2)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { '--slider-track-size': 'calc(var(--size-field) * 3)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            // `md` is the un-attributed render — the defaults in `tokens:`
+            // already ARE the middle step, so it only restates the label.
             md: { label: { base: { fontSize: 'var(--text-xs)' } } },
-            lg: { control: { base: { height: 'calc(var(--size-selector) * 7)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
-            xl: { control: { base: { height: 'calc(var(--size-selector) * 8)' } }, label: { base: { fontSize: 'var(--text-md)' } } },
+            lg: { root: { base: { '--slider-track-size': 'calc(var(--size-field) * 7)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
+            xl: { root: { base: { '--slider-track-size': 'calc(var(--size-field) * 9)' } }, label: { base: { fontSize: 'var(--text-md)' } } },
         },
     },
     skipStates: { root: ['invalid', 'focus-visible'] },
