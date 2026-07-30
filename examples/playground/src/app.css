@@ -1,5 +1,6 @@
 /*
- * The playground's own app CSS — the page surface, and nothing else.
+ * The playground's own app CSS — the page surface, and the one demo surface
+ * no design system owns.
  *
  * A design system paints its components; painting the PAGE is the app's job,
  * and this playground never did it. `color-scheme` from the DS tokens gave the
@@ -25,4 +26,39 @@
 body {
     background: var(--color-base-100);
     color: var(--color-base-content);
+}
+
+/*
+ * The context-menu demo surface's focus ring.
+ *
+ * `menu/context-trigger` is `asChild` over whatever the consumer wraps, and
+ * its anatomy declares flags `['disabled']` only — there is no
+ * `focus-visible` flag for a recipe to hook, and the anatomy comment says so
+ * outright ("typically the consumer's own content, so recipes usually leave
+ * it unstyled"). None of the six design systems paints it. So dismissing the
+ * context menu returned focus to the box and Chromium drew its own
+ * `1px auto rgb(0, 95, 204)` — the single element on the page not speaking
+ * the design system's focus language.
+ *
+ * Styling the consumer's surface is therefore the consumer's job, and this
+ * playground is that consumer. It cannot reach a design system's focus ring:
+ * each one keeps its own (material `3px solid var(--color-secondary)`, carbon
+ * `2px solid var(--carbon-focus)` at a NEGATIVE offset, brutalist
+ * `var(--border) solid var(--color-primary)`) inside its recipes, and the
+ * colour roles they draw it with are DS-declared vocabulary — `--color-primary`
+ * does not exist under carbon or heroui, which declare `roles: {}`. What every
+ * design system does guarantee is the base surfaces, so the ring is drawn in
+ * `--color-base-content`: the ink of the current theme, re-resolving on a
+ * design-system swap and a theme swap exactly like the two rules above. Its
+ * SHAPE comes from the design system for free — an outline follows the box's
+ * `border-radius`, which is now `var(--radius-box)`, so the ring is square on
+ * brutalist and carbon and rounded on material.
+ *
+ * Selected by anatomy rather than a class because the anatomy IS the styling
+ * API here, and unlayered so it wins over `@layer zero.recipes` should a
+ * design system ever decide to paint this part.
+ */
+[data-scope="menu"][data-part="context-trigger"]:focus-visible {
+    outline: 2px solid var(--color-base-content);
+    outline-offset: 2px;
 }

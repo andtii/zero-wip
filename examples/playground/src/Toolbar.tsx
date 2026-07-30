@@ -206,7 +206,7 @@ const Swatch = component<{ theme?: Record<string, string> }>(({ props }) => () =
                 display: 'inline-flex',
                 marginInlineEnd: '0.375rem',
                 verticalAlign: 'middle',
-                borderRadius: '999px',
+                borderRadius: 'var(--radius-selector)',
                 overflow: 'hidden',
                 outline: '1px solid var(--color-base-300)',
             }}
