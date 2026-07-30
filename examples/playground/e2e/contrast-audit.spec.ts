@@ -238,7 +238,17 @@ const NOT_RENDERED_ON_WEB = new Set(['slider/range', 'slider/thumb']);
  * checkbox/radio/switch/progress marks are drawn by the recipe, not by zero,
  * so those parts stay empty here — as they are on screen.
  */
-interface IndicatorSpec { scope: string; part: string; ancestors: string[]; glyph?: string }
+/**
+ * `only` is the flag the part cannot exist WITHOUT — the indicator's own
+ * version of an ancestor's `=state` pin.
+ *
+ * `Select.Item` and `Combobox.Item` mount the `✓` only while selected, and
+ * always with `data-selected=""` on it (`Select.tsx`, `Combobox.tsx`). Without
+ * this, `combosFor()`'s bare `{}` cell would measure an unselected item's
+ * indicator — a node that is never in the DOM. That is the same fiction
+ * `NOT_RENDERED_ON_WEB` exists to keep out, one level down.
+ */
+interface IndicatorSpec { scope: string; part: string; ancestors: string[]; glyph?: string; only?: string }
 
 const INDICATORS: IndicatorSpec[] = [
     { scope: 'checkbox', part: 'indicator', ancestors: ['root', 'control'] },
@@ -246,8 +256,8 @@ const INDICATORS: IndicatorSpec[] = [
     { scope: 'switch', part: 'thumb', ancestors: ['root', 'control'] },
     { scope: 'progress', part: 'range', ancestors: ['root', 'track'] },
     { scope: 'select', part: 'indicator', ancestors: ['root', 'trigger'], glyph: '▾' },
-    { scope: 'select', part: 'item-indicator', ancestors: ['root', 'popup=open', 'item'], glyph: '✓' },
-    { scope: 'combobox', part: 'item-indicator', ancestors: ['root', 'popup=open', 'item'], glyph: '✓' },
+    { scope: 'select', part: 'item-indicator', ancestors: ['root', 'popup=open', 'item'], glyph: '✓', only: 'selected' },
+    { scope: 'combobox', part: 'item-indicator', ancestors: ['root', 'popup=open', 'item'], glyph: '✓', only: 'selected' },
     {
         scope: 'tree-view',
         part: 'branch-indicator',
@@ -287,9 +297,15 @@ const indicatorCells: IndicatorCell[] = INDICATORS.flatMap((spec) => {
             pin,
         };
     });
-    return combosFor(partOf(spec.scope, spec.part)).map((combo) => ({
-        scope: spec.scope, part: spec.part, ...combo, chain, glyph: spec.glyph,
-    }));
+    const part = partOf(spec.scope, spec.part);
+    if (spec.only && !part.flags?.includes(spec.only)) {
+        throw new Error(`${spec.scope}/${spec.part} has no flag "${spec.only}"`);
+    }
+    return combosFor(part)
+        .filter((combo) => !spec.only || combo.flag === spec.only)
+        .map((combo) => ({
+            scope: spec.scope, part: spec.part, ...combo, chain, glyph: spec.glyph,
+        }));
 });
 
 interface Reading { key: string; color: string; bg: string; ratio: number; disabled: boolean }
