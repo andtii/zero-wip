@@ -76,25 +76,6 @@ const BUTTON_PARTS: ReadonlyArray<{ scope: string; part: string }> = manifest.co
     (c) => c.parts.filter((p) => p.element === 'button').map((p) => ({ scope: c.scope, part: p.name })),
 );
 
-/**
- * The three cells #214 owns.
- *
- * zero-heroui's dialog, popover and menu triggers are `{ cursor: 'pointer' }`
- * and nothing else — the same defect as the tooltip's, in the same package,
- * found by the same sweep. #213 introduces heroui's `overlayTrigger` and wires
- * it to the tooltip only, because adopting it on three more components is a
- * visual change to three more components and belongs in its own review.
- *
- * DELETE THIS ALLOWLIST WHOLE when #214 lands — it is an entry per known bug,
- * not a category, and the assertion below fails if a listed cell starts passing
- * so it cannot outlive them.
- */
-const KNOWN_UNSTYLED: ReadonlySet<string> = new Set([
-    'heroui/dialog.trigger',
-    'heroui/popover.trigger',
-    'heroui/menu.trigger',
-]);
-
 /** Rules that apply somewhere other than the plain, un-attributed render. */
 const isDefaultContext = (rule: CssRule): boolean => rule.at.every((p) => p.startsWith('@layer'));
 
@@ -148,18 +129,13 @@ describe('button affordance', () => {
         expect(names.length).toBe(16);
     });
 
+    // No allowlist. #213 shipped with three exemptions — heroui's dialog,
+    // popover and menu triggers, the last `{ cursor: 'pointer' }` holdouts —
+    // and #214 adopted `overlayTrigger` on all three, so there is nothing left
+    // to excuse. 16 parts × 6 design systems = 96 cells, all clean.
     it.each(SYSTEMS.map((s) => s.name))('%s: no <button> part leaves its paint to the UA', (ds) => {
         const system = SYSTEMS.find((s) => s.name === ds)!;
-        const unstyled = findings(system).filter((cell) => !KNOWN_UNSTYLED.has(cell));
-        expect(unstyled.sort()).toEqual([]);
-    });
-
-    it('carries no stale exemption', () => {
-        // The allowlist is three named bugs, so it has to expire with them: a
-        // cell that starts passing must be deleted from it in the same change,
-        // or the next real regression there is silently excused.
-        const open = new Set(SYSTEMS.flatMap(findings));
-        expect([...KNOWN_UNSTYLED].filter((cell) => !open.has(cell))).toEqual([]);
+        expect(findings(system).sort()).toEqual([]);
     });
 });
 
