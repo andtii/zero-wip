@@ -7,7 +7,7 @@
  * much as the first.
  */
 import { describe, it, expect } from 'vitest';
-import { validateDesignSystem } from '@sigx/zero-kit';
+import { compileDesignSystem, undeclaredAxes, validateDesignSystem } from '@sigx/zero-kit';
 import type { CssProps, DesignSystemInput, ManifestComponent, RecipeInput } from '@sigx/zero-kit';
 import { anatomies } from '@sigx/zero/anatomy';
 import { designSystem as basicDS } from '@sigx/zero-basic';
@@ -536,13 +536,8 @@ describe('declared axis vocabularies (RFC 0002 phase 1)', () => {
             .toContainEqual(expect.stringContaining('declares no size axis'));
     });
 
-    it('validates variants/axes declarations: non-empty, kebab-case, no duplicates', () => {
+    it('validates variants/axes declarations: kebab-case, no duplicates', () => {
         const clean = (): DesignSystemInput => dsWith(tabsWith({ color: 'var(--color-primary)' }));
-
-        const empty = clean();
-        empty.tokens.variants = [];
-        expect(validateDesignSystem(empty, manifest).errors.map((e) => e.message))
-            .toContainEqual(expect.stringContaining('declared but empty'));
 
         const dupes = clean();
         dupes.tokens.variants = ['solid', 'solid'];
@@ -552,6 +547,56 @@ describe('declared axis vocabularies (RFC 0002 phase 1)', () => {
         const badCase = clean();
         badCase.tokens.axes = { density: ['Not Kebab'] };
         expect(validateDesignSystem(badCase, manifest).errors.map((e) => e.message))
+            .toContainEqual(expect.stringContaining('not a valid axis value'));
+    });
+
+    // `variants: []` is the claim `roles: {}` and `sizes: []` already make: not
+    // "I declared nothing", but "there is no such axis" (#200).
+    it('accepts variants: [] and reports the axis as declared out of existence', () => {
+        const noVariants = dsWith(tabsWith({ color: 'var(--color-primary)' }));
+        noVariants.tokens.variants = [];
+        expect(validateDesignSystem(noVariants, manifest).errors).toEqual([]);
+        expect([...undeclaredAxes(compileDesignSystem(noVariants, manifest))]).toContain('variant');
+    });
+
+    // …and omitting the key is the OTHER statement. There is no default variant
+    // vocabulary, so both spellings compile to `[]` and only the explicit one
+    // may be read as absence.
+    it('does not treat an omitted variants declaration as an absent axis', () => {
+        const undeclared = dsWith(tabsWith({ color: 'var(--color-primary)' }));
+        delete undeclared.tokens.variants;
+        expect([...undeclaredAxes(compileDesignSystem(undeclared, manifest))]).not.toContain('variant');
+    });
+
+    // A custom axis exists because it was named, so an empty one cannot mean
+    // "no such axis" — there is no named prop to switch off.
+    it('still errors on an empty custom axis', () => {
+        const emptyAxis = dsWith(tabsWith({ color: 'var(--color-primary)' }));
+        emptyAxis.tokens.axes = { density: [] };
+        expect(validateDesignSystem(emptyAxis, manifest).errors.map((e) => e.message))
+            .toContainEqual(expect.stringContaining('declared but empty'));
+    });
+
+    // #198: a value only ever lands inside a quoted attribute selector, so the
+    // token-key grammar was over-strict. Carbon and Radix hit this independently.
+    it('accepts axis values a token key could not spell', () => {
+        const carbonish = dsWith(tabsWith({ color: 'var(--color-primary)' }));
+        carbonish.tokens.variants = ['danger--tertiary', 'danger--ghost'];
+        carbonish.tokens.sizes = ['1', '2'];
+        expect(validateDesignSystem(carbonish, manifest).errors).toEqual([]);
+    });
+
+    // Names are not values: they become an attribute name or a custom-property
+    // tail, so they keep the stricter grammar.
+    it('still holds names to the kebab-case grammar', () => {
+        const badMod = dsWith(tabsWith({ color: 'var(--color-primary)' }));
+        badMod.tokens.modifiers = ['high--contrast'];
+        expect(validateDesignSystem(badMod, manifest).errors.map((e) => e.message))
+            .toContainEqual(expect.stringContaining('not a kebab-case identifier'));
+
+        const badAxisName = dsWith(tabsWith({ color: 'var(--color-primary)' }));
+        badAxisName.tokens.axes = { 'den--sity': ['compact'] };
+        expect(validateDesignSystem(badAxisName, manifest).errors.map((e) => e.message))
             .toContainEqual(expect.stringContaining('not a kebab-case identifier'));
     });
 

@@ -128,6 +128,10 @@ export {
     BASE_SURFACE_TOKEN_LIST,
     TOKEN_CATEGORIES,
     TOKEN_KEY_PATTERN,
+    // The looser grammar axis VALUES answer to — a value is quoted selector
+    // content, never a custom-property tail. Exported beside the key pattern so
+    // tooling can tell an over-strict rejection from a real one.
+    AXIS_VALUE_PATTERN,
     TEXT_FIXED_PREFIX,
     ROLE_NAME_PATTERN,
     RESERVED_ROLE_NAMES,

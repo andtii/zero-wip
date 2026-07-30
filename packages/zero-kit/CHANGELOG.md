@@ -48,6 +48,36 @@
 
 ### Changed
 
+- **`variants: []` is now legal and means "this design system has no variant
+  axis"** (#200), completing the symmetry `sizes: []` started below. Unlike
+  `roles`/`sizes` there is no default variant vocabulary, so an omitted
+  declaration and an empty one both compile to `[]` — `CompiledDesignSystem`
+  therefore gains `tokens.variantsDeclared`, mirroring
+  `TokenVocabulary.sizesDeclared`, and `undeclaredAxes` consults it rather than
+  testing the length alone. Omitting `tokens.variants` still means "declared
+  nothing, check nothing"; `[]` means "there isn't one", so `register.d.ts`
+  types `variant: never` and the coverage report lists it under
+  `vocabulary.declaredOut`. Both readers pick it up from the one predicate, so
+  the register artifact and the report cannot disagree.
+- **Axis *values* are no longer held to the token-key grammar** (#198). A
+  declared `sizes` / `variants` / `axes.<axis>` value only ever lands inside a
+  quoted attribute selector — `[data-variant="danger--tertiary"]` — and is never
+  a custom-property tail, so `TOKEN_KEY_PATTERN` was rejecting spellings CSS
+  accepts. Two design systems hit it independently while writing the RFC 0003 §7
+  conformance fixtures: Carbon's `danger--primary`/`--ghost`/`--tertiary` and
+  Radix Themes' `90%`–`110%` scaling ramp. New `AXIS_VALUE_PATTERN` admits
+  repeated separators, dots and percent signs; it still excludes quotes,
+  backslash, whitespace and uppercase, so every interpolation site
+  (`recipe-css.ts`, `register-dts.ts`) stays escape-free and no value can differ
+  from its selector only by case. **Names are unchanged**: `tokens.axes` keys
+  become the attribute name `data-<axis>`, `tokens.modifiers` entries the tail of
+  `data-mod-<name>`, and role names `--color-<role>`, so all three keep
+  `TOKEN_KEY_PATTERN`. An empty custom axis (`axes: { density: [] }`) is still an
+  error — an axis exists because it was named, so there is no named prop to
+  declare out of existence.
+- `tokens.schema.json`, `recipe.schema.json` and `report.schema.json` gain an
+  axis-value grammar alongside the kebab-case one, and the report's
+  `declaredOut` enum accepts `variant`.
 - **`sizes: []` is now legal and means "this design system has no size axis"**
   (RFC 0003 §5, #164). It used to be a hard error, and an omitted ramp is
   silently replaced by the recommended `xs`–`xl`, so *every* compiled manifest

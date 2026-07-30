@@ -145,6 +145,34 @@ export type TokenCategoryId = typeof TOKEN_CATEGORIES[number]['id'];
 export const TOKEN_KEY_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 /**
+ * An axis VALUE, which is a different thing from a token key.
+ *
+ * A declared `variant` / `size` / `axes.<axis>` value only ever lands inside a
+ * quoted attribute selector — `[data-variant="danger--tertiary"]` — and the zero
+ * runtime passes it through untouched (`variantAttrs` validates axis *names*,
+ * never values). So `TOKEN_KEY_PATTERN` was over-strict here: it rejected
+ * spellings CSS accepts. Two design systems hit it independently — Carbon's
+ * `danger--tertiary` and Radix's `105%` (#198).
+ *
+ * Still narrower than "any attribute value", and deliberately:
+ *
+ * - **no quotes, backslash or whitespace**, so every interpolation site stays
+ *   escape-free. `recipe-css.ts` writes `[attr="<value>"]` and
+ *   `register-dts.ts` writes `'<value>'` into a literal union; both rely on this
+ *   pattern for that to be safe.
+ * - **lowercase only.** `data-*` attribute values are case-sensitive, so
+ *   admitting `highContrast` would make `[data-variant="highcontrast"]` a silent
+ *   miss. Vendor camelCase belongs to prop *names*, which an adapter owns.
+ * - **must start and end alphanumeric** (or `%`), so a stray leading or
+ *   trailing separator is still caught.
+ *
+ * Names keep `TOKEN_KEY_PATTERN`: `tokens.axes` keys become the attribute name
+ * `data-<axis>`, `tokens.modifiers` entries become the tail of `data-mod-<name>`,
+ * and role names become `--color-<role>`.
+ */
+export const AXIS_VALUE_PATTERN = /^[a-z0-9]([a-z0-9._%-]*[a-z0-9%])?$/;
+
+/**
  * Fixed-size alias for the text ramp: for every emitted `--text-<key>` the
  * compiler also emits `--text-fixed-<key>` — on the web a pure indirection
  * (`--text-fixed-sm: var(--text-sm)`); on a target with a runtime font scale

@@ -89,8 +89,20 @@ export interface CompiledDesignSystem {
         roles: Record<string, RoleDecl>;
         /** The DS's `size` axis vocabulary, resolved (declared, else recommended). */
         sizes: string[];
-        /** The DS's declared `variant` axis vocabulary ([] when undeclared). */
+        /**
+         * The DS's declared `variant` axis vocabulary. `[]` for BOTH "undeclared"
+         * and "declared empty", so pair it with `variantsDeclared` to tell them
+         * apart — unlike `roles`/`sizes`, there is no default vocabulary whose
+         * absence would reveal an explicit empty.
+         */
         variants: string[];
+        /**
+         * True when `tokens.variants` was written at all. `variants: []` then
+         * means "this design system has no variant axis", the claim `roles: {}`
+         * and `sizes: []` already make (#200). Mirrors
+         * `TokenVocabulary.sizesDeclared`.
+         */
+        variantsDeclared: boolean;
         /** Declared custom variant axes: axis name → values ({} when undeclared). */
         axes: Record<string, string[]>;
         /** Declared presence-only modifiers ([] when undeclared). */
@@ -168,17 +180,18 @@ function harvestAxes(recipe: RecipeInput): CompiledComponentAxes {
  * The distinction matters in the diagnostic: "no recipe wires it" tells an
  * author to go wire one, which is wrong advice when there is no axis to wire.
  *
- * Only `color` and `size` can be declared away, and only by an *explicitly
- * empty* declaration — `resolveRoles(undefined)` yields the recommended eight
- * and `resolveSizes(undefined)` the recommended ramp, so an empty result here
- * can only have come from `roles: {}` or `sizes: []`.
+ * An axis is declared away only by an *explicitly empty* declaration.
+ * `resolveRoles(undefined)` yields the recommended eight and
+ * `resolveSizes(undefined)` the recommended ramp, so for `color` and `size` an
+ * empty result here can only have come from `roles: {}` or `sizes: []`.
  *
- * `variant` is deliberately absent: omitting `tokens.variants` means "declared
- * nothing, check nothing", NOT "this design system has no variant axis", and
- * `compileDesignSystem` normalises the omission to `[]`. Treating that as
- * out-of-existence would mislabel every unwired `variant` in a design system
- * that simply never declared the vocabulary — the exact error this function
- * exists to avoid, pointed the other way.
+ * `variant` needs the extra `variantsDeclared` guard rather than the same naked
+ * length test, because it has no default vocabulary: omitting `tokens.variants`
+ * means "declared nothing, check nothing", NOT "this design system has no
+ * variant axis", and `compileDesignSystem` normalises the omission to `[]`.
+ * Testing only the length would mislabel every unwired `variant` in a design
+ * system that simply never declared the vocabulary — the exact error this
+ * function exists to avoid, pointed the other way.
  *
  * Target-neutral, and shared: `compileRegisterDts` picks the `never` doc
  * comment from it, and `buildReport` names the same axes. Two readers of one
@@ -189,6 +202,9 @@ export function undeclaredAxes(compiled: CompiledDesignSystem): ReadonlySet<stri
     const out = new Set<string>();
     if (Object.keys(compiled.tokens.roles).length === 0) out.add('color');
     if (compiled.tokens.sizes.length === 0) out.add('size');
+    if (compiled.tokens.variantsDeclared && compiled.tokens.variants.length === 0) {
+        out.add('variant');
+    }
     return out;
 }
 
@@ -264,6 +280,7 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
             roles,
             sizes: [...resolveSizes(ds.tokens.sizes)],
             variants: [...(ds.tokens.variants ?? [])],
+            variantsDeclared: ds.tokens.variants !== undefined,
             axes: Object.fromEntries(
                 Object.entries(ds.tokens.axes ?? {}).map(([axis, values]) => [axis, [...values]]),
             ),

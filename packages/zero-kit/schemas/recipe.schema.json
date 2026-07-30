@@ -25,7 +25,7 @@
             "$ref": "#/$defs/partsRecord"
         },
         "variants": {
-            "description": "axis \u2192 value \u2192 part \u2192 styles. The contract axes (color, size, variant) have named props; any other kebab-case axis is reachable through zero's `axes` prop. Axis names and values are written into [data-<axis>=\"<value>\"] selectors, hence the kebab-case grammar on both.",
+            "description": "axis \u2192 value \u2192 part \u2192 styles. The contract axes (color, size, variant) have named props; any other kebab-case axis is reachable through zero's `axes` prop. Both are written into [data-<axis>=\"<value>\"] selectors, but a name becomes the attribute name and a value only its quoted content \u2014 so a name takes the kebab-case grammar and a value the laxer axis-value one.",
             "type": "object",
             "propertyNames": {
                 "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
@@ -33,7 +33,7 @@
             "additionalProperties": {
                 "type": "object",
                 "propertyNames": {
-                    "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                    "$ref": "#/$defs/axisValue"
                 },
                 "additionalProperties": {
                     "$ref": "#/$defs/partsRecord"
@@ -69,7 +69,7 @@
                         },
                         "additionalProperties": {
                             "anyOf": [
-                                { "$ref": "#/$defs/kebabToken" },
+                                { "$ref": "#/$defs/axisValue" },
                                 { "const": true }
                             ]
                         },
@@ -88,7 +88,7 @@
                 "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
             },
             "additionalProperties": {
-                "$ref": "#/$defs/kebabToken"
+                "$ref": "#/$defs/axisValue"
             }
         },
         "keyframes": {
@@ -117,8 +117,13 @@
         }
     },
     "$defs": {
+        "axisValue": {
+            "description": "An axis VALUE. Laxer than kebabToken because a value only ever lands inside a quoted attribute selector ([data-variant=\"danger--tertiary\"]) and is never a custom-property tail \u2014 repeated separators, dots and percent signs are legal. Quotes, backslash, whitespace and uppercase are not, so the compiler never has to escape one.",
+            "type": "string",
+            "pattern": "^[a-z0-9]([a-z0-9._%-]*[a-z0-9%])?$"
+        },
         "kebabToken": {
-            "description": "A kebab-case identifier that may start with a digit \u2014 the grammar for anything written into a [data-\u2026] selector (scopes, parts, axes, axis values).",
+            "description": "A kebab-case identifier that may start with a digit \u2014 the grammar for NAMES written into a [data-\u2026] selector: scopes, parts, states, axes, modifiers. Axis VALUES use axisValue.",
             "type": "string",
             "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
         },

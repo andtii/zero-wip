@@ -414,6 +414,15 @@ component's anatomy). No component code is ever written or changed.
      variants: ['solid', 'outline', 'soft', 'ghost'],
      axes: { density: ['compact', 'comfortable'] },
      ```
+     `variants: []` says the design system has **no** variant axis, the same
+     claim `roles: {}` and `sizes: []` make — every component then types
+     `variant: never`. Omitting the key is the other statement: the axis stays
+     undeclared and recipe values go unchecked. An empty *custom* axis
+     (`axes: { density: [] }`) is an error instead: a custom axis exists because
+     you named it, so there is nothing to declare out of existence — omit it.
+     Axis **values** are laxer than names: `danger--tertiary` and `105%` are
+     legal values, because a value only ever lands inside a quoted attribute
+     selector. Names stay plain kebab-case.
    - **You are not limited to three axes.** `color`, `size` and `variant` have
      named props because almost every design language has them. If the brief
      needs another — density, emphasis, tone, elevation — declare it in

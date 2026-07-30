@@ -22,6 +22,7 @@
 import { parse, wcagContrast } from 'culori';
 import type { ZeroManifest } from '../contract.js';
 import {
+    AXIS_VALUE_PATTERN,
     BASE_SURFACE_TOKEN_LIST,
     RESERVED_AXES,
     RESERVED_ROLE_NAMES,
@@ -384,55 +385,58 @@ export function validateDesignSystem<R extends RolesDecl>(
         }
     }
 
-    // ── Sizes ──
-    // A declared size becomes the value in `[data-size="…"]`, so the open
-    // vocabulary stops at what can be an attribute value. Caught at the
-    // declaration rather than only where a recipe uses it.
+    // ── Axis vocabularies ──
+    // A declared value becomes the value in `[data-size="…"]` /
+    // `[data-variant="…"]` / `[data-<axis>="…"]`, so the open vocabulary stops
+    // at what can be an attribute value — `AXIS_VALUE_PATTERN`, not
+    // `TOKEN_KEY_PATTERN`, because a value is not a custom-property tail and
+    // never had to obey that grammar (#198). Caught at the declaration rather
+    // than only where a recipe uses it.
     //
-    // `sizes: []` is legal and means "this design system has no size axis" —
-    // the same claim `roles: {}` already makes about colour. Omitting `sizes`
-    // still takes the recommended ramp, so the two are not the same statement:
-    // absence means "I didn't say", empty means "there isn't one". Without
-    // this the manifest advertises a ramp to the docs site and the generation
-    // skill for a design system that has none.
-    const sizes = ds.tokens.sizes;
-    if (sizes) {
-        for (const size of sizes) {
-            if (!TOKEN_KEY_PATTERN.test(size)) {
-                error('tokens.sizes', `"${size}" is not a kebab-case identifier`);
-            }
-        }
-        if (new Set(sizes).size !== sizes.length) {
-            error('tokens.sizes', 'contains duplicate entries');
-        }
-    }
-
-    // ── Variant axis vocabularies ──
-    // Same rules as sizes: a declared value becomes the value in
-    // `[data-variant="…"]` / `[data-<axis>="…"]`, so the same attribute-value
-    // grammar applies, caught at the declaration. Axis NAMES additionally
-    // must not re-declare an axis that has a named prop and must not take a
-    // name the anatomy contract owns — the zero runtime throws on both, and
-    // the validator must reject exactly what the runtime refuses to render.
+    // Emptiness is NOT checked here: whether an empty declaration is
+    // meaningful differs per axis, so each call site decides.
     const checkAxisValues = (where: string, values: readonly string[]): void => {
-        if (values.length === 0) {
-            error(where, 'declared but empty — omit it to leave the vocabulary undeclared');
-        }
         for (const value of values) {
-            if (!TOKEN_KEY_PATTERN.test(value)) {
-                error(where, `"${value}" is not a kebab-case identifier`);
+            if (!AXIS_VALUE_PATTERN.test(value)) {
+                error(where, `"${value}" is not a valid axis value`);
             }
         }
         if (new Set(values).size !== values.length) {
             error(where, 'contains duplicate entries');
         }
     };
+
+    // Names, not values: these become an attribute name (`data-<axis>`) or the
+    // tail of one (`data-mod-<name>`), so they keep the stricter grammar. An
+    // empty list of names is always a mistake — there is no axis to switch off,
+    // so the only reading is "I meant to fill this in".
+    const checkAxisNames = (where: string, names: readonly string[]): void => {
+        if (names.length === 0) {
+            error(where, 'declared but empty — omit it to leave the vocabulary undeclared');
+        }
+        for (const name of names) {
+            if (!TOKEN_KEY_PATTERN.test(name)) {
+                error(where, `"${name}" is not a kebab-case identifier`);
+            }
+        }
+        if (new Set(names).size !== names.length) {
+            error(where, 'contains duplicate entries');
+        }
+    };
+
+    // `sizes: []` and `variants: []` are legal and mean "this design system has
+    // no size / variant axis" — the same claim `roles: {}` already makes about
+    // colour (#164, #200). Omitting the key is a DIFFERENT statement: absence
+    // means "I didn't say", empty means "there isn't one". Without this the
+    // manifest advertises an axis to the docs site and the generation skill for
+    // a design system that has none, and `register.d.ts` types it as the open
+    // union rather than `never`.
+    if (ds.tokens.sizes) checkAxisValues('tokens.sizes', ds.tokens.sizes);
     if (ds.tokens.variants) checkAxisValues('tokens.variants', ds.tokens.variants);
-    // Modifier NAMES take the same grammar axis values do — they become the
-    // tail of `data-mod-<name>`. No reserved-name check is needed: the prefix
-    // puts every modifier outside the anatomy contract's namespace, which is
-    // the whole reason it exists.
-    if (ds.tokens.modifiers) checkAxisValues('tokens.modifiers', ds.tokens.modifiers);
+    // No reserved-name check for modifiers: the `data-mod-` prefix puts every
+    // one outside the anatomy contract's namespace, which is the whole reason
+    // it exists.
+    if (ds.tokens.modifiers) checkAxisNames('tokens.modifiers', ds.tokens.modifiers);
     for (const [axis, values] of Object.entries(ds.tokens.axes ?? {})) {
         if (!TOKEN_KEY_PATTERN.test(axis)) {
             error('tokens.axes', `"${axis}" is not a kebab-case identifier — it becomes the attribute name data-${axis}`);
@@ -442,6 +446,12 @@ export function validateDesignSystem<R extends RolesDecl>(
         }
         if (RESERVED_AXES.has(axis)) {
             error('tokens.axes', `"${axis}" is part of the anatomy contract — data-${axis} already means something, and zero refuses to set it from \`axes\``);
+        }
+        // Unlike `sizes`/`variants`, an empty custom axis cannot mean "no such
+        // axis": the axis exists precisely because it was named here, and
+        // there is no named prop to declare out of existence. Omit the key.
+        if (values.length === 0) {
+            error(`tokens.axes.${axis}`, 'declared but empty — omit it to leave the axis undeclared');
         }
         checkAxisValues(`tokens.axes.${axis}`, values);
     }

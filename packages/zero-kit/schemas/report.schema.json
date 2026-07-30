@@ -47,9 +47,9 @@
                 "axes": { "$ref": "#/$defs/tokenListsByAxis" },
                 "modifiers": { "$ref": "#/$defs/tokenList" },
                 "declaredOut": {
-                    "description": "Axes declared OUT of existence rather than merely left unwired — `roles: {}` retires colour, `sizes: []` retires the size ramp. Only these two can be, and `variant` never appears: omitting `tokens.variants` means \"declared nothing\", not \"no variant axis\".",
+                    "description": "Axes declared OUT of existence rather than merely left unwired — `roles: {}` retires colour, `sizes: []` the size ramp, `variants: []` the variant axis. All three require an EXPLICIT empty declaration: omitting the key means \"declared nothing, check nothing\", which is a different statement.",
                     "type": "array",
-                    "items": { "enum": ["color", "size"] },
+                    "items": { "enum": ["color", "size", "variant"] },
                     "uniqueItems": true
                 }
             }
@@ -126,14 +126,19 @@
             }
         },
         "kebabToken": {
-            "description": "A kebab-case identifier that may start with a digit — the grammar shared by scope, part, state, flag, axis and axis-value names.",
+            "description": "A kebab-case identifier that may start with a digit — the grammar shared by scope, part, state, flag and axis NAMES.",
             "type": "string",
             "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
         },
+        "reportedToken": {
+            "description": "A name or an axis value as it appears in a report. Deliberately the laxer axis-value grammar rather than kebabToken: a report is descriptive output, and an axis value may legally be `danger--tertiary` or `105%` (#198). Authoring-time enforcement lives in tokens.schema.json and the validator, which do distinguish names from values.",
+            "type": "string",
+            "pattern": "^[a-z0-9]([a-z0-9._%-]*[a-z0-9%])?$"
+        },
         "tokenList": {
-            "description": "A duplicate-free list of kebab-case names. Harvested sets are sorted; DECLARED vocabularies (`vocabulary.sizes`, `vocabulary.variants`, `vocabulary.axes`) keep declaration order, because a ramp's order is part of what it says.",
+            "description": "A duplicate-free list of names or axis values. Harvested sets are sorted; DECLARED vocabularies (`vocabulary.sizes`, `vocabulary.variants`, `vocabulary.axes`) keep declaration order, because a ramp's order is part of what it says.",
             "type": "array",
-            "items": { "$ref": "#/$defs/kebabToken" },
+            "items": { "$ref": "#/$defs/reportedToken" },
             "uniqueItems": true
         },
         "tokenListsByAxis": {
@@ -188,7 +193,7 @@
                     "description": "The recipe's `defaultVariants`, when it has any. Documentation only — a default never widens a generated union.",
                     "type": "object",
                     "propertyNames": { "$ref": "#/$defs/kebabToken" },
-                    "additionalProperties": { "$ref": "#/$defs/kebabToken" }
+                    "additionalProperties": { "$ref": "#/$defs/reportedToken" }
                 },
                 "never": {
                     "description": "The contract axes this design system's register artifact types `never` — exactly the axes whose status is not `wired`. Derived from the same harvest as the artifact, so the two cannot disagree.",

@@ -21,17 +21,17 @@
             }
         },
         "sizes": {
-            "description": "The design system's `size` axis vocabulary \u2014 the values recipes may key variants.size on. Omitted \u2192 the recommended ramp (xs, sm, md, lg, xl); [] \u2192 this design system has no size axis at all. Entries become [data-size=\"\u2026\"] selector values, hence the kebab-case grammar.",
+            "description": "The design system's `size` axis vocabulary \u2014 the values recipes may key variants.size on. Omitted \u2192 the recommended ramp (xs, sm, md, lg, xl); [] \u2192 this design system has no size axis at all. Entries become [data-size=\"\u2026\"] selector values, hence the axis-value grammar.",
             "type": "array",
             "items": {
-                "$ref": "#/$defs/tokenKey"
+                "$ref": "#/$defs/axisValue"
             }
         },
         "variants": {
-            "description": "The `variant` axis vocabulary — the fill/chrome styles this design system offers (solid, outline, …). Once declared, the validator closes the set: a recipe variants.variant value outside it is an error. Omitted → the axis stays undeclared and recipe values are unchecked. Entries become [data-variant=\"…\"] selector values, hence the kebab-case grammar.",
+            "description": "The `variant` axis vocabulary — the fill/chrome styles this design system offers (solid, outline, …). Once declared, the validator closes the set: a recipe variants.variant value outside it is an error. Omitted → the axis stays undeclared and recipe values are unchecked; [] → this design system has no variant axis at all, the same claim roles: {} and sizes: [] make. The two are different statements: absence means \"I didn't say\", empty means \"there isn't one\". Entries become [data-variant=\"…\"] selector values, hence the axis-value grammar.",
             "type": "array",
             "items": {
-                "$ref": "#/$defs/tokenKey"
+                "$ref": "#/$defs/axisValue"
             }
         },
         "modifiers": {
@@ -42,7 +42,7 @@
             }
         },
         "axes": {
-            "description": "Additional variant axes: axis name → its value vocabulary. Axis names must not re-declare an axis with a named prop (color, size, variant) and must not take a name the anatomy contract reserves — the validator rejects exactly what the zero runtime refuses to render. Once declared, wiring an undeclared axis or an undeclared value is an error.",
+            "description": "Additional variant axes: axis name → its value vocabulary. Axis names must not re-declare an axis with a named prop (color, size, variant) and must not take a name the anatomy contract reserves — the validator rejects exactly what the zero runtime refuses to render. Once declared, wiring an undeclared axis or an undeclared value is an error. Unlike sizes and variants, [] is NOT meaningful here: a custom axis exists because it was named, so there is no named prop to declare out of existence — omit the key instead.",
             "type": "object",
             "propertyNames": {
                 "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
@@ -50,8 +50,9 @@
             "additionalProperties": {
                 "type": "array",
                 "items": {
-                    "$ref": "#/$defs/tokenKey"
-                }
+                    "$ref": "#/$defs/axisValue"
+                },
+                "minItems": 1
             }
         },
         "swatch": {
@@ -122,9 +123,14 @@
     },
     "$defs": {
         "tokenKey": {
-            "description": "A kebab-case identifier that may start with a digit (--text-2xl is legal) \u2014 the grammar for token keys, size names and swatch entries.",
+            "description": "A kebab-case identifier that may start with a digit (--text-2xl is legal) \u2014 the grammar for token keys, modifier names, axis names and swatch entries. Anything that becomes a custom-property tail or an attribute name.",
             "type": "string",
             "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "axisValue": {
+            "description": "An axis VALUE, which is laxer than a token key: it only ever lands inside a quoted attribute selector ([data-variant=\"danger--tertiary\"]) and is never a custom-property tail. Admits repeated separators, dots and percent signs \u2014 Carbon's danger--tertiary, Radix's 105%. Excludes quotes, backslash, whitespace and uppercase, so every interpolation site stays escape-free and no value can differ from its selector only by case.",
+            "type": "string",
+            "pattern": "^[a-z0-9]([a-z0-9._%-]*[a-z0-9%])?$"
         },
         "tokenValue": {
             "description": "A CSS value as authored \u2014 string, or a bare number for unitless values.",
