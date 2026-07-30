@@ -28,6 +28,25 @@ all four are expressed as declarations rather than escape hatches:
 It validates with **no errors and no warnings**, styles all fifteen
 components, and required no change to `@sigx/zero-kit`.
 
+## Two places Material's own spec had to be read, not copied
+
+- **An expanded disclosure header takes the selected container.** Collapsible
+  and accordion declare no `indicator` part, and `pressable()` already owns
+  both `::before` (the state layer) and `::after` (the ripple), so a chevron
+  has nowhere to draw. The trigger says it itself: `open` takes the
+  `primary-soft` fill, the primary ink and an inset hairline at its
+  block-end — the same "open" this design system paints on a menu
+  sub-trigger. `--weight-semibold` is deliberately not used; this vocabulary
+  maps it to the same 500 as `medium`, so a weight bump would compile to
+  nothing.
+- **`toast({ color })` lands on a status marker, not on the container.** M3
+  snackbars are monochrome by spec, so the container stays
+  surface-container-high at level 3 whatever role you pass; tinting the whole
+  surface would be a different design system's answer. The role colours a
+  leading dot drawn as `root::before` — the snackbar's leading-icon slot,
+  free because `root` is not pressable — alongside the action label that
+  already wore it.
+
 ```ts
 import '@sigx/zero-material/css';
 import { installThemes } from '@sigx/zero-material';

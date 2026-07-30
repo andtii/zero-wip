@@ -477,6 +477,31 @@ export const tabs: RecipeInput = {
 // ── Disclosure ────────────────────────────────────────────────────────────
 // A function of the ripple prefix: collapsible and accordion emit separate
 // component stylesheets, so each must name (and declare) its own keyframe.
+//
+// ── WHY THE TRIGGER ITSELF HAS TO SAY IT (#220) ───────────────────────────
+// The collapsible and accordion anatomies declare `trigger` and `panel` and
+// no `indicator`, so there is no part whose job is to point. `justify-content:
+// space-between` reserves the trailing slot an app can fill with its own
+// glyph, but an app that fills nothing — the playground included — is left
+// with the trigger's own paint as the only signal. It used to be `open: {}`
+// and `closed: {}`, both empty, so an expanded header was byte-identical to a
+// collapsed one.
+//
+// ── WHAT CAN CARRY IT ──────────────────────────────────────────────────────
+// Not a pseudo-element: `pressable()` owns BOTH — `::before` is the MD3 state
+// layer and `::after` is the ink ripple — and it is the most-shared helper in
+// this package (~26 call sites), so a chevron here would mean either taking a
+// pseudo-element off every pressable part or forking the helper. Not weight
+// either: this vocabulary maps `medium` and `semibold` to the same 500, so a
+// bump to `--weight-semibold` would compile to no change at all.
+//
+// What is left is the element's own box, and MD3 already has a word for it:
+// the SELECTED CONTAINER. An expanded header takes the tonal container fill
+// and the key ink — the same `primary-soft` + primary pairing the open menu
+// sub-trigger takes two hundred lines down, so "open" looks the same wherever
+// this design system says it. The inset hairline is the structural half of
+// the same sentence: the header now has a panel under it. `box-shadow`, not
+// `border-block-end`, so nothing reflows on toggle.
 const disclosureTrigger = (prefix: string): PartStyles => withPresence(pressable(prefix), {
     base: {
         display: 'flex',
@@ -486,13 +511,27 @@ const disclosureTrigger = (prefix: string): PartStyles => withPresence(pressable
         ...label,
         fontSize: 'var(--text-md)',
         cursor: 'pointer',
-        transition: motion('background'),
+        transition: motion('background, color, box-shadow'),
     },
     states: {
-        open: {},
+        open: {
+            background: 'var(--color-primary-soft)',
+            color: 'var(--color-primary)',
+            boxShadow: 'inset 0 -1px 0 var(--color-outline)',
+        },
         closed: {},
         disabled: { opacity: 'var(--disabled-opacity)' },
         ...focusRing,
+    },
+    at: {
+        // A forced palette repaints fills, so the tint and the hairline both
+        // vanish; `Highlight`/`HighlightText` is the system's own word for
+        // "this one is the selected one".
+        'forced-colors': {
+            states: {
+                open: { background: 'Highlight', color: 'HighlightText', boxShadow: 'none' },
+            },
+        },
     },
 });
 
@@ -1615,6 +1654,25 @@ export const avatar: RecipeInput = {
  * `@starting-style`/`allow-discrete`. The M3 snackbar: a raised
  * surface-container card sliding in from the nearest edge, ripples on its
  * buttons.
+ *
+ * ── WHERE `color` LANDS (#225) ─────────────────────────────────────────────
+ * It used to land on `--toast-accent`, which only the `action` label and its
+ * ripple read — so a snackbar with no action was the same card whatever role
+ * it was given, and `color="error"` was a promise the stylesheet did not keep.
+ *
+ * The container is NOT the answer. M3 snackbars are monochrome by spec: one
+ * inverse-tone container at level 3, no status fills, and tinting the whole
+ * surface (daisyUI's read, and a correct one for daisyUI) would trade this
+ * design system's identity for a signal. The container stays exactly as it
+ * was.
+ *
+ * So the colour takes the slot M3 does leave for it — the LEADING ICON. The
+ * anatomy has no part there (an icon is app content), but `root` is one of
+ * the few pressable-free parts in this package, so its `::before` is free:
+ * drawn as a filled dot in the accent, placed as the snackbar's first grid
+ * column and spanning both rows. A status marker rather than a status card —
+ * visible on an actionless toast, and the same accent the action label
+ * already wore, so the two now agree instead of only one of them speaking.
  */
 export const toast: RecipeInput = {
     component: 'toast',
@@ -1653,7 +1711,10 @@ export const toast: RecipeInput = {
                 ...raised('level3'),
                 pointerEvents: 'auto',
                 display: 'grid',
-                gridTemplateColumns: '1fr auto auto',
+                // Four columns now: the status marker, the text, the action,
+                // the close. The marker is `::before`, a grid item like any
+                // other child.
+                gridTemplateColumns: 'auto 1fr auto auto',
                 alignItems: 'center',
                 columnGap: 'var(--space-md)',
                 padding: 'var(--space-md) var(--space-lg)',
@@ -1667,6 +1728,18 @@ export const toast: RecipeInput = {
             },
             selectors: {
                 '&[data-placement^="top"]': { '--toast-from': '-8px' },
+                // The status marker. Spans every row so it centers against
+                // the title+description block, not against the title alone.
+                '&::before': {
+                    content: '""',
+                    gridColumn: '1',
+                    gridRow: '1 / -1',
+                    alignSelf: 'center',
+                    width: '0.625rem',
+                    height: '0.625rem',
+                    borderRadius: '50%',
+                    background: 'var(--toast-accent)',
+                },
             },
             states: {
                 open: { opacity: '1', transform: 'none' },
@@ -1674,14 +1747,18 @@ export const toast: RecipeInput = {
             },
             at: {
                 'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+                // A forced palette repaints backgrounds, which would erase a
+                // marker that is nothing but one — the same trade the radio
+                // dot makes. A system colour is honoured as given.
+                'forced-colors': { selectors: { '&::before': { background: 'CanvasText' } } },
             },
         },
         title: {
-            base: { gridColumn: '1', ...label },
+            base: { gridColumn: '2', ...label },
         },
         description: {
             base: {
-                gridColumn: '1',
+                gridColumn: '2',
                 fontFamily: 'var(--font-sans)',
                 fontSize: 'var(--text-xs)',
                 color: 'color-mix(in oklab, var(--color-surface-container-high-content) 80%, transparent)',
@@ -1689,7 +1766,7 @@ export const toast: RecipeInput = {
         },
         action: withPresence(pressable('toast', 'var(--toast-accent)'), {
             base: {
-                gridColumn: '2',
+                gridColumn: '3',
                 gridRow: '1',
                 appearance: 'none',
                 border: 'none',
@@ -1705,7 +1782,7 @@ export const toast: RecipeInput = {
         }),
         close: withPresence(pressable('toast', 'var(--color-surface-container-high-content)'), {
             base: {
-                gridColumn: '3',
+                gridColumn: '4',
                 gridRow: '1',
                 appearance: 'none',
                 border: 'none',

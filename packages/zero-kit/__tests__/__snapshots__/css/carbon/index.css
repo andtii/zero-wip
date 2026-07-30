@@ -1851,6 +1851,7 @@
 @layer zero.recipes {
     [data-scope="toast"][data-part="root"] {
         --toast-from: 8px;
+        --toast-accent: var(--carbon-interactive);
     }
 
     [data-scope="toast"][data-part="viewport"] {
@@ -1917,7 +1918,7 @@
         background: var(--color-base-200);
         color: var(--color-base-content);
         border: var(--border) solid var(--carbon-line);
-        border-inline-start: 3px solid var(--carbon-interactive);
+        border-inline-start: 3px solid var(--toast-accent);
         border-radius: var(--radius-box);
         box-shadow: var(--shadow-lg);
         font-family: var(--font-sans);
@@ -1932,6 +1933,10 @@
     [data-scope="toast"][data-part="root"][data-state="open"] {
         opacity: 1;
         transform: none;
+    }
+
+    [data-scope="toast"][data-part="root"][role="alert"] {
+        --toast-accent: var(--carbon-danger);
     }
 
     [data-scope="toast"][data-part="root"][data-placement^="top"] {
@@ -2013,6 +2018,12 @@
 
     [data-scope="toast"][data-part="close"][data-pressed]:not([data-disabled]) {
         background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="toast"][data-part="root"] {
+            border-inline-start-color: CanvasText;
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {

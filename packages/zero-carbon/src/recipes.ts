@@ -1652,9 +1652,47 @@ export const avatar: RecipeInput = {
 };
 
 // ── Toast ─────────────────────────────────────────────────────────────────
+/**
+ * ── WHY CARBON'S ANSWER TO #225 IS NOT MATERIAL'S ──────────────────────────
+ * Material's `toast({ color })` was a WEAK axis — every role reached the
+ * stylesheet and landed somewhere almost nobody could see. Carbon's is a
+ * MISSING one, and missing on purpose: `roles: {}` is this package's whole
+ * thesis (Carbon Button has no colour prop; `kind` fuses colour and
+ * treatment), the recipe validator rejects any `variants.color` key that
+ * names no declared role, and since #241 the playground reads the live
+ * vocabulary and passes no `color` to a carbon toast at all. So the fix
+ * cannot be "wire the roles" — there are none to wire, and inventing four
+ * would trade the acceptance test this package exists to be for one
+ * component's demo.
+ *
+ * What was actually broken is narrower and worse: the accent bar was
+ * hardcoded `--carbon-interactive`, so every notification this design system
+ * can render is an INFORMATIONAL one, permanently — Carbon's notification
+ * language has four kinds and this one could only ever say the first.
+ *
+ * The status distinction zero guarantees on every toast, with no vocabulary
+ * at all, is the ARIA one: `Toast.Root` renders `role="alert"` for an
+ * assertive toast and `role="status"` for the rest. That is the same
+ * urgency split Carbon draws between an error notification and an
+ * informational one, it is already semantic rather than decorative, and it
+ * needs neither a role vocabulary nor an axis zero's `toast()` API could not
+ * carry anyway (it takes `color`, not `axes`). So the bar reads it:
+ * `$support-error` red when the toast asserts itself, the interactive blue
+ * otherwise.
+ *
+ * It is a two-way signal where Carbon has four kinds — success and warning
+ * are both `role="status"` and both stay blue. That is the honest ceiling of
+ * what this design system currently declares, and it is stated here rather
+ * than papered over.
+ */
 export const toast: RecipeInput = {
     component: 'toast',
-    tokens: { '--toast-from': '8px' },
+    tokens: {
+        '--toast-from': '8px',
+        // The notification kind's colour, as one rebindable channel — the
+        // shape every other accent in this package uses.
+        '--toast-accent': 'var(--carbon-interactive)',
+    },
     parts: {
         viewport: {
             base: {
@@ -1698,7 +1736,7 @@ export const toast: RecipeInput = {
                 background: 'var(--color-base-200)',
                 color: 'var(--color-base-content)',
                 border: 'var(--border) solid var(--carbon-line)',
-                borderInlineStart: '3px solid var(--carbon-interactive)',
+                borderInlineStart: '3px solid var(--toast-accent)',
                 borderRadius: 'var(--radius-box)',
                 boxShadow: 'var(--shadow-lg)',
                 fontFamily: 'var(--font-sans)',
@@ -1710,6 +1748,13 @@ export const toast: RecipeInput = {
                 transition: motion('opacity, transform'),
             },
             selectors: {
+                // The kind, read off the ARIA semantics zero already renders
+                // (see the note above the recipe): an assertive toast is an
+                // error notification and takes $support-error; a polite one
+                // stays informational. `role` is the runtime's own attribute,
+                // not a styling hook this recipe invented — every toast root
+                // carries one of these two, always.
+                '&[role="alert"]': { '--toast-accent': 'var(--carbon-danger)' },
                 '&[data-placement^="top"]': { '--toast-from': '-8px' },
             },
             states: {
@@ -1718,6 +1763,11 @@ export const toast: RecipeInput = {
             },
             at: {
                 'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+                // Forced palettes drop border colours to the system's; the
+                // bar survives as a bar, but the kind does not survive as a
+                // colour. `role` is what AT reads anyway, so nothing the
+                // stylesheet could add here would tell them apart honestly.
+                'forced-colors': { base: { borderInlineStartColor: 'CanvasText' } },
             },
         },
         title: {
