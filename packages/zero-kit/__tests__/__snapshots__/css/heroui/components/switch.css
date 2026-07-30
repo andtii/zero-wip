@@ -3,6 +3,7 @@
         --switch-width: calc(var(--size-selector) * 11);
         --switch-height: calc(var(--size-selector) * 6);
         --switch-pad: calc(var(--size-selector) * 0.5);
+        --switch-thumb-edge: color-mix(in oklab, var(--hero-muted) 75%, transparent);
     }
 
     [data-scope="switch"][data-part="root"] {
@@ -40,16 +41,19 @@
         position: absolute;
         top: var(--switch-pad);
         inset-inline-start: var(--switch-pad);
+        box-sizing: border-box;
         width: calc(var(--switch-height) - var(--switch-pad) * 2);
         height: calc(var(--switch-height) - var(--switch-pad) * 2);
         border-radius: 9999px;
+        border: var(--border) solid var(--switch-thumb-edge);
         background: var(--color-base-100);
         box-shadow: var(--shadow-sm);
-        transition: translate var(--duration-fast) var(--ease-standard);
+        transition: translate var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="switch"][data-part="thumb"][data-state="checked"] {
         translate: calc(var(--switch-width) - var(--switch-height)) 0;
+        border-color: transparent;
     }
 
     [data-scope="switch"][data-part="label"] {

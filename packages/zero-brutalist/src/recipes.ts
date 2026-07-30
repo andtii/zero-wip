@@ -574,6 +574,17 @@ export const switchRecipe: RecipeInput = {
         '--switch-width': 'calc(var(--size-selector) * 14)',
         '--switch-height': 'calc(var(--size-selector) * 7)',
         '--switch-accent': 'var(--color-primary)',
+        /**
+         * The slab's ink once the track is inked — the accent's own paper, the
+         * same `--radio-on-accent` pairing the radio dot uses.
+         *
+         * Page ink on the accent is not a pairing the palette guarantees, and
+         * on the dark theme it does not hold: white on
+         * `oklch(0.72 0.2 28)` measures 2.86:1 (#228). A role and its
+         * `-content` are contrast-checked by construction — 5.08:1 light,
+         * 7.34:1 dark.
+         */
+        '--switch-on-accent': 'var(--color-primary-content)',
     },
     parts: {
         root: {
@@ -604,10 +615,13 @@ export const switchRecipe: RecipeInput = {
                 width: 'calc(var(--size-selector) * 7)',
                 height: '100%',
                 background: 'var(--color-base-content)',
-                transition: motion('transform'),
+                transition: motion('transform, background'),
             },
             states: {
-                checked: { transform: 'translateX(calc(var(--switch-width) - 100%))' },
+                checked: {
+                    transform: 'translateX(calc(var(--switch-width) - 100%))',
+                    background: 'var(--switch-on-accent)',
+                },
                 unchecked: {},
             },
         },
@@ -626,6 +640,7 @@ export const switchRecipe: RecipeInput = {
         },
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--switch-accent': `var(--color-${c})`,
+            '--switch-on-accent': `var(--color-${c}-content)`,
         } } }])),
     },
     skipStates: { root: ['focus-visible'] },

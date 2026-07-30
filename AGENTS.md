@@ -119,8 +119,11 @@ from `dist/`), then `pnpm --filter zero-playground dev`.
 Real-browser interaction tests (Playwright over the playground; press-feedback
 contract plus combobox/menu-submenu/toast interaction specs on
 chromium/firefox/webkit plus reduced-motion and forced-colors projects, and
-the state-matrix contrast audit — every text-bearing part × state combination
-× design system × theme, hard-fail below 3:1, chromium-only): `pnpm build`,
+the state-matrix contrast audit — two matrices over every state combination ×
+design system × theme, hard-fail below 3:1, chromium-only: **text legibility**
+for every text-bearing part, and **indicator paint** for every part whose job
+is paint rather than text, measured inside its real ancestor chain — the tick,
+the dot, the thumb, the range, the chevrons, the star): `pnpm build`,
 then `pnpm --filter zero-playground e2e` (first run:
 `pnpm --filter zero-playground exec playwright install`). CI runs them on
 every PR. The root `pnpm

@@ -31,11 +31,13 @@
  *   on in every shipped design system. The INDICATOR matrix is the exception:
  *   a mark's whole point is that it sits on its control's fill, which sits on
  *   the page, so there it renders inside its real ancestor chain;
- * - `box-shadow` and `border-color`, in the INDICATOR matrix — fill and glyph
- *   only. A design system may delineate a mark with a ring instead of with
- *   fill contrast (basic/daisyUI/HeroUI ring the switch's off-thumb), and this
- *   audit will still hold the FILL to 3:1 against the track. That is
- *   deliberate: a ring is a hairline, the fill is the whole shape.
+ * - `box-shadow`, in the INDICATOR matrix. A shadow is the one delineation the
+ *   reader can lose: `forced-colors: active` strips it outright. A mark whose
+ *   only separation from its backdrop is a shadow (basic/daisyUI/HeroUI all
+ *   ringed the switch's off-thumb that way) is a mark that disappears in high
+ *   contrast mode, so this audit does not count it. `border-color` IS counted —
+ *   see `borderInk`: since #232, marks are drawn geometry, and for two of the
+ *   six the stroke is the whole shape rather than a ring around a fill.
  *
  * Chromium-only: the math is engine-independent (computed colors resolved
  * through a canvas pixel, so oklch()/oklab()/color-mix() outputs all work),
@@ -417,6 +419,53 @@ for (const ds of DESIGN_SYSTEMS) {
                 };
 
                 /**
+                 * A `clip-path` that encloses no area — the mark is clipped
+                 * away, whatever it is painted in.
+                 *
+                 * This is how five of the six design systems now draw a partial
+                 * fill (#232), so reading it is load-bearing rather than
+                 * defensive: basic collapses its rating fill to a DEGENERATE
+                 * POLYGON (every point on one edge), brutalist to
+                 * `inset(0 100% 0 0)`. Measured without this, the `empty` star
+                 * reports the full-strength ink it clips entirely away, and a
+                 * blank cell reads as a passing mark.
+                 *
+                 * Percentages only: the shipped clips are all percentage-based,
+                 * and a `px` inset would need the box it is relative to. A
+                 * length reads as 0 rather than as "unknown", which can only
+                 * ever under-report a collapse — never invent one.
+                 */
+                const clipCollapsed = (clip: string): boolean => {
+                    if (!clip || clip === 'none') return false;
+                    if (/^(?:circle|ellipse)\(\s*0(?:px|%)?[\s)]/.test(clip)) return true;
+                    const inset = /^inset\(([^)]*)\)/.exec(clip);
+                    if (inset) {
+                        // The optional `round <radius>` tail changes corners, not extent.
+                        const sides = inset[1].split(/\s+round\s+/)[0].trim().split(/\s+/)
+                            .map((v) => (v.endsWith('%') ? parseFloat(v) : 0));
+                        const [t = 0, r = t, b = t, l = r] = sides;
+                        if (t + b >= 100 || l + r >= 100) return true;
+                    }
+                    const poly = /^polygon\(([^)]*)\)/.exec(clip);
+                    if (poly) {
+                        // A leading fill-rule is legal and says nothing about extent.
+                        const points = poly[1].replace(/^\s*(?:nonzero|evenodd)\s*,/, '')
+                            .split(',').map((p) => p.trim().split(/\s+/).map(parseFloat));
+                        if (points.length >= 3 && points.every((p) => p.length === 2 && p.every(Number.isFinite))) {
+                            // Shoelace: zero area means every point is collinear,
+                            // which is exactly how a "no fill" star is authored.
+                            let area = 0;
+                            for (let i = 0; i < points.length; i++) {
+                                const [x1, y1] = points[i];
+                                const [x2, y2] = points[(i + 1) % points.length];
+                                area += x1 * y2 - x2 * y1;
+                            }
+                            if (Math.abs(area) / 2 < 0.5) return true;
+                        }
+                    }
+                    return false;
+                };
+                /**
                  * Geometry that collapses a mark to nothing — the honest way to
                  * tell "unchecked, so there is no dot" from "there is a dot and
                  * nobody can see it". Both are `background: white`; only the
@@ -427,10 +476,9 @@ for (const ds of DESIGN_SYSTEMS) {
                  *   `matrix3d` equivalents (Material and brutalist grow their
                  *   radio dot from `scale(0)`);
                  * - the independent `scale` property is checked in its own
-                 *   right (HeroUI drives `translate`/`rotate`/`scale` directly);
-                 * - `clip-path` collapsed to nothing — no shipped design system
-                 *   uses it today, but #228 names it as a way to draw a mark, so
-                 *   a collapsed circle/inset counts as unpainted.
+                 *   right (HeroUI drives `translate`/`rotate`/`scale` directly,
+                 *   and carbon wipes its rating fill with `scale: 0 1`);
+                 * - `clip-path`, per `clipCollapsed` above.
                  */
                 const collapsed = (cs: CSSStyleDeclaration): boolean => {
                     const matrix = /^matrix(3d)?\(([^)]*)\)$/.exec(cs.transform);
@@ -445,15 +493,69 @@ for (const ds of DESIGN_SYSTEMS) {
                     }
                     const scale = cs.getPropertyValue('scale');
                     if (scale && scale !== 'none' && scale.split(/\s+/).some((v) => parseFloat(v) === 0)) return true;
-                    const clip = cs.getPropertyValue('clip-path');
-                    if (/^circle\(\s*0(px|%)?[\s)]/.test(clip)) return true;
-                    const inset = /^inset\(\s*([\d.]+)%\s*\)$/.exec(clip);
-                    return !!inset && parseFloat(inset[1]) >= 50;
+                    return clipCollapsed(cs.getPropertyValue('clip-path'));
                 };
                 /** Rendered at all — before asking what colour it is. */
                 const rendered = (cs: CSSStyleDeclaration): boolean =>
                     cs.display !== 'none' && cs.visibility !== 'hidden' && num(cs.opacity) > 0
                     && !collapsed(cs);
+
+                /**
+                 * The ink a glyph actually prints in.
+                 *
+                 * `-webkit-text-fill-color` WINS over `color` where both are
+                 * set, and Material's half-star sets exactly that pair: the
+                 * fill colour transparent, the glyph painted by a hard-stop
+                 * gradient clipped to the text. Reading `color` alone would
+                 * report a transparent glyph — which is why this returns the
+                 * fill colour, and why `imageInks` below exists.
+                 */
+                const glyphInk = (s: CSSStyleDeclaration): string =>
+                    s.getPropertyValue('-webkit-text-fill-color') || s.color;
+
+                /**
+                 * The colours a `background-image` paints with, in source order.
+                 *
+                 * Only consulted for a background CLIPPED TO TEXT, where the
+                 * image is the glyph's only ink. A gradient painting a BOX is
+                 * deliberately not measured: its extent is a `background-size`
+                 * this audit cannot reason about, so counting it would let a
+                 * zero-width fill layer (HeroUI's rating star) report as paint.
+                 *
+                 * Computed values have already resolved `var()` and
+                 * `color-mix()`, so the stops are concrete colour functions.
+                 */
+                const imageInks = (image: string): string[] => (image === 'none' ? [] : (
+                    image.match(/(?:rgba?|hsla?|oklch|oklab|lab|lch|color)\([^()]*\)|#[0-9a-f]{3,8}\b/gi) ?? []
+                ));
+
+                /**
+                 * The mark's own stroke, if it has one — the widest edge that
+                 * paints.
+                 *
+                 * Counted as a carrier because since #232 the stroke IS the
+                 * shape for two of the six: carbon's empty rating box is a 2px
+                 * `border-strong` frame around nothing, and brutalist's rating
+                 * cell is an `inked` frame whose FILL is deliberately the page's
+                 * own paper. Measuring fill alone reports the first as unpainted
+                 * and the second as 1:1 — both wrong about a mark the reader can
+                 * plainly see. `box-shadow` still does not count (see the file
+                 * header): a border survives `forced-colors`, a shadow does not.
+                 */
+                const borderInk = (s: CSSStyleDeclaration): string | undefined => {
+                    let widest = 0;
+                    let ink: string | undefined;
+                    for (const side of ['top', 'right', 'bottom', 'left']) {
+                        const style = s.getPropertyValue(`border-${side}-style`);
+                        if (style === 'none' || style === 'hidden') continue;
+                        const width = parseFloat(s.getPropertyValue(`border-${side}-width`));
+                        const color = s.getPropertyValue(`border-${side}-color`);
+                        if (!(width > 0) || !hasInk(color) || width <= widest) continue;
+                        widest = width;
+                        ink = color;
+                    }
+                    return ink;
+                };
 
                 const out: IndicatorReading[] = [];
 
@@ -508,18 +610,38 @@ for (const ds of DESIGN_SYSTEMS) {
                     /**
                      * Every layer that could carry the mark. A shape is a
                      * `background-color` (clip-path or border-radius only change
-                     * its outline, not what is measured); a tick drawn as a
-                     * glyph — by the recipe via `content`, or by zero as default
-                     * children — is a `color`. `opacity` is folded in, because a
-                     * mark at 0.55 really is 45% backdrop.
+                     * its outline, not what is measured) or a `border-color`; a
+                     * tick drawn as a glyph — by the recipe via `content`, or by
+                     * zero as default children — is a `color`. `opacity` is
+                     * folded in, because a mark at 0.55 really is 45% backdrop.
+                     *
+                     * A glyph is only a carrier when it can print: a design
+                     * system that draws its own geometry retires zero's fallback
+                     * symbol with `font-size: 0` (basic, brutalist, carbon) or a
+                     * transparent fill colour (HeroUI, and Material's half), and
+                     * counting a symbol that prints nothing would read as a
+                     * 1:1 failure on the very cells the geometry got right.
                      */
                     const carriers: { carrier: string; ink: string; opacity: number; over: RGB }[] = [];
+                    const prints = (s: CSSStyleDeclaration): boolean => parseFloat(s.fontSize) > 0;
+                    const clipsText = (s: CSSStyleDeclaration): boolean =>
+                        s.getPropertyValue('background-clip') === 'text'
+                        || s.getPropertyValue('-webkit-background-clip') === 'text';
                     if (rendered(cs)) {
-                        if (hasInk(cs.backgroundColor)) {
+                        if (hasInk(cs.backgroundColor) && !clipsText(cs)) {
                             carriers.push({ carrier: 'background', ink: cs.backgroundColor, opacity: selfOpacity, over: bg });
                         }
-                        if (el.textContent) {
-                            carriers.push({ carrier: 'color', ink: cs.color, opacity: selfOpacity, over: ownBg });
+                        const stroke = borderInk(cs);
+                        if (stroke) carriers.push({ carrier: 'border', ink: stroke, opacity: selfOpacity, over: bg });
+                        if (el.textContent && prints(cs)) {
+                            const ink = glyphInk(cs);
+                            if (hasInk(ink)) {
+                                carriers.push({ carrier: 'color', ink, opacity: selfOpacity, over: ownBg });
+                            } else if (clipsText(cs)) {
+                                for (const stop of imageInks(cs.backgroundImage)) {
+                                    if (hasInk(stop)) carriers.push({ carrier: 'color(clipped)', ink: stop, opacity: selfOpacity, over: ownBg });
+                                }
+                            }
                         }
                         for (const pseudo of ['::before', '::after']) {
                             const ps = getComputedStyle(el, pseudo);
@@ -528,10 +650,14 @@ for (const ds of DESIGN_SYSTEMS) {
                             if (hasInk(ps.backgroundColor)) {
                                 carriers.push({ carrier: `background${pseudo}`, ink: ps.backgroundColor, opacity, over: ownBg });
                             }
+                            const pseudoStroke = borderInk(ps);
+                            if (pseudoStroke) {
+                                carriers.push({ carrier: `border${pseudo}`, ink: pseudoStroke, opacity, over: ownBg });
+                            }
                             // A quoted, non-empty `content` is a drawn glyph;
                             // `content: ""` is a box, and has no `color` to read.
-                            if (/^(["'])(?:.|\n)+\1$/.test(ps.content)) {
-                                carriers.push({ carrier: `color${pseudo}`, ink: ps.color, opacity, over: ownBg });
+                            if (/^(["'])(?:.|\n)+\1$/.test(ps.content) && prints(ps) && hasInk(glyphInk(ps))) {
+                                carriers.push({ carrier: `color${pseudo}`, ink: glyphInk(ps), opacity, over: ownBg });
                             }
                         }
                     }
