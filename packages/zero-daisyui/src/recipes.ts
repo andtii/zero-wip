@@ -712,7 +712,12 @@ export const checkbox: RecipeInput = {
                 // One `color` declaration drives the tick's `currentColor` fill
                 // and the forced-colors glyph, exactly as daisy's does.
                 color: 'var(--checkbox-on-accent)',
-                backgroundColor: 'var(--color-base-100)',
+                // No `background-color`: daisy's unchecked `.checkbox` is
+                // TRANSPARENT (computed `rgba(0, 0, 0, 0)`), so the surface it
+                // sits on shows through. Painting `--color-base-100` here is
+                // invisible on a base-100 page and wrong on every tinted one —
+                // a checkbox in a `card` or a `base-200` panel would be an
+                // opaque white chip. `checked`/`indeterminate` fill themselves.
                 boxShadow: '0 1px var(--depth-shade) inset, 0 0 #0000 inset, 0 0 #0000',
                 backgroundSize: 'auto, calc(var(--noise) * 100%)',
                 backgroundImage: 'none, var(--fx-noise)',
@@ -721,16 +726,22 @@ export const checkbox: RecipeInput = {
                     + 'box-shadow var(--duration-normal) var(--ease-standard)',
             },
             states: {
-                // Three shadows in every state so the depth interpolates
-                // rather than switching — daisy's own list, in its own order.
+                // `checked` is the one state daisy restates the shadow list in,
+                // and this IS its list, in its order: the inset relief drops
+                // out, a sheen band lights the top of the fill, and the box
+                // gains a 1px drop. Three shadows, matching `base`'s three, so
+                // the depth interpolates rather than switching.
                 checked: {
                     backgroundColor: 'var(--checkbox-accent)',
                     boxShadow: '0 0 #0000 inset, 0 8px 0 -4px var(--depth-sheen) inset, 0 1px var(--depth-shade)',
                 },
-                indeterminate: {
-                    backgroundColor: 'var(--checkbox-accent)',
-                    boxShadow: '0 0 #0000 inset, 0 8px 0 -4px var(--depth-sheen) inset, 0 1px var(--depth-shade)',
-                },
+                // `indeterminate` takes the fill and NOTHING else: daisy's
+                // `.checkbox:indeterminate` declares no `box-shadow`, so it
+                // keeps the recessed base list — no sheen band, no outer drop.
+                // Restating `checked`'s list here (as this recipe did before)
+                // put a bright band across the top of the bar that real daisy
+                // does not have.
+                indeterminate: { backgroundColor: 'var(--checkbox-accent)' },
                 unchecked: {},
                 'focus-visible': { outline: '2px solid var(--checkbox-accent)', outlineOffset: '2px' },
                 // `invalid` is semantic, not an accent: it stays error under

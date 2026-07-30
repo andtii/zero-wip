@@ -30,7 +30,6 @@
         border: var(--border) solid var(--checkbox-accent, color-mix(in oklab, var(--color-base-content) 20%, #0000));
         border-radius: var(--radius-selector);
         color: var(--checkbox-on-accent);
-        background-color: var(--color-base-100);
         box-shadow: 0 1px var(--depth-shade) inset, 0 0 #0000 inset, 0 0 #0000;
         background-size: auto, calc(var(--noise) * 100%);
         background-image: none, var(--fx-noise);
@@ -45,7 +44,6 @@
 
     [data-scope="checkbox"][data-part="control"][data-state="indeterminate"] {
         background-color: var(--checkbox-accent);
-        box-shadow: 0 0 #0000 inset, 0 8px 0 -4px var(--depth-sheen) inset, 0 1px var(--depth-shade);
     }
 
     [data-scope="checkbox"][data-part="control"][data-focus-visible] {
