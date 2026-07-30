@@ -48,7 +48,7 @@
     [data-scope="number-input"][data-part="control"][data-focus-visible] {
         outline: 2px solid var(--color-primary);
         outline-offset: 2px;
-        border-color: var(--number-input-accent);
+        border-color: var(--color-primary);
     }
 
     [data-scope="number-input"][data-part="control"][data-invalid][data-focus-visible] {
@@ -64,6 +64,7 @@
         outline: none;
         background: transparent;
         color: inherit;
+        caret-color: var(--number-input-accent);
         font: inherit;
         font-size: var(--text-sm);
         font-variant-numeric: tabular-nums;

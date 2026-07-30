@@ -30,10 +30,14 @@ const focusRing: Record<string, PartStyles['base']> = {
  * exceptions rather than hoped about:
  * - `neutral` is a fill, not an ink — near-invisible on its own dark-theme
  *   tint (1.45:1). Base-content is the correct ink in both themes.
- * - `warning` is a light ink in the light theme (2.85:1 on its tint).
+ * - `warning` is a light ink in the light theme (2.84:1 on its tint).
  *   A recipe cannot scope a rule to one theme, so the fix must be symmetric:
  *   deepening toward base-content keeps the warm hue and lands on the
  *   readable side in BOTH schemes, because base-content flips with them.
+ *   Measured (oklch→sRGB→WCAG, against the shipped token values): the 45/55
+ *   mix computes 6.67:1 on the light warning tint and 7.36:1 on light paper;
+ *   9.90:1 and 12.35:1 in dark — every surface ≥6.3:1, ≥2.1× the audit's
+ *   3:1 hard floor.
  */
 const softInk = (role: string): string =>
     role === 'neutral' ? 'var(--color-base-content)'
@@ -52,6 +56,12 @@ const hairline = 'var(--border) solid var(--color-base-300)';
  * `overlaySurface`), where a `base-200` wash would vanish. Mixing
  * `base-content` at 6%/12% reads as one/two steps of ink density on any
  * surface, in both schemes.
+ *
+ * THE RULE: every piece of furniture — tabs, toggles, triggers, steppers,
+ * rows — hovers with `inkWash` and presses with `inkWashDeep`, one dialect
+ * everywhere. Opaque `base-200`/`base-300` fills are reserved for exactly one
+ * idiom, the button's ghost variant, whose wash-then-ink grammar is its own
+ * signature (see the `ghost` fill in `button`).
  */
 const inkWash = 'color-mix(in oklch, var(--color-base-content) 6%, transparent)';
 const inkWashDeep = 'color-mix(in oklch, var(--color-base-content) 12%, transparent)';
@@ -263,7 +273,7 @@ export const tabs: RecipeInput = {
                     + 'border-color var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                hover: { color: 'var(--color-base-content)', background: 'var(--color-base-200)' },
+                hover: { color: 'var(--color-base-content)', background: inkWash },
                 // Selection stays weight 500 — the accent ink and the 2px bar
                 // do the work, so the label never reflows on activation.
                 active: { color: 'var(--tabs-accent)', borderBottomColor: 'var(--tabs-accent)' },
@@ -271,6 +281,7 @@ export const tabs: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
+            selectors: { ...pressedInk },
         },
         panel: {
             base: { fontSize: 'var(--text-md)', fontVariantNumeric: 'tabular-nums' },
@@ -648,6 +659,13 @@ export const menu: RecipeInput = {
                 alignItems: 'center',
                 gap: 'var(--space-md)',
                 padding: 'var(--space-sm) var(--space-lg)',
+                // The marker rail: a transparent 2px border-inline-start with
+                // the padding pulled back by the same 2px, so inking the
+                // marker never reflows the row — and, being logical, the bar
+                // sits on the reading-start edge under RTL too (an inset
+                // box-shadow would stay physically left).
+                borderInlineStart: '2px solid transparent',
+                paddingInlineStart: 'calc(var(--space-lg) - 2px)',
                 fontSize: 'var(--text-sm)',
                 fontVariantNumeric: 'tabular-nums',
                 borderRadius: 'var(--radius-selector)',
@@ -661,7 +679,7 @@ export const menu: RecipeInput = {
                 // the page ink; the marker does the signalling.
                 highlighted: {
                     background: 'var(--color-primary-soft)',
-                    boxShadow: 'inset 2px 0 0 var(--color-primary)',
+                    borderInlineStartColor: 'var(--color-primary)',
                 },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
@@ -675,6 +693,9 @@ export const menu: RecipeInput = {
                 alignItems: 'center',
                 gap: 'var(--space-md)',
                 padding: 'var(--space-sm) var(--space-lg)',
+                // The marker rail — see `item`.
+                borderInlineStart: '2px solid transparent',
+                paddingInlineStart: 'calc(var(--space-lg) - 2px)',
                 fontSize: 'var(--text-sm)',
                 fontVariantNumeric: 'tabular-nums',
                 borderRadius: 'var(--radius-selector)',
@@ -691,7 +712,7 @@ export const menu: RecipeInput = {
                 closed: {},
                 highlighted: {
                     background: 'var(--color-primary-soft)',
-                    boxShadow: 'inset 2px 0 0 var(--color-primary)',
+                    borderInlineStartColor: 'var(--color-primary)',
                 },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
@@ -1030,7 +1051,13 @@ export const progress: RecipeInput = {
 
 export const slider: RecipeInput = {
     component: 'slider',
-    tokens: { '--slider-accent': 'var(--color-primary)' },
+    // Track and thumb metrics ride the ramp: the channel matches progress's
+    // sizes step for step, the disc matches checkbox's.
+    tokens: {
+        '--slider-accent': 'var(--color-primary)',
+        '--slider-track-size': 'calc(var(--size-selector) * 2)',
+        '--slider-thumb-size': 'calc(var(--size-selector) * 5)',
+    },
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)', width: '100%' },
@@ -1046,14 +1073,90 @@ export const slider: RecipeInput = {
             },
             states: { disabled: {} },
         },
+        // A custom skin (`appearance: none`), drawn with Monograph's own
+        // instruments: the track is the same channel progress draws —
+        // `base-200` under an inset hairline, 9999px — with the filled span
+        // reading the runtime-published `--slider-percent` as a gradient
+        // stop, and the thumb is the switch's paper disc — `base-100` inside
+        // its own hairline, no shadow (nothing at rest casts one).
+        //
+        // The rebuild is also the correctness move (see the kit skill): Blink
+        // ignores thumb-pseudo styling on a native range, and treats range
+        // inputs as ALWAYS `:focus-visible` — even on mouse focus — so a
+        // pseudo-class ring would read as a stuck rectangle after every
+        // pointer drag. The kit compiles this part's `focus-visible` state to
+        // the runtime's `[data-focus-visible]` flag (keyboard semantics), so
+        // the base kills the native outline and the state draws the one
+        // petrol ring only when it means it.
         control: {
-            base: { width: '100%', accentColor: 'var(--slider-accent)', cursor: 'pointer' },
+            base: {
+                appearance: 'none',
+                width: '100%',
+                height: 'var(--slider-thumb-size)',
+                margin: '0',
+                background: 'transparent',
+                cursor: 'pointer',
+                outline: 'none',
+                // Kept for the forced-colors fallback below, where native
+                // rendering takes over and still honours the accent.
+                accentColor: 'var(--slider-accent)',
+                '--slider-thumb-ink': 'var(--color-base-100)',
+                '--slider-track':
+                    'linear-gradient(to right, var(--slider-accent) var(--slider-percent, 50%), var(--color-base-200) 0)',
+            },
             states: {
                 disabled: { cursor: 'not-allowed' },
                 // One-ink focus — petrol for every role; the accent shows in
                 // the track, not the ring.
                 'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
-                invalid: { accentColor: 'var(--color-error)' },
+                // `invalid` is semantic: the accent indirection swaps the
+                // fill (and the forced-colors fallback) to error under every
+                // colour variant, on purpose.
+                invalid: { '--slider-accent': 'var(--color-error)' },
+                // Pressed is instantaneous ink on the paper disc — one film
+                // of `base-content`, the same 6% step everything else sinks
+                // by. A drag has no one-shot, so nothing animates.
+                pressed: { '--slider-thumb-ink': 'color-mix(in oklch, var(--color-base-content) 6%, var(--color-base-100))' },
+            },
+            selectors: {
+                // Vendor pseudos cannot share a selector list — one unknown
+                // selector invalidates the whole rule — so each engine gets
+                // its own copy reading the shared custom properties.
+                '&::-webkit-slider-runnable-track': {
+                    height: 'var(--slider-track-size)',
+                    borderRadius: '9999px',
+                    background: 'var(--slider-track)',
+                    boxShadow: 'inset 0 0 0 var(--border) var(--color-base-300)',
+                },
+                '&::-webkit-slider-thumb': {
+                    appearance: 'none',
+                    width: 'var(--slider-thumb-size)',
+                    height: 'var(--slider-thumb-size)',
+                    marginTop: 'calc((var(--slider-track-size) - var(--slider-thumb-size)) / 2)',
+                    borderRadius: '9999px',
+                    border: 'none',
+                    background: 'var(--slider-thumb-ink)',
+                    boxShadow: 'inset 0 0 0 var(--border) var(--color-base-300)',
+                },
+                '&::-moz-range-track': {
+                    height: 'var(--slider-track-size)',
+                    borderRadius: '9999px',
+                    background: 'var(--slider-track)',
+                    boxShadow: 'inset 0 0 0 var(--border) var(--color-base-300)',
+                },
+                '&::-moz-range-thumb': {
+                    width: 'var(--slider-thumb-size)',
+                    height: 'var(--slider-thumb-size)',
+                    borderRadius: '9999px',
+                    border: 'none',
+                    background: 'var(--slider-thumb-ink)',
+                    boxShadow: 'inset 0 0 0 var(--border) var(--color-base-300)',
+                },
+            },
+            at: {
+                // Native rendering knows forced colors better than a custom
+                // skin; the retained accentColor keeps the fallback branded.
+                'forced-colors': { base: { appearance: 'auto' } },
             },
         },
         'value-text': {
@@ -1068,14 +1171,14 @@ export const slider: RecipeInput = {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--slider-accent': `var(--color-${c})`,
         } } }])),
-        // A native range widget: only its box height is size-able without an
-        // appearance:none rebuild, so the ramp moves the box and the text.
         size: {
-            xs: { control: { base: { height: 'calc(var(--size-selector) * 3)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
-            sm: { control: { base: { height: 'calc(var(--size-selector) * 4)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
-            md: { label: { base: { fontSize: 'var(--text-sm)' } } },
-            lg: { control: { base: { height: 'calc(var(--size-selector) * 7)' } }, label: { base: { fontSize: 'var(--text-md)' } } },
-            xl: { control: { base: { height: 'calc(var(--size-selector) * 8)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
+            xs: { root: { base: { '--slider-track-size': 'var(--size-selector)', '--slider-thumb-size': 'calc(var(--size-selector) * 4)' } }, label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { '--slider-track-size': 'calc(var(--size-selector) * 1.5)', '--slider-thumb-size': 'calc(var(--size-selector) * 4.5)' } }, label: { base: { fontSize: 'var(--text-sm)' } } },
+            // `md` is the un-attributed render — the defaults in `tokens:`
+            // already ARE the middle step.
+            md: {},
+            lg: { root: { base: { '--slider-track-size': 'calc(var(--size-selector) * 3)', '--slider-thumb-size': 'calc(var(--size-selector) * 6)' } }, label: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { '--slider-track-size': 'calc(var(--size-selector) * 4)', '--slider-thumb-size': 'calc(var(--size-selector) * 7)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
         },
     },
     skipStates: { root: ['invalid', 'focus-visible'] },
@@ -1182,12 +1285,23 @@ export const select: RecipeInput = {
                 closed: {},
                 invalid: { borderColor: 'var(--color-error)' },
                 placeholder: {},
-                ...focusRing,
+                // One-ink focus: the border swaps to primary under the offset
+                // petrol ring — every field makes the same move; the role
+                // accent surfaces on `open`, not here.
+                'focus-visible': {
+                    outline: '2px solid var(--color-primary)',
+                    outlineOffset: '2px',
+                    borderColor: 'var(--color-primary)',
+                },
             },
             selectors: {
                 // The one focus exception: an invalid field rings in error —
                 // the established error-signal convention outranks one-ink.
-                '&[data-invalid][data-focus-visible]': { outline: '2px solid var(--color-error)' },
+                '&[data-invalid][data-focus-visible]': {
+                    outline: '2px solid var(--color-error)',
+                    borderColor: 'var(--color-error)',
+                },
+                ...pressedInk,
             },
         },
         value: {
@@ -1215,22 +1329,31 @@ export const select: RecipeInput = {
                 justifyContent: 'space-between',
                 gap: 'var(--space-md)',
                 padding: 'var(--space-sm) var(--space-lg)',
+                // The marker rail — see menu's `item`: logical, so the bar
+                // flips with the reading direction, padded back so the marker
+                // never reflows the row.
+                borderInlineStart: '2px solid transparent',
+                paddingInlineStart: 'calc(var(--space-lg) - 2px)',
                 fontSize: 'var(--text-sm)',
                 fontVariantNumeric: 'tabular-nums',
                 borderRadius: 'var(--radius-selector)',
                 cursor: 'pointer',
             },
             states: {
-                // The margin marker (density rule): the roving position gets
-                // a 2px accent bar over the soft wash — one line per row,
-                // never a filled block, and the text keeps the page ink.
-                highlighted: {
+                // `highlighted` before `selected`: the roving position is one
+                // film of ink — plain hover grammar — and when it lands on
+                // the chosen row the later-emitted `selected` wash must win
+                // (the #116 lesson, and tree-view's exact ordering).
+                highlighted: { background: inkWash },
+                // The margin marker (density rule) belongs to SELECTION, as
+                // in tree-view: soft wash plus the 2px inset-start accent bar
+                // — one line per chosen row, never a filled block. Weight
+                // stays 500 throughout, so labels never reflow; the indicator
+                // glyph and the marker carry the state.
+                selected: {
                     background: 'var(--select-soft)',
-                    boxShadow: 'inset 2px 0 0 var(--select-accent)',
+                    borderInlineStartColor: 'var(--select-accent)',
                 },
-                // Selection stays weight 500 — the indicator glyph and the
-                // marker do the work.
-                selected: { fontWeight: 'var(--weight-medium)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
         },
@@ -1549,11 +1672,13 @@ export const toast: RecipeInput = {
                 background: overlaySurface,
                 color: 'var(--color-base-content)',
                 border: hairline,
+                // The margin marker carries the role: the inline-start
+                // hairline thickens to a 2px accent bar — logical, so it
+                // flips with the reading direction. The single honest `lg`
+                // shadow rides alone (in dark it brings the moonlit top edge).
+                borderInlineStart: '2px solid var(--toast-accent)',
                 borderRadius: 'var(--radius-box)',
-                // The margin marker carries the role: a 2px accent bar drawn
-                // inside the hairline, listed ahead of the single honest `lg`
-                // shadow (which in dark brings the moonlit top edge with it).
-                boxShadow: 'inset 2px 0 0 var(--toast-accent), var(--shadow-lg)',
+                boxShadow: 'var(--shadow-lg)',
                 fontSize: 'var(--text-sm)',
                 fontVariantNumeric: 'tabular-nums',
                 opacity: '0',
@@ -1667,12 +1792,22 @@ export const combobox: RecipeInput = {
                 closed: {},
                 invalid: { borderColor: 'var(--color-error)' },
                 disabled: { opacity: 'var(--disabled-opacity)' },
-                ...focusRing,
+                // One-ink focus: the border swaps to primary under the offset
+                // petrol ring — every field makes the same move; the role
+                // accent surfaces on `open`, not here.
+                'focus-visible': {
+                    outline: '2px solid var(--color-primary)',
+                    outlineOffset: '2px',
+                    borderColor: 'var(--color-primary)',
+                },
             },
             selectors: {
                 // The one focus exception: an invalid field rings in error —
                 // the established error-signal convention outranks one-ink.
-                '&[data-invalid][data-focus-visible]': { outline: '2px solid var(--color-error)' },
+                '&[data-invalid][data-focus-visible]': {
+                    outline: '2px solid var(--color-error)',
+                    borderColor: 'var(--color-error)',
+                },
             },
         },
         input: {
@@ -1717,6 +1852,9 @@ export const combobox: RecipeInput = {
                 closed: {},
                 disabled: { cursor: 'not-allowed' },
             },
+            // The chevron is furniture inside the well, so it presses like
+            // furniture: two films of ink, landing instantly.
+            selectors: { ...pressedInk },
         },
         popup: withPresence(popupPresence('translateY(4px)'), {
             base: {
@@ -1733,22 +1871,31 @@ export const combobox: RecipeInput = {
                 justifyContent: 'space-between',
                 gap: 'var(--space-md)',
                 padding: 'var(--space-sm) var(--space-lg)',
+                // The marker rail — see menu's `item`: logical, so the bar
+                // flips with the reading direction, padded back so the marker
+                // never reflows the row.
+                borderInlineStart: '2px solid transparent',
+                paddingInlineStart: 'calc(var(--space-lg) - 2px)',
                 fontSize: 'var(--text-sm)',
                 fontVariantNumeric: 'tabular-nums',
                 borderRadius: 'var(--radius-selector)',
                 cursor: 'pointer',
             },
             states: {
-                // The margin marker (density rule): the roving position gets
-                // a 2px accent bar over the soft wash — one line per row,
-                // never a filled block, and the text keeps the page ink.
-                highlighted: {
+                // `highlighted` before `selected`: the roving position is one
+                // film of ink — plain hover grammar — and when it lands on
+                // the chosen row the later-emitted `selected` wash must win
+                // (the #116 lesson, and tree-view's exact ordering).
+                highlighted: { background: inkWash },
+                // The margin marker (density rule) belongs to SELECTION, as
+                // in tree-view: soft wash plus the 2px inset-start accent bar
+                // — one line per chosen row, never a filled block. Weight
+                // stays 500 throughout, so labels never reflow; the indicator
+                // glyph and the marker carry the state.
+                selected: {
                     background: 'var(--combobox-soft)',
-                    boxShadow: 'inset 2px 0 0 var(--combobox-accent)',
+                    borderInlineStartColor: 'var(--combobox-accent)',
                 },
-                // Selection stays weight 500 — the indicator glyph and the
-                // marker do the work.
-                selected: { fontWeight: 'var(--weight-medium)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
         },
@@ -1820,7 +1967,7 @@ export const toggle: RecipeInput = {
                     + 'border-color var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                hover: { background: 'var(--color-base-200)' },
+                hover: { background: inkWash },
                 on: {
                     background: 'var(--toggle-soft)',
                     color: 'var(--toggle-ink)',
@@ -1840,13 +1987,7 @@ export const toggle: RecipeInput = {
                 '&[data-state="on"]:hover': {
                     background: 'color-mix(in oklch, var(--toggle-accent) 6%, var(--toggle-soft))',
                 },
-                // Press is instantaneous ink, never a transform; the release
-                // still eases back at `fast`. Outranks hover by an attribute;
-                // the :not covers a press that goes disabled mid-gesture.
-                '&[data-pressed]:not([data-disabled])': {
-                    background: 'var(--color-base-300)',
-                    transition: 'none',
-                },
+                ...pressedInk,
             },
         },
     },
@@ -1902,6 +2043,7 @@ export const toggleGroup: RecipeInput = {
         item: {
             base: {
                 appearance: 'none',
+                position: 'relative',
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1920,11 +2062,10 @@ export const toggleGroup: RecipeInput = {
                     + 'color var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                hover: { background: 'var(--color-base-200)' },
+                hover: { background: inkWash },
                 on: {
                     background: 'var(--toggle-group-soft)',
                     color: 'var(--toggle-group-ink)',
-                    boxShadow: 'inset 2px 0 0 var(--toggle-group-accent)',
                 },
                 off: {},
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
@@ -1937,6 +2078,21 @@ export const toggleGroup: RecipeInput = {
                 },
             },
             selectors: {
+                // The margin marker, as an overlay: the inline-start edge
+                // doubles as the joined-segment separator, so the bar is a
+                // positioned pseudo rather than a border — logical
+                // `inset-inline-start`, so it flips with the reading
+                // direction (and squares exactly: joined items carry no
+                // radius of their own).
+                '&[data-state="on"]::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlock: '0',
+                    insetInlineStart: '0',
+                    width: '2px',
+                    background: 'var(--toggle-group-accent)',
+                    pointerEvents: 'none',
+                },
                 // Hover on an on segment raises the tint one step; the marker
                 // rides along.
                 '&[data-state="on"]:hover': {
@@ -1948,11 +2104,7 @@ export const toggleGroup: RecipeInput = {
                 '&[data-orientation="vertical"] + &': {
                     borderBlockStart: 'var(--border) solid var(--color-base-300)',
                 },
-                // Press is instantaneous ink; outranks hover and the on wash.
-                '&[data-pressed]:not([data-disabled])': {
-                    background: 'var(--color-base-300)',
-                    transition: 'none',
-                },
+                ...pressedInk,
             },
         },
     },
@@ -2012,7 +2164,8 @@ export const numberInput: RecipeInput = {
         // The field chrome (combobox split): a well of paper with the
         // full-perimeter hairline; the ring and the invalid tint draw on the
         // box, input and steppers sit inside it. Focus swaps the border to
-        // the accent under the one-ink petrol ring.
+        // primary under the petrol ring — the same one-ink move select and
+        // combobox make.
         control: {
             base: {
                 display: 'inline-flex',
@@ -2031,7 +2184,7 @@ export const numberInput: RecipeInput = {
                 'focus-visible': {
                     outline: '2px solid var(--color-primary)',
                     outlineOffset: '2px',
-                    borderColor: 'var(--number-input-accent)',
+                    borderColor: 'var(--color-primary)',
                 },
             },
             selectors: {
@@ -2052,6 +2205,11 @@ export const numberInput: RecipeInput = {
                 outline: 'none',
                 background: 'transparent',
                 color: 'inherit',
+                // Where the role accent surfaces: the caret writes in the
+                // role's ink (a number input has no `open` state to carry
+                // it, and the focus border is one-ink primary like every
+                // other field).
+                caretColor: 'var(--number-input-accent)',
                 font: 'inherit',
                 fontSize: 'var(--text-sm)',
                 fontVariantNumeric: 'tabular-nums',
@@ -2111,8 +2269,9 @@ export const numberInput: RecipeInput = {
     // The visible ring lives on `control`; the input delegates.
     skipStates: { input: ['focus-visible'] },
     variants: {
-        // The focused border carries the role — the chrome is neutral and
-        // the ring is always petrol, so the accent surfaces only under it.
+        // The caret carries the role — the chrome is neutral, the ring is
+        // always petrol, and the focus border is one-ink primary, so the
+        // accent surfaces only where the value is written.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--number-input-accent': `var(--color-${c})`,
         } } }])),
@@ -2253,6 +2412,11 @@ export const treeView: RecipeInput = {
                 alignItems: 'center',
                 gap: 'var(--space-xs)',
                 padding: '0.25rem 0.5rem',
+                // The marker rail — see menu's `item`: logical, so the bar
+                // flips with the reading direction, padded back so the marker
+                // never reflows the row.
+                borderInlineStart: '2px solid transparent',
+                paddingInlineStart: 'calc(0.5rem - 2px)',
                 fontVariantNumeric: 'tabular-nums',
                 borderRadius: 'var(--radius-selector)',
                 cursor: 'pointer',
@@ -2268,7 +2432,7 @@ export const treeView: RecipeInput = {
                 // filled block, and the text keeps the page ink.
                 selected: {
                     background: 'var(--tree-soft)',
-                    boxShadow: 'inset 2px 0 0 var(--tree-accent)',
+                    borderInlineStartColor: 'var(--tree-accent)',
                 },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 // Inset ring: rows sit flush against their siblings, so an
@@ -2288,6 +2452,9 @@ export const treeView: RecipeInput = {
                 alignItems: 'center',
                 gap: 'var(--space-xs)',
                 padding: '0.25rem 0.5rem',
+                // The marker rail — see `item`.
+                borderInlineStart: '2px solid transparent',
+                paddingInlineStart: 'calc(0.5rem - 2px)',
                 fontVariantNumeric: 'tabular-nums',
                 borderRadius: 'var(--radius-selector)',
                 cursor: 'pointer',
@@ -2302,7 +2469,7 @@ export const treeView: RecipeInput = {
                 // current position, not a different species of selection.
                 selected: {
                     background: 'var(--tree-soft)',
-                    boxShadow: 'inset 2px 0 0 var(--tree-accent)',
+                    borderInlineStartColor: 'var(--tree-accent)',
                 },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '-2px' },

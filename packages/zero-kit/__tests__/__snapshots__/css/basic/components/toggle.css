@@ -24,7 +24,7 @@
     }
 
     [data-scope="toggle"][data-part="root"]:hover:not([data-disabled]) {
-        background: var(--color-base-200);
+        background: color-mix(in oklch, var(--color-base-content) 6%, transparent);
     }
 
     [data-scope="toggle"][data-part="root"][data-state="on"] {
@@ -48,7 +48,7 @@
     }
 
     [data-scope="toggle"][data-part="root"][data-pressed]:not([data-disabled]) {
-        background: var(--color-base-300);
+        background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
         transition: none;
     }
 

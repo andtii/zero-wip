@@ -68,8 +68,9 @@
         background: light-dark(var(--color-base-100), var(--color-base-200));
         color: var(--color-base-content);
         border: var(--border) solid var(--color-base-300);
+        border-inline-start: 2px solid var(--toast-accent);
         border-radius: var(--radius-box);
-        box-shadow: inset 2px 0 0 var(--toast-accent), var(--shadow-lg);
+        box-shadow: var(--shadow-lg);
         font-size: var(--text-sm);
         font-variant-numeric: tabular-nums;
         opacity: 0;
