@@ -168,11 +168,22 @@ describe('report.schema.json', () => {
         expect(validateReport(asJson({ ...(reportNamed('basic') as object), vendor: 'acme' }))).toBe(false);
     });
 
-    it('rejects `variant` in declaredOut', () => {
-        // Only colour and size can be declared out of existence — an omitted
-        // `tokens.variants` means "declared nothing", not "no variant axis".
+    it('accepts `variant` in declaredOut', () => {
+        // All three named axes can be declared out of existence, by an
+        // explicitly empty declaration: `roles: {}`, `sizes: []`,
+        // `variants: []` (#200). An OMITTED `tokens.variants` still means
+        // "declared nothing" and is why `undeclaredAxes` needs
+        // `variantsDeclared` rather than a bare length test.
+        const ok = asJson(reportNamed('basic')) as { vocabulary: { declaredOut: string[] } };
+        ok.vocabulary.declaredOut.push('variant');
+        expectValid(validateReport, ok, 'basic report with variant declared out');
+    });
+
+    it('rejects an axis nobody can declare out of existence', () => {
+        // The enum is closed to the three named axes. A custom axis has no named
+        // prop to switch off — it exists because `tokens.axes` named it.
         const bad = asJson(reportNamed('basic')) as { vocabulary: { declaredOut: string[] } };
-        bad.vocabulary.declaredOut.push('variant');
+        bad.vocabulary.declaredOut.push('density');
         expect(validateReport(bad)).toBe(false);
     });
 

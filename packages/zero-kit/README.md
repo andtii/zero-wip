@@ -119,6 +119,16 @@ variants: { density: { compact: { root: { base: { paddingBlock: '0.15rem' } } } 
 
 Axis names are kebab-case and may not be ones the anatomy contract owns
 (`scope`, `part`, `state`, `orientation`, or any flag) — see `RESERVED_AXES`.
+Axis *values* are held to a laxer grammar than names, because a value only ever
+lands inside a quoted attribute selector and is never a custom-property tail:
+`danger--tertiary` and `105%` are legal values, while an axis *name* or a
+modifier name still has to be plain kebab-case.
+
+`roles: {}`, `sizes: []` and `variants: []` each declare that the design system
+has **no such axis** — every component then types that prop `never`. Omitting
+the key is a different statement: `roles`/`sizes` fall back to the recommended
+vocabulary, and an omitted `variants` leaves the axis undeclared and its recipe
+values unchecked.
 
 Both halves of the token contract work the same way: a **closed set of
 categories**, each fixing a `--prefix-` and a value grammar, with **open keys
