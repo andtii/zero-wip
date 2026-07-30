@@ -237,30 +237,53 @@ const skipsPair = (c: Case, part: string, a: string, b: string): boolean => {
 };
 
 /**
- * Is this pair one the runtime differentiates by PRESENCE rather than by CSS?
+ * The exemption `skipStates` cannot express, because it is not a design
+ * system's claim to make.
  *
- * The one exemption `skipStates` cannot express, because it is not a design
- * system's claim to make. Avatar's three states are CSS-identical in all six
- * design systems and that is correct: zero sets `hidden` on the image while
- * `error` and on the fallback while `loaded`, so a rule for those states can
- * never paint. Stating it through `skipStates` would mean six design systems
- * each restating a fact about zero's runtime; stating it here (as this file
- * did until #227) means a test carrying a hand-maintained table of it. It is
- * the anatomy's fact, so the anatomy declares it — `PartSpec.hiddenIn`, read
- * back out of the manifest. A part rename now breaks the declaration at its
- * source instead of quietly widening an allowlist here.
+ * Avatar's three states are CSS-identical in all six design systems and that
+ * is correct: zero sets `hidden` on the image while `error` and on the
+ * fallback while `loaded`, so a rule for those states can never paint. Stating
+ * it through `skipStates` would mean six design systems each restating a fact
+ * about zero's runtime; stating it here (as this file did until #227) means a
+ * test carrying a hand-maintained table of it. It is the anatomy's fact, so
+ * the anatomy declares it — `PartSpec.hiddenIn`, read back out of the
+ * manifest. A part rename now breaks the declaration at its source instead of
+ * quietly widening an allowlist here.
  *
- * Unlike `skipStates` this reads with `some` over the parts, not `every`: a
- * skip is a WAIVER, which every part owning the states has to sign, whereas
- * `hiddenIn` is a DIFFERENTIATION — one part appearing and disappearing is
- * enough for the component to tell the two states apart, exactly as one part
- * painting them differently is.
+ * It reaches the two assertions as two different questions, below.
  */
-const runtimeHides = (c: Case, parts: readonly string[], a: string, b: string): boolean =>
+const hiddenStates = (c: Case, part: string): readonly string[] =>
+    c.component.parts.find((p) => p.name === part)?.hiddenIn ?? [];
+
+/**
+ * Does PRESENCE tell `a` from `b` — is some part rendered in exactly one of
+ * them? Assertion A's question, and the reason `hiddenIn` reads with `some`
+ * over the parts where `skipStates` reads with `every`: a skip is a WAIVER,
+ * which every part carrying those states has to sign, whereas appearing and
+ * disappearing is a DIFFERENCE — one part making it is enough, exactly as one
+ * part painting the states differently is.
+ *
+ * EXACTLY one, though. A part hidden in BOTH states is absent either way and
+ * so differentiates nothing; the pair still has to be legible somewhere, and
+ * `hidden.includes(a) || hidden.includes(b)` would have quietly excused it.
+ */
+const presenceDiffers = (c: Case, parts: readonly string[], a: string, b: string): boolean =>
     parts.some((name) => {
-        const hidden = c.component.parts.find((p) => p.name === name)?.hiddenIn ?? [];
-        return hidden.includes(a) || hidden.includes(b);
+        const hidden = hiddenStates(c, name);
+        return hidden.includes(a) !== hidden.includes(b);
     });
+
+/**
+ * Can this part's own CSS be asked to tell `a` from `b` at all? Assertion B's
+ * question, and it is the OR: a rule for a hidden state never paints, so if
+ * the runtime hides the part in EITHER state, demanding a visible difference
+ * demands something no recipe can supply. (When it hides the part in exactly
+ * one, the reader can still tell them apart — the part is simply gone.)
+ */
+const cannotPaintPair = (c: Case, part: string, a: string, b: string): boolean => {
+    const hidden = hiddenStates(c, part);
+    return hidden.includes(a) || hidden.includes(b);
+};
 
 /**
  * ASSERTION A, for one component — at COMPONENT level, not part level.
@@ -294,7 +317,7 @@ function componentFindings(c: Case): string[] {
             // both rendering nothing (#212). `hiddenIn`, in contrast, states a
             // difference rather than waiving one, so one matching part is enough.
             if (owners.every((p) => skipsPair(c, p, a, b))) continue;
-            if (runtimeHides(c, owners, a, b)) continue;
+            if (presenceDiffers(c, owners, a, b)) continue;
             if (c.groups.some((g) => distinguishes(c.rules, g, a, b))) continue;
             findings.push(
                 `${c.ds}/${c.scope}: states "${a}" and "${b}" are visually identical — no `
@@ -323,7 +346,7 @@ function indicatorFindings(c: Case): string[] {
         const own = c.groups.filter((g) => g === part.name || g.startsWith(`${part.name}::`));
         const alike = pairsOf(part.states).filter(([a, b]) =>
             !skipsPair(c, part.name, a, b)
-            && !runtimeHides(c, [part.name], a, b)
+            && !cannotPaintPair(c, part.name, a, b)
             && !own.some((g) => distinguishes(c.rules, g, a, b)));
         if (!alike.length) continue;
         const pairs = alike.map(([a, b]) => `"${a}"/"${b}"`).join(', ');
@@ -373,7 +396,7 @@ describe('state legibility', () => {
         // silent here despite painting all three identically everywhere.
         const c = CASES.find((x) => x.ds === 'basic' && x.scope === 'avatar')!;
         for (const [a, b] of pairsOf(['loading', 'loaded', 'error'])) {
-            expect(runtimeHides(c, ['root', 'image', 'fallback'], a, b), `${a}/${b}`).toBe(true);
+            expect(presenceDiffers(c, ['root', 'image', 'fallback'], a, b), `${a}/${b}`).toBe(true);
         }
     });
 });
@@ -405,11 +428,11 @@ describe('the guard\'s own teeth', () => {
         return { c: caseOf('fixture', component, recipe, css), css };
     };
 
-    /** The same checkbox, but the runtime hides `indicator` while indeterminate. */
-    const hidingIndicator: ManifestComponent = {
+    /** The same checkbox, but the runtime hides `indicator` in the given states. */
+    const hidingIndicator = (...hiddenIn: string[]): ManifestComponent => ({
         ...checkbox,
-        parts: checkbox.parts.map((p) => (p.name === 'indicator' ? { ...p, hiddenIn: ['indeterminate'] } : p)),
-    };
+        parts: checkbox.parts.map((p) => (p.name === 'indicator' ? { ...p, hiddenIn } : p)),
+    });
 
     /** A control that says "selected" without saying which kind — as they all do. */
     const control: PartStyles = {
@@ -535,12 +558,27 @@ describe('the guard\'s own teeth', () => {
         expect(indicatorFindings(before.c)[0]).toContain('"checked"/"indeterminate"');
         expect(componentFindings(before.c)).toHaveLength(1);
 
-        const { c } = fixture({ control, indicator: blind }, undefined, hidingIndicator);
+        const { c } = fixture({ control, indicator: blind }, undefined, hidingIndicator('indeterminate'));
         // A state that never paints cannot be reported for not painting…
         expect(indicatorFindings(c)[0]).not.toContain('"indeterminate"');
         expect(componentFindings(c)).toEqual([]);
         // …and every other pair still has to earn its difference.
         expect(indicatorFindings(c)[0]).toContain('"checked"/"unchecked"');
+    });
+
+    it('does not let a part hidden in BOTH states excuse the component', () => {
+        // Presence differentiates only when the part is there in one state and
+        // gone in the other. Hidden in both, it is absent either way and says
+        // nothing — so the component still owes the reader a difference, and
+        // reading `hiddenIn` as "either state is listed" would have waived it.
+        const { c } = fixture({ control, indicator: blind }, undefined,
+            hidingIndicator('checked', 'indeterminate'));
+        expect(componentFindings(c)).toHaveLength(1);
+        expect(componentFindings(c)[0]).toContain('"checked" and "indeterminate"');
+        // The indicator ITSELF is excused throughout — every pair now involves
+        // a state it never renders in, and no recipe can differentiate those.
+        // The two assertions ask different questions of the same declaration.
+        expect(indicatorFindings(c)).toEqual([]);
     });
 
     it('accepts a component whose difference lives on a sibling part', () => {

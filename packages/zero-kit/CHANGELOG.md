@@ -11,7 +11,12 @@
   the anatomy's to state, not a test's to remember, and not something six
   design systems should each restate through `skipStates`. Unlike
   `skipStates`, one part is enough at component level: `hiddenIn` states a
-  difference (a part appearing and disappearing) where a skip waives one.
+  difference (a part appearing and disappearing) where a skip waives one. The
+  two assertions read it as two different questions — a pair is legible when
+  some part is rendered in *exactly* one of the states (hidden in both, it is
+  absent either way and differentiates nothing), while an indicator is excused
+  when it is hidden in *either*, since no recipe can differentiate a state it
+  never renders in.
 
 - **`print` is a named built-in condition** (#226). `at: { print: … }` emits
   `@media print` and sorts with the other preference queries — after the flat
