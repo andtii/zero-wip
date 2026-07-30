@@ -43,6 +43,21 @@ conformance matrix). Values are approximated from public documentation; it
 proves the contract rather than shipping a licensed token set, which is why
 it is private.
 
+### Notification kind, without a colour axis
+
+`roles: {}` means `toast({ color })` has nothing to select here — the recipe
+validator rejects a `variants.color` key that names no declared role, and the
+playground reads the live vocabulary and passes no `color` to a carbon toast
+at all. The accent bar used to be hardcoded to the interactive blue, which
+made every notification an informational one for good.
+
+It now reads the one status distinction zero guarantees on every toast with
+no vocabulary at all: `Toast.Root` renders `role="alert"` for an assertive
+toast and `role="status"` for the rest. An alert takes `$support-error`; a
+status keeps the interactive blue. Two of Carbon's four notification kinds,
+which is the honest ceiling of what this design system declares — success and
+warning are both `role="status"` and stay blue.
+
 ## Usage
 
 ```bash

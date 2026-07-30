@@ -66,7 +66,7 @@
         box-shadow: var(--shadow-level3);
         pointer-events: auto;
         display: grid;
-        grid-template-columns: 1fr auto auto;
+        grid-template-columns: auto 1fr auto auto;
         align-items: center;
         column-gap: var(--space-md);
         padding: var(--space-md) var(--space-lg);
@@ -86,8 +86,19 @@
         --toast-from: -8px;
     }
 
-    [data-scope="toast"][data-part="title"] {
+    [data-scope="toast"][data-part="root"]::before {
+        content: "";
         grid-column: 1;
+        grid-row: 1 / -1;
+        align-self: center;
+        width: 0.625rem;
+        height: 0.625rem;
+        border-radius: 50%;
+        background: var(--toast-accent);
+    }
+
+    [data-scope="toast"][data-part="title"] {
+        grid-column: 2;
         font-family: var(--font-sans);
         font-size: var(--text-sm);
         font-weight: var(--weight-medium);
@@ -95,7 +106,7 @@
     }
 
     [data-scope="toast"][data-part="description"] {
-        grid-column: 1;
+        grid-column: 2;
         font-family: var(--font-sans);
         font-size: var(--text-xs);
         color: color-mix(in oklab, var(--color-surface-container-high-content) 80%, transparent);
@@ -105,7 +116,7 @@
         position: relative;
         overflow: hidden;
         -webkit-tap-highlight-color: transparent;
-        grid-column: 2;
+        grid-column: 3;
         grid-row: 1;
         appearance: none;
         border: none;
@@ -170,7 +181,7 @@
         position: relative;
         overflow: hidden;
         -webkit-tap-highlight-color: transparent;
-        grid-column: 3;
+        grid-column: 4;
         grid-row: 1;
         appearance: none;
         border: none;
@@ -266,17 +277,11 @@
         --toast-accent: var(--color-accent);
     }
 
-    @media (hover: none) {
-        [data-scope="toast"][data-part="action"]:hover:not([data-disabled])::before {
-            opacity: 0;
-        }
-
-        [data-scope="toast"][data-part="close"]:hover:not([data-disabled])::before {
-            opacity: 0;
-        }
-    }
-
     @media (forced-colors: active) {
+        [data-scope="toast"][data-part="root"]::before {
+            background: CanvasText;
+        }
+
         [data-scope="toast"][data-part="action"]::before {
             display: none;
         }
@@ -291,6 +296,16 @@
 
         [data-scope="toast"][data-part="close"]::after {
             display: none;
+        }
+    }
+
+    @media (hover: none) {
+        [data-scope="toast"][data-part="action"]:hover:not([data-disabled])::before {
+            opacity: 0;
+        }
+
+        [data-scope="toast"][data-part="close"]:hover:not([data-disabled])::before {
+            opacity: 0;
         }
     }
 
