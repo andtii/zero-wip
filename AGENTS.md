@@ -179,7 +179,8 @@ typecheck` excludes `examples/`, so the playground has its own:
   stay Button-only — it exercises the vendor-named API surface that motivated
   #179, not a product. Private.
 - `examples/playground` — private kitchen-sink app; switches between
-  basic / daisyui / material / brutalist **at runtime** from its toolbar. A
+  basic / daisyui / material / brutalist / heroui / carbon **at runtime** from
+  its toolbar. A
   design system compiles to one stylesheet, so switching is a `<link>` swap
   (`src/design-systems.ts`) plus a theme-registry re-seed. Exactly one design
   system is live at a time — recipe CSS is not `data-theme`-scoped, so two

@@ -18,7 +18,8 @@
         "sigx": "catalog:",
         "@sigx/zero-material": "workspace:^",
         "@sigx/zero-brutalist": "workspace:^",
-        "@sigx/zero-heroui": "workspace:^"
+        "@sigx/zero-heroui": "workspace:^",
+        "@sigx/zero-carbon": "workspace:^"
     },
     "devDependencies": {
         "@sigx/vite": "catalog:",

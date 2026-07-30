@@ -1,5 +1,5 @@
 /**
- * The four design systems, switchable at runtime.
+ * The design systems, switchable at runtime.
  *
  * A design system is a compiled stylesheet, so switching one is a `<link>`
  * swap — not a rebuild, and not a reload. The CSS is imported with `?url` so
@@ -47,12 +47,14 @@ import daisyuiCss from '@sigx/zero-daisyui/css?url';
 import materialCss from '@sigx/zero-material/css?url';
 import brutalistCss from '@sigx/zero-brutalist/css?url';
 import herouiCss from '@sigx/zero-heroui/css?url';
+import carbonCss from '@sigx/zero-carbon/css?url';
 
 import { installThemes as installBasic } from '@sigx/zero-basic';
 import { installThemes as installDaisyui } from '@sigx/zero-daisyui';
 import { installThemes as installMaterial } from '@sigx/zero-material';
 import { installThemes as installBrutalist } from '@sigx/zero-brutalist';
 import { installThemes as installHeroui } from '@sigx/zero-heroui';
+import { installThemes as installCarbon } from '@sigx/zero-carbon';
 
 // The DECLARED vocabulary, read from each compiled manifest rather than
 // retyped here. Retyping is what made the axis rows lie: they iterated a
@@ -71,6 +73,7 @@ import daisyuiManifestUrl from '@sigx/zero-daisyui/manifest.json?url';
 import materialManifestUrl from '@sigx/zero-material/manifest.json?url';
 import brutalistManifestUrl from '@sigx/zero-brutalist/manifest.json?url';
 import herouiManifestUrl from '@sigx/zero-heroui/manifest.json?url';
+import carbonManifestUrl from '@sigx/zero-carbon/manifest.json?url';
 
 /**
  * What a design system says it offers, straight from its manifest.
@@ -178,6 +181,16 @@ export const designSystems: DesignSystemEntry[] = [
         manifestHref: herouiManifestUrl,
         blurb: 'No colour axis at all — colour is fused into a seven-member variant. '
             + 'Full component coverage; it exists to test the axis surface.',
+    },
+    {
+        id: 'carbon',
+        label: 'Carbon',
+        href: carbonCss,
+        installThemes: installCarbon,
+        manifestHref: carbonManifestUrl,
+        blurb: 'Carbon-flavoured — no colour axis, a fused seven-member kind vocabulary '
+            + 'with Carbon\'s double-hyphen spellings restored at the prop boundary by '
+            + 'the generated ./components module. Full 23-recipe coverage.',
     },
 ];
 
