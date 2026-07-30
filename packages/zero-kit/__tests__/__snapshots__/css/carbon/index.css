@@ -424,6 +424,7 @@
 
     [data-scope="dialog"][data-part="trigger"][data-pressed]:not([data-disabled]) {
         background: var(--color-base-300);
+        color: color-mix(in oklab, var(--carbon-interactive) 80%, var(--color-base-content));
     }
 
     [data-scope="dialog"][data-part="popup"] {
@@ -590,6 +591,7 @@
 
     [data-scope="popover"][data-part="trigger"][data-pressed]:not([data-disabled]) {
         background: var(--color-base-300);
+        color: color-mix(in oklab, var(--carbon-interactive) 80%, var(--color-base-content));
     }
 
     [data-scope="popover"][data-part="popup"] {
@@ -753,6 +755,7 @@
 
     [data-scope="menu"][data-part="trigger"][data-pressed]:not([data-disabled]) {
         background: var(--color-base-300);
+        color: color-mix(in oklab, var(--carbon-interactive) 80%, var(--color-base-content));
     }
 
     [data-scope="menu"][data-part="popup"] {
@@ -1796,7 +1799,7 @@
         letter-spacing: var(--tracking-wide);
         color: var(--carbon-interactive);
         cursor: pointer;
-        transition: background var(--duration-normal) var(--ease-standard);
+        transition: background var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard);
     }
 
     [data-scope="toast"][data-part="action"]:hover:not([data-disabled]) {
@@ -1815,6 +1818,7 @@
 
     [data-scope="toast"][data-part="action"][data-pressed]:not([data-disabled]) {
         background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
+        color: color-mix(in oklab, var(--carbon-interactive) 80%, var(--color-base-content));
     }
 
     [data-scope="toast"][data-part="close"] {

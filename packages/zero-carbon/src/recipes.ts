@@ -33,6 +33,15 @@ const layerHover = 'color-mix(in oklab, var(--color-base-content) 8%, transparen
 const layerActive = 'color-mix(in oklab, var(--color-base-content) 15%, transparent)';
 
 /**
+ * Pressed ink for interactive-blue text on a pressed layer fill: the blue
+ * mixed 20% toward base-content. Scheme-aware — it darkens on white and
+ * lightens on g100 — keeping the label above 3:1 on the pressed layer in
+ * both, where the resting blue alone drops to 2.95:1 on g100's base-300.
+ * The same rebind Button's `ghost` kind uses for `--btn-ink-active`.
+ */
+const pressedInteractiveInk = 'color-mix(in oklab, var(--carbon-interactive) 80%, var(--color-base-content))';
+
+/**
  * Enter/exit presence for a top-layer popup — dialog, popover, tooltip, menu.
  *
  * The platform mechanism every design system in this repo uses: transition
@@ -137,7 +146,10 @@ const ghostTrigger: PartStyles = {
         ...focusRing,
     },
     selectors: {
-        '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+        '&[data-pressed]:not([data-disabled])': {
+            background: 'var(--color-base-300)',
+            color: pressedInteractiveInk,
+        },
     },
 };
 
@@ -1315,7 +1327,7 @@ export const button: RecipeInput = {
                         '--btn-fill-hover': 'var(--color-base-200)',
                         '--btn-fill-active': 'var(--color-base-300)',
                         '--btn-ink-hover': 'var(--carbon-interactive)',
-                        '--btn-ink-active': 'color-mix(in oklab, var(--carbon-interactive) 80%, var(--color-base-content))',
+                        '--btn-ink-active': pressedInteractiveInk,
                     },
                 },
             },
@@ -1528,7 +1540,7 @@ export const toast: RecipeInput = {
                 letterSpacing: 'var(--tracking-wide)',
                 color: 'var(--carbon-interactive)',
                 cursor: 'pointer',
-                transition: motion('background'),
+                transition: motion('background, color'),
             },
             states: {
                 // Ink washes — the toast surface is already base-200.
@@ -1537,7 +1549,10 @@ export const toast: RecipeInput = {
                 ...focusRing,
             },
             selectors: {
-                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+                '&[data-pressed]:not([data-disabled])': {
+                    background: layerActive,
+                    color: pressedInteractiveInk,
+                },
             },
         },
         close: {
