@@ -158,6 +158,30 @@
   `void` — callers that ignored the return value are unaffected, but a
   wrapper typed as returning `void` will need its annotation updated.
 
+### Fixed
+
+- **`hidden` parts now actually hide, in every design system** (#209). A
+  collapsed `tree-view.branch-content` is hidden by the `hidden` attribute
+  alone, which leans on the UA sheet's `[hidden] { display: none }` — the
+  weakest declaration in the document. Every design system's recipe put an
+  unconditional `display: flex` on that part inside `@layer zero.recipes`, so
+  collapsing a branch hid nothing in all six: `data-state="closed"`,
+  `hidden`, and 75–149px of subtree still on screen. `css/base.css` now
+  declares a fourth cascade layer, `zero.structure`, ordered after
+  `zero.recipes`, holding
+  `[data-scope][data-part][hidden]:not([hidden="until-found" i]) { display: none }`.
+  A later layer rather than higher specificity, so no design system can
+  out-specify it whatever it writes; a layer rather than `!important`, so a
+  consumer's unlayered app CSS still wins. `hidden="until-found"` is exempt —
+  the UA gives it `content-visibility: hidden` for find-in-page, and this
+  guard must not become the next thing overriding the UA. The same rule
+  closes the latent version of the bug on `tabs.panel` and `avatar.image` /
+  `avatar.fallback`, which until now survived only because no design system
+  happened to set `display` on them. Proved in real engines by
+  `examples/playground/e2e/hidden-parts.spec.ts` (six design systems ×
+  chromium/firefox/webkit); happy-dom resolves no layered cascade, so no unit
+  test can see this.
+
 ## [0.1.0] - 2026-07-27
 
 ### Changed (breaking — pre-release, multi-target RFC docs/rfcs/0001, #98)

@@ -18,7 +18,10 @@ component's anatomy). No component code is ever written or changed.
    A part may also carry `hiddenIn`: the states in which zero's runtime sets
    the `hidden` attribute on it (`avatar.image` while `error`, `tabs.panel`
    while `inactive`). Those states never paint — don't style them, and don't
-   worry about telling them apart from the visible ones.
+   worry about telling them apart from the visible ones. Zero enforces this
+   from `@layer zero.structure`, which sits after `zero.recipes`, so a
+   `display` you set on such a part is dead in those states rather than
+   dangerous — it used to defeat the hiding entirely (#209).
 
 2. **Set up the package.** There is no `sigx zero:init` yet (see issue #10),
    so copy the shape of an existing design system — `@sigx/zero-basic` is the

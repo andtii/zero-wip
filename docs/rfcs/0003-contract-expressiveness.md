@@ -345,11 +345,15 @@ for (const overrides of Object.values(theme.components ?? {})) {
 Worse than unscoped, it cannot do the one thing it is named for. Those
 properties are emitted inside `@layer zero.tokens`, while every `recipe.tokens`
 declaration is emitted inside `@layer zero.recipes`, and
-`packages/zero/css/base.css:25` orders them:
+`packages/zero/css/base.css` orders them:
 
 ```css
-@layer zero.fallback, zero.tokens, zero.recipes;
+@layer zero.fallback, zero.tokens, zero.recipes, zero.structure;
 ```
+
+*(`zero.structure` was appended in #209 — see the remedy below, which it is the
+first instance of: it carries the `[hidden]` guard that no design system may
+overrule.)*
 
 Layer order beats specificity unconditionally, so a `theme.components` entry can
 **never override a component token the recipe declares** — which is precisely
@@ -365,6 +369,11 @@ everywhere else. No design system uses it.
 `zero.recipes`, with the scope validated against the anatomy manifest and the
 token name validated against that component's declared `recipe.tokens` keys.
 Do not build that speculatively.
+
+The "new layer after `zero.recipes`" remedy is no longer hypothetical:
+`zero.structure` (#209) is exactly that shape. A declaration that must outrank
+every design system gets a later layer — never `!important`, which would also
+outrank the consumer's own unlayered app CSS.
 
 ### 6.3 Unvalidated token names
 

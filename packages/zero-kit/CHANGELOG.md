@@ -114,6 +114,13 @@
 
 ### Changed
 
+- **The design-system skill states that `hiddenIn` is now enforced** (#209).
+  Zero's `@layer zero.structure` sits after `zero.recipes` and hides any
+  `[data-scope][data-part][hidden]`, so a `display` set on a part in one of
+  its `hiddenIn` states is dead rather than dangerous — it used to defeat the
+  hiding outright, which is how every design system's `display: flex` on
+  `tree-view.branch-content` kept collapsed branches on screen.
+
 - **`skipStates` documents its second consumer** (#226). An entry has always
   silenced the validator's coverage warning; it is now also how a design system
   waives the state-legibility guard, i.e. it asserts "this state is deliberately
