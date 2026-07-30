@@ -129,8 +129,14 @@ export const App = component(() => {
                                 <Avatar.Fallback>ZX</Avatar.Fallback>
                             </Avatar.Root>
                             <Button.Root size={size}>Button</Button.Root>
-                            <Checkbox.Root size={size} defaultChecked />
-                            <Switch.Root size={size} defaultChecked />
+                            {/*
+                              * Labelled, not bare: both render their label part
+                              * only when given a default slot, so a childless
+                              * one has no accessible name at all — an unnamed
+                              * checkbox once per step, in every design system.
+                              */}
+                            <Checkbox.Root size={size} defaultChecked>Checkbox</Checkbox.Root>
+                            <Switch.Root size={size} defaultChecked>Switch</Switch.Root>
                             <Select.Root size={size} defaultValue="apple">
                                 <Select.Trigger>
                                     <Select.Value />
