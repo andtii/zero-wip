@@ -112,6 +112,38 @@ export const App = component(() => {
                         </p>
                     )}
 
+                    <h2>Size ramp</h2>
+                    <p>
+                        The <code>size</code> axis is not a button's private property —
+                        fifteen scopes ship <code>[data-size]</code> rules. The ramp is
+                        the design system's own, read from the same manifest as the rows
+                        above: no step is named in this file, so a system declaring three
+                        renders three rows and one declaring <code>2xl</code> renders it.
+                    </p>
+                    {axes().sizes.map((size) => (
+                        <p style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <code style={{ width: '3rem' }}>{size}</code>
+                            <Avatar.Root size={size}>
+                                {/* Decorative here: the row is a size sample, not a person. */}
+                                <Avatar.Image src={AVATAR_A} alt="" />
+                                <Avatar.Fallback>ZX</Avatar.Fallback>
+                            </Avatar.Root>
+                            <Button.Root size={size}>Button</Button.Root>
+                            <Checkbox.Root size={size} defaultChecked />
+                            <Switch.Root size={size} defaultChecked />
+                            <Select.Root size={size} defaultValue="apple">
+                                <Select.Trigger>
+                                    <Select.Value />
+                                    <Select.Indicator />
+                                </Select.Trigger>
+                                <Select.Popup>
+                                    <Select.Item value="apple">Apple</Select.Item>
+                                    <Select.Item value="banana">Banana</Select.Item>
+                                </Select.Popup>
+                            </Select.Root>
+                        </p>
+                    ))}
+
                     <h2>Switch</h2>
                     {/*
                       * The same rule as the Button matrix above, for a single
@@ -178,7 +210,7 @@ export const App = component(() => {
                             <Avatar.Fallback>…</Avatar.Fallback>
                         </Avatar.Root>
                         <Button.Root
-                            variant="outline"
+                            variant={pickVariant('outline', 'tertiary', 'secondary')}
                             onClick={() => { state.avatarSrc = state.avatarSrc === AVATAR_A ? AVATAR_B : AVATAR_A; }}
                         >
                             Swap src
@@ -363,7 +395,10 @@ export const App = component(() => {
                                 This is a real &lt;dialog&gt; — focus trap, Escape and
                                 backdrop come from the platform, not from JavaScript.
                             </Dialog.Description>
-                            <Dialog.Close>Got it</Dialog.Close>
+                            <Dialog.Footer>
+                                <Dialog.Close>Cancel</Dialog.Close>
+                                <Dialog.Close>Got it</Dialog.Close>
+                            </Dialog.Footer>
                         </Dialog.Popup>
                     </Dialog.Root>
                 </Tabs.Panel>
@@ -375,6 +410,30 @@ export const App = component(() => {
                         <Checkbox.Root defaultChecked>Weekly newsletter</Checkbox.Root>
                         <Field.Description>Wired label, description and required flag — automatically.</Field.Description>
                     </Field.Root>
+                    {/*
+                      * `invalid` is a flag, not a colour. The field owns it and
+                      * every zero control inside adopts it — the checkbox below
+                      * is never told — and `Field.Error` is the part that carries
+                      * the message (`role="alert"`). What "wrong" looks like is
+                      * the design system's answer, so nothing here sets a colour.
+                      */}
+                    <Field.Root invalid required>
+                        <Field.Label>Terms</Field.Label>
+                        <Checkbox.Root>I accept the terms</Checkbox.Root>
+                        <Field.Description>Required before the form can be submitted.</Field.Description>
+                        <Field.Error>You must accept the terms to continue.</Field.Error>
+                    </Field.Root>
+                    <p>
+                        A checkbox has three states, not two: <code>indeterminate</code>{' '}
+                        is its own <code>data-state</code>, and it survives the round trip
+                        to the hidden input, which carries the DOM property no attribute
+                        can express.
+                    </p>
+                    <p style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <Checkbox.Root indeterminate>Some selected</Checkbox.Root>
+                        <Checkbox.Root defaultChecked>All selected</Checkbox.Root>
+                        <Checkbox.Root>None selected</Checkbox.Root>
+                    </p>
 
                     <h2>RadioGroup</h2>
                     <RadioGroup.Root model={() => state.plan}>
@@ -394,6 +453,17 @@ export const App = component(() => {
                             <Select.Item value="apple">Apple</Select.Item>
                             <Select.Item value="banana">Banana</Select.Item>
                             <Select.Item value="cherry">Cherry</Select.Item>
+                        </Select.Popup>
+                    </Select.Root>
+                    {' '}
+                    <Select.Root invalid placeholder="Pick a fruit…">
+                        <Select.Trigger>
+                            <Select.Value />
+                            <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popup>
+                            <Select.Item value="apple">Apple</Select.Item>
+                            <Select.Item value="banana">Banana</Select.Item>
                         </Select.Popup>
                     </Select.Root>
 
@@ -428,6 +498,33 @@ export const App = component(() => {
                         </Combobox.Popup>
                     </Combobox.Root>
                     <p><small>Selected: <code>{state.country || '—'}</code></small></p>
+                    <p>
+                        <code>readonly</code> and <code>invalid</code> are chrome, not
+                        branches you have to write: readonly keeps the value, refuses to
+                        open and marks every part, invalid only flags. Both are stated
+                        once on the root.
+                    </p>
+                    <p style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <Combobox.Root readonly defaultValue="sweden" defaultInputValue="Sweden">
+                            <Combobox.Control>
+                                <Combobox.Input />
+                                <Combobox.Trigger />
+                            </Combobox.Control>
+                            <Combobox.Popup>
+                                <Combobox.Item value="sweden">Sweden</Combobox.Item>
+                            </Combobox.Popup>
+                        </Combobox.Root>
+                        <Combobox.Root invalid defaultInputValue="Atlantis">
+                            <Combobox.Control>
+                                <Combobox.Input />
+                                <Combobox.Trigger />
+                            </Combobox.Control>
+                            <Combobox.Popup>
+                                <Combobox.Item value="sweden">Sweden</Combobox.Item>
+                                <Combobox.Item value="norway">Norway</Combobox.Item>
+                            </Combobox.Popup>
+                        </Combobox.Root>
+                    </p>
 
                     <h2>NumberInput</h2>
                     <p>
@@ -462,6 +559,27 @@ export const App = component(() => {
                                 <NumberInput.IncrementTrigger>+</NumberInput.IncrementTrigger>
                             </NumberInput.Control>
                         </NumberInput.Root>
+                        {/*
+                          * Readonly is not disabled: the value stays selectable
+                          * and focusable, only the ways of changing it are shut —
+                          * typing, stepping, the wheel and both triggers.
+                          */}
+                        <NumberInput.Root defaultValue={7} readonly>
+                            <NumberInput.Label>Readonly</NumberInput.Label>
+                            <NumberInput.Control>
+                                <NumberInput.DecrementTrigger>−</NumberInput.DecrementTrigger>
+                                <NumberInput.Input />
+                                <NumberInput.IncrementTrigger>+</NumberInput.IncrementTrigger>
+                            </NumberInput.Control>
+                        </NumberInput.Root>
+                        <NumberInput.Root defaultValue={120} max={99} invalid>
+                            <NumberInput.Label>Invalid (over max)</NumberInput.Label>
+                            <NumberInput.Control>
+                                <NumberInput.DecrementTrigger>−</NumberInput.DecrementTrigger>
+                                <NumberInput.Input />
+                                <NumberInput.IncrementTrigger>+</NumberInput.IncrementTrigger>
+                            </NumberInput.Control>
+                        </NumberInput.Root>
                     </p>
                     <p><small>Quantity model: <code>{state.qty ?? '—'}</code></small></p>
 
@@ -471,8 +589,30 @@ export const App = component(() => {
                         <Slider.Control />
                         <Slider.ValueText />
                     </Slider.Root>
+                    <Slider.Root defaultValue={95} invalid>
+                        <Slider.Label>Invalid (above the allowed budget)</Slider.Label>
+                        <Slider.Control />
+                        <Slider.ValueText />
+                    </Slider.Root>
                     <Progress.Root value={state.volume}>
                         <Progress.Label>Mirrors the slider</Progress.Label>
+                        <Progress.Track><Progress.Range /></Progress.Track>
+                        <Progress.ValueText />
+                    </Progress.Root>
+                    {/*
+                      * All three progress states, since `value` is what decides
+                      * them: no value at all is `indeterminate` — zero writes no
+                      * width, so the design system's own rule sizes and animates
+                      * the range — and reaching the max is `complete`, which is a
+                      * different state rather than a fuller `loading`.
+                      */}
+                    <Progress.Root>
+                        <Progress.Label>Indeterminate (no value)</Progress.Label>
+                        <Progress.Track><Progress.Range /></Progress.Track>
+                        <Progress.ValueText />
+                    </Progress.Root>
+                    <Progress.Root value={100}>
+                        <Progress.Label>Complete</Progress.Label>
                         <Progress.Track><Progress.Range /></Progress.Track>
                         <Progress.ValueText />
                     </Progress.Root>
@@ -500,6 +640,12 @@ export const App = component(() => {
                         </RatingGroup.Root>
                         <RatingGroup.Root defaultValue={3.5} allowHalf readonly>
                             <RatingGroup.Label>Readonly average</RatingGroup.Label>
+                            <RatingGroup.Control>
+                                {[1, 2, 3, 4, 5].map((i) => <RatingGroup.Item index={i} />)}
+                            </RatingGroup.Control>
+                        </RatingGroup.Root>
+                        <RatingGroup.Root defaultValue={0} required invalid>
+                            <RatingGroup.Label>Invalid (a rating is required)</RatingGroup.Label>
                             <RatingGroup.Control>
                                 {[1, 2, 3, 4, 5].map((i) => <RatingGroup.Item index={i} />)}
                             </RatingGroup.Control>
