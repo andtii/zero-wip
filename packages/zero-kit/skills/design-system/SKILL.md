@@ -266,8 +266,14 @@ component's anatomy). No component code is ever written or changed.
         cannot catch for you: `full` and `half` both setting `color:
         var(--rating-fill)` draws a half rating as a full one. The guard reads
         the *compiled* CSS, so the difference may live anywhere — `states`,
-        `selectors`, a variant, a pseudo-element — but it must exist. The only
-        opt-out is `skipStates`, and it is a design claim; comment it.
+        `selectors`, a variant, a pseudo-element — but it must exist **in the
+        default render**: a difference that only appears inside `@media`
+        (the `forced-colors`/`print` glyph fallback of rule 3, a breakpoint,
+        `hover: none`) does not count, and neither does one made only of
+        `transition`/`will-change`, which changes how a state arrives and not
+        how it looks. The only opt-out is `skipStates`; it is read **per part**
+        (skipping `checked` on `item-label` will not excuse `item-indicator`)
+        and it is a design claim, so comment it.
      2. **Draw the mark, don't typeset it.** `content: "✓"` hands the mark's
         weight to whatever font the reader has, cannot express a fraction, and
         cannot animate. `clip-path` on a `currentColor` slab, two borders of a
@@ -524,7 +530,7 @@ And these are warnings worth driving to zero:
   Note that `skipStates` has a second reader: the state-legibility guard takes
   an entry as "this state is deliberately indistinguishable from its
   siblings". Silencing a coverage warning with it therefore also waives the
-  guard for that state — write the reason next to it.
+  guard for that state, on **that part only** — write the reason next to it.
 - `var(--x, fallback)` referencing something undeclared — the fallback makes
   it safe, so it's the sanctioned way to read an app-supplied property.
 

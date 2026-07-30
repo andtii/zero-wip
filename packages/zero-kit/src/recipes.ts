@@ -114,6 +114,10 @@ export interface RecipeInput {
      *    siblings — so listing a state here also asserts "this component does
      *    not need to look different in that state", which is a design claim
      *    and wants a comment saying why.
+     *
+     * Both readings are scoped to the part the entry names: skipping `checked`
+     * on a `item-label` says nothing about `item-indicator`, and will not stop
+     * the guard from requiring that the indicator draw its mark.
      */
     skipStates?: Record<string, readonly string[]>;
 }

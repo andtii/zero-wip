@@ -19,10 +19,19 @@
   distinguishes all of them itself. It reads compiled CSS rather than the
   recipe tree because state styling arrives through `states`, `selectors`,
   variants, compound variants, modifiers, nested `at` and the raw `css` hatch —
-  only the output sees all seven. Caught, on the pre-fix tree: a rating group
+  only the output sees all seven. It judges the **default render**: rules inside
+  any `@media` are excluded (the `forced-colors`/`print` glyph fallback must not
+  be what proves a mark exists), as are declarations that only say how a state
+  arrives (`transition*`, `will-change`, `animation-delay`) — a rule left with
+  nothing else is dropped whole. `skipStates` waives it **per part**, and at
+  component level only when every part carrying those states waives them.
+  Caught, on the pre-fix tree: a rating group
   whose `full` and `half` were the same declaration in all six design systems,
   three checkbox indicators that painted no mark at all, and two progress bars
-  where `complete` looked like `loading`.
+  where `complete` looked like `loading`. Its own failure mode is covered too:
+  state-blind fixture recipes, including one differentiated only by a
+  forced-colors glyph and one only by a transition, that the assertions must
+  report.
   The design-system skill now teaches the rule the guard enforces: a state
   indicator is drawn geometry, interpolating between states, with a glyph
   fallback under `forced-colors` and `print`.
