@@ -907,8 +907,8 @@
     [data-scope="checkbox"][data-part="indicator"]::after {
         content: "";
         position: absolute;
-        left: 38%;
-        top: 72%;
+        left: 40%;
+        top: 79%;
         width: calc(30% * var(--checkbox-tick));
         height: calc(58% * var(--checkbox-tick));
         border-right: var(--checkbox-stroke) solid currentColor;

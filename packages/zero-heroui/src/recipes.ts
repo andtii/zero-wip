@@ -685,11 +685,26 @@ export const checkbox: RecipeInput = {
             selectors: {
                 // The tick. `left`/`top` are physical on purpose — a check is
                 // not mirrored in RTL, only laid out on the other side.
+                //
+                // The anchor is the elbow, and it is SOLVED, not eyeballed. The
+                // rotated L's ink reaches `0.707·(long arm + stroke)` up-right
+                // of the elbow and `0.707·(short arm)` up-left of it, so with
+                // arms of 58% + stroke and 30% + stroke the ink's bounding box
+                // is centred when the elbow sits at
+                //   left = 0.401,  top = 0.7051 + 0.7071·stroke/box = 0.79
+                // (`--checkbox-stroke` is a fixed 0.12 of the box at every step
+                // of the ramp, which is what makes `top` one number). Measured
+                // on the 22px control at 16× device scale, that lands the ink at
+                // T 6.00 / B 5.44 and L 3.13 / R 3.44 — the residual is the
+                // corner radius below trimming the elbow's lowest point.
+                // Eyeballed 38%/72% had it at T 4.00 / B 7.42: 1.7px high in a
+                // 20px box, a visibly empty band underneath, where HeroUI's own
+                // check icon is optically centred.
                 '&::after': {
                     content: '""',
                     position: 'absolute',
-                    left: '38%',
-                    top: '72%',
+                    left: '40%',
+                    top: '79%',
                     width: 'calc(30% * var(--checkbox-tick))',
                     height: 'calc(58% * var(--checkbox-tick))',
                     borderRight: 'var(--checkbox-stroke) solid currentColor',
@@ -699,6 +714,14 @@ export const checkbox: RecipeInput = {
                     opacity: 'var(--checkbox-tick)',
                     transformOrigin: '100% 100%',
                     transform: 'translate(-100%, -100%) rotate(45deg)',
+                    // Accepted cost: `width`/`height` are on the layout path, so
+                    // every frame of the draw-on dirties layout, where daisy's
+                    // `clip-path` and material's `scale` run on the compositor.
+                    // The arms ARE two borders of this box, and `scale` would
+                    // scale the stroke with them — the alternative is a third
+                    // element or a clip-path polygon, i.e. a different mark.
+                    // One 20px box inside a checkbox is not a layout problem;
+                    // a long virtualised list of them might be.
                     transition: 'width var(--duration-fast) var(--ease-decelerate), '
                         + 'height var(--duration-normal) var(--ease-decelerate), '
                         + 'opacity var(--duration-fast) var(--ease-standard)',
