@@ -666,12 +666,18 @@ export const popover: RecipeInput = {
 export const tooltip: RecipeInput = {
     component: 'tooltip',
     parts: {
-        // The outlined trigger its three sibling overlays wear, minus the
-        // ripple: `pressable` reads `data-pressed`/`data-press-animating`, and
-        // tooltip's anatomy declares neither — the state layer and the ripple
-        // would be rules the runtime can never satisfy, dragging a dead
-        // `rippleKeyframes('tooltip')` along to keep the validator happy.
-        // `cursor: help` is the deliberate deviation: nothing opens.
+        // The outlined trigger its three sibling overlays wear, without
+        // `pressable`. Not all of `pressable` would be dead here — its hover
+        // state layer keys on `:hover:not([data-disabled])` and would work
+        // fine. Its press half would not: `&[data-pressed]…::before` and
+        // `&[data-press-animating]::after` read attributes tooltip's anatomy
+        // does not declare and the runtime never publishes, and the `::after`
+        // ripple geometry keys on `--press-x/y/r`, which nothing sets. Taking
+        // the helper for the hover layer alone would ship those three rules
+        // dead and drag a `rippleKeyframes('tooltip')` along to declare the
+        // animation they name — so the hover layer is not worth it, and the
+        // outlined shape is extracted instead. `cursor: help` is the
+        // deliberate deviation: nothing opens.
         trigger: {
             base: { ...outlinedTrigger, cursor: 'help' },
             states: { open: {}, closed: {}, disabled: {}, ...focusRing },

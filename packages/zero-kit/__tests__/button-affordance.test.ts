@@ -148,7 +148,7 @@ describe('button affordance', () => {
         expect(names.length).toBe(16);
     });
 
-    it.each(SYSTEMS.map((s) => s.name))('%s: every <button> part takes its paint from the UA', (ds) => {
+    it.each(SYSTEMS.map((s) => s.name))('%s: no <button> part leaves its paint to the UA', (ds) => {
         const system = SYSTEMS.find((s) => s.name === ds)!;
         const unstyled = findings(system).filter((cell) => !KNOWN_UNSTYLED.has(cell));
         expect(unstyled.sort()).toEqual([]);
