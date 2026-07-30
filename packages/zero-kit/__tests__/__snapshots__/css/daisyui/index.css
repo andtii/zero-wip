@@ -1439,7 +1439,7 @@
 
 @layer zero.recipes {
     [data-scope="progress"][data-part="root"] {
-        --progress-accent: var(--color-primary);
+        --progress-accent: color-mix(in oklab, var(--color-primary) 90%, var(--color-primary-content));
         --progress-track-size: calc(var(--size-selector) * 2.5);
     }
 
@@ -1471,7 +1471,7 @@
     }
 
     [data-scope="progress"][data-part="range"][data-state="complete"] {
-        background: var(--color-success);
+        background: color-mix(in oklab, var(--color-success) 70%, var(--color-success-content));
     }
 
     [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
@@ -1485,35 +1485,35 @@
     }
 
     [data-scope="progress"][data-part="root"][data-color="primary"] {
-        --progress-accent: var(--color-primary);
+        --progress-accent: color-mix(in oklab, var(--color-primary) 90%, var(--color-primary-content));
     }
 
     [data-scope="progress"][data-part="root"][data-color="secondary"] {
-        --progress-accent: var(--color-secondary);
+        --progress-accent: color-mix(in oklab, var(--color-secondary) 90%, var(--color-secondary-content));
     }
 
     [data-scope="progress"][data-part="root"][data-color="accent"] {
-        --progress-accent: var(--color-accent);
+        --progress-accent: color-mix(in oklab, var(--color-accent) 90%, var(--color-accent-content));
     }
 
     [data-scope="progress"][data-part="root"][data-color="neutral"] {
-        --progress-accent: var(--color-neutral);
+        --progress-accent: color-mix(in oklab, var(--color-neutral) 90%, var(--color-neutral-content));
     }
 
     [data-scope="progress"][data-part="root"][data-color="info"] {
-        --progress-accent: var(--color-info);
+        --progress-accent: color-mix(in oklab, var(--color-info) 90%, var(--color-info-content));
     }
 
     [data-scope="progress"][data-part="root"][data-color="success"] {
-        --progress-accent: var(--color-success);
+        --progress-accent: color-mix(in oklab, var(--color-success) 90%, var(--color-success-content));
     }
 
     [data-scope="progress"][data-part="root"][data-color="warning"] {
-        --progress-accent: var(--color-warning);
+        --progress-accent: color-mix(in oklab, var(--color-warning) 90%, var(--color-warning-content));
     }
 
     [data-scope="progress"][data-part="root"][data-color="error"] {
-        --progress-accent: var(--color-error);
+        --progress-accent: color-mix(in oklab, var(--color-error) 90%, var(--color-error-content));
     }
 
     [data-scope="progress"][data-part="root"][data-size="xs"] {
@@ -3080,7 +3080,7 @@
 @layer zero.recipes {
     [data-scope="rating-group"][data-part="root"] {
         --rating-size: calc(var(--size-selector) * 6);
-        --rating-fill: color-mix(in oklab, var(--color-warning) 70%, var(--color-warning-content));
+        --rating-fill: color-mix(in oklab, var(--color-warning) 60%, var(--color-warning-content));
     }
 
     [data-scope="rating-group"][data-part="root"] {
@@ -3122,7 +3122,7 @@
         line-height: var(--leading-none);
         cursor: pointer;
         user-select: none;
-        color: color-mix(in oklab, var(--color-base-content) 20%, transparent);
+        color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
         mask-image: linear-gradient(black 0 0), linear-gradient(rgb(0 0 0 / 0.25) 0 0);
         mask-repeat: no-repeat;
         mask-position: 0 0, 0 0;
@@ -3187,7 +3187,7 @@
     }
 
     [data-scope="rating-group"][data-part="root"][data-color="warning"] {
-        --rating-fill: color-mix(in oklab, var(--color-warning) 70%, var(--color-warning-content));
+        --rating-fill: color-mix(in oklab, var(--color-warning) 60%, var(--color-warning-content));
     }
 
     [data-scope="rating-group"][data-part="root"][data-color="error"] {

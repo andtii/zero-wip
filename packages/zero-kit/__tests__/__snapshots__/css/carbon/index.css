@@ -1252,7 +1252,7 @@
 
     [data-scope="progress"][data-part="range"] {
         height: 100%;
-        background: var(--carbon-interactive);
+        background: color-mix(in oklab, var(--carbon-interactive) 85%, var(--color-base-content));
         transition: width var(--duration-normal) var(--ease-standard), background var(--duration-normal) var(--ease-standard);
     }
 

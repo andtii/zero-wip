@@ -243,6 +243,19 @@ export const switchRecipe: RecipeInput = {
         '--switch-width': 'calc(var(--size-selector) * 11)',
         '--switch-height': 'calc(var(--size-selector) * 6)',
         '--switch-pad': 'calc(var(--size-selector) * 0.5)',
+        /**
+         * The off-knob's edge. `--hero-line` is v3's hairline everywhere else
+         * in this package, and it cannot be used here: against the
+         * `base-300` track it measures 1.11:1, and the knob's own paper fill is
+         * 1.23:1, so the pair leaves nothing to see. A quieted `--hero-muted`
+         * does — 3.46:1 light, 3.68:1 dark (#228) — and unlike the `shadow-sm`
+         * v3 delineates the knob with, a border survives `forced-colors`.
+         *
+         * Elsewhere in this package a hairline may be near-invisible because
+         * the FILL carries the state (the checkbox box goes solid primary). The
+         * switch is the one control where the knob's edge is all there is.
+         */
+        '--switch-thumb-edge': 'color-mix(in oklab, var(--hero-muted) 75%, transparent)',
     },
     parts: {
         root: {
@@ -270,20 +283,29 @@ export const switchRecipe: RecipeInput = {
                 ...focusRing,
             },
         },
+        // v3's paper knob and its lift, plus the edge the lift cannot be
+        // (see `--switch-thumb-edge`). On the primary track the edge goes —
+        // paper on the accent is 5.06:1 light / 7.22:1 dark on its own, and a
+        // grey rule around a knob on blue is not v3.
         thumb: {
             base: {
                 position: 'absolute',
                 top: 'var(--switch-pad)',
                 insetInlineStart: 'var(--switch-pad)',
+                boxSizing: 'border-box',
                 width: 'calc(var(--switch-height) - var(--switch-pad) * 2)',
                 height: 'calc(var(--switch-height) - var(--switch-pad) * 2)',
                 borderRadius: '9999px',
+                border: 'var(--border) solid var(--switch-thumb-edge)',
                 background: 'var(--color-base-100)',
                 boxShadow: 'var(--shadow-sm)',
-                transition: motion('translate'),
+                transition: motion('translate, border-color'),
             },
             states: {
-                checked: { translate: 'calc(var(--switch-width) - var(--switch-height)) 0' },
+                checked: {
+                    translate: 'calc(var(--switch-width) - var(--switch-height)) 0',
+                    borderColor: 'transparent',
+                },
                 unchecked: {},
             },
         },

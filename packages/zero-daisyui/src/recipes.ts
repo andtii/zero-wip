@@ -937,10 +937,30 @@ export const radioGroup: RecipeInput = {
 // 4. progress — replace the whole export (only the two radius lines move)
 // --------------------------------------------------------------------------
 
+/**
+ * A progress fill, deepened toward its own content pair just enough to clear
+ * the 3:1 a bar owes the track it fills.
+ *
+ * Two strengths, each the gentlest that works — measured against the base-300
+ * track in all five themes (#228):
+ *
+ * - the ACCENT at 90/10: raw `--color-primary` lands at 2.98:1 on `nord`, and
+ *   nowhere else under 3. 90/10 lifts nord to 3.63 and leaves the rest at
+ *   3.9+ (dark 4.36, light 5.02, sunset 6.31, dim 8.40). Deepening further is
+ *   what fails: at 70/30 the dark theme drops to 2.83, because a mix toward
+ *   `-content` darkens a fill that already sits on a dark track.
+ * - `complete`'s SUCCESS at 70/30: raw success is the worst cell in the whole
+ *   indicator matrix — 1.51:1 on nord, 2.44 light — a finished bar that reads
+ *   as an empty one. Only 70/30 clears every theme (nord 3.05, dark 3.02,
+ *   light 4.68, dim 5.08, sunset 5.96); 75/25 drops nord back to 2.71.
+ */
+const progressFill = (role: string, keep: number): string =>
+    `color-mix(in oklab, var(--color-${role}) ${keep}%, var(--color-${role}-content))`;
+
 export const progress: RecipeInput = {
     component: 'progress',
     tokens: {
-        '--progress-accent': 'var(--color-primary)',
+        '--progress-accent': progressFill('primary', 90),
         '--progress-track-size': 'calc(var(--size-selector) * 2.5)',
     },
     parts: {
@@ -973,7 +993,7 @@ export const progress: RecipeInput = {
             states: {
                 // `complete` is a semantic state, not an accent: it stays
                 // success regardless of the colour variant, on purpose.
-                complete: { background: 'var(--color-success)' },
+                complete: { background: progressFill('success', 70) },
                 loading: {},
                 indeterminate: { width: '40%', animation: 'zero-daisy-indeterminate 1.2s ease-in-out infinite' },
             },
@@ -991,8 +1011,10 @@ export const progress: RecipeInput = {
         },
     },
     variants: {
+        // The same 90/10 deepening the default gets, so the un-attributed
+        // render IS `color="primary"` and no role is left on the raw token.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--progress-accent': `var(--color-${c})`,
+            '--progress-accent': progressFill(c, 90),
         } } }])),
         size: {
             xs: { root: { base: { '--progress-track-size': 'var(--size-selector)' } } },
@@ -1983,23 +2005,41 @@ export const numberInput: RecipeInput = {
  * paint layer, and the only way to get one out of a text node is
  * `background-clip: text`, which would make an SVG symbol slot invisible.
  */
+/**
+ * How far each role's rating symbol is deepened toward its own content pair.
+ *
+ * daisy's raw roles are not safe on bare paper — `--color-warning` sits at
+ * 1.62:1 on light base-100 — so the symbol is mixed toward the role's own
+ * `-content`, which keeps the hue. 70/30 was measured across all five themes
+ * (#226) at 3.34 light, 4.74 dark, 4.19 dim, 5.32 sunset — and **2.81 on
+ * `nord`**, whose pale-yellow warning on a 95%-white base-100 was the one cell
+ * under 3:1.
+ *
+ * That comment ended "the fill/ghost pair needs a per-role decision … which is
+ * the indicator-contrast audit's job (#228)". This is that decision, and it is
+ * per-role because moving the ratio for EVERYONE is what does not work: at
+ * 60/40 nord's warning clears (3.70) but two more theme×role cells drop under
+ * 3:1 (sunset's `secondary` and `accent`), because deepening toward `-content`
+ * helps a light theme and hurts a dark one. Deepening only the role that needs
+ * it fixes nord's warning — the DEFAULT symbol, the one the audit measures —
+ * and moves nothing else: warning at 60/40 reads 4.40 light, 3.60 dark, 3.17
+ * dim, 3.70 nord, 4.03 sunset.
+ *
+ * The nine remaining sub-3:1 theme×role cells are daisy's own accent-on-paper
+ * numbers and stay that way — the indicator audit measures the DEFAULT variant
+ * only (`variants` would explode the matrix into thousands of cells), so they
+ * are recorded here rather than allowlisted there.
+ */
+const RATING_DEEPEN: Record<string, number> = { warning: 60 };
+
+const ratingFill = (role: string): string =>
+    `color-mix(in oklab, var(--color-${role}) ${RATING_DEEPEN[role] ?? 70}%, var(--color-${role}-content))`;
+
 export const ratingGroup: RecipeInput = {
     component: 'rating-group',
     tokens: {
         '--rating-size': 'calc(var(--size-selector) * 6)',
-        // daisy's rating orange, deepened toward its content pair: raw
-        // `--color-warning` sits at 1.62:1 on light base-100 — a nearly
-        // invisible star. The 70/30 oklab mix keeps the warning hue and was
-        // measured at 3.36:1 light / 4.71:1 dark when those were the only two
-        // themes. Re-measured across all five (#226): 3.34 light, 4.74 dark,
-        // 4.19 dim, 5.32 sunset — and 2.81 on `nord`, whose pale-yellow
-        // warning on a 95%-white base-100 is the one cell under 3:1. It is not
-        // fixable by moving this ratio: deepening to 60% lifts nord to 3.70 but
-        // drops dark's `error` variant to 1.82. The fill/ghost pair needs a
-        // per-role decision (or daisy's own model, where the symbol is
-        // base-content and only its OPACITY changes), which is the
-        // indicator-contrast audit's job (#228).
-        '--rating-fill': 'color-mix(in oklab, var(--color-warning) 70%, var(--color-warning-content))',
+        '--rating-fill': ratingFill('warning'),
     },
     parts: {
         root: {
@@ -2032,7 +2072,18 @@ export const ratingGroup: RecipeInput = {
                 lineHeight: 'var(--leading-none)',
                 cursor: 'pointer',
                 userSelect: 'none',
-                color: 'color-mix(in oklab, var(--color-base-content) 20%, transparent)',
+                /**
+                 * The unfilled symbol, in daisy's own model — base-content at
+                 * reduced strength, nothing else changing.
+                 *
+                 * daisy's fraction is 20%, which measures 1.44:1 (nord) to
+                 * 1.88:1 (dark) against base-100: five stars whose count you
+                 * cannot read. 60% is the same fraction daisy's `--input-color`
+                 * was raised to in this package, for the same reason and to the
+                 * same floor — 4.66 light, 6.23 dark, 3.85 dim, 3.49 nord,
+                 * 3.88 sunset (#228).
+                 */
+                color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
                 // The split that makes a half a half — see RATING_HALF_SPLIT.
                 // Both stops are ALPHA channels, not palette colours: the top
                 // layer is opaque over the filled fraction, the bottom one
@@ -2082,15 +2133,13 @@ export const ratingGroup: RecipeInput = {
         },
     },
     variants: {
-        // A rating glyph is text on the page background, so the raw role is
-        // not always safe: daisy measured `--color-warning` at 1.62:1 on light
-        // base-100. Deepening every role toward its own content pair keeps the
-        // hue — the same 70/30 mix the default uses. It does NOT clear 3:1 for
-        // every role in every theme (measured worst cells: dark/`error` 2.25,
-        // light/`secondary` 2.45, dim/`neutral` 1.58); see the note on
-        // `--rating-fill` above for why the ratio cannot fix that alone.
+        // The same deepening the default gets, per role — see `RATING_DEEPEN`.
+        // It does NOT clear 3:1 for every role in every theme (measured worst
+        // cells: dim/`neutral` 1.58, sunset/`neutral` 1.82, dark/`error` 2.25,
+        // light/`secondary` 2.45): those are daisy's own accent-on-paper
+        // numbers, and only a per-role table could move them one at a time.
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--rating-fill': `color-mix(in oklab, var(--color-${c}) 70%, var(--color-${c}-content))`,
+            '--rating-fill': ratingFill(c),
         } } }])),
         size: {
             xs: { root: { base: { '--rating-size': 'calc(var(--size-selector) * 4)' } } },

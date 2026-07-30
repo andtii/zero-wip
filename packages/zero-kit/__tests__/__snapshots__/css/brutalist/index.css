@@ -1284,6 +1284,7 @@
         --switch-width: calc(var(--size-selector) * 14);
         --switch-height: calc(var(--size-selector) * 7);
         --switch-accent: var(--color-primary);
+        --switch-on-accent: var(--color-primary-content);
     }
 
     [data-scope="switch"][data-part="root"] {
@@ -1327,11 +1328,12 @@
         width: calc(var(--size-selector) * 7);
         height: 100%;
         background: var(--color-base-content);
-        transition: transform var(--duration-fast) var(--ease-standard);
+        transition: transform var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="switch"][data-part="thumb"][data-state="checked"] {
         transform: translateX(calc(var(--switch-width) - 100%));
+        background: var(--switch-on-accent);
     }
 
     [data-scope="switch"][data-part="label"] {
@@ -1371,34 +1373,42 @@
 
     [data-scope="switch"][data-part="root"][data-color="primary"] {
         --switch-accent: var(--color-primary);
+        --switch-on-accent: var(--color-primary-content);
     }
 
     [data-scope="switch"][data-part="root"][data-color="secondary"] {
         --switch-accent: var(--color-secondary);
+        --switch-on-accent: var(--color-secondary-content);
     }
 
     [data-scope="switch"][data-part="root"][data-color="accent"] {
         --switch-accent: var(--color-accent);
+        --switch-on-accent: var(--color-accent-content);
     }
 
     [data-scope="switch"][data-part="root"][data-color="neutral"] {
         --switch-accent: var(--color-neutral);
+        --switch-on-accent: var(--color-neutral-content);
     }
 
     [data-scope="switch"][data-part="root"][data-color="info"] {
         --switch-accent: var(--color-info);
+        --switch-on-accent: var(--color-info-content);
     }
 
     [data-scope="switch"][data-part="root"][data-color="success"] {
         --switch-accent: var(--color-success);
+        --switch-on-accent: var(--color-success-content);
     }
 
     [data-scope="switch"][data-part="root"][data-color="warning"] {
         --switch-accent: var(--color-warning);
+        --switch-on-accent: var(--color-warning-content);
     }
 
     [data-scope="switch"][data-part="root"][data-color="error"] {
         --switch-accent: var(--color-error);
+        --switch-on-accent: var(--color-error-content);
     }
 }
 

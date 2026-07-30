@@ -367,6 +367,17 @@ export const switchRecipe: RecipeInput = {
         '--switch-width': 'calc(var(--size-selector) * 11)',
         '--switch-height': 'calc(var(--size-selector) * 6)',
         '--switch-pad': 'calc(var(--size-selector) * 0.75)',
+        /**
+         * The off-thumb's edge — the same 55% ink this design system's
+         * placeholders are drawn in, not `--color-base-300`.
+         *
+         * `base-300` was the hairline tone here, and against the `base-200`
+         * track it has to separate from it measures 1.15:1: a rule nobody can
+         * see, around a paper disc that is itself 1.07:1 on that track. The
+         * edge IS the mark, so it is held to the mark's floor — 3.48:1 light,
+         * 4.80:1 dark (#228).
+         */
+        '--switch-thumb-edge': 'color-mix(in oklch, var(--color-base-content) 55%, transparent)',
     },
     parts: {
         root: {
@@ -407,25 +418,34 @@ export const switchRecipe: RecipeInput = {
                 disabled: {},
             },
         },
-        // Paper thumb with its own hairline; nothing at rest casts a shadow.
-        // On the filled track the line drops — a die-cut disc needs no rule.
+        /**
+         * Paper thumb with its own hairline; nothing at rest casts a shadow.
+         * On the filled track the line drops — a die-cut disc needs no rule.
+         *
+         * The hairline is a BORDER now, not the inset `box-shadow` it used to
+         * be. The shadow was chosen so the declared geometry could not shift;
+         * `border-box` keeps that promise, and buys the one thing a shadow
+         * cannot give: `forced-colors: active` strips shadows, and the edge is
+         * the only thing separating paper from a `base-200` track.
+         */
         thumb: {
             base: {
                 position: 'absolute',
                 top: 'var(--switch-pad)',
                 left: 'var(--switch-pad)',
+                boxSizing: 'border-box',
                 width: 'calc(var(--switch-height) - var(--switch-pad) * 2)',
                 height: 'calc(var(--switch-height) - var(--switch-pad) * 2)',
                 borderRadius: '9999px',
+                border: 'var(--border) solid var(--switch-thumb-edge)',
                 background: 'var(--color-base-100)',
-                boxShadow: 'inset 0 0 0 var(--border) var(--color-base-300)',
                 transition: 'transform var(--duration-fast) var(--ease-standard)',
             },
             states: {
                 checked: {
                     transform: 'translateX(calc(var(--switch-width) - var(--switch-height)))',
                     background: 'var(--color-primary-content)',
-                    boxShadow: 'none',
+                    borderColor: 'transparent',
                 },
                 unchecked: {},
             },
@@ -2462,6 +2482,16 @@ export const ratingGroup: RecipeInput = {
     tokens: {
         '--rating-size': 'var(--text-xl)',
         '--rating-fill': 'color-mix(in oklab, var(--color-warning) 70%, var(--color-warning-content))',
+        /**
+         * The unfilled remainder's ink — the same 55% mix the placeholders use.
+         *
+         * It was `--color-base-300`, the hairline grey, which measures 1.23:1
+         * on light paper and 1.28:1 on dark: a five-star scale whose scale you
+         * cannot see. The ghost is a TRACK and should read as one, so it is
+         * held to the 3:1 a non-text mark owes — 3.55:1 light, 4.96:1 dark
+         * (#228). Still clearly subordinate to the fill, which is 5.5:1.
+         */
+        '--rating-track': 'color-mix(in oklch, var(--color-base-content) 55%, transparent)',
         // How much of the symbol each layer covers. Rebound per state, so the
         // three states differ in paint and not merely in `data-state`.
         '--rating-mark': STAR_NONE,
@@ -2515,7 +2545,7 @@ export const ratingGroup: RecipeInput = {
                 lineHeight: 'var(--leading-none)',
                 cursor: 'pointer',
                 userSelect: 'none',
-                color: 'var(--color-base-300)',
+                color: 'var(--rating-track)',
                 transition: 'color var(--duration-fast) var(--ease-standard)',
             },
             states: {
@@ -2537,15 +2567,14 @@ export const ratingGroup: RecipeInput = {
                 // a transparent colour, because the `states` above legitimately
                 // set `color` and would win it back.
                 [DEFAULT_SYMBOL]: { fontSize: '0' },
-                // The ghost — the unfilled remainder, in the same structural
-                // grey every hairline in this design system is drawn with. It
-                // is the track, not the mark: it reads against the page, and
-                // never against the ink, because the two never touch.
+                // The ghost — the unfilled remainder. It is the track, not the
+                // mark: it reads against the page, and never against the ink,
+                // because the two never touch.
                 [`${DEFAULT_SYMBOL}::before`]: {
                     content: '""',
                     position: 'absolute',
                     inset: '0',
-                    background: 'var(--color-base-300)',
+                    background: 'var(--rating-track)',
                     clipPath: 'var(--rating-ghost)',
                     printColorAdjust: 'exact',
                     transition: 'clip-path var(--duration-fast) var(--ease-standard)',

@@ -760,6 +760,20 @@ export const field: RecipeInput = {
  */
 const successFill = 'color-mix(in oklab, var(--carbon-toggle-on) 85%, var(--color-base-content))';
 
+/**
+ * Progress's resting fill: the interactive blue, deepened by the same
+ * scheme-aware mix — darker on white, lighter on g100.
+ *
+ * Same reason as `successFill`, and the same 2.95:1 `pressedInteractiveInk`
+ * was introduced for: raw `--carbon-interactive` on Progress's own base-300
+ * track measures 2.95:1 on g100, so a bar at 40% reads as a bar at 0% for
+ * anyone who cannot resolve that step. At 85% it reads 3.64:1 on g100 and
+ * 5.15:1 on white, hue intact (#228). Carbon's own g100 pairs blue-50 on
+ * gray-70 and lands at 2.51:1 — the one place this package deepens rather
+ * than transcribes, for the same reason it deepens the finished bar.
+ */
+const rangeFill = 'color-mix(in oklab, var(--carbon-interactive) 85%, var(--color-base-content))';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 2. NEW HELPER — immediately above `export const checkbox`
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1116,7 +1130,7 @@ export const progress: RecipeInput = {
         range: {
             base: {
                 height: '100%',
-                background: 'var(--carbon-interactive)',
+                background: rangeFill,
                 transition: motion('width, background'),
             },
             states: {

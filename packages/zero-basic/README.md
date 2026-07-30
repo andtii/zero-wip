@@ -29,6 +29,12 @@ UIs people read all day.
   no glyph can say "half". A `RatingGroup.Item` rendering its **own** symbol
   through the slot opts out of the drawn geometry and gets the colour treatment
   only — the slot hands you the state, so drawing your own half is yours to do.
+- **A hairline that IS the mark is drawn in ink, not in `base-300`** — the
+  structural grey is for rules between things that are each visible on their
+  own. Where the hairline is the only thing separating a mark from its backdrop
+  (the switch's paper knob on its track, the rating's unfilled remainder on the
+  page) it takes the same 55% ink the placeholders do, and it is a `border`
+  rather than an inset shadow, so `forced-colors` cannot strip it.
 
 ```ts
 import '@sigx/zero/css';
