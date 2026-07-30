@@ -218,6 +218,37 @@ export function activeVocabulary(): AxisVocabulary {
     return active.vocabulary;
 }
 
+/**
+ * The first of `preferred` the ACTIVE design system actually declares.
+ *
+ * The same rule the axis rows follow, applied to a single *choice* rather than
+ * a list: a demo that wants "the error-ish colour" or "the quiet variant"
+ * names the values it would accept, in order, and gets whichever one the live
+ * design system really has. Retyping a literal is what made the axis rows lie
+ * (see the note above `basicManifestUrl`); these exist so nothing else in the
+ * playground has to.
+ *
+ * `undefined` is a legitimate answer, not a failure — heroui and carbon
+ * declare `roles: {}`, so there is no colour to pick, and omitting the prop is
+ * honest where sending an unmatched `data-color` is not. It is also the answer
+ * before the first manifest lands: `active.vocabulary` starts as
+ * `EMPTY_VOCABULARY` and is filled only once a swap commits (see
+ * `activateDesignSystem`). That is why these are functions read inside a
+ * render closure rather than constants — the answer changes with the swap.
+ */
+const pickDeclared = (declared: string[], preferred: string[]): string | undefined =>
+    preferred.find((value) => declared.includes(value));
+
+/** Pick a `color` value from the active design system's declared roles. */
+export function pickRole(...preferred: string[]): string | undefined {
+    return pickDeclared(activeVocabulary().colors, preferred);
+}
+
+/** Pick a `variant` value from the active design system's declared variants. */
+export function pickVariant(...preferred: string[]): string | undefined {
+    return pickDeclared(activeVocabulary().variants, preferred);
+}
+
 /** The persisted choice, falling back to the default for an unknown id. */
 export function resolvePersistedDesignSystem(): DesignSystemEntry {
     let stored: string | null = null;

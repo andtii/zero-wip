@@ -6,13 +6,41 @@
  * no component code touched.
  */
 import { component, signal } from 'sigx';
-import { Button, listThemes, themeController } from '@sigx/zero';
+import { Button, listThemes, themeController, ToggleGroup } from '@sigx/zero';
 import {
     activateDesignSystem,
     activeDesignSystemId,
     designSystems,
+    pickVariant,
     type DesignSystemEntry,
 } from './design-systems';
+
+/**
+ * A `string[]` model over a single-valued source — ToggleGroup's model is
+ * always an array, in both selection modes.
+ *
+ * Bound as a tuple (`model={[m, 'value']}`) rather than the `() => state.x`
+ * sugar because neither selection the toolbar renders lives in a signal shaped
+ * like the model: the design system is whichever stylesheet the document
+ * actually holds, and the theme is whatever the controller says. The getter
+ * re-reads that source on every render, so a switch that fails to commit snaps
+ * the selection back instead of leaving the toolbar claiming otherwise.
+ *
+ * `null` means "nothing selected" — the theme row's honest state while
+ * following the system.
+ */
+const singleSelection = (read: () => string | null, write: (value: string) => void): { value: string[] } => ({
+    get value(): string[] {
+        const current = read();
+        return current === null ? [] : [current];
+    },
+    set value(next: string[]) {
+        // `deselectable={false}` keeps this non-empty; the guard is about the
+        // shape of the contract, not about a case that occurs.
+        const [value] = next;
+        if (value !== undefined) write(value);
+    },
+});
 
 export const Toolbar = component(() => {
     const state = signal({
@@ -27,7 +55,7 @@ export const Toolbar = component(() => {
         const entry = designSystems.find((d) => d.id === id);
         // Compare against the document, not the cached selection: if the first
         // load failed there is no link at all, and short-circuiting on
-        // `state.ds` would make the seemingly-active button a dead retry.
+        // `state.ds` would make the seemingly-active item a dead retry.
         if (!entry || state.busy || entry.id === activeDesignSystemId()) return;
         state.busy = true;
         try {
@@ -40,6 +68,15 @@ export const Toolbar = component(() => {
             state.busy = false;
         }
     };
+
+    // Both selections read their source of truth, never a copy of it: the
+    // design system through the mirror `switchTo` only writes after the swap
+    // resolves, the theme straight off the controller.
+    const dsSelection = singleSelection(() => state.ds, (id) => void switchTo(id));
+    const themeSelection = singleSelection(
+        () => themeController().theme(),
+        (name) => themeController().setTheme(name),
+    );
 
     return () => {
         const active: DesignSystemEntry =
@@ -64,35 +101,60 @@ export const Toolbar = component(() => {
                     opacity: state.busy ? 0.6 : 1,
                 }}
             >
+                {/*
+                  * Which one is live is SELECTION, not colour. A variant pair
+                  * would have to name values — `solid`/`outline` did — and no
+                  * such pair exists across every vocabulary: carbon declares
+                  * neither, so both halves fell through to the recipe base and
+                  * all six buttons rendered identically. `on|off` on
+                  * `data-state`, plus `data-selected` and `aria-pressed`, is
+                  * carried by every design system because the anatomy requires
+                  * it, and is the same claim to a screen reader as to the eye.
+                  */}
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                     <strong style={{ fontSize: 'var(--text-sm)' }}>Design system</strong>
-                    {designSystems.map((ds) => (
-                        <Button.Root
-                            size="sm"
-                            variant={ds.id === active.id ? 'solid' : 'outline'}
-                            disabled={state.busy}
-                            onClick={() => void switchTo(ds.id)}
-                        >
-                            {ds.label}
-                        </Button.Root>
-                    ))}
+                    <ToggleGroup.Root
+                        size="sm"
+                        label="Design system"
+                        model={[dsSelection, 'value']}
+                        deselectable={false}
+                        disabled={state.busy}
+                    >
+                        {designSystems.map((ds) => (
+                            <ToggleGroup.Item value={ds.id}>{ds.label}</ToggleGroup.Item>
+                        ))}
+                    </ToggleGroup.Root>
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                     <strong style={{ fontSize: 'var(--text-sm)' }}>Theme</strong>
-                    {themes.map((theme) => (
-                        <Button.Root
-                            size="sm"
-                            variant={current === theme.name ? 'solid' : 'outline'}
-                            onClick={() => themeController().setTheme(theme.name)}
-                        >
-                            <Swatch theme={theme.swatch} />
-                            {theme.name}
-                        </Button.Root>
-                    ))}
+                    <ToggleGroup.Root
+                        size="sm"
+                        label="Theme"
+                        model={[themeSelection, 'value']}
+                        deselectable={false}
+                    >
+                        {themes.map((theme) => (
+                            <ToggleGroup.Item value={theme.name}>
+                                <Swatch theme={theme.swatch} />
+                                {theme.name}
+                            </ToggleGroup.Item>
+                        ))}
+                    </ToggleGroup.Root>
+                    {/*
+                      * `system` is not a member of the theme selection — it is
+                      * the absence of one, so it sits outside the group, and
+                      * an empty group is exactly what following the system
+                      * looks like. Here a variant IS the right expression, and
+                      * it is picked from the live vocabulary rather than
+                      * named: `solid` under the four that declare it,
+                      * `primary` under heroui and carbon.
+                      */}
                     <Button.Root
                         size="sm"
-                        variant={current ? 'ghost' : 'solid'}
+                        variant={current
+                            ? pickVariant('ghost', 'outline', 'tertiary')
+                            : pickVariant('solid', 'primary')}
                         onClick={() => themeController().setTheme(null)}
                     >
                         system

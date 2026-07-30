@@ -6,7 +6,7 @@ import {
     TreeView, toast,
 } from '@sigx/zero';
 import { Toolbar } from './Toolbar';
-import { activeVocabulary } from './design-systems';
+import { activeVocabulary, pickRole, pickVariant } from './design-systems';
 
 /**
  * Four roles is enough to read a variant row; eight or thirteen turns it into
@@ -113,9 +113,17 @@ export const App = component(() => {
                     )}
 
                     <h2>Switch</h2>
+                    {/*
+                      * The same rule as the Button matrix above, for a single
+                      * choice: a role prop is picked from what the active
+                      * design system declares, never named here. `undefined`
+                      * under a colourless design system leaves the prop off —
+                      * an uncoloured control, rather than a `data-color`
+                      * nothing in the sheet matches.
+                      */}
                     <Switch.Root model={() => state.switchOn}>Notifications</Switch.Root>
                     {' '}
-                    <Switch.Root color="success" defaultChecked>Autosave</Switch.Root>
+                    <Switch.Root color={pickRole('success')} defaultChecked>Autosave</Switch.Root>
                     {' '}
                     <Switch.Root disabled>Disabled</Switch.Root>
 
@@ -129,7 +137,7 @@ export const App = component(() => {
                     </p>
                     <p style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                         <Toggle.Root>Mute</Toggle.Root>
-                        <Toggle.Root color="warning" defaultPressed>Pinned</Toggle.Root>
+                        <Toggle.Root color={pickRole('warning')} defaultPressed>Pinned</Toggle.Root>
                         <Toggle.Root disabled>Disabled</Toggle.Root>
                         <ToggleGroup.Root model={() => state.align} deselectable={false} label="Alignment">
                             <ToggleGroup.Item value="left">Left</ToggleGroup.Item>
@@ -314,22 +322,32 @@ export const App = component(() => {
                         is plain two-state CSS, and the node unmounts once the exit
                         finishes. Hover the stack to pause auto-dismiss.
                     </p>
+                    {/*
+                      * Picked, not named — including inside the click
+                      * handlers, which read the vocabulary at fire time. Where
+                      * a design system declares status roles the four toasts
+                      * differ; where it declares none they are uniformly
+                      * neutral, which is the truth about that design system
+                      * rather than four dead `data-color` attributes. `role`
+                      * still separates the alert from the status, so the
+                      * distinction survives colourlessness for AT either way.
+                      */}
                     <p style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        <Button.Root onClick={() => toast({ title: 'Saved', description: 'Your changes are safe.', color: 'success' })}>
+                        <Button.Root onClick={() => toast({ title: 'Saved', description: 'Your changes are safe.', color: pickRole('success') })}>
                             Success toast
                         </Button.Root>
-                        <Button.Root color="error" onClick={() => toast({ title: 'Sync failed', description: 'Retrying in 30s.', color: 'error', role: 'alert' })}>
+                        <Button.Root color={pickRole('error', 'danger')} onClick={() => toast({ title: 'Sync failed', description: 'Retrying in 30s.', color: pickRole('error', 'danger'), role: 'alert' })}>
                             Error alert
                         </Button.Root>
-                        <Button.Root variant="outline" onClick={() => {
+                        <Button.Root variant={pickVariant('outline', 'tertiary', 'secondary')} onClick={() => {
                             const started = toast({ title: 'Uploading…', duration: Infinity });
-                            setTimeout(() => toast({ id: started, title: 'Upload complete', color: 'success', duration: 4000 }), 1500);
+                            setTimeout(() => toast({ id: started, title: 'Upload complete', color: pickRole('success'), duration: 4000 }), 1500);
                         }}>
                             Progress → done
                         </Button.Root>
-                        <Button.Root variant="outline" onClick={() => toast({
+                        <Button.Root variant={pickVariant('outline', 'tertiary', 'secondary')} onClick={() => toast({
                             title: 'Undoable action',
-                            action: { label: 'Undo', onClick: () => toast({ title: 'Undone', color: 'info' }) },
+                            action: { label: 'Undo', onClick: () => toast({ title: 'Undone', color: pickRole('info') }) },
                             duration: 8000,
                         })}>
                             With action
