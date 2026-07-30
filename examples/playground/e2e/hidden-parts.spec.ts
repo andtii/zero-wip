@@ -135,7 +135,12 @@ for (const ds of DESIGN_SYSTEMS) {
 
             await trigger.click();
             await expect(content).toHaveAttribute('data-state', 'closed');
-            await expect(content).toHaveAttribute('hidden', '');
+            // Presence, not value: `hidden` is a boolean attribute, and the
+            // anatomy contract promises only that it is THERE — asserting a
+            // serialization (`""` vs `"hidden"`) would fail on a runtime
+            // change that broke nothing. It still has to be there, though:
+            // the computed `display` below only means something if it is.
+            await expect(content).toHaveAttribute('hidden');
 
             const collapsed = await content.evaluate((el) => ({
                 display: getComputedStyle(el).display,
