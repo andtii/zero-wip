@@ -17,15 +17,21 @@ body:
     validations:
       required: true
 
-  # TODO(sigx-standard): list this repo's packages, or delete this dropdown if
-  # the repo ships a single package.
   - type: dropdown
     id: packages
     attributes:
       label: Affected package(s)
+      description: "`zero-material`, `zero-brutalist`, `zero-heroui` and `zero-carbon` are private skins — not published to npm, but they ship in this repo and render in the playground, so bugs in them belong here too."
       multiple: true
       options:
-        - "@sigx/<package>"
+        - "@sigx/zero"
+        - "@sigx/zero-kit"
+        - "@sigx/zero-basic"
+        - "@sigx/zero-daisyui"
+        - "@sigx/zero-material"
+        - "@sigx/zero-brutalist"
+        - "@sigx/zero-heroui"
+        - "@sigx/zero-carbon"
         - Not sure / multiple
     validations:
       required: true
