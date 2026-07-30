@@ -1725,8 +1725,9 @@ export const ratingGroup: RecipeInput = {
             at: {
                 /**
                  * The checkbox hands its mark to a glyph under forced colours;
-                 * the meter cannot. `half`'s glyph is U+2BEA (⯪), which most
-                 * system fonts render as tofu — the one state the fallback
+                 * the meter cannot. There is no half-star glyph to hand it to:
+                 * U+2BEA (⯪) is tofu in most system fonts, so zero's default
+                 * `half` is a full `★` (#222) — the one state the fallback
                  * exists to keep legible would be the one it loses.
                  *
                  * So the geometry stays and is repainted in SYSTEM ink

@@ -2202,11 +2202,13 @@ export const ratingGroup: RecipeInput = {
          * the same 2px stroke, filling from the inline start.
          *
          * That is also the only honest way to render `half` — the runtime's
-         * fallback text is `★`/`⯪`/`☆`, and `⯪` (U+2BEA) is in neither IBM
-         * Plex Sans nor most system fonts, so a tinted glyph draws a *full*
-         * star for a half value. A geometric fill can stop dead centre, so it
-         * does: `scale` on the fill, `transform-origin` at the inline start,
-         * one moderate-01 wipe that follows the pointer across halves.
+         * fallback text is `★`/`★`/`☆`: the half-star codepoint `⯪` (U+2BEA) is
+         * in neither IBM Plex Sans nor most system fonts, so zero renders a full
+         * star for a half value and leaves the halving to the skin (#222). A
+         * tinted glyph would therefore say `full`. A geometric fill can stop
+         * dead centre, so it does: `scale` on the fill, `transform-origin` at
+         * the inline start, one moderate-01 wipe that follows the pointer across
+         * halves.
          *
          * The glyph is collapsed (`font-size: 0`) rather than tinted — it is
          * a fallback symbol this recipe replaces. A consumer supplying its own

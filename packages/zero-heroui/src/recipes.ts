@@ -1735,9 +1735,10 @@ const ratingSystemFill: CssProps = {
  *    0% / 50% / 100%, so `half` is a real geometric half of the same shape,
  *    and it INTERPOLATES: the fill wipes across the symbol as the hover
  *    preview moves over the row.
- *  - zero's `half` fallback symbol is U+2BEA, which almost no system font
- *    ships — it renders as a tofu box on macOS today. Drawing the star means
- *    the three states never depend on a font at all.
+ *  - zero's fallback symbol cannot say `half` at all. U+2BEA (⯪) is shipped by
+ *    almost no system font — it rendered as a tofu box on macOS — so the
+ *    default `half` is a full `★` (#222), identical to `full`. Drawing the star
+ *    means the three states never depend on a font, or on that default, at all.
  *
  * A consumer symbol (the default slot exists for SVGs) opts out through
  * `:has(*)` and takes plain per-state ink instead; it gets `state` in the slot
@@ -1835,16 +1836,16 @@ export const ratingGroup: RecipeInput = {
                 },
                 // Both fallbacks keep the GEOMETRY and re-source its paint,
                 // rather than swapping in a glyph that cannot say "half":
-                // zero's fallback half symbol is U+2BEA, which most system
-                // fonts do not ship — it prints as a tofu box, and a tofu box
-                // in the middle of a star row misstates the value. (Verified:
-                // it renders as a striped box in headless chromium.)
+                // zero's default `half` is a full `★` (U+2BEA, the half-star
+                // codepoint, is tofu in most system fonts — #222), so a row
+                // handed back to the text would read a half as a whole and
+                // overstate the value.
                 //
                 // The forced palette revalues an author's colour but honours a
                 // SYSTEM one, so the item opts out of the revaluation and the
                 // layers name system colours by hand. The opt-out is also what
                 // keeps `color: transparent` honoured — a forced CanvasText
-                // would paint that tofu box straight over the drawn star.
+                // would paint the default text star straight over the drawn one.
                 'forced-colors': {
                     base: { forcedColorAdjust: 'none' },
                     // The one thing the opt-out costs: an author-coloured ring

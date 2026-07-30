@@ -210,7 +210,11 @@ component renders; the root is called out separately where it carries props.
   HiddenInput. Item's data-state is the ONE 3-value set: full|half|empty,
   driven by the DISPLAYED value (hover preview ?? committed);
   data-highlighted marks the preview range; the default slot receives
-  { state, highlighted } for SVG swapping (text-star fallback). Keyboard
+  { state, highlighted } for SVG swapping. Without a slot the item's content
+  is a BARE TEXT node ★/★/☆ — half is a FULL star (no half-star codepoint has
+  font coverage), so a distinct half is the DS's job; a consumer symbol is an
+  ELEMENT, which is how a DS tells them apart (:not(:has(> *)) / :has(*)).
+  Keyboard
   moves the VALUE, not element focus (allowHalf: two values per element):
   single tab stop at ceil(value), arrows ±step (0.5 with allowHalf), Home
   = smallest step, End = count, RTL flips horizontal. Pointer x decides
