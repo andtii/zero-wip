@@ -25,6 +25,7 @@
         box-shadow: var(--shadow-xs);
         cursor: pointer;
         transition: background var(--duration-normal) var(--ease-standard);
+        box-sizing: border-box;
         min-width: 13rem;
     }
 

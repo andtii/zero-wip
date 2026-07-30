@@ -1137,6 +1137,48 @@ export const accordion: RecipeInput = {
     },
 };
 
+/**
+ * daisy's field ramp — one height per size step, in `--size-field` units.
+ *
+ * Named once because three components step on it: `select`'s trigger reads it
+ * through `btn`, and `combobox`/`number-input` had no height at all and sized
+ * implicitly off their input's padding — 48px next to 31px on the same page
+ * (#219). A ramp restated in three recipes is a ramp free to drift, which is
+ * exactly what happened.
+ */
+const FIELD_STEPS = { xs: 8, sm: 10, md: 12, lg: 14, xl: 16 } as const;
+const fieldHeight = (step: keyof typeof FIELD_STEPS): string =>
+    `calc(var(--size-field) * ${FIELD_STEPS[step]})`;
+
+/**
+ * The metrics every form control shares: the `md` height off the ramp above,
+ * daisy's field inset and the `xs` lift that makes a field read as raised
+ * rather than drawn.
+ *
+ * Deliberately NOT `btn`. `btn` is the daisy button chip — `appearance`,
+ * typography, `cursor`, the hover transition — and it is worn by six other
+ * parts (dialog/popover/menu/tooltip triggers, dialog/popover close). A field
+ * is not a button; only the box metrics are common, so only the box metrics
+ * are shared. `select`'s trigger IS a daisy btn and keeps `btn` as well: the
+ * two spreads agree on every property they both name, so its only new
+ * declaration is the `box-sizing` below and it renders exactly as it shipped.
+ *
+ * `box-sizing` is stated because the three parts are not the same element.
+ * `select/trigger` is a `<button>`, which every UA stylesheet gives
+ * `border-box`; `combobox/control` and `number-input/control` are `<div>`s,
+ * which are `content-box` — the same `height` measured 48px on one and 50px on
+ * the others. zero's `base.css` ships no reset (it is structural, not visual),
+ * so a shared height is only shared if the box it measures is stated with it.
+ */
+const fieldControl: NonNullable<PartStyles['base']> = {
+    boxSizing: 'border-box',
+    height: fieldHeight('md'),
+    background: 'var(--color-base-100)',
+    border: 'var(--border) solid var(--color-base-300)',
+    borderRadius: 'var(--radius-field)',
+    boxShadow: 'var(--shadow-xs)',
+};
+
 export const select: RecipeInput = {
     component: 'select',
     // Accent as text/border ink only — daisy's highlighted item is a neutral
@@ -1149,11 +1191,11 @@ export const select: RecipeInput = {
         trigger: {
             base: {
                 ...btn,
+                ...fieldControl,
                 justifyContent: 'space-between',
                 gap: 'var(--space-lg)',
                 minWidth: '13rem',
                 fontWeight: 'var(--weight-medium)',
-                background: 'var(--color-base-100)',
             },
             states: {
                 hover: { borderColor: 'var(--color-base-content)' },
@@ -1210,16 +1252,70 @@ export const select: RecipeInput = {
             '--select-accent': `var(--color-${c})`,
         } } }])),
         // The trigger is a daisy btn, so it sizes the btn way: a fixed
-        // height plus paddingInline, stepped on --size-field.
+        // height off the shared field ramp plus paddingInline.
         size: {
-            xs: { trigger: { base: { height: 'calc(var(--size-field) * 8)', paddingInline: 'calc(var(--size-field) * 2)', fontSize: 'var(--text-xs)' } } },
-            sm: { trigger: { base: { height: 'calc(var(--size-field) * 10)', paddingInline: 'calc(var(--size-field) * 3)', fontSize: 'var(--text-sm)' } } },
-            md: { trigger: { base: { height: 'calc(var(--size-field) * 12)', paddingInline: 'calc(var(--size-field) * 4)', fontSize: 'var(--text-sm)' } } },
-            lg: { trigger: { base: { height: 'calc(var(--size-field) * 14)', paddingInline: 'calc(var(--size-field) * 5)', fontSize: 'var(--text-md)' } } },
-            xl: { trigger: { base: { height: 'calc(var(--size-field) * 16)', paddingInline: 'calc(var(--size-field) * 6)', fontSize: 'var(--text-lg)' } } },
+            xs: { trigger: { base: { height: fieldHeight('xs'), paddingInline: 'calc(var(--size-field) * 2)', fontSize: 'var(--text-xs)' } } },
+            sm: { trigger: { base: { height: fieldHeight('sm'), paddingInline: 'calc(var(--size-field) * 3)', fontSize: 'var(--text-sm)' } } },
+            md: { trigger: { base: { height: fieldHeight('md'), paddingInline: 'calc(var(--size-field) * 4)', fontSize: 'var(--text-sm)' } } },
+            lg: { trigger: { base: { height: fieldHeight('lg'), paddingInline: 'calc(var(--size-field) * 5)', fontSize: 'var(--text-md)' } } },
+            xl: { trigger: { base: { height: fieldHeight('xl'), paddingInline: 'calc(var(--size-field) * 6)', fontSize: 'var(--text-lg)' } } },
         },
     },
 };
+
+/**
+ * How far each role survives in the button's INK — the colour a transparent or
+ * tinted fill draws its label, border and focus ring with.
+ *
+ * A raw role token is a FILL colour: it is contrast-validated against its own
+ * `-content` pair and against nothing else. Used as ink on a base surface it
+ * has no floor at all, and daisy's palettes prove it — `neutral` is a dark grey
+ * in all three dark themes (1.12–1.22:1 on `base-100`, 1.11–1.18 on its own
+ * `-soft`) and `accent` a pale teal in light and nord (1.63–1.83). That is
+ * #210: the `outline`, `soft` and `ghost` cells rendered as empty boxes.
+ *
+ * The mix partner is `--color-base-content`, NOT the role's own `-content`.
+ * `ratingFill` above deepens toward `-content` and its comment says why that
+ * cannot generalise: "deepening toward `-content` helps a light theme and hurts
+ * a dark one" — because `-content` is the pole opposite the ROLE, which in a
+ * dark theme means darker, straight into a dark `base-100`. `base-content` is
+ * by construction the pole opposite the SURFACE, so the same percentage lightens
+ * on dark themes and darkens on light ones. One number per role then holds
+ * across all five themes.
+ *
+ * Per role, and each the gentlest 5% step that clears 3:1 — the same rule
+ * `progressFill` and `RATING_DEEPEN` follow. Measured through Chromium's own
+ * canvas (the technique `contrast-audit.spec.ts` uses, so gamut mapping matches
+ * what is painted): 5 themes × 8 roles × {base-100, base-200, base-300, the
+ * role's `-soft`, and `-soft` under the hover `brightness(.95)`} = 200 cells,
+ * all ≥3:1, worst 3.10 (nord `secondary` on `base-300`).
+ *
+ * One 5% step gentler puts five of the eight under the floor — `primary` 2.98,
+ * `secondary` 2.87, `accent` 2.96, `neutral` 2.87, `success` 2.97 — and leaves
+ * the other three sitting on it with nothing to spare (`info` 3.00, `error`
+ * 3.03, `warning` 3.04). Every one of those worst cells is nord on `base-300`
+ * except `neutral`'s, which is dim's own `-soft` under the hover brightness.
+ *
+ * `primary` and `error` keep 95% because raw already sat at 2.98 and 3.03 —
+ * a nudge, not a repaint. `neutral` keeps 40% because a role whose fill is a
+ * near-surface grey has nowhere else to go.
+ *
+ * Verified again on the compiled output rather than the tokens: the emitted
+ * CSS rendered in all five themes, 4 variants × 8 roles, gives 160 label cells
+ * and 40 `outline` borders with none under 3:1, worst 3.23 (nord / `soft` /
+ * `primary`). Before: 35 labels and 11 borders under, worst 1.11.
+ *
+ * This is the ad-hoc `color-mix` #126 describes: the contract has no name for
+ * "this role's muted ink", so every design system invents one. When #126 lands,
+ * this map is what it replaces.
+ */
+const BTN_INK_KEEP: Record<string, number> = {
+    primary: 95, secondary: 70, accent: 55, neutral: 40,
+    info: 70, success: 55, warning: 45, error: 95,
+};
+
+const btnInk = (role: string): string =>
+    `color-mix(in oklab, var(--color-${role}) ${BTN_INK_KEEP[role] ?? 55}%, var(--color-base-content))`;
 
 export const button: RecipeInput = {
     component: 'button',
@@ -1230,6 +1326,7 @@ export const button: RecipeInput = {
         '--btn-accent': 'var(--color-primary)',
         '--btn-on-accent': 'var(--color-primary-content)',
         '--btn-soft': 'var(--color-primary-soft)',
+        '--btn-ink': btnInk('primary'),
     },
     parts: {
         root: {
@@ -1251,8 +1348,11 @@ export const button: RecipeInput = {
             },
             states: {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                // The ring is drawn on the page, offset clear of the button —
+                // ink, not fill, and the same 3:1 floor. On `--btn-accent` it
+                // was the same 1.22:1 `neutral` the label was.
                 'focus-visible': {
-                    outline: '2px solid var(--btn-accent)',
+                    outline: '2px solid var(--btn-ink)',
                     outlineOffset: '2px',
                 },
             },
@@ -1280,6 +1380,7 @@ export const button: RecipeInput = {
                             '--btn-accent': `var(--color-${c})`,
                             '--btn-on-accent': `var(--color-${c}-content)`,
                             '--btn-soft': `var(--color-${c}-soft)`,
+                            '--btn-ink': btnInk(c),
                         },
                     },
                 },
@@ -1292,25 +1393,32 @@ export const button: RecipeInput = {
                     states: { hover: { filter: 'brightness(0.92)' } },
                 },
             },
+            // The three fills that paint no `-content` pair read `--btn-ink`,
+            // never `--btn-accent`: on a transparent or `-soft` surface the raw
+            // role has no contrast guarantee (#210). `solid` above keeps the
+            // raw accent, because there it is the fill and `--btn-on-accent`
+            // is the pair that answers for it.
             outline: {
                 root: {
                     base: {
                         background: 'transparent',
-                        color: 'var(--btn-accent)',
-                        borderColor: 'var(--btn-accent)',
+                        color: 'var(--btn-ink)',
+                        // The border is the whole variant: a 1.22:1 hairline is
+                        // an invisible box, so it takes the ink too.
+                        borderColor: 'var(--btn-ink)',
                     },
                     states: { hover: { background: 'var(--btn-soft)' } },
                 },
             },
             soft: {
                 root: {
-                    base: { background: 'var(--btn-soft)', color: 'var(--btn-accent)' },
+                    base: { background: 'var(--btn-soft)', color: 'var(--btn-ink)' },
                     states: { hover: { filter: 'brightness(0.95)' } },
                 },
             },
             ghost: {
                 root: {
-                    base: { background: 'transparent', color: 'var(--btn-accent)' },
+                    base: { background: 'transparent', color: 'var(--btn-ink)' },
                     states: { hover: { background: 'var(--btn-soft)' } },
                 },
             },
@@ -1536,14 +1644,16 @@ export const combobox: RecipeInput = {
         root: {
             base: { display: 'inline-flex', flexDirection: 'column' },
         },
+        // `alignItems: stretch`, not `center`: the control now has a height of
+        // its own, and a 48px field whose input occupies the middle 31px is a
+        // worse thing than the drift. The input and the trigger fill it, so the
+        // whole field is the target — the same reason `number-input` stretches.
         control: {
             base: {
                 display: 'inline-flex',
-                alignItems: 'center',
+                alignItems: 'stretch',
                 minWidth: '13rem',
-                background: 'var(--color-base-100)',
-                border: 'var(--border) solid var(--color-base-300)',
-                borderRadius: 'var(--radius-field)',
+                ...fieldControl,
                 transition: 'border-color var(--duration-fast) var(--ease-standard)',
             },
             states: {
@@ -1640,15 +1750,16 @@ export const combobox: RecipeInput = {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--combobox-accent': `var(--color-${c})`,
         } } }])),
-        // The input sizes on its own padding rather than a btn-style fixed
-        // height: the resting field is content-sized, and `md` must restate
-        // exactly those resting values so the union stays complete.
+        // The control carries the height — the shared field ramp, the same one
+        // `select`'s trigger steps on — and the input carries the inset and the
+        // type. `md` restates exactly the resting values so the union stays
+        // complete.
         size: {
-            xs: { input: { base: { padding: 'var(--space-2xs) var(--space-md)', fontSize: 'var(--text-xs)' } } },
-            sm: { input: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-sm)' } } },
-            md: { input: { base: { padding: 'var(--space-sm) var(--space-lg)', fontSize: 'var(--text-sm)' } } },
-            lg: { input: { base: { padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-md)' } } },
-            xl: { input: { base: { padding: 'var(--space-lg) var(--space-2xl)', fontSize: 'var(--text-lg)' } } },
+            xs: { control: { base: { height: fieldHeight('xs') } }, input: { base: { padding: 'var(--space-2xs) var(--space-md)', fontSize: 'var(--text-xs)' } } },
+            sm: { control: { base: { height: fieldHeight('sm') } }, input: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-sm)' } } },
+            md: { control: { base: { height: fieldHeight('md') } }, input: { base: { padding: 'var(--space-sm) var(--space-lg)', fontSize: 'var(--text-sm)' } } },
+            lg: { control: { base: { height: fieldHeight('lg') } }, input: { base: { padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-md)' } } },
+            xl: { control: { base: { height: fieldHeight('xl') } }, input: { base: { padding: 'var(--space-lg) var(--space-2xl)', fontSize: 'var(--text-lg)' } } },
         },
     },
     // The visible ring lives on `control`; input and trigger delegate.
@@ -1872,9 +1983,7 @@ export const numberInput: RecipeInput = {
             base: {
                 display: 'inline-flex',
                 alignItems: 'stretch',
-                background: 'var(--color-base-100)',
-                border: 'var(--border) solid var(--color-base-300)',
-                borderRadius: 'var(--radius-field)',
+                ...fieldControl,
                 overflow: 'hidden',
                 transition: 'border-color var(--duration-fast) var(--ease-standard)',
             },
@@ -1973,17 +2082,19 @@ export const numberInput: RecipeInput = {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--number-input-accent': `var(--color-${c})`,
         } } }])),
-        // The readout carries the ramp; the steppers follow it so the frame
-        // stays proportional.
+        // The control carries the height — the shared field ramp, the same one
+        // `select`'s trigger and `combobox`'s control step on — and the readout
+        // carries the type; the steppers follow it so the frame stays
+        // proportional.
         size: {
-            xs: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } } },
-            sm: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-sm)' } } },
+            xs: { control: { base: { height: fieldHeight('xs') } }, input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } } },
+            sm: { control: { base: { height: fieldHeight('sm') } }, input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-sm)' } } },
             // `md` is the un-attributed render: the base already IS the
             // middle step, so restating it here would be a second copy free
             // to drift. An empty entry emits no rule and keeps the base.
             md: {},
-            lg: { input: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-lg)' } } },
-            xl: { input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-xl)' } } },
+            lg: { control: { base: { height: fieldHeight('lg') } }, input: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-lg)' } } },
+            xl: { control: { base: { height: fieldHeight('xl') } }, input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-xl)' } } },
         },
     },
 };
