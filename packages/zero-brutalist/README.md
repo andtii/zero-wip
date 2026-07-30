@@ -36,6 +36,17 @@ sliding). The lineage is cited in `recipes.ts` where the polygons are declared;
 giving the mark a construction of its own — two axis-aligned slabs at a hard
 90°, no rotation — is open as a follow-up.
 
+The slider is an `appearance: none` rebuild (#221). A native range widget is
+the one control the brief cannot reach — pill track, round handle, no border,
+no shadow — and it sat directly above a progress bar that is square, inked and
+offset-shadowed. Rebuilt from the vendor pseudo-elements it is the same two
+slabs as everything else, and it steps with progress: `--slider-track-size` is
+the channel, the same value `--progress-track-size` takes at every size, and
+`--slider-thumb-size` derives the handle from it. The elapsed span is a
+gradient over the runtime-published `--slider-percent`, and its direction is a
+custom property the RTL selector rebinds, so the fill grows from the inline
+start in both writing directions.
+
 ## What the run found
 
 The skill listed `text` as a `system` category. It moved to
