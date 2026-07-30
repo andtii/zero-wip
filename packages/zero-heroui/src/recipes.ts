@@ -568,10 +568,70 @@ export const field: RecipeInput = {
     },
 };
 
+/**
+ * Forced colors and print both erase painted geometry — the forced palette
+ * revalues every colour the marks are drawn in, and a print engine drops
+ * background paint by default — so both swap the drawn tick for text, the way
+ * daisyUI's checkbox does. Zero renders no glyph of its own inside the
+ * indicator, so here the mark IS the content.
+ *
+ * `print` is not a named condition in the kit yet (#226 lands it), so the
+ * prelude is written raw; it resolves at TIER.raw, which still emits after
+ * every flat rule.
+ */
+const drawnMarkFallback: PartStyles = {
+    // Near-white ink is right on the primary fill and wrong on paper, where
+    // the fill does not print. Forced colours override this again to
+    // CanvasText, which is what that mode wants.
+    base: { color: 'var(--color-base-content)' },
+    selectors: {
+        '&::before': { display: 'none' },
+        // Not a pair of arms any more: a centred glyph, so the lengths, the
+        // borders and the elbow rotation all have to go with them.
+        '&::after': {
+            width: 'auto',
+            height: 'auto',
+            border: 'none',
+            borderRadius: '0',
+            opacity: '1',
+            left: '50%',
+            top: '50%',
+            transformOrigin: '50% 50%',
+            transform: 'translate(-50%, -50%)',
+            fontFamily: 'var(--font-sans)',
+            fontSize: 'calc(var(--checkbox-size) * 0.78)',
+            lineHeight: 'var(--leading-none)',
+        },
+        '&[data-state="checked"]::after': { content: '"\\2713"' },
+        '&[data-state="indeterminate"]::after': { content: '"\\2013"' },
+    },
+};
+
 // ── Checkbox ──────────────────────────────────────────────────────────────
+/**
+ * The tick and the indeterminate bar are DRAWN, not glyphed: two borders of a
+ * box rotated 45° about the elbow they share, and a pill-capped bar. Geometry
+ * is what lets them scale with `--checkbox-size` and animate — a font glyph
+ * can only fade, and half the fonts in the wild have no half-decent check in
+ * them anyway.
+ *
+ * The three states set two 0|1 drivers instead of styling the marks
+ * themselves. That keeps the geometry in one place and makes each state a
+ * LENGTH: `--checkbox-tick: 1` grows both arms out of an elbow that is pinned
+ * (`transform-origin` sits on the corner both borders meet at, so the
+ * rotation never moves while the arms grow), which is a tick drawing itself
+ * rather than one fading in. Two durations, one start: the short arm lands
+ * first and the long one keeps going, which is the stroke order a hand uses.
+ */
 export const checkbox: RecipeInput = {
     component: 'checkbox',
-    tokens: { '--checkbox-size': 'calc(var(--size-selector) * 5)' },
+    tokens: {
+        '--checkbox-size': 'calc(var(--size-selector) * 5)',
+        // ~2.4px at md, and never hairline-thin at sm.
+        '--checkbox-stroke': 'max(1.5px, calc(var(--checkbox-size) * 0.12))',
+        '--checkbox-tick': '0',
+        '--checkbox-dash': '0',
+    },
     parts: {
         root: {
             base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
@@ -607,8 +667,58 @@ export const checkbox: RecipeInput = {
             },
         },
         indicator: {
-            base: { color: 'var(--hero-primary-ink)', lineHeight: 'var(--leading-none)' },
-            states: { checked: {}, unchecked: {}, indeterminate: {} },
+            base: {
+                position: 'relative',
+                display: 'block',
+                width: '100%',
+                height: '100%',
+                color: 'var(--hero-primary-ink)',
+                lineHeight: 'var(--leading-none)',
+            },
+            // Each state is the pair of arm/bar lengths, so the marks
+            // interpolate between states instead of swapping.
+            states: {
+                checked: { '--checkbox-tick': '1', '--checkbox-dash': '0' },
+                indeterminate: { '--checkbox-tick': '0', '--checkbox-dash': '1' },
+                unchecked: { '--checkbox-tick': '0', '--checkbox-dash': '0' },
+            },
+            selectors: {
+                // The tick. `left`/`top` are physical on purpose — a check is
+                // not mirrored in RTL, only laid out on the other side.
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    left: '38%',
+                    top: '72%',
+                    width: 'calc(30% * var(--checkbox-tick))',
+                    height: 'calc(58% * var(--checkbox-tick))',
+                    borderRight: 'var(--checkbox-stroke) solid currentColor',
+                    borderBottom: 'var(--checkbox-stroke) solid currentColor',
+                    // v3's softness, at the one corner a checkmark has.
+                    borderBottomRightRadius: 'calc(var(--checkbox-stroke) * 0.75)',
+                    opacity: 'var(--checkbox-tick)',
+                    transformOrigin: '100% 100%',
+                    transform: 'translate(-100%, -100%) rotate(45deg)',
+                    transition: 'width var(--duration-fast) var(--ease-decelerate), '
+                        + 'height var(--duration-normal) var(--ease-decelerate), '
+                        + 'opacity var(--duration-fast) var(--ease-standard)',
+                },
+                // The indeterminate bar — pill-capped, grown from its middle.
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetInline: '24%',
+                    top: '50%',
+                    height: 'var(--checkbox-stroke)',
+                    borderRadius: '9999px',
+                    background: 'currentColor',
+                    opacity: 'var(--checkbox-dash)',
+                    transform: 'translateY(-50%) scaleX(var(--checkbox-dash))',
+                    transition: 'transform var(--duration-normal) var(--ease-decelerate), '
+                        + 'opacity var(--duration-fast) var(--ease-standard)',
+                },
+            },
+            at: { 'forced-colors': drawnMarkFallback, print: drawnMarkFallback },
         },
         label: {
             base: { ...label },
@@ -714,11 +824,23 @@ export const radioGroup: RecipeInput = {
 // ── Progress ──────────────────────────────────────────────────────────────
 export const progress: RecipeInput = {
     component: 'progress',
-    tokens: { '--progress-height': 'calc(var(--size-selector) * 2)' },
+    tokens: {
+        '--progress-height': 'calc(var(--size-selector) * 2)',
+        /** The value readout's ink — the one thing `complete` recolours. */
+        '--progress-ink': 'var(--hero-muted)',
+    },
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)', width: '100%' },
-            states: { loading: {}, complete: {}, indeterminate: {} },
+            states: {
+                loading: {},
+                // A finished bar is a full bar, so `complete` cannot be the
+                // fill's own colour without giving v3 a second accent. It is
+                // the READOUT that settles onto the accent instead, and the
+                // fill picks up the hairline below.
+                complete: { '--progress-ink': 'var(--hero-primary)' },
+                indeterminate: {},
+            },
         },
         label: {
             base: { ...label },
@@ -737,12 +859,18 @@ export const progress: RecipeInput = {
                 height: '100%',
                 background: 'var(--hero-primary)',
                 borderRadius: '9999px',
-                transition: motion('width'),
+                transition: motion('width, box-shadow'),
             },
             states: {
-                // v3 keeps its one accent — a finished bar is a full bar, not
-                // a recoloured one.
-                loading: {}, complete: {},
+                loading: {},
+                // v3 keeps its one accent, so completion is depth rather than
+                // hue: the inset hairline that every other v3 fill carries
+                // when it is done being provisional. The track is fully
+                // covered at 100%, which is why the cue lives here.
+                complete: {
+                    boxShadow: 'inset 0 0 0 var(--border) '
+                        + 'color-mix(in oklab, var(--hero-primary-ink) 70%, transparent)',
+                },
                 indeterminate: { width: '40%', animation: 'hero-indeterminate 1.2s ease-in-out infinite' },
             },
             // A looping animation must STOP under reduced motion, not speed
@@ -755,7 +883,12 @@ export const progress: RecipeInput = {
             },
         },
         'value-text': {
-            base: { fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', color: 'var(--hero-muted)' },
+            base: {
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                color: 'var(--progress-ink)',
+                transition: motion('color'),
+            },
         },
     },
     variants: {
@@ -1512,9 +1645,62 @@ export const numberInput: RecipeInput = {
 };
 
 // ── Rating group ──────────────────────────────────────────────────────────
+/**
+ * One clipped paint layer of the star: `track` is what shows where the fill
+ * has not reached, and the fill itself is a flat image layer whose
+ * `background-size` the states drive. Used twice — the silhouette, and the
+ * hollow inside it.
+ */
+const ratingLayer = (track: string): CssProps => ({
+    content: '""',
+    position: 'absolute',
+    clipPath: 'var(--rating-star)',
+    backgroundColor: track,
+    backgroundImage: 'linear-gradient(to right, var(--hero-primary) 0 100%)',
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'var(--rating-fill-stop) 100%',
+    transition: motion('background-size'),
+});
+
+/**
+ * What the fill layer becomes under forced colours: the mode revalues author
+ * paint, so the layer names a SYSTEM colour instead — the only way a painted
+ * fill still adapts to the user's palette rather than vanishing into it. The
+ * opt-out that makes it stick is on the item (see the `forced-colors` block).
+ */
+const ratingSystemFill: CssProps = {
+    backgroundImage: 'linear-gradient(to right, Highlight 0 100%)',
+};
+
+/**
+ * The star is DRAWN — a clip-path polygon over a two-layer paint — and the
+ * item's own symbol is hidden behind it. Two reasons, both load-bearing:
+ *
+ *  - `full` and `half` used to be the same colour, so a half star was a full
+ *    star. Here the fill is one flat layer whose `background-size` is
+ *    0% / 50% / 100%, so `half` is a real geometric half of the same shape,
+ *    and it INTERPOLATES: the fill wipes across the symbol as the hover
+ *    preview moves over the row.
+ *  - zero's `half` fallback symbol is U+2BEA, which almost no system font
+ *    ships — it renders as a tofu box on macOS today. Drawing the star means
+ *    the three states never depend on a font at all.
+ *
+ * A consumer symbol (the default slot exists for SVGs) opts out through
+ * `:has(*)` and takes plain per-state ink instead; it gets `state` in the slot
+ * and can draw its own half.
+ */
 export const ratingGroup: RecipeInput = {
     component: 'rating-group',
-    tokens: { '--rating-size': 'calc(var(--size-selector) * 6)' },
+    tokens: {
+        '--rating-size': 'calc(var(--size-selector) * 6)',
+        /** How much of the star the fill covers — the whole state axis. */
+        '--rating-fill-stop': '0%',
+        /** Ink for a symbol we don't draw — a consumer's own SVG or glyph. */
+        '--rating-symbol': 'var(--hero-muted)',
+        /** A five-pointed star, as one clip. */
+        '--rating-star': 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, '
+            + '50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
+    },
     parts: {
         root: {
             base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
@@ -1539,19 +1725,25 @@ export const ratingGroup: RecipeInput = {
         },
         item: {
             base: {
+                position: 'relative',
+                display: 'inline-block',
+                width: 'var(--rating-size)',
+                height: 'var(--rating-size)',
                 fontSize: 'var(--rating-size)',
                 lineHeight: 'var(--leading-none)',
                 borderRadius: 'var(--radius-selector)',
                 cursor: 'pointer',
                 userSelect: 'none',
-                // Unfilled symbols read as secondary ink, not chrome.
-                color: 'var(--hero-muted)',
-                transition: motion('color, transform'),
+                // The symbol still sizes and reads (it is the accessible
+                // content); the drawn star is what paints.
+                color: 'transparent',
+                WebkitTextFillColor: 'transparent',
+                transition: motion('transform'),
             },
             states: {
-                full: { color: 'var(--hero-primary)' },
-                half: { color: 'var(--hero-primary)' },
-                empty: {},
+                full: { '--rating-fill-stop': '100%', '--rating-symbol': 'var(--hero-primary)' },
+                half: { '--rating-fill-stop': '50%', '--rating-symbol': 'var(--hero-primary)' },
+                empty: { '--rating-fill-stop': '0%', '--rating-symbol': 'var(--hero-muted)' },
                 // The hover-preview range lifts gently — v3 never jumps.
                 highlighted: { transform: 'scale(1.1)' },
                 disabled: { cursor: 'not-allowed' },
@@ -1561,10 +1753,62 @@ export const ratingGroup: RecipeInput = {
                 // as two identical concentric rings.
                 'focus-visible': { outline: '2px solid var(--hero-focus)', outlineOffset: '-2px' },
             },
+            selectors: {
+                // The silhouette, and the star inset inside it. Both take the
+                // same fill layer, so the fill's edge cuts through outline and
+                // interior together: filled side solid, unfilled side hollow.
+                '&::before': { ...ratingLayer('var(--hero-muted)'), inset: '0' },
+                '&::after': { ...ratingLayer('var(--color-base-100)'), inset: '12%' },
+                // The fill grows from the leading edge, and its layer is one
+                // flat colour — so direction is a background-position, not a
+                // gradient angle.
+                '&:dir(rtl)::before, &:dir(rtl)::after': { backgroundPositionX: 'right' },
+                // A consumer symbol draws itself: hand it back the box, the
+                // ink and the paint.
+                '&:has(*)': {
+                    width: 'auto',
+                    height: 'auto',
+                    color: 'var(--rating-symbol)',
+                    WebkitTextFillColor: 'currentcolor',
+                },
+                '&:has(*)::before, &:has(*)::after': { display: 'none' },
+            },
             at: {
                 'reduced-motion': {
                     base: { transition: 'none' },
                     states: { highlighted: { transform: 'none' } },
+                    selectors: { '&::before, &::after': { transition: 'none' } },
+                },
+                // Both fallbacks keep the GEOMETRY and re-source its paint,
+                // rather than swapping in a glyph that cannot say "half":
+                // zero's fallback half symbol is U+2BEA, which most system
+                // fonts do not ship — it prints as a tofu box, and a tofu box
+                // in the middle of a star row misstates the value. (Verified:
+                // it renders as a striped box in headless chromium.)
+                //
+                // The forced palette revalues an author's colour but honours a
+                // SYSTEM one, so the item opts out of the revaluation and the
+                // layers name system colours by hand. The opt-out is also what
+                // keeps `color: transparent` honoured — a forced CanvasText
+                // would paint that tofu box straight over the drawn star.
+                'forced-colors': {
+                    base: { forcedColorAdjust: 'none' },
+                    // The one thing the opt-out costs: an author-coloured ring
+                    // is exactly what this mode exists to replace, so hand the
+                    // ring back to the system palette explicitly.
+                    states: { 'focus-visible': { outline: '2px solid Highlight' } },
+                    selectors: {
+                        '&::before': { ...ratingLayer('CanvasText'), ...ratingSystemFill },
+                        '&::after': { ...ratingLayer('Canvas'), ...ratingSystemFill },
+                    },
+                },
+                // Paper drops background paint under `print-color-adjust:
+                // economy`, and the fill IS the value here — so ask for it.
+                print: {
+                    selectors: {
+                        '&::before': { printColorAdjust: 'exact' },
+                        '&::after': { printColorAdjust: 'exact' },
+                    },
                 },
             },
         },

@@ -1037,6 +1037,7 @@
         --checkbox-size: calc(var(--size-selector) * 5);
         --checkbox-accent: var(--color-primary);
         --checkbox-on-accent: var(--color-primary-content);
+        --checkbox-mark: polygon(36.6% 63.5%, 37.6% 92.8%, 37.6% 92.8%, 37.6% 92.8%, 36.6% 63.5%, 36.6% 63.5%);
     }
 
     [data-scope="checkbox"][data-part="root"] {
@@ -1052,9 +1053,9 @@
     }
 
     [data-scope="checkbox"][data-part="control"] {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+        display: inline-block;
+        position: relative;
+        flex-shrink: 0;
         width: var(--checkbox-size);
         height: var(--checkbox-size);
         border: var(--border) solid var(--color-base-300);
@@ -1087,17 +1088,24 @@
     }
 
     [data-scope="checkbox"][data-part="indicator"] {
-        color: var(--checkbox-on-accent);
-        line-height: var(--leading-none);
-        font-size: var(--text-xs);
+        position: absolute;
+        inset: 17%;
+        background: var(--checkbox-on-accent);
+        clip-path: var(--checkbox-mark);
+        opacity: 0;
+        transition: clip-path var(--duration-fast) var(--ease-exit), opacity var(--duration-fast) var(--ease-exit);
     }
 
-    [data-scope="checkbox"][data-part="indicator"][data-state="checked"]::after {
-        content: "✓";
+    [data-scope="checkbox"][data-part="indicator"][data-state="checked"] {
+        --checkbox-mark: polygon(15.1% 41.3%, 1% 55%, 37.6% 92.8%, 99% 19.8%, 83.9% 7.2%, 36.6% 63.5%);
+        opacity: 1;
+        transition: clip-path var(--duration-normal) var(--ease-standard) var(--duration-fast), opacity var(--duration-fast) var(--ease-standard) var(--duration-fast);
     }
 
-    [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"]::after {
-        content: "−";
+    [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"] {
+        --checkbox-mark: polygon(8% 40.1%, 8% 59.9%, 37.6% 59.9%, 92% 59.9%, 92% 40.1%, 37.6% 40.1%);
+        opacity: 1;
+        transition: clip-path var(--duration-normal) var(--ease-standard) var(--duration-fast), opacity var(--duration-fast) var(--ease-standard) var(--duration-fast);
     }
 
     [data-scope="checkbox"][data-part="label"] {
@@ -1184,12 +1192,52 @@
     [data-scope="checkbox"][data-part="root"][data-size="xl"] [data-scope="checkbox"][data-part="label"] {
         font-size: var(--text-lg);
     }
+
+    @media (forced-colors: active) {
+        [data-scope="checkbox"][data-part="indicator"] {
+            clip-path: none;
+            background: transparent;
+            display: grid;
+            place-items: center;
+            color: CanvasText;
+            font-size: calc(var(--checkbox-size) * 0.72);
+            line-height: var(--leading-none);
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="checked"]::after {
+            content: "\2714";
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"]::after {
+            content: "\2212";
+        }
+    }
+
+    @media print {
+        [data-scope="checkbox"][data-part="indicator"] {
+            clip-path: none;
+            background: transparent;
+            display: grid;
+            place-items: center;
+            color: CanvasText;
+            font-size: calc(var(--checkbox-size) * 0.72);
+            line-height: var(--leading-none);
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="checked"]::after {
+            content: "\2714";
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"]::after {
+            content: "\2212";
+        }
+    }
 }
 
 @layer zero.recipes {
     [data-scope="radio-group"][data-part="root"] {
         --radio-size: calc(var(--size-selector) * 5);
-        --radio-accent: var(--color-primary);
+        --radio-accent: color-mix(in oklab, var(--color-primary) 70%, var(--color-primary-content));
     }
 
     [data-scope="radio-group"][data-part="root"] {
@@ -1263,35 +1311,35 @@
     }
 
     [data-scope="radio-group"][data-part="root"][data-color="primary"] {
-        --radio-accent: var(--color-primary);
+        --radio-accent: color-mix(in oklab, var(--color-primary) 70%, var(--color-primary-content));
     }
 
     [data-scope="radio-group"][data-part="root"][data-color="secondary"] {
-        --radio-accent: var(--color-secondary);
+        --radio-accent: color-mix(in oklab, var(--color-secondary) 70%, var(--color-secondary-content));
     }
 
     [data-scope="radio-group"][data-part="root"][data-color="accent"] {
-        --radio-accent: var(--color-accent);
+        --radio-accent: color-mix(in oklab, var(--color-accent) 70%, var(--color-accent-content));
     }
 
     [data-scope="radio-group"][data-part="root"][data-color="neutral"] {
-        --radio-accent: var(--color-neutral);
+        --radio-accent: color-mix(in oklab, var(--color-neutral) 70%, var(--color-neutral-content));
     }
 
     [data-scope="radio-group"][data-part="root"][data-color="info"] {
-        --radio-accent: var(--color-info);
+        --radio-accent: color-mix(in oklab, var(--color-info) 70%, var(--color-info-content));
     }
 
     [data-scope="radio-group"][data-part="root"][data-color="success"] {
-        --radio-accent: var(--color-success);
+        --radio-accent: color-mix(in oklab, var(--color-success) 70%, var(--color-success-content));
     }
 
     [data-scope="radio-group"][data-part="root"][data-color="warning"] {
-        --radio-accent: var(--color-warning);
+        --radio-accent: color-mix(in oklab, var(--color-warning) 70%, var(--color-warning-content));
     }
 
     [data-scope="radio-group"][data-part="root"][data-color="error"] {
-        --radio-accent: var(--color-error);
+        --radio-accent: color-mix(in oklab, var(--color-error) 70%, var(--color-error-content));
     }
 
     [data-scope="radio-group"][data-part="root"][data-size="xs"] {
@@ -3166,6 +3214,8 @@
     [data-scope="rating-group"][data-part="root"] {
         --rating-size: var(--text-xl);
         --rating-fill: color-mix(in oklab, var(--color-warning) 70%, var(--color-warning-content));
+        --rating-mark: polygon(2% 4.3%, 2% 37.7%, 2% 39.2%, 2% 61.4%, 2% 95.7%, 2% 76%, 2% 95.7%, 2% 61.4%, 2% 39.2%, 2% 37.7%);
+        --rating-ghost: polygon(50% 4.3%, 62.5% 37.7%, 98% 39.2%, 70.2% 61.4%, 79.7% 95.7%, 50% 76%, 20.3% 95.7%, 29.8% 61.4%, 2% 39.2%, 37.5% 37.7%);
     }
 
     [data-scope="rating-group"][data-part="root"] {
@@ -3204,8 +3254,12 @@
     }
 
     [data-scope="rating-group"][data-part="item"] {
+        position: relative;
+        display: inline-block;
+        width: var(--rating-size);
+        height: var(--rating-size);
         font-size: var(--rating-size);
-        line-height: 1;
+        line-height: var(--leading-none);
         cursor: pointer;
         user-select: none;
         color: var(--color-base-300);
@@ -3214,10 +3268,19 @@
 
     [data-scope="rating-group"][data-part="item"][data-state="full"] {
         color: var(--rating-fill);
+        --rating-mark: polygon(50% 4.3%, 62.5% 37.7%, 98% 39.2%, 70.2% 61.4%, 79.7% 95.7%, 50% 76%, 20.3% 95.7%, 29.8% 61.4%, 2% 39.2%, 37.5% 37.7%);
+        --rating-ghost: polygon(98% 4.3%, 98% 37.7%, 98% 39.2%, 98% 61.4%, 98% 95.7%, 98% 76%, 98% 95.7%, 98% 61.4%, 98% 39.2%, 98% 37.7%);
     }
 
     [data-scope="rating-group"][data-part="item"][data-state="half"] {
         color: var(--rating-fill);
+        --rating-mark: polygon(48% 4.3%, 48% 37.7%, 48% 39.2%, 48% 61.4%, 48% 95.7%, 48% 76%, 20.3% 95.7%, 29.8% 61.4%, 2% 39.2%, 37.5% 37.7%);
+        --rating-ghost: polygon(52% 4.3%, 62.5% 37.7%, 98% 39.2%, 70.2% 61.4%, 79.7% 95.7%, 52% 76%, 52% 95.7%, 52% 61.4%, 52% 39.2%, 52% 37.7%);
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-state="empty"] {
+        --rating-mark: polygon(2% 4.3%, 2% 37.7%, 2% 39.2%, 2% 61.4%, 2% 95.7%, 2% 76%, 2% 95.7%, 2% 61.4%, 2% 39.2%, 2% 37.7%);
+        --rating-ghost: polygon(50% 4.3%, 62.5% 37.7%, 98% 39.2%, 70.2% 61.4%, 79.7% 95.7%, 50% 76%, 20.3% 95.7%, 29.8% 61.4%, 2% 39.2%, 37.5% 37.7%);
     }
 
     [data-scope="rating-group"][data-part="item"][data-highlighted] {
@@ -3236,6 +3299,30 @@
         outline: 2px solid var(--color-primary);
         outline-offset: 1px;
         border-radius: var(--radius-selector);
+    }
+
+    [data-scope="rating-group"][data-part="item"]:not(:has(> *)) {
+        font-size: 0;
+    }
+
+    [data-scope="rating-group"][data-part="item"]:not(:has(> *))::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--color-base-300);
+        clip-path: var(--rating-ghost);
+        print-color-adjust: exact;
+        transition: clip-path var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="rating-group"][data-part="item"]:not(:has(> *))::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--rating-fill);
+        clip-path: var(--rating-mark);
+        print-color-adjust: exact;
+        transition: clip-path var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="rating-group"][data-part="root"][data-color="primary"] {
@@ -3284,6 +3371,18 @@
 
     [data-scope="rating-group"][data-part="root"][data-size="xl"] {
         --rating-size: var(--text-3xl);
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="rating-group"][data-part="item"]:not(:has(> *))::before {
+            background: GrayText;
+            forced-color-adjust: none;
+        }
+
+        [data-scope="rating-group"][data-part="item"]:not(:has(> *))::after {
+            background: CanvasText;
+            forced-color-adjust: none;
+        }
     }
 }
 

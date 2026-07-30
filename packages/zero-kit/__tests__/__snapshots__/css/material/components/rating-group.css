@@ -62,7 +62,11 @@
     }
 
     [data-scope="rating-group"][data-part="item"][data-state="half"] {
-        color: var(--rating-fill);
+        background-image: linear-gradient(to right, var(--rating-fill) 50%, transparent 50%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
     }
 
     [data-scope="rating-group"][data-part="item"][data-highlighted] {
@@ -81,6 +85,10 @@
         outline: 2px solid var(--color-secondary);
         outline-offset: 1px;
         border-radius: var(--radius-selector);
+    }
+
+    [data-scope="rating-group"][data-part="item"][data-state="half"]:dir(rtl) {
+        background-image: linear-gradient(to left, var(--rating-fill) 50%, transparent 50%);
     }
 
     [data-scope="rating-group"][data-part="root"][data-color="primary"] {
@@ -133,6 +141,14 @@
 
     [data-scope="rating-group"][data-part="root"][data-size="xl"] {
         --rating-size: var(--text-3xl);
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="rating-group"][data-part="item"][data-state="half"] {
+            background-image: none;
+            color: CanvasText;
+            -webkit-text-fill-color: currentColor;
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {

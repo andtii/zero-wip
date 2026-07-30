@@ -1,6 +1,9 @@
 @layer zero.recipes {
     [data-scope="checkbox"][data-part="root"] {
         --checkbox-size: calc(var(--size-selector) * 5);
+        --checkbox-stroke: max(1.5px, calc(var(--checkbox-size) * 0.12));
+        --checkbox-tick: 0;
+        --checkbox-dash: 0;
     }
 
     [data-scope="checkbox"][data-part="root"] {
@@ -51,8 +54,56 @@
     }
 
     [data-scope="checkbox"][data-part="indicator"] {
+        position: relative;
+        display: block;
+        width: 100%;
+        height: 100%;
         color: var(--hero-primary-ink);
         line-height: var(--leading-none);
+    }
+
+    [data-scope="checkbox"][data-part="indicator"][data-state="checked"] {
+        --checkbox-tick: 1;
+        --checkbox-dash: 0;
+    }
+
+    [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"] {
+        --checkbox-tick: 0;
+        --checkbox-dash: 1;
+    }
+
+    [data-scope="checkbox"][data-part="indicator"][data-state="unchecked"] {
+        --checkbox-tick: 0;
+        --checkbox-dash: 0;
+    }
+
+    [data-scope="checkbox"][data-part="indicator"]::after {
+        content: "";
+        position: absolute;
+        left: 38%;
+        top: 72%;
+        width: calc(30% * var(--checkbox-tick));
+        height: calc(58% * var(--checkbox-tick));
+        border-right: var(--checkbox-stroke) solid currentColor;
+        border-bottom: var(--checkbox-stroke) solid currentColor;
+        border-bottom-right-radius: calc(var(--checkbox-stroke) * 0.75);
+        opacity: var(--checkbox-tick);
+        transform-origin: 100% 100%;
+        transform: translate(-100%, -100%) rotate(45deg);
+        transition: width var(--duration-fast) var(--ease-decelerate), height var(--duration-normal) var(--ease-decelerate), opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="checkbox"][data-part="indicator"]::before {
+        content: "";
+        position: absolute;
+        inset-inline: 24%;
+        top: 50%;
+        height: var(--checkbox-stroke);
+        border-radius: 9999px;
+        background: currentColor;
+        opacity: var(--checkbox-dash);
+        transform: translateY(-50%) scaleX(var(--checkbox-dash));
+        transition: transform var(--duration-normal) var(--ease-decelerate), opacity var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="checkbox"][data-part="label"] {
@@ -68,5 +119,71 @@
 
     [data-scope="checkbox"][data-part="root"][data-size="lg"] {
         --checkbox-size: calc(var(--size-selector) * 6);
+    }
+
+    @media (forced-colors: active) {
+        [data-scope="checkbox"][data-part="indicator"] {
+            color: var(--color-base-content);
+        }
+
+        [data-scope="checkbox"][data-part="indicator"]::before {
+            display: none;
+        }
+
+        [data-scope="checkbox"][data-part="indicator"]::after {
+            width: auto;
+            height: auto;
+            border: none;
+            border-radius: 0;
+            opacity: 1;
+            left: 50%;
+            top: 50%;
+            transform-origin: 50% 50%;
+            transform: translate(-50%, -50%);
+            font-family: var(--font-sans);
+            font-size: calc(var(--checkbox-size) * 0.78);
+            line-height: var(--leading-none);
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="checked"]::after {
+            content: "\2713";
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"]::after {
+            content: "\2013";
+        }
+    }
+
+    @media print {
+        [data-scope="checkbox"][data-part="indicator"] {
+            color: var(--color-base-content);
+        }
+
+        [data-scope="checkbox"][data-part="indicator"]::before {
+            display: none;
+        }
+
+        [data-scope="checkbox"][data-part="indicator"]::after {
+            width: auto;
+            height: auto;
+            border: none;
+            border-radius: 0;
+            opacity: 1;
+            left: 50%;
+            top: 50%;
+            transform-origin: 50% 50%;
+            transform: translate(-50%, -50%);
+            font-family: var(--font-sans);
+            font-size: calc(var(--checkbox-size) * 0.78);
+            line-height: var(--leading-none);
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="checked"]::after {
+            content: "\2713";
+        }
+
+        [data-scope="checkbox"][data-part="indicator"][data-state="indeterminate"]::after {
+            content: "\2013";
+        }
     }
 }

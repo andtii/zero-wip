@@ -749,12 +749,78 @@ export const field: RecipeInput = {
     skipStates: { label: ['invalid', 'required'], error: ['invalid'] },
 };
 
-// ── Checkbox ──────────────────────────────────────────────────────────────
+/**
+ * Carbon's $support-success, deepened toward the page ink by the same
+ * scheme-aware mix — it darkens on white and lightens on g100.
+ *
+ * `--carbon-toggle-on` IS that green (green-50 / green-40), but raw it measures
+ * 2.58:1 against Progress's own base-300 track on white, and a finished bar has
+ * to be seen against the track it replaces. At 85% it reads 3.37:1 on white and
+ * 5.18:1 on g100, hue intact.
+ */
+const successFill = 'color-mix(in oklab, var(--carbon-toggle-on) 85%, var(--color-base-content))';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. NEW HELPER — immediately above `export const checkbox`
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * The checkbox mark's glyph fallback, for the two renders where a filled box
+ * cannot be relied on: forced colors (author fills are replaced by the forced
+ * palette) and print (`print-color-adjust: economy` drops backgrounds, and an
+ * inverse-ink mark on a dropped fill is white on white).
+ *
+ * It neutralises the geometry rather than layering on top of it — the flat
+ * `states` rules carry the stroke lengths, so the override has to restate them
+ * or a 65%-wide box would still be forced around a text glyph. `ink` is the
+ * one thing the two renders disagree on: forced colors wants a system colour,
+ * print wants the page's own ink.
+ */
+const markGlyphFallback = (ink: string): PartStyles => ({
+    base: {
+        position: 'static',
+        width: 'auto',
+        height: 'auto',
+        border: '0',
+        rotate: 'none',
+        opacity: '1',
+        color: ink,
+        fontSize: 'calc(var(--checkbox-size) * 0.75)',
+        lineHeight: 'var(--leading-none)',
+        transition: 'none',
+    },
+    states: {
+        checked: { width: 'auto', height: 'auto', opacity: '1' },
+        indeterminate: {
+            inset: 'auto',
+            width: 'auto',
+            height: 'auto',
+            opacity: '1',
+            borderLeftWidth: '0',
+            rotate: 'none',
+        },
+    },
+    selectors: {
+        '&[data-state="checked"]::after': { content: '"\\2713"' },
+        '&[data-state="indeterminate"]::after': { content: '"\\2212"' },
+    },
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. REPLACES `export const checkbox`
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const checkbox: RecipeInput = {
     component: 'checkbox',
     /** Carbon's 16px control; checked is a base-content fill, base-100 check. */
     tokens: {
         '--checkbox-size': 'calc(var(--size-selector) * 4)',
+        /**
+         * The mark's stroke. Carbon's check is 2px at every control size — the
+         * ramp moves the box, never the stroke — so this is a literal, not a
+         * fraction of `--checkbox-size`.
+         */
+        '--checkbox-mark-stroke': '2px',
     },
     parts: {
         root: {
@@ -774,7 +840,11 @@ export const checkbox: RecipeInput = {
         },
         control: {
             base: {
+                // `position: relative` is load-bearing: the mark is anchored
+                // by its own corner rather than centred, so it can grow out
+                // of that corner without swimming (see `indicator`).
                 display: 'inline-flex',
+                position: 'relative',
                 alignItems: 'center',
                 justifyContent: 'center',
                 width: 'var(--checkbox-size)',
@@ -796,16 +866,69 @@ export const checkbox: RecipeInput = {
                 '&[data-pressed]:not([data-disabled])': { filter: 'brightness(0.8)' },
             },
         },
+        /**
+         * Carbon's mark, geometry rather than a font glyph: an L of two 2px
+         * borders rotated −45°, which is what `_checkbox.scss` draws. One
+         * element covers both marks — `indeterminate` straightens the rotation
+         * and drops the short arm, so the check *unfolds* into Carbon's 2px
+         * bar instead of swapping symbols.
+         *
+         * Anchored at the L's corner (`bottom`/`left`, `transform-origin:
+         * bottom left`) so the two arms *draw* out of the vertex: the short
+         * arm at fast-01, the long arm following one fast-01 later at
+         * fast-02. Percentages are of the control's box, so the whole mark
+         * rides the size ramp with no per-step values.
+         *
+         * Physical `left`/`bottom`, not logical: a checkmark is not mirrored
+         * in RTL, and Carbon does not mirror it either.
+         */
         indicator: {
             base: {
+                position: 'absolute',
+                boxSizing: 'border-box',
+                left: '38%',
+                bottom: '27%',
+                width: '0',
+                height: '0',
+                opacity: '0',
                 color: 'var(--color-base-100)',
-                lineHeight: 'var(--leading-none)',
-                fontSize: 'calc(var(--checkbox-size) * 0.75)',
+                borderLeft: 'var(--checkbox-mark-stroke) solid currentColor',
+                borderBottom: 'var(--checkbox-mark-stroke) solid currentColor',
+                rotate: '-45deg',
+                transformOrigin: 'bottom left',
+                // The delay in the `width` slot is a token, so reduced motion
+                // collapses it with everything else — `reducedMotionBlock`
+                // rewrites every declared duration, delays included.
+                transition: 'height var(--duration-fast) var(--ease-decelerate), '
+                    + 'width var(--duration-normal) var(--ease-decelerate) var(--duration-fast), '
+                    + 'opacity var(--duration-fast) var(--ease-standard), '
+                    + 'rotate var(--duration-normal) var(--ease-standard), '
+                    + 'inset var(--duration-normal) var(--ease-standard), '
+                    + 'border-left-width var(--duration-fast) var(--ease-standard)',
             },
-            states: { checked: {}, unchecked: {}, indeterminate: {} },
-            selectors: {
-                '&[data-state="checked"]::after': { content: '"✓"' },
-                '&[data-state="indeterminate"]::after': { content: '"−"' },
+            states: {
+                // Carbon's 0.65rem × 0.3125rem check on a 1rem control.
+                checked: { width: '65%', height: '31%', opacity: '1' },
+                // The bar: no short arm, no rotation, centred on the box —
+                // `50%` minus half a stroke, since the stroke is the height.
+                indeterminate: {
+                    left: '25%',
+                    bottom: 'calc(50% - var(--checkbox-mark-stroke) / 2)',
+                    width: '50%',
+                    height: '0',
+                    opacity: '1',
+                    borderLeftWidth: '0',
+                    rotate: '0deg',
+                },
+                // `unchecked` IS the base: both arms at zero length, faded out.
+                unchecked: {},
+            },
+            at: {
+                'forced-colors': markGlyphFallback('CanvasText'),
+                // The other medium a background-painted mark vanishes in. Same
+                // preference tier as `forced-colors`, so it lands after the
+                // flat state rules it replaces.
+                print: markGlyphFallback('var(--color-base-content)'),
             },
         },
         label: {
@@ -827,6 +950,10 @@ export const checkbox: RecipeInput = {
     // delegation reads as a decision.
     skipStates: { root: ['focus-visible'] },
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. REPLACES `export const progress`  (keep the `// ── Progress ──` banner)
+// ─────────────────────────────────────────────────────────────────────────────
 
 // ── Radio group ───────────────────────────────────────────────────────────
 export const radioGroup: RecipeInput = {
@@ -922,17 +1049,53 @@ export const radioGroup: RecipeInput = {
     skipStates: { label: ['invalid', 'required'], item: ['focus-visible'] },
 };
 
-// ── Progress ──────────────────────────────────────────────────────────────
 export const progress: RecipeInput = {
     component: 'progress',
     /** Carbon's 4px bar — the size ramp only rebinds the thickness. */
     tokens: { '--progress-track-size': '0.25rem' },
     parts: {
+        /**
+         * `complete` also draws Carbon's status mark — the same 2px L the
+         * checkbox draws, in the same success green, at the end of the label
+         * row where Carbon's ProgressBar puts its finished icon. Colour alone
+         * carried completion before, and a hue swap is the one signal a
+         * colour-blind reader may not get; the mark is geometry, so it does
+         * not depend on the hue landing.
+         *
+         * It hangs off `label` rather than `root` — every row below the label
+         * is optional, so the root's own top-right corner is the track's on a
+         * label-less Progress and the mark would land on the bar.
+         */
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)', width: '100%' },
             states: { loading: {}, complete: {}, indeterminate: {} },
+            selectors: {
+                '& [data-part="label"]::after': {
+                    content: '""',
+                    position: 'absolute',
+                    top: '50%',
+                    insetInlineEnd: '0',
+                    boxSizing: 'border-box',
+                    width: 'calc(var(--text-xs) * 0.7)',
+                    height: 'calc(var(--text-xs) * 0.35)',
+                    borderLeft: `2px solid ${successFill}`,
+                    borderBottom: `2px solid ${successFill}`,
+                    rotate: '-45deg',
+                    // Half its own height back up for the `top: 50%` anchor,
+                    // then a hair more: the rotated L's ink sits below its own
+                    // box centre.
+                    translate: '0 calc(-50% - var(--text-xs) * 0.12)',
+                    scale: '0',
+                    opacity: '0',
+                    transition: 'scale var(--duration-normal) var(--ease-decelerate), '
+                        + 'opacity var(--duration-fast) var(--ease-standard)',
+                },
+                '&[data-state="complete"] [data-part="label"]::after': { scale: '1', opacity: '1' },
+            },
         },
-        label: { base: { ...fieldLabel } },
+        // `position` carries the completion mark; the inline-end gutter is
+        // that mark's, so a wrapping label cannot run under it.
+        label: { base: { ...fieldLabel, position: 'relative', paddingInlineEnd: 'var(--space-md)' } },
         track: {
             base: {
                 width: '100%',
@@ -945,12 +1108,18 @@ export const progress: RecipeInput = {
             base: {
                 height: '100%',
                 background: 'var(--carbon-interactive)',
-                transition: motion('width'),
+                transition: motion('width, background'),
             },
             states: {
                 loading: {},
-                // No success role in this vocabulary — the fill stays interactive.
-                complete: {},
+                /**
+                 * Carbon's finished ProgressBar recolours the fill to
+                 * $support-success. There is no success *role* in this
+                 * vocabulary, but there is that exact green — see
+                 * `successFill`. Completion was otherwise carried only by
+                 * `range`'s inline width, which no stylesheet can see.
+                 */
+                complete: { background: successFill },
                 indeterminate: { width: '40%', animation: 'carbon-indeterminate 1.4s ease-in-out infinite' },
             },
             // A looping animation must STOP under reduced motion, not speed
@@ -974,6 +1143,10 @@ export const progress: RecipeInput = {
         'carbon-indeterminate': 'from { translate: -100% 0; } to { translate: 250% 0; }',
     },
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 5. REPLACES `export const ratingGroup`  (keep the `// ── Rating group ──` banner)
+// ─────────────────────────────────────────────────────────────────────────────
 
 // ── Slider ────────────────────────────────────────────────────────────────
 export const slider: RecipeInput = {
@@ -1969,11 +2142,14 @@ export const numberInput: RecipeInput = {
     skipStates: { input: ['focus-visible'] },
 };
 
-// ── Rating group ──────────────────────────────────────────────────────────
 export const ratingGroup: RecipeInput = {
     component: 'rating-group',
-    /** The glyph size — the size ramp only rebinds it. */
-    tokens: { '--rating-size': 'var(--text-xl)' },
+    /**
+     * The mark's box — the size ramp only rebinds it. A *fixed* text step:
+     * the mark is drawn, not typeset, so it is control chrome and must not
+     * grow with in-app text scaling.
+     */
+    tokens: { '--rating-size': 'var(--text-fixed-xl)' },
     parts: {
         root: {
             base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
@@ -1988,42 +2164,116 @@ export const ratingGroup: RecipeInput = {
             },
         },
         control: {
-            base: { display: 'inline-flex', gap: 'var(--space-2xs)' },
+            // A wider gutter than the glyph row needed: solid squares that
+            // touch read as one block, so the marks get 4px of air.
+            base: { display: 'inline-flex', gap: 'var(--space-xs)' },
             states: {
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 readonly: {},
                 ...focusRing,
             },
         },
-        // Interactive fill, hairline-toned empties; the hover preview shows
-        // the fill it would commit. No scale — productive motion is colour.
+        /**
+         * Carbon has no rating component, so the symbol is this design
+         * system's own: the square it uses for every selection control, at
+         * the same 2px stroke, filling from the inline start.
+         *
+         * That is also the only honest way to render `half` — the runtime's
+         * fallback text is `★`/`⯪`/`☆`, and `⯪` (U+2BEA) is in neither IBM
+         * Plex Sans nor most system fonts, so a tinted glyph draws a *full*
+         * star for a half value. A geometric fill can stop dead centre, so it
+         * does: `scale` on the fill, `transform-origin` at the inline start,
+         * one moderate-01 wipe that follows the pointer across halves.
+         *
+         * The glyph is collapsed (`font-size: 0`) rather than tinted — it is
+         * a fallback symbol this recipe replaces. A consumer supplying its own
+         * symbol through the item slot should style it itself.
+         */
         item: {
             base: {
-                fontSize: 'var(--rating-size)',
-                lineHeight: 'var(--leading-none)',
+                position: 'relative',
+                display: 'inline-block',
+                width: 'var(--rating-size)',
+                height: 'var(--rating-size)',
+                fontSize: '0',
+                color: 'transparent',
                 cursor: 'pointer',
                 userSelect: 'none',
-                color: 'var(--carbon-line)',
-                transition: motion('color'),
             },
             states: {
-                full: { color: 'var(--carbon-interactive)' },
-                half: { color: 'var(--carbon-interactive)' },
+                full: {},
+                half: {},
                 empty: {},
-                highlighted: { color: 'var(--carbon-interactive)' },
+                highlighted: {},
                 disabled: { cursor: 'not-allowed' },
                 readonly: { cursor: 'default' },
-                // The group ring lives on control; per-item focus still gets
-                // its own marker for the value-following tab stop.
-                ...focusRing,
+                /**
+                 * The group ring lives on control; per-item focus still gets
+                 * its own marker for the value-following tab stop.
+                 *
+                 * The one place this package rings OUTSIDE the box: the mark
+                 * fills its box edge to edge, so Carbon's inset ring would be
+                 * blue on the blue fill of exactly the item most likely to
+                 * have focus.
+                 */
+                'focus-visible': { outline: '2px solid var(--carbon-focus)', outlineOffset: '1px' },
+            },
+            selectors: {
+                // The empty box: Carbon's assertive stroke, not the hairline —
+                // `--carbon-line` is a 1.1:1 divider tone and a mark has to be
+                // seen. It doubles as the hover-preview channel.
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '0',
+                    border: '2px solid var(--carbon-border-strong)',
+                    transition: motion('border-color'),
+                },
+                // The fill. Every state sets its own `scale`, so there is no
+                // resting value to inherit — `data-state` is always one of the
+                // three.
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '0',
+                    background: 'var(--carbon-interactive)',
+                    transformOrigin: 'left',
+                    transition: 'scale var(--duration-slow) var(--ease-standard)',
+                },
+                // `scale`, not `clip-path`, so the wipe can start from the
+                // inline start in both directions.
+                '&:dir(rtl)::after': { transformOrigin: 'right' },
+                '&[data-state="empty"]::after': { scale: '0 1' },
+                '&[data-state="half"]::after': { scale: '0.5 1' },
+                '&[data-state="full"]::after': { scale: '1 1' },
+                '&[data-highlighted]::before': { borderColor: 'var(--carbon-interactive)' },
+            },
+            at: {
+                // A fill is meaning here — half of it is the whole point — so
+                // both fallbacks keep the geometry and re-source its paint
+                // rather than swapping in a glyph that cannot say "half":
+                // the forced palette's own ink, and an explicit instruction to
+                // print the fill that `print-color-adjust: economy` would drop.
+                'forced-colors': {
+                    selectors: {
+                        '&::before': { borderColor: 'CanvasText' },
+                        '&::after': { background: 'CanvasText' },
+                    },
+                },
+                print: {
+                    selectors: {
+                        '&::before': { printColorAdjust: 'exact' },
+                        '&::after': { printColorAdjust: 'exact' },
+                    },
+                },
             },
         },
     },
     variants: {
         size: {
-            sm: { root: { base: { '--rating-size': 'var(--text-md)' } } },
+            sm: { root: { base: { '--rating-size': 'var(--text-fixed-md)' } } },
             md: {},
-            lg: { root: { base: { '--rating-size': 'var(--text-2xl)' } } },
+            lg: { root: { base: { '--rating-size': 'var(--text-fixed-2xl)' } } },
         },
     },
 };

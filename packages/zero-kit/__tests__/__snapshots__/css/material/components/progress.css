@@ -29,7 +29,11 @@
         height: 100%;
         border-radius: 624rem;
         background: var(--progress-accent);
-        transition: width var(--duration-fast) var(--ease-standard);
+        transition: width var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="progress"][data-part="range"][data-state="complete"] {
+        background: var(--color-success);
     }
 
     [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
