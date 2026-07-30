@@ -8,8 +8,8 @@ import { defineAnatomy } from '../../contract/anatomy.js';
  * visible clickable row inside it, the thing recipes highlight — it mirrors
  * the branch's state plus its own focus, so a ring draws on the row, never
  * around the whole subtree. `branch-content` is the role=group container
- * holding the subtree; the runtime `hidden`s it while `closed`, so recipes
- * style its layout and leave its states alone.
+ * holding the subtree; the runtime hides it (the `hidden` attribute) while
+ * `closed`, so recipes style its layout and leave its states alone.
  */
 export const treeViewAnatomy = defineAnatomy('tree-view', {
     root: {

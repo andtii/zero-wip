@@ -383,11 +383,14 @@ describe('state legibility', () => {
     });
 
     it('the presence exemption comes from the manifest, and avatar still claims it', () => {
-        // The exemption is only as real as the declaration it reads, so assert
-        // the declaration is there: if `hiddenIn` ever stopped reaching the
-        // manifest, every assertion above would still pass — by failing to
-        // exempt anything AND by six design systems quietly having to restate
-        // it. Avatar is the case the field was added for.
+        // The exemption is only as real as the declaration it reads, so name
+        // the cause here rather than leaving it to be inferred. If `hiddenIn`
+        // stopped reaching the manifest, the assertions above WOULD fail — but
+        // they would fail with sixteen findings against six design systems,
+        // reading as "everyone's avatar is unstyled" rather than as "the
+        // plumbing broke", and the tempting fix would be to restate the fact
+        // six times in `skipStates`. This fails first, and points at the
+        // anatomy. Avatar is the case the field was added for.
         const avatar = manifest.components.find((c) => c.scope === 'avatar')!;
         const hiddenIn = Object.fromEntries(
             avatar.parts.filter((p) => p.hiddenIn?.length).map((p) => [p.name, p.hiddenIn]));
