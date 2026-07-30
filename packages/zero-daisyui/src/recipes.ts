@@ -641,9 +641,23 @@ const DASH_DRAWN = 'polygon(20% 100%, 20% 80%, 50% 80%, 50% 80%, 80% 80%, 80% 10
  * `::after` this recipe already had, and the indicator itself just drops the
  * geometry. daisyUI 5.7.8 emits the two at-rules as separate blocks; so do we.
  *
- * `forced-colors` is a named built-in condition; `print` is not, so it goes in
- * through `at`'s raw-prelude form. If the kit gains the name, the key can
- * become `print` — the emitted CSS is the same block either way.
+ * Both are named built-in conditions since #226, so both sort into the
+ * preference tier and land after the flat state rules they override.
+ *
+ * One object under both, and — unlike every other system here — no `color` of
+ * its own: daisy declares none either. Its fallback sets `--tw-content`,
+ * `clip-path: none`, `background-color: #0000` and `rotate` and nothing else,
+ * leaving the glyph to inherit the control's `color` (the on-accent role, or
+ * `base-content` unskinned) and letting the forced palette revalue it. Naming
+ * `CanvasText` here would be a truer forced-colors render and a divergence from
+ * the thing this package exists to reproduce, so it stays daisy's. Verified
+ * against daisyUI 5's own `checkbox.css`, both at-rules.
+ *
+ * Forced colours are fine either way — the UA revalues the inherited ink to its
+ * own text colour, measured at 21:1 against the forced backdrop. On paper it is
+ * not: `primary-content` is a pale lavender over a fill that did not print,
+ * 1.37:1, exactly as real daisy prints it. Same trade as brutalist's, same
+ * issue — #233.
  */
 const tickGlyphFallback: PartStyles = {
     states: {

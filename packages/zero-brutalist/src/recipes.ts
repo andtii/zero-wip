@@ -686,11 +686,33 @@ const BAR = 'polygon(0% 100%, 0% 70%, 50% 70%, 50% 70%, 100% 70%, 100% 100%)';
  * Both are named built-in conditions, so both sort into the preference tier and
  * land after the flat state rules they override.
  *
+ * The one thing they do NOT share is the ink. Forced colours name `CanvasText`
+ * rather than inherit the indicator's `--checkbox-on-accent`: an author colour
+ * there is only as good as the UA's revaluation of it, and the mode whose whole
+ * job is predictable ink is the last place to leave it implied. It has to be
+ * restated per state as well as on `base`, because `indeterminate`'s flat rule
+ * declares its own `color` and outranks a `base` override on specificity, not
+ * order.
+ *
+ * Print keeps the theme's own ink, and that is a known cost, not an oversight:
+ * `--checkbox-on-accent` is white in the light theme, so the checked tick prints
+ * white on paper the fill did not print — 1.00:1, measured. The obvious swap to
+ * `--color-base-content` only moves the failure to the dark theme, where it and
+ * `CanvasText` both resolve white, so the fix needs a theme-independent paper
+ * ink rather than a one-line substitution. Filed as #233 with the numbers.
+ *
  * Only for marks a glyph can actually carry: rating-group's meter handles the
  * two media itself, because its `half` glyph does not exist in system fonts.
  */
 const glyphFallback = (styles: PartStyles): Record<string, PartStyles> => ({
-    'forced-colors': styles,
+    'forced-colors': {
+        ...styles,
+        base: { ...styles.base, color: 'CanvasText' },
+        states: {
+            ...styles.states,
+            indeterminate: { ...styles.states?.indeterminate, color: 'CanvasText' },
+        },
+    },
     print: styles,
 });
 

@@ -123,7 +123,7 @@
 
     @media (forced-colors: active) {
         [data-scope="checkbox"][data-part="indicator"] {
-            color: var(--color-base-content);
+            color: CanvasText;
         }
 
         [data-scope="checkbox"][data-part="indicator"]::before {

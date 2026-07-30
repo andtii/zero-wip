@@ -831,7 +831,11 @@ const DASH_MARK = 'polygon(8% 40.1%, 8% 59.9%, 37.6% 59.9%, 92% 59.9%, 92% 40.1%
  *
  * One object under both named conditions rather than one fused prelude: the
  * declarations are identical, and `forced-colors` and `print` are both built-in
- * condition names, so nothing here has to reach for a raw `@` string.
+ * condition names, so nothing here has to reach for a raw `@` string. Sharing
+ * is only legitimate because the ink is already a SYSTEM colour — right in both
+ * media, and predictable in forced colours, where an author colour would be
+ * only as good as the UA's revaluation of it. heroui, material and carbon build
+ * one object per medium precisely because their inks differ.
  */
 const MARK_FALLBACK: PartStyles = {
     base: {

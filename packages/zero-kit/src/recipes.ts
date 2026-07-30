@@ -47,7 +47,7 @@ export const BUILTIN_CONDITIONS: Readonly<Record<string, string>> = {
     // drops backgrounds by default (`print-color-adjust: economy`), so a
     // drawn indicator needs the same glyph fallback `forced-colors` gets.
     // Named for exactly that reason — `forced-colors` having a name while
-    // `print` did not made the raw prelude look like the only route, which
+    // `print` did not make the raw prelude look like the only route, which
     // pushes authors past the tier machinery for no reason.
     print: '@media print',
     // The state an element animates FROM on its first style change — the

@@ -1014,11 +1014,19 @@ const checkboxTick = tickBox('var(--checkbox-accent)', 'var(--checkbox-size)');
  * stop being paint and become type. `::before` keeps its role as the leading
  * mark and becomes the glyph; `::after` is the second half of a stroke that no
  * longer exists, so it goes away entirely.
+ *
+ * `ink` is the one thing the two renders disagree on, so each condition builds
+ * its own object rather than sharing one. Neither may inherit the indicator's
+ * `--checkbox-on-accent`: on paper that is white on a fill that did not print,
+ * and in forced colours it is an author colour whose ink is then only as good
+ * as the UA's remapping of it — the one mode that exists to make ink
+ * predictable is the last place to leave it implied.
  */
-const markGlyphFallback: PartStyles = {
+const markGlyphFallback = (ink: string): PartStyles => ({
     base: {
         display: 'grid',
         placeItems: 'center',
+        color: ink,
         fontSize: 'var(--checkbox-mark-size)',
         lineHeight: 'var(--leading-none)',
     },
@@ -1037,7 +1045,7 @@ const markGlyphFallback: PartStyles = {
         '&[data-state="checked"]::before': { content: '"\\2713"' },
         '&[data-state="indeterminate"]::before': { content: '"\\2212"' },
     },
-};
+});
 
 export const checkbox: RecipeInput = {
     component: 'checkbox',
@@ -1208,13 +1216,13 @@ export const checkbox: RecipeInput = {
                 },
             },
             at: {
-                'forced-colors': markGlyphFallback,
-                print: {
-                    ...markGlyphFallback,
-                    // Print drops the container fill, so the glyph cannot stay
-                    // the on-accent colour or it prints white on white.
-                    base: { ...markGlyphFallback.base, color: 'var(--checkbox-accent)' },
-                },
+                // The forced palette's own ink, named rather than left to the
+                // UA's revaluation of a theme colour.
+                'forced-colors': markGlyphFallback('CanvasText'),
+                // Print drops the container fill, so the glyph cannot stay the
+                // on-accent colour or it prints white on white. The accent
+                // itself is the mark's ink on paper.
+                print: markGlyphFallback('var(--checkbox-accent)'),
             },
         },
         label: { base: { fontSize: 'var(--text-md)' } },

@@ -2395,6 +2395,7 @@
         [data-scope="checkbox"][data-part="indicator"] {
             display: grid;
             place-items: center;
+            color: CanvasText;
             font-size: var(--checkbox-mark-size);
             line-height: var(--leading-none);
         }
@@ -2427,9 +2428,9 @@
         [data-scope="checkbox"][data-part="indicator"] {
             display: grid;
             place-items: center;
+            color: var(--checkbox-accent);
             font-size: var(--checkbox-mark-size);
             line-height: var(--leading-none);
-            color: var(--checkbox-accent);
         }
 
         [data-scope="checkbox"][data-part="indicator"]::before {

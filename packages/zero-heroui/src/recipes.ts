@@ -578,12 +578,18 @@ export const field: RecipeInput = {
  * Both are named conditions (#226 added `print` beside `forced-colors`), so
  * both resolve at the preference tier — after the flat state rules they
  * replace.
+ *
+ * `ink` is the one thing the two renders disagree on, which is why each
+ * condition gets its own object instead of sharing one: forced colours want a
+ * SYSTEM colour, named, because an author colour there is only as good as the
+ * UA's remapping of it — and the mode whose whole job is to make ink
+ * predictable is the last place to leave it undefined. Print wants the page's
+ * own ink: the near-white on-accent ink is right on the primary fill and wrong
+ * on paper, where the fill does not print. Carbon's `markGlyphFallback` is the
+ * same shape for the same reason.
  */
-const drawnMarkFallback: PartStyles = {
-    // Near-white ink is right on the primary fill and wrong on paper, where
-    // the fill does not print. Forced colours override this again to
-    // CanvasText, which is what that mode wants.
-    base: { color: 'var(--color-base-content)' },
+const drawnMarkFallback = (ink: string): PartStyles => ({
+    base: { color: ink },
     selectors: {
         '&::before': { display: 'none' },
         // Not a pair of arms any more: a centred glyph, so the lengths, the
@@ -605,7 +611,7 @@ const drawnMarkFallback: PartStyles = {
         '&[data-state="checked"]::after': { content: '"\\2713"' },
         '&[data-state="indeterminate"]::after': { content: '"\\2013"' },
     },
-};
+});
 
 // ── Checkbox ──────────────────────────────────────────────────────────────
 /**
@@ -741,7 +747,10 @@ export const checkbox: RecipeInput = {
                         + 'opacity var(--duration-fast) var(--ease-standard)',
                 },
             },
-            at: { 'forced-colors': drawnMarkFallback, print: drawnMarkFallback },
+            at: {
+                'forced-colors': drawnMarkFallback('CanvasText'),
+                print: drawnMarkFallback('var(--color-base-content)'),
+            },
         },
         label: {
             base: { ...label },
