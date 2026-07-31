@@ -33,6 +33,25 @@
  * "the indicator distinguishes `checked` from `indeterminate`" true of an
  * indicator that draws two identical empty boxes. `the guard's own teeth` at the
  * bottom of this file keeps both holes shut with fixtures.
+ *
+ * ── WHY THERE ARE THREE ASSERTIONS AND NOT ONE ──────────────────────────────
+ * A judges the COMPONENT: some part of it, anywhere, tells the two states
+ * apart. That is deliberately loose, because "the difference lives on a sibling
+ * part" is legitimate and extremely common — and judging every part separately
+ * reported 164 of those. B and C are the two places where that looseness is not
+ * good enough, and each names the part whose job the state IS: an `indicator`
+ * (B), and the control of an in-flow disclosure (C). Both are contract claims
+ * about a specific part, not heuristics about components in general, which is
+ * why they can afford to be strict where A cannot.
+ *
+ * C exists because A cleared #220. zero-material's collapsible and accordion
+ * triggers were byte-identical open vs closed — `open: {}` and `closed: {}`,
+ * both empty — and A was satisfied by
+ * `[data-part="root"][open]::details-content { block-size: auto }`, i.e. by the
+ * panel physically expanding, which is what `<details>` does in every design
+ * system whether or not the recipe says anything. A guard that passes on
+ * browser behaviour rather than on a styling decision is a false green, and a
+ * false green is worse than no guard because it is trusted.
  */
 import { describe, it, expect } from 'vitest';
 import { compileDesignSystem, compileRecipeCss } from '@sigx/zero-kit';
@@ -329,21 +348,34 @@ function componentFindings(c: Case): string[] {
     return findings;
 }
 
+/** Part-name roles the anatomy vocabulary reserves, read by B and C. */
+const isIndicatorPart = (name: string): boolean =>
+    name === 'indicator' || name.endsWith('-indicator');
+const isTriggerPart = (name: string): boolean => name === 'trigger' || name.endsWith('-trigger');
+const isPopupPart = (name: string): boolean => name === 'popup' || name.endsWith('-popup');
+
+/**
+ * The groups that ARE this part: the element itself and any pseudo-element hung
+ * off it. A recipe-authored `::after` is where zero-basic and zero-daisyui
+ * legitimately draw their marks, so it counts as the part drawing them.
+ */
+const ownGroups = (c: Case, part: string): string[] =>
+    c.groups.filter((g) => g === part || g.startsWith(`${part}::`));
+
 /**
  * ASSERTION B, for one component — an indicator must distinguish its own states.
  *
  * Contract-grade rather than heuristic: an indicator part exists for exactly
  * one reason, which is to show which state the thing is in. If it renders
  * identically across its declared states it is not an indicator, it is a
- * spacer. Its own pseudo-elements count as itself — that is where zero-basic
- * and zero-daisyui legitimately draw their marks.
+ * spacer.
  */
 function indicatorFindings(c: Case): string[] {
     const findings: string[] = [];
     for (const part of c.component.parts) {
-        if (part.name !== 'indicator' && !part.name.endsWith('-indicator')) continue;
+        if (!isIndicatorPart(part.name)) continue;
         if (!part.states?.length) continue;
-        const own = c.groups.filter((g) => g === part.name || g.startsWith(`${part.name}::`));
+        const own = ownGroups(c, part.name);
         const alike = pairsOf(part.states).filter(([a, b]) =>
             !skipsPair(c, part.name, a, b)
             && !cannotPaintPair(c, part.name, a, b)
@@ -356,6 +388,82 @@ function indicatorFindings(c: Case): string[] {
             + `states apart. Draw the mark (this part exists for nothing else), or declare `
             + `skipStates: { '${part.name}': ['${alike[0]![1]}'] } with a reason.`
             + (own.length ? '' : ' It emits no rules at all.'),
+        );
+    }
+    return findings;
+}
+
+/**
+ * ASSERTION C, for one component — an in-flow disclosure control says which way
+ * it is pointing.
+ *
+ * ── WHAT IT JUDGES, AND WHY NOT EVERY TRIGGER ────────────────────────────────
+ * A trigger whose component also declares a `popup` part opens an OVERLAY: the
+ * revealed thing floats above the page, takes focus, and is the only thing the
+ * reader is looking at. Whether the trigger underneath it also changes is a
+ * taste question, and the six design systems answer it six ways: basic and
+ * heroui differentiate every one of their dialog/popover/tooltip/menu triggers,
+ * material and brutalist none of them, daisyui and carbon some. Twenty-two
+ * findings if this assertion had an opinion — the flood it was written to
+ * avoid — and no reading of the contract says which answer is wrong. So it has
+ * none.
+ *
+ * A trigger whose component declares NO popup part discloses IN FLOW: the panel
+ * is a sibling directly under the control, both are on screen in both states,
+ * and the control is what the reader reads. It is also the case where "you can
+ * see the panel, so you can tell" fails outright — a list of accordion items
+ * that are all collapsed has no open one to compare against, and #220's
+ * screenshots are exactly that. So here the control owes the reader a
+ * difference, and "the panel expands" does not pay it.
+ *
+ * That is the hole this closes. Assertion A judged material's collapsible
+ * clean because `[data-part="root"][open]::details-content { block-size: auto }`
+ * differentiates `open` from `closed` — the browser opening the disclosure,
+ * true of every `<details>` in every design system, signing off on a header
+ * that said nothing. The fix is not to teach A which rules are "really" the
+ * browser's (a property denylist this file argues against, and one that a
+ * recipe styling its `panel` at all would defeat anyway); it is to ask the
+ * question of the part the claim is about.
+ *
+ * ── WHY A SIBLING INDICATOR STILL CLEARS IT ──────────────────────────────────
+ * Not any sibling — the one whose job this is. A `*-indicator` next to the
+ * control is the disclosure marker, the chevron that rotates, and a reader
+ * takes the control and its marker in as one thing. All six design systems
+ * differentiate `tree-view.branch-trigger` that way and none of them touch the
+ * trigger itself, which is correct and must not be reported. Collapsible and
+ * accordion declare no indicator part at all, so for them there is nowhere else
+ * for the signal to go — which is precisely why #220 was a bug and not a style.
+ * Assertion B independently forces that indicator to earn it, so this is not a
+ * loophole: it is a hand-off to a stricter assertion.
+ */
+function disclosureFindings(c: Case): string[] {
+    // An overlay component: the revealed thing is not under the control.
+    if (c.component.parts.some((p) => isPopupPart(p.name))) return [];
+    const indicators = c.component.parts.filter((p) => isIndicatorPart(p.name));
+    const findings: string[] = [];
+    for (const part of c.component.parts) {
+        if (!isTriggerPart(part.name) || !part.states?.length) continue;
+        const own = ownGroups(c, part.name);
+        const alike = pairsOf(part.states).filter(([a, b]) =>
+            !skipsPair(c, part.name, a, b)
+            && !cannotPaintPair(c, part.name, a, b)
+            && !own.some((g) => distinguishes(c.rules, g, a, b))
+            && !indicators.some((i) =>
+                ownGroups(c, i.name).some((g) => distinguishes(c.rules, g, a, b))));
+        if (!alike.length) continue;
+        const pairs = alike.map(([a, b]) => `"${a}"/"${b}"`).join(', ');
+        findings.push(
+            `${c.ds}/${c.scope}.${part.name}: the control of an in-flow disclosure renders `
+            + `identically for ${pairs} — the panel is a sibling under it, so a reader `
+            + `looking at a collapsed one has only this control to read, and the panel `
+            + `expanding is the browser's doing, not this design system's. Style the `
+            + `control, or declare skipStates: { '${part.name}': ['${alike[0]![1]}'] } with `
+            + `a reason.`
+            + (indicators.length
+                ? ` (${c.scope} declares ${indicators.map((i) => `"${i.name}"`).join(', ')};`
+                    + ` differentiating there would clear this too.)`
+                : ` (${c.scope} declares no indicator part — there is nowhere else for the`
+                    + ` signal to live.)`),
         );
     }
     return findings;
@@ -380,6 +488,33 @@ describe('state legibility', () => {
     it.each(SYSTEMS.map((s) => s.name))('%s: every stateful indicator part differs across its states', (ds) => {
         const findings = CASES.filter((x) => x.ds === ds).flatMap(indicatorFindings);
         expect(findings.sort()).toEqual([]);
+    });
+
+    it.each(SYSTEMS.map((s) => s.name))('%s: every in-flow disclosure control differs across its states', (ds) => {
+        const findings = CASES.filter((x) => x.ds === ds).flatMap(disclosureFindings);
+        expect(findings.sort()).toEqual([]);
+    });
+
+    it('assertion C is pointed at the parts it claims to be pointed at', () => {
+        // An assertion nobody can see the scope of is an assertion nobody can
+        // trust. Name the three components it judges and the reason the rest
+        // are out, so a part rename or a new component shows up here as a
+        // change in scope rather than as silence.
+        const inFlow = manifest.components
+            .filter((c) => !c.parts.some((p) => isPopupPart(p.name)))
+            .filter((c) => c.parts.some((p) => isTriggerPart(p.name) && p.states?.length))
+            .map((c) => c.scope);
+        expect(inFlow.sort()).toEqual(['accordion', 'collapsible', 'tree-view']);
+        // …and the escape hatch is load-bearing for exactly one of them: every
+        // design system differentiates tree-view on `branch-indicator` and none
+        // on `branch-trigger`, while collapsible and accordion have no
+        // indicator part to hand the signal to.
+        const tree = CASES.find((c) => c.ds === 'basic' && c.scope === 'tree-view')!;
+        expect(disclosureFindings(tree)).toEqual([]);
+        expect(ownGroups(tree, 'branch-trigger')
+            .some((g) => distinguishes(tree.rules, g, 'open', 'closed'))).toBe(false);
+        expect(ownGroups(tree, 'branch-indicator')
+            .some((g) => distinguishes(tree.rules, g, 'open', 'closed'))).toBe(true);
     });
 
     it('the presence exemption comes from the manifest, and avatar still claims it', () => {
@@ -597,5 +732,136 @@ describe('the guard\'s own teeth', () => {
             },
         });
         expect(componentFindings(c)).toEqual([]);
+    });
+});
+
+/**
+ * Assertion C's teeth — #220, reconstructed.
+ *
+ * The one that matters is `the false green`: the same fixture, judged by both
+ * assertions, where A says clean and C says broken. That divergence IS the bug
+ * report in #248, and if a later edit ever makes the two agree here, one of
+ * them has stopped doing its job.
+ */
+describe('the in-flow disclosure control', () => {
+    const collapsible = manifest.components.find((c) => c.scope === 'collapsible')!;
+    const treeView = manifest.components.find((c) => c.scope === 'tree-view')!;
+    const menu = manifest.components.find((c) => c.scope === 'menu')!;
+
+    const caseFor = (
+        component: ManifestComponent,
+        parts: RecipeInput['parts'],
+        skipStates?: RecipeInput['skipStates'],
+    ): Case => {
+        const recipe: RecipeInput = {
+            component: component.scope, parts, ...(skipStates ? { skipStates } : {}),
+        };
+        return caseOf('fixture', component, recipe, compileRecipeCss(recipe, component));
+    };
+
+    /** #220 verbatim: a header that is byte-identical open and closed. */
+    const blindTrigger: PartStyles = {
+        base: { display: 'flex', justifyContent: 'space-between', padding: '1rem' },
+        states: { open: {}, closed: {} },
+    };
+
+    /**
+     * `<details>` opening, expressed the way material expresses it — the rule
+     * that cleared assertion A. Every design system with a `<details>`-backed
+     * disclosure writes something like it, because `interpolate-size` plus a
+     * `block-size` endpoint is the only way to animate `auto`.
+     */
+    const detailsPresence: PartStyles = {
+        base: { interpolateSize: 'allow-keywords' },
+        selectors: {
+            '&::details-content': { blockSize: '0', overflow: 'hidden' },
+            '&[open]::details-content': { blockSize: 'auto' },
+        },
+    };
+
+    it('reports a control that declares open/closed and styles neither', () => {
+        const c = caseFor(collapsible, { trigger: blindTrigger });
+        expect(disclosureFindings(c)).toHaveLength(1);
+        expect(disclosureFindings(c)[0]).toContain('collapsible.trigger');
+        expect(disclosureFindings(c)[0]).toContain('"open"/"closed"');
+        expect(disclosureFindings(c)[0]).toContain('no indicator part');
+    });
+
+    it('the false green: assertion A clears what assertion C reports', () => {
+        // #220's shape exactly — a blind trigger under a root that carries the
+        // presence rules. `groupOf` keys those as `root::details-content`,
+        // `[open]` is a NATIVE_PROXY for `open`, so A finds SOME group in the
+        // component that tells the states apart and stops looking.
+        const c = caseFor(collapsible, { root: detailsPresence, trigger: blindTrigger });
+        expect(c.groups).toContain('root::details-content');
+        expect(distinguishes(c.rules, 'root::details-content', 'open', 'closed')).toBe(true);
+        expect(componentFindings(c)).toEqual([]);
+        // …and the browser opening the panel is not the header saying anything.
+        expect(disclosureFindings(c)).toHaveLength(1);
+        expect(disclosureFindings(c)[0]).toContain('collapsible.trigger');
+    });
+
+    it('is not satisfied by the panel either, which a property denylist would have been', () => {
+        // The narrower candidate fix — discount `::details-content` because it
+        // is the browser's box — would go green again the moment a recipe gave
+        // its panel any open-only style. This one still asks the trigger.
+        const c = caseFor(collapsible, {
+            root: detailsPresence,
+            trigger: blindTrigger,
+            panel: { states: { open: { paddingBlockEnd: '1rem' }, closed: { paddingBlockEnd: '0' } } },
+        });
+        expect(componentFindings(c)).toEqual([]);
+        expect(disclosureFindings(c)).toHaveLength(1);
+    });
+
+    it('accepts a control that says which way it is pointing', () => {
+        const c = caseFor(collapsible, {
+            root: detailsPresence,
+            trigger: {
+                ...blindTrigger,
+                states: { open: { background: 'rebeccapurple', color: 'white' }, closed: {} },
+            },
+        });
+        expect(disclosureFindings(c)).toEqual([]);
+    });
+
+    it('accepts a control whose disclosure marker carries it — tree-view\'s shape', () => {
+        const c = caseFor(treeView, {
+            'branch-trigger': { base: { display: 'flex' }, states: { open: {}, closed: {} } },
+            'branch-indicator': {
+                states: { open: { rotate: '90deg' }, closed: { rotate: '0deg' } },
+            },
+        });
+        expect(disclosureFindings(c)).toEqual([]);
+        // Only that sibling, though: a difference on the branch row is the
+        // "some other part did it" excuse assertion A allows and C does not.
+        const elsewhere = caseFor(treeView, {
+            branch: { states: { open: { background: 'gainsboro' }, closed: {} } },
+            'branch-trigger': { base: { display: 'flex' }, states: { open: {}, closed: {} } },
+        });
+        expect(componentFindings(elsewhere)).toEqual([]);
+        expect(disclosureFindings(elsewhere)).toHaveLength(1);
+        expect(disclosureFindings(elsewhere)[0]).toContain('"branch-indicator"');
+    });
+
+    it('honours skipStates declared on the control itself', () => {
+        const c = caseFor(collapsible, { trigger: blindTrigger }, { trigger: ['open'] });
+        expect(disclosureFindings(c)).toEqual([]);
+        // …and a skip on a sibling says nothing about the control, exactly as
+        // it does not for an indicator.
+        const sibling = caseFor(collapsible, { trigger: blindTrigger }, { panel: ['open', 'closed'] });
+        expect(disclosureFindings(sibling)).toHaveLength(1);
+    });
+
+    it('leaves an overlay trigger alone — the limit it deliberately accepts', () => {
+        // A menu declares `popup`, so the revealed thing floats above the page
+        // rather than sitting under the control. Whether the trigger also
+        // changes is a taste question the six design systems answer differently,
+        // and this assertion does not arbitrate it.
+        const c = caseFor(menu, {
+            trigger: { base: { padding: '0.5rem' }, states: { open: {}, closed: {} } },
+            popup: { states: { open: { opacity: '1' }, closed: { opacity: '0' } } },
+        });
+        expect(disclosureFindings(c)).toEqual([]);
     });
 });
