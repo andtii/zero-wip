@@ -270,7 +270,7 @@ describe('every declared axis value is honoured or claimed', () => {
         // reports.
         const carbon = SYSTEMS.find((s) => s.name === 'carbon')!.compiled;
         expect(declaredVocabulary(carbon)['size']).toEqual(['sm', 'md', 'lg', 'xl', '2xl']);
-        expect([...paintedValues(carbon.componentCss['button']!, 'size')].sort())
+        expect([...paintedValues(carbon.componentCss['button']!, 'size', 'default')].sort())
             .toEqual(['2xl', 'md', 'sm', 'xl']);
         // …and `lg` is Carbon's un-attributed button step, written and silent.
         expect(participatingCells(carbon).find((c) => c.scope === 'button' && c.axis === 'size')?.claims)
