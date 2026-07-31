@@ -1220,9 +1220,14 @@ export const select: RecipeInput = {
                  * wrong in the fifth: on nord the base ink is already muted and
                  * the 0.5 fade compounded past the floor, to 2.71:1 (#264). An
                  * alpha stated on `color` composites the same way but stays on
-                 * the TEXT — it cannot take a child down with it — and 70% is
-                 * the level nord clears the 3:1 floor at, which is the theme
-                 * that sets the level for all five.
+                 * the TEXT — it cannot take a child down with it.
+                 *
+                 * 60% is the minimal correction: it keeps the placeholder as
+                 * close to daisy's own 0.5 as the floor allows, it is the same
+                 * muting `tabs/tab` already uses, and it lands nord — the theme
+                 * that sets the level for all five — at 3.49:1. 70% was tried
+                 * first and reached 4.59:1, which clears the floor by more than
+                 * it needs to and makes a placeholder look like filled text.
                  */
                 placeholder: { color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)' },
             },
