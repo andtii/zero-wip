@@ -1123,6 +1123,31 @@ export const checkbox: RecipeInput = {
         control: withPresence(pressableCentered('checkbox', 'calc(var(--checkbox-size) * 2.5)', 'var(--checkbox-accent)'), {
             ...checkboxTick,
             base: { ...checkboxTick.base, borderRadius: 'var(--radius-selector)' },
+            states: {
+                ...checkboxTick.states,
+                /**
+                 * M3's error selection control: the container's outline, its
+                 * selected fill and its state layer all move to `error`.
+                 *
+                 * Expressed by rebinding the accent rather than by restating
+                 * each fill, so `checked` and `indeterminate` follow without a
+                 * second copy of either, and the halo — which reads the same
+                 * property — follows too. `--checkbox-on-accent` moves with it
+                 * because the mark now sits on an error fill, and a role and
+                 * its `-content` are the pair the palette contrast-checks;
+                 * `primary-content` on `error` is not.
+                 *
+                 * `borderColor` is still stated: it is the only one of the
+                 * three the accent does not reach in the UNCHECKED state,
+                 * which is exactly the state an invalid required checkbox is
+                 * in.
+                 */
+                invalid: {
+                    '--checkbox-accent': 'var(--color-error)',
+                    '--checkbox-on-accent': 'var(--color-error-content)',
+                    borderColor: 'var(--color-error)',
+                },
+            },
         }),
         /**
          * The mark. Material draws a 2dp stroked check, and it DRAWS it: the
@@ -1427,6 +1452,11 @@ export const slider: RecipeInput = {
                     'linear-gradient(to right, var(--slider-accent) var(--slider-percent, 50%), var(--color-secondary-soft) 0)',
             },
             states: {
+                // `invalid` is semantic, not an accent: it stays error under
+                // every colour variant, and the indirection carries it to the
+                // filled track, the thumb and the halo at once — the same
+                // shape basic, heroui, daisyui, carbon and brutalist use.
+                invalid: { '--slider-accent': 'var(--color-error)' },
                 'focus-visible': {
                     '--slider-halo': 'color-mix(in oklab, var(--slider-accent) 10%, transparent)',
                 },

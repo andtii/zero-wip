@@ -33,6 +33,10 @@
         --slider-track: linear-gradient(to right, var(--slider-accent) var(--slider-percent, 50%), var(--color-secondary-soft) 0);
     }
 
+    [data-scope="slider"][data-part="control"][data-invalid] {
+        --slider-accent: var(--color-error);
+    }
+
     [data-scope="slider"][data-part="control"][data-focus-visible] {
         --slider-halo: color-mix(in oklab, var(--slider-accent) 10%, transparent);
     }

@@ -765,6 +765,11 @@ export const checkbox: RecipeInput = {
                 // `accent` role — semantic contrast against checked, not the
                 // component accent, so it does not follow `color`.
                 indeterminate: { background: 'var(--color-accent)' },
+                // The system's error idiom, unchanged: the frame turns error.
+                // On a 3px border that is the loudest thing on the control,
+                // and it survives the checked fill and the indeterminate one
+                // because the frame is not what either of them paints.
+                invalid: { borderColor: 'var(--color-error)' },
                 ...focusRing,
             },
         },
