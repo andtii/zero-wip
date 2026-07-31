@@ -7,6 +7,7 @@
  * wheel really is focus-gated in a real event pipeline.
  */
 import { test, expect } from '@playwright/test';
+import { demoLabelled, settledBox } from './demo';
 
 test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
@@ -17,14 +18,26 @@ test.beforeEach(async ({ page }) => {
     await page.getByRole('tab', { name: 'Forms' }).click();
 });
 
-const scope = '[data-scope="number-input"]';
+/**
+ * The two demos this spec drives, each named by its own label rather than by
+ * where it happens to sit.
+ *
+ * The Forms tab renders five NumberInputs (quantity, price, disabled, readonly,
+ * invalid) and will render more. `roots.first()` / `roots.nth(1)` only pointed
+ * at these two because every addition so far happened to be APPENDED — prepend
+ * one and `nth(1)` silently becomes a different control while the comment next
+ * to it still says "the allowWheel demo". The label is this instance's
+ * identity; its index is not. See `demo.ts`.
+ */
 const qty = (page: import('@playwright/test').Page) =>
-    page.locator(`${scope}[data-part="root"]`).first();
+    demoLabelled(page, 'number-input', 'Quantity');
+/** The one that opts into the wheel — `allowWheel`, step 0.1, formatted. */
+const price = (page: import('@playwright/test').Page) =>
+    demoLabelled(page, 'number-input', 'Price');
 
 test('holding the increment trigger auto-repeats and release stops it', async ({ page }) => {
-    const root = qty(page);
-    const input = root.locator(`${scope}[data-part="input"]`);
-    const inc = root.locator(`${scope}[data-part="increment-trigger"]`);
+    const input = qty(page)('input');
+    const inc = qty(page)('increment-trigger');
     await expect(input).toHaveValue('2');
 
     // hover() auto-scrolls the trigger into the viewport — raw page.mouse
@@ -43,12 +56,11 @@ test('holding the increment trigger auto-repeats and release stops it', async ({
 });
 
 test('a press released off-element stops the spin (window listener)', async ({ page }) => {
-    const root = qty(page);
-    const input = root.locator(`${scope}[data-part="input"]`);
-    const inc = root.locator(`${scope}[data-part="increment-trigger"]`);
+    const input = qty(page)('input');
+    const inc = qty(page)('increment-trigger');
 
     await inc.hover();
-    const box = (await inc.boundingBox())!;
+    const box = await settledBox(inc, 'the quantity increment trigger');
     await page.mouse.down();
     // Drag off the trigger and release somewhere else entirely.
     await page.mouse.move(box.x + box.width / 2, box.y - 200, { steps: 3 });
@@ -59,9 +71,7 @@ test('a press released off-element stops the spin (window listener)', async ({ p
 });
 
 test('wheel steps only the focused opt-in input', async ({ page }) => {
-    const roots = page.locator(`${scope}[data-part="root"]`);
-    const price = roots.nth(1); // the allowWheel demo
-    const priceInput = price.locator(`${scope}[data-part="input"]`);
+    const priceInput = price(page)('input');
     await expect(priceInput).toHaveValue('19.90');
 
     // Unfocused: wheel scrolls, value holds.
@@ -74,8 +84,8 @@ test('wheel steps only the focused opt-in input', async ({ page }) => {
     await page.mouse.wheel(0, -120);
     await expect(priceInput).toHaveValue('20.00');
 
-    // The first input (no allowWheel) never wheel-steps, focused or not.
-    const qtyInput = qty(page).locator(`${scope}[data-part="input"]`);
+    // The quantity input (no allowWheel) never wheel-steps, focused or not.
+    const qtyInput = qty(page)('input');
     await qtyInput.click();
     await qtyInput.hover();
     await page.mouse.wheel(0, -120);
@@ -83,7 +93,7 @@ test('wheel steps only the focused opt-in input', async ({ page }) => {
 });
 
 test('typed drafts commit on blur with clamp and revert on garbage', async ({ page }) => {
-    const input = qty(page).locator(`${scope}[data-part="input"]`);
+    const input = qty(page)('input');
     await input.fill('120');
     await input.blur();
     await expect(input).toHaveValue('99'); // max clamp

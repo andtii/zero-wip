@@ -8,13 +8,26 @@
  * symbol has font coverage at all (#222).
  */
 import { test, expect } from '@playwright/test';
+import { demoPosting, rootPosting, settledBox } from './demo';
 
+/**
+ * The halves demo, named by the field it posts (`name="stars"`).
+ *
+ * The Forms tab renders four RatingGroups — halves, whole-stars-deselectable,
+ * a readonly average and an invalid one — and `.first()` picked this one only
+ * because it happens to come first. The posted field name is the instance's
+ * identity; its position is not. See `demo.ts`.
+ */
+const halvesParts = (page: import('@playwright/test').Page) =>
+    demoPosting(page, 'rating-group', 'stars');
 const halves = (page: import('@playwright/test').Page) =>
-    page.locator('[data-scope="rating-group"][data-part="root"]').first();
-const hidden = (page: import('@playwright/test').Page) =>
-    halves(page).locator('[data-part="hidden-input"]');
+    rootPosting(page, 'rating-group', 'stars');
+const hidden = (page: import('@playwright/test').Page) => halvesParts(page)('hidden-input');
+// Positional, deliberately: `n` indexes THIS group's own five symbols, which
+// is what "the third star" means. That is the convention's carve-out, not a
+// reach across demos.
 const item = (page: import('@playwright/test').Page, n: number) =>
-    halves(page).locator('[data-part="item"]').nth(n - 1);
+    halvesParts(page)('item').nth(n - 1);
 
 /** Boot the playground with one design system pinned, on the Forms tab. */
 const pin = (ds: string) => async ({ page }: { page: import('@playwright/test').Page }) => {
@@ -32,7 +45,7 @@ test.describe('half-star pointer and keyboard math', () => {
     test('the left half of a star commits index − 0.5, the right half the index', async ({ page }) => {
         const third = item(page, 3);
         await third.scrollIntoViewIfNeeded();
-        const box = (await third.boundingBox())!;
+        const box = await settledBox(third, 'the third star');
         await page.mouse.click(box.x + box.width * 0.25, box.y + box.height / 2);
         await expect(hidden(page)).toHaveValue('2.5');
         await expect(third).toHaveAttribute('data-state', 'half');
@@ -45,7 +58,7 @@ test.describe('half-star pointer and keyboard math', () => {
     test('hover previews the fill without committing', async ({ page }) => {
         const fifth = item(page, 5);
         await fifth.scrollIntoViewIfNeeded();
-        const box = (await fifth.boundingBox())!;
+        const box = await settledBox(fifth, 'the fifth star');
         await page.mouse.move(box.x + box.width * 0.75, box.y + box.height / 2);
         await expect(fifth).toHaveAttribute('data-state', 'full');
         await expect(fifth).toHaveAttribute('data-highlighted', '');
@@ -60,7 +73,7 @@ test.describe('half-star pointer and keyboard math', () => {
         await page.evaluate(() => { document.documentElement.dir = 'rtl'; });
         const third = item(page, 3);
         await third.scrollIntoViewIfNeeded();
-        const box = (await third.boundingBox())!;
+        const box = await settledBox(third, 'the third star (RTL)');
         // Visual LEFT half is now the FULL side (reading direction runs
         // right-to-left), and the right half is the half-step.
         await page.mouse.click(box.x + box.width * 0.25, box.y + box.height / 2);

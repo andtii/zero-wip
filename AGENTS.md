@@ -153,6 +153,29 @@ on every PR. The root `pnpm
 typecheck` excludes `examples/`, so the playground has its own:
 `pnpm --filter zero-playground typecheck`.
 
+**How an interaction spec locates a part** — the convention, and it is not
+optional:
+
+> Locate a part through a **named root**: never a page-wide
+> `[data-scope][data-part]` where more than one instance exists, and never a
+> positional `.first()` / `.nth()` that reaches across demos.
+
+The one carve-out is identity rather than accident: positional indexing *within
+a single demo's own ordered set* — tab 0, radio item 1, the third star of one
+rating — is fine. The helpers live in `examples/playground/e2e/demo.ts`, which
+carries the reasoning and the scars: `demoLabelled(page, scope, text)` names an
+instance by the text on it, `demoPosting(page, scope, name)` by the field it
+posts, and `controlledPopup(page, trigger)` follows `aria-controls` for a
+component whose surface is a sibling rather than a descendant (Menu). `.first()`
+is the specific trap — it couples a spec to incidental document order, so it
+passes for the wrong reason and breaks for an unrelated one; the playground
+renders several of most components and grows more.
+
+That module also owns `settledBox(locator, what)`: measuring a part means
+waiting out its animations *and* proving it is rendered first, because
+`boundingBox()` returns **null** for anything that is not, and dereferencing
+that null reports a `TypeError` instead of "the popup was not showing".
+
 ## Packages
 
 - `packages/zero` → `@sigx/zero` — the runtime foundation: the anatomy
