@@ -82,16 +82,21 @@
         position: absolute;
         inset: var(--space-2xs);
         background: var(--rating-fill);
-        clip-path: inset(0 100% 0 0);
+        --rating-hidden: 100%;
+        clip-path: inset(0 var(--rating-hidden) 0 0);
         transition: clip-path var(--duration-normal) var(--ease-emphasized);
     }
 
     [data-scope="rating-group"][data-part="item"][data-state="half"]::before {
-        clip-path: inset(0 50% 0 0);
+        --rating-hidden: 50%;
     }
 
     [data-scope="rating-group"][data-part="item"][data-state="full"]::before {
-        clip-path: inset(0 0 0 0);
+        --rating-hidden: 0%;
+    }
+
+    [data-scope="rating-group"][data-part="item"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)::before {
+        clip-path: inset(0 0 0 var(--rating-hidden));
     }
 
     [data-scope="rating-group"][data-part="hidden-input"] {

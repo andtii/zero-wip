@@ -1025,7 +1025,7 @@
 
     [data-scope="menu"][data-part="sub-trigger"]::after {
         content: "\203A";
-        margin-left: auto;
+        margin-inline-start: auto;
     }
 
     [data-scope="menu"][data-part="sub-popup"] {
@@ -1354,16 +1354,21 @@
     [data-scope="switch"][data-part="thumb"] {
         position: absolute;
         top: 0;
-        left: 0;
+        inset-inline-start: 0;
         width: calc(var(--size-selector) * 7);
         height: 100%;
         background: var(--color-base-content);
+        --switch-thumb-dir: 1;
         transition: transform var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="switch"][data-part="thumb"][data-state="checked"] {
-        transform: translateX(calc(var(--switch-width) - 100%));
+        transform: translateX(calc(var(--switch-thumb-dir) * (var(--switch-width) - 100%)));
         background: var(--switch-on-accent);
+    }
+
+    [data-scope="switch"][data-part="thumb"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        --switch-thumb-dir: -1;
     }
 
     [data-scope="switch"][data-part="label"] {
@@ -2385,7 +2390,7 @@
         align-items: center;
         column-gap: var(--space-md);
         padding: var(--space-md) var(--space-lg);
-        border-left: calc(var(--border) * 2) solid var(--toast-accent);
+        border-inline-start: calc(var(--border) * 2) solid var(--toast-accent);
         box-shadow: var(--shadow-md);
         font-size: var(--text-sm);
         opacity: 0;
@@ -3315,16 +3320,21 @@
         position: absolute;
         inset: var(--space-2xs);
         background: var(--rating-fill);
-        clip-path: inset(0 100% 0 0);
+        --rating-hidden: 100%;
+        clip-path: inset(0 var(--rating-hidden) 0 0);
         transition: clip-path var(--duration-normal) var(--ease-emphasized);
     }
 
     [data-scope="rating-group"][data-part="item"][data-state="half"]::before {
-        clip-path: inset(0 50% 0 0);
+        --rating-hidden: 50%;
     }
 
     [data-scope="rating-group"][data-part="item"][data-state="full"]::before {
-        clip-path: inset(0 0 0 0);
+        --rating-hidden: 0%;
+    }
+
+    [data-scope="rating-group"][data-part="item"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)::before {
+        clip-path: inset(0 0 0 var(--rating-hidden));
     }
 
     [data-scope="rating-group"][data-part="hidden-input"] {
