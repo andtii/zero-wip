@@ -48,4 +48,14 @@
         --avatar-size: calc(var(--size-selector) * 12);
         --avatar-text: var(--text-md);
     }
+
+    [data-scope="avatar"][data-part="root"][data-size="xl"] {
+        --avatar-size: calc(var(--size-selector) * 16);
+        --avatar-text: var(--text-lg);
+    }
+
+    [data-scope="avatar"][data-part="root"][data-size="2xl"] {
+        --avatar-size: calc(var(--size-selector) * 20);
+        --avatar-text: var(--text-xl);
+    }
 }

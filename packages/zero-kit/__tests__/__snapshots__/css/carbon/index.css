@@ -224,6 +224,14 @@
     [data-scope="tabs"][data-part="root"][data-size="lg"] [data-scope="tabs"][data-part="tab"] {
         min-height: 3rem;
     }
+
+    [data-scope="tabs"][data-part="root"][data-size="xl"] [data-scope="tabs"][data-part="tab"] {
+        min-height: 4rem;
+    }
+
+    [data-scope="tabs"][data-part="root"][data-size="2xl"] [data-scope="tabs"][data-part="tab"] {
+        min-height: 5rem;
+    }
 }
 
 @layer zero.recipes {
@@ -380,6 +388,16 @@
     [data-scope="switch"][data-part="root"][data-size="lg"] {
         --switch-width: calc(var(--size-selector) * 14);
         --switch-height: calc(var(--size-selector) * 7);
+    }
+
+    [data-scope="switch"][data-part="root"][data-size="xl"] {
+        --switch-width: calc(var(--size-selector) * 18);
+        --switch-height: calc(var(--size-selector) * 9);
+    }
+
+    [data-scope="switch"][data-part="root"][data-size="2xl"] {
+        --switch-width: calc(var(--size-selector) * 24);
+        --switch-height: calc(var(--size-selector) * 12);
     }
 }
 
@@ -1080,6 +1098,14 @@
         --checkbox-size: calc(var(--size-selector) * 5);
     }
 
+    [data-scope="checkbox"][data-part="root"][data-size="xl"] {
+        --checkbox-size: calc(var(--size-selector) * 6.5);
+    }
+
+    [data-scope="checkbox"][data-part="root"][data-size="2xl"] {
+        --checkbox-size: calc(var(--size-selector) * 8);
+    }
+
     @media (forced-colors: active) {
         [data-scope="checkbox"][data-part="indicator"] {
             position: static;
@@ -1236,6 +1262,14 @@
     [data-scope="radio-group"][data-part="root"][data-size="lg"] {
         --radio-size: calc(var(--size-selector) * 5.5);
     }
+
+    [data-scope="radio-group"][data-part="root"][data-size="xl"] {
+        --radio-size: calc(var(--size-selector) * 7);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="2xl"] {
+        --radio-size: calc(var(--size-selector) * 9);
+    }
 }
 
 @layer zero.recipes {
@@ -1316,6 +1350,14 @@
 
     [data-scope="progress"][data-part="root"][data-size="lg"] {
         --progress-track-size: 0.5rem;
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="xl"] {
+        --progress-track-size: 0.75rem;
+    }
+
+    [data-scope="progress"][data-part="root"][data-size="2xl"] {
+        --progress-track-size: 1rem;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1422,6 +1464,14 @@
 
     [data-scope="slider"][data-part="root"][data-size="lg"] [data-scope="slider"][data-part="control"] {
         height: 3rem;
+    }
+
+    [data-scope="slider"][data-part="root"][data-size="xl"] [data-scope="slider"][data-part="control"] {
+        height: 4rem;
+    }
+
+    [data-scope="slider"][data-part="root"][data-size="2xl"] [data-scope="slider"][data-part="control"] {
+        height: 5rem;
     }
 
     @media (forced-colors: active) {
@@ -1649,6 +1699,14 @@
         min-height: 3rem;
     }
 
+    [data-scope="select"][data-part="root"][data-size="xl"] [data-scope="select"][data-part="trigger"] {
+        min-height: 4rem;
+    }
+
+    [data-scope="select"][data-part="root"][data-size="2xl"] [data-scope="select"][data-part="trigger"] {
+        min-height: 5rem;
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="select"][data-part="popup"] {
             transition: none;
@@ -1845,6 +1903,16 @@
     [data-scope="avatar"][data-part="root"][data-size="lg"] {
         --avatar-size: calc(var(--size-selector) * 12);
         --avatar-text: var(--text-md);
+    }
+
+    [data-scope="avatar"][data-part="root"][data-size="xl"] {
+        --avatar-size: calc(var(--size-selector) * 16);
+        --avatar-text: var(--text-lg);
+    }
+
+    [data-scope="avatar"][data-part="root"][data-size="2xl"] {
+        --avatar-size: calc(var(--size-selector) * 20);
+        --avatar-text: var(--text-xl);
     }
 }
 
@@ -2191,6 +2259,14 @@
         min-height: 3rem;
     }
 
+    [data-scope="combobox"][data-part="root"][data-size="xl"] [data-scope="combobox"][data-part="control"] {
+        min-height: 4rem;
+    }
+
+    [data-scope="combobox"][data-part="root"][data-size="2xl"] [data-scope="combobox"][data-part="control"] {
+        min-height: 5rem;
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="combobox"][data-part="popup"] {
             transition: none;
@@ -2264,6 +2340,14 @@
 
     [data-scope="toggle"][data-part="root"][data-size="lg"] {
         min-height: 3rem;
+    }
+
+    [data-scope="toggle"][data-part="root"][data-size="xl"] {
+        min-height: 4rem;
+    }
+
+    [data-scope="toggle"][data-part="root"][data-size="2xl"] {
+        min-height: 5rem;
     }
 }
 
@@ -2341,6 +2425,14 @@
 
     [data-scope="toggle-group"][data-part="root"][data-size="lg"] [data-scope="toggle-group"][data-part="item"] {
         min-height: 3rem;
+    }
+
+    [data-scope="toggle-group"][data-part="root"][data-size="xl"] [data-scope="toggle-group"][data-part="item"] {
+        min-height: 4rem;
+    }
+
+    [data-scope="toggle-group"][data-part="root"][data-size="2xl"] [data-scope="toggle-group"][data-part="item"] {
+        min-height: 5rem;
     }
 }
 
@@ -2478,6 +2570,14 @@
     [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="control"] {
         min-height: 3rem;
     }
+
+    [data-scope="number-input"][data-part="root"][data-size="xl"] [data-scope="number-input"][data-part="control"] {
+        min-height: 4rem;
+    }
+
+    [data-scope="number-input"][data-part="root"][data-size="2xl"] [data-scope="number-input"][data-part="control"] {
+        min-height: 5rem;
+    }
 }
 
 @layer zero.recipes {
@@ -2587,6 +2687,14 @@
 
     [data-scope="rating-group"][data-part="root"][data-size="lg"] {
         --rating-size: var(--text-fixed-2xl);
+    }
+
+    [data-scope="rating-group"][data-part="root"][data-size="xl"] {
+        --rating-size: var(--text-fixed-3xl);
+    }
+
+    [data-scope="rating-group"][data-part="root"][data-size="2xl"] {
+        --rating-size: calc(var(--text-fixed-3xl) * 1.25);
     }
 
     @media (forced-colors: active) {
@@ -2741,5 +2849,13 @@
 
     [data-scope="tree-view"][data-part="root"][data-size="lg"] {
         --tree-text: var(--text-md);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-size="xl"] {
+        --tree-text: var(--text-lg);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-size="2xl"] {
+        --tree-text: var(--text-xl);
     }
 }

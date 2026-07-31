@@ -25,7 +25,7 @@ declare module '@sigx/zero' {
             'tabs': {
                 /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                size: 'sm' | 'md' | 'lg';
+                size: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
                 /** Accepts `variant` at runtime, but no carbon recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -46,7 +46,7 @@ declare module '@sigx/zero' {
             'switch': {
                 /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                size: 'sm' | 'md' | 'lg';
+                size: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
                 /** Accepts `variant` at runtime, but no carbon recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -111,7 +111,7 @@ declare module '@sigx/zero' {
             'checkbox': {
                 /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                size: 'sm' | 'md' | 'lg';
+                size: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
                 /** Accepts `variant` at runtime, but no carbon recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -121,7 +121,7 @@ declare module '@sigx/zero' {
             'radio-group': {
                 /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                size: 'sm' | 'md' | 'lg';
+                size: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
                 /** Accepts `variant` at runtime, but no carbon recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -131,7 +131,7 @@ declare module '@sigx/zero' {
             'progress': {
                 /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                size: 'sm' | 'md' | 'lg';
+                size: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
                 /** Accepts `variant` at runtime, but no carbon recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -141,7 +141,7 @@ declare module '@sigx/zero' {
             'slider': {
                 /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                size: 'sm' | 'md' | 'lg';
+                size: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
                 /** Accepts `variant` at runtime, but no carbon recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -162,7 +162,7 @@ declare module '@sigx/zero' {
             'select': {
                 /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                size: 'sm' | 'md' | 'lg';
+                size: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
                 /** Accepts `variant` at runtime, but no carbon recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -181,7 +181,7 @@ declare module '@sigx/zero' {
             'avatar': {
                 /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                size: 'sm' | 'md' | 'lg';
+                size: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
                 /** Accepts `variant` at runtime, but no carbon recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -202,7 +202,7 @@ declare module '@sigx/zero' {
             'combobox': {
                 /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                size: 'sm' | 'md' | 'lg';
+                size: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
                 /** Accepts `variant` at runtime, but no carbon recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -212,7 +212,7 @@ declare module '@sigx/zero' {
             'toggle': {
                 /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                size: 'sm' | 'md' | 'lg';
+                size: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
                 /** Accepts `variant` at runtime, but no carbon recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -222,7 +222,7 @@ declare module '@sigx/zero' {
             'toggle-group': {
                 /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                size: 'sm' | 'md' | 'lg';
+                size: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
                 /** Accepts `variant` at runtime, but no carbon recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -232,7 +232,7 @@ declare module '@sigx/zero' {
             'number-input': {
                 /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                size: 'sm' | 'md' | 'lg';
+                size: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
                 /** Accepts `variant` at runtime, but no carbon recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -242,7 +242,7 @@ declare module '@sigx/zero' {
             'rating-group': {
                 /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                size: 'sm' | 'md' | 'lg';
+                size: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
                 /** Accepts `variant` at runtime, but no carbon recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -252,7 +252,7 @@ declare module '@sigx/zero' {
             'tree-view': {
                 /** Accepts `color` at runtime, but carbon declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                size: 'sm' | 'md' | 'lg';
+                size: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
                 /** Accepts `variant` at runtime, but no carbon recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;

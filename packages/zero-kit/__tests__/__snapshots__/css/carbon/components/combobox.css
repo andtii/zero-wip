@@ -152,6 +152,14 @@
         min-height: 3rem;
     }
 
+    [data-scope="combobox"][data-part="root"][data-size="xl"] [data-scope="combobox"][data-part="control"] {
+        min-height: 4rem;
+    }
+
+    [data-scope="combobox"][data-part="root"][data-size="2xl"] [data-scope="combobox"][data-part="control"] {
+        min-height: 5rem;
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="combobox"][data-part="popup"] {
             transition: none;

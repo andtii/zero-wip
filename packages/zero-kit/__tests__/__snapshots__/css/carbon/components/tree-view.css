@@ -130,4 +130,12 @@
     [data-scope="tree-view"][data-part="root"][data-size="lg"] {
         --tree-text: var(--text-md);
     }
+
+    [data-scope="tree-view"][data-part="root"][data-size="xl"] {
+        --tree-text: var(--text-lg);
+    }
+
+    [data-scope="tree-view"][data-part="root"][data-size="2xl"] {
+        --tree-text: var(--text-xl);
+    }
 }

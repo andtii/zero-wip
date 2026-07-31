@@ -93,6 +93,14 @@
         height: 3rem;
     }
 
+    [data-scope="slider"][data-part="root"][data-size="xl"] [data-scope="slider"][data-part="control"] {
+        height: 4rem;
+    }
+
+    [data-scope="slider"][data-part="root"][data-size="2xl"] [data-scope="slider"][data-part="control"] {
+        height: 5rem;
+    }
+
     @media (forced-colors: active) {
         [data-scope="slider"][data-part="control"] {
             appearance: auto;
