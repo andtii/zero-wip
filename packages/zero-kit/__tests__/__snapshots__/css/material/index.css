@@ -2210,6 +2210,12 @@
         outline-offset: 2px;
     }
 
+    [data-scope="checkbox"][data-part="control"][data-invalid] {
+        --checkbox-accent: var(--color-error);
+        --checkbox-on-accent: var(--color-error-content);
+        border-color: var(--color-error);
+    }
+
     [data-scope="checkbox"][data-part="control"]::before {
         content: "";
         position: absolute;
@@ -2798,6 +2804,10 @@
         accent-color: var(--slider-accent);
         --slider-halo: transparent;
         --slider-track: linear-gradient(to right, var(--slider-accent) var(--slider-percent, 50%), var(--color-secondary-soft) 0);
+    }
+
+    [data-scope="slider"][data-part="control"][data-invalid] {
+        --slider-accent: var(--color-error);
     }
 
     [data-scope="slider"][data-part="control"][data-focus-visible] {

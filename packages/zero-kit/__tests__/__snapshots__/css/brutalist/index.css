@@ -1480,6 +1480,10 @@
         background: var(--color-accent);
     }
 
+    [data-scope="checkbox"][data-part="control"][data-invalid] {
+        border-color: var(--color-error);
+    }
+
     [data-scope="checkbox"][data-part="control"][data-focus-visible] {
         outline: var(--border) solid var(--color-primary);
         outline-offset: 3px;
