@@ -416,4 +416,41 @@ describe('Menu.ContextTrigger', () => {
         await tick();
         expectAnatomy(container, menuAnatomy);
     });
+
+    it('context trigger: focus-visible follows the platform heuristic, and blur clears it', async () => {
+        mountContext();
+        const surface = container.querySelector<HTMLElement>('[data-part="context-trigger"]')!;
+        // The surface is the consumer's box: it becomes a tab stop only when
+        // the consumer says so (the playground does exactly this).
+        surface.tabIndex = 0;
+
+        // happy-dom answers `:focus-visible` for anything focused at all, so
+        // the browser heuristic is modelled here: a pointer press before the
+        // focus suppresses the ring, a keyboard-driven focus keeps it. This
+        // is what pins the implementation to `:focus-visible` — setting the
+        // flag on every focus would pass the first case and fail the second.
+        let pointerDriven = false;
+        const realMatches = surface.matches.bind(surface);
+        surface.matches = ((selector: string): boolean =>
+            (selector === ':focus-visible'
+                ? !pointerDriven && realMatches(':focus')
+                : realMatches(selector))) as HTMLElement['matches'];
+
+        surface.focus();
+        await tick();
+        expect(surface.getAttribute('data-focus-visible')).toBe('');
+        // Checked WHILE the flag is on: this is what fails if the runtime
+        // emits an attribute the anatomy doesn't declare.
+        expectAnatomy(container, menuAnatomy);
+
+        surface.blur();
+        await tick();
+        expect(surface.hasAttribute('data-focus-visible')).toBe(false);
+
+        pointerDriven = true;
+        surface.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+        surface.focus();
+        await tick();
+        expect(surface.hasAttribute('data-focus-visible')).toBe(false);
+    });
 });

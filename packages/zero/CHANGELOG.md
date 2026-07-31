@@ -108,6 +108,32 @@
 
 ### Changed
 
+- **BREAKING (anatomy): `menu`'s `context-trigger` part carries
+  `data-focus-visible`** (#252). Changing an anatomy is a breaking change —
+  the part's flag set grows from `['disabled']` to
+  `['disabled', 'focus-visible']`, so `manifest.json` moves and any tool,
+  generator or test pinning that list has to be regenerated. Nothing that
+  reads the old attributes breaks: the addition is purely additive at the DOM
+  level.
+
+  Why: the surface is focusable in practice — it becomes a tab stop whenever
+  the consumer makes it one, and Escape from an open context menu restores
+  focus to it — but with `disabled` as its only flag a design system had
+  nothing to hang its own focus ring on, so the part fell back to the UA
+  default while every other focusable part carried the system's ring.
+  `Menu.ContextTrigger` did no focus tracking at all; it now reports the
+  platform's `:focus-visible` heuristic through `onFocus`/`onBlur`, the same
+  way `Menu.Trigger` and `RatingGroup.Item` do. `focus`/`blur` don't bubble,
+  so the flag reports the surface's OWN focus — a focused descendant carries
+  its own ring, not one drawn around the whole surface.
+
+  No design system paints it yet: the part is typically the consumer's own
+  content (`asChild`), so the ring the app draws around that content stays
+  the right default. `@sigx/zero-heroui` and `@sigx/zero-carbon` — the two
+  that declare a `context-trigger` recipe part — say that deliberately with
+  `skipStates: { 'context-trigger': ['focus-visible'] }`. No compiled CSS
+  changed.
+
 - `variantAttrs` accepts `axes` values of `string | undefined` and skips
   `undefined` entries before its guards — a narrowed `AxesFor<S>` bag has
   optional members, and an unset one must neither throw nor emit an

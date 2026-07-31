@@ -709,6 +709,10 @@ export const menu: RecipeInput = {
             },
         },
     },
+    // The context surface is the consumer's own box — this recipe declares it
+    // only to name the part, and deliberately leaves its ring to whatever the
+    // app draws around that content.
+    skipStates: { 'context-trigger': ['focus-visible'] },
 };
 
 // ── Field ─────────────────────────────────────────────────────────────────
