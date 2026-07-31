@@ -92,6 +92,11 @@
   wins when set, the Field supplies the rest, and a Field cannot un-set what a
   prop asserts.
 
+  The ids came with it: the hidden input takes the field's `control` id and its
+  `aria-describedby`, so `Field.Label`'s `for` finally lands on something and
+  the description and error are announced. A switch that adopted the flags but
+  not the id would still have had no accessible name from its field.
+
 - **`switch/control` declares the `invalid` flag** (#269, additive anatomy
   change). The runtime already emitted `data-invalid` on `switch/root`, but the
   track — the thing a design system paints — could not carry it, so every

@@ -94,6 +94,7 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal }) =
             <input
                 type="checkbox"
                 role="switch"
+                id={field.inert ? undefined : field.ids.control}
                 data-scope={SCOPE}
                 data-part="hidden-input"
                 style={HIDDEN_INPUT_STYLE}
@@ -103,6 +104,7 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal }) =
                 name={props.name}
                 value={props.value ?? 'on'}
                 aria-invalid={invalid() ? 'true' : undefined}
+                aria-describedby={field.inert ? undefined : field.describedBy()}
                 ref={(node: HTMLInputElement | null) => { inputEl = node; }}
                 onChange={(e: Event) => {
                     state.value = (e.target as HTMLInputElement).checked;

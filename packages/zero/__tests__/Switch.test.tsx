@@ -102,12 +102,27 @@ describe('Switch', () => {
             <Field.Root invalid required disabled>
                 <Field.Label>Notifications</Field.Label>
                 <Switch.Root>On</Switch.Root>
+                <Field.Description>You can turn this off later.</Field.Description>
+                <Field.Error>Pick one.</Field.Error>
             </Field.Root>,
             container,
         );
         const root = container.querySelector<HTMLElement>('[data-scope="switch"][data-part="root"]')!;
         const control = container.querySelector<HTMLElement>('[data-scope="switch"][data-part="control"]')!;
         const input = container.querySelector<HTMLInputElement>('input')!;
+
+        // The ids, not only the flags: `Field.Label` points `for` at the
+        // control's id, so a switch that adopts the flags but not the id is
+        // still a switch with no accessible name from its field.
+        const label = container.querySelector<HTMLLabelElement>('[data-scope="field"][data-part="label"]')!;
+        expect(input.id).not.toBe('');
+        expect(label.getAttribute('for')).toBe(input.id);
+        const describedBy = input.getAttribute('aria-describedby') ?? '';
+        for (const part of ['description', 'error']) {
+            expect(describedBy, `aria-describedby must name the field's ${part}`).toContain(
+                container.querySelector(`[data-scope="field"][data-part="${part}"]`)!.id,
+            );
+        }
 
         expect(root.getAttribute('data-invalid')).toBe('');
         expect(root.getAttribute('data-required')).toBe('');
