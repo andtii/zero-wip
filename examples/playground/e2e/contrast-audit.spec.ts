@@ -114,11 +114,40 @@ const cells: Cell[] = anatomy.components.flatMap((component) =>
 );
 
 /**
- * Combinations a design system dims on purpose. Keep this list SHORT and
- * commented — every entry is a claim that low contrast is the design.
+ * Combinations this audit does not currently assert. Keep this list SHORT and
+ * commented — every entry is either a claim that low contrast is the design,
+ * or, as today, DEBT: a cell whose failure is real, filed, and scheduled, held
+ * out only so the gate can land ahead of the fixes.
+ *
+ * A debt entry names its issue and is deleted by the PR that closes it. It is
+ * not a decision about the cell.
+ *
+ * Entries are exact `cellKey` strings on purpose — one key, one cell. Never
+ * widen one to a scope or a theme: that would swallow the next regression in
+ * the same neighbourhood, which is the failure mode an allowlist has.
+ *
+ * The list is guarded from both sides, because neither guard alone is enough:
+ * `allowlist coverage` fails an entry that names no cell, and `staleEntries`
+ * fails one whose cell now passes. Add carelessly and the first catches you;
+ * forget to remove and the second does.
  */
 const INTENDED_LOW_CONTRAST = new Set<string>([
-    // (none yet)
+    // DEBT — signalxjs/zero#263. HeroUI's `pending` modifier is
+    // `opacity: 0.7` on the button root, which fades the label with the fill
+    // and drops both variants just under the floor (primary 2.92:1, outline
+    // 2.97:1) on the light theme. `pending` is a LOADING state, not a disabled
+    // one — the reader is waiting on that label — so it gets no WCAG 1.4.3
+    // carve-out and no lower floor. Delete these six when #263 lands.
+    'heroui/hero-light/button/root/-/-/variant=primary,+pending',
+    'heroui/hero-light/button/root/-/focus-visible/variant=primary,+pending',
+    'heroui/hero-light/button/root/-/pressed/variant=primary,+pending',
+    'heroui/hero-light/button/root/-/-/variant=outline,+pending',
+    'heroui/hero-light/button/root/-/focus-visible/variant=outline,+pending',
+    'heroui/hero-light/button/root/-/pressed/variant=outline,+pending',
+    // DEBT — signalxjs/zero#264. daisyUI's `select/value[data-placeholder]` is
+    // `opacity: 0.5` over base-100, which lands at 2.71:1 on nord (the other
+    // four themes clear the floor). Delete this one when #264 lands.
+    'daisyui/nord/select/value/-/placeholder/-',
 ]);
 
 /**
@@ -139,10 +168,59 @@ const INTENDED_LOW_CONTRAST = new Set<string>([
  * produced and then dropped: a `disabled` label painted `base-300` on
  * `base-200` measures 1.05:1 before any fade, and used to pass in silence.
  * So the pair is asserted at 2:1 and the faded reality is annotated beside it.
+ *
+ * **Do not "fix" this back to the post-fade reading.** It was tried, and it
+ * fails 440 cells across 20 of the 30 matrix tests — every disabled cell in every
+ * design system, because each one dims by the same uniform token. A test that
+ * red across the board on one design decision is not measuring recipes; it is
+ * legislating `--disabled-opacity` from inside an e2e spec. WCAG 1.4.3 agrees
+ * on the substance: inactive user-interface components are exempt from the
+ * contrast minimum. The colour pair underneath is not, and that is what this
+ * floor holds.
  */
 const FLOOR = 3;
 const AA = 4.5;
 const DISABLED_FLOOR = 2;
+
+/**
+ * The half of an allowlist nobody ever does. `allowlist coverage` proves an
+ * entry NAMES a real cell; this proves it is still NEEDED — a suppression whose
+ * cell now clears its floor is dead weight, and dead weight is how an allowlist
+ * stops being a list of exceptions and becomes a hole in the gate. The recipe
+ * fix lands, the entry stays, and the next regression on that exact cell is
+ * silently absorbed by a comment citing an issue that closed months ago.
+ *
+ * It cannot be a static check: only the browser knows a ratio. So each matrix
+ * runs it over its OWN readings, against the same floor the cell would have
+ * answered to had it not been listed — `DISABLED_FLOOR` on the in-group pair
+ * for a `disabled` cell, `FLOOR` on what the reader sees for everything else.
+ *
+ * `measured` is the caller's answer to "did this cell produce a reading at
+ * all" — `unrendered` in the text matrix, `unpainted` in the indicator one.
+ * Nothing painted is NOT evidence the entry can go: a cell with no reading has
+ * no ratio to clear a floor with, and reporting it stale would trade a dead
+ * suppression for a deleted one that was still doing work.
+ */
+interface Suppressible {
+    key: string;
+    ratio: number;
+    inGroup: number;
+    disabled: boolean;
+}
+
+function staleEntries<R extends Suppressible>(readings: R[], measured: (r: R) => boolean): string[] {
+    return readings
+        .filter((r) => INTENDED_LOW_CONTRAST.has(r.key) && measured(r))
+        .filter((r) => (r.disabled ? r.inGroup >= DISABLED_FLOOR : r.ratio >= FLOOR))
+        .map((r) => (r.disabled
+            ? `${r.key} → ${r.inGroup}:1 before the state's fade, clearing the ${DISABLED_FLOOR}:1 disabled floor`
+            : `${r.key} → ${r.ratio}:1, clearing the ${FLOOR}:1 floor`));
+}
+
+const STALE_MESSAGE =
+    'INTENDED_LOW_CONTRAST entries whose cell now passes on its own — the suppression is doing nothing. '
+    + 'Delete each listed key from INTENDED_LOW_CONTRAST and close the issue its comment cites; '
+    + 'left in place it silently absorbs the next regression on that exact cell.';
 
 /** Axis values and modifiers, in a stable spelling — part of a cell's identity. */
 const axisTag = (c: Cell): string => [
@@ -551,6 +629,34 @@ test('axis coverage: every variant-wiring scope carries its axes on a text-beari
     ).toEqual([]);
 });
 
+/**
+ * An allowlist entry that matches no cell suppresses nothing and says nothing
+ * — it just sits there looking like coverage. A key is `ds/theme/scope/part/
+ * state/flag/axes`, seven segments of vocabulary that all move, so a typo or a
+ * renamed part is not a hypothetical.
+ *
+ * This is the half a browser cannot check: whether the STRING names a cell.
+ * Whether the cell it names still needs suppressing is checked inside each
+ * matrix, against real readings.
+ */
+test('allowlist coverage: every INTENDED_LOW_CONTRAST entry names a cell some matrix renders', ({}, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium', 'one engine is enough');
+
+    const known = new Set<string>();
+    for (const ds of DESIGN_SYSTEMS) {
+        const manifest: DesignSystemManifest = JSON.parse(read(`packages/zero-${ds}/dist/manifest.json`));
+        const dsCells: Cell[] = [...cells, ...axisCellsFor(manifest.components), ...indicatorCells];
+        for (const theme of manifest.themes) {
+            for (const cell of dsCells) known.add(cellKey(ds, theme.name, cell));
+        }
+    }
+
+    expect(
+        [...INTENDED_LOW_CONTRAST].filter((key) => !known.has(key)),
+        'INTENDED_LOW_CONTRAST entries matching no cell in either matrix — a mistyped or outdated key, which silences nothing',
+    ).toEqual([]);
+});
+
 for (const ds of DESIGN_SYSTEMS) {
     const dsCss = read(`packages/zero-${ds}/dist/css/index.css`);
     const dsManifest: DesignSystemManifest = JSON.parse(read(`packages/zero-${ds}/dist/manifest.json`));
@@ -650,6 +756,15 @@ for (const ds of DESIGN_SYSTEMS) {
             for (const r of readings.filter((r) => r.unrendered)) {
                 testInfo.annotations.push({ type: 'contrast-unrendered', description: `${r.key} — not painted in this state` });
             }
+            // Every suppressed cell puts its live ratio on the record, so the
+            // debt is countable from a green run rather than only from the red
+            // one that preceded it.
+            for (const s of readings.filter((r) => INTENDED_LOW_CONTRAST.has(r.key) && !r.unrendered)) {
+                testInfo.annotations.push({
+                    type: 'contrast-suppressed',
+                    description: `${s.key} → ${s.ratio}:1 (${s.color} on ${s.bg}) — held out by INTENDED_LOW_CONTRAST`,
+                });
+            }
 
             const failures = visible.filter((r) => !r.disabled && r.ratio < FLOOR);
             const warnings = visible.filter((r) => !r.disabled && r.ratio >= FLOOR && r.ratio < AA);
@@ -683,6 +798,7 @@ for (const ds of DESIGN_SYSTEMS) {
                 dimmedOut.map((f) => `${f.key} → ${f.inGroup}:1 (${f.color} on ${f.bg})`),
                 `disabled colour pairs below ${DISABLED_FLOOR}:1 before the state's own fade — dimming is the state, choosing ink nobody could have read is not`,
             ).toEqual([]);
+            expect.soft(staleEntries(readings, (r) => !r.unrendered), STALE_MESSAGE).toEqual([]);
         });
 
         test(`indicator contrast: ${ds} / ${theme.name}`, async ({ page }, testInfo) => {
@@ -1042,6 +1158,14 @@ for (const ds of DESIGN_SYSTEMS) {
                 });
             }
 
+            // Same record the text matrix keeps, in the indicator's vocabulary.
+            for (const s of painted.filter((r) => INTENDED_LOW_CONTRAST.has(r.key))) {
+                testInfo.annotations.push({
+                    type: 'indicator-contrast-suppressed',
+                    description: `${s.key} → ${s.ratio}:1 (${s.carrier} ${s.ink} on ${s.bg}) — held out by INTENDED_LOW_CONTRAST`,
+                });
+            }
+
             const measurable = painted.filter((r) => !INTENDED_LOW_CONTRAST.has(r.key));
             const failures = measurable.filter((r) => !r.disabled && r.ratio < FLOOR);
             const warnings = measurable.filter((r) => !r.disabled && r.ratio >= FLOOR && r.ratio < AA);
@@ -1070,6 +1194,7 @@ for (const ds of DESIGN_SYSTEMS) {
                 dimmedOut.map((f) => `${f.key} → ${f.inGroup}:1 (${f.carrier} ${f.ink} on ${f.bg})`),
                 `disabled indicator paint below ${DISABLED_FLOOR}:1 before the state's own fade — dimming is the state, drawing a mark nobody could have found is not`,
             ).toEqual([]);
+            expect.soft(staleEntries(readings, (r) => !r.unpainted), STALE_MESSAGE).toEqual([]);
         });
     }
 }
