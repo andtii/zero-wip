@@ -501,9 +501,6 @@
         color: var(--color-base-content);
         cursor: pointer;
         transition: background var(--duration-normal) var(--ease-standard);
-        position: absolute;
-        inset-block-start: 0;
-        inset-inline-end: 0;
     }
 
     [data-scope="dialog"][data-part="close"]:hover:not([data-disabled]) {
@@ -522,6 +519,22 @@
 
     [data-scope="dialog"][data-part="close"][data-pressed]:not([data-disabled]) {
         background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
+    }
+
+    [data-scope="dialog"][data-part="popup"] > [data-scope="dialog"][data-part="close"] {
+        position: absolute;
+        inset-block-start: 0;
+        inset-inline-end: 0;
+    }
+
+    [data-scope="dialog"][data-part="footer"] > [data-scope="dialog"][data-part="close"] {
+        width: auto;
+        height: auto;
+        justify-content: flex-start;
+        padding: 0 var(--space-md);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        letter-spacing: var(--tracking-wide);
     }
 
     @media (prefers-reduced-motion: reduce) {

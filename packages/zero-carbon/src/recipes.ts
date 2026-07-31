@@ -566,13 +566,52 @@ export const dialog: RecipeInput = {
                 },
             },
         },
-        // Carbon parks the close in the modal's top-right corner — the popup
-        // (fixed, top layer) is its containing block, so no wrapper needed.
-        close: ghostIconButton('3rem', {
-            position: 'absolute',
-            insetBlockStart: '0',
-            insetInlineEnd: '0',
-        }),
+        /**
+         * Carbon's modal has two dismisses — the corner ✕ and a labelled
+         * action in the footer bar — and zero's anatomy has one `close` part
+         * for both. So the recipe cannot pick by name; it picks by *where the
+         * consumer put it*, which is the only signal the contract carries and
+         * happens to be exactly the distinction Carbon draws.
+         *
+         * The ghost icon box is the shared base — one hover wash, one press
+         * wash, one ring, whichever job the close is doing.
+         */
+        close: (() => {
+            const shared = ghostIconButton('3rem');
+            return {
+                ...shared,
+                selectors: {
+                    ...shared.selectors,
+                    // The corner ✕: the close the popup owns directly. The
+                    // popup (fixed, top layer) is its containing block, so no
+                    // wrapper is needed. Unconditional `position: absolute`
+                    // here is what pulled a footer close out of flow and
+                    // stacked it on top of this one — with the footer then
+                    // collapsing to 0px, which made Carbon's own two footer
+                    // rules unreachable (#257).
+                    '[data-scope="dialog"][data-part="popup"] > &': {
+                        position: 'absolute',
+                        insetBlockStart: '0',
+                        insetInlineEnd: '0',
+                    },
+                    // The footer action: it stays in flow and joins the flush
+                    // button bar above, which already gives it the 64px height
+                    // and an equal share of the row. What it drops is the ✕'s
+                    // square — a labelled action is as wide as the bar allows,
+                    // with Carbon's leading-aligned label rather than a
+                    // centred glyph.
+                    '[data-scope="dialog"][data-part="footer"] > &': {
+                        width: 'auto',
+                        height: 'auto',
+                        justifyContent: 'flex-start',
+                        padding: '0 var(--space-md)',
+                        fontFamily: 'var(--font-sans)',
+                        fontSize: 'var(--text-sm)',
+                        letterSpacing: 'var(--tracking-wide)',
+                    },
+                },
+            };
+        })(),
     },
 };
 
