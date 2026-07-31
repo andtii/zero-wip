@@ -263,6 +263,22 @@ component's anatomy). No component code is ever written or changed.
      }
      ```
      Accordion's `<details>` is its `item` part, not `root`.
+   - **…and the header still has to say it is open.** The panel expanding is
+     the *browser* doing its job, not your design system saying anything, so
+     `trigger: { states: { open: {}, closed: {} } }` on a collapsible or an
+     accordion ships a header that is byte-identical either way — and a list of
+     items that are all collapsed has no open one to compare against. CI fails
+     it (`__tests__/state-legibility.test.ts`): a `*trigger` part in a component
+     with **no `popup` part** — collapsible, accordion, tree-view, i.e. the ones
+     that disclose *in flow* — must differentiate its states on itself or on a
+     sibling `*indicator`. Tree-view's rotating `branch-indicator` is the
+     idiomatic answer; collapsible and accordion declare no indicator part, so
+     the signal has nowhere to go but the header itself — a tint, an accent ink,
+     an inset rule under it. Triggers of components that open an *overlay*
+     (dialog, popover, tooltip, menu, select, combobox) are not judged: the
+     revealed thing floats above the page and takes focus, so whether the
+     trigger also changes is your call. `skipStates: { trigger: ['open'] }`
+     waives it, with a reason.
    - **A state indicator is DRAWN GEOMETRY, and it must look different in
      every state it declares.** An `indicator` part — checkbox's tick, radio's
      dot, a rating symbol, select's checkmark — exists for exactly one reason:
