@@ -492,6 +492,51 @@ component's anatomy). No component code is ever written or changed.
      Note `sizes` is the `data-size` axis — unrelated to `system.size`
      (`--size-*`, the control-sizing unit) and to `system.typography.sizes`
      (the `--text-*` ramp).
+   - **Every declared value is a promise — honour it in every scope that
+     takes the axis, and write the un-attributed step down.** A step you
+     declare and do not wire renders as the *base*, so a ramp with a hole in
+     it goes BACKWARDS: zero-carbon declared five sizes and shipped `xl`/`2xl`
+     on `button` only, and every other control got smaller at `xl` than at
+     `lg` (avatar 48 → 40px, checkbox 22 → 18). Nothing failed, because the
+     step was declared, not misspelled. CI now asks
+     (`__tests__/axis-value-coverage.test.ts`), and it reads the *compiled*
+     CSS, so the rule may come from `variants`, a `compoundVariants` match or
+     the raw `css` escape hatch:
+     1. **A scope that wires an axis at all must account for every value the
+        design system implements anywhere.** Wiring `sm` and `lg` and stopping
+        is the failure — `button` shipping `xl` is what makes `xl` a step this
+        design system *has*, and every sibling that takes `size` owes it one.
+        A scope that wires **no** value of an axis is outside the rule (a
+        dialog takes no size); whether it ought to wire one is
+        `axis-coverage.test.ts`'s question.
+     2. **Write the middle step as an empty entry.** `md: {}` is not noise —
+        it is how you say "the base already IS `md`", which is why a step that
+        emits no rule is not a hole. Restating the base's values there instead
+        would be a second copy free to drift. Put it wherever your base
+        actually sits: zero-carbon's button writes `lg: {}`, because Carbon's
+        default button is the 48px one.
+        ```ts
+        size: {
+            sm: { root: { base: { minHeight: 'var(--size-8)' } } },
+            md: {},                                              // the base IS md
+            lg: { root: { base: { minHeight: 'var(--size-12)' } } },
+        },
+        ```
+        `defaultVariants: { size: 'md' }` does **not** count as saying it —
+        that field applies CSS defaults, and accepting it would let a step you
+        simply forgot be excused by a line written for another purpose.
+     3. **Exactly one value per scope may claim the base.** Two empty entries
+        render identically, so "fixing" a missing `xl` by writing `xl: {}`
+        fails too — and rightly: `xl` would still paint as `md`. An entry
+        whose only rule sits inside `at: { … }` does not claim the base
+        either; at the default viewport it silently renders as one.
+     4. **A value NOTHING in the design system wires is reported once, for the
+        whole system.** Usually it means you declared a vocabulary wider than
+        the one you built — narrow the declaration or wire the step. The one
+        exemption is colour: a role declared `content: false` or `soft: false`
+        is a fill or a hairline (Material's `surface*`, `outline`), which is a
+        token and not something a control can be, so it is never expected on
+        the `color` axis.
    - **Declare the `variant` axis and any custom axes** (`tokens.variants` /
      `tokens.axes`) with the values your recipes key on — declaring closes
      the set, so a recipe typo is a build error instead of a silently minted
