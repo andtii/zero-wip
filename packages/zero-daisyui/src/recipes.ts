@@ -681,16 +681,17 @@ const DASH_DRAWN = 'polygon(20% 100%, 20% 80%, 50% 80%, 50% 80%, 80% 80%, 80% 10
  * 1.37:1, exactly as real daisy prints it. Same trade as brutalist's, same
  * issue — #233.
  */
-const tickGlyphFallback: PartStyles = {
+const tickGlyphFallback = (ink: string): PartStyles => ({
+    base: { color: ink },
     states: {
-        checked: { opacity: '1', clipPath: 'none', backgroundColor: '#0000', rotate: '0deg' },
-        indeterminate: { opacity: '1', clipPath: 'none', backgroundColor: '#0000', rotate: '0deg', translate: 'none' },
+        checked: { opacity: '1', clipPath: 'none', backgroundColor: '#0000', rotate: '0deg', color: ink },
+        indeterminate: { opacity: '1', clipPath: 'none', backgroundColor: '#0000', rotate: '0deg', translate: 'none', color: ink },
     },
     selectors: {
         '&[data-state="checked"]::after': { content: '"✔︎"' },
         '&[data-state="indeterminate"]::after': { content: '"−"' },
     },
-};
+});
 
 export const checkbox: RecipeInput = {
     component: 'checkbox',
@@ -817,7 +818,16 @@ export const checkbox: RecipeInput = {
                 indeterminate: { clipPath: DASH_DRAWN, opacity: '1', translate: '0 -35%', rotate: '0deg' },
                 unchecked: {},
             },
-            at: { 'forced-colors': tickGlyphFallback, print: tickGlyphFallback },
+            // Real daisy declares no ink in either at-rule, so its glyph
+            // inherits `--color-primary-content` and prints at 1.37:1 — a pale
+            // lavender on white paper (#233). The sixth deliberate divergence
+            // from daisy in this package, and the same trade as the other five:
+            // 3:1 is the floor a mark owes the reader, and a mark nobody can
+            // see is not fidelity.
+            at: {
+                'forced-colors': tickGlyphFallback('CanvasText'),
+                print: tickGlyphFallback('var(--print-ink)'),
+            },
         },
         label: {
             base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)' },

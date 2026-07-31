@@ -872,7 +872,7 @@ const DASH_MARK = 'polygon(8% 40.1%, 8% 59.9%, 37.6% 59.9%, 92% 59.9%, 92% 40.1%
  * only as good as the UA's revaluation of it. heroui, material and carbon build
  * one object per medium precisely because their inks differ.
  */
-const MARK_FALLBACK: PartStyles = {
+const markFallback = (ink: string): PartStyles => ({
     base: {
         clipPath: 'none',
         background: 'transparent',
@@ -880,7 +880,13 @@ const MARK_FALLBACK: PartStyles = {
         placeItems: 'center',
         // The system ink, not the on-accent ink: forced colours rewrites the
         // well's fill to Canvas, and print drops it.
-        color: 'CanvasText',
+        //
+        // One object, two inks (#233). `CanvasText` is right for forced
+        // colours — the mode whose job is a predictable palette — and wrong
+        // for paper, where it follows the page's `color-scheme` and comes out
+        // WHITE under a dark theme, on white paper. Print names `--print-ink`,
+        // which is dark whatever the theme is.
+        color: ink,
         fontSize: 'calc(var(--checkbox-size) * 0.72)',
         lineHeight: 'var(--leading-none)',
     },
@@ -891,7 +897,7 @@ const MARK_FALLBACK: PartStyles = {
         '&[data-state="checked"]::after': { content: '"\\2714"' },
         '&[data-state="indeterminate"]::after': { content: '"\\2212"' },
     },
-};
+});
 
 export const checkbox: RecipeInput = {
     component: 'checkbox',
@@ -996,7 +1002,7 @@ export const checkbox: RecipeInput = {
                         + 'opacity var(--duration-fast) var(--ease-standard) var(--duration-fast)',
                 },
             },
-            at: { 'forced-colors': MARK_FALLBACK, print: MARK_FALLBACK },
+            at: { 'forced-colors': markFallback('CanvasText'), print: markFallback('var(--print-ink)') },
         },
         label: {
             base: { fontSize: 'var(--text-sm)', fontVariantNumeric: 'tabular-nums' },

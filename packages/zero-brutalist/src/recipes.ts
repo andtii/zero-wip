@@ -728,12 +728,13 @@ const BAR = 'polygon(0% 100%, 0% 70%, 50% 70%, 50% 70%, 100% 70%, 100% 100%)';
  * declares its own `color` and outranks a `base` override on specificity, not
  * order.
  *
- * Print keeps the theme's own ink, and that is a known cost, not an oversight:
- * `--checkbox-on-accent` is white in the light theme, so the checked tick prints
- * white on paper the fill did not print — 1.00:1, measured. The obvious swap to
- * `--color-base-content` only moves the failure to the dark theme, where it and
- * `CanvasText` both resolve white, so the fix needs a theme-independent paper
- * ink rather than a one-line substitution. Filed as #233 with the numbers.
+ * Print names `--print-ink` for the same reason forced colours names
+ * `CanvasText`: neither medium may be left to inherit. It used to inherit
+ * `--checkbox-on-accent`, which is white in the light theme, so the checked
+ * tick printed white on paper the fill did not print — 1.00:1, measured. The
+ * obvious swap to `--color-base-content` only moved the failure to the dark
+ * theme, where it and `CanvasText` both resolve white; `--print-ink` is the
+ * theme-independent paper ink that answers both (#233).
  *
  * Only for marks a glyph can actually carry: rating-group's meter handles the
  * two media itself, because its `half` glyph does not exist in system fonts.
@@ -747,7 +748,14 @@ const glyphFallback = (styles: PartStyles): Record<string, PartStyles> => ({
             indeterminate: { ...styles.states?.indeterminate, color: 'CanvasText' },
         },
     },
-    print: styles,
+    print: {
+        ...styles,
+        base: { ...styles.base, color: 'var(--print-ink)' },
+        states: {
+            ...styles.states,
+            indeterminate: { ...styles.states?.indeterminate, color: 'var(--print-ink)' },
+        },
+    },
 });
 
 export const checkbox: RecipeInput = {

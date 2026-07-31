@@ -297,6 +297,23 @@ export const RUNTIME_PROPERTIES = [
     '--slider-percent',
 ] as const;
 
+/**
+ * Custom properties `@sigx/zero/css` declares that are facts about a MEDIUM
+ * rather than design tokens — a design system may override one, but never has
+ * to declare it, so a recipe referencing one always resolves.
+ *
+ * `--print-ink` is the ink a print fallback draws with. Paper is not
+ * theme-aware: `print-color-adjust: economy` drops background paint, so a mark
+ * drawn as a background comes back as a glyph, and every theme-carried
+ * candidate for that glyph's ink fails on one side or the other —
+ * `--color-base-content` and `CanvasText` are both white under a dark theme,
+ * and an on-accent ink is white under a light one, over a fill that did not
+ * print. Both are 1.00:1 on white paper (#233).
+ */
+export const MEDIUM_PROPERTIES = [
+    '--print-ink',
+] as const;
+
 /** Interaction states resolved to real pseudo-classes, not data attributes. */
 export const INTERACTION_STATES: Record<string, string> = {
     hover: ':hover:not([data-disabled])',

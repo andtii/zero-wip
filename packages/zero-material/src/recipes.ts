@@ -1298,7 +1298,10 @@ export const checkbox: RecipeInput = {
                 // Print drops the container fill, so the glyph cannot stay the
                 // on-accent colour or it prints white on white. The accent
                 // itself is the mark's ink on paper.
-                print: markGlyphFallback('var(--checkbox-accent)'),
+                // `--print-ink`, not the accent: the accent is a fill
+                // colour with no floor against paper, and it lightens under a
+                // dark theme (#233).
+                print: markGlyphFallback('var(--print-ink)'),
             },
         },
         label: { base: { fontSize: 'var(--text-md)' } },
