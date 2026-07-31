@@ -43,16 +43,21 @@
     [data-scope="switch"][data-part="thumb"] {
         position: absolute;
         top: 0;
-        left: 0;
+        inset-inline-start: 0;
         width: calc(var(--size-selector) * 7);
         height: 100%;
         background: var(--color-base-content);
+        --switch-thumb-dir: 1;
         transition: transform var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);
     }
 
     [data-scope="switch"][data-part="thumb"][data-state="checked"] {
-        transform: translateX(calc(var(--switch-width) - 100%));
+        transform: translateX(calc(var(--switch-thumb-dir) * (var(--switch-width) - 100%)));
         background: var(--switch-on-accent);
+    }
+
+    [data-scope="switch"][data-part="thumb"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        --switch-thumb-dir: -1;
     }
 
     [data-scope="switch"][data-part="label"] {

@@ -109,7 +109,7 @@
 
     [data-scope="menu"][data-part="sub-trigger"]::after {
         content: "\203A";
-        margin-left: auto;
+        margin-inline-start: auto;
     }
 
     [data-scope="menu"][data-part="sub-popup"] {
