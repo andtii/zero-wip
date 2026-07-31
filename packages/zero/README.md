@@ -50,6 +50,14 @@ row and surface it on the visible control. That is what makes a
 pointer-anchored effect like Material's ink ripple — or its selection-control
 halo and slider-thumb halo — expressible as pure CSS.
 
+`css/base.css` also declares `--print-ink`, the ink a print fallback draws
+with. Paper is not theme-aware — `print-color-adjust: economy` drops background
+paint, so a mark drawn as a background comes back as a glyph, and every
+theme-carried candidate for that glyph's ink is white on one side or the other
+(`--color-base-content` and `CanvasText` under a dark theme, an on-accent ink
+under a light one, over a fill that did not print). A design system may
+override it; it never has to declare it.
+
 ## Typed vocabulary (opt-in)
 
 The variant-axis props (`color`, `size`, `variant`, `axes`, `mods`) are open unions

@@ -867,7 +867,9 @@ export const checkbox: RecipeInput = {
             },
             at: {
                 'forced-colors': drawnMarkFallback('CanvasText'),
-                print: drawnMarkFallback('var(--color-base-content)'),
+                // `--print-ink`, not `--color-base-content`: the latter is
+                // white under a dark theme, so it printed white on white (#233).
+                print: drawnMarkFallback('var(--print-ink)'),
             },
         },
         label: {

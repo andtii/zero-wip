@@ -62,6 +62,24 @@
         --border: 1px;
         --disabled-opacity: 0.4;
 
+        /* The ink a print fallback draws with.
+         *
+         * Paper is not theme-aware. `print-color-adjust: economy` — the
+         * browser default — drops background paint, so a mark drawn as a
+         * background has to come back as a glyph, and that glyph needs an ink
+         * that is dark whatever the page's `color-scheme` is. Every
+         * theme-carried candidate fails on one side or the other:
+         * `--color-base-content` and `CanvasText` are both white under a dark
+         * theme (white on white paper, 1.00:1), and an on-accent ink is white
+         * under a light one over a fill that did not print — the same 1.00:1
+         * from the other direction (#233).
+         *
+         * So it is stated absolutely, and it is the one colour in this file
+         * that is not a design decision: it is a fact about the medium. A
+         * design system that wants a softer printed ink overrides it like any
+         * other token. */
+        --print-ink: black;
+
         /* Families. `--font-*` is families only — sizes are `--text-*`. */
         --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
         --font-serif: ui-serif, Georgia, Cambria, serif;

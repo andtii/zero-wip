@@ -31,6 +31,11 @@ drifted a major version behind (#231): among others, light's `primary` was
 and dark's `primary-content` was a *dark* ink where 5.7.8 pairs a light one.
 `dim`, `nord` and `sunset` were already exact.
 
+The checkbox's print fallback names `--print-ink` where real daisy names no ink
+at all — its glyph inherits `--color-primary-content` and prints at 1.37:1, a
+pale lavender on white paper (#233). Fidelity to a mark nobody can see is not
+fidelity; the same trade as the ratios below.
+
 Five of daisy's own ratios are deliberately moved, and only these five: the
 unchecked toggle knob and the unfilled rating symbol are base-content at **60%**
 rather than daisy's 50% and 20%, the rating's default `warning` fill is deepened

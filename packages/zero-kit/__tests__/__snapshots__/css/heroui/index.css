@@ -1140,7 +1140,7 @@
 
     @media print {
         [data-scope="checkbox"][data-part="indicator"] {
-            color: var(--color-base-content);
+            color: var(--print-ink);
         }
 
         [data-scope="checkbox"][data-part="indicator"]::before {

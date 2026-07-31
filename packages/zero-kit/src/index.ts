@@ -142,4 +142,5 @@ export {
     VARIANT_AXES,
     RESERVED_AXES,
     RUNTIME_PROPERTIES,
+    MEDIUM_PROPERTIES,
 } from './contract.js';

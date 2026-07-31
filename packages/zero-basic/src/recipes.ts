@@ -876,20 +876,23 @@ const DASH_MARK = 'polygon(8% 40.1%, 8% 59.9%, 37.6% 59.9%, 92% 59.9%, 92% 40.1%
  * Forced colours rewrites `background-color` to the user's palette, so a
  * clip-pathed fill becomes Canvas-on-Canvas — invisible. Printing drops
  * backgrounds entirely by default (`print-color-adjust: economy`), which takes
- * both the accent fill and the on-accent mark with it. Both fallbacks are the
- * same one: drop the geometry, set a glyph on `::after` in the system ink.
- * `clip-path: none` matters as much as the glyph — a clip on the element clips
- * its pseudo-element too.
+ * both the accent fill and the on-accent mark with it. Both fallbacks do the
+ * same thing: drop the geometry, set a glyph on `::after`. `clip-path: none`
+ * matters as much as the glyph — a clip on the element clips its
+ * pseudo-element too.
  *
- * One object under both named conditions rather than one fused prelude: the
- * declarations are identical, and `forced-colors` and `print` are both built-in
- * condition names, so nothing here has to reach for a raw `@` string. Sharing
- * is only legitimate because the ink is already a SYSTEM colour — right in both
- * media, and predictable in forced colours, where an author colour would be
- * only as good as the UA's revaluation of it. heroui, material and carbon build
- * one object per medium precisely because their inks differ.
+ * One BUILDER under both named conditions rather than one fused prelude, and
+ * one argument, because the two media differ in exactly one declaration: the
+ * ink. `forced-colors` and `print` are both built-in condition names, so
+ * nothing here has to reach for a raw `@` string.
+ *
+ * `CanvasText` for forced colours — the mode whose whole job is a predictable
+ * palette is the last place to leave ink to an author colour the UA then
+ * revalues. `--print-ink` for paper, because `CanvasText` follows the page's
+ * `color-scheme` and comes out WHITE under a dark theme, on white paper (#233).
+ * heroui, material and carbon split the same way, for the same reason.
  */
-const MARK_FALLBACK: PartStyles = {
+const markFallback = (ink: string): PartStyles => ({
     base: {
         clipPath: 'none',
         background: 'transparent',
@@ -897,7 +900,13 @@ const MARK_FALLBACK: PartStyles = {
         placeItems: 'center',
         // The system ink, not the on-accent ink: forced colours rewrites the
         // well's fill to Canvas, and print drops it.
-        color: 'CanvasText',
+        //
+        // One object, two inks (#233). `CanvasText` is right for forced
+        // colours — the mode whose job is a predictable palette — and wrong
+        // for paper, where it follows the page's `color-scheme` and comes out
+        // WHITE under a dark theme, on white paper. Print names `--print-ink`,
+        // which is dark whatever the theme is.
+        color: ink,
         fontSize: 'calc(var(--checkbox-size) * 0.72)',
         lineHeight: 'var(--leading-none)',
     },
@@ -908,7 +917,7 @@ const MARK_FALLBACK: PartStyles = {
         '&[data-state="checked"]::after': { content: '"\\2714"' },
         '&[data-state="indeterminate"]::after': { content: '"\\2212"' },
     },
-};
+});
 
 export const checkbox: RecipeInput = {
     component: 'checkbox',
@@ -1013,7 +1022,7 @@ export const checkbox: RecipeInput = {
                         + 'opacity var(--duration-fast) var(--ease-standard) var(--duration-fast)',
                 },
             },
-            at: { 'forced-colors': MARK_FALLBACK, print: MARK_FALLBACK },
+            at: { 'forced-colors': markFallback('CanvasText'), print: markFallback('var(--print-ink)') },
         },
         label: {
             base: { fontSize: 'var(--text-sm)', fontVariantNumeric: 'tabular-nums' },

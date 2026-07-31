@@ -4,6 +4,17 @@
 
 ### Added
 
+- **`--print-ink` — the ink a print fallback draws with** (#233). Declared in
+  `css/base.css` beside the other structural fallbacks, and the one colour
+  there that is not a design decision: it is a fact about the medium. A mark
+  drawn as a `background` does not print (`print-color-adjust: economy` is the
+  browser default), so it comes back as a glyph — and every theme-carried
+  candidate for that glyph's ink is white on one side or the other.
+  `--color-base-content` and `CanvasText` are both white under a dark theme;
+  an on-accent ink is white under a light one, over a fill that did not print.
+  Both print at 1.00:1 on white paper. A design system may override it and
+  never has to declare it — `@sigx/zero-kit` knows the name (`MEDIUM_PROPERTIES`).
+
 - **`PartSpec.hiddenIn` — the anatomy declares the states the runtime hides a
   part in** (#227). Optional and additive: `hiddenIn: ['error']` on avatar's
   `image` says zero sets the `hidden` attribute there, so a rule for that

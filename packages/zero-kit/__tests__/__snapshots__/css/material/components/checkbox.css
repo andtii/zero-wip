@@ -312,7 +312,7 @@
         [data-scope="checkbox"][data-part="indicator"] {
             display: grid;
             place-items: center;
-            color: var(--checkbox-accent);
+            color: var(--print-ink);
             font-size: var(--checkbox-mark-size);
             line-height: var(--leading-none);
         }

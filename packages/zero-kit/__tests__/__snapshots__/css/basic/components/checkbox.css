@@ -185,7 +185,7 @@
             background: transparent;
             display: grid;
             place-items: center;
-            color: CanvasText;
+            color: var(--print-ink);
             font-size: calc(var(--checkbox-size) * 0.72);
             line-height: var(--leading-none);
         }

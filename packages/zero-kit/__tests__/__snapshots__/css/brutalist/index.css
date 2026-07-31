@@ -1663,6 +1663,7 @@
             line-height: var(--leading-none);
             rotate: 0deg;
             translate: 0;
+            color: var(--print-ink);
         }
 
         [data-scope="checkbox"][data-part="indicator"][data-state="checked"] {
@@ -1674,6 +1675,7 @@
             clip-path: none;
             translate: 0;
             opacity: 1;
+            color: var(--print-ink);
         }
 
         [data-scope="checkbox"][data-part="indicator"][data-state="checked"]::after {

@@ -9,6 +9,7 @@
  */
 import {
     BASE_SURFACE_TOKEN_LIST,
+    MEDIUM_PROPERTIES,
     RUNTIME_PROPERTIES,
     TEXT_FIXED_PREFIX,
     TOKEN_CATEGORIES,
@@ -120,6 +121,10 @@ export function tokenVocabulary(tokens: TokensInput<any, any>): TokenVocabulary 
     // elements (press point, progress/slider percent), so a recipe may
     // reference them even though no design system declares them ──
     for (const name of RUNTIME_PROPERTIES) names.add(name);
+
+    // ── medium properties: `@sigx/zero/css` declares these, so a recipe may
+    // reference one whether or not this design system overrides it ──
+    for (const name of MEDIUM_PROPERTIES) names.add(name);
 
     // ── declared custom tokens, plus the untyped escape hatch. `extra` is
     // emitted verbatim, so a reference to one resolves — it gets its own

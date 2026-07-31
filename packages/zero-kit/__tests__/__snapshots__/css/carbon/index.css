@@ -1170,7 +1170,7 @@
             border: 0;
             rotate: none;
             opacity: 1;
-            color: var(--color-base-content);
+            color: var(--print-ink);
             font-size: calc(var(--checkbox-size) * 0.75);
             line-height: var(--leading-none);
             transition: none;

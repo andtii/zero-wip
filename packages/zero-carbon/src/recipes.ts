@@ -1014,7 +1014,9 @@ export const checkbox: RecipeInput = {
                 // The other medium a background-painted mark vanishes in. Same
                 // preference tier as `forced-colors`, so it lands after the
                 // flat state rules it replaces.
-                print: markGlyphFallback('var(--color-base-content)'),
+                // `--print-ink`, not `--color-base-content`: the latter is
+                // white under a dark theme, so it printed white on white (#233).
+                print: markGlyphFallback('var(--print-ink)'),
             },
         },
         label: {

@@ -744,31 +744,34 @@ const DASH_DRAWN = 'polygon(20% 100%, 20% 80%, 50% 80%, 50% 80%, 80% 80%, 80% 10
  * Both are named built-in conditions since #226, so both sort into the
  * preference tier and land after the flat state rules they override.
  *
- * One object under both, and — unlike every other system here — no `color` of
- * its own: daisy declares none either. Its fallback sets `--tw-content`,
- * `clip-path: none`, `background-color: #0000` and `rotate` and nothing else,
- * leaving the glyph to inherit the control's `color` (the on-accent role, or
- * `base-content` unskinned) and letting the forced palette revalue it. Naming
- * `CanvasText` here would be a truer forced-colors render and a divergence from
- * the thing this package exists to reproduce, so it stays daisy's. Verified
- * against daisyUI 5's own `checkbox.css`, both at-rules.
+ * One helper, an ink per medium — and daisy declares neither. Its fallback sets
+ * `--tw-content`, `clip-path: none`, `background-color: #0000` and `rotate` and
+ * nothing else, leaving the glyph to inherit the control's `color` (the
+ * on-accent role, or `base-content` unskinned). Verified against daisyUI 5's
+ * own `checkbox.css`, both at-rules.
  *
- * Forced colours are fine either way — the UA revalues the inherited ink to its
- * own text colour, measured at 21:1 against the forced backdrop. On paper it is
- * not: `primary-content` is a pale lavender over a fill that did not print,
- * 1.37:1, exactly as real daisy prints it. Same trade as brutalist's, same
- * issue — #233.
+ * Inheriting is survivable in forced colours — the UA revalues the inherited
+ * ink to its own text colour, 21:1 against the forced backdrop — and it is not
+ * on paper: `primary-content` is a pale lavender over a fill that did not
+ * print, 1.37:1, exactly as real daisy prints it (#233). So this is a
+ * deliberate divergence, and the two media get different inks because they
+ * fail differently: `CanvasText` is the forced palette's own ink and follows
+ * `color-scheme`, which is right there and white-on-white on paper under a
+ * dark theme. Print names `--print-ink`, which is theme-independent by
+ * construction. Recorded in the package README beside the other divergences —
+ * fidelity to a mark nobody can see is not fidelity.
  */
-const tickGlyphFallback: PartStyles = {
+const tickGlyphFallback = (ink: string): PartStyles => ({
+    base: { color: ink },
     states: {
-        checked: { opacity: '1', clipPath: 'none', backgroundColor: '#0000', rotate: '0deg' },
-        indeterminate: { opacity: '1', clipPath: 'none', backgroundColor: '#0000', rotate: '0deg', translate: 'none' },
+        checked: { opacity: '1', clipPath: 'none', backgroundColor: '#0000', rotate: '0deg', color: ink },
+        indeterminate: { opacity: '1', clipPath: 'none', backgroundColor: '#0000', rotate: '0deg', translate: 'none', color: ink },
     },
     selectors: {
         '&[data-state="checked"]::after': { content: '"✔︎"' },
         '&[data-state="indeterminate"]::after': { content: '"−"' },
     },
-};
+});
 
 export const checkbox: RecipeInput = {
     component: 'checkbox',
@@ -895,7 +898,16 @@ export const checkbox: RecipeInput = {
                 indeterminate: { clipPath: DASH_DRAWN, opacity: '1', translate: '0 -35%', rotate: '0deg' },
                 unchecked: {},
             },
-            at: { 'forced-colors': tickGlyphFallback, print: tickGlyphFallback },
+            // Real daisy declares no ink in either at-rule, so its glyph
+            // inherits `--color-primary-content` and prints at 1.37:1 — a pale
+            // lavender on white paper (#233). The sixth deliberate divergence
+            // from daisy in this package, and the same trade as the other five:
+            // 3:1 is the floor a mark owes the reader, and a mark nobody can
+            // see is not fidelity.
+            at: {
+                'forced-colors': tickGlyphFallback('CanvasText'),
+                print: tickGlyphFallback('var(--print-ink)'),
+            },
         },
         label: {
             base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)' },

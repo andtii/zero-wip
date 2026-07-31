@@ -34,6 +34,16 @@
   by seven fixtures, the central one being the same recipe judged by both
   assertions, where A reports clean and C reports the trigger.
 
+- **`MEDIUM_PROPERTIES` — custom properties that are facts about a medium
+  rather than design tokens** (#233). Today one name, `--print-ink`, declared
+  by `@sigx/zero/css`. The recipe validator now treats it the way it already
+  treats `RUNTIME_PROPERTIES`: a recipe may reference it whether or not the
+  design system overrides it, instead of failing with *"references
+  `--print-ink`, which this design system never declares"*. The distinction is
+  worth a separate list from the runtime one — a runtime property is written by
+  zero's JavaScript onto an element, a medium property is a stylesheet default
+  every design system inherits and any may override.
+
 - **The no-UA-chrome guard** (`__tests__/button-affordance.test.ts`, #213).
   Reads the `element` each part declares out of the manifest and asserts, over
   the emitted CSS of all six in-repo design systems, that every part zero
