@@ -376,6 +376,11 @@ export const tabs: RecipeInput = {
             // to drift. An empty entry emits no rule and keeps the base.
             md: {},
             lg: { tab: { base: { minHeight: '3rem' } } },
+            // Carbon's control ramp past `lg` is the button's own — 48 → 64 →
+            // 80 px. Every height-bearing scope in this package continues on
+            // it, so the declared five steps are five steps everywhere (#258).
+            xl: { tab: { base: { minHeight: '4rem' } } },
+            '2xl': { tab: { base: { minHeight: '5rem' } } },
         },
     },
 };
@@ -478,6 +483,10 @@ export const switchRecipe: RecipeInput = {
             // already ARE the middle step.
             md: {},
             lg: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 14)', '--switch-height': 'calc(var(--size-selector) * 7)' } } },
+            // The 2:1 track holds at every step, so the two upper ones scale
+            // both axes together (#258).
+            xl: { root: { base: { '--switch-width': 'calc(var(--size-selector) * 18)', '--switch-height': 'calc(var(--size-selector) * 9)' } } },
+            '2xl': { root: { base: { '--switch-width': 'calc(var(--size-selector) * 24)', '--switch-height': 'calc(var(--size-selector) * 12)' } } },
         },
     },
     // The visible ring lives on `control`; the <label> root only groups the
@@ -1016,6 +1025,8 @@ export const checkbox: RecipeInput = {
             // already ARE the middle step.
             md: {},
             lg: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 5)' } } },
+            xl: { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 6.5)' } } },
+            '2xl': { root: { base: { '--checkbox-size': 'calc(var(--size-selector) * 8)' } } },
         },
     },
     // The visible ring lives on `control`; the <label> root only groups the
@@ -1114,6 +1125,8 @@ export const radioGroup: RecipeInput = {
             // already ARE the middle step.
             md: {},
             lg: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 5.5)' } } },
+            xl: { root: { base: { '--radio-size': 'calc(var(--size-selector) * 7)' } } },
+            '2xl': { root: { base: { '--radio-size': 'calc(var(--size-selector) * 9)' } } },
         },
     },
     // The visible ring lives on `item-control`; `item` is the <label> that
@@ -1207,6 +1220,8 @@ export const progress: RecipeInput = {
             sm: { root: { base: { '--progress-track-size': '0.125rem' } } },
             md: {},
             lg: { root: { base: { '--progress-track-size': '0.5rem' } } },
+            xl: { root: { base: { '--progress-track-size': '0.75rem' } } },
+            '2xl': { root: { base: { '--progress-track-size': '1rem' } } },
         },
     },
     // Transform, not margin: no layout work per frame. The percentages are
@@ -1312,6 +1327,8 @@ export const slider: RecipeInput = {
             sm: { control: { base: { height: '2rem' } } },
             md: {},
             lg: { control: { base: { height: '3rem' } } },
+            xl: { control: { base: { height: '4rem' } } },
+            '2xl': { control: { base: { height: '5rem' } } },
         },
     },
     // The ring lives on the control's thumb; invalid draws on the track.
@@ -1469,13 +1486,15 @@ export const select: RecipeInput = {
         },
     },
     variants: {
-        /** Carbon's three field heights: 32 / 40 / 48. */
+        /** Carbon's five field heights: 32 / 40 / 48 / 64 / 80. */
         size: {
             sm: { trigger: { base: { minHeight: '2rem' } } },
             // `md` is the un-attributed render — the defaults in `base`
             // already ARE the middle step.
             md: {},
             lg: { trigger: { base: { minHeight: '3rem' } } },
+            xl: { trigger: { base: { minHeight: '4rem' } } },
+            '2xl': { trigger: { base: { minHeight: '5rem' } } },
         },
     },
 };
@@ -1690,6 +1709,10 @@ export const avatar: RecipeInput = {
             // already ARE the middle step.
             md: {},
             lg: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 12)', '--avatar-text': 'var(--text-md)' } } },
+            // 48 → 64 → 80 px: the button ramp exactly, since an avatar is
+            // sized in the same control units.
+            xl: { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 16)', '--avatar-text': 'var(--text-lg)' } } },
+            '2xl': { root: { base: { '--avatar-size': 'calc(var(--size-selector) * 20)', '--avatar-text': 'var(--text-xl)' } } },
         },
     },
 };
@@ -2018,11 +2041,13 @@ export const combobox: RecipeInput = {
         },
     },
     variants: {
-        /** Carbon's three field heights: 32 / 40 / 48. */
+        /** Carbon's five field heights: 32 / 40 / 48 / 64 / 80. */
         size: {
             sm: { control: { base: { minHeight: '2rem' } } },
             md: {},
             lg: { control: { base: { minHeight: '3rem' } } },
+            xl: { control: { base: { minHeight: '4rem' } } },
+            '2xl': { control: { base: { minHeight: '5rem' } } },
         },
     },
     // The visible ring lives on `control`; input and trigger delegate.
@@ -2082,6 +2107,8 @@ export const toggle: RecipeInput = {
             sm: { root: { base: { minHeight: '2rem', padding: '0 var(--space-sm)' } } },
             md: {},
             lg: { root: { base: { minHeight: '3rem' } } },
+            xl: { root: { base: { minHeight: '4rem' } } },
+            '2xl': { root: { base: { minHeight: '5rem' } } },
         },
     },
 };
@@ -2147,6 +2174,8 @@ export const toggleGroup: RecipeInput = {
             sm: { item: { base: { minHeight: '2rem', padding: '0 var(--space-sm)' } } },
             md: {},
             lg: { item: { base: { minHeight: '3rem' } } },
+            xl: { item: { base: { minHeight: '4rem' } } },
+            '2xl': { item: { base: { minHeight: '5rem' } } },
         },
     },
 };
@@ -2254,11 +2283,13 @@ export const numberInput: RecipeInput = {
         },
     },
     variants: {
-        /** Carbon's three field heights: 32 / 40 / 48. */
+        /** Carbon's five field heights: 32 / 40 / 48 / 64 / 80. */
         size: {
             sm: { control: { base: { minHeight: '2rem' } } },
             md: {},
             lg: { control: { base: { minHeight: '3rem' } } },
+            xl: { control: { base: { minHeight: '4rem' } } },
+            '2xl': { control: { base: { minHeight: '5rem' } } },
         },
     },
     // The visible ring lives on `control`; the input delegates.
@@ -2403,6 +2434,11 @@ export const ratingGroup: RecipeInput = {
             sm: { root: { base: { '--rating-size': 'var(--text-fixed-md)' } } },
             md: {},
             lg: { root: { base: { '--rating-size': 'var(--text-fixed-2xl)' } } },
+            // The fixed scale stops at `3xl`, so the last step continues it
+            // by the same ratio rather than minting a token the scale does
+            // not have.
+            xl: { root: { base: { '--rating-size': 'var(--text-fixed-3xl)' } } },
+            '2xl': { root: { base: { '--rating-size': 'calc(var(--text-fixed-3xl) * 1.25)' } } },
         },
     },
 };
@@ -2509,6 +2545,8 @@ export const treeView: RecipeInput = {
             // `tokens:` already IS the middle step.
             md: {},
             lg: { root: { base: { '--tree-text': 'var(--text-md)' } } },
+            xl: { root: { base: { '--tree-text': 'var(--text-lg)' } } },
+            '2xl': { root: { base: { '--tree-text': 'var(--text-xl)' } } },
         },
     },
 };

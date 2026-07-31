@@ -68,4 +68,12 @@
     [data-scope="tabs"][data-part="root"][data-size="lg"] [data-scope="tabs"][data-part="tab"] {
         min-height: 3rem;
     }
+
+    [data-scope="tabs"][data-part="root"][data-size="xl"] [data-scope="tabs"][data-part="tab"] {
+        min-height: 4rem;
+    }
+
+    [data-scope="tabs"][data-part="root"][data-size="2xl"] [data-scope="tabs"][data-part="tab"] {
+        min-height: 5rem;
+    }
 }

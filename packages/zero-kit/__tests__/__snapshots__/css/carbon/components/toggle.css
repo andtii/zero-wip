@@ -54,4 +54,12 @@
     [data-scope="toggle"][data-part="root"][data-size="lg"] {
         min-height: 3rem;
     }
+
+    [data-scope="toggle"][data-part="root"][data-size="xl"] {
+        min-height: 4rem;
+    }
+
+    [data-scope="toggle"][data-part="root"][data-size="2xl"] {
+        min-height: 5rem;
+    }
 }

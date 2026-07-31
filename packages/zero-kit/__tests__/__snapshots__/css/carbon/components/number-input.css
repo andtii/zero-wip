@@ -132,4 +132,12 @@
     [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="control"] {
         min-height: 3rem;
     }
+
+    [data-scope="number-input"][data-part="root"][data-size="xl"] [data-scope="number-input"][data-part="control"] {
+        min-height: 4rem;
+    }
+
+    [data-scope="number-input"][data-part="root"][data-size="2xl"] [data-scope="number-input"][data-part="control"] {
+        min-height: 5rem;
+    }
 }

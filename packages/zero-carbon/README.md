@@ -29,8 +29,9 @@ vendor spelling never reaches the DOM.
   `variant: { as: 'kind', values: { … } }` — grade `reshaped`.
 - `hasIconOnly` / `isExpressive` — Carbon's boolean props over the
   `icon-only`/`expressive` presence modifiers.
-- Carbon's five-step size ramp (`sm`–`2xl`, the 32–80 px field heights) and
-  its `white`/`g100` themes.
+- Carbon's five-step size ramp (`sm`–`2xl`, the 32–80 px field heights),
+  honoured by every size-bearing scope rather than by Button alone, and its
+  `white`/`g100` themes.
 
 ## Coverage
 
