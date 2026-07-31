@@ -654,6 +654,17 @@ export const dialog: RecipeInput = {
                 color: 'var(--color-base-content)',
             },
         },
+        // M3's action area: text buttons at the trailing edge, 8px apart,
+        // separated from the supporting text by the dialog's own 24px step.
+        footer: {
+            base: {
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                marginBlockStart: 'var(--space-lg)',
+            },
+        },
         close: withPresence(pressable('dialog'), {
             base: {
                 appearance: 'none',

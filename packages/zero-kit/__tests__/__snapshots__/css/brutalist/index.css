@@ -687,6 +687,15 @@
         line-height: var(--leading-normal);
     }
 
+    [data-scope="dialog"][data-part="footer"] {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--space-md);
+        margin-block-start: var(--space-xl);
+        padding-block-start: var(--space-lg);
+        border-block-start: var(--border) solid var(--color-base-content);
+    }
+
     [data-scope="dialog"][data-part="close"] {
         appearance: none;
         border: var(--border) solid var(--color-base-content);
