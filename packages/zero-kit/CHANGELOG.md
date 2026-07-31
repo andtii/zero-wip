@@ -4,6 +4,61 @@
 
 ### Added
 
+- **The declared-step-nobody-honours guard**
+  (`__tests__/axis-value-coverage.test.ts`, #273). A design system's
+  `tokens.sizes` / `tokens.variants` / `tokens.roles` / `tokens.axes` reach
+  `manifest.json`, the docs site and the generated `register.d.ts`; an app may
+  pass any value in them, and `data-size="2xl"` reaches the DOM whether or not
+  a rule matches. A declared value nothing matches doesn't fail — it silently
+  renders the base. So #258: zero-carbon declared `sm md lg xl 2xl` and only
+  `button` shipped `xl`/`2xl`, so the other fourteen size-bearing scopes fell
+  back to their `md` base at both steps — *smaller than `lg`*, so growing the
+  size axis shrank the control (avatar 48 → 40px, checkbox 22 → 18, switch
+  56×28 → 48×24). The whole suite was green: the css goldens recorded the
+  absent rules faithfully, `validate-recipes` only asks whether a value names a
+  declared one, and `axis-coverage.test.ts` asks whether a scope wires the axis
+  *at all* — avatar wired `sm` and `lg`, so it was wiring size. Nothing asked
+  whether the ramp had holes in it.
+
+  **The un-attributed step** is what the naive rule was missing, and it needed
+  no new syntax: an entry that emits nothing (`md: {}`, and zero-carbon's
+  button writes `lg: {}` because Carbon's default button is the 48px one) IS
+  the claim that the base stands for that step. So a declared value is
+  accounted for when it paints in the default render, **or** when the recipe
+  writes it as an entry that paints nowhere at all. `defaultVariants` is
+  deliberately not a second way to say it — it would let a forgotten step be
+  excused by a field written for another purpose, and the point of the empty
+  entry is that an author who forgot a step wrote nothing. "Paints nowhere at
+  all" rather than "nowhere here": an entry whose only rule sits inside a
+  `@media` has been thought about and is not claiming the base, and at the
+  default viewport it renders as the base without meaning to — a gap.
+
+  Three assertions over the compiled CSS of all six design systems, for the
+  reason `state-legibility.test.ts` gives: a value can be implemented through
+  `variants`, `compoundVariants` or the raw `css` escape hatch, and only the
+  artifact sees all three. **A** — no participating scope skips a step one of
+  its siblings implements. **B** — at most one value per scope claims the base,
+  because two silent entries render identically, which is #258's harm reached
+  by the other door ("fix" a missing `xl` by writing `xl: {}`). **C** — a
+  declared value no recipe paints or claims is reported at design-system
+  granularity, exempting colour roles that opted out of `-content` or `-soft`:
+  those are fills and hairlines (Material's tonal `surface*`, its `outline`),
+  which `tokens.roles` carries as palette rather than as `data-color` values,
+  and which SKILL.md already tells authors to filter out of the axis. A ledger
+  test pins that exemption to exactly those four so a fifth cannot join it
+  quietly.
+
+  Scoped, not naive. Measured before it was written: "every declared value in
+  every scope with a recipe" reports **1267** findings across the six design
+  systems — the shape that got the per-part legibility guard reverted at 164.
+  Restricting to scopes that participate in the axis takes it to 124, reading
+  the un-attributed step to 64, and restricting to values some scope in the
+  design system implements to **0**. On zero-carbon's pre-#272 recipes it
+  reports the 28 that #258 actually was, naming all fourteen scopes and both
+  missing steps. `variant` needs no exemption and gets none: #175 leaves it
+  wired on `button` only, and a scope that wires nothing for an axis is not
+  participating in it.
+
 - **The state-legibility guard grew a third assertion: an in-flow disclosure
   control says which way it is pointing** (#248). Assertion A judges at
   *component* level on purpose — "the difference lives on a sibling part" is
