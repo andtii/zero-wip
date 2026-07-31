@@ -311,6 +311,23 @@ test('forced colors: decorative press layers are hidden', async ({ page }) => {
     await page.mouse.up();
 });
 
+test('a ripple destroyed with its stylesheet still clears its own flag', async ({ page }) => {
+    test.skip(media(test.info().project.name), 'covered by the media-specific tests');
+    // ONE press, and no second one to heal it — #243. The press starts
+    // material's 500ms `btn-ripple` on the swap control and, in the same
+    // gesture, tears material's stylesheet out from under it: `basic` declares
+    // no `[data-press-animating]` rule at all, so the running CSSAnimation is
+    // destroyed rather than finished, and no replacement takes its place.
+    // `animationcancel` is not reliably dispatched for that destruction (webkit
+    // and firefox strand the flag in roughly half of runs without the fix), so
+    // the runtime has to learn it some other way.
+    const swap = page.getByRole('button', { name: 'Basic', exact: true });
+    await swap.click();
+    await expect.poll(() => page.locator('link[data-zero-ds]').count()).toBe(1);
+    await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', 'basic');
+    await expect.poll(() => page.locator('[data-press-animating]').count()).toBe(0);
+});
+
 test('design-system swap mid-ripple leaves no stale press state', async ({ page }) => {
     test.skip(media(test.info().project.name), 'covered by the media-specific tests');
     // Both presses land on the swap control itself, so the ripple in flight
@@ -333,15 +350,18 @@ test('design-system swap mid-ripple leaves no stale press state', async ({ page 
     // strict mode for it, and fails as `2 !== 1` if links ever really stack.
     await expect.poll(() => page.locator('link[data-zero-ds]').count()).toBe(1);
     await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', 'basic');
-    // The second press, under the now-settled stylesheet. It is load-bearing,
-    // and was here before: a press restarts the one-shot, and that restart is
-    // the ONLY thing that clears a `data-press-animating` left behind when the
-    // first ripple was destroyed with material's stylesheet rather than
-    // finishing. Drop it and this test fails intermittently on every engine —
-    // at `main` exactly as much as here, measured — because the flag outlives
-    // an animation cancelled by stylesheet teardown. That is #243, a zero
-    // behavior defect this test has always run in the healed configuration of;
-    // fixing it there is what lets this press go away.
+    // The second press, under the now-settled stylesheet. It used to be
+    // load-bearing for the wrong reason: a press restarts the one-shot, and
+    // that restart was the ONLY thing clearing a `data-press-animating` left
+    // behind when the first ripple was destroyed with material's stylesheet
+    // rather than finishing (#243) — so this test always ran in the healed
+    // configuration and never exercised the destruction. The runtime clears
+    // that flag itself now, and the single-press case is asserted by the test
+    // above. The press stays because it is worth its own coverage: it is the
+    // restart path, under a design system that declares no press animation at
+    // all, and it proves the previous press's cancellation does not reach past
+    // it — the flag it re-arms must still resolve, and must not be cleared by
+    // the animation the restart itself destroyed.
     await swap.click();
     await expect.poll(() => page.locator('[data-press-animating]').count()).toBe(0);
     await expect.poll(() => page.locator('[data-pressed]').count()).toBe(0);

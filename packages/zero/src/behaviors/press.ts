@@ -8,7 +8,8 @@
  *
  * - `data-pressed` — present while the pointer/key is physically down.
  * - `data-press-animating` — present from press-start until the design
- *   system's press animation finishes (`animationend`), NOT until release,
+ *   system's press animation ends, however it ends: finished, cancelled, or
+ *   destroyed along with the stylesheet that declared it. NOT until release,
  *   so a 50ms tap still plays a full ripple. If the active design system
  *   attaches no animation to the flag, it is removed synchronously.
  * - `--press-x` / `--press-y` — press point in px, relative to the part's
@@ -101,12 +102,13 @@ export function createPressFeedback(opts: PressFeedbackOptions): PressFeedbackHa
         };
         el.addEventListener('animationend', done);
         el.addEventListener('animationcancel', done);
-        cleanupAnimation = () => {
+        const cleanup = (): void => {
             el.removeEventListener('animationend', done);
             el.removeEventListener('animationcancel', done);
             el.removeAttribute('data-press-animating');
-            cleanupAnimation = null;
+            if (cleanupAnimation === cleanup) cleanupAnimation = null;
         };
+        cleanupAnimation = cleanup;
 
         // The active design system may style nothing on the flag — then no
         // animationend ever comes, and a dead attribute would linger. Reduced
@@ -118,12 +120,41 @@ export function createPressFeedback(opts: PressFeedbackOptions): PressFeedbackHa
         // animations whose effect targets the part itself count. A
         // pseudo-element effect reports the originating element as target.
         if (typeof el.getAnimations === 'function') {
-            const ownAnimation = el.getAnimations({ subtree: true }).some((a) => {
+            const own = el.getAnimations({ subtree: true }).filter((a) => {
                 if (typeof CSSAnimation !== 'undefined' && !(a instanceof CSSAnimation)) return false;
                 const target = (a.effect as KeyframeEffect | null)?.target;
                 return target === undefined || target === el;
             });
-            if (!ownAnimation) cleanupAnimation();
+            if (own.length === 0) {
+                cleanup();
+                return;
+            }
+
+            // An animation can also VANISH rather than end. Remove the
+            // stylesheet that declared it — a runtime design-system swap does
+            // exactly that — and the running CSSAnimation is destroyed while
+            // `animationcancel` is not reliably dispatched for it (measured on
+            // the playground's swap: stranded in 19/20 webkit and 5/20 firefox
+            // runs, listeners alone). `Animation.finished` is the signal that
+            // cannot be skipped: finishing resolves it, cancelling — including
+            // cancellation by stylesheet teardown — rejects it, and neither
+            // depends on an event being dispatched. Nothing here guesses a
+            // duration: a `--duration-*` token can be anything, and the
+            // promise settles when the animation really ends.
+            //
+            // Keyed to THIS press by cleanup identity. A re-press restarts the
+            // one-shot by cancelling the previous animation, and that
+            // rejection arrives a microtask later — after the new press has
+            // armed its own flag, which it must not clear.
+            const settle = (): void => {
+                if (cleanupAnimation === cleanup) cleanup();
+            };
+            for (const animation of own) {
+                // Absent in test doubles and in engines predating Web
+                // Animations promises; the events stay the fallback there.
+                const finished = animation.finished as Promise<Animation> | undefined;
+                void finished?.then(settle, settle);
+            }
         }
     };
 

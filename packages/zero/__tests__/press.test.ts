@@ -228,6 +228,70 @@ describe('createPressFeedback', () => {
             expect(el.hasAttribute('data-press-animating')).toBe(false);
         });
 
+        /**
+         * An Animation double whose `finished` promise we settle by hand.
+         *
+         * happy-dom runs no animations at all — `getAnimations` does not exist
+         * here — so it cannot destroy a live CSSAnimation the way removing a
+         * stylesheet does in a browser. What these tests CAN pin is the wiring
+         * that reacts to it: `finished` settling is what clears the flag, and
+         * it is keyed to the press that armed it. That stylesheet teardown
+         * really does reject that promise is proved in the browser, by
+         * `examples/playground/e2e/press-feedback.spec.ts` › *a ripple
+         * destroyed with its stylesheet still clears its own flag*.
+         */
+        const deferredAnimation = () => {
+            let resolve!: () => void;
+            let reject!: () => void;
+            const finished = new Promise<Animation>((res, rej) => {
+                resolve = () => res({} as Animation);
+                // What a cancelled animation rejects with.
+                reject = () => rej(new DOMException('cancelled', 'AbortError'));
+            });
+            return { animation: { finished } as unknown as Animation, resolve, reject };
+        };
+
+        it('clears the flag when the animation is cancelled without an event', async () => {
+            // #243: an animation destroyed with the stylesheet that declared
+            // it does not reliably dispatch `animationcancel`. `finished`
+            // rejects regardless, and that is what the flag follows.
+            const ripple = deferredAnimation();
+            el.getAnimations = () => [ripple.animation];
+            press.onPointerdown(pointerdown());
+            expect(el.hasAttribute('data-press-animating')).toBe(true);
+            ripple.reject();
+            await Promise.resolve();
+            expect(el.hasAttribute('data-press-animating')).toBe(false);
+        });
+
+        it('clears the flag when the animation finishes, event or not', async () => {
+            const ripple = deferredAnimation();
+            el.getAnimations = () => [ripple.animation];
+            press.onPointerdown(pointerdown());
+            ripple.resolve();
+            await Promise.resolve();
+            expect(el.hasAttribute('data-press-animating')).toBe(false);
+        });
+
+        it('a previous press\'s cancellation never clears the new press\'s flag', async () => {
+            // The restart cancels the animation it replaces, so the OLD
+            // promise rejects a microtask after the NEW flag is armed.
+            // Unkeyed, that rejection would clear a press that just started.
+            const first = deferredAnimation();
+            const second = deferredAnimation();
+            el.getAnimations = () => [first.animation];
+            press.onPointerdown(pointerdown());
+            el.getAnimations = () => [second.animation];
+            press.onPointerdown(pointerdown());
+            first.reject();
+            await Promise.resolve();
+            expect(el.hasAttribute('data-press-animating')).toBe(true);
+            // …and the new press still resolves on its own animation.
+            second.resolve();
+            await Promise.resolve();
+            expect(el.hasAttribute('data-press-animating')).toBe(false);
+        });
+
         it('restarts on a re-press while still animating', () => {
             stubAnimations(1);
             press.onPointerdown(pointerdown());
