@@ -1236,7 +1236,24 @@ export const select: RecipeInput = {
         value: {
             base: {},
             states: {
-                placeholder: { opacity: '0.5' },
+                /**
+                 * The placeholder's muting is a COLOUR, not an `opacity`.
+                 *
+                 * `opacity` is a multiplier on whatever ink the theme happens
+                 * to supply, so one value was correct in four daisy themes and
+                 * wrong in the fifth: on nord the base ink is already muted and
+                 * the 0.5 fade compounded past the floor, to 2.71:1 (#264). An
+                 * alpha stated on `color` composites the same way but stays on
+                 * the TEXT — it cannot take a child down with it.
+                 *
+                 * 60% is the minimal correction: it keeps the placeholder as
+                 * close to daisy's own 0.5 as the floor allows, it is the same
+                 * muting `tabs/tab` already uses, and it lands nord — the theme
+                 * that sets the level for all five — at 3.49:1. 70% was tried
+                 * first and reached 4.59:1, which clears the floor by more than
+                 * it needs to and makes a placeholder look like filled text.
+                 */
+                placeholder: { color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)' },
             },
         },
         indicator: {
@@ -1714,7 +1731,11 @@ export const combobox: RecipeInput = {
                 required: {},
             },
             selectors: {
-                '&::placeholder': { opacity: '0.5' },
+                // Same muting, same reason as `select/value` above: a colour
+                // rather than an `opacity`, at the level nord clears the floor
+                // at. A pseudo-element is out of the audit's reach, so this
+                // half is fixed by argument rather than by measurement (#264).
+                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)' },
             },
         },
         trigger: {
@@ -2041,7 +2062,11 @@ export const numberInput: RecipeInput = {
                 required: {},
             },
             selectors: {
-                '&::placeholder': { opacity: '0.5' },
+                // Same muting, same reason as `select/value` above: a colour
+                // rather than an `opacity`, at the level nord clears the floor
+                // at. A pseudo-element is out of the audit's reach, so this
+                // half is fixed by argument rather than by measurement (#264).
+                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)' },
             },
         },
         // Steppers: compact join-item btns flanking the input. The decrement

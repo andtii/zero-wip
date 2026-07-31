@@ -132,22 +132,10 @@ const cells: Cell[] = anatomy.components.flatMap((component) =>
  * forget to remove and the second does.
  */
 const INTENDED_LOW_CONTRAST = new Set<string>([
-    // DEBT — signalxjs/zero#263. HeroUI's `pending` modifier is
-    // `opacity: 0.7` on the button root, which fades the label with the fill
-    // and drops both variants just under the floor (primary 2.92:1, outline
-    // 2.97:1) on the light theme. `pending` is a LOADING state, not a disabled
-    // one — the reader is waiting on that label — so it gets no WCAG 1.4.3
-    // carve-out and no lower floor. Delete these six when #263 lands.
-    'heroui/hero-light/button/root/-/-/variant=primary,+pending',
-    'heroui/hero-light/button/root/-/focus-visible/variant=primary,+pending',
-    'heroui/hero-light/button/root/-/pressed/variant=primary,+pending',
-    'heroui/hero-light/button/root/-/-/variant=outline,+pending',
-    'heroui/hero-light/button/root/-/focus-visible/variant=outline,+pending',
-    'heroui/hero-light/button/root/-/pressed/variant=outline,+pending',
-    // DEBT — signalxjs/zero#264. daisyUI's `select/value[data-placeholder]` is
-    // `opacity: 0.5` over base-100, which lands at 2.71:1 on nord (the other
-    // four themes clear the floor). Delete this one when #264 lands.
-    'daisyui/nord/select/value/-/placeholder/-',
+    // Empty, and worth keeping that way. Both original entries were debt
+    // rather than decisions — heroui's `pending` fade (#263) and daisyui's
+    // nord placeholder (#264) — and both are now fixed at the source rather
+    // than suppressed here.
 ]);
 
 /**
