@@ -19,7 +19,7 @@
     }
 
     [data-scope="number-input"][data-part="label"][data-invalid] {
-        color: var(--color-error);
+        color: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
     }
 
     [data-scope="number-input"][data-part="control"] {

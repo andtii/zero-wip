@@ -32,7 +32,7 @@
     }
 
     [data-scope="progress"][data-part="range"][data-state="complete"] {
-        background: color-mix(in oklab, var(--color-success) 70%, var(--color-success-content));
+        background: color-mix(in oklab, var(--color-success) 55%, var(--color-success-content));
     }
 
     [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
