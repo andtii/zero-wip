@@ -27,7 +27,14 @@ import { defineConfig, devices } from '@playwright/test';
  * failure mode where the suite appears to hang for half an hour rather than
  * saying what is wrong.
  */
-const port = Number(process.env.ZERO_E2E_PORT ?? 5199);
+const rawPort = process.env.ZERO_E2E_PORT;
+const port = rawPort === undefined ? 5199 : Number(rawPort);
+// A bad value must not become `localhost:NaN`. `Number('')` is 0 and
+// `Number('abc')` is NaN, and either one turns a typo in the env into a
+// baseURL that fails somewhere far from its cause.
+if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error(`ZERO_E2E_PORT must be an integer from 1 to 65535, got ${JSON.stringify(rawPort)}`);
+}
 const baseURL = `http://localhost:${port}`;
 
 export default defineConfig({
