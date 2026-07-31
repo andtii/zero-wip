@@ -674,13 +674,20 @@ export const menu: RecipeInput = {
  * definition, and a second hand-tuned copy of it is precisely what #126 exists
  * to stop.
  */
-const ROLE_INK_KEEP: Record<string, number> = {
+/**
+ * Keyed on the DECLARED roles, so a typo here is a build error rather than a
+ * silent fall through to the default — and optional, so the `?? 55` below is a
+ * real branch the type system can see rather than dead code. It stays optional
+ * because `roleInk` is also reachable for a role this map has no opinion on.
+ */
+const ROLE_INK_KEEP: { [K in keyof typeof roles]?: number } = {
     primary: 95, secondary: 70, accent: 55, neutral: 40,
     info: 70, success: 55, warning: 45, error: 85,
 };
 
 const roleInk = (role: string): string =>
-    `color-mix(in oklab, var(--color-${role}) ${ROLE_INK_KEEP[role] ?? 55}%, var(--color-base-content))`;
+    `color-mix(in oklab, var(--color-${role}) `
+    + `${ROLE_INK_KEEP[role as keyof typeof roles] ?? 55}%, var(--color-base-content))`;
 
 export const field: RecipeInput = {
     component: 'field',
