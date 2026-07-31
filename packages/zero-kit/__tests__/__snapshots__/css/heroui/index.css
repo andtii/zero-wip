@@ -348,6 +348,10 @@
         background: var(--hero-primary);
     }
 
+    [data-scope="switch"][data-part="control"][data-invalid] {
+        box-shadow: inset 0 0 0 2px var(--hero-danger);
+    }
+
     [data-scope="switch"][data-part="control"][data-focus-visible] {
         outline: 2px solid var(--hero-focus);
         outline-offset: 2px;

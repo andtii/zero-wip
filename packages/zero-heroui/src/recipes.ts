@@ -341,6 +341,12 @@ export const switchRecipe: RecipeInput = {
                 checked: { background: 'var(--hero-primary)' },
                 unchecked: {},
                 disabled: {},
+                // The system's error idiom is a danger BORDER, and this track
+                // has none to recolour — adding one would move the thumb's
+                // geometry. An inset ring is the same mark at the same weight,
+                // drawn inside the box instead of around it, and it survives
+                // the checked fill.
+                invalid: { boxShadow: 'inset 0 0 0 2px var(--hero-danger)' },
                 ...focusRing,
             },
         },

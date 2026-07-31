@@ -2010,6 +2010,12 @@
         border-color: var(--switch-accent);
     }
 
+    [data-scope="switch"][data-part="control"][data-invalid] {
+        --switch-accent: var(--color-error);
+        --switch-on-accent: var(--color-error-content);
+        border-color: var(--color-error);
+    }
+
     [data-scope="switch"][data-part="control"][data-focus-visible] {
         outline: 3px solid var(--color-secondary);
         outline-offset: 2px;
@@ -2501,6 +2507,11 @@
         display: flex;
         flex-direction: column;
         gap: var(--space-sm);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-invalid] [data-part="item-control"] {
+        --radio-accent: var(--color-error);
+        border-color: var(--color-error);
     }
 
     [data-scope="radio-group"][data-part="label"] {

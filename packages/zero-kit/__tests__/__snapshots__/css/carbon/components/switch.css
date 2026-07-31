@@ -32,6 +32,11 @@
         background: var(--carbon-toggle-on);
     }
 
+    [data-scope="switch"][data-part="control"][data-invalid] {
+        outline: 2px solid var(--carbon-danger);
+        outline-offset: -2px;
+    }
+
     [data-scope="switch"][data-part="control"][data-focus-visible] {
         outline: 2px solid var(--carbon-focus);
         outline-offset: -2px;

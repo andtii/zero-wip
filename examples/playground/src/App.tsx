@@ -437,6 +437,14 @@ export const App = component(() => {
                     <Field.Root invalid required>
                         <Field.Label>Terms</Field.Label>
                         <Checkbox.Root>I accept the terms</Checkbox.Root>
+                        {/*
+                          * Two controls, one field: "every zero control inside
+                          * adopts it" is only a claim while one control is
+                          * standing there alone. Switch was in fact the one
+                          * that did not — it read no Field context at all
+                          * until #269 — and nothing here would have shown it.
+                          */}
+                        <Switch.Root>Email me about changes</Switch.Root>
                         <Field.Description>Required before the form can be submitted.</Field.Description>
                         <Field.Error>You must accept the terms to continue.</Field.Error>
                     </Field.Root>
@@ -458,6 +466,17 @@ export const App = component(() => {
                         <RadioGroup.Item value="free">Free</RadioGroup.Item>
                         <RadioGroup.Item value="pro">Pro</RadioGroup.Item>
                         <RadioGroup.Item value="team">Team</RadioGroup.Item>
+                    </RadioGroup.Root>
+                    {/*
+                      * Invalidity is the GROUP's fact — no item carries the
+                      * flag — so a design system has to reach the controls from
+                      * the root to show it. Rendered because it was not: five
+                      * of the six painted nothing here (#269).
+                      */}
+                    <RadioGroup.Root invalid required defaultValue="free">
+                        <RadioGroup.Label>Billing period</RadioGroup.Label>
+                        <RadioGroup.Item value="free">Monthly</RadioGroup.Item>
+                        <RadioGroup.Item value="pro">Yearly</RadioGroup.Item>
                     </RadioGroup.Root>
 
                     <h2>Select</h2>

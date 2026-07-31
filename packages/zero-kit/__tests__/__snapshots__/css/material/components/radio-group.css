@@ -10,6 +10,11 @@
         gap: var(--space-sm);
     }
 
+    [data-scope="radio-group"][data-part="root"][data-invalid] [data-part="item-control"] {
+        --radio-accent: var(--color-error);
+        border-color: var(--color-error);
+    }
+
     [data-scope="radio-group"][data-part="label"] {
         font-family: var(--font-sans);
         font-size: var(--text-md);

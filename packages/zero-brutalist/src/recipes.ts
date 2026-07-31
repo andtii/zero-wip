@@ -609,6 +609,10 @@ export const switchRecipe: RecipeInput = {
             states: {
                 checked: { background: 'var(--switch-accent)' },
                 unchecked: {},
+                // The system's error idiom: the frame turns error. Reads over
+                // the inked track and the accent one alike, because neither
+                // paints the border.
+                invalid: { borderColor: 'var(--color-error)' },
                 ...focusRing,
             },
         },
@@ -861,7 +865,15 @@ export const radioGroup: RecipeInput = {
         '--radio-on-accent': 'var(--color-primary-content)',
     },
     parts: {
-        root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' } },
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' },
+            states: { invalid: {}, required: {} },
+            selectors: {
+                // `invalid` is a fact about the GROUP — `item-control` carries
+                // no flag of its own — so the frame is turned from the root.
+                '&[data-invalid] [data-part="item-control"]': { borderColor: 'var(--color-error)' },
+            },
+        },
         label: { base: { ...label, fontSize: 'var(--text-sm)' } },
         item: {
             base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },

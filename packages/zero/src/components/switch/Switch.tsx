@@ -11,6 +11,7 @@
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState } from '../../behaviors/controllable.js';
+import { useFieldContext } from '../../behaviors/field.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
@@ -53,15 +54,23 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal }) =
         props.defaultChecked ?? false,
         (v) => emit('checkedChange', v),
     );
+    const field = useFieldContext();
     let inputEl: HTMLInputElement | null = null;
     let controlEl: HTMLElement | null = null;
     const focus = signal({ visible: false });
+
+    // A Switch inside a Field answers to it, exactly as Checkbox does — the
+    // prop wins when set, the Field supplies the rest. Switch was the one
+    // selection control that read none of them (#269).
+    const disabled = (): boolean => !!props.disabled || field.disabled();
+    const invalid = (): boolean => !!props.invalid || field.invalid();
+    const required = (): boolean => !!props.required || field.required();
     // Cross-element press: the row (label) is the pointer target and the
     // hidden input is the keyboard target, but the feedback lands on the
     // visible control — coordinates are computed against getElement's rect.
     const press = createPressFeedback({
         getElement: () => controlEl,
-        isDisabled: () => !!props.disabled,
+        isDisabled: () => disabled(),
     });
 
     const checkedState = () => stateAttr(state.value, 'checked', 'unchecked');
@@ -71,10 +80,10 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal }) =
             data-scope={SCOPE}
             data-part="root"
             data-state={checkedState()}
-            data-disabled={dataAttr(props.disabled)}
+            data-disabled={dataAttr(disabled())}
             data-focus-visible={dataAttr(focus.visible)}
-            data-invalid={dataAttr(props.invalid)}
-            data-required={dataAttr(props.required)}
+            data-invalid={dataAttr(invalid())}
+            data-required={dataAttr(required())}
             {...variantAttrs(props)}
             class={props.class}
             onPointerdown={press.onPointerdown}
@@ -89,11 +98,11 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal }) =
                 data-part="hidden-input"
                 style={HIDDEN_INPUT_STYLE}
                 checked={state.value}
-                disabled={props.disabled}
-                required={props.required}
+                disabled={disabled()}
+                required={required()}
                 name={props.name}
                 value={props.value ?? 'on'}
-                aria-invalid={props.invalid ? 'true' : undefined}
+                aria-invalid={invalid() ? 'true' : undefined}
                 ref={(node: HTMLInputElement | null) => { inputEl = node; }}
                 onChange={(e: Event) => {
                     state.value = (e.target as HTMLInputElement).checked;
@@ -110,8 +119,9 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal }) =
                 data-scope={SCOPE}
                 data-part="control"
                 data-state={checkedState()}
-                data-disabled={dataAttr(props.disabled)}
+                data-disabled={dataAttr(disabled())}
                 data-focus-visible={dataAttr(focus.visible)}
+                data-invalid={dataAttr(invalid())}
                 ref={(node: HTMLElement | null) => { controlEl = node; }}
             >
                 <span
@@ -126,7 +136,7 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal }) =
                         data-scope={SCOPE}
                         data-part="label"
                         data-state={checkedState()}
-                        data-disabled={dataAttr(props.disabled)}
+                        data-disabled={dataAttr(disabled())}
                     >
                         {slots.default()}
                     </span>
