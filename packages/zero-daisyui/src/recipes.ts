@@ -310,6 +310,11 @@ export const switchRecipe: RecipeInput = {
                     backgroundColor: 'var(--color-base-100)',
                 },
                 unchecked: {},
+                // `invalid` is semantic: it stays error under every colour
+                // variant. Stated as a longhand because the track's border is
+                // `currentColor`, and `color` is what `checked` moves — the
+                // explicit border-color outranks both.
+                invalid: { borderColor: 'var(--color-error)' },
                 'focus-visible': { outline: '2px solid var(--switch-accent)', outlineOffset: '2px' },
                 disabled: {},
             },
@@ -861,6 +866,13 @@ export const radioGroup: RecipeInput = {
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: '0.625rem' },
+            states: { invalid: {}, required: {} },
+            selectors: {
+                // `invalid` is a fact about the GROUP — `item-control` carries
+                // no flag of its own — and it is semantic: it stays error
+                // under every colour variant.
+                '&[data-invalid] [data-part="item-control"]': { borderColor: 'var(--color-error)' },
+            },
         },
         label: {
             base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },

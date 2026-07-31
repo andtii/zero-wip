@@ -438,6 +438,12 @@ export const switchRecipe: RecipeInput = {
             states: {
                 checked: { background: 'var(--color-primary)', boxShadow: 'none' },
                 unchecked: {},
+                // The track's own hairline, redrawn in error at double weight.
+                // It has to come after `checked`, which clears the shadow
+                // outright — an invalid switch must read as invalid whichever
+                // way it is thrown, and the edge is the only surface both
+                // states share.
+                invalid: { boxShadow: 'inset 0 0 0 calc(var(--border) * 2) var(--color-error)' },
                 'focus-visible': {
                     outline: '2px solid var(--color-primary)',
                     outlineOffset: '2px',
@@ -1049,6 +1055,14 @@ export const radioGroup: RecipeInput = {
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' },
+            states: { invalid: {}, required: {} },
+            selectors: {
+                // `invalid` is a fact about the GROUP — `item-control` carries
+                // no flag of its own — so the mark is reached from the root.
+                // The border is the same surface the system's other invalid
+                // controls turn error.
+                '&[data-invalid] [data-part="item-control"]': { borderColor: 'var(--color-error)' },
+            },
         },
         // Weight 500, not 600 — semibold is for headings and table headers
         // only; a form label is chrome.

@@ -448,6 +448,10 @@ export const switchRecipe: RecipeInput = {
                 checked: { background: 'var(--carbon-toggle-on)' },
                 unchecked: {},
                 disabled: {},
+                // Carbon marks an invalid control the way it marks a focused
+                // one — an inset 2px rule — in danger rather than focus blue.
+                // Same declaration its fields already use.
+                invalid: { outline: '2px solid var(--carbon-danger)', outlineOffset: '-2px' },
                 ...focusRing,
             },
             selectors: {
@@ -1053,6 +1057,14 @@ export const radioGroup: RecipeInput = {
                 flexDirection: 'column',
                 gap: 'var(--space-sm)',
                 fontFamily: 'var(--font-sans)',
+            },
+            states: { invalid: {}, required: {} },
+            selectors: {
+                // `invalid` is a fact about the GROUP — `item-control` carries
+                // no flag of its own. Carbon's radio marks its error on the
+                // circle itself rather than with the fields' inset rule, so
+                // this is a border and not an outline.
+                '&[data-invalid] [data-part="item-control"]': { borderColor: 'var(--carbon-danger)' },
             },
         },
         label: {

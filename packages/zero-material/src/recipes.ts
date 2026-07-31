@@ -939,6 +939,17 @@ export const switchRecipe: RecipeInput = {
             states: {
                 checked: { background: 'var(--switch-accent)', borderColor: 'var(--switch-accent)' },
                 unchecked: {},
+                // M3's error switch: outline, selected track and handle all
+                // move to `error`. Rebinding the accent carries the checked
+                // track and the thumb's ink with it — `-content` pairs with
+                // its own role, and `primary-content` on `error` is not a pair
+                // the palette checks. The outline is stated because the accent
+                // does not reach it while unchecked.
+                invalid: {
+                    '--switch-accent': 'var(--color-error)',
+                    '--switch-on-accent': 'var(--color-error-content)',
+                    borderColor: 'var(--color-error)',
+                },
                 ...focusRing,
             },
             selectors: {
@@ -1337,7 +1348,21 @@ export const radioGroup: RecipeInput = {
         '--radio-accent': 'var(--color-primary)',
     },
     parts: {
-        root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' } },
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' },
+            states: { invalid: {}, required: {} },
+            selectors: {
+                // `invalid` is a fact about the GROUP — `item-control` carries
+                // no flag of its own. Rebinding the accent on each control
+                // carries M3's error state through the whole selection ring:
+                // the ring itself, the dot (which IS the accent — a Material
+                // radio's container is never filled) and the press halo.
+                '&[data-invalid] [data-part="item-control"]': {
+                    '--radio-accent': 'var(--color-error)',
+                    borderColor: 'var(--color-error)',
+                },
+            },
+        },
         label: { base: { ...label, fontSize: 'var(--text-md)' } },
         item: {
             base: {

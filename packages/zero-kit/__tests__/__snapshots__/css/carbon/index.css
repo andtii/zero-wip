@@ -351,6 +351,11 @@
         background: var(--carbon-toggle-on);
     }
 
+    [data-scope="switch"][data-part="control"][data-invalid] {
+        outline: 2px solid var(--carbon-danger);
+        outline-offset: -2px;
+    }
+
     [data-scope="switch"][data-part="control"][data-focus-visible] {
         outline: 2px solid var(--carbon-focus);
         outline-offset: -2px;
@@ -1206,6 +1211,10 @@
         flex-direction: column;
         gap: var(--space-sm);
         font-family: var(--font-sans);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-invalid] [data-part="item-control"] {
+        border-color: var(--carbon-danger);
     }
 
     [data-scope="radio-group"][data-part="label"] {

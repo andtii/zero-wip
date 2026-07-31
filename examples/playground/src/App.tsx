@@ -440,6 +440,22 @@ export const App = component(() => {
                         <Field.Description>Required before the form can be submitted.</Field.Description>
                         <Field.Error>You must accept the terms to continue.</Field.Error>
                     </Field.Root>
+                    {/*
+                      * Its OWN field, not a second control in the one above:
+                      * a `Field.Root` mints exactly one `ids.control`, so two
+                      * controls under one field is a duplicate `id` and a
+                      * `for` that resolves to whichever came first.
+                      *
+                      * Rendered at all because "every zero control inside
+                      * adopts it" was a claim with one control standing behind
+                      * it. Switch was the one that did not — it read no Field
+                      * context whatsoever until #269.
+                      */}
+                    <Field.Root invalid required>
+                        <Field.Label>Change notifications</Field.Label>
+                        <Switch.Root>Email me about changes</Switch.Root>
+                        <Field.Error>Pick a delivery method.</Field.Error>
+                    </Field.Root>
                     <p>
                         A checkbox has three states, not two: <code>indeterminate</code>{' '}
                         is its own <code>data-state</code>, and it survives the round trip
@@ -458,6 +474,17 @@ export const App = component(() => {
                         <RadioGroup.Item value="free">Free</RadioGroup.Item>
                         <RadioGroup.Item value="pro">Pro</RadioGroup.Item>
                         <RadioGroup.Item value="team">Team</RadioGroup.Item>
+                    </RadioGroup.Root>
+                    {/*
+                      * Invalidity is the GROUP's fact — no item carries the
+                      * flag — so a design system has to reach the controls from
+                      * the root to show it. Rendered because it was not: five
+                      * of the six painted nothing here (#269).
+                      */}
+                    <RadioGroup.Root invalid required defaultValue="free">
+                        <RadioGroup.Label>Billing period</RadioGroup.Label>
+                        <RadioGroup.Item value="free">Monthly</RadioGroup.Item>
+                        <RadioGroup.Item value="pro">Yearly</RadioGroup.Item>
                     </RadioGroup.Root>
 
                     <h2>Select</h2>

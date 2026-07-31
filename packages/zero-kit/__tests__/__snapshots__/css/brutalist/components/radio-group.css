@@ -11,6 +11,10 @@
         gap: var(--space-sm);
     }
 
+    [data-scope="radio-group"][data-part="root"][data-invalid] [data-part="item-control"] {
+        border-color: var(--color-error);
+    }
+
     [data-scope="radio-group"][data-part="label"] {
         font-family: var(--font-mono);
         font-weight: var(--weight-semibold);

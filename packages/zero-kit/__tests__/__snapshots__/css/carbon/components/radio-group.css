@@ -10,6 +10,10 @@
         font-family: var(--font-sans);
     }
 
+    [data-scope="radio-group"][data-part="root"][data-invalid] [data-part="item-control"] {
+        border-color: var(--carbon-danger);
+    }
+
     [data-scope="radio-group"][data-part="label"] {
         font-size: var(--text-xs);
         font-weight: var(--weight-normal);
