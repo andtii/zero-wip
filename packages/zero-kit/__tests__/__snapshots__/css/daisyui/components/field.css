@@ -16,7 +16,7 @@
 
     [data-scope="field"][data-part="label"][data-required]::after {
         content: " *";
-        color: var(--color-error);
+        color: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
     }
 
     [data-scope="field"][data-part="description"] {
@@ -28,7 +28,7 @@
     [data-scope="field"][data-part="error"] {
         margin: 0;
         font-size: var(--text-xs);
-        color: var(--color-error);
+        color: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
         font-weight: var(--weight-medium);
     }
 }

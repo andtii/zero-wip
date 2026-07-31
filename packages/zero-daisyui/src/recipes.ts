@@ -621,6 +621,79 @@ export const menu: RecipeInput = {
     },
 };
 
+/**
+ * How far each role survives in the button's INK — the colour a transparent or
+ * tinted fill draws its label, border and focus ring with.
+ *
+ * A raw role token is a FILL colour: it is contrast-validated against its own
+ * `-content` pair and against nothing else. Used as ink on a base surface it
+ * has no floor at all, and daisy's palettes prove it — `neutral` is a dark grey
+ * in all three dark themes (1.12–1.22:1 on `base-100`, 1.11–1.18 on its own
+ * `-soft`) and `accent` a pale teal in light and nord (1.63–1.83). That is
+ * #210: the `outline`, `soft` and `ghost` cells rendered as empty boxes.
+ *
+ * The mix partner is `--color-base-content`, NOT the role's own `-content`.
+ * `ratingFill` above deepens toward `-content` and its comment says why that
+ * cannot generalise: "deepening toward `-content` helps a light theme and hurts
+ * a dark one" — because `-content` is the pole opposite the ROLE, which in a
+ * dark theme means darker, straight into a dark `base-100`. `base-content` is
+ * by construction the pole opposite the SURFACE, so the same percentage lightens
+ * on dark themes and darkens on light ones. One number per role then holds
+ * across all five themes.
+ *
+ * Per role, and each the gentlest 5% step that clears 3:1 — the same rule
+ * `progressFill` and `RATING_DEEPEN` follow. Measured through Chromium's own
+ * canvas (the technique `contrast-audit.spec.ts` uses, so gamut mapping matches
+ * what is painted): 5 themes × 8 roles × {base-100, base-200, base-300, the
+ * role's `-soft`, and `-soft` under the hover `brightness(.95)`} = 200 cells,
+ * all ≥3:1, worst 3.10 (nord `secondary` on `base-300`).
+ *
+ * One 5% step gentler puts five of the eight under the floor — `primary` 2.98,
+ * `secondary` 2.87, `accent` 2.96, `neutral` 2.87, `success` 2.97 — and leaves
+ * the other three sitting on it with nothing to spare (`info` 3.00, `error`
+ * 3.03, `warning` 3.04). Every one of those worst cells is nord on `base-300`
+ * except `neutral`'s, which is dim's own `-soft` under the hover brightness.
+ *
+ * `primary` keeps 95% because raw already sat at 2.98 — a nudge, not a repaint.
+ * `neutral` keeps 40% because a role whose fill is a near-surface grey has
+ * nowhere else to go.
+ *
+ * `error` USED to keep 95% for the same reason as `primary` (raw sat at 3.03),
+ * and no longer can: correcting the palette to daisyUI 5.7.8's own values
+ * (#231) moved light's `error` from `oklch(63.72% 0.237 25.33)` to
+ * `oklch(71% 0.194 13.428)` — lighter and less saturated — which took the raw
+ * ink to 2.75:1 on its own `soft` fill. 85% is the gentlest step that clears,
+ * at 3.31:1, which puts it in the same band as every other role here
+ * (3.25–3.85). 90% reaches only 3.01, sitting on the floor with nothing to
+ * spare.
+ *
+ * Verified again on the compiled output rather than the tokens: the emitted
+ * CSS rendered in all five themes, 4 variants × 8 roles, gives 160 label cells
+ * and 40 `outline` borders with none under 3:1, worst 3.23 (nord / `soft` /
+ * `primary`). Before: 35 labels and 11 borders under, worst 1.11.
+ *
+ * This is the ad-hoc `color-mix` #126 describes: the contract has no name for
+ * "this role's muted ink", so every design system invents one. When #126 lands,
+ * this map is what it replaces — which is also why it is named for the JOB
+ * rather than for the button: the four error-text sites below read the same
+ * definition, and a second hand-tuned copy of it is precisely what #126 exists
+ * to stop.
+ */
+/**
+ * Keyed on the DECLARED roles, so a typo here is a build error rather than a
+ * silent fall through to the default — and optional, so the `?? 55` below is a
+ * real branch the type system can see rather than dead code. It stays optional
+ * because `roleInk` is also reachable for a role this map has no opinion on.
+ */
+const ROLE_INK_KEEP: { [K in keyof typeof roles]?: number } = {
+    primary: 95, secondary: 70, accent: 55, neutral: 40,
+    info: 70, success: 55, warning: 45, error: 85,
+};
+
+const roleInk = (role: string): string =>
+    `color-mix(in oklab, var(--color-${role}) `
+    + `${ROLE_INK_KEEP[role as keyof typeof roles] ?? 55}%, var(--color-base-content))`;
+
 export const field: RecipeInput = {
     component: 'field',
     parts: {
@@ -631,14 +704,14 @@ export const field: RecipeInput = {
             base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
             selectors: {
-                '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' },
+                '&[data-required]::after': { content: '" *"', color: roleInk('error') },
             },
         },
         description: {
             base: { margin: '0', fontSize: 'var(--text-xs)', opacity: '0.6' },
         },
         error: {
-            base: { margin: '0', fontSize: 'var(--text-xs)', color: 'var(--color-error)', fontWeight: 'var(--weight-medium)' },
+            base: { margin: '0', fontSize: 'var(--text-xs)', color: roleInk('error'), fontWeight: 'var(--weight-medium)' },
         },
     },
 };
@@ -983,10 +1056,16 @@ export const radioGroup: RecipeInput = {
  *   3.9+ (dark 4.36, light 5.02, sunset 6.31, dim 8.40). Deepening further is
  *   what fails: at 70/30 the dark theme drops to 2.83, because a mix toward
  *   `-content` darkens a fill that already sits on a dark track.
- * - `complete`'s SUCCESS at 70/30: raw success is the worst cell in the whole
- *   indicator matrix — 1.51:1 on nord, 2.44 light — a finished bar that reads
- *   as an empty one. Only 70/30 clears every theme (nord 3.05, dark 3.02,
- *   light 4.68, dim 5.08, sunset 5.96); 75/25 drops nord back to 2.71.
+ * - `complete`'s SUCCESS at 55/45: raw success is the worst cell in the whole
+ *   indicator matrix — a finished bar that reads as an empty one. 70/30 used
+ *   to clear every theme; correcting the palette to daisyUI 5.7.8's values
+ *   (#231) lightened light's `success` from `oklch(64.8% 0.15 160)` to
+ *   `oklch(76% 0.177 163.223)` and took that cell to 2.65:1. 55/45 is the
+ *   best of the range — light 3.37, dark 4.53, dim 3.34, nord 4.52,
+ *   sunset 3.93 — and it is a peak rather than a plateau: 60/40 gives up a
+ *   third of the margin (worst 3.10) and 50/50 falls back under on dim (2.88),
+ *   because a mix toward `-content` darkens a fill that already sits on a dark
+ *   track.
  */
 const progressFill = (role: string, keep: number): string =>
     `color-mix(in oklab, var(--color-${role}) ${keep}%, var(--color-${role}-content))`;
@@ -1027,7 +1106,7 @@ export const progress: RecipeInput = {
             states: {
                 // `complete` is a semantic state, not an accent: it stays
                 // success regardless of the colour variant, on purpose.
-                complete: { background: progressFill('success', 70) },
+                complete: { background: progressFill('success', 55) },
                 loading: {},
                 indeterminate: { width: '40%', animation: 'zero-daisy-indeterminate 1.2s ease-in-out infinite' },
             },
@@ -1304,59 +1383,6 @@ export const select: RecipeInput = {
     },
 };
 
-/**
- * How far each role survives in the button's INK — the colour a transparent or
- * tinted fill draws its label, border and focus ring with.
- *
- * A raw role token is a FILL colour: it is contrast-validated against its own
- * `-content` pair and against nothing else. Used as ink on a base surface it
- * has no floor at all, and daisy's palettes prove it — `neutral` is a dark grey
- * in all three dark themes (1.12–1.22:1 on `base-100`, 1.11–1.18 on its own
- * `-soft`) and `accent` a pale teal in light and nord (1.63–1.83). That is
- * #210: the `outline`, `soft` and `ghost` cells rendered as empty boxes.
- *
- * The mix partner is `--color-base-content`, NOT the role's own `-content`.
- * `ratingFill` above deepens toward `-content` and its comment says why that
- * cannot generalise: "deepening toward `-content` helps a light theme and hurts
- * a dark one" — because `-content` is the pole opposite the ROLE, which in a
- * dark theme means darker, straight into a dark `base-100`. `base-content` is
- * by construction the pole opposite the SURFACE, so the same percentage lightens
- * on dark themes and darkens on light ones. One number per role then holds
- * across all five themes.
- *
- * Per role, and each the gentlest 5% step that clears 3:1 — the same rule
- * `progressFill` and `RATING_DEEPEN` follow. Measured through Chromium's own
- * canvas (the technique `contrast-audit.spec.ts` uses, so gamut mapping matches
- * what is painted): 5 themes × 8 roles × {base-100, base-200, base-300, the
- * role's `-soft`, and `-soft` under the hover `brightness(.95)`} = 200 cells,
- * all ≥3:1, worst 3.10 (nord `secondary` on `base-300`).
- *
- * One 5% step gentler puts five of the eight under the floor — `primary` 2.98,
- * `secondary` 2.87, `accent` 2.96, `neutral` 2.87, `success` 2.97 — and leaves
- * the other three sitting on it with nothing to spare (`info` 3.00, `error`
- * 3.03, `warning` 3.04). Every one of those worst cells is nord on `base-300`
- * except `neutral`'s, which is dim's own `-soft` under the hover brightness.
- *
- * `primary` and `error` keep 95% because raw already sat at 2.98 and 3.03 —
- * a nudge, not a repaint. `neutral` keeps 40% because a role whose fill is a
- * near-surface grey has nowhere else to go.
- *
- * Verified again on the compiled output rather than the tokens: the emitted
- * CSS rendered in all five themes, 4 variants × 8 roles, gives 160 label cells
- * and 40 `outline` borders with none under 3:1, worst 3.23 (nord / `soft` /
- * `primary`). Before: 35 labels and 11 borders under, worst 1.11.
- *
- * This is the ad-hoc `color-mix` #126 describes: the contract has no name for
- * "this role's muted ink", so every design system invents one. When #126 lands,
- * this map is what it replaces.
- */
-const BTN_INK_KEEP: Record<string, number> = {
-    primary: 95, secondary: 70, accent: 55, neutral: 40,
-    info: 70, success: 55, warning: 45, error: 95,
-};
-
-const btnInk = (role: string): string =>
-    `color-mix(in oklab, var(--color-${role}) ${BTN_INK_KEEP[role] ?? 55}%, var(--color-base-content))`;
 
 export const button: RecipeInput = {
     component: 'button',
@@ -1367,7 +1393,7 @@ export const button: RecipeInput = {
         '--btn-accent': 'var(--color-primary)',
         '--btn-on-accent': 'var(--color-primary-content)',
         '--btn-soft': 'var(--color-primary-soft)',
-        '--btn-ink': btnInk('primary'),
+        '--btn-ink': roleInk('primary'),
     },
     parts: {
         root: {
@@ -1421,7 +1447,7 @@ export const button: RecipeInput = {
                             '--btn-accent': `var(--color-${c})`,
                             '--btn-on-accent': `var(--color-${c}-content)`,
                             '--btn-soft': `var(--color-${c}-soft)`,
-                            '--btn-ink': btnInk(c),
+                            '--btn-ink': roleInk(c),
                         },
                     },
                 },
@@ -2018,7 +2044,7 @@ export const numberInput: RecipeInput = {
             base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
             states: {
                 disabled: { opacity: 'var(--disabled-opacity)' },
-                invalid: { color: 'var(--color-error)' },
+                invalid: { color: roleInk('error') },
                 required: {},
             },
         },
@@ -2221,7 +2247,7 @@ export const ratingGroup: RecipeInput = {
             base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
             states: {
                 disabled: { opacity: 'var(--disabled-opacity)' },
-                invalid: { color: 'var(--color-error)' },
+                invalid: { color: roleInk('error') },
                 required: {},
             },
         },
