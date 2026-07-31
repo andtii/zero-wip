@@ -1443,7 +1443,7 @@ export const select: RecipeInput = {
         },
     },
     variants: {
-        /** Carbon's three field heights: 32 / 40 / 48. */
+        /** Carbon's five field heights: 32 / 40 / 48 / 64 / 80. */
         size: {
             sm: { trigger: { base: { minHeight: '2rem' } } },
             // `md` is the un-attributed render — the defaults in `base`
@@ -1998,7 +1998,7 @@ export const combobox: RecipeInput = {
         },
     },
     variants: {
-        /** Carbon's three field heights: 32 / 40 / 48. */
+        /** Carbon's five field heights: 32 / 40 / 48 / 64 / 80. */
         size: {
             sm: { control: { base: { minHeight: '2rem' } } },
             md: {},
@@ -2240,7 +2240,7 @@ export const numberInput: RecipeInput = {
         },
     },
     variants: {
-        /** Carbon's three field heights: 32 / 40 / 48. */
+        /** Carbon's five field heights: 32 / 40 / 48 / 64 / 80. */
         size: {
             sm: { control: { base: { minHeight: '2rem' } } },
             md: {},
