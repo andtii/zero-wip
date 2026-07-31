@@ -450,7 +450,16 @@ export const App = component(() => {
                     </RadioGroup.Root>
 
                     <h2>Select</h2>
-                    <Select.Root model={() => state.fruit} placeholder="Pick a fruit…">
+                    {/*
+                      * Named like the Combobox below it: the hidden input is
+                      * what a Select posts, so the interactive one carries the
+                      * field name it would have in a real form. It is also what
+                      * identifies this instance to the e2e suite — the invalid
+                      * sample beside it and the five in the size ramp are the
+                      * same anatomy, and a spec that means *this* select has to
+                      * say so rather than take whichever comes first.
+                      */}
+                    <Select.Root model={() => state.fruit} name="fruit" placeholder="Pick a fruit…">
                         <Select.Trigger>
                             <Select.Value />
                             <Select.Indicator />
