@@ -640,6 +640,13 @@
         color: color-mix(in oklab, var(--color-base-content) 75%, transparent);
     }
 
+    [data-scope="dialog"][data-part="footer"] {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--space-md);
+        margin-block-start: 1.5rem;
+    }
+
     [data-scope="dialog"][data-part="close"] {
         appearance: none;
         display: inline-flex;

@@ -378,6 +378,20 @@ export const dialog: RecipeInput = {
         description: {
             base: { margin: '0 0 var(--space-lg)', fontSize: 'var(--text-sm)', lineHeight: 'var(--leading-normal)' },
         },
+        // Actions are ruled off from the body by a full-weight line — the
+        // system's way of separating two things is a border, not whitespace.
+        // The gap clears the actions' own 2px offset shadow, so two adjacent
+        // slabs read as two, never as one malformed control.
+        footer: {
+            base: {
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 'var(--space-md)',
+                marginBlockStart: 'var(--space-xl)',
+                paddingBlockStart: 'var(--space-lg)',
+                borderBlockStart: 'var(--border) solid var(--color-base-content)',
+            },
+        },
         close: {
             base: {
                 appearance: 'none',

@@ -436,6 +436,18 @@ export const dialog: RecipeInput = {
                 color: 'color-mix(in oklab, var(--color-base-content) 75%, transparent)',
             },
         },
+        // daisy's `modal-action`: the actions sit at the trailing edge, one
+        // step of the button gap apart, pushed down by the modal's own
+        // padding value rather than by a scale step (daisy writes 1.5rem for
+        // both, as `popup` above does).
+        footer: {
+            base: {
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 'var(--space-md)',
+                marginBlockStart: '1.5rem',
+            },
+        },
         close: {
             base: btn,
             states: {

@@ -976,6 +976,14 @@
         color: var(--color-base-content);
     }
 
+    [data-scope="dialog"][data-part="footer"] {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: var(--space-xs);
+        margin-block-start: var(--space-lg);
+    }
+
     [data-scope="dialog"][data-part="close"] {
         position: relative;
         overflow: hidden;
