@@ -97,7 +97,7 @@
         --btn-accent: var(--color-error);
         --btn-on-accent: var(--color-error-content);
         --btn-soft: var(--color-error-soft);
-        --btn-ink: color-mix(in oklab, var(--color-error) 95%, var(--color-base-content));
+        --btn-ink: color-mix(in oklab, var(--color-error) 85%, var(--color-base-content));
     }
 
     [data-scope="button"][data-part="root"][data-variant="solid"] {
