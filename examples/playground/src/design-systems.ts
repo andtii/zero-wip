@@ -34,17 +34,41 @@
  * surrounding whitespace, which would read as a mismatch and misreport an
  * unregistered property as registered.
  *
- * The brief two-`<link>` window is very nearly unobservable: a stylesheet that
- * is still loading has a null `.sheet` and applies nothing, so for almost all
- * of that window only one sheet is live. NOT ALWAYS, though — the claim that
- * used to stand here ("sampling per animation frame, the number of links with
- * a non-null `.sheet` never exceeds one") is false, and `ds-smoke.spec.ts`
- * measured it: a rAF sampler across six swaps caught a two-live-sheet frame in
- * one run out of ten (chromium). `previous.remove()` runs in the microtask
- * after the incoming link's `load` event, and the sheet can go live before
- * that event is dispatched, so the frame in between paints both design
- * systems' recipes blended. One frame, on a manual switch, in a demo app —
- * filed as #256 rather than fixed here.
+ * The incoming `<link>` arrives INERT, and that is load-bearing. A stylesheet
+ * starts applying the moment it is parsed, which is BEFORE its `load` event is
+ * dispatched — so an unqualified link paints while the handler that retires
+ * the outgoing one is still queued, and the frame in between paints both
+ * design systems blended. Not a rare race, either: a rAF sampler across six
+ * swaps per run caught it in 30 runs of 30 on firefox, 17 of 30 on chromium
+ * and 6 of 30 on webkit (#256). The claim that used to stand here — "sampling
+ * per animation frame, the number of links with a non-null `.sheet` never
+ * exceeds one" — was measurement luck.
+ *
+ * So the link is appended with `media="not all"`, which matches nothing and
+ * therefore paints nothing, and the swap picks the moment it starts to apply:
+ * un-park and retire in ONE synchronous step, and no paint can land between
+ * them. Exactly one design system paints before, exactly one after.
+ *
+ * UN-PARK THROUGH THE CSSOM, NOT THE ATTRIBUTE. `link.sheet.media.mediaText =
+ * 'all'` and `link.media = 'all'` are not interchangeable here. Setting the
+ * ATTRIBUTE is applied a frame late by WebKit — a forced style read after it
+ * still reports the sheet as not applying, and only the next animation frame
+ * sees it — while `previous.remove()` takes effect at once. The frame in
+ * between then paints neither design system: swapping the blend for a flash of
+ * unstyled controls, 32 swaps in 120 on webkit, with the UA's own button
+ * chrome measured on screen. Setting the sheet's MediaList directly is applied
+ * synchronously by all three engines, so the two halves of the swap land in
+ * the same frame. The attribute is squared away afterwards, for a DOM that
+ * says what is true.
+ *
+ * Note what parking means for anything COUNTING live sheets: an inert link
+ * still has a non-null `.sheet`, so `link[data-zero-ds]` with a non-null
+ * `.sheet` now counts the loading one too. A per-frame assertion must ask
+ * whether the sheet APPLIES — its `media` — not merely whether it parsed;
+ * `ds-smoke.spec.ts` has the sampler, and the note on how to reproduce a
+ * mis-instrumented one. `activeDesignSystemId()` is unaffected: it reads the
+ * first `link[data-zero-ds]` in document order, which is the outgoing one
+ * until the swap commits, and the outgoing one is what is painting.
  */
 import { signal } from 'sigx';
 import { clearThemes, getTheme, themeController } from '@sigx/zero';
@@ -295,6 +319,13 @@ export async function activateDesignSystem(entry: DesignSystemEntry): Promise<bo
     link.rel = 'stylesheet';
     link.href = entry.href;
     link.setAttribute(LINK_ATTR, entry.id);
+    // Load it, but do not let it paint yet. A stylesheet goes live the moment
+    // it is parsed, which is BEFORE its `load` event is dispatched — so an
+    // unqualified link can be applying while the handler that retires the old
+    // one is still queued, and the frame in between paints both blended.
+    // `media="not all"` matches nothing, so the sheet arrives inert and this
+    // function decides when it applies.
+    link.media = 'not all';
 
     const loaded = await new Promise<boolean>((resolve) => {
         // Never reject: an unbuilt design system should leave the playground
@@ -310,7 +341,21 @@ export async function activateDesignSystem(entry: DesignSystemEntry): Promise<bo
         return false;
     }
 
+    // THE COMMIT — un-park and retire in ONE synchronous step. No paint can
+    // land between two statements in the same task, so the document goes from
+    // exactly one painting design system to exactly one: never two (the blend
+    // this fixes), and never zero (the flash that removing first would cause).
+    //
+    // Through the sheet's own MediaList, NOT `link.media = 'all'`: WebKit
+    // applies an attribute-driven media change a frame late while it removes a
+    // link at once, which turns this swap into the flash instead. Setting the
+    // MediaList is synchronous in all three engines. See the header.
+    if (link.sheet) link.sheet.media.mediaText = 'all';
     previous?.remove();
+    // The sheet is already painting; this only squares the DOM away, so that
+    // the committed link is an ordinary `<link rel="stylesheet">` and nothing
+    // reading the attribute is told it matches nothing.
+    link.removeAttribute('media');
 
     // Theme names are DS-specific, so the registry is replaced, not extended.
     clearThemes();
