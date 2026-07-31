@@ -42,7 +42,8 @@ Interaction state is published as data for the design system to style:
 `data-focus-visible`, and press feedback on every interactive part —
 `data-pressed` while the pointer/key is down (a press ends when the gesture
 ends: captured pointers, like a slider drag, hold it until release),
-`data-press-animating` until the press animation finishes, with the press
+`data-press-animating` until the press animation ends — finished, cancelled,
+or destroyed with the stylesheet that declared it — with the press
 point as `--press-x` / `--press-y` / `--press-r`. Checkable controls
 (Switch, Checkbox, RadioGroup) take the press from anywhere in their label
 row and surface it on the visible control. That is what makes a

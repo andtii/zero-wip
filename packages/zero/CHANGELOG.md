@@ -103,6 +103,31 @@
   recipe would have needed a descendant selector for a fact the control knows
   about itself. `checkbox/control` has carried the flag all along; this is the
   matching declaration, and the attribute is now emitted there.
+- **`data-press-animating` no longer outlives an animation destroyed with its
+  stylesheet** (#243). `createPressFeedback` cleared the flag on
+  `animationend` / `animationcancel`, plus a synchronous escape hatch for a
+  design system that animates nothing. Neither path covers the animation that
+  *vanishes*: remove the stylesheet that declared it — which a runtime
+  design-system swap does by construction — and the running `CSSAnimation` is
+  destroyed while `animationcancel` is not reliably dispatched for it. The
+  flag was then stranded for the life of the page, and any recipe rule keyed
+  on it kept painting; only a later press on the same element cleared it, by
+  accident of the restart path.
+
+  Press-start now also follows `Animation.finished` on the animations it
+  already collects for the escape-hatch check. That promise settles however
+  the animation ends — resolving when it finishes, rejecting with `AbortError`
+  when it is cancelled, stylesheet teardown included — and does not depend on
+  an event being dispatched. No duration is assumed anywhere: a `--duration-*`
+  token can be anything, so a timeout would either strand a slow animation's
+  flag or cut a fast one short. The events stay as the path for an animation
+  that starts after press-start.
+
+  Keyed to the press that armed the flag, so the cancellation a re-press
+  causes when it restarts the one-shot cannot clear the new press's flag.
+  Measured on the playground's design-system swap, single press, 20 runs per
+  engine: stranded 19/20 on webkit and 5/20 on firefox before, 0/20 on
+  webkit, firefox and chromium after.
 
 - **`RatingGroup.Item`'s default `half` symbol is now `★`, not `⯪`** (#222).
   `⯪` (U+2BEA STAR WITH LEFT HALF BLACK) has essentially no coverage in the

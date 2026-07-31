@@ -358,8 +358,11 @@ component's anatomy). No component code is ever written or changed.
        Key non-animated press effects on this (a tint, a scale, an offset).
      - `data-press-animating` — present from press-start until the part's CSS
        animation finishes, **not** until release, so a quick tap plays a
-       one-shot effect (a ripple) to completion. The runtime clears it on
-       `animationend` — put the whole effect in ONE keyframe animation whose
+       one-shot effect (a ripple) to completion. The runtime clears it when
+       that animation ends, however it ends — finished, cancelled, or
+       destroyed with the stylesheet that declared it — so a design-system
+       swap mid-ripple leaves nothing stranded. Put the whole effect in ONE
+       keyframe animation whose
        duration is `var(--duration-*)`; a rule on this flag that starts no
        animation is dead (the validator warns).
      - `--press-x` / `--press-y` — the press point in px relative to the
