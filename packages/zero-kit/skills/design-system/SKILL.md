@@ -274,11 +274,12 @@ component's anatomy). No component code is ever written or changed.
      sibling `*indicator`. Tree-view's rotating `branch-indicator` is the
      idiomatic answer; collapsible and accordion declare no indicator part, so
      the signal has nowhere to go but the header itself — a tint, an accent ink,
-     an inset rule under it. Triggers of components that open an *overlay*
-     (dialog, popover, tooltip, menu, select, combobox) are not judged: the
-     revealed thing floats above the page and takes focus, so whether the
-     trigger also changes is your call. `skipStates: { trigger: ['open'] }`
-     waives it, with a reason.
+     an inset rule under it. If you have a reason for an in-flow trigger to say
+     nothing, `skipStates: { trigger: ['open'] }` waives the rule — state the
+     reason. Triggers of components that open an *overlay* (dialog, popover,
+     tooltip, menu, select, combobox) are **outside the rule entirely**, not
+     waived by it: the revealed thing floats above the page and takes focus, so
+     whether the trigger also changes is your call and the guard never asks.
    - **A state indicator is DRAWN GEOMETRY, and it must look different in
      every state it declares.** An `indicator` part — checkbox's tick, radio's
      dot, a rating symbol, select's checkmark — exists for exactly one reason:
