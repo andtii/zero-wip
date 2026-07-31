@@ -200,6 +200,14 @@ const DISABLED_FLOOR = 2;
  * Nothing painted is NOT evidence the entry can go: a cell with no reading has
  * no ratio to clear a floor with, and reporting it stale would trade a dead
  * suppression for a deleted one that was still doing work.
+ *
+ * It reads the SAME rounded number the failure buckets read, and that is the
+ * point rather than an oversight. `failures` asks `ratio < FLOOR` and this asks
+ * `ratio >= FLOOR`: exact complements over one value, so every measured cell is
+ * in exactly one of "still failing" and "safe to delete". Giving this side an
+ * epsilon would open the gap it looks like it closes — a cell that still fails
+ * when unlisted while also being reported stale, which no edit can satisfy.
+ * Move the rounding and both sides move together; that is the invariant.
  */
 interface Suppressible {
     key: string;
