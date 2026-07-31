@@ -131,13 +131,25 @@ place HeroUI's and carbon's fused colour vocabulary (`danger-soft`,
 `danger-ghost`) exists at all. `data-size` is deliberately out: it moves
 metrics, not ink. `disabled` is no longer dropped — it answers to its own 2:1
 floor, measured on the colour pair the recipe chose *before* the state's
-uniform `opacity` fade, with the faded ratio annotated beside it; and the hidden-parts
-guard, which walks all six design systems asserting every
-`[data-scope][data-part][hidden]` computes `display: none` — a layered cascade
-happy-dom cannot resolve): `pnpm build`,
+uniform `opacity` fade, with the faded ratio annotated beside it; and the
+**DS-generic smoke spec** (`e2e/ds-smoke.spec.ts`), the only spec that loads
+more than one design system — it walks all six, three engines for the cascade
+claim and one for the DOM ones, asserting that every
+`[data-scope][data-part][hidden]` computes `display: none` (a layered cascade
+happy-dom cannot resolve), that no element renders a
+`data-color`/`data-size`/`data-variant`/`data-mod-*` value the live manifest
+does not declare, that a toolbar switch leaves exactly one live
+`link[data-zero-ds]` and refetches the vocabulary and theme registry, and that
+boot logs no console error): `pnpm build`,
 then `pnpm --filter zero-playground e2e` (first run:
-`pnpm --filter zero-playground exec playwright install`). CI runs them on
-every PR. The root `pnpm
+`pnpm --filter zero-playground exec playwright install`). Filtering needs
+`exec` — `pnpm --filter zero-playground e2e -- <name>` drops the argument and
+runs everything; use
+`pnpm --filter zero-playground exec playwright test <file> --project=<project>`.
+The dev server's port is `ZERO_E2E_PORT` (default 5199) — set it to run the
+suite from two worktrees at once, since `reuseExistingServer` would otherwise
+let the second borrow the first's server and test the wrong code. CI runs them
+on every PR. The root `pnpm
 typecheck` excludes `examples/`, so the playground has its own:
 `pnpm --filter zero-playground typecheck`.
 
