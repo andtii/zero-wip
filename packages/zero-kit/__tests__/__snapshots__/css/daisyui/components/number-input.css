@@ -72,7 +72,7 @@
     }
 
     [data-scope="number-input"][data-part="input"]::placeholder {
-        opacity: 0.5;
+        color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
     }
 
     [data-scope="number-input"][data-part="increment-trigger"] {

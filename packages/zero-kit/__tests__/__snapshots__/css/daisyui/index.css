@@ -1830,7 +1830,7 @@
     }
 
     [data-scope="select"][data-part="value"][data-placeholder] {
-        opacity: 0.5;
+        color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
     }
 
     [data-scope="select"][data-part="indicator"] {
@@ -2512,7 +2512,7 @@
     }
 
     [data-scope="combobox"][data-part="input"]::placeholder {
-        opacity: 0.5;
+        color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
     }
 
     [data-scope="combobox"][data-part="trigger"] {
@@ -3037,7 +3037,7 @@
     }
 
     [data-scope="number-input"][data-part="input"]::placeholder {
-        opacity: 0.5;
+        color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
     }
 
     [data-scope="number-input"][data-part="increment-trigger"] {

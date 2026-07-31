@@ -104,7 +104,7 @@
 
     [data-scope="button"][data-part="root"][data-mod-pending] {
         cursor: progress;
-        opacity: 0.7;
+        opacity: 0.8;
     }
 
     [data-scope="button"][data-part="root"][data-variant="danger"][data-mod-icon-only] {

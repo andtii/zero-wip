@@ -52,7 +52,7 @@
     }
 
     [data-scope="select"][data-part="value"][data-placeholder] {
-        opacity: 0.5;
+        color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
     }
 
     [data-scope="select"][data-part="indicator"] {
