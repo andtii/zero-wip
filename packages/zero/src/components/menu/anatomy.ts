@@ -38,11 +38,14 @@ export const menuAnatomy = defineAnatomy('menu', {
     },
     // The right-click surface. Additive (context menu = the same menu opened
     // at pointer coordinates); typically the consumer's own content, so
-    // recipes usually leave it unstyled.
+    // recipes usually leave it unstyled. `focus-visible` is declared even so:
+    // the surface is a tab stop whenever the consumer makes it one, Escape
+    // restores focus to it, and without the flag a design system has nothing
+    // to hang its own ring on — the UA default is the only alternative.
     'context-trigger': {
         element: 'div',
         states: ['open', 'closed'],
-        flags: ['disabled'],
+        flags: ['disabled', 'focus-visible'],
         asChild: true,
     },
     group: {

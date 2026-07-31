@@ -240,15 +240,17 @@ export type MenuContextTriggerProps =
  * event; pair with `-webkit-touch-callout: none` and a long-press
  * recognizer of your own until zero grows one.
  */
-const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots }) => {
+const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots, signal }) => {
     const menu = useMenuContext();
     let el: HTMLElement | null = null;
+    const focus = signal({ visible: false });
 
     const bag = (): PartProps => ({
         'data-scope': SCOPE,
         'data-part': 'context-trigger',
         'data-state': stateAttr(menu.state.value, 'open', 'closed'),
         'data-disabled': dataAttr(props.disabled),
+        'data-focus-visible': dataAttr(focus.visible),
         'aria-haspopup': 'menu',
         'aria-expanded': menu.state.value ? 'true' : 'false',
         'aria-controls': menu.ids.popup,
@@ -304,6 +306,13 @@ const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots })
                 menu.state.value = true;
             }
         },
+        // `focus`/`blur` don't bubble, so this reports the SURFACE's own
+        // focus — never a descendant's, which carries its own ring. The
+        // surface is a tab stop only when the consumer makes it one, and
+        // that is exactly when a design system may want to paint it: Escape
+        // from an open context menu restores focus here.
+        onFocus: () => { focus.visible = isFocusVisible(el); },
+        onBlur: () => { focus.visible = false; },
     });
 
     return () => {

@@ -32,13 +32,14 @@ body {
  * The context-menu demo surface's focus ring.
  *
  * `menu/context-trigger` is `asChild` over whatever the consumer wraps, and
- * its anatomy declares flags `['disabled']` only — there is no
- * `focus-visible` flag for a recipe to hook, and the anatomy comment says so
- * outright ("typically the consumer's own content, so recipes usually leave
- * it unstyled"). None of the six design systems paints it. So dismissing the
- * context menu returned focus to the box and Chromium drew its own
- * `1px auto rgb(0, 95, 204)` — the single element on the page not speaking
- * the design system's focus language.
+ * the anatomy comment says so outright ("typically the consumer's own
+ * content, so recipes usually leave it unstyled"). The part now carries a
+ * `focus-visible` flag a recipe COULD hook (#252), but none of the six design
+ * systems paints it — heroui and carbon decline it explicitly through
+ * `skipStates`. Without this rule, dismissing the context menu returns focus
+ * to the box and Chromium draws its own `1px auto rgb(0, 95, 204)` — the
+ * single element on the page not speaking the design system's focus
+ * language.
  *
  * Styling the consumer's surface is therefore the consumer's job, and this
  * playground is that consumer. It cannot reach a design system's focus ring:
