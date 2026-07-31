@@ -254,7 +254,7 @@ PR, and the docs-site update is queued (as a docs-repo issue) before merge.
 | add / rename / remove a package | `AGENTS.md` "Packages" and the README package table — plus the `tsconfig` / `vitest` path aliases |
 | add / change a component's anatomy | the component's `anatomy.ts` (source of truth), its tests, and the package `README.md` |
 | change a build / test / lint script | `AGENTS.md` "Build, Test, Lint", `package.json` |
-| change or add public API / behavior | the package's own `README.md`, and `CHANGELOG.md` **if the package keeps one** — see below |
+| change or add public API / behavior | the package's own `README.md`, and that same package's own `CHANGELOG.md` **if it keeps one** (never a repo-root one — there isn't one) — see below |
 | change the workflow / process itself | `AGENTS.md` here — and upstream to [`signalxjs/repo-template`](https://github.com/signalxjs/repo-template) |
 
 **Only `@sigx/zero` and `@sigx/zero-kit` keep a `CHANGELOG.md`.** The six
