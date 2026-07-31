@@ -6,7 +6,7 @@
  * input (a caret click) keeps the list open, while a genuinely outside
  * click closes it.
  */
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
@@ -17,16 +17,32 @@ test.beforeEach(async ({ page }) => {
     await page.getByRole('tab', { name: 'Forms' }).click();
 });
 
-const input = (page: import('@playwright/test').Page) =>
-    page.locator('[data-scope="combobox"][data-part="input"]');
-const popup = (page: import('@playwright/test').Page) =>
-    page.locator('[data-scope="combobox"][data-part="popup"]');
+/**
+ * The country Combobox, named — the Forms tab renders three (this one, a
+ * readonly sample and an invalid one) and will render more.
+ *
+ * Every locator below hangs off this root instead of resolving a bare
+ * `[data-scope="combobox"][data-part=…]` across the page. `.first()` is not
+ * the fix: it resolves by document order, so the spec would silently retarget
+ * the moment the demo grows a sibling, and then pass — or fail — for a reason
+ * that has nothing to do with the dismiss layer. The root is identified by the
+ * field name it posts, which is this instance's identity rather than its
+ * position.
+ */
+const demo = (page: Page) =>
+    page.locator('[data-scope="combobox"][data-part="root"]')
+        .filter({ has: page.locator('[data-scope="combobox"][data-part="hidden-input"][name="country"]') });
+
+const part = (page: Page, name: string) =>
+    demo(page).locator(`[data-scope="combobox"][data-part="${name}"]`);
+const input = (page: Page) => part(page, 'input');
+const popup = (page: Page) => part(page, 'popup');
 
 test('typing filters, a caret click keeps the list open, outside click closes', async ({ page }) => {
     await input(page).click();
     await input(page).pressSequentially('den');
     await expect(popup(page)).toHaveAttribute('data-state', 'open');
-    const items = page.locator('[data-scope="combobox"][data-part="item"]');
+    const items = part(page, 'item');
     await expect(items).toHaveCount(2); // Denmark, Sweden
     // A click back into the input must NOT light-dismiss the manual popover.
     await input(page).click();
@@ -43,5 +59,5 @@ test('keyboard selects and fills the input; the form value follows', async ({ pa
     await input(page).press('Enter');
     await expect(input(page)).toHaveValue('Iceland');
     await expect(popup(page)).toHaveAttribute('data-state', 'closed');
-    await expect(page.locator('[data-scope="combobox"][data-part="hidden-input"]')).toHaveValue('iceland');
+    await expect(part(page, 'hidden-input')).toHaveValue('iceland');
 });

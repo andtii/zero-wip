@@ -16,7 +16,7 @@
  *   before the hide lands, Firefox does not. Those tests assert the press
  *   lifecycle and the activation outcome, not the ripple.
  */
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
 
 const media = (name: string) => name === 'reduced-motion' || name === 'forced-colors';
 
@@ -87,6 +87,30 @@ const expectSequence = (log: string[], entries: string[]) => {
 const part = (page: Page, scope: string, name: string) =>
     page.locator(`[data-scope="${scope}"][data-part="${name}"]`);
 
+/**
+ * The parts of ONE named instance of `scope`, rather than of whichever one
+ * comes first.
+ *
+ * The playground renders several of most components — a size ramp, invalid
+ * and readonly samples — and will render more. `.first()` picks by document
+ * order, so it silently retargets when the page grows: #241 spent a long
+ * investigation on exactly that. These tests care *which* control they press,
+ * because the assertion is about that control's own press lifecycle, so each
+ * one names its instance instead: by the text a reader can see on it
+ * (`demoLabelled`) or by the field name it posts (`demoPosting`). Either
+ * survives a reshuffle; document order does not.
+ */
+const partsOf = (root: Locator, scope: string) =>
+    (name: string) => root.locator(`[data-scope="${scope}"][data-part="${name}"]`);
+const demoLabelled = (page: Page, scope: string, text: string) =>
+    partsOf(part(page, scope, 'root').filter({ hasText: text }), scope);
+const demoPosting = (page: Page, scope: string, name: string) =>
+    partsOf(
+        part(page, scope, 'root')
+            .filter({ has: page.locator(`[data-scope="${scope}"][data-part="hidden-input"][name="${name}"]`) }),
+        scope,
+    );
+
 test('button: a real click plays the full press lifecycle, ripple outliving release', async ({ page }) => {
     test.skip(media(test.info().project.name), 'covered by the media-specific tests');
     await part(page, 'button', 'root').first().click();
@@ -138,9 +162,13 @@ test('tabs: click ripples; arrow roving still works and is not a press', async (
 });
 
 test('switch: pressing the label row marks the control and toggles exactly once', async ({ page }) => {
-    const input = part(page, 'switch', 'hidden-input').first();
+    // The Notifications switch on the Components tab. Its label row and its
+    // hidden input have to belong to the SAME switch for "toggles exactly
+    // once" to mean anything — two `.first()` calls only agreed by accident.
+    const notifications = demoLabelled(page, 'switch', 'Notifications');
+    const input = notifications('hidden-input');
     const before = await input.isChecked();
-    await part(page, 'switch', 'label').first().click();
+    await notifications('label').click();
     const log = await logWith(page, 'switch/control:data-pressed:off');
     expectSequence(log, ['switch/control:data-pressed:on', 'switch/control:data-pressed:off']);
     expect(log).not.toContain('switch/root:data-pressed:on');
@@ -153,8 +181,13 @@ test('checkbox and radio: label-row press lands on the control with the halo rip
     test.skip(media(test.info().project.name), 'covered by the media-specific tests');
     await part(page, 'tabs', 'tab').nth(1).click(); // Forms
     await clearLog(page);
-    await part(page, 'checkbox', 'label').first().click();
-    await part(page, 'radio-group', 'item-label').nth(1).click();
+    // Both rows are on the Forms tab. The Components tab's size ramp also
+    // renders a checkbox per step — `.first()` reached one of those, in the
+    // panel this test just navigated away from, and waited 30s for a hidden
+    // element to become clickable.
+    await demoLabelled(page, 'checkbox', 'Weekly newsletter')('label').click();
+    // One group, three items: the item is named, not counted off.
+    await part(page, 'radio-group', 'item-label').filter({ hasText: 'Pro' }).click();
     const log = await logWith(page, 'anim:radio-ripple');
     expectSequence(log, ['checkbox/control:data-pressed:on', 'anim:checkbox-ripple']);
     expectSequence(log, ['radio-group/item-control:data-pressed:on', 'anim:radio-ripple']);
@@ -164,15 +197,19 @@ test('select: the trigger ripples; a real option press selects', async ({ page }
     test.skip(media(test.info().project.name), 'covered by the media-specific tests');
     await part(page, 'tabs', 'tab').nth(1).click(); // Forms
     await clearLog(page);
-    await part(page, 'select', 'trigger').click();
+    // The fruit select — the one that posts `name="fruit"`. The Forms tab
+    // renders an invalid sample with the same placeholder and the same three
+    // options, and the size ramp renders one per step: seven triggers in all.
+    const fruit = demoPosting(page, 'select', 'fruit');
+    await fruit('trigger').click();
     const log = await logWith(page, 'anim:select-ripple');
     expectSequence(log, ['select/trigger:data-pressed:on', 'anim:select-ripple']);
-    await part(page, 'select', 'item').first().click();
+    await fruit('item').filter({ hasText: 'Apple' }).click();
     // The option's own ripple races the popup close (engine-dependent) —
     // assert the press and the outcome, not the animation.
     const itemLog = await logWith(page, 'select/item:data-pressed:off');
     expectSequence(itemLog, ['select/item:data-pressed:on', 'select/item:data-pressed:off']);
-    await expect(part(page, 'select', 'value')).not.toHaveText(/Pick a fruit/);
+    await expect(fruit('value')).not.toHaveText(/Pick a fruit/);
 });
 
 test('menu: the trigger ripples; a real item press activates and closes', async ({ page }) => {
@@ -195,7 +232,9 @@ test('disclosure triggers ripple on their native summaries', async ({ page }) =>
 
 test('slider: the press survives a drag that leaves the track (capture) and never one-shots', async ({ page }) => {
     await part(page, 'tabs', 'tab').nth(1).click(); // Forms
-    const slider = part(page, 'slider', 'control');
+    // The Volume slider — the Forms tab also renders an invalid one, whose
+    // control is the same anatomy.
+    const slider = demoLabelled(page, 'slider', 'Volume')('control');
     await slider.hover(); // scrolls into view; coordinates measured after
     const box = (await slider.boundingBox())!;
     const before = await slider.evaluate((el) => (el as HTMLInputElement).value);
