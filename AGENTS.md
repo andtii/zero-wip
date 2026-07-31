@@ -254,8 +254,19 @@ PR, and the docs-site update is queued (as a docs-repo issue) before merge.
 | add / rename / remove a package | `AGENTS.md` "Packages" and the README package table — plus the `tsconfig` / `vitest` path aliases |
 | add / change a component's anatomy | the component's `anatomy.ts` (source of truth), its tests, and the package `README.md` |
 | change a build / test / lint script | `AGENTS.md` "Build, Test, Lint", `package.json` |
-| change or add public API / behavior | the package's own `README.md` and `CHANGELOG.md` under `[Unreleased]` |
+| change or add public API / behavior | the package's own `README.md`, and that same package's own `CHANGELOG.md` **if it keeps one** (never a repo-root one — there isn't one) — see below |
 | change the workflow / process itself | `AGENTS.md` here — and upstream to [`signalxjs/repo-template`](https://github.com/signalxjs/repo-template) |
+
+**Only `@sigx/zero` and `@sigx/zero-kit` keep a `CHANGELOG.md`.** The six
+design-system packages deliberately do not — nothing has been released yet, so
+a skin has no history to record, and lockstep versioning means one never ships
+independently of the contract anyway. A user-facing note about a skin goes in
+that package's `README.md`.
+
+Do not add a `CHANGELOG.md` to a design-system package. Adding one to whichever
+skin a PR happens to touch is how a convention ends up followed one-sixth of
+the time, which reads as signal when it isn't. Revisit this at the first
+release if a skin ever needs its own history.
 
 **The docs *site* is separate — don't edit it from here.** Before merging a PR
 with user-facing changes, file an issue on
