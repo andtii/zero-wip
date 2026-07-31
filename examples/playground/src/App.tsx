@@ -437,16 +437,24 @@ export const App = component(() => {
                     <Field.Root invalid required>
                         <Field.Label>Terms</Field.Label>
                         <Checkbox.Root>I accept the terms</Checkbox.Root>
-                        {/*
-                          * Two controls, one field: "every zero control inside
-                          * adopts it" is only a claim while one control is
-                          * standing there alone. Switch was in fact the one
-                          * that did not — it read no Field context at all
-                          * until #269 — and nothing here would have shown it.
-                          */}
-                        <Switch.Root>Email me about changes</Switch.Root>
                         <Field.Description>Required before the form can be submitted.</Field.Description>
                         <Field.Error>You must accept the terms to continue.</Field.Error>
+                    </Field.Root>
+                    {/*
+                      * Its OWN field, not a second control in the one above:
+                      * a `Field.Root` mints exactly one `ids.control`, so two
+                      * controls under one field is a duplicate `id` and a
+                      * `for` that resolves to whichever came first.
+                      *
+                      * Rendered at all because "every zero control inside
+                      * adopts it" was a claim with one control standing behind
+                      * it. Switch was the one that did not — it read no Field
+                      * context whatsoever until #269.
+                      */}
+                    <Field.Root invalid required>
+                        <Field.Label>Change notifications</Field.Label>
+                        <Switch.Root>Email me about changes</Switch.Root>
+                        <Field.Error>Pick a delivery method.</Field.Error>
                     </Field.Root>
                     <p>
                         A checkbox has three states, not two: <code>indeterminate</code>{' '}
