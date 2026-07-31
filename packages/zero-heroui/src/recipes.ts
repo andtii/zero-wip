@@ -341,6 +341,12 @@ export const switchRecipe: RecipeInput = {
                 checked: { background: 'var(--hero-primary)' },
                 unchecked: {},
                 disabled: {},
+                // The system's error idiom is a danger BORDER, and this track
+                // has none to recolour — adding one would move the thumb's
+                // geometry. An inset ring is the same mark at the same weight,
+                // drawn inside the box instead of around it, and it survives
+                // the checked fill.
+                invalid: { boxShadow: 'inset 0 0 0 2px var(--hero-danger)' },
                 ...focusRing,
             },
         },
@@ -1361,8 +1367,19 @@ export const button: RecipeInput = {
         'icon-only': {
             root: { base: { padding: 'var(--space-sm)', aspectRatio: '1', gap: '0' } },
         },
+        /**
+         * `pending` is a LOADING state, not a disabled one: the reader is
+         * waiting on that label, so it gets no WCAG 1.4.3 carve-out and no
+         * lower floor. At 0.7 the group fade took the label with the fill and
+         * dropped `primary` to 2.92:1 and `outline` to 2.97:1 on the light
+         * theme (#263) — under the floor by a hair, in the one state where the
+         * text matters most.
+         *
+         * 0.8 keeps the fade legible as a fade (with `cursor: progress` saying
+         * the rest) while clearing 3:1 on every variant and theme.
+         */
         pending: {
-            root: { base: { cursor: 'progress', opacity: '0.7' } },
+            root: { base: { cursor: 'progress', opacity: '0.8' } },
         },
     },
     compoundVariants: [

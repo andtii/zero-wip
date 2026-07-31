@@ -73,4 +73,12 @@
     [data-scope="toggle-group"][data-part="root"][data-size="lg"] [data-scope="toggle-group"][data-part="item"] {
         min-height: 3rem;
     }
+
+    [data-scope="toggle-group"][data-part="root"][data-size="xl"] [data-scope="toggle-group"][data-part="item"] {
+        min-height: 4rem;
+    }
+
+    [data-scope="toggle-group"][data-part="root"][data-size="2xl"] [data-scope="toggle-group"][data-part="item"] {
+        min-height: 5rem;
+    }
 }

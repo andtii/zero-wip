@@ -35,6 +35,12 @@
         border-color: var(--switch-accent);
     }
 
+    [data-scope="switch"][data-part="control"][data-invalid] {
+        --switch-accent: var(--color-error);
+        --switch-on-accent: var(--color-error-content);
+        border-color: var(--color-error);
+    }
+
     [data-scope="switch"][data-part="control"][data-focus-visible] {
         outline: 3px solid var(--color-secondary);
         outline-offset: 2px;

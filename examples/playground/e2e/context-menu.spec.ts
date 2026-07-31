@@ -5,6 +5,7 @@
  * Escape restores focus to the surface.
  */
 import { test, expect } from '@playwright/test';
+import { controlledPopup, settledBox } from './demo';
 
 test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
@@ -17,30 +18,14 @@ test.beforeEach(async ({ page }) => {
 const surface = (page: import('@playwright/test').Page) =>
     page.locator('[data-scope="menu"][data-part="context-trigger"]');
 // The demo page holds several menus; aria-controls pins THE popup this
-// surface opens.
-async function popup(page: import('@playwright/test').Page) {
-    const id = await surface(page).getAttribute('aria-controls');
-    return page.locator(`#${id}`);
-}
-
-/**
- * The enter transition translates the popup; measure only after it lands.
- *
- * The visibility wait is load-bearing, not politeness: the popup is a native
- * `popover="auto"`, so while closed the UA gives it `display: none` and
- * `boundingBox()` returns **null**. Asserting it first turns "the popup was
- * not showing" into that sentence instead of a `TypeError` on `.x` three
- * lines later.
- */
-async function settledBox(loc: import('@playwright/test').Locator) {
-    await expect(loc).toBeVisible();
-    await loc.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished.catch(() => {}))));
-    return (await loc.boundingBox())!;
-}
+// surface opens. (`Menu.Root` renders no element, so there is no demo root to
+// hang the popup off — the published id is the link. See `demo.ts`.)
+const popup = (page: import('@playwright/test').Page) =>
+    controlledPopup(page, surface(page), 'context surface');
 
 async function rightClickAt(page: import('@playwright/test').Page, dx: number, dy: number) {
     await surface(page).scrollIntoViewIfNeeded();
-    const box = (await surface(page).boundingBox())!;
+    const box = await settledBox(surface(page), 'context surface');
     const x = box.x + dx;
     const y = box.y + dy;
     await page.mouse.click(x, y, { button: 'right' });
@@ -50,7 +35,7 @@ async function rightClickAt(page: import('@playwright/test').Page, dx: number, d
 test('right-click opens the popup at the pointer', async ({ page }) => {
     const { x, y } = await rightClickAt(page, 60, 40);
     await expect(await popup(page)).toHaveAttribute('data-state', 'open');
-    const pb = await settledBox(await popup(page));
+    const pb = await settledBox(await popup(page), 'context popup');
     // bottom-start off a zero-size anchor: the popup's top-left hugs the
     // point (offset 4, flip/shift may nudge, so a loose tolerance).
     expect(Math.abs(pb.x - x)).toBeLessThan(24);
@@ -94,7 +79,7 @@ test('right-click opens the popup at the pointer', async ({ page }) => {
 test('a second right-click re-anchors the popup to the new point', async ({ page }) => {
     await rightClickAt(page, 40, 30);
     const p = await popup(page);
-    const first = await settledBox(p);
+    const first = await settledBox(p, 'context popup');
     // Well clear of the open popup — a right-click INSIDE it belongs to the
     // popup, not the surface.
     const { x } = await rightClickAt(page, 420, 20);
@@ -108,7 +93,7 @@ test('a second right-click re-anchors the popup to the new point', async ({ page
         }, { message: 'popup re-anchored to the second right-click' })
         .toBeLessThan(24);
     await expect(p).toHaveAttribute('data-state', 'open');
-    const second = await settledBox(p);
+    const second = await settledBox(p, 'context popup (re-anchored)');
     // The poll samples a RAW box, so it can be satisfied mid-transition. Assert
     // the same tolerance on the SETTLED box too, or an enter transition that
     // animates position could pass through the target and come to rest
@@ -132,8 +117,8 @@ test('Shift+F10 opens anchored to the surface element', async ({ page }) => {
     await surface(page).focus();
     await page.keyboard.press('Shift+F10');
     await expect(await popup(page)).toHaveAttribute('data-state', 'open');
-    const sb = (await surface(page).boundingBox())!;
-    const pb = await settledBox(await popup(page));
+    const sb = await settledBox(surface(page), 'context surface');
+    const pb = await settledBox(await popup(page), 'context popup');
     // Anchored to the element rect (bottom-start), not to a stale pointer.
     expect(Math.abs(pb.x - sb.x)).toBeLessThan(24);
 });

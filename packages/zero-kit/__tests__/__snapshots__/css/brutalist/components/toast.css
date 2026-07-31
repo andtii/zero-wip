@@ -69,7 +69,7 @@
         align-items: center;
         column-gap: var(--space-md);
         padding: var(--space-md) var(--space-lg);
-        border-left: calc(var(--border) * 2) solid var(--toast-accent);
+        border-inline-start: calc(var(--border) * 2) solid var(--toast-accent);
         box-shadow: var(--shadow-md);
         font-size: var(--text-sm);
         opacity: 0;

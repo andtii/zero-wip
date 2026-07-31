@@ -32,6 +32,11 @@
         background: var(--carbon-toggle-on);
     }
 
+    [data-scope="switch"][data-part="control"][data-invalid] {
+        outline: 2px solid var(--carbon-danger);
+        outline-offset: -2px;
+    }
+
     [data-scope="switch"][data-part="control"][data-focus-visible] {
         outline: 2px solid var(--carbon-focus);
         outline-offset: -2px;
@@ -69,5 +74,15 @@
     [data-scope="switch"][data-part="root"][data-size="lg"] {
         --switch-width: calc(var(--size-selector) * 14);
         --switch-height: calc(var(--size-selector) * 7);
+    }
+
+    [data-scope="switch"][data-part="root"][data-size="xl"] {
+        --switch-width: calc(var(--size-selector) * 18);
+        --switch-height: calc(var(--size-selector) * 9);
+    }
+
+    [data-scope="switch"][data-part="root"][data-size="2xl"] {
+        --switch-width: calc(var(--size-selector) * 24);
+        --switch-height: calc(var(--size-selector) * 12);
     }
 }

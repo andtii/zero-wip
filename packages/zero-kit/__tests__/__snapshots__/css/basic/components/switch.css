@@ -34,6 +34,10 @@
         box-shadow: none;
     }
 
+    [data-scope="switch"][data-part="control"][data-invalid] {
+        box-shadow: inset 0 0 0 calc(var(--border) * 2) var(--color-error);
+    }
+
     [data-scope="switch"][data-part="control"][data-focus-visible] {
         outline: 2px solid var(--color-primary);
         outline-offset: 2px;

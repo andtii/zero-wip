@@ -10,6 +10,10 @@
         font-family: var(--font-sans);
     }
 
+    [data-scope="radio-group"][data-part="root"][data-invalid] [data-part="item-control"] {
+        border-color: var(--carbon-danger);
+    }
+
     [data-scope="radio-group"][data-part="label"] {
         font-size: var(--text-xs);
         font-weight: var(--weight-normal);
@@ -76,5 +80,13 @@
 
     [data-scope="radio-group"][data-part="root"][data-size="lg"] {
         --radio-size: calc(var(--size-selector) * 5.5);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="xl"] {
+        --radio-size: calc(var(--size-selector) * 7);
+    }
+
+    [data-scope="radio-group"][data-part="root"][data-size="2xl"] {
+        --radio-size: calc(var(--size-selector) * 9);
     }
 }

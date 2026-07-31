@@ -493,6 +493,10 @@
         background-color: var(--color-base-100);
     }
 
+    [data-scope="switch"][data-part="control"][data-invalid] {
+        border-color: var(--color-error);
+    }
+
     [data-scope="switch"][data-part="control"][data-focus-visible] {
         outline: 2px solid var(--switch-accent);
         outline-offset: 2px;
@@ -1343,6 +1347,10 @@
         gap: 0.625rem;
     }
 
+    [data-scope="radio-group"][data-part="root"][data-invalid] [data-part="item-control"] {
+        border-color: var(--color-error);
+    }
+
     [data-scope="radio-group"][data-part="label"] {
         font-size: var(--text-sm);
         font-weight: var(--weight-semibold);
@@ -1849,7 +1857,7 @@
     }
 
     [data-scope="select"][data-part="value"][data-placeholder] {
-        opacity: 0.5;
+        color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
     }
 
     [data-scope="select"][data-part="indicator"] {
@@ -2531,7 +2539,7 @@
     }
 
     [data-scope="combobox"][data-part="input"]::placeholder {
-        opacity: 0.5;
+        color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
     }
 
     [data-scope="combobox"][data-part="trigger"] {
@@ -3056,7 +3064,7 @@
     }
 
     [data-scope="number-input"][data-part="input"]::placeholder {
-        opacity: 0.5;
+        color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
     }
 
     [data-scope="number-input"][data-part="increment-trigger"] {

@@ -16,7 +16,8 @@
  *   before the hide lands, Firefox does not. Those tests assert the press
  *   lifecycle and the activation outcome, not the ripple.
  */
-import { test, expect, type Locator, type Page } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+import { controlledPopup, demoLabelled, demoPosting, settledBox } from './demo';
 
 const media = (name: string) => name === 'reduced-motion' || name === 'forced-colors';
 
@@ -84,36 +85,38 @@ const expectSequence = (log: string[], entries: string[]) => {
     }
 };
 
+/**
+ * A part of the ONE component of that scope the playground renders. Strict
+ * mode is the guard: a second instance turns this into a visible failure
+ * rather than a silent pick. Anything rendered more than once is located
+ * through a named demo root instead — `demoLabelled` / `demoPosting`, from
+ * `demo.ts`, which also states the convention.
+ */
 const part = (page: Page, scope: string, name: string) =>
     page.locator(`[data-scope="${scope}"][data-part="${name}"]`);
 
 /**
- * The parts of ONE named instance of `scope`, rather than of whichever one
- * comes first.
+ * The toolbar's `system` theme button — the one these press tests drive.
  *
- * The playground renders several of most components — a size ramp, invalid
- * and readonly samples — and will render more. `.first()` picks by document
- * order, so it silently retargets when the page grows: #241 spent a long
- * investigation on exactly that. These tests care *which* control they press,
- * because the assertion is about that control's own press lifecycle, so each
- * one names its instance instead: by the text a reader can see on it
- * (`demoLabelled`) or by the field name it posts (`demoPosting`). Either
- * survives a reshuffle; document order does not.
+ * It is also what `part(page, 'button', 'root').first()` used to resolve to,
+ * since the toolbar precedes the panels: the same element, now named. Every
+ * other Button on the page is labelled from the live design system's own
+ * vocabulary (`solid`, `primary`, a colour role), so there is nothing stable to
+ * name them by — and a `.first()` over the lot is exactly the retarget that
+ * cost #241 a long investigation.
  */
-const partsOf = (root: Locator, scope: string) =>
-    (name: string) => root.locator(`[data-scope="${scope}"][data-part="${name}"]`);
-const demoLabelled = (page: Page, scope: string, text: string) =>
-    partsOf(part(page, scope, 'root').filter({ hasText: text }), scope);
-const demoPosting = (page: Page, scope: string, name: string) =>
-    partsOf(
-        part(page, scope, 'root')
-            .filter({ has: page.locator(`[data-scope="${scope}"][data-part="hidden-input"][name="${name}"]`) }),
-        scope,
-    );
+const pressButton = (page: Page) => page.getByRole('button', { name: 'system', exact: true });
+
+/** The Actions menu, and the popup its trigger publishes through aria-controls. */
+const actionsTrigger = (page: Page) => page.getByRole('button', { name: 'Actions', exact: true });
+const actionsPopup = (page: Page) => controlledPopup(page, actionsTrigger(page), 'the Actions menu trigger');
+
+/** The Forms panel. */
+const openForms = (page: Page) => page.getByRole('tab', { name: 'Forms', exact: true }).click();
 
 test('button: a real click plays the full press lifecycle, ripple outliving release', async ({ page }) => {
     test.skip(media(test.info().project.name), 'covered by the media-specific tests');
-    await part(page, 'button', 'root').first().click();
+    await pressButton(page).click();
     const log = await logWith(page, 'button/root:data-press-animating:off');
     expectSequence(log, ['button/root:data-pressed:on', 'button/root:data-pressed:off']);
     expectSequence(log, [
@@ -129,7 +132,7 @@ test('button: real keyboard Enter presses at the center', async ({ page }) => {
     // WebKit occasionally hasn't granted a fresh headless page keyboard
     // focus when the first synthetic key arrives — focus-and-press until the
     // press registers instead of pressing once into the void.
-    const button = part(page, 'button', 'root').first();
+    const button = pressButton(page);
     await expect
         .poll(async () => {
             await button.focus();
@@ -142,6 +145,10 @@ test('button: real keyboard Enter presses at the center', async ({ page }) => {
 });
 
 test('disabled button: nothing is published', async ({ page }) => {
+    // Positional, and safe by construction: the selector itself pins the only
+    // property under test (`data-disabled`), and the assertion is negative and
+    // universal — NOTHING may be published. Landing on a different disabled
+    // button in the variant matrix proves exactly the same thing.
     await page.locator('[data-scope="button"][data-part="root"][data-disabled]').first()
         .click({ force: true });
     await page.waitForTimeout(300);
@@ -150,6 +157,8 @@ test('disabled button: nothing is published', async ({ page }) => {
 
 test('tabs: click ripples; arrow roving still works and is not a press', async ({ page }) => {
     test.skip(media(test.info().project.name), 'covered by the media-specific tests');
+    // The playground renders one Tabs; `first`/`nth` index ITS own tab strip,
+    // which is the convention's carve-out.
     const tabs = part(page, 'tabs', 'tab');
     await tabs.first().click();
     const log = await logWith(page, 'anim:tab-ripple');
@@ -179,7 +188,7 @@ test('switch: pressing the label row marks the control and toggles exactly once'
 
 test('checkbox and radio: label-row press lands on the control with the halo ripple', async ({ page }) => {
     test.skip(media(test.info().project.name), 'covered by the media-specific tests');
-    await part(page, 'tabs', 'tab').nth(1).click(); // Forms
+    await openForms(page);
     await clearLog(page);
     // Both rows are on the Forms tab. The Components tab's size ramp also
     // renders a checkbox per step — `.first()` reached one of those, in the
@@ -195,7 +204,7 @@ test('checkbox and radio: label-row press lands on the control with the halo rip
 
 test('select: the trigger ripples; a real option press selects', async ({ page }) => {
     test.skip(media(test.info().project.name), 'covered by the media-specific tests');
-    await part(page, 'tabs', 'tab').nth(1).click(); // Forms
+    await openForms(page);
     await clearLog(page);
     // The fruit select — the one that posts `name="fruit"`. The Forms tab
     // renders an invalid sample with the same placeholder and the same three
@@ -214,13 +223,19 @@ test('select: the trigger ripples; a real option press selects', async ({ page }
 
 test('menu: the trigger ripples; a real item press activates and closes', async ({ page }) => {
     test.skip(media(test.info().project.name), 'covered by the media-specific tests');
-    await part(page, 'menu', 'trigger').click();
+    // The Actions menu. `menu/popup`.first() and `menu/item`.first() reached
+    // across BOTH menus on the page and picked this one only because the
+    // Actions demo precedes the context menu in document order. `Menu.Root`
+    // renders no element, so the popup is a SIBLING of the trigger — the
+    // trigger's `aria-controls` is what ties the two together.
+    const popup = await actionsPopup(page);
+    await actionsTrigger(page).click();
     const log = await logWith(page, 'anim:menu-ripple');
     expectSequence(log, ['menu/trigger:data-pressed:on', 'anim:menu-ripple']);
-    await part(page, 'menu', 'item').first().click();
+    await popup.locator('[data-part="item"]').filter({ hasText: 'Rename' }).click();
     const itemLog = await logWith(page, 'menu/item:data-pressed:off');
     expectSequence(itemLog, ['menu/item:data-pressed:on', 'menu/item:data-pressed:off']);
-    await expect(part(page, 'menu', 'popup').first()).not.toBeVisible();
+    await expect(popup).not.toBeVisible();
 });
 
 test('disclosure triggers ripple on their native summaries', async ({ page }) => {
@@ -231,12 +246,12 @@ test('disclosure triggers ripple on their native summaries', async ({ page }) =>
 });
 
 test('slider: the press survives a drag that leaves the track (capture) and never one-shots', async ({ page }) => {
-    await part(page, 'tabs', 'tab').nth(1).click(); // Forms
+    await openForms(page);
     // The Volume slider — the Forms tab also renders an invalid one, whose
     // control is the same anatomy.
     const slider = demoLabelled(page, 'slider', 'Volume')('control');
     await slider.hover(); // scrolls into view; coordinates measured after
-    const box = (await slider.boundingBox())!;
+    const box = await settledBox(slider, 'the Volume slider control');
     const before = await slider.evaluate((el) => (el as HTMLInputElement).value);
     await clearLog(page);
 
@@ -259,7 +274,7 @@ test('slider: the press survives a drag that leaves the track (capture) and neve
 test('touch: a real tap presses and the ripple completes', async ({ page }) => {
     test.skip(!test.info().project.use.hasTouch, 'project has no touchscreen');
     test.skip(webkitOnLinux(test.info().project.name), 'Linux WebKit headless touch synthesis');
-    const box = (await part(page, 'button', 'root').first().boundingBox())!;
+    const box = await settledBox(pressButton(page), 'the system button');
     await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
     const log = await logWith(page, 'button/root:data-press-animating:off');
     expectSequence(log, ['button/root:data-pressed:on', 'button/root:data-pressed:off']);
@@ -268,8 +283,8 @@ test('touch: a real tap presses and the ripple completes', async ({ page }) => {
 
 test('reduced motion: the one-shot resolves instantly and the held tint remains', async ({ page }) => {
     test.skip(test.info().project.name !== 'reduced-motion');
-    const button = part(page, 'button', 'root').first();
-    const box = (await button.boundingBox())!;
+    const button = pressButton(page);
+    const box = await settledBox(button, 'the system button');
     await page.mouse.move(box.x + 10, box.y + 10);
     await page.mouse.down();
     // durations collapse to 0.01ms — animationend must fire almost at once
@@ -284,8 +299,8 @@ test('reduced motion: the one-shot resolves instantly and the held tint remains'
 
 test('forced colors: decorative press layers are hidden', async ({ page }) => {
     test.skip(test.info().project.name !== 'forced-colors');
-    const button = part(page, 'button', 'root').first();
-    const box = (await button.boundingBox())!;
+    const button = pressButton(page);
+    const box = await settledBox(button, 'the system button');
     await page.mouse.move(box.x + 10, box.y + 10);
     await page.mouse.down();
     const layers = await button.evaluate((el) => ({
@@ -294,6 +309,23 @@ test('forced colors: decorative press layers are hidden', async ({ page }) => {
     }));
     expect(layers).toEqual({ before: 'none', after: 'none' });
     await page.mouse.up();
+});
+
+test('a ripple destroyed with its stylesheet still clears its own flag', async ({ page }) => {
+    test.skip(media(test.info().project.name), 'covered by the media-specific tests');
+    // ONE press, and no second one to heal it — #243. The press starts
+    // material's 500ms `btn-ripple` on the swap control and, in the same
+    // gesture, tears material's stylesheet out from under it: `basic` declares
+    // no `[data-press-animating]` rule at all, so the running CSSAnimation is
+    // destroyed rather than finished, and no replacement takes its place.
+    // `animationcancel` is not reliably dispatched for that destruction (webkit
+    // and firefox strand the flag in roughly half of runs without the fix), so
+    // the runtime has to learn it some other way.
+    const swap = page.getByRole('button', { name: 'Basic', exact: true });
+    await swap.click();
+    await expect.poll(() => page.locator('link[data-zero-ds]').count()).toBe(1);
+    await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', 'basic');
+    await expect.poll(() => page.locator('[data-press-animating]').count()).toBe(0);
 });
 
 test('design-system swap mid-ripple leaves no stale press state', async ({ page }) => {
@@ -318,15 +350,18 @@ test('design-system swap mid-ripple leaves no stale press state', async ({ page 
     // strict mode for it, and fails as `2 !== 1` if links ever really stack.
     await expect.poll(() => page.locator('link[data-zero-ds]').count()).toBe(1);
     await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', 'basic');
-    // The second press, under the now-settled stylesheet. It is load-bearing,
-    // and was here before: a press restarts the one-shot, and that restart is
-    // the ONLY thing that clears a `data-press-animating` left behind when the
-    // first ripple was destroyed with material's stylesheet rather than
-    // finishing. Drop it and this test fails intermittently on every engine —
-    // at `main` exactly as much as here, measured — because the flag outlives
-    // an animation cancelled by stylesheet teardown. That is #243, a zero
-    // behavior defect this test has always run in the healed configuration of;
-    // fixing it there is what lets this press go away.
+    // The second press, under the now-settled stylesheet. It used to be
+    // load-bearing for the wrong reason: a press restarts the one-shot, and
+    // that restart was the ONLY thing clearing a `data-press-animating` left
+    // behind when the first ripple was destroyed with material's stylesheet
+    // rather than finishing (#243) — so this test always ran in the healed
+    // configuration and never exercised the destruction. The runtime clears
+    // that flag itself now, and the single-press case is asserted by the test
+    // above. The press stays because it is worth its own coverage: it is the
+    // restart path, under a design system that declares no press animation at
+    // all, and it proves the previous press's cancellation does not reach past
+    // it — the flag it re-arms must still resolve, and must not be cleared by
+    // the animation the restart itself destroyed.
     await swap.click();
     await expect.poll(() => page.locator('[data-press-animating]').count()).toBe(0);
     await expect.poll(() => page.locator('[data-pressed]').count()).toBe(0);

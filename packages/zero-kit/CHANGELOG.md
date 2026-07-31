@@ -4,6 +4,36 @@
 
 ### Added
 
+- **The state-legibility guard grew a third assertion: an in-flow disclosure
+  control says which way it is pointing** (#248). Assertion A judges at
+  *component* level on purpose — "the difference lives on a sibling part" is
+  legitimate and extremely common, and judging every part separately reported
+  164 false findings — but that looseness cleared #220: zero-material's
+  collapsible and accordion triggers were byte-identical open vs closed, and A
+  was satisfied by `[data-part="root"][open]::details-content { block-size:
+  auto }`, i.e. by the panel physically expanding, which is what `<details>`
+  does in every design system whether or not the recipe says anything. The
+  guard's whole reason for existing missed the flagship instance of exactly
+  that. Assertion C asks the question of the part the claim is about: for a
+  `*trigger` part in a component that declares **no `popup` part** — the ones
+  that disclose *in flow*, so the panel is a sibling under the control and both
+  are on screen in both states — the difference must live on that control or on
+  a sibling `*indicator`, and nowhere else. Triggers of overlay components
+  (dialog, popover, tooltip, menu, select, combobox) are deliberately out of
+  scope: the revealed thing floats above the page and takes focus, the six
+  design systems disagree about whether the trigger should also change, and
+  both readings are defensible. The sibling-indicator escape is the hand-off to
+  the stricter Assertion B, and it is load-bearing for exactly one component —
+  all six design systems differentiate `tree-view.branch-trigger` through its
+  rotating `branch-indicator` and none through the trigger itself; collapsible
+  and accordion declare no indicator part, which is precisely why #220 was a
+  bug and not a style. Not fixed by discounting `::details-content` as "the
+  browser's box": that is the property denylist this file argues against, and a
+  recipe styling its `panel` at all would defeat it — the fixtures assert both.
+  Zero new findings across all six design systems; the failure mode is covered
+  by seven fixtures, the central one being the same recipe judged by both
+  assertions, where A reports clean and C reports the trigger.
+
 - **`MEDIUM_PROPERTIES` — custom properties that are facts about a medium
   rather than design tokens** (#233). Today one name, `--print-ink`, declared
   by `@sigx/zero/css`. The recipe validator now treats it the way it already

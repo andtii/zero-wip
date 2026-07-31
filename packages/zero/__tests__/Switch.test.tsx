@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
-import { Switch, switchAnatomy } from '@sigx/zero';
+import { Field, Switch, switchAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 describe('Switch', () => {
@@ -80,5 +80,71 @@ describe('Switch', () => {
         expect(input.name).toBe('notify');
         expect(input.value).toBe('yes');
         expect(container.querySelector('[data-part="root"]')!.getAttribute('data-disabled')).toBe('');
+    });
+
+    it('the control carries `invalid`, not only the root', () => {
+        render(<Switch.Root invalid>Label</Switch.Root>, container);
+        expectAnatomy(container, switchAnatomy);
+        // The track is what a design system paints. Reaching it from the root
+        // would cost every recipe a descendant selector for a fact the
+        // control can carry itself — the shape `checkbox/control` already has.
+        for (const part of ['root', 'control']) {
+            expect(
+                container.querySelector(`[data-scope="switch"][data-part="${part}"]`)!.getAttribute('data-invalid'),
+                `switch/${part} must carry data-invalid`,
+            ).toBe('');
+        }
+        expect(container.querySelector('input')!.getAttribute('aria-invalid')).toBe('true');
+    });
+
+    it('a Field supplies disabled/invalid/required when the prop does not', () => {
+        render(
+            <Field.Root invalid required disabled>
+                <Field.Label>Notifications</Field.Label>
+                <Switch.Root>On</Switch.Root>
+                <Field.Description>You can turn this off later.</Field.Description>
+                <Field.Error>Pick one.</Field.Error>
+            </Field.Root>,
+            container,
+        );
+        const root = container.querySelector<HTMLElement>('[data-scope="switch"][data-part="root"]')!;
+        const control = container.querySelector<HTMLElement>('[data-scope="switch"][data-part="control"]')!;
+        const input = container.querySelector<HTMLInputElement>('input')!;
+
+        // The ids, not only the flags: `Field.Label` points `for` at the
+        // control's id, so a switch that adopts the flags but not the id is
+        // still a switch with no accessible name from its field.
+        const label = container.querySelector<HTMLLabelElement>('[data-scope="field"][data-part="label"]')!;
+        expect(input.id).not.toBe('');
+        expect(label.getAttribute('for')).toBe(input.id);
+        const describedBy = input.getAttribute('aria-describedby') ?? '';
+        for (const part of ['description', 'error']) {
+            expect(describedBy, `aria-describedby must name the field's ${part}`).toContain(
+                container.querySelector(`[data-scope="field"][data-part="${part}"]`)!.id,
+            );
+        }
+
+        expect(root.getAttribute('data-invalid')).toBe('');
+        expect(root.getAttribute('data-required')).toBe('');
+        expect(root.getAttribute('data-disabled')).toBe('');
+        expect(control.getAttribute('data-invalid')).toBe('');
+        expect(input.getAttribute('aria-invalid')).toBe('true');
+        expect(input.required).toBe(true);
+        expect(input.disabled).toBe(true);
+    });
+
+    it('a Field cannot un-set what the prop asserts', () => {
+        // The prop is an OR, not an override: a Switch marked invalid inside a
+        // valid Field stays invalid. Same direction as every other control.
+        render(
+            <Field.Root>
+                <Switch.Root invalid required disabled>On</Switch.Root>
+            </Field.Root>,
+            container,
+        );
+        const root = container.querySelector<HTMLElement>('[data-scope="switch"][data-part="root"]')!;
+        expect(root.getAttribute('data-invalid')).toBe('');
+        expect(root.getAttribute('data-required')).toBe('');
+        expect(root.getAttribute('data-disabled')).toBe('');
     });
 });

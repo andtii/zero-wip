@@ -490,7 +490,7 @@ export const menu: RecipeInput = {
                 ...focusRing,
             },
             selectors: {
-                '&::after': { content: '"\\203A"', marginLeft: 'auto' },
+                '&::after': { content: '"\\203A"', marginInlineStart: 'auto' },
             },
         },
         'sub-popup': withPresence(popupPresence('translate(4px, 4px)'), {
@@ -623,6 +623,10 @@ export const switchRecipe: RecipeInput = {
             states: {
                 checked: { background: 'var(--switch-accent)' },
                 unchecked: {},
+                // The system's error idiom: the frame turns error. Reads over
+                // the inked track and the accent one alike, because neither
+                // paints the border.
+                invalid: { borderColor: 'var(--color-error)' },
                 ...focusRing,
             },
         },
@@ -630,18 +634,30 @@ export const switchRecipe: RecipeInput = {
             base: {
                 position: 'absolute',
                 top: '0',
-                left: '0',
+                // Logical, so the resting slab parks at the INLINE start —
+                // the right-hand edge under `dir="rtl"` (#229).
+                insetInlineStart: '0',
                 width: 'calc(var(--size-selector) * 7)',
                 height: '100%',
                 background: 'var(--color-base-content)',
+                // The travel's sign, flipped in the `selectors` block below.
+                // `transform` has no logical form, so the direction has to be
+                // carried by a value the RTL rule can rebind — the same shape
+                // `--slider-fill-dir` uses on the slider.
+                '--switch-thumb-dir': '1',
                 transition: motion('transform, background'),
             },
             states: {
                 checked: {
-                    transform: 'translateX(calc(var(--switch-width) - 100%))',
+                    transform: 'translateX(calc(var(--switch-thumb-dir) * (var(--switch-width) - 100%)))',
                     background: 'var(--switch-on-accent)',
                 },
                 unchecked: {},
+            },
+            selectors: {
+                // `:where()` is forgiving, so an engine without `:dir()` drops
+                // that one argument and still matches the attribute forms.
+                '&:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)': { '--switch-thumb-dir': '-1' },
             },
         },
         label: { base: { ...label, fontSize: 'var(--text-xs)' }, states: { checked: {}, unchecked: {} } },
@@ -888,7 +904,15 @@ export const radioGroup: RecipeInput = {
         '--radio-on-accent': 'var(--color-primary-content)',
     },
     parts: {
-        root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' } },
+        root: {
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' },
+            states: { invalid: {}, required: {} },
+            selectors: {
+                // `invalid` is a fact about the GROUP — `item-control` carries
+                // no flag of its own — so the frame is turned from the root.
+                '&[data-invalid] [data-part="item-control"]': { borderColor: 'var(--color-error)' },
+            },
+        },
         label: { base: { ...label, fontSize: 'var(--text-sm)' } },
         item: {
             base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-sm)', cursor: 'pointer' },
@@ -1288,7 +1312,7 @@ export const toast: RecipeInput = {
                 alignItems: 'center',
                 columnGap: 'var(--space-md)',
                 padding: 'var(--space-md) var(--space-lg)',
-                borderLeft: 'calc(var(--border) * 2) solid var(--toast-accent)',
+                borderInlineStart: 'calc(var(--border) * 2) solid var(--toast-accent)',
                 boxShadow: 'var(--shadow-md)',
                 fontSize: 'var(--text-sm)',
                 opacity: '0',
@@ -1824,11 +1848,23 @@ const RATING_FILL_LEVELS: Record<string, CssProps> = {
         // one long bar instead of five marks.
         inset: 'var(--space-2xs)',
         background: 'var(--rating-fill)',
-        clipPath: 'inset(0 100% 0 0)',
+        // HOW MUCH is hidden is the state's business; WHICH EDGE it is hidden
+        // from is the direction's. Splitting them that way means each state
+        // states one number and the RTL rule states one side, rather than
+        // three states each needing an RTL twin (#229).
+        '--rating-hidden': '100%',
+        clipPath: 'inset(0 var(--rating-hidden) 0 0)',
         transition: 'clip-path var(--duration-normal) var(--ease-emphasized)',
     },
-    '&[data-state="half"]::before': { clipPath: 'inset(0 50% 0 0)' },
-    '&[data-state="full"]::before': { clipPath: 'inset(0 0 0 0)' },
+    '&[data-state="half"]::before': { '--rating-hidden': '50%' },
+    '&[data-state="full"]::before': { '--rating-hidden': '0%' },
+    // Same forgiving selector as the slider's fill direction. It carries no
+    // extra specificity (`:where()` is zero), so it wins on order alone — and
+    // it only has to outrank the base rule, since the state rules above set
+    // the amount and never the side.
+    '&:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)::before': {
+        clipPath: 'inset(0 0 0 var(--rating-hidden))',
+    },
 };
 
 export const ratingGroup: RecipeInput = {

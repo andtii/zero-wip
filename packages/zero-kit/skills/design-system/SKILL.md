@@ -263,6 +263,23 @@ component's anatomy). No component code is ever written or changed.
      }
      ```
      Accordion's `<details>` is its `item` part, not `root`.
+   - **…and the header still has to say it is open.** The panel expanding is
+     the *browser* doing its job, not your design system saying anything, so
+     `trigger: { states: { open: {}, closed: {} } }` on a collapsible or an
+     accordion ships a header that is byte-identical either way — and a list of
+     items that are all collapsed has no open one to compare against. CI fails
+     it (`__tests__/state-legibility.test.ts`): a `*trigger` part in a component
+     with **no `popup` part** — collapsible, accordion, tree-view, i.e. the ones
+     that disclose *in flow* — must differentiate its states on itself or on a
+     sibling `*indicator`. Tree-view's rotating `branch-indicator` is the
+     idiomatic answer; collapsible and accordion declare no indicator part, so
+     the signal has nowhere to go but the header itself — a tint, an accent ink,
+     an inset rule under it. If you have a reason for an in-flow trigger to say
+     nothing, `skipStates: { trigger: ['open'] }` waives the rule — state the
+     reason. Triggers of components that open an *overlay* (dialog, popover,
+     tooltip, menu, select, combobox) are **outside the rule entirely**, not
+     waived by it: the revealed thing floats above the page and takes focus, so
+     whether the trigger also changes is your call and the guard never asks.
    - **A state indicator is DRAWN GEOMETRY, and it must look different in
      every state it declares.** An `indicator` part — checkbox's tick, radio's
      dot, a rating symbol, select's checkmark — exists for exactly one reason:
@@ -341,8 +358,11 @@ component's anatomy). No component code is ever written or changed.
        Key non-animated press effects on this (a tint, a scale, an offset).
      - `data-press-animating` — present from press-start until the part's CSS
        animation finishes, **not** until release, so a quick tap plays a
-       one-shot effect (a ripple) to completion. The runtime clears it on
-       `animationend` — put the whole effect in ONE keyframe animation whose
+       one-shot effect (a ripple) to completion. The runtime clears it when
+       that animation ends, however it ends — finished, cancelled, or
+       destroyed with the stylesheet that declared it — so a design-system
+       swap mid-ripple leaves nothing stranded. Put the whole effect in ONE
+       keyframe animation whose
        duration is `var(--duration-*)`; a rule on this flag that starts no
        animation is dead (the validator warns).
      - `--press-x` / `--press-y` — the press point in px relative to the

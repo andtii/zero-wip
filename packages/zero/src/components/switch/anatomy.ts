@@ -10,7 +10,11 @@ export const switchAnatomy = defineAnatomy('switch', {
     control: {
         element: 'span',
         states: ['checked', 'unchecked'],
-        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
+        // `invalid` is here as well as on the root, matching `checkbox`: the
+        // track is what a design system paints, and reaching it from the root
+        // costs every recipe a descendant selector for a fact the control
+        // knows about itself (#269).
+        flags: ['disabled', 'focus-visible', 'invalid', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'size'],
     },
     thumb: {

@@ -123,10 +123,17 @@ const quietTrigger: NonNullable<PartStyles['base']> = {
 };
 
 /**
- * The borderless sibling for dismiss/meta buttons that live inside a surface
- * (dialog/popover/toast close): pure ghost, hover raises one film of ink.
+ * The icon-only dismiss glyph: a toast's ✕, and nothing else.
+ *
+ * NAMED for the one job it does, because the old name (`ghostButton`) is what
+ * made this a bug — it read as "the borderless button", so dialog's and
+ * popover's closes reached for it too and rendered a caption where a control
+ * belonged (#245). The anatomy is what separates the two: **toast declares an
+ * `action` part**, so its close is a glyph by construction; dialog and popover
+ * declare none at all, so their close IS the surface's action and gets
+ * `dismissAction` below.
  */
-const ghostButton: NonNullable<PartStyles['base']> = {
+const iconClose: NonNullable<PartStyles['base']> = {
     appearance: 'none',
     padding: 'var(--space-xs) var(--space-md)',
     fontSize: 'var(--text-xs)',
@@ -139,6 +146,26 @@ const ghostButton: NonNullable<PartStyles['base']> = {
     borderRadius: 'var(--radius-field)',
     cursor: 'pointer',
     transition: 'background var(--duration-fast) var(--ease-standard)',
+};
+
+/**
+ * `Dialog.Close` and `Popover.Close` — the surface's own action, so it gets a
+ * control's box rather than the ✕'s caption shape.
+ *
+ * It is `quietTrigger`'s box on purpose: the thing that opened the surface and
+ * the thing that dismisses it then read as the same kind of control, one
+ * hairline frame apart from the page. Neutral rather than accented, because a
+ * recipe cannot know whether the label says "Got it" or "Cancel" — an app that
+ * wants to say more wraps the part in a Button.
+ */
+const dismissAction: PartStyles = {
+    base: quietTrigger,
+    states: {
+        hover: { background: inkWash },
+        disabled: { opacity: 'var(--disabled-opacity)' },
+        ...focusRing,
+    },
+    selectors: { ...pressedInk },
 };
 
 /**
@@ -411,6 +438,12 @@ export const switchRecipe: RecipeInput = {
             states: {
                 checked: { background: 'var(--color-primary)', boxShadow: 'none' },
                 unchecked: {},
+                // The track's own hairline, redrawn in error at double weight.
+                // It has to come after `checked`, which clears the shadow
+                // outright — an invalid switch must read as invalid whichever
+                // way it is thrown, and the edge is the only surface both
+                // states share.
+                invalid: { boxShadow: 'inset 0 0 0 calc(var(--border) * 2) var(--color-error)' },
                 'focus-visible': {
                     outline: '2px solid var(--color-primary)',
                     outlineOffset: '2px',
@@ -571,15 +604,7 @@ export const dialog: RecipeInput = {
                 marginTop: 'var(--space-xl)',
             },
         },
-        close: {
-            base: { ...ghostButton, fontSize: 'var(--text-sm)' },
-            states: {
-                hover: { background: inkWash },
-                disabled: { opacity: 'var(--disabled-opacity)' },
-                ...focusRing,
-            },
-            selectors: { ...pressedInk },
-        },
+        close: dismissAction,
     },
 };
 
@@ -614,15 +639,7 @@ export const popover: RecipeInput = {
                 fontVariantNumeric: 'tabular-nums',
             },
         },
-        close: {
-            base: ghostButton,
-            states: {
-                hover: { background: inkWash },
-                disabled: { opacity: 'var(--disabled-opacity)' },
-                ...focusRing,
-            },
-            selectors: { ...pressedInk },
-        },
+        close: dismissAction,
     },
 };
 
@@ -1047,6 +1064,14 @@ export const radioGroup: RecipeInput = {
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' },
+            states: { invalid: {}, required: {} },
+            selectors: {
+                // `invalid` is a fact about the GROUP — `item-control` carries
+                // no flag of its own — so the mark is reached from the root.
+                // The border is the same surface the system's other invalid
+                // controls turn error.
+                '&[data-invalid] [data-part="item-control"]': { borderColor: 'var(--color-error)' },
+            },
         },
         // Weight 500, not 600 — semibold is for headings and table headers
         // only; a form label is chrome.
@@ -1902,7 +1927,7 @@ export const toast: RecipeInput = {
         },
         close: {
             base: {
-                ...ghostButton,
+                ...iconClose,
                 gridColumn: '3',
                 gridRow: '1',
                 padding: 'var(--space-2xs) var(--space-xs)',

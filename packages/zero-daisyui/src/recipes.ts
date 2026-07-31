@@ -310,6 +310,11 @@ export const switchRecipe: RecipeInput = {
                     backgroundColor: 'var(--color-base-100)',
                 },
                 unchecked: {},
+                // `invalid` is semantic: it stays error under every colour
+                // variant. Stated as a longhand because the track's border is
+                // `currentColor`, and `color` is what `checked` moves — the
+                // explicit border-color outranks both.
+                invalid: { borderColor: 'var(--color-error)' },
                 'focus-visible': { outline: '2px solid var(--switch-accent)', outlineOffset: '2px' },
                 disabled: {},
             },
@@ -873,6 +878,13 @@ export const radioGroup: RecipeInput = {
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: '0.625rem' },
+            states: { invalid: {}, required: {} },
+            selectors: {
+                // `invalid` is a fact about the GROUP — `item-control` carries
+                // no flag of its own — and it is semantic: it stays error
+                // under every colour variant.
+                '&[data-invalid] [data-part="item-control"]': { borderColor: 'var(--color-error)' },
+            },
         },
         label: {
             base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
@@ -1236,7 +1248,24 @@ export const select: RecipeInput = {
         value: {
             base: {},
             states: {
-                placeholder: { opacity: '0.5' },
+                /**
+                 * The placeholder's muting is a COLOUR, not an `opacity`.
+                 *
+                 * `opacity` is a multiplier on whatever ink the theme happens
+                 * to supply, so one value was correct in four daisy themes and
+                 * wrong in the fifth: on nord the base ink is already muted and
+                 * the 0.5 fade compounded past the floor, to 2.71:1 (#264). An
+                 * alpha stated on `color` composites the same way but stays on
+                 * the TEXT — it cannot take a child down with it.
+                 *
+                 * 60% is the minimal correction: it keeps the placeholder as
+                 * close to daisy's own 0.5 as the floor allows, it is the same
+                 * muting `tabs/tab` already uses, and it lands nord — the theme
+                 * that sets the level for all five — at 3.49:1. 70% was tried
+                 * first and reached 4.59:1, which clears the floor by more than
+                 * it needs to and makes a placeholder look like filled text.
+                 */
+                placeholder: { color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)' },
             },
         },
         indicator: {
@@ -1714,7 +1743,11 @@ export const combobox: RecipeInput = {
                 required: {},
             },
             selectors: {
-                '&::placeholder': { opacity: '0.5' },
+                // Same muting, same reason as `select/value` above: a colour
+                // rather than an `opacity`, at the level nord clears the floor
+                // at. A pseudo-element is out of the audit's reach, so this
+                // half is fixed by argument rather than by measurement (#264).
+                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)' },
             },
         },
         trigger: {
@@ -2041,7 +2074,11 @@ export const numberInput: RecipeInput = {
                 required: {},
             },
             selectors: {
-                '&::placeholder': { opacity: '0.5' },
+                // Same muting, same reason as `select/value` above: a colour
+                // rather than an `opacity`, at the level nord clears the floor
+                // at. A pseudo-element is out of the audit's reach, so this
+                // half is fixed by argument rather than by measurement (#264).
+                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)' },
             },
         },
         // Steppers: compact join-item btns flanking the input. The decrement
