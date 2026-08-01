@@ -538,6 +538,26 @@ component's anatomy). No component code is ever written or changed.
      Note `sizes` is the `data-size` axis — unrelated to `system.size`
      (`--size-*`, the control-sizing unit) and to `system.typography.sizes`
      (the `--text-*` ramp).
+   - **An axis you don't have, declare out of existence.** `sizes: []` means
+     "this design system has no size axis"; `roles: {}` means the same about
+     colour. **Empty is not the same statement as absent** — omitting the key
+     means "I didn't say", and takes the recommended vocabulary. Declaring it
+     empty means "there isn't one", and that reaches the manifest, the
+     coverage report and the generated types, where `size` / `color` becomes
+     `never` rather than a prop that is offered and then matches nothing.
+     Note the two spellings differ because the declarations do: `roles` is a
+     map, `sizes` a list.
+     ```ts
+     roles: {},        // no `color` axis — the palette lives in `custom`
+     sizes: [],        // no `size` axis — one set of metrics, deliberately
+     ```
+     Reach for this whenever the brief's colour story isn't "eight
+     interchangeable semantic roles". A design system with one accent, or with
+     colour folded into `variant`, genuinely has no colour axis, and saying so
+     is better than declaring eight roles and wiring two. `@sigx/zero-heroui`
+     and `@sigx/zero-carbon` both ship `roles: {}` with their palette as
+     declared `custom` tokens — themed and validated like any other token, just
+     not passable as `color="…"`. The `riso` brief shows both opt-outs at once.
    - **Every declared value is a promise — honour it in every scope that
      takes the axis, and write the un-attributed step down.** A step you
      declare and do not wire renders as the *base*, so a ramp with a hole in
@@ -591,6 +611,63 @@ component's anatomy). No component code is ever written or changed.
      variants: ['solid', 'outline', 'soft', 'ghost'],
      axes: { density: ['compact', 'comfortable'] },
      ```
+   - **`solid | outline | soft | ghost` is a convention, not the contract.**
+     Four of the six in-repo design systems declare exactly that set, which
+     makes it look load-bearing. Nothing requires it, and copying it into a
+     brief that doesn't mean it is the most common way to get a design system
+     that reads as generic. **The `variant` vocabulary is yours.**
+     It does not even have to be orthogonal to colour. HeroUI v3 has no `color`
+     prop at all and fuses colour into a seven-member `variant`, where
+     `danger-soft` is a **single value** rather than a `danger` × `soft`
+     crossing:
+     ```ts
+     // packages/zero-heroui/src/tokens.ts — a fused vocabulary
+     roles: {},   // no colour axis to be orthogonal TO
+     variants: ['primary', 'secondary', 'tertiary', 'outline', 'ghost', 'danger', 'danger-soft'],
+     ```
+     Carbon does the same under the name `kind`. Both are shipped packages, so
+     read them when the brief's axis surface isn't the default one. If the
+     brief's colours and treatments genuinely are independent, keep them on two
+     axes — the point is to decide, not to inherit.
+   - **Presence-only styling is a `modifier`, not a one-member axis.** Some
+     things a control *is* have no vocabulary: it is icon-only or it isn't,
+     pending or not. Declaring `axes: { block: ['block'] }` to express that is
+     the encoding modifiers replaced — it mints a value whose only job is to
+     be present.
+     ```ts
+     // tokens.ts — declared design-system-wide, like any vocabulary
+     modifiers: ['icon-only', 'pending'],
+     ```
+     ```ts
+     // recipes.ts — keyed by name, no value layer
+     modifiers: {
+         'icon-only': { root: { base: { padding: 'var(--space-sm)', aspectRatio: '1' } } },
+         pending:     { root: { base: { cursor: 'progress', opacity: '0.8' } } },
+     },
+     ```
+     They emit as `[data-mod-<name>]` and consumers pass them as
+     `mods={{ 'icon-only': true }}`. The `data-mod-*` prefix keeps them
+     disjoint from zero's closed flag vocabulary by construction, so a
+     modifier called `disabled` or `selected` can never collide with the
+     runtime's own attribute — which is why modifiers are prefixed and axes
+     are not.
+   - **`compoundVariants` is for the rule that no single declaration can
+     state** — where a *combination* needs something neither member implies. A
+     `match` is a plain object; a value of `true` names a **modifier** rather
+     than an axis value:
+     ```ts
+     compoundVariants: [{
+         // A ghost control has no fill, so `overprint` alone would do nothing.
+         match: { variant: 'ghost', overprint: true },
+         parts: { root: { base: { background: 'var(--riso-tint)' } } },
+     }],
+     ```
+     `match` is checked against `defaultVariants` too, so an entry matching
+     `{ variant: 'solid' }` fires on an element carrying no `data-variant` at
+     all when `solid` is the default. Don't reach for it to avoid the
+     component-token pattern above — routing colour through `--btn-accent`
+     handles the colour × variant cross product in a handful of rules, where
+     compounds would need one entry per pair.
    - **You are not limited to three axes.** `color`, `size` and `variant` have
      named props because almost every design language has them. If the brief
      needs another — density, emphasis, tone, elevation — declare it in
@@ -622,6 +699,25 @@ component's anatomy). No component code is ever written or changed.
    programmatically `validateDesignSystem(ds, manifest)`. Fix every error and
    drive warnings to zero unless deliberate. This loop is the point: generate
    → validate → fix → repeat.
+
+   **Then run `sigx zero:validate --report`.** Validation answers "is anything
+   wrong?"; the report answers "did I build what I said I would?" — the
+   question a generated design system most often gets wrong, because nothing
+   about it is an error. (`--report-json <path>` for the machine-readable
+   form, `-` for stdout; `zero:build` also writes `dist/report.json` every
+   time.) Read three things:
+   - **`declared out of existence`** — the axes you opted out of with
+     `roles: {}` / `sizes: []`. If an axis you meant to ship is on this list,
+     you declared it empty by accident; if one you don't have is missing from
+     it, you left the recommended vocabulary in place by omission.
+   - **`wired by nothing`** — a value the whole design system declares and no
+     scope implements. Almost always a vocabulary wider than the thing you
+     built: either narrow the declaration or wire the step. Colour roles that
+     opt out of `-content`/`-soft` are exempt, being fills rather than
+     variants.
+   - **per-scope axis status** — which components wire which axes. A scope
+     that takes an axis and wires none of it is the gap `axis-coverage`
+     asks about; one that wires *some* values is the ramp-with-a-hole above.
 
 7. **Build**: `sigx zero:build` (or the package's `build.mjs`) emits
    `dist/css/index.css` + per-component files. The app consumes it with two
@@ -664,16 +760,19 @@ And these are warnings worth driving to zero:
 
 ### The brief pack — start here
 
-`skills/design-system/briefs/` holds four complete, compiling starting points.
+`skills/design-system/briefs/` holds five complete, compiling starting points.
 Each file is one `TokensInput` (every category filled, both schemes, contrast
 clean) plus one worked `RecipeInput` for Button. **Copy the closest one to
 `src/tokens.ts` and `src/recipes.ts`, then diverge.** They are compiled and
 validated by the repo's test suite, so a brief that has gone stale is a
 failing test rather than a trap.
 
-The four are deliberately not four palettes — each one teaches a different
-mechanic, and reading all four is the fastest way to learn what the token
-contract can express:
+The five are deliberately not five palettes — each one teaches a different
+mechanic, and reading all five is the fastest way to learn what the token
+contract can express. Note that the first four all take the default axis
+surface (the recommended eight roles, xs–xl, and the four-name variant set);
+`riso` is the one that doesn't, and it is the one to read when the brief's
+shape isn't the conventional one:
 
 | Brief | radius | border | Signature move | Teaches |
 |---|---|---|---|---|
@@ -681,16 +780,17 @@ contract can express:
 | glass | 1.25rem | 1px | `backdrop-filter: blur(var(--glass-blur))` on every floating surface | declared custom tokens, and translucency that survives both schemes |
 | corporate | 0.5rem | 1px | a two-part shadow ramp (contact + ambient) and a 1.2 type ratio | contrast discipline and declared breakpoints — the two things this brief is judged on |
 | terminal | 0 | 1px | every duration is 0ms, and `--shadow-*` is a glow in `var(--color-primary)` | 0ms durations instead of `transition:none`, and a glow built from theme colours |
+| riso | 0.125rem | 2px | overlapping ink multiplies instead of covering, via a modifier and a compound that matches it | `roles:{}` and `sizes:[]` to decline an axis, a fused variant vocabulary, modifiers and a compound that matches one |
 
 Typography carries a brief further than anything else: brutalist wants a
 mono or condensed stack with 800+ weights and wide tracking; editorial
 wants a serif with generous `leading`; corporate wants a humanist sans and
-a restrained `ratio`. The four ratios above — 1.414, 1.25, 1.2, 1.125 — are
-most of the difference between those four looks.
+a restrained `ratio`. The five ratios above — 1.414, 1.25, 1.2, 1.125, 1.333 —
+are most of the difference between those five looks.
 
 ### Worked design systems
 
-Three ship in the zero repo, in increasing distance from the defaults:
+Five ship in the zero repo, in increasing distance from the defaults:
 
 - `@sigx/zero-basic` — the canonical starting point. Read its `src/tokens.ts`
   and `src/recipes.ts` before writing your own.
@@ -701,6 +801,28 @@ Three ship in the zero repo, in increasing distance from the defaults:
   `level1`–`level5` elevation ramp, `soft: false` tonal surfaces, and a role
   (`outline`) with `content: false`. Read this one when the brief needs names
   the recommended eight don't cover.
+- `@sigx/zero-heroui` — a differently *shaped* vocabulary rather than a wider
+  one: `roles: {}` (no colour axis at all), colour fused into a seven-member
+  `variant`, a three-step size ramp, and HeroUI's `isIconOnly` / `isPending`
+  as `data-mod-*` modifiers. The reference for everything in this skill about
+  declining an axis or fusing one.
+- `@sigx/zero-carbon` — the same shape under a vendor's own names: no colour
+  axis, and the fused vocabulary declared as `kind` with Carbon's
+  double-hyphen spellings (`danger--tertiary`) restored at the prop boundary
+  by its generated `./components` module. Read it when the brief has to match
+  an existing product's API rather than zero's.
+
+### Conformance fixtures — non-default axis surfaces, in miniature
+
+`skills/design-system/conformance/` holds one small file per surveyed vendor
+(HeroUI, Material 3, Radix Themes, Ant Design, Carbon). Each declares that
+system's real vocabulary and — for three of them — a compiling `TokensInput`
+plus a Button `RecipeInput` exercising it, in the same shape as a brief but a
+fraction of the size. They are the worked examples for the shapes the brief
+pack doesn't cover: a numeric size ramp (`sizes: ['1','2','3','4']`), a custom
+`tokens.axes` entry, a vendor-renamed axis, and camelCase modifier names
+restored at the API boundary. `docs/design-system-conformance.md` is the
+generated matrix they prove; RFC 0003 §7 is the reasoning.
 
 ### Briefs the pack does not cover
 

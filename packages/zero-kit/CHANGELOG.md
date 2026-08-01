@@ -4,6 +4,52 @@
 
 ### Added
 
+- **The design-system skill teaches the axis surface it actually has** (#176).
+  The contract gained modifiers (#166), `sizes: []` (#164) and a design
+  system's own `variant` vocabulary (#99); `SKILL.md` knew none of it, so a
+  generated design system inherited the default shape by omission. It now
+  covers four things it did not:
+
+  - **`tokens.modifiers`** — presence-only styling, `[data-mod-<name>]` and
+    the `mods` prop, with the one-member axis (`axes: { block: ['block'] }`)
+    named as the encoding it replaced. The skill had been steering authors
+    straight at it.
+  - **Declining an axis** — `roles: {}` and `sizes: []`, and why empty is a
+    different statement from absent: omission takes the recommended
+    vocabulary, empty says there is no such axis and reaches the manifest, the
+    report and the generated types.
+  - **`solid | outline | soft | ghost` as convention, not contract.** Four of
+    six in-repo systems declare it, which is exactly what made it look
+    load-bearing. HeroUI's fused seven-member vocabulary — `danger-soft` a
+    single value rather than a crossing — is shown as the counter-example.
+  - **`compoundVariants`**, previously one passing mention: that it honours
+    `defaultVariants` (#158) and that a `match` value of `true` names a
+    modifier rather than an axis value.
+
+  Step 6's iterate loop now also runs **`sigx zero:validate --report`** (#173)
+  and says what to do about `declared out of existence`, `wired by nothing`
+  and the per-scope axis status — validation asks whether anything is wrong,
+  the report asks whether you built what you declared, and the second is the
+  question a generated design system gets wrong.
+
+- **A fifth style brief: `riso`** (`skills/design-system/briefs/riso.ts`).
+  The other four all take the recommended eight roles, the `xs…xl` ramp and
+  the four-name variant set, so the pack demonstrated one axis surface four
+  times. `riso` is a duotone risograph print, and the look forces the shape:
+  `roles: {}` (two inks are not eight semantic roles) with the palette as
+  declared `custom` tokens, `sizes: []`, a fused five-member `variant`
+  vocabulary naming an ink *or* a treatment, two modifiers, and a
+  `compoundVariants` entry that matches one. `briefs.test.ts` compiles it like
+  the rest and pins the mechanisms — that `[data-mod-overprint]` is
+  valueless, that the compound crosses an axis value with a modifier, and that
+  both axes come back declared-out of the compiled system.
+
+- **The Reference section names `@sigx/zero-heroui` and `@sigx/zero-carbon`**
+  as the worked non-default axis surfaces, and cites the
+  `skills/design-system/conformance/` fixtures as miniature examples of the
+  shapes the brief pack does not cover (a numeric size ramp, a `tokens.axes`
+  entry, a vendor-renamed axis, camelCase modifiers restored at the API
+  boundary).
 - **A physical-direction lint in `validate-recipes`** (#277, #290). Warns on
   every physical property that has a logical twin — `left`, `right`,
   `margin-left/right`, `padding-left/right`, `border-left*`/`border-right*` and
