@@ -15,6 +15,21 @@ import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
 const motion = (props: string): string =>
     props.split(', ').map((p) => `${p} var(--duration-normal) var(--ease-standard)`).join(', ');
 
+/**
+ * "…and the reading direction is right-to-left" — appended to a selector, never
+ * written alone.
+ *
+ * `:where()` is forgiving, so an engine without `:dir()` drops that one argument
+ * and still matches the attribute forms. It also contributes no specificity, so
+ * a rule using it ties with the one it corrects and wins on source order —
+ * declare it after, not before.
+ *
+ * Only for what has no logical property: a `transform`, a keyframe, a glyph that
+ * points. Anything with an `inset-inline-*` or `margin-inline-*` spelling should
+ * use that instead and need no rule at all.
+ */
+const rtl = ':where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)';
+
 /** Carbon's focus treatment: a 2px outline hugging the edge, inset. */
 const focusRing: Record<string, CssProps> = {
     'focus-visible': {
@@ -462,17 +477,25 @@ export const switchRecipe: RecipeInput = {
             base: {
                 position: 'absolute',
                 top: 'var(--switch-pad)',
-                left: 'var(--switch-pad)',
+                insetInlineStart: 'var(--switch-pad)',
                 width: 'calc(var(--switch-height) - var(--switch-pad) * 2)',
                 height: 'calc(var(--switch-height) - var(--switch-pad) * 2)',
                 borderRadius: '9999px',
                 background: 'var(--color-base-100)',
                 transition: motion('transform'),
+                // The anchor is logical, so the travel has to be too — and
+                // `transform` has no logical form, so the direction is carried by
+                // a value the RTL rule below can rebind. Half of this is worse
+                // than neither: a logical anchor with a physical travel starts the
+                // thumb at the reading end and then moves it further that way,
+                // off the track.
+                '--switch-thumb-dir': '1',
             },
             states: {
-                checked: { transform: 'translateX(calc(var(--switch-width) - var(--switch-height)))' },
+                checked: { transform: 'translateX(calc(var(--switch-thumb-dir) * (var(--switch-width) - var(--switch-height))))' },
                 unchecked: {},
             },
+            selectors: { [`&${rtl}`]: { '--switch-thumb-dir': '-1' } },
         },
         label: {
             base: { fontSize: 'var(--text-sm)', letterSpacing: 'var(--tracking-wide)' },
@@ -730,7 +753,12 @@ export const menu: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
             selectors: {
-                '&::after': { content: '"\\203A"', marginLeft: 'auto', opacity: '0.6' },
+                // A submenu opens toward the reading end, so the chevron that
+                // announces it has to point that way. `\203A` points right in
+                // every writing direction; `\2039` is its mirror, and the swap
+                // agrees with the side `Menu.tsx` itself resolves from `:dir()`.
+                '&::after': { content: '"\\203A"', marginInlineStart: 'auto', opacity: '0.6' },
+                [`&${rtl}::after`]: { content: '"\\2039"' },
                 '&[data-pressed]:not([data-disabled])': { background: layerActive },
             },
         },
@@ -1209,7 +1237,9 @@ export const progress: RecipeInput = {
                 height: '100%',
                 background: rangeFill,
                 transition: motion('width, background'),
+                '--progress-sweep-dir': '1',
             },
+            selectors: { [`&${rtl}`]: { '--progress-sweep-dir': '-1' } },
             states: {
                 loading: {},
                 /**
@@ -1241,8 +1271,15 @@ export const progress: RecipeInput = {
     // Transform, not margin: no layout work per frame. The percentages are
     // of the 40%-wide bar itself — -100% hides it before the track, 250%
     // (100/40 of the track) carries it past the far edge.
+    //
+    // Neither `translate` nor `transform` has a logical form, so the sign is
+    // carried by a value the RTL rule on `range` can rebind. Without it the
+    // determinate `width`, an ordinary flow child, mirrors while the
+    // indeterminate sweep of the same element does not.
     keyframes: {
-        'carbon-indeterminate': 'from { translate: -100% 0; } to { translate: 250% 0; }',
+        'carbon-indeterminate':
+            'from { translate: calc(var(--progress-sweep-dir) * -100%) 0; } '
+            + 'to { translate: calc(var(--progress-sweep-dir) * 250%) 0; }',
     },
 };
 
@@ -1793,12 +1830,17 @@ export const toast: RecipeInput = {
                 // The UA hides closed popovers by unsetting display — an
                 // unconditional `display: flex` would defeat that.
                 '&:popover-open': { display: 'flex' },
-                '&[data-placement="top-start"]': { top: '0', left: '0' },
+                // Logical, because `ToastPlacement` is: `top-start` means the
+                // top of the reading side, which is the left edge only in a
+                // left-to-right document. The centred pair stays physical —
+                // `left: 50%` with a half-width pull-back is symmetric, and a
+                // logical inset there would decentre it instead of mirroring it.
+                '&[data-placement="top-start"]': { top: '0', insetInlineStart: '0' },
                 '&[data-placement="top"]': { top: '0', left: '50%', transform: 'translateX(-50%)' },
-                '&[data-placement="top-end"]': { top: '0', right: '0' },
-                '&[data-placement="bottom-start"]': { bottom: '0', left: '0', flexDirection: 'column-reverse' },
+                '&[data-placement="top-end"]': { top: '0', insetInlineEnd: '0' },
+                '&[data-placement="bottom-start"]': { bottom: '0', insetInlineStart: '0', flexDirection: 'column-reverse' },
                 '&[data-placement="bottom"]': { bottom: '0', left: '50%', transform: 'translateX(-50%)', flexDirection: 'column-reverse' },
-                '&[data-placement="bottom-end"]': { bottom: '0', right: '0', flexDirection: 'column-reverse' },
+                '&[data-placement="bottom-end"]': { bottom: '0', insetInlineEnd: '0', flexDirection: 'column-reverse' },
             },
         },
         // Carbon's notification: a $layer-01 surface under an overlay shadow,
@@ -2412,7 +2454,7 @@ export const ratingGroup: RecipeInput = {
                 },
                 // `scale`, not `clip-path`, so the wipe can start from the
                 // inline start in both directions.
-                '&:dir(rtl)::after': { transformOrigin: 'right' },
+                [`&${rtl}::after`]: { transformOrigin: 'right' },
                 '&[data-state="empty"]::after': { scale: '0 1' },
                 '&[data-state="half"]::after': { scale: '0.5 1' },
                 '&[data-state="full"]::after': { scale: '1 1' },
@@ -2546,6 +2588,13 @@ export const treeView: RecipeInput = {
                 transition: 'transform var(--duration-fast) var(--ease-standard)',
             },
             states: { open: { transform: 'rotate(90deg)' }, closed: {} },
+            // The glyph is element text the runtime renders (`TreeView.tsx`), not
+            // `content:`, so the `:dir(rtl)` swap the submenu chevron uses is not
+            // available here — a mirror is its equivalent. `scale` composes
+            // OUTSIDE `transform` (and outside the individual `rotate`), so the
+            // closed glyph flips to point at the reading end while the open one,
+            // already rotated to point down, is unaffected by a horizontal flip.
+            selectors: { [`&${rtl}`]: { scale: '-1 1' } },
         },
         'branch-content': {
             base: { display: 'flex', flexDirection: 'column', paddingInlineStart: 'var(--space-md)' },

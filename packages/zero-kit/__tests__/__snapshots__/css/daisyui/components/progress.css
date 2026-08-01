@@ -105,5 +105,5 @@
     }
 }
 @keyframes zero-daisy-indeterminate {
-    from { margin-left: -40%; } to { margin-left: 100%; }
+    from { margin-inline-start: -40%; } to { margin-inline-start: 100%; }
 }

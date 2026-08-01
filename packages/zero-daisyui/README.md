@@ -58,4 +58,20 @@ column are the same height. Only the select had it before.
 Swap with `@sigx/zero-basic` (or your own generated design system) — same
 components, different look, zero component-code changes.
 
+## Writing direction
+
+Every direction-bearing rule is spelled logically, so the whole skin mirrors
+under `dir="rtl"` (#277, #290). `inset-inline-*` and `margin-inline-*` where a
+logical property exists; a direction-valued custom property the RTL selector
+rebinds where one does not, since `transform` has no logical form. The kit warns
+on the first kind (`validate-recipes`) and `e2e/rtl.spec.ts` measures the second
+in a real engine — a logical anchor with a physical travel reads as correct and
+still puts the control's thumb outside its own track.
+
+What moved here: the toast viewport's start/end placements, the submenu
+chevron (margin and glyph both), the collapsed tree indicator and the
+indeterminate progress sweep. The switch needed nothing — its knob grows a grid
+column, which is RTL-correct for free, and that is why it was the only one of
+the six already right.
+
 MIT © Andreas Ekdahl

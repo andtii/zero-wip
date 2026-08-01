@@ -53,11 +53,16 @@
         background: var(--color-base-100);
         box-shadow: var(--shadow-sm);
         transition: translate var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+        --switch-thumb-dir: 1;
     }
 
     [data-scope="switch"][data-part="thumb"][data-state="checked"] {
-        translate: calc(var(--switch-width) - var(--switch-height)) 0;
+        translate: calc(var(--switch-thumb-dir) * (var(--switch-width) - var(--switch-height))) 0;
         border-color: transparent;
+    }
+
+    [data-scope="switch"][data-part="thumb"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        --switch-thumb-dir: -1;
     }
 
     [data-scope="switch"][data-part="label"] {

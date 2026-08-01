@@ -25,6 +25,125 @@ const NOT_COLOR_VALUED = new Set([
     'content', 'font', 'fontFamily', 'gridTemplateAreas', 'counterReset', 'counterIncrement',
 ]);
 
+/**
+ * Physical-direction properties, and the logical property that says what the
+ * author actually meant. Keyed and valued in kebab — `kebabProp` normalises the
+ * camelCase authoring spelling before the lookup, and a keyframes body is
+ * already kebab.
+ *
+ * A physical direction is not a typo; it compiles and it renders. It is simply
+ * the same side in both writing directions, so a control that mirrors
+ * everything else on the page does not mirror this one rule. That is invisible
+ * to every other check in this repo: the goldens record the physical spelling
+ * faithfully, and no unit test sets `dir`.
+ *
+ * This is deliberately NOT the general "is this a real CSS property" problem
+ * (#51), which needs a list of every property and goes stale against new CSS.
+ * These dozen-odd physical properties have had stable logical twins for years;
+ * the list does not move.
+ *
+ * ── WHAT IT CANNOT SEE ───────────────────────────────────────────────────────
+ * A transform. `translateX(+8px)` moves toward the physical right in both
+ * writing directions and there is no logical spelling to suggest — the fix is a
+ * direction-valued custom property, which is a shape, not a rename. So a part
+ * can pass this check and still be wrong, and one in this repo did: heroui's
+ * switch thumb anchors with `inset-inline-start` and then travels with a bare
+ * positive `translate`, so under RTL the anchor mirrors, the travel does not,
+ * and the thumb leaves the track. Clean here, broken on screen.
+ *
+ * That is the division of labour, not an oversight: this lint reads
+ * declarations, and `e2e/rtl.spec.ts` reads boxes. Neither one subsumes the
+ * other, and the transform cases are exactly why the spec exists.
+ */
+const LOGICAL_TWIN: Record<string, string> = {
+    'left': 'inset-inline-start',
+    'right': 'inset-inline-end',
+    'margin-left': 'margin-inline-start',
+    'margin-right': 'margin-inline-end',
+    'padding-left': 'padding-inline-start',
+    'padding-right': 'padding-inline-end',
+    'border-left': 'border-inline-start',
+    'border-right': 'border-inline-end',
+    'border-left-width': 'border-inline-start-width',
+    'border-right-width': 'border-inline-end-width',
+    'border-left-style': 'border-inline-start-style',
+    'border-right-style': 'border-inline-end-style',
+    'border-left-color': 'border-inline-start-color',
+    'border-right-color': 'border-inline-end-color',
+    'border-top-left-radius': 'border-start-start-radius',
+    'border-top-right-radius': 'border-start-end-radius',
+    'border-bottom-left-radius': 'border-end-start-radius',
+    'border-bottom-right-radius': 'border-end-end-radius',
+};
+
+/**
+ * The same kebab-casing the web target applies before emitting, so a recipe can
+ * be authored in either spelling and still be checked. Custom properties are
+ * case-sensitive and never physical, so they pass through untouched.
+ */
+const kebabProp = (prop: string): string =>
+    prop.startsWith('--') ? prop : prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+
+/** A physical property named at the head of a declaration inside a raw body. */
+const PHYSICAL_IN_BODY = new RegExp(
+    `(?:^|[;{\\s])(${Object.keys(LOGICAL_TWIN).join('|')})\\s*:`,
+    'g',
+);
+
+/**
+ * Centring is symmetric, so `left: 50%` is not a direction — but only when the
+ * block pulls itself back by half its own width, which is what makes the pair
+ * mean "centre" rather than "start at the midpoint".
+ *
+ * Checked against the sibling declarations rather than the value alone: a bare
+ * `left: 50%` with no such transform really does pick a side.
+ */
+function isCentring(prop: string, value: string, props: CssProps): boolean {
+    if (prop !== 'left' && prop !== 'right') return false;
+    if (value.trim() !== '50%') return false;
+    return Object.entries(props).some(([sibling, raw]) => {
+        const name = kebabProp(sibling);
+        return (name === 'transform' || name === 'translate') && String(raw).includes('-50%');
+    });
+}
+
+/** The part a diagnostic path belongs to, wherever in the recipe it sits. */
+function partOf(path: string): string | undefined {
+    return /^parts\.([^.]+)/.exec(path)?.[1]
+        ?? /^variants\.[^.]+\.[^.]+\.([^.]+)/.exec(path)?.[1]
+        ?? /^compoundVariants\[\d+\]\.parts\.([^.]+)/.exec(path)?.[1];
+}
+
+/**
+ * Parts that draw a glyph out of rotated box edges — every checkbox tick in
+ * this repo, daisyUI's disclosure chevron, Carbon's progress check.
+ *
+ * Once a box is rotated, its `border-left` is a *stroke of the drawing*, not
+ * the inline start of anything: swapping it for `border-inline-start` mirrors
+ * the glyph. A check mark is not mirrored in RTL — Carbon's own recipe says so
+ * in a comment above the very declarations this would otherwise flag — so the
+ * logical spelling would be the bug rather than the fix.
+ *
+ * Scoped to the PART, not the block: a part draws or it does not, and the
+ * rotation is usually declared in `base` while `at["forced-colors"]` or a state
+ * adjusts one arm. A block-local test would clear the base and flag the
+ * override, which is the same glyph.
+ */
+function drawnParts(recipe: RecipeInput): Set<string> {
+    const drawn = new Set<string>();
+    for (const { path, props } of declarations(recipe)) {
+        const part = partOf(path);
+        if (part === undefined || drawn.has(part)) continue;
+        for (const [prop, raw] of Object.entries(props)) {
+            const name = kebabProp(prop);
+            const rotates = name === 'rotate'
+                || ((name === 'transform' || name === 'translate') && String(raw).includes('rotate('));
+            if (rotates) { drawn.add(part); break; }
+        }
+    }
+    return drawn;
+}
+
 const toOklch = converter('oklch');
 
 /**
@@ -271,6 +390,43 @@ export function validateRecipes(
                 warn(
                     `${where}.${path}`,
                     `"${prop}" uses a literal duration — reference var(--duration-*) so reduced motion applies`,
+                );
+            }
+        }
+
+        // ── physical directions where a logical property exists ──
+        // Walked over `declarations` rather than the flat `values` above,
+        // because the centring exemption needs the sibling declarations in the
+        // same block, which flattening throws away.
+        const drawn = drawnParts(recipe);
+        for (const { path, props } of declarations(recipe)) {
+            const part = partOf(path);
+            if (part !== undefined && drawn.has(part)) continue;
+            for (const [rawProp, raw] of Object.entries(props)) {
+                const prop = kebabProp(rawProp);
+                const twin = LOGICAL_TWIN[prop];
+                if (!twin) continue;
+                const value = String(raw);
+                if (isCentring(prop, value, props)) continue;
+                // `--press-x` is a pixel offset the runtime measures from the
+                // element's own left edge (`behaviors/press.ts`), so `left` is
+                // the correct pairing — a logical inset would put the ripple
+                // somewhere the pointer never was.
+                if (value.includes('--press-x')) continue;
+                warn(
+                    `${where}.${path}`,
+                    `"${rawProp}" is a physical direction — use ${twin}, or this paints the same side ` +
+                    'under `dir="rtl"` while everything around it mirrors',
+                );
+            }
+        }
+        for (const [name, body] of Object.entries(recipe.keyframes ?? {})) {
+            for (const match of body.matchAll(PHYSICAL_IN_BODY)) {
+                const prop = match[1]!;
+                warn(
+                    `${where}.keyframes.${name}`,
+                    `"${prop}" is a physical direction — use ${LOGICAL_TWIN[prop]}, or the animation ` +
+                    'travels the same way under `dir="rtl"` while the element it moves in mirrors',
                 );
             }
         }

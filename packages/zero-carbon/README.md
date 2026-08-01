@@ -77,3 +77,19 @@ No `/register` import is needed for the `./components` path — its types are
 self-contained: `kind` narrows to the seven Carbon spellings (including the
 double-hyphen members), `kind="nope"` is rejected, and `variant`/`mods`/
 `color` do not exist on the vendor surface.
+
+## Writing direction
+
+Every direction-bearing rule is spelled logically, so the whole skin mirrors
+under `dir="rtl"` (#277, #290). `inset-inline-*` and `margin-inline-*` where a
+logical property exists; a direction-valued custom property the RTL selector
+rebinds where one does not, since `transform` has no logical form. The kit warns
+on the first kind (`validate-recipes`) and `e2e/rtl.spec.ts` measures the second
+in a real engine — a logical anchor with a physical travel reads as correct and
+still puts the control's thumb outside its own track.
+
+What moved here: the toast viewport's start/end placements, the submenu
+chevron (margin and glyph both), the switch thumb, the collapsed tree indicator
+and the indeterminate progress sweep. The checkbox tick and the progress check
+are deliberately untouched: they are drawn from rotated borders, and a check
+mark is not mirrored in RTL — Carbon does not mirror it either.

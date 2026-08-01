@@ -368,16 +368,21 @@
     [data-scope="switch"][data-part="thumb"] {
         position: absolute;
         top: var(--switch-pad);
-        left: var(--switch-pad);
+        inset-inline-start: var(--switch-pad);
         width: calc(var(--switch-height) - var(--switch-pad) * 2);
         height: calc(var(--switch-height) - var(--switch-pad) * 2);
         border-radius: 9999px;
         background: var(--color-base-100);
         transition: transform var(--duration-normal) var(--ease-standard);
+        --switch-thumb-dir: 1;
     }
 
     [data-scope="switch"][data-part="thumb"][data-state="checked"] {
-        transform: translateX(calc(var(--switch-width) - var(--switch-height)));
+        transform: translateX(calc(var(--switch-thumb-dir) * (var(--switch-width) - var(--switch-height))));
+    }
+
+    [data-scope="switch"][data-part="thumb"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        --switch-thumb-dir: -1;
     }
 
     [data-scope="switch"][data-part="label"] {
@@ -907,8 +912,12 @@
 
     [data-scope="menu"][data-part="sub-trigger"]::after {
         content: "\203A";
-        margin-left: auto;
+        margin-inline-start: auto;
         opacity: 0.6;
+    }
+
+    [data-scope="menu"][data-part="sub-trigger"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)::after {
+        content: "\2039";
     }
 
     [data-scope="menu"][data-part="sub-trigger"][data-pressed]:not([data-disabled]) {
@@ -1348,6 +1357,7 @@
         height: 100%;
         background: color-mix(in oklab, var(--carbon-interactive) 85%, var(--color-base-content));
         transition: width var(--duration-normal) var(--ease-standard), background var(--duration-normal) var(--ease-standard);
+        --progress-sweep-dir: 1;
     }
 
     [data-scope="progress"][data-part="range"][data-state="complete"] {
@@ -1357,6 +1367,10 @@
     [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
         width: 40%;
         animation: carbon-indeterminate 1.4s ease-in-out infinite;
+    }
+
+    [data-scope="progress"][data-part="range"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        --progress-sweep-dir: -1;
     }
 
     [data-scope="progress"][data-part="value-text"] {
@@ -1390,7 +1404,7 @@
     }
 }
 @keyframes carbon-indeterminate {
-    from { translate: -100% 0; } to { translate: 250% 0; }
+    from { translate: calc(var(--progress-sweep-dir) * -100%) 0; } to { translate: calc(var(--progress-sweep-dir) * 250%) 0; }
 }
 
 @layer zero.recipes {
@@ -1965,7 +1979,7 @@
 
     [data-scope="toast"][data-part="viewport"][data-placement="top-start"] {
         top: 0;
-        left: 0;
+        inset-inline-start: 0;
     }
 
     [data-scope="toast"][data-part="viewport"][data-placement="top"] {
@@ -1976,12 +1990,12 @@
 
     [data-scope="toast"][data-part="viewport"][data-placement="top-end"] {
         top: 0;
-        right: 0;
+        inset-inline-end: 0;
     }
 
     [data-scope="toast"][data-part="viewport"][data-placement="bottom-start"] {
         bottom: 0;
-        left: 0;
+        inset-inline-start: 0;
         flex-direction: column-reverse;
     }
 
@@ -1994,7 +2008,7 @@
 
     [data-scope="toast"][data-part="viewport"][data-placement="bottom-end"] {
         bottom: 0;
-        right: 0;
+        inset-inline-end: 0;
         flex-direction: column-reverse;
     }
 
@@ -2683,7 +2697,7 @@
         transition: scale var(--duration-slow) var(--ease-standard);
     }
 
-    [data-scope="rating-group"][data-part="item"]:dir(rtl)::after {
+    [data-scope="rating-group"][data-part="item"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)::after {
         transform-origin: right;
     }
 
@@ -2857,6 +2871,10 @@
 
     [data-scope="tree-view"][data-part="branch-indicator"][data-state="open"] {
         transform: rotate(90deg);
+    }
+
+    [data-scope="tree-view"][data-part="branch-indicator"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        scale: -1 1;
     }
 
     [data-scope="tree-view"][data-part="branch-content"] {

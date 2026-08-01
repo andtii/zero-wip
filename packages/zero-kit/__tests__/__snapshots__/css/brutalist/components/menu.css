@@ -112,6 +112,10 @@
         margin-inline-start: auto;
     }
 
+    [data-scope="menu"][data-part="sub-trigger"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)::after {
+        content: "\2039";
+    }
+
     [data-scope="menu"][data-part="sub-popup"] {
         opacity: 0;
         transform: translate(4px, 4px);

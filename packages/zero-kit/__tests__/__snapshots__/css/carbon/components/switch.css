@@ -49,16 +49,21 @@
     [data-scope="switch"][data-part="thumb"] {
         position: absolute;
         top: var(--switch-pad);
-        left: var(--switch-pad);
+        inset-inline-start: var(--switch-pad);
         width: calc(var(--switch-height) - var(--switch-pad) * 2);
         height: calc(var(--switch-height) - var(--switch-pad) * 2);
         border-radius: 9999px;
         background: var(--color-base-100);
         transition: transform var(--duration-normal) var(--ease-standard);
+        --switch-thumb-dir: 1;
     }
 
     [data-scope="switch"][data-part="thumb"][data-state="checked"] {
-        transform: translateX(calc(var(--switch-width) - var(--switch-height)));
+        transform: translateX(calc(var(--switch-thumb-dir) * (var(--switch-width) - var(--switch-height))));
+    }
+
+    [data-scope="switch"][data-part="thumb"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        --switch-thumb-dir: -1;
     }
 
     [data-scope="switch"][data-part="label"] {

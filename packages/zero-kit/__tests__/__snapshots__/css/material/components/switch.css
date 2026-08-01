@@ -61,20 +61,25 @@
     [data-scope="switch"][data-part="thumb"] {
         position: absolute;
         top: 50%;
-        left: var(--size-selector);
+        inset-inline-start: var(--size-selector);
         width: calc(var(--size-selector) * 4);
         height: calc(var(--size-selector) * 4);
         border-radius: 624rem;
         background: var(--color-outline);
         transform: translateY(-50%);
         transition: transform var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard), width var(--duration-fast) var(--ease-standard), height var(--duration-fast) var(--ease-standard);
+        --switch-thumb-dir: 1;
     }
 
     [data-scope="switch"][data-part="thumb"][data-state="checked"] {
         background: var(--switch-on-accent);
         width: calc(var(--size-selector) * 6);
         height: calc(var(--size-selector) * 6);
-        transform: translate(calc(var(--switch-width) - 100% - var(--size-selector) * 2), -50%);
+        transform: translate(calc(var(--switch-thumb-dir) * (var(--switch-width) - 100% - var(--size-selector) * 2)), -50%);
+    }
+
+    [data-scope="switch"][data-part="thumb"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        --switch-thumb-dir: -1;
     }
 
     [data-scope="switch"][data-part="thumb"]::before {

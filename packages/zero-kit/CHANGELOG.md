@@ -4,6 +4,43 @@
 
 ### Added
 
+- **A physical-direction lint in `validate-recipes`** (#277, #290). Warns on
+  every physical property that has a logical twin — `left`, `right`,
+  `margin-left/right`, `padding-left/right`, `border-left*`/`border-right*` and
+  the physical corner radii — in part declarations and in `@keyframes` bodies
+  alike, naming the logical property that was meant. A physical direction is not
+  a typo: it compiles, it renders, and it is simply the *same* side in both
+  writing directions, so one rule stays put while everything around it mirrors.
+  Nothing else in the repo could see that — the css goldens record the physical
+  spelling faithfully and no unit test sets `dir`.
+
+  It found 36 sites across all six design systems, including four switch thumbs
+  and every toast viewport, all fixed in the same change.
+
+  Deliberately **not** #51's problem. That one is "validate every CSS property
+  name", which needs a list that goes stale against new CSS; this is a dozen-odd
+  physical properties whose logical twins have been stable for years.
+
+  Three exemptions, each because a real site needs it: **centring** (`left: 50%`
+  paired with a half-width pull-back is symmetric — every toast viewport's
+  `top`/`bottom` placement is this), **a physically-measured value**
+  (`left: var(--press-x)`, which `press.ts` measures from the element's own left
+  edge), and **a part that rotates** (once a box is rotated its `border-left` is
+  a stroke of a drawn glyph, not an edge of a box — and a check mark is not
+  mirrored in RTL; Carbon's checkbox already said so in a comment above the
+  declarations this would otherwise have flagged). The rotation exemption is
+  scoped to the part rather than the block, because the rotation is declared in
+  `base` while a state or an `at` override adjusts one arm.
+
+  **What it cannot see, by construction:** a `transform`. `translateX(8px)` has
+  no logical spelling to suggest — the fix is a direction-valued custom property,
+  which is a shape rather than a rename. heroui's switch is the proof: it
+  anchored with `inset-inline-start` and then travelled with a bare positive
+  `translate`, so under RTL the anchor mirrored, the travel did not, and the
+  thumb left the track. Clean to this lint, broken on screen. That half is
+  covered by `e2e/rtl.spec.ts`, which reads boxes instead of declarations;
+  neither check subsumes the other.
+
 - **The declared-step-nobody-honours guard**
   (`__tests__/axis-value-coverage.test.ts`, #273). A design system's
   `tokens.sizes` / `tokens.variants` / `tokens.roles` / `tokens.axes` reach
