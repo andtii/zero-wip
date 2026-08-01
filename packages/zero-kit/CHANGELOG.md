@@ -7,8 +7,14 @@
 - **A physical-direction lint in `validate-recipes`** (#277, #290). Warns on
   every physical property that has a logical twin — `left`, `right`,
   `margin-left/right`, `padding-left/right`, `border-left*`/`border-right*` and
-  the physical corner radii — in part declarations and in `@keyframes` bodies
-  alike, naming the logical property that was meant. A physical direction is not
+  the physical corner radii — across part declarations, `@keyframes` bodies and
+  the raw `css` escape hatch alike, naming the logical property that was meant.
+  Nothing is exempt from being *read*: the level is `warning`, so no input needs
+  somewhere to hide, and an unscanned one would be a blind spot in the middle of
+  a check whose premise is that this bug class is otherwise invisible. In the
+  raw block a physical property must sit at the head of a declaration, so
+  `linear-gradient(to left, …)` and `transform-origin: bottom left` read as the
+  values they are. A physical direction is not
   a typo: it compiles, it renders, and it is simply the *same* side in both
   writing directions, so one rule stays put while everything around it mirrors.
   Nothing else in the repo could see that — the css goldens record the physical

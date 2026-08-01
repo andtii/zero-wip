@@ -461,6 +461,26 @@ export function validateRecipes(
                 );
             }
         }
+        // The raw escape hatch gets the same reading. It is not exempt: the
+        // level here is `warning`, so nothing needs somewhere to hide, and
+        // leaving one input unscanned would put a blind spot in the middle of a
+        // check whose whole premise is that this bug class is otherwise
+        // invisible. The property has to be at the head of a declaration, so a
+        // `linear-gradient(to left, …)` or a `transform-origin: bottom left`
+        // reads as the value it is.
+        //
+        // The one thing lost here is the drawn-glyph exemption — raw CSS has no
+        // part to attribute a rotation to — so a glyph drawn through this route
+        // warns. It stays advisory rather than being carved out: a rotated
+        // border in a raw block is worth a second look either way.
+        for (const match of (recipe.css ?? '').matchAll(PHYSICAL_IN_BODY)) {
+            const prop = match[1]!;
+            warn(
+                `${where}.css`,
+                `"${prop}" is a physical direction — use ${LOGICAL_TWIN[prop]}, or this paints the ` +
+                'same side under `dir="rtl"` while everything around it mirrors',
+            );
+        }
 
         // ── presence: an entry animation without an exit ──
         //

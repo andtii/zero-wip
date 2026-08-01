@@ -185,6 +185,25 @@ describe('physical directions', () => {
             .not.toContainEqual(physical);
     });
 
+    it('reads the raw css escape hatch, which is not exempt', () => {
+        // The lint is warning-level, so nothing needs somewhere to hide — and
+        // an unscanned input would be a blind spot in the middle of a check
+        // whose premise is that this bug class is otherwise invisible.
+        expect(check({
+            ...tabsWith({ color: 'var(--color-primary)' }),
+            css: '[data-scope="tabs"][data-part="list"] { margin-left: auto; }',
+        }).warnings).toContainEqual(expect.stringContaining('use margin-inline-start'));
+    });
+
+    it('does not mistake a physical KEYWORD for a physical property', () => {
+        // `left` as a value, not at the head of a declaration.
+        expect(check({
+            ...tabsWith({ color: 'var(--color-primary)' }),
+            css: '[data-scope="tabs"][data-part="list"] { '
+                + 'background: linear-gradient(to left, red, blue); transform-origin: bottom left; }',
+        }).warnings).not.toContainEqual(expect.stringContaining('is a physical direction'));
+    });
+
     it('reads a keyframes body, where the property is the animation', () => {
         // The indeterminate progress sweep lives here in three design systems,
         // and a keyframes body is a raw string the declaration walk never sees.
