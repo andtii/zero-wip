@@ -24,7 +24,7 @@ roles, the `xs…xl` ramp, and `solid | outline | soft | ghost`. That set is a
 convention, not the contract, and reading only those four is how a generated
 design system ends up inheriting it by accident. `riso.ts` is the counterweight:
 it declines the colour and size axes outright and fuses colour into `variant`,
-the shape `@sigx/zero-heroui` and `@sigx/zero-carbon` ship.
+the shape `@sigx/zero-heroui` and `@sigx/zero-carbon` declare.
 
 ## These files run
 

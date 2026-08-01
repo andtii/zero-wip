@@ -555,7 +555,7 @@ component's anatomy). No component code is ever written or changed.
      interchangeable semantic roles". A design system with one accent, or with
      colour folded into `variant`, genuinely has no colour axis, and saying so
      is better than declaring eight roles and wiring two. `@sigx/zero-heroui`
-     and `@sigx/zero-carbon` both ship `roles: {}` with their palette as
+     and `@sigx/zero-carbon` both declare `roles: {}` with their palette as
      declared `custom` tokens — themed and validated like any other token, just
      not passable as `color="…"`. The `riso` brief shows both opt-outs at once.
    - **Every declared value is a promise — honour it in every scope that
@@ -625,7 +625,7 @@ component's anatomy). No component code is ever written or changed.
      roles: {},   // no colour axis to be orthogonal TO
      variants: ['primary', 'secondary', 'tertiary', 'outline', 'ghost', 'danger', 'danger-soft'],
      ```
-     Carbon does the same under the name `kind`. Both are shipped packages, so
+     Carbon does the same under the name `kind`. Both are real packages here, so
      read them when the brief's axis surface isn't the default one. If the
      brief's colours and treatments genuinely are independent, keep them on two
      axes — the point is to decide, not to inherit.
@@ -790,7 +790,7 @@ are most of the difference between those five looks.
 
 ### Worked design systems
 
-Five ship in the zero repo, in increasing distance from the defaults:
+Five live in this repo, in increasing distance from the defaults:
 
 - `@sigx/zero-basic` — the canonical starting point. Read its `src/tokens.ts`
   and `src/recipes.ts` before writing your own.

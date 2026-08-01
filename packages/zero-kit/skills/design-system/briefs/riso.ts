@@ -13,7 +13,7 @@
  *   eight semantic roles, so `color="success"` would be a promise the medium
  *   cannot keep. The palette lives in `custom` declarations instead: still
  *   themed, still validated, still in the manifest — just not passable as a
- *   prop. `@sigx/zero-heroui` ships this shape.
+ *   prop. `@sigx/zero-heroui` declares this shape.
  * - **`sizes: []`** — no `size` axis either. Empty is a *statement*
  *   ("there isn't one"), where omitting the key means "I didn't say" and takes
  *   the recommended `xs…xl`. A printed form has one button size because the
