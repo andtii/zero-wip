@@ -98,6 +98,10 @@ const PHYSICAL_IN_BODY = new RegExp(
  * anything about the inline axis at all.
  */
 function inlineTranslation(props: CssProps): string | undefined {
+    // A leading `+` is legal CSS and means the same as no sign, so it is
+    // normalised away rather than rejected — `translateX(+50%)` is how a
+    // correctly centred `right: 50%` may well be written.
+    const normalise = (x: string) => (x.startsWith('+') ? x.slice(1) : x);
     for (const [prop, raw] of Object.entries(props)) {
         const name = kebabProp(prop);
         const value = String(raw);
@@ -105,12 +109,12 @@ function inlineTranslation(props: CssProps): string | undefined {
         // `translateY(…)`, whose `Y` matches neither the optional `X|3d` nor
         // the paren.
         if (name === 'transform') {
-            const x = /\btranslate(?:X|3d)?\(\s*(-?[\d.]+%)/.exec(value);
-            if (x) return x[1];
+            const x = /\btranslate(?:X|3d)?\(\s*([+-]?[\d.]+%)/.exec(value);
+            if (x) return normalise(x[1]!);
         } else if (name === 'translate') {
             // The individual property, whose first component is x.
-            const x = /^\s*(-?[\d.]+%)/.exec(value);
-            if (x) return x[1];
+            const x = /^\s*([+-]?[\d.]+%)/.exec(value);
+            if (x) return normalise(x[1]!);
         }
     }
     return undefined;

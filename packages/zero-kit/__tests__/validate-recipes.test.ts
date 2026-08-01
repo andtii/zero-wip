@@ -195,6 +195,18 @@ describe('physical directions', () => {
         }).warnings).toContainEqual(expect.stringContaining('use margin-inline-start'));
     });
 
+    it('names the longest matching property, not a prefix of it', () => {
+        // Several keys are prefixes of others (`border-left` /
+        // `border-left-width`), and the alternation is in declaration order. The
+        // `:` anchor is what makes that safe — the short alternative matches the
+        // text but then fails on the colon, so the engine backtracks to the long
+        // one. Pinned here because it is not obvious from reading the pattern.
+        expect(check({
+            ...tabsWith({ color: 'var(--color-primary)' }),
+            css: '[data-scope="tabs"][data-part="list"] { border-left-width: 0; }',
+        }).warnings).toContainEqual(expect.stringContaining('use border-inline-start-width'));
+    });
+
     it('does not mistake a physical KEYWORD for a physical property', () => {
         // `left` as a value, not at the head of a declaration.
         expect(check({
@@ -250,6 +262,14 @@ describe('physical directions', () => {
             expect(check(tabsWith({
                 position: 'absolute', right: '50%', transform: 'translateX(-50%)',
             })).warnings).toContainEqual(physical);
+        });
+
+        it('accepts an explicitly signed pull-back', () => {
+            // `+50%` is legal CSS and means `50%`, which is how a centred
+            // `right` may well be written.
+            expect(check(tabsWith({
+                position: 'absolute', right: '50%', transform: 'translateX(+50%)',
+            })).warnings).not.toContainEqual(physical);
         });
 
         it('reads the individual `translate` property too', () => {
