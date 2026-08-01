@@ -46,7 +46,7 @@
     [data-scope="switch"][data-part="thumb"] {
         position: absolute;
         top: var(--switch-pad);
-        left: var(--switch-pad);
+        inset-inline-start: var(--switch-pad);
         box-sizing: border-box;
         width: calc(var(--switch-height) - var(--switch-pad) * 2);
         height: calc(var(--switch-height) - var(--switch-pad) * 2);
@@ -54,12 +54,17 @@
         border: var(--border) solid var(--switch-thumb-edge);
         background: var(--color-base-100);
         transition: transform var(--duration-fast) var(--ease-standard);
+        --switch-thumb-dir: 1;
     }
 
     [data-scope="switch"][data-part="thumb"][data-state="checked"] {
-        transform: translateX(calc(var(--switch-width) - var(--switch-height)));
+        transform: translateX(calc(var(--switch-thumb-dir) * (var(--switch-width) - var(--switch-height))));
         background: var(--color-primary-content);
         border-color: transparent;
+    }
+
+    [data-scope="switch"][data-part="thumb"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        --switch-thumb-dir: -1;
     }
 
     [data-scope="switch"][data-part="label"] {

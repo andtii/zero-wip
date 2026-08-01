@@ -30,6 +30,7 @@
         border-radius: 624rem;
         background: var(--progress-accent);
         transition: width var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard);
+        --progress-sweep-dir: 1;
     }
 
     [data-scope="progress"][data-part="range"][data-state="complete"] {
@@ -39,6 +40,10 @@
     [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
         width: 40%;
         animation: material-indeterminate 1.4s var(--ease-emphasized) infinite;
+    }
+
+    [data-scope="progress"][data-part="range"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        --progress-sweep-dir: -1;
     }
 
     [data-scope="progress"][data-part="value-text"] {
@@ -110,5 +115,5 @@
     }
 }
 @keyframes material-indeterminate {
-    from { transform: translateX(-100%); } to { transform: translateX(300%); }
+    from { transform: translateX(calc(var(--progress-sweep-dir) * -100%)); } to { transform: translateX(calc(var(--progress-sweep-dir) * 300%)); }
 }

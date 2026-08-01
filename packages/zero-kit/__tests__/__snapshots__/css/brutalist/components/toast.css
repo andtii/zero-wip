@@ -25,7 +25,7 @@
 
     [data-scope="toast"][data-part="viewport"][data-placement="top-start"] {
         top: 0;
-        left: 0;
+        inset-inline-start: 0;
     }
 
     [data-scope="toast"][data-part="viewport"][data-placement="top"] {
@@ -36,12 +36,12 @@
 
     [data-scope="toast"][data-part="viewport"][data-placement="top-end"] {
         top: 0;
-        right: 0;
+        inset-inline-end: 0;
     }
 
     [data-scope="toast"][data-part="viewport"][data-placement="bottom-start"] {
         bottom: 0;
-        left: 0;
+        inset-inline-start: 0;
         flex-direction: column-reverse;
     }
 
@@ -54,7 +54,7 @@
 
     [data-scope="toast"][data-part="viewport"][data-placement="bottom-end"] {
         bottom: 0;
-        right: 0;
+        inset-inline-end: 0;
         flex-direction: column-reverse;
     }
 

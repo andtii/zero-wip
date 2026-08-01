@@ -280,6 +280,52 @@ component's anatomy). No component code is ever written or changed.
      tooltip, menu, select, combobox) are **outside the rule entirely**, not
      waived by it: the revealed thing floats above the page and takes focus, so
      whether the trigger also changes is your call and the guard never asks.
+   - **Spell direction logically. It is a correctness rule, not a style.**
+     `inset-inline-start` / `margin-inline-*` / `padding-inline-*` /
+     `border-inline-*`, never `left` / `right` / `margin-left` / `border-left`.
+     A physical property compiles and renders; it is simply the *same* side in
+     both writing directions, so under `dir="rtl"` one rule stays put while
+     everything around it mirrors. `validate-recipes` warns on every physical
+     property that has a logical twin, so you will be told.
+     - **Symmetric pairs are exempt and stay physical.** `left: 50%` with a
+       `translateX(-50%)` is centring, not a side; a logical inset there would
+       decentre it. So is a value the runtime measures physically —
+       `left: var(--press-x)` is a pixel offset from the element's own left
+       edge.
+     - **A rotated part is drawing, not positioning.** Once a box is rotated,
+       its `border-left` is a *stroke of a glyph* rather than an edge of a box,
+       and mirroring it would mirror the drawing. A check mark is not mirrored
+       in RTL. The lint exempts any part that declares a rotation.
+     - **`transform` has no logical form**, so it needs a shape rather than a
+       rename: put the sign in a custom property and rebind it. This is the one
+       case the lint cannot see, so it is on you.
+       ```ts
+       thumb: {
+           base: { insetInlineStart: 'var(--switch-pad)', '--switch-thumb-dir': '1' },
+           states: { checked: { transform: 'translateX(calc(var(--switch-thumb-dir) * 2rem))' } },
+           selectors: { [`&${rtl}`]: { '--switch-thumb-dir': '-1' } },
+       }
+       ```
+       Half of this is worse than neither half: a logical anchor with a physical
+       travel starts the thumb at the reading end and then moves it further that
+       way, off the track. The same applies inside `@keyframes` — a custom
+       property in a keyframe resolves against the animated element, so the
+       multiplier works there too.
+     - **Write the RTL selector the forgiving way**, as a const beside your
+       other helpers:
+       ```ts
+       const rtl = ':where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)';
+       ```
+       `:where()` is forgiving, so an engine without `:dir()` drops that one
+       argument and still matches the attribute forms. It also contributes no
+       specificity, so the rule ties with the one it corrects and wins on source
+       order — **declare it after, not before**.
+     - **A glyph that points is direction-bearing too.** `›` points right in
+       every writing direction. Swap it under RTL when it comes from `content:`
+       (`'"\2039"'`); mirror the part with `scale: '-1 1'` when the glyph is
+       element text the runtime renders and CSS cannot replace it. `scale`
+       composes outside `transform`, so a chevron that rotates to open keeps
+       rotating correctly.
    - **A state indicator is DRAWN GEOMETRY, and it must look different in
      every state it declares.** An `indicator` part — checkbox's tick, radio's
      dot, a rating symbol, select's checkmark — exists for exactly one reason:

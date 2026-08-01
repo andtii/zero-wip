@@ -18,6 +18,21 @@ const ROLES = Object.entries(roles as Record<string, RoleDecl>)
     .filter(([, decl]) => decl.content !== false && decl.soft !== false)
     .map(([name]) => name);
 
+/**
+ * "…and the reading direction is right-to-left" — appended to a selector, never
+ * written alone.
+ *
+ * `:where()` is forgiving, so an engine without `:dir()` drops that one argument
+ * and still matches the attribute forms. It also contributes no specificity, so
+ * a rule using it ties with the one it corrects and wins on source order —
+ * declare it after, not before.
+ *
+ * Only for what has no logical property: a `transform`, a keyframe, a glyph that
+ * points. Anything with an `inset-inline-*` or `margin-inline-*` spelling should
+ * use that instead and need no rule at all.
+ */
+const rtl = ':where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)';
+
 const focusRing: Record<string, NonNullable<PartStyles['base']>> = {
     'focus-visible': {
         outline: '2px solid var(--color-base-content)',
@@ -595,7 +610,12 @@ export const menu: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
             selectors: {
-                '&::after': { content: '"\\203A"', marginLeft: 'auto', opacity: '0.6' },
+                // A submenu opens toward the reading end, so the chevron that
+                // announces it has to point that way. `\203A` points right in
+                // every writing direction; `\2039` is its mirror, and the swap
+                // agrees with the side `Menu.tsx` itself resolves from `:dir()`.
+                '&::after': { content: '"\\203A"', marginInlineStart: 'auto', opacity: '0.6' },
+                [`&${rtl}::after`]: { content: '"\\2039"' },
             },
         },
         'sub-popup': withPresence(popupPresence('translateX(-4px)'), {
@@ -1150,7 +1170,11 @@ export const progress: RecipeInput = {
         },
     },
     keyframes: {
-        'zero-daisy-indeterminate': 'from { margin-left: -40%; } to { margin-left: 100%; }',
+        // Logical, so the sweep runs the way the bar fills — `margin-inline-start`
+        // is animatable and direction-aware on its own. The determinate `width`,
+        // an ordinary flow child, was already mirroring while this travelled the
+        // other way.
+        'zero-daisy-indeterminate': 'from { margin-inline-start: -40%; } to { margin-inline-start: 100%; }',
     },
 };
 
@@ -1611,12 +1635,17 @@ export const toast: RecipeInput = {
             },
             selectors: {
                 '&:popover-open': { display: 'flex' },
-                '&[data-placement="top-start"]': { top: '0', left: '0' },
+                // Logical, because `ToastPlacement` is: `top-start` means the
+                // top of the reading side, which is the left edge only in a
+                // left-to-right document. The centred pair stays physical —
+                // `left: 50%` with a half-width pull-back is symmetric, and a
+                // logical inset there would decentre it instead of mirroring it.
+                '&[data-placement="top-start"]': { top: '0', insetInlineStart: '0' },
                 '&[data-placement="top"]': { top: '0', left: '50%', transform: 'translateX(-50%)' },
-                '&[data-placement="top-end"]': { top: '0', right: '0' },
-                '&[data-placement="bottom-start"]': { bottom: '0', left: '0', flexDirection: 'column-reverse' },
+                '&[data-placement="top-end"]': { top: '0', insetInlineEnd: '0' },
+                '&[data-placement="bottom-start"]': { bottom: '0', insetInlineStart: '0', flexDirection: 'column-reverse' },
                 '&[data-placement="bottom"]': { bottom: '0', left: '50%', transform: 'translateX(-50%)', flexDirection: 'column-reverse' },
-                '&[data-placement="bottom-end"]': { bottom: '0', right: '0', flexDirection: 'column-reverse' },
+                '&[data-placement="bottom-end"]': { bottom: '0', insetInlineEnd: '0', flexDirection: 'column-reverse' },
             },
         },
         // daisy's alert, floating: soft role fill, generous radius.
@@ -2330,7 +2359,7 @@ export const ratingGroup: RecipeInput = {
                 // A half fills from the inline START, so the mask origin flips
                 // with the writing mode — daisy flips `.mask-half-*` through
                 // the same guard, and for the same reason.
-                '&:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)': { maskPosition: '100% 0, 0 0' },
+                [`&${rtl}`]: { maskPosition: '100% 0, 0 0' },
             },
             at: {
                 // The brightness lift stays — only the motion goes.
@@ -2446,6 +2475,13 @@ export const treeView: RecipeInput = {
                 transition: 'transform var(--duration-fast) var(--ease-standard)',
             },
             states: { open: { transform: 'rotate(90deg)' }, closed: {} },
+            // The glyph is element text the runtime renders (`TreeView.tsx`), not
+            // `content:`, so the `:dir(rtl)` swap the submenu chevron uses is not
+            // available here — a mirror is its equivalent. `scale` composes
+            // OUTSIDE `transform` (and outside the individual `rotate`), so the
+            // closed glyph flips to point at the reading end while the open one,
+            // already rotated to point down, is unaffected by a horizontal flip.
+            selectors: { [`&${rtl}`]: { scale: '-1 1' } },
             at: {
                 'reduced-motion': { base: { transition: 'none' } },
             },

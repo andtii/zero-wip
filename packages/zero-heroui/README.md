@@ -89,3 +89,22 @@ rejected. The runtime is data only: one generated `adapt()` call for Button
 (the one component with renamed props), plain re-exports for the rest. The
 rendered attributes are unchanged — the recipes and every existing consumer
 are untouched.
+
+## Writing direction
+
+Every direction-bearing rule is spelled logically, so the whole skin mirrors
+under `dir="rtl"` (#277, #290). `inset-inline-*` and `margin-inline-*` where a
+logical property exists; a direction-valued custom property the RTL selector
+rebinds where one does not, since `transform` has no logical form. The kit warns
+on the first kind (`validate-recipes`) and `e2e/rtl.spec.ts` measures the second
+in a real engine — a logical anchor with a physical travel reads as correct and
+still puts the control's thumb outside its own track.
+
+What moved here: the toast viewport's start/end placements, the toast's own
+entry direction, the submenu chevron glyph, the collapsed tree indicator, the
+indeterminate progress sweep — and the switch thumb, which is the reason the
+e2e half of this exists. Its anchor was already `inset-inline-start` while its
+travel was a bare positive `translate`, so under RTL the anchor moved the thumb
+to the reading end and the travel carried it further the same way, off the
+track. Nothing that reads declarations could see it; half a conversion was worse
+than none.

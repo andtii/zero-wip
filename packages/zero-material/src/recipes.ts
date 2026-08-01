@@ -25,6 +25,21 @@ const ROLES = Object.entries(roles as Record<string, RoleDecl>)
     .filter(([, decl]) => decl.content !== false && decl.soft !== false)
     .map(([name]) => name);
 
+/**
+ * "…and the reading direction is right-to-left" — appended to a selector, never
+ * written alone.
+ *
+ * `:where()` is forgiving, so an engine without `:dir()` drops that one argument
+ * and still matches the attribute forms. It also contributes no specificity, so
+ * a rule using it ties with the one it corrects and wins on source order —
+ * declare it after, not before.
+ *
+ * Only for what has no logical property: a `transform`, a keyframe, a glyph that
+ * points. Anything with an `inset-inline-*` or `margin-inline-*` spelling should
+ * use that instead and need no rule at all.
+ */
+const rtl = ':where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)';
+
 const focusRing: Record<string, CssProps> = {
     'focus-visible': {
         outline: '3px solid var(--color-secondary)',
@@ -969,24 +984,33 @@ export const switchRecipe: RecipeInput = {
             base: {
                 position: 'absolute',
                 top: '50%',
-                left: 'var(--size-selector)',
+                insetInlineStart: 'var(--size-selector)',
                 width: 'calc(var(--size-selector) * 4)',
                 height: 'calc(var(--size-selector) * 4)',
                 borderRadius: '624rem',
                 background: 'var(--color-outline)',
                 transform: 'translateY(-50%)',
                 transition: motion('transform, background, width, height'),
+                // The anchor is logical, so the travel has to be too — and
+                // `transform` has no logical form, so the direction is carried by
+                // a value the RTL rule below can rebind. Half of this is worse
+                // than neither: a logical anchor with a physical travel starts the
+                // thumb at the reading end and then moves it further that way,
+                // off the track. The `-50%` stays signed: it is the vertical
+                // centring, which mirrors nothing.
+                '--switch-thumb-dir': '1',
             },
             states: {
                 checked: {
                     background: 'var(--switch-on-accent)',
                     width: 'calc(var(--size-selector) * 6)',
                     height: 'calc(var(--size-selector) * 6)',
-                    transform: 'translate(calc(var(--switch-width) - 100% - var(--size-selector) * 2), -50%)',
+                    transform: 'translate(calc(var(--switch-thumb-dir) * (var(--switch-width) - 100% - var(--size-selector) * 2)), -50%)',
                 },
                 unchecked: {},
             },
             selectors: {
+                [`&${rtl}`]: { '--switch-thumb-dir': '-1' },
                 // Fixed halo (the thumb itself grows 4→6 units) that travels
                 // with the thumb by construction. Accent ink; the control's
                 // descendant selector overrides it to on-surface while
@@ -1586,7 +1610,14 @@ export const progress: RecipeInput = {
         '--progress-track-size': 'calc(var(--size-field) * 1.5)',
     },
     keyframes: {
-        'material-indeterminate': 'from { transform: translateX(-100%); } to { transform: translateX(300%); }',
+        // `transform` has no logical form, so the direction is carried by a value
+        // the RTL rule can rebind — the same shape the switch thumb and the
+        // slider fill use. Without it the determinate `width`, an ordinary flow
+        // child, mirrors while the indeterminate sweep of the same element does
+        // not.
+        'material-indeterminate':
+            'from { transform: translateX(calc(var(--progress-sweep-dir) * -100%)); } '
+            + 'to { transform: translateX(calc(var(--progress-sweep-dir) * 300%)); }',
     },
     parts: {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' } },
@@ -1608,7 +1639,9 @@ export const progress: RecipeInput = {
                 borderRadius: '624rem',
                 background: 'var(--progress-accent)',
                 transition: motion('width, background'),
+                '--progress-sweep-dir': '1',
             },
+            selectors: { [`&${rtl}`]: { '--progress-sweep-dir': '-1' } },
             states: {
                 // `complete` is a semantic state, not an accent: it stays
                 // `success` whatever `color` the consumer picked. Without it the
@@ -1767,12 +1800,17 @@ export const toast: RecipeInput = {
             },
             selectors: {
                 '&:popover-open': { display: 'flex' },
-                '&[data-placement="top-start"]': { top: '0', left: '0' },
+                // Logical, because `ToastPlacement` is: `top-start` means the
+                // top of the reading side, which is the left edge only in a
+                // left-to-right document. The centred pair stays physical —
+                // `left: 50%` with a half-width pull-back is symmetric, and a
+                // logical inset there would decentre it instead of mirroring it.
+                '&[data-placement="top-start"]': { top: '0', insetInlineStart: '0' },
                 '&[data-placement="top"]': { top: '0', left: '50%', transform: 'translateX(-50%)' },
-                '&[data-placement="top-end"]': { top: '0', right: '0' },
-                '&[data-placement="bottom-start"]': { bottom: '0', left: '0', flexDirection: 'column-reverse' },
+                '&[data-placement="top-end"]': { top: '0', insetInlineEnd: '0' },
+                '&[data-placement="bottom-start"]': { bottom: '0', insetInlineStart: '0', flexDirection: 'column-reverse' },
                 '&[data-placement="bottom"]': { bottom: '0', left: '50%', transform: 'translateX(-50%)', flexDirection: 'column-reverse' },
-                '&[data-placement="bottom-end"]': { bottom: '0', right: '0', flexDirection: 'column-reverse' },
+                '&[data-placement="bottom-end"]': { bottom: '0', insetInlineEnd: '0', flexDirection: 'column-reverse' },
             },
         },
         root: {
@@ -2380,7 +2418,7 @@ export const ratingGroup: RecipeInput = {
             selectors: {
                 // Gradients have no logical direction, so the hard stop has to
                 // be flipped by hand: the filled half is the LEADING one.
-                '&[data-state="half"]:dir(rtl)': {
+                [`&[data-state="half"]${rtl}`]: {
                     backgroundImage: 'linear-gradient(to left, var(--rating-fill) 50%, transparent 50%)',
                 },
             },
@@ -2489,6 +2527,13 @@ export const treeView: RecipeInput = {
                 transition: motion('transform'),
             },
             states: { open: { transform: 'rotate(90deg)' }, closed: {} },
+            // The glyph is element text the runtime renders (`TreeView.tsx`), not
+            // `content:`, so the `:dir(rtl)` swap the submenu chevron uses is not
+            // available here — a mirror is its equivalent. `scale` composes
+            // OUTSIDE `transform` (and outside the individual `rotate`), so the
+            // closed glyph flips to point at the reading end while the open one,
+            // already rotated to point down, is unaffected by a horizontal flip.
+            selectors: { [`&${rtl}`]: { scale: '-1 1' } },
             // --duration-* already collapses under reduced motion; `none`
             // makes the intent explicit rather than relying on 0.01ms.
             at: { 'reduced-motion': { base: { transition: 'none' } } },

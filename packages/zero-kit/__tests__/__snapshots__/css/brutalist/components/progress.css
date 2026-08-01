@@ -33,6 +33,7 @@
         height: 100%;
         background: var(--progress-accent);
         transition: width var(--duration-fast) var(--ease-standard);
+        --progress-sweep-dir: 1;
     }
 
     [data-scope="progress"][data-part="range"][data-state="complete"] {
@@ -42,6 +43,10 @@
     [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
         width: 40%;
         animation: brutalist-indeterminate 1s var(--ease-standard) infinite;
+    }
+
+    [data-scope="progress"][data-part="range"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        --progress-sweep-dir: -1;
     }
 
     [data-scope="progress"][data-part="value-text"] {
@@ -112,5 +117,5 @@
     }
 }
 @keyframes brutalist-indeterminate {
-    from { transform: translateX(-100%); } to { transform: translateX(250%); }
+    from { transform: translateX(calc(var(--progress-sweep-dir) * -100%)); } to { transform: translateX(calc(var(--progress-sweep-dir) * 250%)); }
 }

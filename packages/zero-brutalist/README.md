@@ -62,4 +62,20 @@ import { installThemes } from '@sigx/zero-brutalist';
 installThemes();
 ```
 
+## Writing direction
+
+Every direction-bearing rule is spelled logically, so the whole skin mirrors
+under `dir="rtl"` (#277, #290). `inset-inline-*` and `margin-inline-*` where a
+logical property exists; a direction-valued custom property the RTL selector
+rebinds where one does not, since `transform` has no logical form. The kit warns
+on the first kind (`validate-recipes`) and `e2e/rtl.spec.ts` measures the second
+in a real engine — a logical anchor with a physical travel reads as correct and
+still puts the control's thumb outside its own track.
+
+The slider fill, the switch thumb and the toast accent bar were already here
+(#229, #278) — that sweep's premise was that this was the one package that did
+not flip, and it turned out four more did not either. What moved with them: the
+toast viewport's start/end placements, the submenu chevron glyph, the collapsed
+tree indicator and the indeterminate progress sweep.
+
 MIT © Andreas Ekdahl

@@ -151,6 +151,185 @@ describe('hardcoded values', () => {
     });
 });
 
+/**
+ * A physical direction renders — it is simply the same side in both writing
+ * directions, so nothing else in this repo can see it: the goldens record the
+ * physical spelling faithfully and no unit test sets `dir`.
+ */
+describe('physical directions', () => {
+    const physical = expect.stringContaining('is a physical direction');
+
+    it('warns on an inset, and names the logical property that was meant', () => {
+        expect(check(tabsWith({ position: 'absolute', left: '0' })).warnings)
+            .toContainEqual(expect.stringContaining('use inset-inline-start'));
+    });
+
+    it.each([
+        ['marginLeft', 'auto', 'margin-inline-start'],
+        ['paddingRight', 'var(--space-md)', 'padding-inline-end'],
+        ['borderLeftWidth', '0', 'border-inline-start-width'],
+        ['borderBottomRightRadius', '2px', 'border-end-end-radius'],
+    ])('warns on %s', (prop, value, twin) => {
+        expect(check(tabsWith({ [prop]: value })).warnings)
+            .toContainEqual(expect.stringContaining(`use ${twin}`));
+    });
+
+    it('accepts the kebab authoring spelling too', () => {
+        // `kebab()` in the web target passes a kebab key through untouched, so
+        // both spellings compile — and both must be checked.
+        expect(check(tabsWith({ 'margin-left': 'auto' })).warnings).toContainEqual(physical);
+    });
+
+    it('leaves the logical spelling alone', () => {
+        expect(check(tabsWith({ position: 'absolute', insetInlineStart: '0' })).warnings)
+            .not.toContainEqual(physical);
+    });
+
+    it('reads the raw css escape hatch, which is not exempt', () => {
+        // The lint is warning-level, so nothing needs somewhere to hide — and
+        // an unscanned input would be a blind spot in the middle of a check
+        // whose premise is that this bug class is otherwise invisible.
+        expect(check({
+            ...tabsWith({ color: 'var(--color-primary)' }),
+            css: '[data-scope="tabs"][data-part="list"] { margin-left: auto; }',
+        }).warnings).toContainEqual(expect.stringContaining('use margin-inline-start'));
+    });
+
+    it('names the longest matching property, not a prefix of it', () => {
+        // Several keys are prefixes of others (`border-left` /
+        // `border-left-width`), and the alternation is in declaration order. The
+        // `:` anchor is what makes that safe — the short alternative matches the
+        // text but then fails on the colon, so the engine backtracks to the long
+        // one. Pinned here because it is not obvious from reading the pattern.
+        expect(check({
+            ...tabsWith({ color: 'var(--color-primary)' }),
+            css: '[data-scope="tabs"][data-part="list"] { border-left-width: 0; }',
+        }).warnings).toContainEqual(expect.stringContaining('use border-inline-start-width'));
+    });
+
+    it('does not mistake a physical KEYWORD for a physical property', () => {
+        // `left` as a value, not at the head of a declaration.
+        expect(check({
+            ...tabsWith({ color: 'var(--color-primary)' }),
+            css: '[data-scope="tabs"][data-part="list"] { '
+                + 'background: linear-gradient(to left, red, blue); transform-origin: bottom left; }',
+        }).warnings).not.toContainEqual(expect.stringContaining('is a physical direction'));
+    });
+
+    it('reads a keyframes body, where the property is the animation', () => {
+        // The indeterminate progress sweep lives here in three design systems,
+        // and a keyframes body is a raw string the declaration walk never sees.
+        expect(check({
+            ...tabsWith({ color: 'var(--color-primary)' }),
+            keyframes: { sweep: 'from { margin-left: -40%; } to { margin-left: 100%; }' },
+        }).warnings).toContainEqual(expect.stringContaining('the animation travels the same way'));
+    });
+
+    describe('the exemptions', () => {
+        it('allows `left: 50%` when a transform pulls back half the width', () => {
+            // Centring is symmetric. The toast viewport's `top`/`bottom`
+            // placements are exactly this pair in all six design systems.
+            expect(check(tabsWith({
+                position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+            })).warnings).not.toContainEqual(physical);
+        });
+
+        it('still warns on a bare `left: 50%`, which really does pick a side', () => {
+            expect(check(tabsWith({ position: 'absolute', left: '50%' })).warnings)
+                .toContainEqual(physical);
+        });
+
+        it('reads the x component of a two-axis pull-back', () => {
+            expect(check(tabsWith({
+                position: 'absolute', left: '50%', transform: 'translate(-50%, -50%)',
+            })).warnings).not.toContainEqual(physical);
+        });
+
+        it('still warns when the pull-back is vertical only', () => {
+            // `translateY(-50%)` centres nothing horizontally, so `left: 50%`
+            // beside it really is picking a side. A substring test for `-50%`
+            // would wave this through.
+            expect(check(tabsWith({
+                position: 'absolute', left: '50%', transform: 'translateY(-50%)',
+            })).warnings).toContainEqual(physical);
+        });
+
+        it('centres `right: 50%` the other way, with a positive pull-back', () => {
+            expect(check(tabsWith({
+                position: 'absolute', right: '50%', transform: 'translateX(50%)',
+            })).warnings).not.toContainEqual(physical);
+            // …and the sign has to match the property it pairs with.
+            expect(check(tabsWith({
+                position: 'absolute', right: '50%', transform: 'translateX(-50%)',
+            })).warnings).toContainEqual(physical);
+        });
+
+        it('accepts an explicitly signed pull-back', () => {
+            // `+50%` is legal CSS and means `50%`, which is how a centred
+            // `right` may well be written.
+            expect(check(tabsWith({
+                position: 'absolute', right: '50%', transform: 'translateX(+50%)',
+            })).warnings).not.toContainEqual(physical);
+        });
+
+        it('reads the individual `translate` property too', () => {
+            expect(check(tabsWith({
+                position: 'absolute', left: '50%', translate: '-50% -50%',
+            })).warnings).not.toContainEqual(physical);
+        });
+
+        it('allows a physical inset bound to --press-x', () => {
+            // `press.ts` measures --press-x from the element's own left edge, so
+            // a logical inset would put the ripple where the pointer was not.
+            expect(check(tabsWith({
+                position: 'absolute', left: 'var(--press-x, 50%)',
+            })).warnings).not.toContainEqual(physical);
+        });
+
+        it('allows a part that draws a glyph out of rotated edges', () => {
+            // Every checkbox tick in this repo. Rotate the box and `border-left`
+            // names a stroke of the drawing, not the inline start of anything —
+            // and a check mark is not mirrored in RTL.
+            expect(check(tabsWith({
+                position: 'absolute',
+                left: '38%',
+                borderLeft: '2px solid currentColor',
+                rotate: '-45deg',
+            })).warnings).not.toContainEqual(physical);
+        });
+
+        it('clears the whole part, not just the block that rotates', () => {
+            // The rotation is declared in `base` while a state or an `at`
+            // override adjusts one arm. Carbon's indeterminate dash is this.
+            expect(check({
+                component: 'tabs',
+                parts: {
+                    tab: {
+                        base: { rotate: '-45deg', borderLeft: '2px solid currentColor' },
+                        states: {
+                            'focus-visible': { outline: '1px solid' },
+                        },
+                        at: { print: { base: { borderLeftWidth: '0' } } },
+                    },
+                },
+            }).warnings).not.toContainEqual(physical);
+        });
+
+        it('does not let one part\'s rotation excuse another\'s', () => {
+            expect(check({
+                component: 'tabs',
+                parts: {
+                    tab: {
+                        base: { rotate: '45deg', borderLeft: '2px solid' },
+                        states: { 'focus-visible': { outline: '1px solid' } },
+                    },
+                    list: { base: { marginLeft: 'auto' } },
+                },
+            }).warnings).toContainEqual(physical);
+        });
+    });
+});
+
 describe('coverage', () => {
     it('warns about components with no recipe at all', () => {
         expect(check(tabsWith({ color: 'var(--color-primary)' })).warnings)

@@ -87,7 +87,7 @@
         border-radius: var(--radius-selector);
     }
 
-    [data-scope="rating-group"][data-part="item"][data-state="half"]:dir(rtl) {
+    [data-scope="rating-group"][data-part="item"][data-state="half"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
         background-image: linear-gradient(to left, var(--rating-fill) 50%, transparent 50%);
     }
 

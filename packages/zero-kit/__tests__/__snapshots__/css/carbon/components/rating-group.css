@@ -79,7 +79,7 @@
         transition: scale var(--duration-slow) var(--ease-standard);
     }
 
-    [data-scope="rating-group"][data-part="item"]:dir(rtl)::after {
+    [data-scope="rating-group"][data-part="item"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)::after {
         transform-origin: right;
     }
 

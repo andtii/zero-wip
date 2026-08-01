@@ -117,6 +117,10 @@
         color: var(--hero-muted);
     }
 
+    [data-scope="menu"][data-part="sub-trigger"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)::after {
+        content: "\2039";
+    }
+
     [data-scope="menu"][data-part="sub-trigger"][data-pressed]:not([data-disabled]) {
         background: var(--color-base-300);
     }
