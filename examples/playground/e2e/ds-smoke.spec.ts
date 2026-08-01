@@ -320,13 +320,22 @@ const readAxes = (page: Page, vocabulary: Vocabulary): Promise<RenderedAxes> =>
  * So this asserts the settled claim #206 asks for — after each switch,
  * exactly one link, live, and the one that was asked for.
  *
- * Every `link[data-zero-ds]` in the document, and whether its sheet is live.
- * Liveness rather than element count: a stylesheet still loading has a null
- * `.sheet` and applies nothing, so the two-ELEMENT window is by design.
+ * Every `link[data-zero-ds]` in the document, and whether its sheet PAINTS.
+ * Painting rather than element count: a two-ELEMENT window is by design, both
+ * while the incoming sheet loads and while it sits parked.
+ *
+ * Both halves of the test matter, and `.sheet !== null` alone is not it — that
+ * is the mis-instrumentation the note above describes. A parked link has
+ * already parsed, so it answers `.sheet !== null` while painting nothing; an
+ * unparsed one answers `media` matching while painting nothing either. A sheet
+ * paints only if it has parsed AND its media applies.
  */
 const readSheets = (page: Page): Promise<{ id: string; live: boolean }[]> =>
     page.evaluate(() => [...document.querySelectorAll<HTMLLinkElement>('link[data-zero-ds]')]
-        .map((link) => ({ id: link.getAttribute('data-zero-ds') ?? '?', live: link.sheet !== null })));
+        .map((link) => ({
+            id: link.getAttribute('data-zero-ds') ?? '?',
+            live: link.sheet !== null && (link.media === '' || matchMedia(link.media).matches),
+        })));
 
 // ── The per-design-system block ────────────────────────────────────────────
 
