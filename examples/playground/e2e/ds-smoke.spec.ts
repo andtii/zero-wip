@@ -295,35 +295,47 @@ const readAxes = (page: Page, vocabulary: Vocabulary): Promise<RenderedAxes> =>
 // ── Invariant 3: exactly one live sheet ────────────────────────────────────
 
 /**
- * SETTLED, deliberately — do not turn this into a per-frame sampler.
+ * SETTLED, deliberately — and counting live sheets per frame would now be
+ * WRONG, not merely flaky.
  *
- * `design-systems.ts` used to claim that "sampling per animation frame, the
- * number of links with a non-null `.sheet` never exceeds one". The first
- * version of this spec asserted exactly that, with a rAF sampler running
- * across each swap, and it is FLAKY: one run in ten (six swaps each, chromium,
- * `--repeat-each=10`) caught a frame in which both the outgoing and the
- * incoming sheet were live.
+ * This used to assert, per animation frame, that no more than one
+ * `link[data-zero-ds]` had a non-null `.sheet`. That was flaky against a real
+ * bug: the incoming sheet went live before its `load` event, so the frame
+ * before `previous.remove()` painted both design systems blended. Fixed in
+ * #256 — the incoming link is parked at `media="not all"` and un-parked in the
+ * same task that retires the outgoing one.
  *
- * That is a real frame, not a measurement artifact. A rAF callback runs before
- * its own frame is painted, and `previous.remove()` runs in a task — the
- * microtask after the incoming link's `load` event. When the sheet becomes
- * live before that event is dispatched, the frame in between paints with both
- * design systems' recipes blended. Usually the sampler misses it (the sheet
- * goes live after the rAF callback has already read, and the removal lands
- * before the next one); occasionally it does not.
+ * The fix changes what a live sheet means. A parked link has ALREADY parsed,
+ * so its `.sheet` is non-null while it paints nothing: counting non-null
+ * `.sheet` now reports two for most of the load, by design. Measured after the
+ * fix, that naive count still sees two in 28 runs of 30 on firefox — while the
+ * count of sheets that actually APPLY is 1 in every frame of all three
+ * engines. A per-frame assertion must ask about `media`, not about `.sheet`.
  *
- * So the transient is a real product wart, filed as #256 — and the thing
- * this suite asserts is the settled claim #206 actually asks for: after each
- * switch, exactly one link, live, and the one that was asked for. Asserting
- * per frame would import a known 10% flake into every CI run.
+ * Reproducing #256 needs a WARM cache — one browser context reused across
+ * runs. A cold context per run hides it: the load is slow enough that the
+ * removal lands first. A sampler that misses it is not evidence of its
+ * absence, which is how the original false claim survived.
  *
- * Every `link[data-zero-ds]` in the document, and whether its sheet is live.
- * Liveness rather than element count: a stylesheet still loading has a null
- * `.sheet` and applies nothing, so the two-ELEMENT window is by design.
+ * So this asserts the settled claim #206 asks for — after each switch,
+ * exactly one link, live, and the one that was asked for.
+ *
+ * Every `link[data-zero-ds]` in the document, and whether its sheet PAINTS.
+ * Painting rather than element count: a two-ELEMENT window is by design, both
+ * while the incoming sheet loads and while it sits parked.
+ *
+ * Both halves of the test matter, and `.sheet !== null` alone is not it — that
+ * is the mis-instrumentation the note above describes. A parked link has
+ * already parsed, so it answers `.sheet !== null` while painting nothing; an
+ * unparsed one answers `media` matching while painting nothing either. A sheet
+ * paints only if it has parsed AND its media applies.
  */
 const readSheets = (page: Page): Promise<{ id: string; live: boolean }[]> =>
     page.evaluate(() => [...document.querySelectorAll<HTMLLinkElement>('link[data-zero-ds]')]
-        .map((link) => ({ id: link.getAttribute('data-zero-ds') ?? '?', live: link.sheet !== null })));
+        .map((link) => ({
+            id: link.getAttribute('data-zero-ds') ?? '?',
+            live: link.sheet !== null && (link.media === '' || matchMedia(link.media).matches),
+        })));
 
 // ── The per-design-system block ────────────────────────────────────────────
 
