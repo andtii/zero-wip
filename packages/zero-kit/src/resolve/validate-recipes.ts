@@ -91,20 +91,51 @@ const PHYSICAL_IN_BODY = new RegExp(
 );
 
 /**
+ * The INLINE-axis translation a block applies to itself, as written.
+ *
+ * Only the x component counts, and only the first one found: `translateY(-50%)`
+ * moves nothing horizontally, and a block that centres vertically has not said
+ * anything about the inline axis at all.
+ */
+function inlineTranslation(props: CssProps): string | undefined {
+    for (const [prop, raw] of Object.entries(props)) {
+        const name = kebabProp(prop);
+        const value = String(raw);
+        // `translateX(…)`, `translate(x, …)`, `translate3d(x, …)` — but never
+        // `translateY(…)`, whose `Y` matches neither the optional `X|3d` nor
+        // the paren.
+        if (name === 'transform') {
+            const x = /\btranslate(?:X|3d)?\(\s*(-?[\d.]+%)/.exec(value);
+            if (x) return x[1];
+        } else if (name === 'translate') {
+            // The individual property, whose first component is x.
+            const x = /^\s*(-?[\d.]+%)/.exec(value);
+            if (x) return x[1];
+        }
+    }
+    return undefined;
+}
+
+/**
  * Centring is symmetric, so `left: 50%` is not a direction — but only when the
  * block pulls itself back by half its own width, which is what makes the pair
  * mean "centre" rather than "start at the midpoint".
  *
- * Checked against the sibling declarations rather than the value alone: a bare
- * `left: 50%` with no such transform really does pick a side.
+ * Both halves of that have to match, and matching loosely gets both wrong:
+ *
+ * - **The axis.** `left: 50%` beside a `translateY(-50%)` is vertical centring
+ *   with an uncentred horizontal offset — it really does pick a side, and a
+ *   substring test for `-50%` would wave it through.
+ * - **The sign.** `left: 50%` pulls back by `-50%`; `right: 50%` pulls the
+ *   other way, by `+50%`. Requiring a negative value would warn on a correctly
+ *   centred `right`.
+ *
+ * A bare `left: 50%` with no inline pull-back at all is not centring either.
  */
 function isCentring(prop: string, value: string, props: CssProps): boolean {
     if (prop !== 'left' && prop !== 'right') return false;
     if (value.trim() !== '50%') return false;
-    return Object.entries(props).some(([sibling, raw]) => {
-        const name = kebabProp(sibling);
-        return (name === 'transform' || name === 'translate') && String(raw).includes('-50%');
-    });
+    return inlineTranslation(props) === (prop === 'left' ? '-50%' : '50%');
 }
 
 /** The part a diagnostic path belongs to, wherever in the recipe it sits. */

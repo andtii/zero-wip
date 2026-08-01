@@ -208,6 +208,37 @@ describe('physical directions', () => {
                 .toContainEqual(physical);
         });
 
+        it('reads the x component of a two-axis pull-back', () => {
+            expect(check(tabsWith({
+                position: 'absolute', left: '50%', transform: 'translate(-50%, -50%)',
+            })).warnings).not.toContainEqual(physical);
+        });
+
+        it('still warns when the pull-back is vertical only', () => {
+            // `translateY(-50%)` centres nothing horizontally, so `left: 50%`
+            // beside it really is picking a side. A substring test for `-50%`
+            // would wave this through.
+            expect(check(tabsWith({
+                position: 'absolute', left: '50%', transform: 'translateY(-50%)',
+            })).warnings).toContainEqual(physical);
+        });
+
+        it('centres `right: 50%` the other way, with a positive pull-back', () => {
+            expect(check(tabsWith({
+                position: 'absolute', right: '50%', transform: 'translateX(50%)',
+            })).warnings).not.toContainEqual(physical);
+            // …and the sign has to match the property it pairs with.
+            expect(check(tabsWith({
+                position: 'absolute', right: '50%', transform: 'translateX(-50%)',
+            })).warnings).toContainEqual(physical);
+        });
+
+        it('reads the individual `translate` property too', () => {
+            expect(check(tabsWith({
+                position: 'absolute', left: '50%', translate: '-50% -50%',
+            })).warnings).not.toContainEqual(physical);
+        });
+
         it('allows a physical inset bound to --press-x', () => {
             // `press.ts` measures --press-x from the element's own left edge, so
             // a logical inset would put the ripple where the pointer was not.
