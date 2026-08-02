@@ -9,11 +9,12 @@
  */
 import { test, expect } from '@playwright/test';
 import { demoPosting, rootPosting, settledBox } from './demo';
+import { bootPage } from './nav';
 
 /**
  * The halves demo, named by the field it posts (`name="stars"`).
  *
- * The Forms tab renders four RatingGroups — halves, whole-stars-deselectable,
+ * The RatingGroup page renders four — halves, whole-stars-deselectable,
  * a readonly average and an invalid one — and `.first()` picked this one only
  * because it happens to come first. The posted field name is the instance's
  * identity; its position is not. See `demo.ts`.
@@ -29,14 +30,9 @@ const hidden = (page: import('@playwright/test').Page) => halvesParts(page)('hid
 const item = (page: import('@playwright/test').Page, n: number) =>
     halvesParts(page)('item').nth(n - 1);
 
-/** Boot the playground with one design system pinned, on the Forms tab. */
+/** Boot the RatingGroup page with one design system pinned. */
 const pin = (ds: string) => async ({ page }: { page: import('@playwright/test').Page }) => {
-    await page.addInitScript((value) => {
-        localStorage.setItem('zero-ds', value);
-    }, ds);
-    await page.goto('/');
-    await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', ds);
-    await page.getByRole('tab', { name: 'Forms' }).click();
+    await bootPage(page, 'rating-group', ds);
 };
 
 test.describe('half-star pointer and keyboard math', () => {

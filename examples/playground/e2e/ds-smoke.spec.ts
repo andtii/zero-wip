@@ -87,9 +87,6 @@ const DESIGN_SYSTEMS: DesignSystem[] = [
     { id: 'carbon', label: 'Carbon' },
 ];
 
-/** The playground's top-level tabs — every panel gets swept. */
-const TABS = ['Components', 'Forms', 'About'] as const;
-
 // ── The declared vocabulary, read from the compiled manifests ───────────────
 
 /**
@@ -185,13 +182,18 @@ function watchConsole(page: Page): void {
  * `link[data-zero-ds]` is live at a time, and it only carries the id once the
  * stylesheet has loaded — asserting on it is how we know the design system
  * under test is the one painting.
+ *
+ * Boots the kitchen-sink route (`#/all`) by default: this file's claims are
+ * structural sweeps over everything the playground renders, and `#/all` is
+ * every page's demos on one document — the same DOM coverage the old
+ * single-page tabs gave, at the same one-page-load cost.
  */
-async function pin(page: Page, ds: string): Promise<void> {
+async function pin(page: Page, ds: string, pageId = 'all'): Promise<void> {
     watchConsole(page);
     await page.addInitScript((id) => {
         localStorage.setItem('zero-ds', id);
     }, ds);
-    await page.goto('/');
+    await page.goto(`/#/${pageId}`);
     await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', ds);
 }
 
@@ -360,24 +362,21 @@ for (const ds of DESIGN_SYSTEMS) {
         });
 
         test('a part the runtime marks `hidden` computes display:none', async ({ page }) => {
-            for (const tab of TABS) {
-                await page.getByRole('tab', { name: tab, exact: true }).click();
-                // The panel swap is synchronous, but the sweep must read the
-                // committed frame, not the one mid-swap.
-                await expect(page.getByRole('tab', { name: tab, exact: true }))
-                    .toHaveAttribute('data-state', 'active');
+            // The sweep is only meaningful if `#/all` actually rendered: a
+            // registry broken enough to render nothing would also render no
+            // offenders, and this test would pass for the worst reason. The
+            // kitchen sink renders one <h2> per registry page (27 today), so
+            // any count in the twenties proves the document is populated.
+            await expect.poll(() => page.locator('main h2').count()).toBeGreaterThan(20);
 
-                expect(
-                    (await sweep(page)).map(describeOffender),
-                    `${ds.id} / ${tab}: a recipe \`display\` outranks the UA's [hidden] rule — `
-                    + 'the zero.structure layer must win',
-                ).toEqual([]);
-            }
+            expect(
+                (await sweep(page)).map(describeOffender),
+                `${ds.id}: a recipe \`display\` outranks the UA's [hidden] rule — `
+                + 'the zero.structure layer must win',
+            ).toEqual([]);
         });
 
         test('collapsing a TreeView branch removes its subtree from layout', async ({ page }) => {
-            await page.getByRole('tab', { name: 'Components', exact: true }).click();
-
             const tree = page.locator('[data-scope="tree-view"][data-part="tree"]');
             // The outermost branch is `src`; the playground expands it by default.
             const src = tree.locator('> [data-scope="tree-view"][data-part="branch"]').first();
@@ -456,7 +455,10 @@ test.describe('the toolbar switcher', () => {
         await page.addInitScript(() => {
             localStorage.setItem('zero-ds', 'carbon');
         });
-        await page.goto('/');
+        // `#/all` on purpose: the converse assertion below needs the Button
+        // variant rows AND the size ramp in one document, and this test's
+        // documented cost model is ONE page load for all six design systems.
+        await page.goto('/#/all');
         await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', 'carbon');
 
         const switcher = page.getByRole('group', { name: 'Design system' });

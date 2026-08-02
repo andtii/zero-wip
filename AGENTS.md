@@ -227,7 +227,10 @@ that null reports a `TypeError` instead of "the popup was not showing".
   `./components` module. Full recipe coverage; the `kind` axis and the remap
   stay Button-only — it exercises the vendor-named API surface that motivated
   #179, not a product. Private.
-- `examples/playground` — private kitchen-sink app; switches between
+- `examples/playground` — private demo app, structured like a docs site: a
+  sidebar of per-component pages (hash-routed, `src/pages/registry.ts` is the
+  single source the sidebar, the router and the derived `#/all` kitchen-sink
+  route share; `#/all` is what the sweeping e2e specs boot). Switches between
   basic / daisyui / material / brutalist / heroui / carbon **at runtime** from
   its toolbar. A
   design system compiles to one stylesheet, so switching is a `<link>` swap
