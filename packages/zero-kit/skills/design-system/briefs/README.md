@@ -1,6 +1,6 @@
 # Style-brief pack
 
-Four complete, compiling starting points for a Zero design system. Each file is
+Five complete, compiling starting points for a Zero design system. Each file is
 one `TokensInput` — every category filled, both colour schemes, contrast clean —
 plus one worked `RecipeInput` for Button, the component a design system is
 judged on and the only one where all three variant axes matter at once.
@@ -13,10 +13,18 @@ judged on and the only one where all three variant axes matter at once.
 | [`glass.ts`](glass.ts) | frosted translucent surfaces over a soft field | declared `custom` tokens, and translucency that survives both schemes |
 | [`corporate.ts`](corporate.ts) | blue primary, grey ramp, modest and layered | contrast discipline and declared breakpoints |
 | [`terminal.ts`](terminal.ts) | phosphor console, monospace, one signal colour | `0ms` durations instead of `transition: none`, and a glow built from theme colours |
+| [`riso.ts`](riso.ts) | duotone risograph print, two spot inks on warm paper | `roles: {}` / `sizes: []` to decline an axis, a fused `variant` vocabulary, modifiers, and a compound that matches one |
 
-They are deliberately not four palettes. Read all four and you have seen most
-of what the token contract can express — the four type ratios alone (1.414,
-1.25, 1.2, 1.125) are most of the difference between the four looks.
+They are deliberately not five palettes. Read all five and you have seen most
+of what the token contract can express — the type ratios alone (1.414, 1.25,
+1.2, 1.125, 1.333) are most of the difference between the five looks.
+
+**The first four all take the default axis surface** — the recommended eight
+roles, the `xs…xl` ramp, and `solid | outline | soft | ghost`. That set is a
+convention, not the contract, and reading only those four is how a generated
+design system ends up inheriting it by accident. `riso.ts` is the counterweight:
+it declines the colour and size axes outright and fuses colour into `variant`,
+the shape `@sigx/zero-heroui` and `@sigx/zero-carbon` declare.
 
 ## These files run
 
