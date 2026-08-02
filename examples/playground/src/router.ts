@@ -25,8 +25,15 @@ const parse = (): string => {
 };
 
 const state = signal({ page: parse() });
-window.addEventListener('hashchange', () => {
+const onHashChange = (): void => {
     state.page = parse();
+};
+window.addEventListener('hashchange', onHashChange);
+// Registered at module scope, so each Vite HMR re-execution would stack a
+// fresh listener on top of the last one — remove the old one when this
+// module version is disposed.
+import.meta.hot?.dispose(() => {
+    window.removeEventListener('hashchange', onHashChange);
 });
 
 /** Reactive when read inside a render closure. */
