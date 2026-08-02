@@ -4,6 +4,61 @@
 
 ### Added
 
+- **A vocabulary can belong to one scope: `tokens.scopes`** (#294, RFC 0003
+  §4.1). Per-scope axis vocabularies, the thing §4 deferred "until the content
+  tier makes divergence real" — and the caller that arrived first was the
+  fourteen unwired `variant` carriers, twelve of which have a variant in a real
+  design system and not one of which spells it `solid | outline | soft | ghost`.
+
+  ```ts
+  variants: ['solid', 'outline', 'classic', 'surface', 'soft'],   // the UNION
+  scopes: {
+      button: { variants: ['solid', 'outline'] },
+      select: { variants: ['classic', 'surface', 'soft'] },
+  },
+  ```
+
+  **`tokens.variants` is now the union of every scope's vocabulary.** A map that
+  only narrows would not have worked: `select` wants `classic` and `surface`,
+  and no button's set contains them, so there was nothing to narrow from. Every
+  axis takes a restriction — `colors`, `sizes`, `variants`, `axes`, `modifiers`
+  — because restricting `variant` alone would have left `tokens.axes` (the
+  recommended escape hatch for a second vocabulary) unrestricted, and because
+  #258 was a *size* problem. An absent key means the scope offers the whole
+  union; an empty list is the claim "no such axis here", the same grammar
+  `sizes: []` already uses.
+
+  **The restriction unit is the scope, and per-part is settled rather than
+  deferred again.** Zero puts one attribute per axis on the scope's carrier part
+  and cascades it to every part below by descendant selector, so Radix Select's
+  Trigger/Content split is two *axes*, not two vocabularies — and it is
+  expressible today, because zero has no portals and
+  `[data-part="root"][data-content-variant="soft"] [data-part="popup"]` matches.
+  A `parts` key inside a scope entry is reserved and rejected by name, so a
+  per-part restriction stays additive if it is ever wanted.
+
+  Three new diagnostics, all paying back the union: a value in the scope's
+  vocabulary its recipe wires nothing for; a union value belonging to no scope
+  at all; and — the one real behaviour change — **cross-talk**, where one scope
+  narrows an axis and a styled sibling does not, so the sibling is still
+  offering values declared for someone else. `validateDesignSystem` warns at the
+  declaration, and `axis-value-coverage.test.ts` reports the same fact as a
+  coverage gap. The escape is to restrict the sibling too; restating the whole
+  union for a scope is deliberately not warned about, since it is how a scope
+  says "yes, I carry all of it".
+
+  `register.d.ts` deliberately still emits the **harvest**, not the declaration:
+  wiring outside a scope's vocabulary is now an error, so the harvest narrows to
+  it anyway and is strictly stronger — it additionally refuses to type a value
+  the compiled CSS does not implement. `api.components` stays reserved;
+  per-scope vocabulary does not imply per-scope api.
+
+  No design system in this repo declares `scopes`, so every golden, snapshot,
+  compiled stylesheet and conformance row is byte-identical — the manifests gain
+  `"scopes": {}` and the reports gain an empty `unclaimed`. The fourteen carriers
+  are unblocked but still unwired, and the `NO_VARIANT` ledger stands with its
+  reasons now meaning "not declared yet" rather than "cannot be said".
+
 - **The `variant` axis is settled on the fourteen carriers that left it unwired,
   and the answer is a ledger rather than 84 recipe blocks** (#175). Fifteen
   components compose `WithVariantAxes`; `button` is the one that wires `variant`

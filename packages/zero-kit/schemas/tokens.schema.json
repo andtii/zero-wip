@@ -54,6 +54,60 @@
                 }
             }
         },
+        "scopes": {
+            "description": "Per-scope axis vocabularies: component scope → the part of the design-system-wide vocabulary that scope offers (RFC 0003 §4.1). Every list NARROWS the top-level declaration for that axis — which makes the top-level list the UNION of every scope's vocabulary rather than one vocabulary every scope shares. An absent key means unrestricted; an empty list means this scope has no such axis at all, the same grammar sizes: [] uses design-system-wide. Scope keys are checked against zero's anatomy manifest. `parts` is reserved inside an entry and rejected by name: the restriction unit is the scope, because zero carries one attribute per axis on the scope's carrier part — two vocabularies on two parts are two axes, not one axis restricted twice.",
+            "type": "object",
+            "propertyNames": {
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            },
+            "additionalProperties": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "colors": {
+                        "description": "The `color` values this scope offers — a subset of the declared role names.",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/$defs/tokenKey"
+                        }
+                    },
+                    "sizes": {
+                        "description": "The `size` ramp this scope offers — a subset of the resolved sizes.",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/$defs/tokenKey"
+                        }
+                    },
+                    "variants": {
+                        "description": "The `variant` vocabulary this scope offers — a subset of tokens.variants.",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/$defs/tokenKey"
+                        }
+                    },
+                    "axes": {
+                        "description": "Custom axes this scope offers — each a subset of the matching tokens.axes entry.",
+                        "type": "object",
+                        "propertyNames": {
+                            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                        },
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/$defs/tokenKey"
+                            }
+                        }
+                    },
+                    "modifiers": {
+                        "description": "The presence-only modifiers this scope offers — a subset of tokens.modifiers.",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/$defs/tokenKey"
+                        }
+                    }
+                }
+            }
+        },
         "swatch": {
             "description": "Role / base-surface token names sampled into theme-picker swatches. Default: the first four declared roles plus base-100 and base-content.",
             "type": "array",

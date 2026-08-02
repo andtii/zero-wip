@@ -598,7 +598,8 @@ component's anatomy). No component code is ever written or changed.
         either; at the default viewport it silently renders as one.
      4. **A value NOTHING in the design system wires is reported once, for the
         whole system.** Usually it means you declared a vocabulary wider than
-        the one you built — narrow the declaration or wire the step. The one
+        the one you built — narrow the declaration, wire the step, or say the
+        vocabulary belongs to one scope in `tokens.scopes`. The one
         exemption is colour: a role declared `content: false` or `soft: false`
         is a fill or a hairline (Material's `surface*`, `outline`), which is a
         token and not something a control can be, so it is never expected on
@@ -628,7 +629,32 @@ component's anatomy). No component code is ever written or changed.
      Carbon does the same under the name `kind`. Both are real packages here, so
      read them when the brief's axis surface isn't the default one. If the
      brief's colours and treatments genuinely are independent, keep them on two
-     axes — the point is to decide, not to inherit.
+     axes — the point is to decide, not to inherit. And the set you declare is
+     usually a *button's*: see the next bullet before pooling every component's
+     variants into one flat list.
+   - **A vocabulary may belong to one scope** (`tokens.scopes`). Real design
+     systems do not give every component the same variants: Radix Themes varies
+     a select as `classic | surface | soft` and a button as something else
+     entirely. Declare the **union** at `tokens.variants` and say which part of
+     it each scope offers:
+     ```ts
+     variants: ['solid', 'outline', 'classic', 'surface', 'soft'],   // the UNION
+     scopes: {
+         button: { variants: ['solid', 'outline'] },
+         select: { variants: ['classic', 'surface', 'soft'] },
+     },
+     ```
+     Every axis works this way — `colors`, `sizes`, `variants`, `axes`,
+     `modifiers` — and a scope never widens, only narrows. An **absent** key
+     means the scope offers the whole union; an **empty list** is the claim
+     "this scope has no such axis at all" (`variants: []`), the same grammar
+     `sizes: []` uses design-system-wide.
+     Two things to know before using it. Restricting one scope while a styled
+     sibling stays open is warned about, because the sibling really is still
+     offering values declared for someone else — restrict both, and restating
+     the whole union for a scope is a legitimate, un-warned way to say "yes,
+     this one carries all of it". And a value in the union that no scope
+     claims is a warning of its own: give it to a scope, or drop it.
    - **Presence-only styling is a `modifier`, not a one-member axis.** Some
      things a control *is* have no vocabulary: it is icon-only or it isn't,
      pending or not. Declaring `axes: { block: ['block'] }` to express that is
@@ -676,6 +702,20 @@ component's anatomy). No component code is ever written or changed.
      ```ts
      variants: { density: { compact: { root: { base: { paddingBlock: 'var(--space-2xs)' } } } } },
      ```
+     **This is also the answer when one component wants two vocabularies.**
+     Radix's Select varies its Trigger as `classic | surface | soft | ghost`
+     and its Content as `solid | soft`. That is not one axis restricted twice —
+     zero puts one attribute per axis on the scope's carrier part and cascades
+     it to every part below, so a second vocabulary is a second **axis**:
+     ```ts
+     axes: { 'content-variant': ['solid', 'soft'] },      // tokens.ts
+     variants: { 'content-variant': { soft: { popup: { base: { … } }, item: { … } } } },
+     ```
+     which compiles to
+     `[data-part="root"][data-content-variant="soft"] [data-part="popup"]` and
+     reaches the popup, because zero has no portals. Don't look for a per-part
+     restriction in `tokens.scopes`; there isn't one, and `parts` is rejected
+     by name to keep it that way (RFC 0003 §4.1).
    - **`dist/register.d.ts` is generated, never authored.** `writeArtifacts`
      emits it (with `dist/register.js`) from the compiled system: it augments
      `@sigx/zero`'s `ZeroVocabulary`, so an app that adds
@@ -705,19 +745,26 @@ component's anatomy). No component code is ever written or changed.
    question a generated design system most often gets wrong, because nothing
    about it is an error. (`--report-json <path>` for the machine-readable
    form, `-` for stdout; `zero:build` also writes `dist/report.json` every
-   time.) Read three things:
+   time.) Read four things:
    - **`declared out of existence`** — the axes you opted out of with
      `roles: {}` / `sizes: []`. If an axis you meant to ship is on this list,
      you declared it empty by accident; if one you don't have is missing from
      it, you left the recommended vocabulary in place by omission.
    - **`wired by nothing`** — a value the whole design system declares and no
      scope implements. Almost always a vocabulary wider than the thing you
-     built: either narrow the declaration or wire the step. Colour roles that
-     opt out of `-content`/`-soft` are exempt, being fills rather than
-     variants.
-   - **per-scope axis status** — which components wire which axes. A scope
-     that takes an axis and wires none of it is the gap `axis-coverage`
-     asks about; one that wires *some* values is the ramp-with-a-hole above.
+     built: narrow the declaration, wire the step, or give the value to the
+     scope it belongs to (`tokens.scopes`). Colour roles that opt out of
+     `-content`/`-soft` are exempt, being fills rather than variants.
+   - **`in no scope's vocabulary`** — you declared per-scope vocabularies and
+     the union carries a value none of them claims. Different from the above:
+     nothing is missing a rule, the declaration is simply carrying a word
+     nobody asked for.
+   - **per-scope axis status** — which components wire which axes, and where a
+     scope declared its own vocabulary, what it `offered` beside what it
+     wired. A scope that takes an axis and wires none of it is the gap
+     `axis-coverage` asks about; one that wires *some* values is the
+     ramp-with-a-hole above. A scope listed under `diverges across components`
+     with `(declared)` beside it is not diverging — it narrowed on purpose.
 
 7. **Build**: `sigx zero:build` (or the package's `build.mjs`) emits
    `dist/css/index.css` + per-component files. The app consumes it with two

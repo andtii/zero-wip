@@ -79,6 +79,28 @@ advisory warnings. (`variants`/`modifiers`/`axes` have no recommended default,
 so omitting them leaves those axes unchecked.) `sizes` is the `data-size` axis
 — not `system.size`, which is the `--size-*` control-sizing unit.
 
+**A vocabulary may belong to one scope.** Real design systems do not give every
+component the same variants — Radix Themes varies a select as
+`classic | surface | soft` and a button as something else. Declare the **union**
+at the top level and say which part of it each scope offers:
+
+```ts
+variants: ['solid', 'outline', 'classic', 'surface', 'soft'],   // the UNION
+scopes: {
+    button: { variants: ['solid', 'outline'] },
+    select: { variants: ['classic', 'surface', 'soft'] },
+},
+```
+
+Every axis takes a restriction (`colors`, `sizes`, `variants`, `axes`,
+`modifiers`), a scope may only narrow, and the vocabulary reaches the manifest,
+the report and `register.d.ts`. An **absent** key means the scope offers the
+whole union; an **empty list** is the claim "this scope has no such axis at
+all", the same grammar `sizes: []` uses design-system-wide. The unit is the
+scope rather than the part: zero puts one attribute per axis on the scope's
+carrier and cascades it to every part below, so two vocabularies inside one
+component are two **axes** — declare the second in `axes`. See RFC 0003 §4.1.
+
 Not every modifier is an axis, either. An axis answers *which one* and always
 carries a value; some design-system modifiers answer *is it on* and carry none
 — daisyUI's `block` and `wide`, Radix's `high-contrast`, HeroUI's `icon-only`.
