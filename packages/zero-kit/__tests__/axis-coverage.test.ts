@@ -175,8 +175,17 @@ describe('no component accepts an axis no design system wires', () => {
     // still says nobody does). One assertion per direction, so a failure names
     // which happened.
 
+    // The exemption is "some design system wires it", NOT "is button". Naming
+    // button would make the two assertions contradict each other the moment
+    // this decision is revisited: wire `select` under RFC 0003 §4, delete its
+    // NO_VARIANT entry as the second assertion demands, and a button-shaped
+    // exemption would fail the first for a missing entry — leaving no legal
+    // state, and a guard whose only escape is to record something false.
+    const wiresVariant = (scope: string): boolean =>
+        Object.values(designSystems).some((ds) => (ds.components[scope]?.variant.length ?? 0) > 0);
+
     it('every carrier that wires no variant has a recorded reason', () => {
-        const unrecorded = carriers.filter((scope) => scope !== 'button' && !(scope in NO_VARIANT));
+        const unrecorded = carriers.filter((scope) => !wiresVariant(scope) && !(scope in NO_VARIANT));
         expect(
             unrecorded,
             'these carriers accept `variant` and wire nothing, with no reason recorded — '
@@ -188,9 +197,7 @@ describe('no component accepts an axis no design system wires', () => {
         const stale = Object.keys(NO_VARIANT).filter((scope) => !carriers.includes(scope));
         expect(stale, 'NO_VARIANT names scopes that are not variant carriers').toEqual([]);
 
-        const wiredAfterAll = Object.keys(NO_VARIANT).filter((scope) =>
-            Object.entries(designSystems)
-                .some(([, ds]) => (ds.components[scope]?.variant.length ?? 0) > 0));
+        const wiredAfterAll = Object.keys(NO_VARIANT).filter(wiresVariant);
         expect(
             wiredAfterAll,
             'these carriers now wire `variant`, so the reason recorded beside them is false — '
