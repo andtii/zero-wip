@@ -4,11 +4,14 @@
 
 ### Added
 
-- **The `variant` axis is settled on all fifteen carriers, and the answer is a
-  ledger rather than 84 recipe blocks** (#175). `axis-coverage.test.ts` traded
-  its axis-wide `DEFERRED_AXES = ['variant']` for `NO_VARIANT`, a per-carrier
-  record whose value IS the reason — the shape `KNOWN_UNSHARED` uses in
-  `contract-parity.test.ts`. It discharges RFC 0003 §9 phase 5's gate ("wire it,
+- **The `variant` axis is settled on the fourteen carriers that left it unwired,
+  and the answer is a ledger rather than 84 recipe blocks** (#175). Fifteen
+  components compose `WithVariantAxes`; `button` is the one that wires `variant`
+  and stays as it is, so the fourteen below are the rest.
+
+  `axis-coverage.test.ts` traded its axis-wide `DEFERRED_AXES = ['variant']`
+  for `NO_VARIANT`, a per-carrier record whose value IS the reason — the shape
+  `KNOWN_UNSHARED` uses in `contract-parity.test.ts`. It discharges RFC 0003 §9 phase 5's gate ("wire it,
   or record the divergence per component with its reason") and supersedes the
   note below: #175 leaving `variant` on `button` alone is now decided, not
   provisional.
