@@ -172,6 +172,51 @@ export interface ThemeInput<R extends RolesDecl = RolesDecl, T extends SystemTok
     extra?: Record<string, string>;
 }
 
+/**
+ * One scope's own axis vocabularies — the per-scope restriction RFC 0003 §4.1
+ * settled (#294).
+ *
+ * Every list **narrows** the design-system-wide declaration for that axis; a
+ * scope may never widen it. What changed when this landed is what the
+ * design-system-wide declaration *means*: `tokens.variants` is now the **union**
+ * of every scope's vocabulary, not one vocabulary every scope shares. Radix
+ * Themes gives a select `classic | surface | soft` and a button
+ * `classic | solid | soft | surface | outline | ghost`; the union is declared
+ * once at `tokens.variants` and each scope says which part of it is its own.
+ *
+ * Two spellings, and the difference is load-bearing:
+ *
+ * - An **absent** key means *unrestricted* — this scope offers the whole union.
+ * - An **empty list** is a claim, not an omission: `variants: []` says this
+ *   scope has no variant axis at all, the same grammar `sizes: []` uses at the
+ *   design-system level (RFC 0003 §5). Absence means "I didn't say"; empty
+ *   means "there isn't one".
+ *
+ * This is a *declaration*, not a wiring: what a scope's recipe actually paints
+ * is harvested separately, and the two are compared — a value in the scope's
+ * vocabulary that its recipe wires nothing for is exactly the warning this map
+ * makes statable.
+ *
+ * The unit is the **scope**, not the part. Zero carries one attribute per axis
+ * on the scope's carrier part and cascades it to every part below by descendant
+ * selector, so two *different* vocabularies on two parts of one scope are not
+ * one attribute with two restrictions — they are two axes. Declare the second
+ * one in `axes`. See RFC 0003 §4.1; `parts` is reserved and rejected by name so
+ * that a per-part restriction, if it is ever wanted, stays additive.
+ */
+export interface ScopeVocabulary {
+    /** `color` values this scope offers — a subset of the declared `roles` keys. */
+    colors?: readonly string[];
+    /** The `size` ramp this scope offers — a subset of the resolved `sizes`. */
+    sizes?: readonly string[];
+    /** The `variant` vocabulary this scope offers — a subset of `variants`. */
+    variants?: readonly string[];
+    /** Custom axes — each a subset of the matching `axes[axis]`. */
+    axes?: Record<string, readonly string[]>;
+    /** Presence-only modifiers this scope offers — a subset of `modifiers`. */
+    modifiers?: readonly string[];
+}
+
 export interface TokensInput<R extends RolesDecl = RolesDecl, T extends SystemTokens = SystemTokens> {
     /**
      * The design system's color role vocabulary. Every role emits
@@ -228,6 +273,17 @@ export interface TokensInput<R extends RolesDecl = RolesDecl, T extends SystemTo
      * errors, and wiring an undeclared axis is too.
      */
     axes?: Record<string, readonly string[]>;
+    /**
+     * Per-scope axis vocabularies, keyed by component scope (RFC 0003 §4.1,
+     * #294). Each entry narrows the design-system-wide declaration for one
+     * scope — see `ScopeVocabulary` for the grammar, and for why the unit is
+     * the scope rather than the part.
+     *
+     * Omitted → every scope offers the whole vocabulary, exactly as before
+     * this existed. Scope keys are validated against the anatomy manifest, the
+     * same way `RecipeInput.component` is.
+     */
+    scopes?: Record<string, ScopeVocabulary>;
     /** Role/base token names sampled into theme swatches. Default: first four roles + base. */
     swatch?: (RoleName<R> | typeof BASE_SURFACE_TOKEN_LIST[number])[];
     /** DS-declared custom tokens: name → metadata. Values live per-theme in `custom`. */

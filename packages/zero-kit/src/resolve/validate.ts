@@ -33,6 +33,7 @@ import {
     contrastPairs,
     requiredColorTokens,
     resolveRoles,
+    resolveSizes,
 } from '../contract.js';
 import type { RolesDecl } from '../tokens.js';
 import { validateApi } from '../api.js';
@@ -414,8 +415,17 @@ export function validateDesignSystem<R extends RolesDecl>(
     // must not re-declare an axis that has a named prop and must not take a
     // name the anatomy contract owns — the zero runtime throws on both, and
     // the validator must reject exactly what the runtime refuses to render.
-    const checkAxisValues = (where: string, values: readonly string[]): void => {
-        if (values.length === 0) {
+    //
+    // `empty` differs by tier and the difference is the whole per-scope
+    // grammar: design-system-wide, an empty list says nothing an omission
+    // doesn't, so it is an error; per scope, it is the claim "this scope has
+    // no such axis" and must be allowed through.
+    const checkAxisValues = (
+        where: string,
+        values: readonly string[],
+        opts: { empty: 'error' | 'means-none' } = { empty: 'error' },
+    ): void => {
+        if (values.length === 0 && opts.empty === 'error') {
             error(where, 'declared but empty — omit it to leave the vocabulary undeclared');
         }
         for (const value of values) {
@@ -444,6 +454,118 @@ export function validateDesignSystem<R extends RolesDecl>(
             error('tokens.axes', `"${axis}" is part of the anatomy contract — data-${axis} already means something, and zero refuses to set it from \`axes\``);
         }
         checkAxisValues(`tokens.axes.${axis}`, values);
+    }
+
+    // ── Per-scope axis vocabularies (RFC 0003 §4.1, #294) ──
+    // A scope entry NARROWS the vocabularies above for one component, which is
+    // what makes the declarations above the UNION of every scope's vocabulary
+    // rather than one vocabulary every scope shares. Everything here is a
+    // subset rule plus the grammar the tier above already enforces — except
+    // the two diagnostics at the end, which exist because the union is easy to
+    // half-adopt.
+    const scopeEntries = Object.entries(ds.tokens.scopes ?? {});
+    if (scopeEntries.length > 0) {
+        const knownScopes = manifest.components.map((c) => c.scope);
+        const unions: Record<string, readonly string[] | undefined> = {
+            colors: Object.keys(roles),
+            sizes: resolveSizes(ds.tokens.sizes),
+            variants: ds.tokens.variants,
+            modifiers: ds.tokens.modifiers,
+        };
+        /** Where in `tokens.*` the union for a scope key is declared. */
+        const unionSite: Record<string, string> = {
+            colors: 'tokens.roles',
+            sizes: 'tokens.sizes',
+            variants: 'tokens.variants',
+            modifiers: 'tokens.modifiers',
+        };
+        const restrictedAxes = new Map<string, Set<string>>();
+        const note = (axis: string, scope: string): void => {
+            let set = restrictedAxes.get(axis);
+            if (!set) restrictedAxes.set(axis, (set = new Set()));
+            set.add(scope);
+        };
+
+        for (const [scope, entry] of scopeEntries) {
+            const where = `tokens.scopes.${scope}`;
+            if (!knownScopes.includes(scope)) {
+                error(where, `"${scope}" is not a component in zero's anatomy (known: ${knownScopes.join(', ')})`);
+                continue;
+            }
+            for (const key of Object.keys(entry)) {
+                if (key === 'parts') {
+                    // Reserved by name, exactly as `api.components` is. The
+                    // restriction unit is the SCOPE: zero carries one attribute
+                    // per axis on the scope's carrier part and cascades it to
+                    // every part below, so two vocabularies on two parts are
+                    // two AXES, not one axis restricted twice (RFC 0003 §4.1).
+                    // Rejecting the key rather than ignoring it is what keeps a
+                    // per-part restriction additive if one is ever wanted.
+                    error(where, 'declares `parts` — the restriction unit is the scope, not the part. Two vocabularies inside one scope are two axes: declare the second one in `tokens.axes`. See RFC 0003 §4.1.');
+                    continue;
+                }
+                if (!Object.hasOwn(unions, key) && key !== 'axes') {
+                    error(where, `unknown key "${key}" — a scope vocabulary declares colors, sizes, variants, axes or modifiers`);
+                }
+            }
+
+            let narrows = false;
+            const restrict = (key: string, values: readonly string[] | undefined): void => {
+                if (values === undefined) return;
+                narrows = true;
+                const axis = key === 'colors' ? 'color' : key === 'sizes' ? 'size' : key === 'variants' ? 'variant' : key;
+                note(axis, scope);
+                checkAxisValues(`${where}.${key}`, values, { empty: 'means-none' });
+                const union = unions[key];
+                if (union === undefined) {
+                    error(
+                        `${where}.${key}`,
+                        `restricts an axis this design system never declares — declare the union in ${unionSite[key]} first`,
+                    );
+                    return;
+                }
+                for (const value of values) {
+                    if (!union.includes(value)) {
+                        error(
+                            `${where}.${key}`,
+                            `"${value}" is not in ${unionSite[key]} — a scope vocabulary narrows the design-system-wide list, never adds to it. ${unionSite[key]} is the UNION of every scope's vocabulary, so declare "${value}" there too.`,
+                        );
+                    }
+                }
+            };
+            restrict('colors', entry.colors);
+            restrict('sizes', entry.sizes);
+            restrict('variants', entry.variants);
+            restrict('modifiers', entry.modifiers);
+            for (const [axis, values] of Object.entries(entry.axes ?? {})) {
+                unions[axis] = ds.tokens.axes?.[axis];
+                unionSite[axis] = `tokens.axes.${axis}`;
+                restrict(axis, values);
+            }
+
+            // Restating the whole union is deliberately NOT a warning: it is
+            // the explicit claim "yes, this scope carries all of it", and it is
+            // what keeps the coverage guard quiet once a sibling narrows. Warn
+            // on it and authors delete the one line that says what they mean.
+            if (!narrows) {
+                warn(where, 'restricts nothing — remove the entry, or the scope reads as narrowed when it is not');
+            }
+        }
+
+        // Half-adopting the union is the failure mode this whole section
+        // creates: one scope declares its own vocabulary, a sibling says
+        // nothing, and the sibling silently keeps offering values that were
+        // added for someone else. Named here, at the declaration, rather than
+        // discovered later as a coverage finding against the sibling.
+        const styledScopes = [...new Set(ds.recipes.map((r) => r.component))].sort();
+        for (const [axis, scopes] of [...restrictedAxes].sort(([a], [b]) => a.localeCompare(b))) {
+            const open = styledScopes.filter((scope) => !scopes.has(scope));
+            if (open.length === 0) continue;
+            warn(
+                'tokens.scopes',
+                `${[...scopes].sort().map((s) => `"${s}"`).join(', ')} narrow the \`${axis}\` vocabulary but ${open.map((s) => `"${s}"`).join(', ')} do not — they offer the whole union, including values declared for someone else`,
+            );
+        }
     }
 
     // ── Component API (vendor-named props) ──

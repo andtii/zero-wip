@@ -17,8 +17,50 @@ import {
     resolveSizes,
     tokenProperty,
 } from '../contract.js';
-import type { RolesDecl, TokensInput } from '../tokens.js';
+import type { RolesDecl, ScopeVocabulary, TokensInput } from '../tokens.js';
 import { systemNodeAt } from '../contract.js';
+
+/**
+ * The vocabulary in force for ONE scope — the union, narrowed by that scope's
+ * `tokens.scopes` entry (RFC 0003 §4.1, #294).
+ *
+ * Same field names and meanings as `TokenVocabulary`, so a check written
+ * against one reads the same against the other. What differs is only how much
+ * of the vocabulary is in it.
+ */
+export interface ScopeView {
+    /** The `color` values this scope may key on. */
+    roles: ReadonlySet<string>;
+    /** The `size` ramp this scope may key on. */
+    sizes: readonly string[];
+    /**
+     * True when the ramp was written down — by `tokens.sizes`, or by this
+     * scope's own restriction. A scope that states its ramp has closed the set
+     * as deliberately as a design system that states one, so an off-ramp value
+     * is an error here too rather than the advisory warning the recommended
+     * default gets.
+     */
+    sizesDeclared: boolean;
+    /** The `variant` vocabulary this scope may key on — undefined when undeclared. */
+    variants: readonly string[] | undefined;
+    /** Custom axes this scope may key on — undefined when undeclared. */
+    axes: Readonly<Record<string, readonly string[]>> | undefined;
+    /** Presence-only modifiers this scope may key on — undefined when undeclared. */
+    modifiers: readonly string[] | undefined;
+    /**
+     * The axes this scope narrowed, by the name the recipe keys on (`color`,
+     * `size`, `variant`, a custom axis name, or `modifiers`).
+     *
+     * Read by the diagnostics, which say something different about a value the
+     * design system never declared and a value this scope declined: "not a
+     * declared variant" sends an author to `tokens.variants` and strands them
+     * when it is already there.
+     *
+     * An axis restricted to the EMPTY list is in here too — that is the claim
+     * "this scope has no such axis", not an omission.
+     */
+    restricted: ReadonlySet<string>;
+}
 
 export interface TokenVocabulary {
     /** Every custom property the design system defines. */
@@ -42,11 +84,29 @@ export interface TokenVocabulary {
     axes: Readonly<Record<string, readonly string[]>> | undefined;
     /** Declared presence-only modifiers — undefined when undeclared. */
     modifiers: readonly string[] | undefined;
+    /**
+     * The per-scope restrictions, exactly as declared (#294).
+     *
+     * The four fields above are the **union** — every value any scope may key
+     * on — and every design-system-wide consumer is right to read them: an
+     * `api` mapping, for instance, describes the whole design system's props.
+     * A per-recipe check wants `forScope` instead.
+     */
+    scopes: Readonly<Record<string, ScopeVocabulary>>;
+    /**
+     * The vocabulary one scope may key on. An unrestricted scope gets the
+     * union back, so a design system that declares no `scopes` behaves exactly
+     * as it did before this existed.
+     */
+    forScope(scope: string): ScopeView;
     /** Closest known name, for a "did you mean" hint. */
     nearest(name: string): string | undefined;
 }
 
 const normProp = (name: string): string => (name.startsWith('--') ? name : `--${name}`);
+
+/** Shared by every unrestricted scope — there is nothing to allocate per call. */
+const EMPTY_RESTRICTED: ReadonlySet<string> = new Set();
 
 /**
  * Levenshtein distance, only ever used to suggest a near miss.
@@ -138,14 +198,55 @@ export function tokenVocabulary(tokens: TokensInput<any, any>): TokenVocabulary 
         for (const name of Object.keys(t.extra ?? {})) names.add(normProp(name));
     }
 
+    const sizes = resolveSizes(tokens.sizes);
+    const roleNames = new Set(Object.keys(roles));
+    const scopes = tokens.scopes ?? {};
+
     return {
         names,
-        sizes: resolveSizes(tokens.sizes),
+        sizes,
         sizesDeclared: tokens.sizes !== undefined,
-        roles: new Set(Object.keys(roles)),
+        roles: roleNames,
         variants: tokens.variants,
         axes: tokens.axes,
         modifiers: tokens.modifiers,
+        scopes,
+        forScope(scope) {
+            const own = scopes[scope];
+            if (!own) {
+                return {
+                    roles: roleNames,
+                    sizes,
+                    sizesDeclared: tokens.sizes !== undefined,
+                    variants: tokens.variants,
+                    axes: tokens.axes,
+                    modifiers: tokens.modifiers,
+                    restricted: EMPTY_RESTRICTED,
+                };
+            }
+            // `??` and not `||`: an EMPTY restriction is the claim "this scope
+            // has no such axis", so it must survive into the view rather than
+            // falling back to the union. Everything downstream reads a
+            // zero-length vocabulary as exactly that claim.
+            const restricted = new Set<string>();
+            if (own.colors) restricted.add('color');
+            if (own.sizes) restricted.add('size');
+            if (own.variants) restricted.add('variant');
+            if (own.modifiers) restricted.add('modifiers');
+            for (const axis of Object.keys(own.axes ?? {})) restricted.add(axis);
+            return {
+                roles: own.colors ? new Set(own.colors) : roleNames,
+                sizes: own.sizes ?? sizes,
+                sizesDeclared: tokens.sizes !== undefined || own.sizes !== undefined,
+                variants: own.variants ?? tokens.variants,
+                // A restricted axis replaces the union's entry for that axis
+                // only — an axis the scope says nothing about keeps the
+                // design-system-wide vocabulary.
+                axes: own.axes ? { ...tokens.axes, ...own.axes } : tokens.axes,
+                modifiers: own.modifiers ?? tokens.modifiers,
+                restricted,
+            };
+        },
         nearest(name) {
             let best: string | undefined;
             let bestDistance = 4; // anything further apart isn't a typo

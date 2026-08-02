@@ -81,8 +81,14 @@
  *    once the un-attributed step is read.)
  */
 import { describe, it, expect } from 'vitest';
-import { compileDesignSystem } from '@sigx/zero-kit';
-import type { CompiledDesignSystem, ManifestComponent, RecipeInput, RoleDecl } from '@sigx/zero-kit';
+import { axisClaims, compileDesignSystem, offeredFor } from '@sigx/zero-kit';
+import type {
+    CompiledDesignSystem,
+    ManifestComponent,
+    RecipeInput,
+    RoleDecl,
+    ScopeVocabulary,
+} from '@sigx/zero-kit';
 import { anatomies } from '@sigx/zero/anatomy';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
@@ -171,6 +177,20 @@ const writtenValues = (axes: CompiledDesignSystem['components'][string], axis: s
                     : (axes.axes[axis] ?? []),
     );
 
+/**
+ * The vocabulary one SCOPE offers for one axis — its `tokens.scopes` entry
+ * where it declared one, else the design-system-wide list (#294).
+ *
+ * The distinction is what keeps rule A honest under a union: once
+ * `tokens.variants` is the union of every scope's vocabulary, "a value a
+ * sibling implements" stops meaning "a value this scope owes you".
+ */
+function vocabularyFor(compiled: CompiledDesignSystem, scope: string, axis: string): readonly string[] {
+    const wired = compiled.components[scope];
+    const offered = wired ? offeredFor(wired, axis) : undefined;
+    return offered ?? declaredVocabulary(compiled)[axis] ?? [];
+}
+
 interface Cell {
     scope: string;
     axis: string;
@@ -180,6 +200,10 @@ interface Cell {
     written: Set<string>;
     /** Written and emitting nothing anywhere: the claim that the base IS this value. */
     claims: string[];
+    /** The vocabulary this scope offers for the axis — see `vocabularyFor`. */
+    offered: readonly string[];
+    /** True when that vocabulary is the scope's own rather than the union's. */
+    restricted: boolean;
 }
 
 /** Every (scope, axis) in one design system that participates in the axis. */
@@ -191,14 +215,33 @@ function participatingCells(compiled: CompiledDesignSystem): Cell[] {
             const painted = paintedValues(css, axis, 'default');
             const anywhere = paintedValues(css, axis, 'anywhere');
             const written = writtenValues(axes, axis);
-            // A scope that neither paints nor writes a single value of this
-            // axis is not participating in it, and this guard has nothing to
-            // hold it to. Whether it *should* participate is
-            // `axis-coverage.test.ts`'s question, not this one's — conflating
-            // the two would make this fail for a reason it was not built to
-            // catch.
-            if (anywhere.size === 0 && written.size === 0) continue;
-            cells.push({ scope, axis, painted, written, claims: [...written].filter((v) => !anywhere.has(v)) });
+            const declared = offeredFor(axes, axis);
+            // A scope that declared the axis out of existence FOR ITSELF is
+            // not participating, whatever the CSS says. Wiring an axis you
+            // declared away is a `validate-recipes` error, and this guard must
+            // not report the same mistake a second time as a coverage gap.
+            if (declared?.length === 0) continue;
+            // A scope with a vocabulary of its own participates even when it
+            // paints and writes nothing. Before per-scope vocabularies there
+            // was no way to promise anything, so silence was the only honest
+            // reading; a declared vocabulary IS the promise, and promising a
+            // vocabulary and shipping none of it is the sharpest #258 there is.
+            //
+            // Otherwise: a scope that neither paints nor writes a single value
+            // of this axis has nothing this guard can hold it to. Whether it
+            // *should* participate is `axis-coverage.test.ts`'s question, not
+            // this one's — conflating the two would make this fail for a
+            // reason it was not built to catch.
+            if (!declared && anywhere.size === 0 && written.size === 0) continue;
+            cells.push({
+                scope,
+                axis,
+                painted,
+                written,
+                claims: [...written].filter((v) => !anywhere.has(v)),
+                offered: vocabularyFor(compiled, scope, axis),
+                restricted: declared !== undefined,
+            });
         }
     }
     return cells;
@@ -222,8 +265,24 @@ function coverageGaps(compiled: CompiledDesignSystem): string[] {
     );
     for (const cell of participatingCells(compiled)) {
         const claimed = new Set(cell.claims);
-        const missing = declared[cell.axis]!.filter(
-            (v) => promised.get(cell.axis)!.has(v) && !cell.painted.has(v) && !claimed.has(v),
+        // Two readings of "owes you this value", and which applies is exactly
+        // whether the scope declared a vocabulary (#294):
+        //
+        // - **Restricted**: it named the values itself, so every one of them is
+        //   owed and a sibling's set is irrelevant. This is what stops a union
+        //   from making `button.variant: classic` a finding when `classic` was
+        //   declared for `select` and painted there.
+        // - **Unrestricted**: the original rule, unchanged — a value some
+        //   sibling implements, since the whole union is on offer here.
+        //
+        // A design system where one scope restricts and a sibling does not gets
+        // findings against the sibling, and that is the union's honest
+        // consequence rather than a bug: the sibling really is still offering
+        // values declared for someone else. `validateDesignSystem` names it at
+        // the declaration, before it can arrive here.
+        const missing = cell.offered.filter(
+            (v) => !cell.painted.has(v) && !claimed.has(v)
+                && (cell.restricted || promised.get(cell.axis)!.has(v)),
         );
         if (missing.length > 0) out.push(`${cell.scope}.${cell.axis}: ${missing.join(', ')}`);
     }
@@ -238,15 +297,36 @@ function ambiguousBases(compiled: CompiledDesignSystem): string[] {
         .sort();
 }
 
-/** Assertion C: declared, painted by nothing, claimed by nothing. */
-function unusedVocabulary(compiled: CompiledDesignSystem): Array<{ axis: string; value: string }> {
-    const out: Array<{ axis: string; value: string }> = [];
+/**
+ * Assertion C, in two classes that the union splits apart (#294):
+ *
+ * - **`unused`** — declared, in some scope's vocabulary, painted by nothing and
+ *   claimed by nothing. The original rule: a word the design system says and
+ *   never uses.
+ * - **`unclaimed`** — declared, and in NO scope's vocabulary at all. Only
+ *   reachable once every scope is restricted; while one is still open its
+ *   vocabulary *is* the union, `axisClaims` says so, and the value falls to
+ *   `unused` the old way.
+ *
+ * The two are different mistakes with different fixes — paint it somewhere,
+ * versus give it to a scope or drop it from the union — so they are reported
+ * apart rather than merged into "nobody uses this".
+ */
+function unusedVocabulary(
+    compiled: CompiledDesignSystem,
+): Array<{ axis: string; value: string; reason: 'unused' | 'unclaimed' }> {
+    const out: Array<{ axis: string; value: string; reason: 'unused' | 'unclaimed' }> = [];
     const cells = participatingCells(compiled);
     for (const [axis, values] of Object.entries(declaredVocabulary(compiled))) {
         const painted = implementedSomewhere(compiled, axis);
         const claimed = new Set(cells.filter((c) => c.axis === axis).flatMap((c) => c.claims));
+        const claims = axisClaims(compiled, axis);
         for (const value of values) {
-            if (!painted.has(value) && !claimed.has(value)) out.push({ axis, value });
+            if (!claims.unrestricted && !claims.claimed.has(value)) {
+                out.push({ axis, value, reason: 'unclaimed' });
+            } else if (!painted.has(value) && !claimed.has(value)) {
+                out.push({ axis, value, reason: 'unused' });
+            }
         }
     }
     return out;
@@ -324,8 +404,12 @@ describe('every declared axis value is honoured or claimed', () => {
         // Material's tonal surfaces. If a design system adds a fill role and
         // then starts wiring it, or another one grows an unused role, this
         // fails and the reasoning gets revisited rather than inherited.
+        // Both classes in one sorted list, keyed apart: an unclaimed value is
+        // a different mistake from an unpainted one, and either breaking this
+        // must fail rather than be absorbed by the other.
         const ledger = SYSTEMS.flatMap((s) =>
-            unusedVocabulary(s.compiled).map((u) => `${s.name}/${u.axis}: ${u.value}`));
+            unusedVocabulary(s.compiled).map((u) =>
+                `${s.name}/${u.axis}: ${u.value}${u.reason === 'unclaimed' ? ' (unclaimed)' : ''}`));
         expect(ledger.sort()).toEqual([
             'material/color: outline',
             'material/color: surface',
@@ -354,11 +438,13 @@ describe('the guard\'s own teeth', () => {
         sizes: string[],
         button: RecipeInput['variants'],
         avatar: RecipeInput['variants'],
+        scopes?: Record<string, ScopeVocabulary>,
     ): CompiledDesignSystem => compileDesignSystem({
         name: 'fixture',
         tokens: {
             roles: { primary: {} },
             sizes,
+            ...(scopes ? { scopes } : {}),
             themes: {
                 day: {
                     colorScheme: 'light',
@@ -488,7 +574,7 @@ describe('the guard\'s own teeth', () => {
             size({ sm: height('2rem'), md: {}, lg: height('3rem'), xl: height('4rem') }),
             size({ sm: height('2rem'), md: {}, lg: height('3rem'), xl: height('4rem') }),
         );
-        expect(unusedVocabulary(ds)).toEqual([{ axis: 'color', value: 'primary' }]);
+        expect(unusedVocabulary(ds)).toEqual([{ axis: 'color', value: 'primary', reason: 'unused' }]);
         expect(isFillOrHairline(ds.tokens.roles['primary'])).toBe(false);
         // …and the same role declared as a fill is exempt, which is exactly
         // what material's `surface*`/`outline` are.
@@ -532,5 +618,174 @@ describe('the guard\'s own teeth', () => {
             ],
         }, manifest);
         expect(coverageGaps(ds)).toEqual([]);
+    });
+
+    // ── per-scope vocabularies (#294) ─────────────────────────────────────
+    //
+    // The union is what makes these necessary. Once `tokens.variants` is the
+    // union of every scope's vocabulary rather than one vocabulary they share,
+    // "a value a sibling implements" stops meaning "a value this scope owes
+    // you" — and every assertion above was written on the old reading.
+
+    const fill = (v: string) => ({ root: { base: { background: v } } });
+    const variant = (values: Record<string, Record<string, unknown>>): RecipeInput['variants'] =>
+        ({ variant: values as Record<string, Record<string, never>> });
+
+    /** The same two scopes, over a declared `variant` vocabulary. */
+    const variantFixture = (
+        variants: string[],
+        button: RecipeInput['variants'],
+        avatar: RecipeInput['variants'],
+        scopes?: Record<string, ScopeVocabulary>,
+    ): CompiledDesignSystem => compileDesignSystem({
+        name: 'fixture',
+        tokens: {
+            roles: { primary: {} },
+            variants,
+            ...(scopes ? { scopes } : {}),
+            themes: {
+                day: {
+                    colorScheme: 'light',
+                    colors: {
+                        'base-100': 'white', 'base-200': 'white', 'base-300': 'white',
+                        'base-content': 'black', primary: 'blue', 'primary-content': 'white',
+                    },
+                },
+            },
+            defaultLight: 'day',
+        },
+        recipes: [
+            { component: 'button', parts: { root: { base: {} } }, variants: button },
+            { component: 'avatar', parts: { root: { base: {} } }, variants: avatar },
+        ],
+    }, manifest);
+
+    it('says nothing when each scope declares only its own values', () => {
+        // The issue's headline: `classic` is select's, `solid` is button's, and
+        // the union carries both. On the sibling reading this reports BOTH
+        // scopes, which is exactly the false finding the union would otherwise
+        // introduce the day per-scope vocabularies were used.
+        const ds = variantFixture(
+            ['solid', 'classic'],
+            variant({ solid: fill('blue') }),
+            variant({ classic: fill('grey') }),
+            { button: { variants: ['solid'] }, avatar: { variants: ['classic'] } },
+        );
+        expect(coverageGaps(ds)).toEqual([]);
+        expect(unusedVocabulary(ds).filter((u) => u.axis === 'variant')).toEqual([]);
+    });
+
+    it('reports the cross-talk when only one side restricts', () => {
+        // Half-adopting the union, pinned rather than left to be discovered
+        // inside a real design system: `button` still offers the whole union,
+        // so `classic` — declared for `avatar` — really does render as the base
+        // on a button. `validateDesignSystem` warns about this at the
+        // declaration; this is the same fact seen from the coverage side.
+        const ds = variantFixture(
+            ['solid', 'classic'],
+            variant({ solid: fill('blue') }),
+            variant({ classic: fill('grey') }),
+            { avatar: { variants: ['classic'] } },
+        );
+        expect(coverageGaps(ds)).toEqual(['button.variant: classic']);
+    });
+
+    it('reports a scope that promises a vocabulary and paints none of it', () => {
+        // The sharpest #258 available: the declaration is the promise, and this
+        // scope shipped nothing against it. Before per-scope vocabularies a
+        // scope wiring nothing was silent — correctly, since it had promised
+        // nothing.
+        const ds = variantFixture(
+            ['solid', 'classic'],
+            variant({ solid: fill('blue') }),
+            {},
+            { avatar: { variants: ['classic'] } },
+        );
+        expect(coverageGaps(ds)).toEqual(['avatar.variant: classic']);
+    });
+
+    it('says nothing about a scope that declares the axis out of existence for itself', () => {
+        // `variants: []` is the claim "no variant axis here", the same grammar
+        // `sizes: []` uses design-system-wide — so there is nothing to cover
+        // and no cell at all.
+        const ds = variantFixture(
+            ['solid'],
+            variant({ solid: fill('blue') }),
+            {},
+            { avatar: { variants: [] } },
+        );
+        expect(coverageGaps(ds)).toEqual([]);
+        expect(participatingCells(ds).some((c) => c.scope === 'avatar' && c.axis === 'variant')).toBe(false);
+    });
+
+    it('the empty restriction is not the absent one', () => {
+        // Where the natural bug lives: `[] ?? union` keeps the empty list and
+        // `[] || union` silently discards it. A scope that WIRES the axis makes
+        // the two observably different — absent participates, empty does not.
+        const wiring = variant({ solid: fill('grey') });
+        const absent = variantFixture(['solid'], variant({ solid: fill('blue') }), wiring);
+        const empty = variantFixture(
+            ['solid'],
+            variant({ solid: fill('blue') }),
+            wiring,
+            { avatar: { variants: [] } },
+        );
+        expect(participatingCells(absent).some((c) => c.scope === 'avatar' && c.axis === 'variant')).toBe(true);
+        expect(participatingCells(empty).some((c) => c.scope === 'avatar' && c.axis === 'variant')).toBe(false);
+    });
+
+    const variantFindings = (ds: CompiledDesignSystem): string[] =>
+        unusedVocabulary(ds).filter((u) => u.axis === 'variant').map((u) => `${u.value} (${u.reason})`).sort();
+
+    it('reports a union value no scope\'s vocabulary claims', () => {
+        // C2. `assist` is in the union and in nobody's vocabulary — a different
+        // mistake from "declared and never painted", with a different fix.
+        const ds = variantFixture(
+            ['solid', 'classic', 'assist'],
+            variant({ solid: fill('blue') }),
+            variant({ classic: fill('grey') }),
+            { button: { variants: ['solid'] }, avatar: { variants: ['classic'] } },
+        );
+        expect(variantFindings(ds)).toEqual(['assist (unclaimed)']);
+        expect(coverageGaps(ds)).toEqual([]);
+    });
+
+    it('does not call a union value unclaimed while any scope is unrestricted', () => {
+        // C2's negative, and what makes `unrestricted` legible: with `button`
+        // open its vocabulary IS the union, so `assist` is claimed — and C1
+        // reports it the old way instead, for the old reason.
+        const ds = variantFixture(
+            ['solid', 'classic', 'assist'],
+            variant({ solid: fill('blue') }),
+            variant({ classic: fill('grey') }),
+            { avatar: { variants: ['classic'] } },
+        );
+        expect(variantFindings(ds)).toEqual(['assist (unused)']);
+    });
+
+    it('a per-scope size restriction retires a #258 finding', () => {
+        // Not variant-only: #258 itself was a size problem, and declaring
+        // avatar's ramp is the honest answer to it rather than a suppression.
+        const shapes = [
+            size({ sm: height('2rem'), md: {}, lg: height('3rem'), xl: height('4rem') }),
+            size({ sm: height('2rem'), md: {}, lg: height('3rem') }),
+        ] as const;
+        expect(coverageGaps(fixture(RAMP, shapes[0], shapes[1]))).toEqual(['avatar.size: xl']);
+        expect(coverageGaps(fixture(RAMP, shapes[0], shapes[1], { avatar: { sizes: ['sm', 'md', 'lg'] } })))
+            .toEqual([]);
+    });
+
+    it('a claim outside the scope\'s own vocabulary is still an ambiguous base', () => {
+        // A and B must not start covering for each other: restricting the ramp
+        // accounts for the MISSING step, and says nothing about the scope
+        // writing a second silent entry that renders identically to its base.
+        const ds = fixture(
+            RAMP,
+            size({ sm: height('2rem'), md: {}, lg: height('3rem'), xl: height('4rem') }),
+            size({ sm: height('2rem'), md: {}, lg: height('3rem'), xl: {} }),
+            { avatar: { sizes: ['sm', 'md', 'lg'] } },
+        );
+        expect(coverageGaps(ds)).toEqual([]);
+        expect(ambiguousBases(ds)).toEqual(['avatar.size: md, xl']);
     });
 });

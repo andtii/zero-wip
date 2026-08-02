@@ -75,12 +75,19 @@ const designSystems = {
  * That is §1.1's thesis arriving at its consequence. The four convention design
  * systems declare a BUTTON's vocabulary and declare it design-system-wide, so
  * wiring these carriers means painting `ghost` onto a progress bar — a value
- * its own design language does not have. The honest wiring needs the per-scope
- * restriction map RFC 0003 §4 deferred, and it needs `tokens.variants` to
- * become the union of every scope's vocabulary rather than the button's.
+ * its own design language does not have.
  *
- * So `never` is the correct compiled answer for all fourteen today, and this
- * ledger is the reason it is correct rather than merely absent.
+ * **That blocker is gone (#294).** `tokens.scopes` landed the per-scope
+ * restriction map RFC 0003 §4 deferred, and `tokens.variants` is now the union
+ * of every scope's vocabulary rather than the button's — so the reasons below
+ * no longer say "inexpressible", they say "not declared yet". Wiring any of
+ * the fourteen is now a design system's decision, taken one skin at a time,
+ * and it costs the recipes plus the contrast audit's ancestor chains (thirteen
+ * of the fourteen carry their axes on a part that renders no text).
+ *
+ * So `never` is still the correct compiled answer for all fourteen today —
+ * none of the six declares a vocabulary for them — and this ledger is the
+ * reason it is correct rather than merely absent.
  *
  * Sources are the design systems' own prop tables, verified 2026-08-02, in the
  * style `skills/design-system/conformance/*.ts` uses for the same claim.
@@ -98,12 +105,18 @@ const NO_VARIANT: Record<string, string> = {
     'number-input': 'Radix Themes TextField varies as classic | surface | soft.',
 
     /**
-     * The sharpest one. Radix's Select varies BOTH halves and gives them
-     * DIFFERENT vocabularies — Trigger `classic | surface | soft | ghost`,
-     * Content `solid | soft`. Zero carries `variant` as one attribute on the
-     * scope's carrier part, so even §4's per-scope map would not express this:
-     * it wants per-PART vocabularies. Recorded here because it is the strongest
-     * evidence in the survey that the axis is under-specified, not under-wired.
+     * The sharpest one, and the case #294 was settled against. Radix's Select
+     * varies BOTH halves and gives them DIFFERENT vocabularies — Trigger
+     * `classic | surface | soft | ghost`, Content `solid | soft`. Zero carries
+     * `variant` as one attribute on the scope's carrier part, so this was read
+     * as evidence that the restriction unit had to be the PART.
+     *
+     * RFC 0003 §4.1 settled it the other way: one attribute per axis, cascaded
+     * to every part below the carrier, means two vocabularies inside one scope
+     * are two AXES. The Content half is a declared custom axis — which zero
+     * has always been able to express — and the restriction unit stays the
+     * scope. So this entry is now "not declared yet", like its thirteen
+     * siblings, rather than "cannot be said".
      */
     select: 'Radix Themes Select varies Trigger as classic | surface | soft | '
         + 'ghost and Content as solid | soft — two vocabularies, one scope.',
@@ -201,8 +214,8 @@ describe('no component accepts an axis no design system wires', () => {
         expect(
             wiredAfterAll,
             'these carriers now wire `variant`, so the reason recorded beside them is false — '
-                + 'delete the entry (and check RFC 0003 §4 has actually landed, since the '
-                + 'reasons say the vocabulary could not express it)',
+                + 'delete the entry (and give the scope its own vocabulary in tokens.scopes '
+                + 'if the values are not the button\'s: RFC 0003 §4.1)',
         ).toEqual([]);
     });
 
