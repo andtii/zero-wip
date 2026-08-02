@@ -1028,6 +1028,10 @@
         margin-inline-start: auto;
     }
 
+    [data-scope="menu"][data-part="sub-trigger"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)::after {
+        content: "\2039";
+    }
+
     [data-scope="menu"][data-part="sub-popup"] {
         opacity: 0;
         transform: translate(4px, 4px);
@@ -2129,6 +2133,7 @@
         height: 100%;
         background: var(--progress-accent);
         transition: width var(--duration-fast) var(--ease-standard);
+        --progress-sweep-dir: 1;
     }
 
     [data-scope="progress"][data-part="range"][data-state="complete"] {
@@ -2138,6 +2143,10 @@
     [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
         width: 40%;
         animation: brutalist-indeterminate 1s var(--ease-standard) infinite;
+    }
+
+    [data-scope="progress"][data-part="range"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        --progress-sweep-dir: -1;
     }
 
     [data-scope="progress"][data-part="value-text"] {
@@ -2208,7 +2217,7 @@
     }
 }
 @keyframes brutalist-indeterminate {
-    from { transform: translateX(-100%); } to { transform: translateX(250%); }
+    from { transform: translateX(calc(var(--progress-sweep-dir) * -100%)); } to { transform: translateX(calc(var(--progress-sweep-dir) * 250%)); }
 }
 
 @layer zero.recipes {
@@ -2348,7 +2357,7 @@
 
     [data-scope="toast"][data-part="viewport"][data-placement="top-start"] {
         top: 0;
-        left: 0;
+        inset-inline-start: 0;
     }
 
     [data-scope="toast"][data-part="viewport"][data-placement="top"] {
@@ -2359,12 +2368,12 @@
 
     [data-scope="toast"][data-part="viewport"][data-placement="top-end"] {
         top: 0;
-        right: 0;
+        inset-inline-end: 0;
     }
 
     [data-scope="toast"][data-part="viewport"][data-placement="bottom-start"] {
         bottom: 0;
-        left: 0;
+        inset-inline-start: 0;
         flex-direction: column-reverse;
     }
 
@@ -2377,7 +2386,7 @@
 
     [data-scope="toast"][data-part="viewport"][data-placement="bottom-end"] {
         bottom: 0;
-        right: 0;
+        inset-inline-end: 0;
         flex-direction: column-reverse;
     }
 
@@ -3544,6 +3553,10 @@
 
     [data-scope="tree-view"][data-part="branch-indicator"][data-state="open"] {
         transform: rotate(90deg);
+    }
+
+    [data-scope="tree-view"][data-part="branch-indicator"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        scale: -1 1;
     }
 
     [data-scope="tree-view"][data-part="branch-content"] {

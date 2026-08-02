@@ -63,22 +63,82 @@ const designSystems = {
 };
 
 /**
- * `variant` is exempt, deliberately and with a recorded reason (RFC 0003
- * §1.1 / §9 phase 5).
+ * `variant` is wired on `button` alone, and that is now a DECISION rather than
+ * a deferral (#175, discharging RFC 0003 §9 phase 5's gate: "wire it, or record
+ * the divergence per component with its reason").
  *
- * Only `button` wires it, and its vocabulary — `solid | outline | soft |
- * ghost` — is convention rather than contract: all four design systems
- * declare the same four values, derived from roughly two real design systems,
- * and nothing requires it. Wiring that set across every remaining carrier
- * would encode the convention harder in exactly the place a divergent design
- * system (HeroUI v3 fuses colour into `variant` and has no `color` prop at
- * all) has to unpick it. For several carriers the honest answer is also "no
- * variant here", which `never` already states correctly.
+ * The fourteen were surveyed one at a time against RFC 0003 §7.2's set — the
+ * reasons below are the survey — and the result is more uniform than the issue
+ * guessed. **Twelve of the fourteen do carry a variant in a real design system.
+ * Not one of the twelve spells it `solid | outline | soft | ghost`.**
  *
- * When that question is settled, delete this constant rather than extending
- * it.
+ * That is §1.1's thesis arriving at its consequence. The four convention design
+ * systems declare a BUTTON's vocabulary and declare it design-system-wide, so
+ * wiring these carriers means painting `ghost` onto a progress bar — a value
+ * its own design language does not have.
+ *
+ * **That blocker is gone (#294).** `tokens.scopes` landed the per-scope
+ * restriction map RFC 0003 §4 deferred, and `tokens.variants` is now the union
+ * of every scope's vocabulary rather than the button's — so the reasons below
+ * no longer say "inexpressible", they say "not declared yet". Wiring any of
+ * the fourteen is now a design system's decision, taken one skin at a time,
+ * and it costs the recipes plus the contrast audit's ancestor chains (thirteen
+ * of the fourteen carry their axes on a part that renders no text).
+ *
+ * So `never` is still the correct compiled answer for all fourteen today —
+ * none of the six declares a vocabulary for them — and this ledger is the
+ * reason it is correct rather than merely absent.
+ *
+ * Sources are the design systems' own prop tables, verified 2026-08-02, in the
+ * style `skills/design-system/conformance/*.ts` uses for the same claim.
  */
-const DEFERRED_AXES = ['variant'] as const;
+const NO_VARIANT: Record<string, string> = {
+    // ── Radix Themes' form-control family: one vocabulary, seven controls,
+    //    and it is not this one. ────────────────────────────────────────────
+    checkbox: 'Radix Themes Checkbox varies as classic | surface | soft.',
+    switch: 'Radix Themes Switch varies as classic | surface | soft.',
+    'radio-group': 'Radix Themes RadioGroup varies as classic | surface | soft.',
+    slider: 'Radix Themes Slider varies as classic | surface | soft.',
+    progress: 'Radix Themes Progress varies as classic | surface | soft — so '
+        + 'the issue\'s guess that a varied progress bar is meaningless is wrong; '
+        + 'what is meaningless is a GHOST one.',
+    'number-input': 'Radix Themes TextField varies as classic | surface | soft.',
+
+    /**
+     * The sharpest one, and the case #294 was settled against. Radix's Select
+     * varies BOTH halves and gives them DIFFERENT vocabularies — Trigger
+     * `classic | surface | soft | ghost`, Content `solid | soft`. Zero carries
+     * `variant` as one attribute on the scope's carrier part, so this was read
+     * as evidence that the restriction unit had to be the PART.
+     *
+     * RFC 0003 §4.1 settled it the other way: one attribute per axis, cascaded
+     * to every part below the carrier, means two vocabularies inside one scope
+     * are two AXES. The Content half is a declared custom axis — which zero
+     * has always been able to express — and the restriction unit stays the
+     * scope. So this entry is now "not declared yet", like its thirteen
+     * siblings, rather than "cannot be said".
+     */
+    select: 'Radix Themes Select varies Trigger as classic | surface | soft | '
+        + 'ghost and Content as solid | soft — two vocabularies, one scope.',
+
+    // ── The rest of bucket A: a variant exists, spelled differently again. ──
+    avatar: 'Radix Themes Avatar varies as solid | soft.',
+    'toggle-group': 'Radix Themes SegmentedControl varies as surface | classic.',
+    combobox: 'Ant Design v6 AutoComplete varies as outlined | borderless | '
+        + 'filled | underlined.',
+    tabs: 'HeroUI v3 Tabs varies as primary | secondary (filled vs underline '
+        + 'indicator); Carbon spells the same split line vs contained.',
+    toggle: 'Material 3 makes the toggle a MODE of the icon button rather than '
+        + 'a component — all four (standard, filled, filled-tonal, outlined) '
+        + 'take `toggle`, so the variant is the button\'s and follows it.',
+
+    // ── Bucket B: no surveyed system varies these at all. The only two where
+    //    "no variant here" is the whole answer, and §4 would not change it. ──
+    'rating-group': 'no surveyed system varies a rating control — Ant Design\'s '
+        + 'Rate has size and character, no style axis.',
+    'tree-view': 'no surveyed system varies a tree — Ant Design\'s Tree styles '
+        + 'through showLine / blockNode / classNames, not a style axis.',
+};
 
 const CHECKED_AXES = (['color', 'size'] as const);
 
@@ -121,14 +181,51 @@ describe('no component accepts an axis no design system wires', () => {
         expect(gaps, `${name} accepts these axes at runtime and wires nothing for them`).toEqual([]);
     });
 
-    it('records what is still deferred, so the exemption stays visible', () => {
-        // Not a formality: this asserts the deferral is exactly `variant` and
-        // exactly on the carriers that are not `button`. If a design system
-        // starts wiring `variant` more widely, or a new axis joins the deferred
-        // set, this fails and the reason above has to be revisited.
-        const deferred = carriers.filter((scope) =>
-            Object.values(designSystems).every((ds) =>
-                DEFERRED_AXES.every((axis) => (ds.components[scope]?.[axis].length ?? 0) === 0)));
-        expect(deferred).toEqual(carriers.filter((c) => c !== 'button'));
+    // The ledger has to bind from both ends, because the two ways it goes
+    // stale are opposite. A carrier can arrive unrecorded (component #24 lands
+    // and nobody asks the variant question), or a recorded reason can quietly
+    // stop being true (a design system wires the axis and the entry beside it
+    // still says nobody does). One assertion per direction, so a failure names
+    // which happened.
+
+    // The exemption is "some design system wires it", NOT "is button". Naming
+    // button would make the two assertions contradict each other the moment
+    // this decision is revisited: wire `select` under RFC 0003 §4, delete its
+    // NO_VARIANT entry as the second assertion demands, and a button-shaped
+    // exemption would fail the first for a missing entry — leaving no legal
+    // state, and a guard whose only escape is to record something false.
+    const wiresVariant = (scope: string): boolean =>
+        Object.values(designSystems).some((ds) => (ds.components[scope]?.variant.length ?? 0) > 0);
+
+    it('every carrier that wires no variant has a recorded reason', () => {
+        const unrecorded = carriers.filter((scope) => !wiresVariant(scope) && !(scope in NO_VARIANT));
+        expect(
+            unrecorded,
+            'these carriers accept `variant` and wire nothing, with no reason recorded — '
+                + 'survey the carrier against RFC 0003 §7.2 and add it to NO_VARIANT, or wire it',
+        ).toEqual([]);
+    });
+
+    it('every recorded reason still describes a carrier that wires nothing', () => {
+        const stale = Object.keys(NO_VARIANT).filter((scope) => !carriers.includes(scope));
+        expect(stale, 'NO_VARIANT names scopes that are not variant carriers').toEqual([]);
+
+        const wiredAfterAll = Object.keys(NO_VARIANT).filter(wiresVariant);
+        expect(
+            wiredAfterAll,
+            'these carriers now wire `variant`, so the reason recorded beside them is false — '
+                + 'delete the entry (and give the scope its own vocabulary in tokens.scopes '
+                + 'if the values are not the button\'s: RFC 0003 §4.1)',
+        ).toEqual([]);
+    });
+
+    it('button still wires a variant in every design system, so the ledger is not vacuous', () => {
+        // Without this the two assertions above pass trivially on a repo where
+        // NOTHING wires `variant` — a ledger recording a universal absence,
+        // which is the failure mode #103 shipped and #168 had to come back for.
+        for (const [name, ds] of Object.entries(designSystems)) {
+            expect(ds.components['button']?.variant ?? [], `${name} wires no button variant`)
+                .not.toEqual([]);
+        }
     });
 });

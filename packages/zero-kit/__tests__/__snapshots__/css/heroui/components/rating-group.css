@@ -113,7 +113,7 @@
         inset: 12%;
     }
 
-    [data-scope="rating-group"][data-part="item"]:dir(rtl)::before, [data-scope="rating-group"][data-part="item"]:dir(rtl)::after {
+    [data-scope="rating-group"][data-part="item"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)::before, [data-scope="rating-group"][data-part="item"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)::after {
         background-position-x: right;
     }
 

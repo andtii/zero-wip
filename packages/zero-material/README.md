@@ -55,4 +55,24 @@ installThemes();
 
 Two lines — the same two that select any other design system.
 
+## Writing direction
+
+Every direction-bearing rule is spelled logically, so the whole skin mirrors
+under `dir="rtl"` (#277, #290). `inset-inline-*` and `margin-inline-*` where a
+logical property exists; a direction-valued custom property the RTL selector
+rebinds where one does not, since `transform` has no logical form. The kit warns
+on the first kind (`validate-recipes`) and `e2e/rtl.spec.ts` measures the second
+in a real engine — a logical anchor with a physical travel reads as correct and
+still puts the control's thumb outside its own track.
+
+What moved here: the toast viewport's start/end placements, the switch thumb,
+the collapsed tree indicator and the indeterminate progress sweep. There is no
+submenu chevron to turn around — `pressable()` owns both pseudo-elements, so a
+chevron is content the app supplies.
+
+The half-star gradient's RTL rule also lost the specificity it never meant to
+have: written bare, `:dir(rtl)` outranked the `forced-colors` override beneath
+it, so a half star kept its gradient where it should have dropped to
+`CanvasText`. Written `:where(…)` the two tie and the later rule wins.
+
 MIT © Andreas Ekdahl

@@ -241,6 +241,34 @@ describe('tokens.schema.json', () => {
         }))).toBe(false);
     });
 
+    it('accepts a per-scope vocabulary, including the empty-list opt-out', () => {
+        expectValid(validateTokens, asJson({
+            ...basicDS.tokens,
+            scopes: {
+                select: { variants: ['solid', 'soft'], colors: ['primary'] },
+                avatar: { variants: [] },
+                tabs: { axes: { density: ['compact'] }, modifiers: ['boxed'] },
+            },
+        }), 'per-scope vocabularies');
+    });
+
+    it('rejects an unknown key inside a scope vocabulary — `parts` included', () => {
+        // The reserved key, at the JSON layer. `parts` is the per-PART
+        // restriction RFC 0003 §4.1 settled against; rejecting it by name here
+        // and in the validator is what keeps adding it later additive.
+        expect(validateTokens(asJson({
+            ...basicDS.tokens,
+            scopes: { select: { parts: { trigger: { variants: ['soft'] } } } },
+        }))).toBe(false);
+    });
+
+    it('rejects a scope vocabulary value that is not a kebab-case identifier', () => {
+        expect(validateTokens(asJson({
+            ...basicDS.tokens,
+            scopes: { select: { variants: ['Not Kebab'] } },
+        }))).toBe(false);
+    });
+
     it('rejects an unknown category under system (the category set is closed)', () => {
         expect(validateTokens(asJson({
             ...basicDS.tokens,

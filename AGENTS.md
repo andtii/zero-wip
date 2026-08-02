@@ -140,7 +140,18 @@ happy-dom cannot resolve), that no element renders a
 `data-color`/`data-size`/`data-variant`/`data-mod-*` value the live manifest
 does not declare, that a toolbar switch leaves exactly one live
 `link[data-zero-ds]` and refetches the vocabulary and theme registry, and that
-boot logs no console error): `pnpm build`,
+boot logs no console error); and the **RTL spec** (`e2e/rtl.spec.ts`), the other
+spec that walks all six — chromium-only, one page load per design system, it
+sets `dir="rtl"` *after* boot (an `addInitScript` runs before `documentElement`
+exists, so the attribute is silently lost, which reads exactly like a broken
+fix) and then measures boxes rather than declarations: the switch thumb starts
+at the reading edge and stays inside its own control, a toast viewport sits on
+the side its `data-placement` names, a collapsed branch indicator and a submenu
+chevron point at the reading end, and the indeterminate progress sweep travels
+the reading way (seeked through `getAnimations()`, since the loop makes
+wall-clock sampling straddle a wrap). It exists because a `transform` has no
+logical spelling, so the kit's physical-direction lint cannot see it — the two
+checks are complementary, not redundant): `pnpm build`,
 then `pnpm --filter zero-playground e2e` (first run:
 `pnpm --filter zero-playground exec playwright install`). Filtering needs
 `exec` — `pnpm --filter zero-playground e2e -- <name>` drops the argument and
@@ -217,7 +228,7 @@ that null reports a `TypeError` instead of "the popup was not showing".
   HeroUI's `isIconOnly`/`isPending` as `data-mod-*` modifiers. Where
   zero-material proves vocabularies can be *extended*, this proves they can be
   a different *shape*. Full component coverage (23 recipes), with `variant`
-  wired on button only (the repo-wide deferral, #175) — it exercises the axis
+  wired on button only (the repo-wide decision, #175) — it exercises the axis
   surface, not a product. Private.
 - `packages/zero-carbon` → `@sigx/zero-carbon` — Carbon-flavoured skin, and
   the runtime acceptance test for the **api `values` remap** (#183): no

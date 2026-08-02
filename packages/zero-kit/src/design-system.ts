@@ -7,7 +7,7 @@ import type { ManifestComponent, RoleDecl, ZeroManifest } from './contract.js';
 import { DEFAULT_ROLES, defaultSwatch, resolveRoles, resolveSizes } from './contract.js';
 import type { CompiledComponentApi, DesignSystemApi } from './api.js';
 import { deriveComponentApi } from './api.js';
-import type { CustomTokenDecl, RolesDecl, SystemTokens, TokensInput } from './tokens.js';
+import type { CustomTokenDecl, RolesDecl, ScopeVocabulary, SystemTokens, TokensInput } from './tokens.js';
 import { compileTokensCss } from './targets/web/tokens-css.js';
 import type { RecipeInput } from './recipes.js';
 import { compileRecipeCss } from './targets/web/recipe-css.js';
@@ -64,6 +64,27 @@ export interface CompiledComponentAxes {
      * `validateRecipes`. Manifest/docs only — never widens a union.
      */
     defaults?: Record<string, string>;
+    /**
+     * The vocabulary this scope OFFERS — its `tokens.scopes` entry, resolved
+     * against the design-system-wide union (#294). Present only when the scope
+     * restricts something, so a design system that declares no `scopes` emits
+     * a byte-identical manifest.
+     *
+     * Distinct from every sibling field above, which is what the recipe
+     * WIRES: `offered` is the promise, those are the delivery, and the gap
+     * between them is a finding.
+     *
+     * Resolved here rather than left to each reader: the playground and the
+     * e2e specs both want "what may this scope render", and a second
+     * hand-derivation is how a mirror drifts.
+     */
+    offered?: {
+        color?: string[];
+        size?: string[];
+        variant?: string[];
+        axes?: Record<string, string[]>;
+        mods?: string[];
+    };
 }
 
 export interface CompiledDesignSystem {
@@ -95,6 +116,12 @@ export interface CompiledDesignSystem {
         axes: Record<string, string[]>;
         /** Declared presence-only modifiers ([] when undeclared). */
         modifiers: string[];
+        /**
+         * Per-scope restrictions of the vocabularies above ({} when none are
+         * declared) — which is what makes them the UNION of every scope's
+         * vocabulary rather than one vocabulary every scope shares (#294).
+         */
+        scopes: Record<string, ScopeVocabulary>;
         custom: Record<string, CustomTokenDecl>;
         breakpoints: Record<string, string>;
         /** DS-level values per category id, e.g. `{ radius: { field: '0.5rem' } }`. */
@@ -185,11 +212,69 @@ function harvestAxes(recipe: RecipeInput): CompiledComponentAxes {
  * predicate, so the report and the register artifact cannot disagree — which is
  * the gate RFC 0003 §7.4 puts on the report.
  */
-export function undeclaredAxes(compiled: CompiledDesignSystem): ReadonlySet<string> {
+export function undeclaredAxes(compiled: CompiledDesignSystem, scope?: string): ReadonlySet<string> {
     const out = new Set<string>();
     if (Object.keys(compiled.tokens.roles).length === 0) out.add('color');
     if (compiled.tokens.sizes.length === 0) out.add('size');
+    // A scope may declare an axis out of existence FOR ITSELF, with the same
+    // empty-list grammar (#294) — and here `variant` can be one of them, which
+    // it never can design-system-wide: `variants: []` on a scope is a positive
+    // claim, where an omitted `tokens.variants` is only silence.
+    const offered = scope ? compiled.components[scope]?.offered : undefined;
+    if (offered) {
+        if (offered.color?.length === 0) out.add('color');
+        if (offered.size?.length === 0) out.add('size');
+        if (offered.variant?.length === 0) out.add('variant');
+    }
     return out;
+}
+
+/**
+ * Who claims which values of one axis, per the declared per-scope
+ * vocabularies (#294).
+ *
+ * `unrestricted` is true when at least one STYLED scope declares no
+ * restriction for the axis: its vocabulary is the whole union, so no value can
+ * be "claimed by nobody" and the unclaimed diagnostic must stay silent.
+ *
+ * Exported and shared for the same reason `undeclaredAxes` is — the recipe
+ * validator's unclaimed warning and `axis-value-coverage.test.ts`'s rule C
+ * both read it, so the two cannot disagree about what counts.
+ */
+export function axisClaims(compiled: CompiledDesignSystem, axis: string): {
+    byScope: ReadonlyMap<string, readonly string[]>;
+    claimed: ReadonlySet<string>;
+    unrestricted: boolean;
+} {
+    const byScope = new Map<string, readonly string[]>();
+    const claimed = new Set<string>();
+    let unrestricted = false;
+    for (const [scope, wired] of Object.entries(compiled.components)) {
+        const own = offeredFor(wired, axis);
+        if (own === undefined) {
+            unrestricted = true;
+            continue;
+        }
+        byScope.set(scope, own);
+        for (const value of own) claimed.add(value);
+    }
+    return { byScope, claimed, unrestricted };
+}
+
+/**
+ * The values one scope offers for one axis — `undefined` when it declared no
+ * restriction, `[]` when it declared the axis out of existence for itself.
+ * Keyed by the axis name a recipe wires (`color` / `size` / `variant` / a
+ * custom axis / `mods`), not by the `tokens.scopes` spelling.
+ */
+export function offeredFor(wired: CompiledComponentAxes, axis: string): readonly string[] | undefined {
+    const offered = wired.offered;
+    if (!offered) return undefined;
+    if (axis === 'color') return offered.color;
+    if (axis === 'size') return offered.size;
+    if (axis === 'variant') return offered.variant;
+    if (axis === 'mods') return offered.mods;
+    return offered.axes?.[axis];
 }
 
 export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>(
@@ -219,6 +304,26 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
             breakpoints: ds.tokens.breakpoints,
         });
         components[recipe.component] = harvestAxes(recipe);
+    }
+
+    // The declared side of each scope, resolved against the union and attached
+    // beside the harvest. Only for scopes that actually restrict something —
+    // an undeclaring design system's manifest is unchanged byte for byte.
+    const scopeVocabularies = ds.tokens.scopes ?? {};
+    for (const [scope, axes] of Object.entries(components)) {
+        const own = scopeVocabularies[scope];
+        if (!own) continue;
+        const offered: NonNullable<CompiledComponentAxes['offered']> = {};
+        if (own.colors) offered.color = [...own.colors];
+        if (own.sizes) offered.size = [...own.sizes];
+        if (own.variants) offered.variant = [...own.variants];
+        if (own.axes) {
+            offered.axes = Object.fromEntries(
+                Object.entries(own.axes).map(([axis, values]) => [axis, [...values]]),
+            );
+        }
+        if (own.modifiers) offered.mods = [...own.modifiers];
+        if (Object.keys(offered).length > 0) axes.offered = offered;
     }
 
     const rawCss = (ds.css ?? []).join('\n');
@@ -268,6 +373,9 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
                 Object.entries(ds.tokens.axes ?? {}).map(([axis, values]) => [axis, [...values]]),
             ),
             modifiers: [...(ds.tokens.modifiers ?? [])],
+            scopes: Object.fromEntries(
+                Object.keys(scopeVocabularies).sort().map((scope) => [scope, scopeVocabularies[scope]!]),
+            ),
             custom: ds.tokens.custom ?? {},
             breakpoints: ds.tokens.breakpoints ?? {},
             system: (ds.tokens.system ?? {}) as Record<string, unknown>,

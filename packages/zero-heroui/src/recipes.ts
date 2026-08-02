@@ -20,6 +20,21 @@ import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
 const motion = (props: string): string =>
     props.split(', ').map((p) => `${p} var(--duration-fast) var(--ease-standard)`).join(', ');
 
+/**
+ * "…and the reading direction is right-to-left" — appended to a selector, never
+ * written alone.
+ *
+ * `:where()` is forgiving, so an engine without `:dir()` drops that one argument
+ * and still matches the attribute forms. It also contributes no specificity, so
+ * a rule using it ties with the one it corrects and wins on source order —
+ * declare it after, not before.
+ *
+ * Only for what has no logical property: a `transform`, a keyframe, a glyph that
+ * points. Anything with an `inset-inline-*` or `margin-inline-*` spelling should
+ * use that instead and need no rule at all.
+ */
+const rtl = ':where(:dir(rtl), [dir="rtl"], [dir="rtl"] *)';
+
 /** v3's ring: the focus colour, offset, never an outline on the fill itself. */
 const focusRing: Record<string, CssProps> = {
     'focus-visible': {
@@ -367,14 +382,21 @@ export const switchRecipe: RecipeInput = {
                 background: 'var(--color-base-100)',
                 boxShadow: 'var(--shadow-sm)',
                 transition: motion('translate, border-color'),
+                // The anchor above is logical; the travel below could not be,
+                // because `translate` has no logical form. That half-measure was
+                // worse than neither half: under RTL the anchor moved the thumb
+                // to the reading end and the travel then carried it further the
+                // same way, off the track entirely. The sign is the missing half.
+                '--switch-thumb-dir': '1',
             },
             states: {
                 checked: {
-                    translate: 'calc(var(--switch-width) - var(--switch-height)) 0',
+                    translate: 'calc(var(--switch-thumb-dir) * (var(--switch-width) - var(--switch-height))) 0',
                     borderColor: 'transparent',
                 },
                 unchecked: {},
             },
+            selectors: { [`&${rtl}`]: { '--switch-thumb-dir': '-1' } },
         },
         label: {
             base: { ...label },
@@ -615,7 +637,12 @@ export const menu: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
             selectors: {
+                // A submenu opens toward the reading end, so the chevron that
+                // announces it has to point that way. `\203A` points right in
+                // every writing direction; `\2039` is its mirror, and the swap
+                // agrees with the side `Menu.tsx` itself resolves from `:dir()`.
                 '&::after': { content: '"\\203A"', marginInlineStart: 'auto', color: 'var(--hero-muted)' },
+                [`&${rtl}::after`]: { content: '"\\2039"' },
                 '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
             },
         },
@@ -1051,7 +1078,11 @@ export const progress: RecipeInput = {
         },
     },
     keyframes: {
-        'hero-indeterminate': 'from { margin-left: -40%; } to { margin-left: 100%; }',
+        // Logical, so the sweep runs the way the bar fills — `margin-inline-start`
+        // is animatable and direction-aware on its own. The determinate `width`,
+        // an ordinary flow child, was already mirroring while this travelled the
+        // other way.
+        'hero-indeterminate': 'from { margin-inline-start: -40%; } to { margin-inline-start: 100%; }',
     },
 };
 
@@ -1478,12 +1509,17 @@ export const toast: RecipeInput = {
                 // The UA hides closed popovers by unsetting display — an
                 // unconditional `display: flex` would defeat that.
                 '&:popover-open': { display: 'flex' },
-                '&[data-placement="top-start"]': { top: '0', left: '0' },
+                // Logical, because `ToastPlacement` is: `top-start` means the
+                // top of the reading side, which is the left edge only in a
+                // left-to-right document. The centred pair stays physical —
+                // `left: 50%` with a half-width pull-back is symmetric, and a
+                // logical inset there would decentre it instead of mirroring it.
+                '&[data-placement="top-start"]': { top: '0', insetInlineStart: '0' },
                 '&[data-placement="top"]': { top: '0', left: '50%', transform: 'translateX(-50%)' },
-                '&[data-placement="top-end"]': { top: '0', right: '0' },
-                '&[data-placement="bottom-start"]': { bottom: '0', left: '0', flexDirection: 'column-reverse' },
+                '&[data-placement="top-end"]': { top: '0', insetInlineEnd: '0' },
+                '&[data-placement="bottom-start"]': { bottom: '0', insetInlineStart: '0', flexDirection: 'column-reverse' },
                 '&[data-placement="bottom"]': { bottom: '0', left: '50%', transform: 'translateX(-50%)', flexDirection: 'column-reverse' },
-                '&[data-placement="bottom-end"]': { bottom: '0', right: '0', flexDirection: 'column-reverse' },
+                '&[data-placement="bottom-end"]': { bottom: '0', insetInlineEnd: '0', flexDirection: 'column-reverse' },
             },
         },
         root: {
@@ -1499,12 +1535,28 @@ export const toast: RecipeInput = {
                 background: 'var(--color-base-100)',
                 boxShadow: 'var(--shadow-lg)',
                 opacity: '0',
-                transform: 'translateX(8px)',
+                // heroui is the one skin whose toast enters on the INLINE axis;
+                // the other five use `translateY`, which no writing direction
+                // touches. So this is the only one that has to know which way
+                // "in" is — and it did not: a flat `translateX(8px)` entered from
+                // the physical right, which is the wrong side under RTL and the
+                // wrong side for a `*-start` placement even in LTR.
+                //
+                // The offset is signed by the placement, and `--toast-dir` flips
+                // the axis, because `transform` has no logical form. The centred
+                // placements keep the end-side entry they already had.
+                '--toast-from': '8px',
+                '--toast-dir': '1',
+                transform: 'translateX(calc(var(--toast-dir) * var(--toast-from)))',
                 transition: motion('opacity, transform'),
             },
             states: {
                 open: { opacity: '1', transform: 'none' },
                 closed: {},
+            },
+            selectors: {
+                '&[data-placement$="-start"]': { '--toast-from': '-8px' },
+                [`&${rtl}`]: { '--toast-dir': '-1' },
             },
             at: {
                 'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
@@ -1926,7 +1978,7 @@ export const ratingGroup: RecipeInput = {
                 // The fill grows from the leading edge, and its layer is one
                 // flat colour — so direction is a background-position, not a
                 // gradient angle.
-                '&:dir(rtl)::before, &:dir(rtl)::after': { backgroundPositionX: 'right' },
+                [`&${rtl}::before, &${rtl}::after`]: { backgroundPositionX: 'right' },
                 // A consumer symbol draws itself: hand it back the box, the
                 // ink and the paint.
                 '&:has(*)': {
@@ -2064,6 +2116,13 @@ export const treeView: RecipeInput = {
         'branch-indicator': {
             base: { display: 'inline-block', flex: 'none', color: 'var(--hero-muted)', transition: motion('rotate') },
             states: { open: { rotate: '90deg' }, closed: {} },
+            // The glyph is element text the runtime renders (`TreeView.tsx`), not
+            // `content:`, so the `:dir(rtl)` swap the submenu chevron uses is not
+            // available here — a mirror is its equivalent. `scale` composes
+            // OUTSIDE `transform` (and outside the individual `rotate`), so the
+            // closed glyph flips to point at the reading end while the open one,
+            // already rotated to point down, is unaffected by a horizontal flip.
+            selectors: { [`&${rtl}`]: { scale: '-1 1' } },
         },
         // Depth is the DOM nesting; a hairline guide traces each level.
         'branch-content': {

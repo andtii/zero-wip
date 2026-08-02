@@ -4,6 +4,183 @@
 
 ### Added
 
+- **A vocabulary can belong to one scope: `tokens.scopes`** (#294, RFC 0003
+  §4.1). Per-scope axis vocabularies, the thing §4 deferred "until the content
+  tier makes divergence real" — and the caller that arrived first was the
+  fourteen unwired `variant` carriers, twelve of which have a variant in a real
+  design system and not one of which spells it `solid | outline | soft | ghost`.
+
+  ```ts
+  variants: ['solid', 'outline', 'classic', 'surface', 'soft'],   // the UNION
+  scopes: {
+      button: { variants: ['solid', 'outline'] },
+      select: { variants: ['classic', 'surface', 'soft'] },
+  },
+  ```
+
+  **`tokens.variants` is now the union of every scope's vocabulary.** A map that
+  only narrows would not have worked: `select` wants `classic` and `surface`,
+  and no button's set contains them, so there was nothing to narrow from. Every
+  axis takes a restriction — `colors`, `sizes`, `variants`, `axes`, `modifiers`
+  — because restricting `variant` alone would have left `tokens.axes` (the
+  recommended escape hatch for a second vocabulary) unrestricted, and because
+  #258 was a *size* problem. An absent key means the scope offers the whole
+  union; an empty list is the claim "no such axis here", the same grammar
+  `sizes: []` already uses.
+
+  **The restriction unit is the scope, and per-part is settled rather than
+  deferred again.** Zero puts one attribute per axis on the scope's carrier part
+  and cascades it to every part below by descendant selector, so Radix Select's
+  Trigger/Content split is two *axes*, not two vocabularies — and it is
+  expressible today, because zero has no portals and
+  `[data-part="root"][data-content-variant="soft"] [data-part="popup"]` matches.
+  A `parts` key inside a scope entry is reserved and rejected by name, so a
+  per-part restriction stays additive if it is ever wanted.
+
+  Three new diagnostics, all paying back the union: a value in the scope's
+  vocabulary its recipe wires nothing for; a union value belonging to no scope
+  at all; and — the one real behaviour change — **cross-talk**, where one scope
+  narrows an axis and a styled sibling does not, so the sibling is still
+  offering values declared for someone else. `validateDesignSystem` warns at the
+  declaration, and `axis-value-coverage.test.ts` reports the same fact as a
+  coverage gap. The escape is to restrict the sibling too; restating the whole
+  union for a scope is deliberately not warned about, since it is how a scope
+  says "yes, I carry all of it".
+
+  `register.d.ts` deliberately still emits the **harvest**, not the declaration:
+  wiring outside a scope's vocabulary is now an error, so the harvest narrows to
+  it anyway and is strictly stronger — it additionally refuses to type a value
+  the compiled CSS does not implement. `api.components` stays reserved;
+  per-scope vocabulary does not imply per-scope api.
+
+  No design system in this repo declares `scopes`, so every golden, snapshot,
+  compiled stylesheet and conformance row is byte-identical — the manifests gain
+  `"scopes": {}` and the reports gain an empty `unclaimed`. The fourteen carriers
+  are unblocked but still unwired, and the `NO_VARIANT` ledger stands with its
+  reasons now meaning "not declared yet" rather than "cannot be said".
+
+- **The `variant` axis is settled on the fourteen carriers that left it unwired,
+  and the answer is a ledger rather than 84 recipe blocks** (#175). Fifteen
+  components compose `WithVariantAxes`; `button` is the one that wires `variant`
+  and stays as it is, so the fourteen below are the rest.
+
+  `axis-coverage.test.ts` traded its axis-wide `DEFERRED_AXES = ['variant']`
+  for `NO_VARIANT`, a per-carrier record whose value IS the reason — the shape
+  `KNOWN_UNSHARED` uses in `contract-parity.test.ts`. It discharges RFC 0003 §9 phase 5's gate ("wire it,
+  or record the divergence per component with its reason") and supersedes the
+  note below: #175 leaving `variant` on `button` alone is now decided, not
+  provisional.
+
+  The fourteen were surveyed one at a time against RFC 0003 §7.2's set, and the
+  result is more uniform than the issue guessed. **Twelve of the fourteen do
+  carry a variant in a real design system. Not one of the twelve spells it
+  `solid | outline | soft | ghost`** — Radix Themes varies checkbox, switch,
+  radio-group, slider, progress and text fields as `classic | surface | soft`;
+  Ant v6's AutoComplete is `outlined | borderless | filled | underlined`;
+  HeroUI v3's tabs are `primary | secondary`. Only `rating-group` and
+  `tree-view` have no style axis anywhere in the set, so "a ghost progress bar
+  is meaningless" was the wrong reading: a *varied* progress bar is ordinary,
+  and it is `ghost` specifically that the vocabulary cannot mean.
+
+  So the blocker is §4, not effort — and one finding outgrows §4 as drafted:
+  Radix's Select varies its Trigger as `classic | surface | soft | ghost` and
+  its Content as `solid | soft`, two vocabularies inside one scope, which a
+  per-*scope* restriction map would not express either. Recorded in RFC 0003
+  §9.1, with §4 gaining the fourteen as its demonstrated caller.
+
+  Nothing wires a new variant, so no recipe, manifest, golden or contrast cell
+  moves. The ledger fails in both directions: a carrier arriving unrecorded, and
+  a recorded reason whose carrier has since been wired.
+
+- **The design-system skill teaches the axis surface it actually has** (#176).
+  The contract gained modifiers (#166), `sizes: []` (#164) and a design
+  system's own `variant` vocabulary (#99); `SKILL.md` knew none of it, so a
+  generated design system inherited the default shape by omission. It now
+  covers four things it did not:
+
+  - **`tokens.modifiers`** — presence-only styling, `[data-mod-<name>]` and
+    the `mods` prop, with the one-member axis (`axes: { block: ['block'] }`)
+    named as the encoding it replaced. The skill had been steering authors
+    straight at it.
+  - **Declining an axis** — `roles: {}` and `sizes: []`, and why empty is a
+    different statement from absent: omission takes the recommended
+    vocabulary, empty says there is no such axis and reaches the manifest, the
+    report and the generated types.
+  - **`solid | outline | soft | ghost` as convention, not contract.** Four of
+    six in-repo systems declare it, which is exactly what made it look
+    load-bearing. HeroUI's fused seven-member vocabulary — `danger-soft` a
+    single value rather than a crossing — is shown as the counter-example.
+  - **`compoundVariants`**, previously one passing mention: that it honours
+    `defaultVariants` (#158) and that a `match` value of `true` names a
+    modifier rather than an axis value.
+
+  Step 6's iterate loop now also runs **`sigx zero:validate --report`** (#173)
+  and says what to do about `declared out of existence`, `wired by nothing`
+  and the per-scope axis status — validation asks whether anything is wrong,
+  the report asks whether you built what you declared, and the second is the
+  question a generated design system gets wrong.
+
+- **A fifth style brief: `riso`** (`skills/design-system/briefs/riso.ts`).
+  The other four all take the recommended eight roles, the `xs…xl` ramp and
+  the four-name variant set, so the pack demonstrated one axis surface four
+  times. `riso` is a duotone risograph print, and the look forces the shape:
+  `roles: {}` (two inks are not eight semantic roles) with the palette as
+  declared `custom` tokens, `sizes: []`, a fused five-member `variant`
+  vocabulary naming an ink *or* a treatment, two modifiers, and a
+  `compoundVariants` entry that matches one. `briefs.test.ts` compiles it like
+  the rest and pins the mechanisms — that `[data-mod-overprint]` is
+  valueless, that the compound crosses an axis value with a modifier, and that
+  both axes come back declared-out of the compiled system.
+
+- **The Reference section names `@sigx/zero-heroui` and `@sigx/zero-carbon`**
+  as the worked non-default axis surfaces, and cites the
+  `skills/design-system/conformance/` fixtures as miniature examples of the
+  shapes the brief pack does not cover (a numeric size ramp, a `tokens.axes`
+  entry, a vendor-renamed axis, camelCase modifiers restored at the API
+  boundary).
+- **A physical-direction lint in `validate-recipes`** (#277, #290). Warns on
+  every physical property that has a logical twin — `left`, `right`,
+  `margin-left/right`, `padding-left/right`, `border-left*`/`border-right*` and
+  the physical corner radii — across part declarations, `@keyframes` bodies and
+  the raw `css` escape hatch alike, naming the logical property that was meant.
+  Nothing is exempt from being *read*: the level is `warning`, so no input needs
+  somewhere to hide, and an unscanned one would be a blind spot in the middle of
+  a check whose premise is that this bug class is otherwise invisible. In the
+  raw block a physical property must sit at the head of a declaration, so
+  `linear-gradient(to left, …)` and `transform-origin: bottom left` read as the
+  values they are. A physical direction is not
+  a typo: it compiles, it renders, and it is simply the *same* side in both
+  writing directions, so one rule stays put while everything around it mirrors.
+  Nothing else in the repo could see that — the css goldens record the physical
+  spelling faithfully and no unit test sets `dir`.
+
+  It found 36 sites across all six design systems, including four switch thumbs
+  and every toast viewport, all fixed in the same change.
+
+  Deliberately **not** #51's problem. That one is "validate every CSS property
+  name", which needs a list that goes stale against new CSS; this is a dozen-odd
+  physical properties whose logical twins have been stable for years.
+
+  Three exemptions, each because a real site needs it: **centring** (`left: 50%`
+  paired with a half-width pull-back is symmetric — every toast viewport's
+  `top`/`bottom` placement is this), **a physically-measured value**
+  (`left: var(--press-x)`, which `press.ts` measures from the element's own left
+  edge), and **a part that rotates** (once a box is rotated its `border-left` is
+  a stroke of a drawn glyph, not an edge of a box — and a check mark is not
+  mirrored in RTL; Carbon's checkbox already said so in a comment above the
+  declarations this would otherwise have flagged). The rotation exemption is
+  scoped to the part rather than the block, because the rotation is declared in
+  `base` while a state or an `at` override adjusts one arm.
+
+  **What it cannot see, by construction:** a `transform`. `translateX(8px)` has
+  no logical spelling to suggest — the fix is a direction-valued custom property,
+  which is a shape rather than a rename. heroui's switch is the proof: it
+  anchored with `inset-inline-start` and then travelled with a bare positive
+  `translate`, so under RTL the anchor mirrored, the travel did not, and the
+  thumb left the track. Clean to this lint, broken on screen. That half is
+  covered by `e2e/rtl.spec.ts`, which reads boxes instead of declarations;
+  neither check subsumes the other.
+
 - **The declared-step-nobody-honours guard**
   (`__tests__/axis-value-coverage.test.ts`, #273). A design system's
   `tokens.sizes` / `tokens.variants` / `tokens.roles` / `tokens.axes` reach

@@ -19,6 +19,7 @@ export type {
     WeightKey,
     RolesDecl,
     Scale,
+    ScopeVocabulary,
     SizeKey,
     SystemTokens,
     TextKey,
@@ -70,7 +71,7 @@ export {
     componentExportName,
 } from './targets/web/components-dts.js';
 export { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
-export { defineDesignSystem, compileDesignSystem, undeclaredAxes } from './design-system.js';
+export { axisClaims, defineDesignSystem, compileDesignSystem, offeredFor, undeclaredAxes } from './design-system.js';
 
 export type { ValidationIssue, ValidationResult } from './resolve/validate.js';
 export { validateDesignSystem } from './resolve/validate.js';

@@ -25,6 +25,160 @@ const NOT_COLOR_VALUED = new Set([
     'content', 'font', 'fontFamily', 'gridTemplateAreas', 'counterReset', 'counterIncrement',
 ]);
 
+/**
+ * Physical-direction properties, and the logical property that says what the
+ * author actually meant. Keyed and valued in kebab — `kebabProp` normalises the
+ * camelCase authoring spelling before the lookup, and a keyframes body is
+ * already kebab.
+ *
+ * A physical direction is not a typo; it compiles and it renders. It is simply
+ * the same side in both writing directions, so a control that mirrors
+ * everything else on the page does not mirror this one rule. That is invisible
+ * to every other check in this repo: the goldens record the physical spelling
+ * faithfully, and no unit test sets `dir`.
+ *
+ * This is deliberately NOT the general "is this a real CSS property" problem
+ * (#51), which needs a list of every property and goes stale against new CSS.
+ * These dozen-odd physical properties have had stable logical twins for years;
+ * the list does not move.
+ *
+ * ── WHAT IT CANNOT SEE ───────────────────────────────────────────────────────
+ * A transform. `translateX(+8px)` moves toward the physical right in both
+ * writing directions and there is no logical spelling to suggest — the fix is a
+ * direction-valued custom property, which is a shape, not a rename. So a part
+ * can pass this check and still be wrong, and one in this repo did: heroui's
+ * switch thumb anchors with `inset-inline-start` and then travels with a bare
+ * positive `translate`, so under RTL the anchor mirrors, the travel does not,
+ * and the thumb leaves the track. Clean here, broken on screen.
+ *
+ * That is the division of labour, not an oversight: this lint reads
+ * declarations, and `e2e/rtl.spec.ts` reads boxes. Neither one subsumes the
+ * other, and the transform cases are exactly why the spec exists.
+ */
+const LOGICAL_TWIN: Record<string, string> = {
+    'left': 'inset-inline-start',
+    'right': 'inset-inline-end',
+    'margin-left': 'margin-inline-start',
+    'margin-right': 'margin-inline-end',
+    'padding-left': 'padding-inline-start',
+    'padding-right': 'padding-inline-end',
+    'border-left': 'border-inline-start',
+    'border-right': 'border-inline-end',
+    'border-left-width': 'border-inline-start-width',
+    'border-right-width': 'border-inline-end-width',
+    'border-left-style': 'border-inline-start-style',
+    'border-right-style': 'border-inline-end-style',
+    'border-left-color': 'border-inline-start-color',
+    'border-right-color': 'border-inline-end-color',
+    'border-top-left-radius': 'border-start-start-radius',
+    'border-top-right-radius': 'border-start-end-radius',
+    'border-bottom-left-radius': 'border-end-start-radius',
+    'border-bottom-right-radius': 'border-end-end-radius',
+};
+
+/**
+ * The same kebab-casing the web target applies before emitting, so a recipe can
+ * be authored in either spelling and still be checked. Custom properties are
+ * case-sensitive and never physical, so they pass through untouched.
+ */
+const kebabProp = (prop: string): string =>
+    prop.startsWith('--') ? prop : prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+
+/** A physical property named at the head of a declaration inside a raw body. */
+const PHYSICAL_IN_BODY = new RegExp(
+    `(?:^|[;{\\s])(${Object.keys(LOGICAL_TWIN).join('|')})\\s*:`,
+    'g',
+);
+
+/**
+ * The INLINE-axis translation a block applies to itself, as written.
+ *
+ * Only the x component counts, and only the first one found: `translateY(-50%)`
+ * moves nothing horizontally, and a block that centres vertically has not said
+ * anything about the inline axis at all.
+ */
+function inlineTranslation(props: CssProps): string | undefined {
+    // A leading `+` is legal CSS and means the same as no sign, so it is
+    // normalised away rather than rejected — `translateX(+50%)` is how a
+    // correctly centred `right: 50%` may well be written.
+    const normalise = (x: string) => (x.startsWith('+') ? x.slice(1) : x);
+    for (const [prop, raw] of Object.entries(props)) {
+        const name = kebabProp(prop);
+        const value = String(raw);
+        // `translateX(…)`, `translate(x, …)`, `translate3d(x, …)` — but never
+        // `translateY(…)`, whose `Y` matches neither the optional `X|3d` nor
+        // the paren.
+        if (name === 'transform') {
+            const x = /\btranslate(?:X|3d)?\(\s*([+-]?[\d.]+%)/.exec(value);
+            if (x) return normalise(x[1]!);
+        } else if (name === 'translate') {
+            // The individual property, whose first component is x.
+            const x = /^\s*([+-]?[\d.]+%)/.exec(value);
+            if (x) return normalise(x[1]!);
+        }
+    }
+    return undefined;
+}
+
+/**
+ * Centring is symmetric, so `left: 50%` is not a direction — but only when the
+ * block pulls itself back by half its own width, which is what makes the pair
+ * mean "centre" rather than "start at the midpoint".
+ *
+ * Both halves of that have to match, and matching loosely gets both wrong:
+ *
+ * - **The axis.** `left: 50%` beside a `translateY(-50%)` is vertical centring
+ *   with an uncentred horizontal offset — it really does pick a side, and a
+ *   substring test for `-50%` would wave it through.
+ * - **The sign.** `left: 50%` pulls back by `-50%`; `right: 50%` pulls the
+ *   other way, by `+50%`. Requiring a negative value would warn on a correctly
+ *   centred `right`.
+ *
+ * A bare `left: 50%` with no inline pull-back at all is not centring either.
+ */
+function isCentring(prop: string, value: string, props: CssProps): boolean {
+    if (prop !== 'left' && prop !== 'right') return false;
+    if (value.trim() !== '50%') return false;
+    return inlineTranslation(props) === (prop === 'left' ? '-50%' : '50%');
+}
+
+/** The part a diagnostic path belongs to, wherever in the recipe it sits. */
+function partOf(path: string): string | undefined {
+    return /^parts\.([^.]+)/.exec(path)?.[1]
+        ?? /^variants\.[^.]+\.[^.]+\.([^.]+)/.exec(path)?.[1]
+        ?? /^compoundVariants\[\d+\]\.parts\.([^.]+)/.exec(path)?.[1];
+}
+
+/**
+ * Parts that draw a glyph out of rotated box edges — every checkbox tick in
+ * this repo, daisyUI's disclosure chevron, Carbon's progress check.
+ *
+ * Once a box is rotated, its `border-left` is a *stroke of the drawing*, not
+ * the inline start of anything: swapping it for `border-inline-start` mirrors
+ * the glyph. A check mark is not mirrored in RTL — Carbon's own recipe says so
+ * in a comment above the very declarations this would otherwise flag — so the
+ * logical spelling would be the bug rather than the fix.
+ *
+ * Scoped to the PART, not the block: a part draws or it does not, and the
+ * rotation is usually declared in `base` while `at["forced-colors"]` or a state
+ * adjusts one arm. A block-local test would clear the base and flag the
+ * override, which is the same glyph.
+ */
+function drawnParts(recipe: RecipeInput): Set<string> {
+    const drawn = new Set<string>();
+    for (const { path, props } of declarations(recipe)) {
+        const part = partOf(path);
+        if (part === undefined || drawn.has(part)) continue;
+        for (const [prop, raw] of Object.entries(props)) {
+            const name = kebabProp(prop);
+            const rotates = name === 'rotate'
+                || ((name === 'transform' || name === 'translate') && String(raw).includes('rotate('));
+            if (rotates) { drawn.add(part); break; }
+        }
+    }
+    return drawn;
+}
+
 const toOklch = converter('oklch');
 
 /**
@@ -172,6 +326,23 @@ export function validateRecipes(
     const wiredByAxis = new Map<string, Set<string>>();
     /** Every modifier any recipe wires — same check, but names have no values. */
     const wiredMods = new Set<string>();
+    /**
+     * The same harvest, kept per scope: `<scope>/<axis>` → wired values, with
+     * modifiers under the pseudo-axis `modifiers`.
+     *
+     * A scope that declares its own vocabulary can be behind on it while the
+     * design system as a whole is not — select promising `classic | surface`
+     * and painting only `classic` is invisible to the union check above,
+     * because button paints `surface`. That gap is the thing the per-scope
+     * declaration exists to make statable (#294).
+     */
+    const wiredByScope = new Map<string, Set<string>>();
+    const wireScoped = (scope: string, axis: string, value: string): void => {
+        const key = `${scope}/${axis}`;
+        let set = wiredByScope.get(key);
+        if (!set) wiredByScope.set(key, (set = new Set()));
+        set.add(value);
+    };
     const wire = (axis: string, value: string): void => {
         let set = wiredByAxis.get(axis);
         if (!set) wiredByAxis.set(axis, (set = new Set()));
@@ -192,6 +363,11 @@ export function validateRecipes(
         const component = byScope.get(recipe.component);
         if (!component) continue; // already an error elsewhere
         const where = `recipes.${recipe.component}`;
+        // The vocabulary THIS scope may key on — the union, narrowed by its
+        // `tokens.scopes` entry. Identical to the union for a scope that
+        // declares no restriction, which is every scope in a design system
+        // that declares no `scopes` at all.
+        const scoped = vocabulary.forScope(recipe.component);
         const local = locallyDefined(recipe);
         const partsByName = new Map(component.parts.map((p) => [p.name, p]));
 
@@ -273,6 +449,63 @@ export function validateRecipes(
                     `"${prop}" uses a literal duration — reference var(--duration-*) so reduced motion applies`,
                 );
             }
+        }
+
+        // ── physical directions where a logical property exists ──
+        // Walked over `declarations` rather than the flat `values` above,
+        // because the centring exemption needs the sibling declarations in the
+        // same block, which flattening throws away.
+        const drawn = drawnParts(recipe);
+        for (const { path, props } of declarations(recipe)) {
+            const part = partOf(path);
+            if (part !== undefined && drawn.has(part)) continue;
+            for (const [rawProp, raw] of Object.entries(props)) {
+                const prop = kebabProp(rawProp);
+                const twin = LOGICAL_TWIN[prop];
+                if (!twin) continue;
+                const value = String(raw);
+                if (isCentring(prop, value, props)) continue;
+                // `--press-x` is a pixel offset the runtime measures from the
+                // element's own left edge (`behaviors/press.ts`), so `left` is
+                // the correct pairing — a logical inset would put the ripple
+                // somewhere the pointer never was.
+                if (value.includes('--press-x')) continue;
+                warn(
+                    `${where}.${path}`,
+                    `"${rawProp}" is a physical direction — use ${twin}, or this paints the same side ` +
+                    'under `dir="rtl"` while everything around it mirrors',
+                );
+            }
+        }
+        for (const [name, body] of Object.entries(recipe.keyframes ?? {})) {
+            for (const match of body.matchAll(PHYSICAL_IN_BODY)) {
+                const prop = match[1]!;
+                warn(
+                    `${where}.keyframes.${name}`,
+                    `"${prop}" is a physical direction — use ${LOGICAL_TWIN[prop]}, or the animation ` +
+                    'travels the same way under `dir="rtl"` while the element it moves in mirrors',
+                );
+            }
+        }
+        // The raw escape hatch gets the same reading. It is not exempt: the
+        // level here is `warning`, so nothing needs somewhere to hide, and
+        // leaving one input unscanned would put a blind spot in the middle of a
+        // check whose whole premise is that this bug class is otherwise
+        // invisible. The property has to be at the head of a declaration, so a
+        // `linear-gradient(to left, …)` or a `transform-origin: bottom left`
+        // reads as the value it is.
+        //
+        // The one thing lost here is the drawn-glyph exemption — raw CSS has no
+        // part to attribute a rotation to — so a glyph drawn through this route
+        // warns. It stays advisory rather than being carved out: a rotated
+        // border in a raw block is worth a second look either way.
+        for (const match of (recipe.css ?? '').matchAll(PHYSICAL_IN_BODY)) {
+            const prop = match[1]!;
+            warn(
+                `${where}.css`,
+                `"${prop}" is a physical direction — use ${LOGICAL_TWIN[prop]}, or this paints the ` +
+                'same side under `dir="rtl"` while everything around it mirrors',
+            );
         }
 
         // ── presence: an entry animation without an exit ──
@@ -459,43 +692,93 @@ export function validateRecipes(
         // an explicitly declared `tokens.sizes` — all errors. Only the size
         // ramp resolved by DEFAULT stays advisory: the author never wrote the
         // set down, so a step outside it may be deliberate.
+        //
+        // Checked against the SCOPE's vocabulary (#294), which is the
+        // design-system-wide one unless `tokens.scopes` narrowed it. A value
+        // the scope declined gets its own message rather than the plain "not
+        // declared" one: the latter sends an author to `tokens.variants`,
+        // where they find the value already sitting there and no way forward.
+        const declined = (axis: string, value: string, where_: string, site: string, own: readonly string[]): void => {
+            error(
+                where_,
+                `"${value}" is not in ${recipe.component}'s ${axis} vocabulary (${own.join(', ') || 'none'}) — `
+                + `tokens.scopes.${recipe.component} narrows the design-system-wide ${site}`,
+            );
+        };
         const checkMembership = (axis: string, value: string, where_: string): void => {
             if (axis === 'color') {
                 // A colour key that names no declared role is dead CSS: zero
                 // passes `data-color` through verbatim, so the selector is
                 // emitted and simply never matches anything the design system
                 // can produce.
-                if (!vocabulary.roles.has(value)) {
-                    error(where_, `"${value}" is not a declared role (${[...vocabulary.roles].join(', ')})`);
+                if (!scoped.roles.has(value)) {
+                    if (scoped.restricted.has('color') && vocabulary.roles.has(value)) {
+                        if (scoped.roles.size === 0) {
+                            error(where_, `tokens.scopes.${recipe.component} declares no color axis (colors: []), so "color" cannot be wired here`);
+                        } else {
+                            declined('color', value, where_, 'tokens.roles', [...scoped.roles]);
+                        }
+                    } else {
+                        error(where_, `"${value}" is not a declared role (${[...vocabulary.roles].join(', ')})`);
+                    }
                 }
             } else if (axis === 'size') {
                 // Checked against the DESIGN SYSTEM's ramp, not a fixed one:
                 // `tokens.sizes` if it declared its own (Material's density
-                // steps, a numbered ramp), else the recommended xs–xl.
-                if (!vocabulary.sizes.includes(value)) {
-                    if (vocabulary.sizes.length === 0) {
-                        // `sizes: []` — the design system says it has no size
-                        // axis at all, so this is not a value off the ramp but
-                        // a whole axis that should not exist.
-                        error(where_, `this design system declares no size axis (tokens.sizes is empty), so "${axis}" cannot be wired`);
-                    } else if (vocabulary.sizesDeclared) {
-                        error(where_, `"${value}" is not on this design system's declared size ramp (${vocabulary.sizes.join(', ')})`);
+                // steps, a numbered ramp), else the recommended xs–xl. A scope
+                // that stated its own ramp has closed the set just as
+                // deliberately, which is why `sizesDeclared` is true for it.
+                if (!scoped.sizes.includes(value)) {
+                    if (scoped.sizes.length === 0) {
+                        // `sizes: []` — no size axis at all, so this is not a
+                        // value off the ramp but a whole axis that should not
+                        // exist. Either tier can make that claim.
+                        error(
+                            where_,
+                            scoped.restricted.has('size')
+                                ? `tokens.scopes.${recipe.component} declares no size axis (sizes: []), so "${axis}" cannot be wired here`
+                                : `this design system declares no size axis (tokens.sizes is empty), so "${axis}" cannot be wired`,
+                        );
+                    } else if (scoped.restricted.has('size') && vocabulary.sizes.includes(value)) {
+                        declined('size', value, where_, 'tokens.sizes', scoped.sizes);
+                    } else if (scoped.sizesDeclared) {
+                        error(where_, `"${value}" is not on this design system's declared size ramp (${scoped.sizes.join(', ')})`);
                     } else {
-                        warn(where_, `"${value}" is not on this design system's size ramp (${vocabulary.sizes.join(', ')}) — declare it in tokens.sizes if it belongs there`);
+                        warn(where_, `"${value}" is not on this design system's size ramp (${scoped.sizes.join(', ')}) — declare it in tokens.sizes if it belongs there`);
                     }
                 }
             } else if (axis === 'variant') {
-                if (vocabulary.variants && !vocabulary.variants.includes(value)) {
-                    error(where_, `"${value}" is not a declared variant (${vocabulary.variants.join(', ')})`);
+                if (scoped.variants && !scoped.variants.includes(value)) {
+                    if (scoped.restricted.has('variant')) {
+                        if (scoped.variants.length === 0) {
+                            error(where_, `tokens.scopes.${recipe.component} declares no variant axis (variants: []), so "variant" cannot be wired here`);
+                        } else if (vocabulary.variants?.includes(value)) {
+                            declined('variant', value, where_, 'tokens.variants', scoped.variants);
+                        } else {
+                            error(where_, `"${value}" is not a declared variant (${vocabulary.variants?.join(', ') ?? 'none'})`);
+                        }
+                    } else {
+                        error(where_, `"${value}" is not a declared variant (${scoped.variants.join(', ')})`);
+                    }
                 }
-            } else if (vocabulary.axes && !RESERVED_AXES.has(axis)) {
+            } else if (scoped.axes && !RESERVED_AXES.has(axis)) {
                 // Reserved axes already get their own error — a membership
                 // complaint on top would be noise about the wrong problem.
-                const declared = vocabulary.axes[axis];
+                const declared = scoped.axes[axis];
                 if (!declared) {
-                    error(where_, `axis "${axis}" is not declared in tokens.axes (declared: ${Object.keys(vocabulary.axes).join(', ') || 'none'})`);
+                    error(where_, `axis "${axis}" is not declared in tokens.axes (declared: ${Object.keys(scoped.axes).join(', ') || 'none'})`);
                 } else if (!declared.includes(value)) {
-                    error(where_, `"${value}" is not a declared value of axis "${axis}" (${declared.join(', ')})`);
+                    if (scoped.restricted.has(axis)) {
+                        if (declared.length === 0) {
+                            error(where_, `tokens.scopes.${recipe.component} declares no "${axis}" axis (${axis}: []), so it cannot be wired here`);
+                        } else if (vocabulary.axes?.[axis]?.includes(value)) {
+                            declined(axis, value, where_, `tokens.axes.${axis}`, declared);
+                        } else {
+                            error(where_, `"${value}" is not a declared value of axis "${axis}" (${vocabulary.axes?.[axis]?.join(', ') ?? 'none'})`);
+                        }
+                    } else {
+                        error(where_, `"${value}" is not a declared value of axis "${axis}" (${declared.join(', ')})`);
+                    }
                 }
             }
         };
@@ -506,14 +789,21 @@ export function validateRecipes(
             if (!TOKEN_KEY_PATTERN.test(name)) {
                 error(where_, `modifier "${name}" is not a kebab-case identifier — it becomes the attribute name data-mod-${name}`);
             }
-            if (vocabulary.modifiers && !vocabulary.modifiers.includes(name)) {
-                error(where_, `"${name}" is not a declared modifier (${vocabulary.modifiers.join(', ') || 'none'})`);
+            if (scoped.modifiers && !scoped.modifiers.includes(name)) {
+                if (scoped.restricted.has('modifiers') && scoped.modifiers.length === 0) {
+                    error(where_, `tokens.scopes.${recipe.component} declares no modifiers (modifiers: []), so none can be wired here`);
+                } else if (scoped.restricted.has('modifiers') && vocabulary.modifiers?.includes(name)) {
+                    declined('modifier', name, where_, 'tokens.modifiers', scoped.modifiers);
+                } else {
+                    error(where_, `"${name}" is not a declared modifier (${vocabulary.modifiers?.join(', ') || 'none'})`);
+                }
             }
         };
 
         for (const name of Object.keys(recipe.modifiers ?? {})) {
             checkModifier(name, `${where}.modifiers`);
             wiredMods.add(name);
+            wireScoped(recipe.component, 'modifiers', name);
         }
 
         for (const [axis, values_] of Object.entries(recipe.variants ?? {})) {
@@ -522,6 +812,7 @@ export function validateRecipes(
                 checkAxisValue(axis, value, `${where}.variants.${axis}`);
                 checkMembership(axis, value, `${where}.variants.${axis}`);
                 wire(axis, value);
+                wireScoped(recipe.component, axis, value);
             }
             // An axis outside the three with named props is fine — an app
             // sets it through zero's `axes` prop. What is NOT fine is taking a
@@ -546,6 +837,7 @@ export function validateRecipes(
                 if (value === true) {
                     checkModifier(axis, `${where}.compoundVariants`);
                     wiredMods.add(axis);
+                    wireScoped(recipe.component, 'modifiers', axis);
                     continue;
                 }
                 checkAxisName(axis, `${where}.compoundVariants`);
@@ -581,6 +873,7 @@ export function validateRecipes(
                     );
                 }
                 wire(axis, value);
+                wireScoped(recipe.component, axis, value);
             }
         }
 
@@ -630,16 +923,23 @@ export function validateRecipes(
     // its declared roles, so a role held back everywhere on purpose (a tonal
     // surface that is a fill, not an action colour) says nothing, while one
     // component lagging behind the others does.
+    //
+    // Intersected with what each scope's own vocabulary OFFERS (#294): a role
+    // a scope declined in `tokens.scopes` is precisely the "held back on
+    // purpose" case this warning already reasons about, now sayable per scope
+    // instead of only design-system-wide.
     if (colorAxisByComponent.size > 1) {
         const wiredAnywhere = new Set(
             [...colorAxisByComponent.values()].flatMap((roles) => [...roles]),
         );
         for (const [scope, wired] of colorAxisByComponent) {
-            const missing = [...wiredAnywhere].filter((role) => !wired.has(role));
+            const offered = vocabulary.forScope(scope).roles;
+            const expected = [...wiredAnywhere].filter((role) => offered.has(role));
+            const missing = expected.filter((role) => !wired.has(role));
             if (missing.length > 0) {
                 warn(
                     `recipes.${scope}.variants.color`,
-                    `wires ${wired.size} of the ${wiredAnywhere.size} roles other components style — `
+                    `wires ${wired.size} of the ${expected.length} roles other components style — `
                     + `color="${missing[0]}" renders as the default here but not elsewhere `
                     + `(missing: ${missing.join(', ')})`,
                 );
@@ -651,6 +951,57 @@ export function validateRecipes(
     // The inverse of the membership errors. A declared value no recipe
     // anywhere keys on reads as broken rather than as deliberately absent:
     // the app passes it, the attribute renders, nothing matches.
+    //
+    // Once a design system declares per-scope vocabularies this splits three
+    // ways (#294), and the three say genuinely different things:
+    //
+    //  1. **Per scope** — a value in THIS scope's vocabulary that its own
+    //     recipe wires nothing for. Invisible to (2), because a sibling may
+    //     well be painting the same value.
+    //  2. **Per design system** — a union value no recipe anywhere wires. The
+    //     original check, unchanged.
+    //  3. **Unclaimed** — a union value that belongs to no scope's vocabulary
+    //     at all. Only meaningful once EVERY styled scope is restricted: while
+    //     one is still open, its vocabulary is the whole union and no value
+    //     can be claimed by nobody.
+    const styledScopes = [...new Set(recipes.map((r) => r.component))];
+    /** Per axis: is some styled scope still offering the whole union? */
+    const unrestricted = (axis: string): boolean =>
+        styledScopes.some((scope) => !vocabulary.forScope(scope).restricted.has(axis));
+
+    const perScope = (axis: string, site: string, use: (value: string) => string): void => {
+        for (const scope of styledScopes) {
+            const own = vocabulary.forScope(scope);
+            if (!own.restricted.has(axis)) continue;
+            const declared = axis === 'variant' ? own.variants : axis === 'modifiers' ? own.modifiers : own.axes?.[axis];
+            const wired = wiredByScope.get(`${scope}/${axis}`) ?? new Set();
+            for (const value of declared ?? []) {
+                if (!wired.has(value)) {
+                    warn(
+                        `tokens.scopes.${scope}.${site}`,
+                        `"${value}" is in ${scope}'s vocabulary but its recipe wires no rule for it — ${use(value)} on a ${scope} selects nothing`,
+                    );
+                }
+            }
+        }
+    };
+    const unclaimed = (axis: string, site: string, union: readonly string[]): void => {
+        if (unrestricted(axis)) return;
+        for (const value of union) {
+            const claimed = styledScopes.some((scope) => {
+                const own = vocabulary.forScope(scope);
+                const declared = axis === 'variant' ? own.variants : axis === 'modifiers' ? own.modifiers : own.axes?.[axis];
+                return (declared ?? []).includes(value);
+            });
+            if (!claimed) {
+                warn(
+                    site,
+                    `"${value}" is declared but belongs to no scope's vocabulary — add it to a tokens.scopes entry, or drop it from the union`,
+                );
+            }
+        }
+    };
+
     if (vocabulary.variants) {
         const wired = wiredByAxis.get('variant') ?? new Set();
         for (const value of vocabulary.variants) {
@@ -658,6 +1009,8 @@ export function validateRecipes(
                 warn('tokens.variants', `"${value}" is declared but no recipe wires it — variant="${value}" selects nothing`);
             }
         }
+        perScope('variant', 'variants', (v) => `variant="${v}"`);
+        unclaimed('variant', 'tokens.variants', vocabulary.variants);
     }
     for (const [axis, values] of Object.entries(vocabulary.axes ?? {})) {
         const wired = wiredByAxis.get(axis) ?? new Set();
@@ -666,11 +1019,17 @@ export function validateRecipes(
                 warn(`tokens.axes.${axis}`, `"${value}" is declared but no recipe wires it — axes={{ ${axis}: '${value}' }} selects nothing`);
             }
         }
+        perScope(axis, `axes.${axis}`, (v) => `axes={{ ${axis}: '${v}' }}`);
+        unclaimed(axis, `tokens.axes.${axis}`, values);
     }
-    for (const name of vocabulary.modifiers ?? []) {
-        if (!wiredMods.has(name)) {
-            warn('tokens.modifiers', `"${name}" is declared but no recipe wires it — mods={{ '${name}': true }} selects nothing`);
+    if (vocabulary.modifiers) {
+        for (const name of vocabulary.modifiers) {
+            if (!wiredMods.has(name)) {
+                warn('tokens.modifiers', `"${name}" is declared but no recipe wires it — mods={{ '${name}': true }} selects nothing`);
+            }
         }
+        perScope('modifiers', 'modifiers', (n) => `mods={{ '${n}': true }}`);
+        unclaimed('modifiers', 'tokens.modifiers', vocabulary.modifiers);
     }
 
     return issues;

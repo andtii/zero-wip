@@ -28,7 +28,8 @@ import { parse, wcagContrast } from 'culori';
 import type { ManifestComponent, ManifestPart, ZeroManifest } from '../contract.js';
 import { contrastPairs } from '../contract.js';
 import type { CompiledDesignSystem, DesignSystemInput } from '../design-system.js';
-import { undeclaredAxes } from '../design-system.js';
+import { axisClaims, offeredFor, undeclaredAxes } from '../design-system.js';
+import type { ScopeVocabulary } from '../tokens.js';
 import type { PartStyles, RecipeInput } from '../recipes.js';
 import type { DesignSystemApi, MappedGrade } from '../api.js';
 import { apiGrade, modifierGrade } from '../api.js';
@@ -54,6 +55,13 @@ export interface AxisReport {
     /** The values this component's recipe wires, sorted. */
     wired: string[];
     status: AxisStatus;
+    /**
+     * The values this component's scope vocabulary OFFERS, sorted — present
+     * only when `tokens.scopes` restricts this axis for this scope (#294).
+     * `wired` is what the recipe delivers against it; the gap between the two
+     * is what the coverage guard reports.
+     */
+    offered?: string[];
 }
 
 /**
@@ -124,6 +132,13 @@ export interface AxisDivergence {
      * that is not divergence, and it is already visible as `never`.
      */
     subsets: Array<{ scope: string; wired: string[]; missing: string[] }>;
+    /**
+     * Of `subsets`, the scopes whose narrower set is exactly what their scope
+     * vocabulary declared (#294). A declared narrowing is not divergence — it
+     * is the design system saying what it means — so without this the report
+     * would start crying wolf the moment `tokens.scopes` is used.
+     */
+    declared: string[];
 }
 
 export interface ThemeContrastReport {
@@ -180,6 +195,12 @@ export interface DesignSystemReport {
         modifiers: string[];
         /** Axes declared OUT of existence (`roles: {}`, `sizes: []`), sorted. */
         declaredOut: string[];
+        /**
+         * Per-scope restrictions of the vocabularies above, as declared (#294)
+         * — `{}` when the design system declares none, which is what makes the
+         * lists above the whole vocabulary rather than a union.
+         */
+        scopes: Record<string, ScopeVocabulary>;
     };
     /**
      * Declared, but wired by no recipe anywhere — the attribute renders and
@@ -188,6 +209,21 @@ export interface DesignSystemReport {
      * the only place the gap surfaces.
      */
     unwired: {
+        color: string[];
+        size: string[];
+        variant: string[];
+        axes: Record<string, string[]>;
+        modifiers: string[];
+    };
+    /**
+     * Declared, but in NO scope's vocabulary — the union carries a value that
+     * belongs to nobody (#294). Distinct from `unwired`, which is about what
+     * the recipes paint; this is about what the declaration promises. Only
+     * ever populated once every styled scope is restricted for that axis:
+     * while one is still open its vocabulary IS the union, so nothing can be
+     * unclaimed.
+     */
+    unclaimed: {
         color: string[];
         size: string[];
         variant: string[];
@@ -359,13 +395,19 @@ function divergence(compiled: CompiledDesignSystem): Record<string, AxisDivergen
         const wiredAnywhere = sorted([...scopes.values()].flat());
         const subsets: AxisDivergence['subsets'] = [];
         const byComponent: Record<string, string[]> = {};
+        const declared: string[] = [];
         for (const scope of [...scopes.keys()].sort()) {
             const wired = scopes.get(scope)!;
             byComponent[scope] = wired;
             const missing = wiredAnywhere.filter((value) => !wired.includes(value));
-            if (missing.length > 0) subsets.push({ scope, wired, missing });
+            if (missing.length === 0) continue;
+            subsets.push({ scope, wired, missing });
+            // The scope told us so: it wires exactly the vocabulary it
+            // declared, and the "missing" values were never its to wire.
+            const offered = offeredFor(compiled.components[scope]!, axis);
+            if (offered && sorted(offered).join() === wired.join()) declared.push(scope);
         }
-        out[axis] = { wiredAnywhere, byComponent, subsets };
+        out[axis] = { wiredAnywhere, byComponent, subsets, declared };
     }
     return out;
 }
@@ -434,6 +476,34 @@ function unwired(compiled: CompiledDesignSystem): DesignSystemReport['unwired'] 
 }
 
 /**
+ * Declared values that belong to no scope's vocabulary (#294).
+ *
+ * `unwired` asks whether anything PAINTS a value; this asks whether anything
+ * CLAIMS it. The two separate once the design-system-wide list is a union: a
+ * value can be painted by the one scope that declared it (so not unwired) and
+ * still be missing from every other scope's vocabulary, and a value can be
+ * claimed by a scope that has not painted it yet (so not unclaimed) and still
+ * be unwired. `axisClaims` short-circuits the whole thing while any styled
+ * scope is unrestricted — its vocabulary is the union, so nothing is unclaimed.
+ */
+function unclaimed(compiled: CompiledDesignSystem): DesignSystemReport['unclaimed'] {
+    const missing = (axis: string, declared: readonly string[]): string[] => {
+        const claims = axisClaims(compiled, axis);
+        if (claims.unrestricted) return [];
+        return declared.filter((value) => !claims.claimed.has(value)).sort();
+    };
+    return {
+        color: missing('color', Object.keys(compiled.tokens.roles)),
+        size: missing('size', compiled.tokens.sizes),
+        variant: missing('variant', compiled.tokens.variants),
+        axes: Object.fromEntries(
+            Object.entries(compiled.tokens.axes).map(([axis, values]) => [axis, missing(axis, values)]),
+        ),
+        modifiers: missing('mods', compiled.tokens.modifiers),
+    };
+}
+
+/**
  * Build the coverage report for one design system.
  *
  * `manifest` is `Pick<…, 'components'>` to match `compileDesignSystem`: each
@@ -480,7 +550,6 @@ export function buildReport(
     manifest: Pick<ZeroManifest, 'components'>,
     result?: ValidationResult,
 ): DesignSystemReport {
-    const undeclared = undeclaredAxes(compiled);
     const recipesByScope = new Map<string, RecipeInput>(ds.recipes.map((r) => [r.component, r]));
     const byScope = new Map<string, ManifestComponent>(manifest.components.map((c) => [c.scope, c]));
 
@@ -499,11 +568,18 @@ export function buildReport(
         for (const part of byScope.get(scope)!.parts) {
             parts[part.name] = partReport(part, byPart, recipe);
         }
+        // Asked PER SCOPE, so a scope that declared an axis out of existence
+        // for itself reads `undeclared` rather than the weaker `unwired`
+        // (#294). `compileRegisterDts` passes the same scope to the same
+        // predicate, which is the gate RFC 0003 §7.4 puts on this report.
+        const undeclared = undeclaredAxes(compiled, scope);
         const axisReports = {} as Record<ContractAxis, AxisReport>;
         for (const axis of CONTRACT_AXES) {
+            const offered = offeredFor(axes, axis);
             axisReports[axis] = {
                 wired: sorted(axes[axis]),
                 status: axes[axis].length > 0 ? 'wired' : undeclared.has(axis) ? 'undeclared' : 'unwired',
+                ...(offered ? { offered: sorted(offered) } : {}),
             };
         }
         components[scope] = {
@@ -546,9 +622,14 @@ export function buildReport(
                     .map(([axis, values]) => [axis, [...values]]),
             ),
             modifiers: [...compiled.tokens.modifiers].sort(),
-            declaredOut: [...undeclared].sort(),
+            // Design-system-wide, deliberately: a scope declaring an axis away
+            // for itself is a per-COMPONENT fact and lands in that component's
+            // axis status, not in the design system's vocabulary.
+            declaredOut: [...undeclaredAxes(compiled)].sort(),
+            scopes: compiled.tokens.scopes,
         },
         unwired: unwired(compiled),
+        unclaimed: unclaimed(compiled),
         components,
         divergence: divergence(compiled),
         themes: themeReports(ds, compiled),
@@ -599,11 +680,23 @@ export function formatReport(report: DesignSystemReport): string[] {
         if (values.length > 0) lines.push(`  ${axis} declared but unwired: ${values.join(', ')}`);
     }
 
+    for (const [axis, values] of Object.entries(report.unclaimed.axes)) {
+        if (values.length > 0) lines.push(`  axes.${axis} in no scope's vocabulary: ${values.join(', ')}`);
+    }
+    for (const axis of ['color', 'size', 'variant', 'modifiers'] as const) {
+        const values = report.unclaimed[axis];
+        if (values.length > 0) lines.push(`  ${axis} in no scope's vocabulary: ${values.join(', ')}`);
+    }
+
     for (const [axis, part] of Object.entries(report.divergence)) {
         if (part.subsets.length === 0) continue;
         lines.push(`  ${axis} diverges across components:`);
         for (const { scope, wired, missing } of part.subsets) {
-            lines.push(`    ${scope}: ${wired.length}/${part.wiredAnywhere.length} — missing ${missing.join(', ')}`);
+            // A scope that wires exactly the vocabulary it declared is not
+            // diverging — it is doing what it said. Annotated rather than
+            // dropped, so the partition stays complete (#294).
+            const why = part.declared.includes(scope) ? ' (declared)' : '';
+            lines.push(`    ${scope}: ${wired.length}/${part.wiredAnywhere.length} — missing ${missing.join(', ')}${why}`);
         }
     }
 

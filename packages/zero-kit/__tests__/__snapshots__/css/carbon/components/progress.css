@@ -52,6 +52,7 @@
         height: 100%;
         background: color-mix(in oklab, var(--carbon-interactive) 85%, var(--color-base-content));
         transition: width var(--duration-normal) var(--ease-standard), background var(--duration-normal) var(--ease-standard);
+        --progress-sweep-dir: 1;
     }
 
     [data-scope="progress"][data-part="range"][data-state="complete"] {
@@ -61,6 +62,10 @@
     [data-scope="progress"][data-part="range"][data-state="indeterminate"] {
         width: 40%;
         animation: carbon-indeterminate 1.4s ease-in-out infinite;
+    }
+
+    [data-scope="progress"][data-part="range"]:where(:dir(rtl), [dir="rtl"], [dir="rtl"] *) {
+        --progress-sweep-dir: -1;
     }
 
     [data-scope="progress"][data-part="value-text"] {
@@ -94,5 +99,5 @@
     }
 }
 @keyframes carbon-indeterminate {
-    from { translate: -100% 0; } to { translate: 250% 0; }
+    from { translate: calc(var(--progress-sweep-dir) * -100%) 0; } to { translate: calc(var(--progress-sweep-dir) * 250%) 0; }
 }

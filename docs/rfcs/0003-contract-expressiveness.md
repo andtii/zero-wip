@@ -227,6 +227,11 @@ value, so there is no vocabulary to close beyond the names themselves, and no
 
 ## 4. Axis vocabularies stay design-system-wide
 
+**Amended and discharged (#294) — they no longer do.** The deferral below and
+both of its corrections are settled in **§4.1**, which also closes the per-part
+question §9.1 left open. The section is kept as written because it is the record
+of what was deferred and why the deferral was reasonable at the time.
+
 `tokens.variants`, `tokens.sizes`, `tokens.roles` and `tokens.axes` are declared
 once per design system, and the validator closes each set globally. Material's
 button variants and its chip variants would therefore have to pool into one flat
@@ -251,6 +256,116 @@ surface.
 already names them). The design at that point is additive and therefore free to
 defer: an optional per-scope **restriction** map that narrows, never widens, the
 design-system-wide set, for validation and the manifest only.
+
+**A second trigger arrived first (#175, §9.1).** The fourteen unwired `variant`
+carriers are a waiting caller *today*, not at the content tier: twelve of them
+have a variant in a surveyed design system, none in this vocabulary, and they
+cannot be wired until a scope can carry its own. Two corrections to the
+paragraph above, both from that survey:
+
+- A map that only *narrows* is not enough on its own. `select` needs `classic`
+  and `surface`, which the button's set does not contain — so
+  `tokens.variants` has to become the **union** of every scope's vocabulary,
+  with each scope restricting to its subset. That is still additive, but it
+  changes what the design-system-wide declaration *means*.
+- Radix's Select varies Trigger and Content with **different** vocabularies, so
+  the unit of restriction may be the **part**, not the scope. Settle that before
+  building, because per-scope is not a strict subset of the problem.
+
+### 4.1 The unit is the scope, and `tokens.variants` is the union (#294)
+
+**Landed as `tokens.scopes`.** A design system may declare, per component scope,
+which part of each axis vocabulary that scope offers:
+
+```ts
+// packages/zero-kit/src/tokens.ts — TokensInput
+variants: ['solid', 'outline', 'classic', 'surface', 'soft'],   // the UNION
+scopes: {
+    button: { variants: ['solid', 'outline'] },
+    select: { variants: ['classic', 'surface', 'soft'] },
+},
+```
+
+Both corrections above are adopted. `tokens.variants` is now **the union of
+every scope's vocabulary**, and a scope narrows to its own subset — which is
+what makes `select` expressible at all, since `classic` and `surface` are in no
+button's set to narrow from. The restriction is keyed by the **(scope, axis)
+pair** and covers every axis — `variant`, `size`, `color`, `tokens.axes` and
+`tokens.modifiers` — rather than `variant` alone. Restricting only `variant`
+would have left `tokens.axes` design-system-wide and unrestricted, which is this
+section's own defect reproduced one level down; and the demonstrated
+non-`variant` caller already exists, since #258 was a **size** problem.
+
+Two spellings, and the difference is load-bearing: an **absent** key means the
+scope offers the whole union; an **empty list** is the claim "this scope has no
+such axis at all", the same grammar `sizes: []` uses design-system-wide (§5).
+
+**Settled: the restriction unit is the scope, not the part.** Radix's Select —
+Trigger `classic | surface | soft | ghost`, Content `solid | soft` — is
+expressible today with no contract change at all, as `variant` carrying the
+trigger vocabulary plus a declared custom axis carrying the surface one.
+`variantSelector` already emits
+`[data-part="root"][data-<axis>="v"] [data-part="popup"]`, and that selector
+matches because **zero has no portals**: `Select.Popup` is a `popover="auto"`
+element rendered inside `Select.Root`, and the top layer changes paint order,
+not tree position (`Dialog.tsx`, `Toast.tsx` both say so). So one scope with two
+vocabularies is one scope with two **axes**.
+
+Two further observations dissolve the case rather than merely working around it.
+The vocabularies are not select's: `classic | surface | soft` is the *field
+chrome* set six other carriers in the `NO_VARIANT` ledger want, and
+`solid | soft` is a *floating surface* set `menu`, `popover` and `dialog` would
+share — so this is a cross-scope shared axis, the opposite of a per-part
+problem. And `select.trigger` declares `asChild`, which is how Radix's own
+DropdownMenu delegates trigger chrome to a Button. **No component in
+`packages/zero/src/components/` requires two variant vocabularies in one scope.**
+
+**Per-part is deferred, not rejected, and the deferral is insured rather than
+argued.** A `parts` key inside a scope entry is reserved and rejected by name,
+exactly as `DesignSystemApi` reserves `components`, so adding it later is
+additive with scope-level values as the part-level default. Two prerequisites
+are recorded for whoever revives it: `PartSpec` declares no part containment, so
+resolving part → carrier needs a part tree across every anatomy; and
+`carrierPart` already resolves to `trigger` for the four rootless scopes
+(`dialog`, `menu`, `popover`, `tooltip`), where the descendant selector can
+never match — harmless only because none of the four carries an axis today.
+
+**The honest argument against.** The web target is not the only target. RFC 0001's
+target SPI guarantees no descendant selector, and on a platform where each part
+is an independent view "the carrier's attribute reaches its descendants" is a web
+accident. Per-scope is correct for the web target and for every surveyed design
+system, not correct in principle; the portable formulation would be a carrier
+declarable **per axis**, which is cheap to add later and buys nothing today.
+
+**What the union costs, and how it is paid back.** The design-system-wide list
+stops meaning "the vocabulary" and starts meaning "every value some scope
+offers", so two diagnostics exist purely to keep that honest:
+
+- **Cross-talk.** If one scope narrows an axis and a styled sibling does not, the
+  sibling is still offering values declared for someone else. `validateDesignSystem`
+  warns at the declaration; `axis-value-coverage.test.ts` reports it as a
+  coverage gap against the sibling. That is the union's honest consequence, not a
+  bug to engineer around — the escape is to restrict the sibling too, and
+  restating the whole union is explicitly *not* warned about for exactly that
+  reason.
+- **Unclaimed.** A union value in no scope's vocabulary is a new finding class,
+  reported by the validator and by rule C, and reachable only once every styled
+  scope is restricted — while one is open, its vocabulary *is* the union.
+
+**What deliberately did not change.** `register.d.ts` still emits the **harvest**,
+not the declaration. Because wiring a value outside a scope's vocabulary is now
+an error, the harvest narrows to the scope vocabulary anyway, and it is strictly
+stronger: it additionally refuses to type a value the compiled CSS does not
+implement, which is the RFC 0002 §4.1 tier-2 failure #103 removed. And
+`api.components` stays reserved — per-scope *vocabulary* does not imply per-scope
+*api*, and the two must not get conflated.
+
+**The fourteen are unblocked but not wired.** None of the six design systems
+declares a vocabulary for them, so `never` remains the correct compiled answer
+and the `NO_VARIANT` ledger stands — with its reasons now meaning "not declared
+yet" rather than "cannot be said". Wiring one costs its recipes plus the contrast
+audit's ancestor chains: thirteen of the fourteen carry their axes on a part that
+renders no text, so the one-element probe cannot reach them.
 
 ## 5. `sizes: []` — the size axis becomes opt-out
 
@@ -531,7 +646,7 @@ a nicety.
 | **2** | §3, §5 | `TokensInput.modifiers` + `RecipeInput.modifiers` + `mods` prop + `data-mod-*` emission + register narrowing + compound participation; `sizes: []` opt-out. | Golden `register.d.ts` shows `mods` narrowing and `size: never` under an opted-out ramp; `pnpm test:types` has positive and `@ts-expect-error` assertions for both; `contract-parity.test.ts` covers the new prefix. |
 | **3** | §7 | `sigx zero:validate --report` including the §4 axis partition report; `docs/design-system-conformance.md`; the Tier-1/2 fixtures and the row↔fixture parity test. | `pnpm test -- conformance` green; every Tier-1/2 row compiles and emits the selectors it claims; Tier-3 rows regenerate from the four in-repo reports. |
 | **4** | #99 re-scoped | `zero-heroui` per §8, plus the playground reading the declared vocabulary. | The checklist in §8, end to end: a scratch app importing `@sigx/zero-heroui/register` accepts `variant="danger-soft"`, rejects `variant="solid"`, rejects `color` entirely, and autocompletes `mods={{ 'icon-only': true }}`. |
-| **5** | #103 follow-on | RFC 0002 phase-4 leftovers: the three `size` gaps (tabs, switch, toggle-group) and the four unwired components; then `variant` on the remaining ten — wire or record per component, **after** phase 4. | No component accepts an axis no design system wires, or the divergence is recorded per component with its reason. |
+| **5** | #103 follow-on | RFC 0002 phase-4 leftovers: the three `size` gaps (tabs, switch, toggle-group) and the four unwired components; then `variant` on the remaining ten — wire or record per component, **after** phase 4. | No component accepts an axis no design system wires, or the divergence is recorded per component with its reason. **Discharged — see §9.1: recorded for all fourteen (#175).** |
 
 Phases 1 and 5's first half are independent of everything and may land at any
 time. 2 gates 3 and 4. **The `variant` half of phase 5 is deliberately gated on
@@ -540,6 +655,44 @@ systems is ~40 recipe blocks that encode the §1.1 convention harder, in exactly
 the place a divergent design system has to unpick it. Done before `zero-heroui`
 exists, it gets done twice — and for several of the ten the honest answer is "no
 variant here", which `never` already encodes correctly.
+
+### 9.1 Outcome of phase 5's `variant` half (#175)
+
+**Recorded, not wired — for all fourteen carriers.** The gating instinct above
+was right, and the survey that discharged it found the reason is sharper than
+"for several the honest answer is no variant here". Against §7.2's set:
+
+**Twelve of the fourteen do carry a variant in a real design system, and not one
+of the twelve spells it `solid | outline | soft | ghost`.** Radix Themes varies
+checkbox, switch, radio-group, slider, progress and text fields as
+`classic | surface | soft`, its avatar as `solid | soft` and its segmented
+control as `surface | classic`; Ant v6's AutoComplete is
+`outlined | borderless | filled | underlined`; HeroUI v3's tabs are
+`primary | secondary`. Only `rating-group` and `tree-view` have no style axis
+anywhere in the set.
+
+So the blocker is not effort and not taste — it is **§4**. The vocabulary is
+declared design-system-wide and the four convention systems declared a
+*button's*, so wiring these carriers means painting `ghost` onto a progress bar.
+The fourteen are now §4's demonstrated caller, alongside the content tier.
+
+One finding goes further than §4 as drafted: **Radix's Select varies its Trigger
+as `classic | surface | soft | ghost` and its Content as `solid | soft`** — two
+vocabularies inside one scope. Zero carries `variant` as a single attribute on
+the scope's carrier part, so a per-*scope* restriction map would not express it
+either. §4's revisit should treat per-part as the open question, not assume
+per-scope closes it.
+
+**Discharged — see §4.1 (#294): the unit is the scope, and the Select case is
+two axes rather than two vocabularies.** The blocker named above is gone;
+`tokens.scopes` landed and `tokens.variants` is the union. The fourteen are now
+unwired by *decision* rather than by *inability*, which is a different sentence
+with the same conclusion.
+
+The per-carrier reasons live in the `NO_VARIANT` ledger in
+`packages/zero-kit/__tests__/axis-coverage.test.ts`, which fails in both
+directions: a new carrier arriving unrecorded, and a recorded reason whose
+carrier has since been wired.
 
 ## 10. Open questions
 
@@ -579,6 +732,8 @@ Filed and cross-linked from **#156** (this RFC's tracking issue):
 - **§8/§1.1** — the playground reads the declared axis vocabulary
 - **§9 phase 5** — RFC 0002 phase-4 leftovers, split into the unblocked half and
   the `variant` half
+- **§4 / §4.1** — per-scope axis vocabularies (`tokens.scopes`), the union, and
+  the per-part decision — **#294**
 
 Related and unchanged by this RFC: **#97** and **#100** (RFC 0001), **#51**,
 **#118**, **#125**, **#126**. **#17** is the deadline — everything above is a

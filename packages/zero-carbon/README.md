@@ -38,7 +38,7 @@ vendor spelling never reaches the DOM.
 Full — all 23 components carry recipes in Carbon's language (square corners,
 layer-ramp feedback, the inset 2px focus ring, field-01 text surfaces). The
 `kind` axis, the values remap and the renamed boolean modifiers stay
-Button-only, per the repo-wide `variant` deferral — Button is the component
+Button-only, per the repo-wide `variant` decision (#175) — Button is the component
 that motivated the vendor-named-API design (issue #179, Carbon's row in the
 conformance matrix). Values are approximated from public documentation; it
 proves the contract rather than shipping a licensed token set, which is why
@@ -77,3 +77,19 @@ No `/register` import is needed for the `./components` path — its types are
 self-contained: `kind` narrows to the seven Carbon spellings (including the
 double-hyphen members), `kind="nope"` is rejected, and `variant`/`mods`/
 `color` do not exist on the vendor surface.
+
+## Writing direction
+
+Every direction-bearing rule is spelled logically, so the whole skin mirrors
+under `dir="rtl"` (#277, #290). `inset-inline-*` and `margin-inline-*` where a
+logical property exists; a direction-valued custom property the RTL selector
+rebinds where one does not, since `transform` has no logical form. The kit warns
+on the first kind (`validate-recipes`) and `e2e/rtl.spec.ts` measures the second
+in a real engine — a logical anchor with a physical travel reads as correct and
+still puts the control's thumb outside its own track.
+
+What moved here: the toast viewport's start/end placements, the submenu
+chevron (margin and glyph both), the switch thumb, the collapsed tree indicator
+and the indeterminate progress sweep. The checkbox tick and the progress check
+are deliberately untouched: they are drawn from rotated borders, and a check
+mark is not mirrored in RTL — Carbon does not mirror it either.

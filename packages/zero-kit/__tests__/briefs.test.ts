@@ -18,6 +18,7 @@ import * as brutalist from '../skills/design-system/briefs/brutalist.js';
 import * as glass from '../skills/design-system/briefs/glass.js';
 import * as corporate from '../skills/design-system/briefs/corporate.js';
 import * as terminal from '../skills/design-system/briefs/terminal.js';
+import * as riso from '../skills/design-system/briefs/riso.js';
 import { system as brutalistPackageSystem } from '../../zero-brutalist/src/tokens.js';
 
 const manifest = {
@@ -25,7 +26,7 @@ const manifest = {
 };
 
 /** Every brief exports the same four things, in the same shape. */
-const PACK = [brutalist, glass, corporate, terminal];
+const PACK = [brutalist, glass, corporate, terminal, riso];
 
 const compile = (brief: (typeof PACK)[number]): ReturnType<typeof compileDesignSystem> =>
     compileDesignSystem(
@@ -131,6 +132,35 @@ describe('the signature move of each brief survives compilation', () => {
         for (const value of Object.values(brutalist.system.shadow)) {
             expect(value).toMatch(/^\d+px \d+px 0 0 var\(--color-base-content\)$/);
         }
+    });
+
+    it('riso overprints through a modifier and a compound that matches it', () => {
+        // The one brief whose axis surface is not the default one, so its
+        // signature has to prove the mechanisms that shape needs — not just
+        // that a colour came out right.
+        const css = compile(riso).componentCss.button!;
+        // Presence-only: a modifier is an attribute with no value.
+        expect(css).toContain('[data-mod-overprint]');
+        expect(css).not.toContain('[data-mod-overprint="');
+        expect(css).toContain('mix-blend-mode: multiply');
+        // The compound crosses an axis value with a modifier — `match: true`
+        // reaching a `data-mod-*` attribute rather than a `data-<axis>` one.
+        expect(css).toMatch(/\[data-variant="ghost"\]\[data-mod-overprint\]|\[data-mod-overprint\]\[data-variant="ghost"\]/);
+    });
+
+    it('riso declares both the colour and the size axis out of existence', () => {
+        // `roles: {}` and `sizes: []` are the two halves of "this design system
+        // has no such axis", and they are spelled differently ({} vs []). The
+        // brief exists partly to demonstrate that asymmetry, so pin it.
+        expect(riso.tokens.roles).toEqual({});
+        expect(riso.tokens.sizes).toEqual([]);
+        const compiled = compile(riso);
+        expect(compiled.tokens.roles).toEqual({});
+        expect(compiled.tokens.sizes).toEqual([]);
+        // No colour axis means no role tokens to emit beyond the base surfaces.
+        expect(compiled.tokensCss).not.toMatch(/--color-primary:/);
+        // …and the fused vocabulary carries the ink instead.
+        expect(compiled.componentCss.button).toContain('[data-variant="spot"]');
     });
 });
 
