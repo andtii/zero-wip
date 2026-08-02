@@ -49,12 +49,19 @@ import { demoLabelled, rootLabelled, settledBox } from './demo';
 
 const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'] as const;
 
-/** Boot with one design system pinned, then turn the document around. */
+/**
+ * Boot with one design system pinned, then turn the document around.
+ *
+ * On the kitchen-sink route: this file measures switch, toast, tree-view,
+ * progress and menu boxes in one visit, and `#/all` is the one document that
+ * renders them all — which is what keeps the documented one-page-load-per-DS
+ * cost model true.
+ */
 async function pinRtl(page: Page, ds: string): Promise<void> {
     await page.addInitScript((id) => {
         localStorage.setItem('zero-ds', id);
     }, ds);
-    await page.goto('/');
+    await page.goto('/#/all');
     await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', ds);
     // AFTER boot — see the header.
     await page.evaluate(() => { document.documentElement.dir = 'rtl'; });
@@ -198,7 +205,6 @@ for (const ds of DESIGN_SYSTEMS) {
          * the other.
          */
         test('the indeterminate progress sweep travels the reading way', async ({ page }) => {
-            await page.getByRole('tab', { name: 'Forms' }).click();
             const range = rootLabelled(page, 'progress', 'Indeterminate (no value)')
                 .locator('[data-scope="progress"][data-part="range"]');
             await expect(range).toHaveAttribute('data-state', 'indeterminate');
