@@ -38,7 +38,7 @@ vendor spelling never reaches the DOM.
 Full — all 23 components carry recipes in Carbon's language (square corners,
 layer-ramp feedback, the inset 2px focus ring, field-01 text surfaces). The
 `kind` axis, the values remap and the renamed boolean modifiers stay
-Button-only, per the repo-wide `variant` deferral — Button is the component
+Button-only, per the repo-wide `variant` decision (#175) — Button is the component
 that motivated the vendor-named-API design (issue #179, Carbon's row in the
 conformance matrix). Values are approximated from public documentation; it
 proves the contract rather than shipping a licensed token set, which is why
