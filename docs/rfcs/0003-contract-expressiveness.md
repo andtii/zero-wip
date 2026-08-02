@@ -252,6 +252,21 @@ already names them). The design at that point is additive and therefore free to
 defer: an optional per-scope **restriction** map that narrows, never widens, the
 design-system-wide set, for validation and the manifest only.
 
+**A second trigger arrived first (#175, §9.1).** The fourteen unwired `variant`
+carriers are a waiting caller *today*, not at the content tier: twelve of them
+have a variant in a surveyed design system, none in this vocabulary, and they
+cannot be wired until a scope can carry its own. Two corrections to the
+paragraph above, both from that survey:
+
+- A map that only *narrows* is not enough on its own. `select` needs `classic`
+  and `surface`, which the button's set does not contain — so
+  `tokens.variants` has to become the **union** of every scope's vocabulary,
+  with each scope restricting to its subset. That is still additive, but it
+  changes what the design-system-wide declaration *means*.
+- Radix's Select varies Trigger and Content with **different** vocabularies, so
+  the unit of restriction may be the **part**, not the scope. Settle that before
+  building, because per-scope is not a strict subset of the problem.
+
 ## 5. `sizes: []` — the size axis becomes opt-out
 
 Today an empty ramp is a hard error and an omitted one is silently replaced:
@@ -531,7 +546,7 @@ a nicety.
 | **2** | §3, §5 | `TokensInput.modifiers` + `RecipeInput.modifiers` + `mods` prop + `data-mod-*` emission + register narrowing + compound participation; `sizes: []` opt-out. | Golden `register.d.ts` shows `mods` narrowing and `size: never` under an opted-out ramp; `pnpm test:types` has positive and `@ts-expect-error` assertions for both; `contract-parity.test.ts` covers the new prefix. |
 | **3** | §7 | `sigx zero:validate --report` including the §4 axis partition report; `docs/design-system-conformance.md`; the Tier-1/2 fixtures and the row↔fixture parity test. | `pnpm test -- conformance` green; every Tier-1/2 row compiles and emits the selectors it claims; Tier-3 rows regenerate from the four in-repo reports. |
 | **4** | #99 re-scoped | `zero-heroui` per §8, plus the playground reading the declared vocabulary. | The checklist in §8, end to end: a scratch app importing `@sigx/zero-heroui/register` accepts `variant="danger-soft"`, rejects `variant="solid"`, rejects `color` entirely, and autocompletes `mods={{ 'icon-only': true }}`. |
-| **5** | #103 follow-on | RFC 0002 phase-4 leftovers: the three `size` gaps (tabs, switch, toggle-group) and the four unwired components; then `variant` on the remaining ten — wire or record per component, **after** phase 4. | No component accepts an axis no design system wires, or the divergence is recorded per component with its reason. |
+| **5** | #103 follow-on | RFC 0002 phase-4 leftovers: the three `size` gaps (tabs, switch, toggle-group) and the four unwired components; then `variant` on the remaining ten — wire or record per component, **after** phase 4. | No component accepts an axis no design system wires, or the divergence is recorded per component with its reason. **Discharged — see §9.1: recorded for all fourteen (#175).** |
 
 Phases 1 and 5's first half are independent of everything and may land at any
 time. 2 gates 3 and 4. **The `variant` half of phase 5 is deliberately gated on
@@ -540,6 +555,38 @@ systems is ~40 recipe blocks that encode the §1.1 convention harder, in exactly
 the place a divergent design system has to unpick it. Done before `zero-heroui`
 exists, it gets done twice — and for several of the ten the honest answer is "no
 variant here", which `never` already encodes correctly.
+
+### 9.1 Outcome of phase 5's `variant` half (#175)
+
+**Recorded, not wired — for all fourteen carriers.** The gating instinct above
+was right, and the survey that discharged it found the reason is sharper than
+"for several the honest answer is no variant here". Against §7.2's set:
+
+**Twelve of the fourteen do carry a variant in a real design system, and not one
+of the twelve spells it `solid | outline | soft | ghost`.** Radix Themes varies
+checkbox, switch, radio-group, slider, progress and text fields as
+`classic | surface | soft`, its avatar as `solid | soft` and its segmented
+control as `surface | classic`; Ant v6's AutoComplete is
+`outlined | borderless | filled | underlined`; HeroUI v3's tabs are
+`primary | secondary`. Only `rating-group` and `tree-view` have no style axis
+anywhere in the set.
+
+So the blocker is not effort and not taste — it is **§4**. The vocabulary is
+declared design-system-wide and the four convention systems declared a
+*button's*, so wiring these carriers means painting `ghost` onto a progress bar.
+The fourteen are now §4's demonstrated caller, alongside the content tier.
+
+One finding goes further than §4 as drafted: **Radix's Select varies its Trigger
+as `classic | surface | soft | ghost` and its Content as `solid | soft`** — two
+vocabularies inside one scope. Zero carries `variant` as a single attribute on
+the scope's carrier part, so a per-*scope* restriction map would not express it
+either. §4's revisit should treat per-part as the open question, not assume
+per-scope closes it.
+
+The per-carrier reasons live in the `NO_VARIANT` ledger in
+`packages/zero-kit/__tests__/axis-coverage.test.ts`, which fails in both
+directions: a new carrier arriving unrecorded, and a recorded reason whose
+carrier has since been wired.
 
 ## 10. Open questions
 

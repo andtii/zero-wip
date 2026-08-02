@@ -4,6 +4,39 @@
 
 ### Added
 
+- **The `variant` axis is settled on the fourteen carriers that left it unwired,
+  and the answer is a ledger rather than 84 recipe blocks** (#175). Fifteen
+  components compose `WithVariantAxes`; `button` is the one that wires `variant`
+  and stays as it is, so the fourteen below are the rest.
+
+  `axis-coverage.test.ts` traded its axis-wide `DEFERRED_AXES = ['variant']`
+  for `NO_VARIANT`, a per-carrier record whose value IS the reason — the shape
+  `KNOWN_UNSHARED` uses in `contract-parity.test.ts`. It discharges RFC 0003 §9 phase 5's gate ("wire it,
+  or record the divergence per component with its reason") and supersedes the
+  note below: #175 leaving `variant` on `button` alone is now decided, not
+  provisional.
+
+  The fourteen were surveyed one at a time against RFC 0003 §7.2's set, and the
+  result is more uniform than the issue guessed. **Twelve of the fourteen do
+  carry a variant in a real design system. Not one of the twelve spells it
+  `solid | outline | soft | ghost`** — Radix Themes varies checkbox, switch,
+  radio-group, slider, progress and text fields as `classic | surface | soft`;
+  Ant v6's AutoComplete is `outlined | borderless | filled | underlined`;
+  HeroUI v3's tabs are `primary | secondary`. Only `rating-group` and
+  `tree-view` have no style axis anywhere in the set, so "a ghost progress bar
+  is meaningless" was the wrong reading: a *varied* progress bar is ordinary,
+  and it is `ghost` specifically that the vocabulary cannot mean.
+
+  So the blocker is §4, not effort — and one finding outgrows §4 as drafted:
+  Radix's Select varies its Trigger as `classic | surface | soft | ghost` and
+  its Content as `solid | soft`, two vocabularies inside one scope, which a
+  per-*scope* restriction map would not express either. Recorded in RFC 0003
+  §9.1, with §4 gaining the fourteen as its demonstrated caller.
+
+  Nothing wires a new variant, so no recipe, manifest, golden or contrast cell
+  moves. The ledger fails in both directions: a carrier arriving unrecorded, and
+  a recorded reason whose carrier has since been wired.
+
 - **The design-system skill teaches the axis surface it actually has** (#176).
   The contract gained modifiers (#166), `sizes: []` (#164) and a design
   system's own `variant` vocabulary (#99); `SKILL.md` knew none of it, so a

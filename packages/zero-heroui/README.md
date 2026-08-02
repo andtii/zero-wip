@@ -48,9 +48,10 @@ Every claim above is asserted in `packages/zero-kit/__tests__/heroui-acceptance.
 
 All 23 components carry a recipe (23/23). The package still exists to exercise
 the *axis surface*, and button carries all of it — `variant` is wired on button
-only, matching the repo-wide deferral of variant wiring for the other
-components (issue #175). It is wired into the playground alongside the other
-design systems.
+only, matching the repo-wide decision that the other carriers wire none
+(issue #175; the per-carrier reasons are the `NO_VARIANT` ledger in
+`packages/zero-kit/__tests__/axis-coverage.test.ts`). It is wired into the
+playground alongside the other design systems.
 
 ## Usage
 
