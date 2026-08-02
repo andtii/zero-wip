@@ -7,13 +7,10 @@
  */
 import { test, expect, type Page } from '@playwright/test';
 import { controlledPopup } from './demo';
+import { bootPage } from './nav';
 
 test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-        localStorage.setItem('zero-ds', 'basic');
-    });
-    await page.goto('/');
-    await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', 'basic');
+    await bootPage(page, 'menu', 'basic');
 });
 
 /**

@@ -7,18 +7,14 @@
  * click closes it.
  */
 import { test, expect, type Page } from '@playwright/test';
+import { bootPage } from './nav';
 
 test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-        localStorage.setItem('zero-ds', 'basic');
-    });
-    await page.goto('/');
-    await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', 'basic');
-    await page.getByRole('tab', { name: 'Forms' }).click();
+    await bootPage(page, 'combobox', 'basic');
 });
 
 /**
- * The country Combobox, named — the Forms tab renders three (this one, a
+ * The country Combobox, named — the Combobox page renders three (this one, a
  * readonly sample and an invalid one) and will render more.
  *
  * Every locator below hangs off this root instead of resolving a bare

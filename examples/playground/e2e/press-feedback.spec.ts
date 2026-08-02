@@ -57,7 +57,9 @@ test.beforeEach(async ({ page }) => {
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', observe);
         else observe();
     });
-    await page.goto('/');
+    // The kitchen-sink route: this spec presses parts from a dozen different
+    // demos, and `#/all` renders every page's demos on one document.
+    await page.goto('/#/all');
     await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', 'material');
 });
 
@@ -110,9 +112,6 @@ const pressButton = (page: Page) => page.getByRole('button', { name: 'system', e
 /** The Actions menu, and the popup its trigger publishes through aria-controls. */
 const actionsTrigger = (page: Page) => page.getByRole('button', { name: 'Actions', exact: true });
 const actionsPopup = (page: Page) => controlledPopup(page, actionsTrigger(page), 'the Actions menu trigger');
-
-/** The Forms panel. */
-const openForms = (page: Page) => page.getByRole('tab', { name: 'Forms', exact: true }).click();
 
 test('button: a real click plays the full press lifecycle, ripple outliving release', async ({ page }) => {
     test.skip(media(test.info().project.name), 'covered by the media-specific tests');
@@ -171,7 +170,7 @@ test('tabs: click ripples; arrow roving still works and is not a press', async (
 });
 
 test('switch: pressing the label row marks the control and toggles exactly once', async ({ page }) => {
-    // The Notifications switch on the Components tab. Its label row and its
+    // The Notifications switch from the Switch demo. Its label row and its
     // hidden input have to belong to the SAME switch for "toggles exactly
     // once" to mean anything — two `.first()` calls only agreed by accident.
     const notifications = demoLabelled(page, 'switch', 'Notifications');
@@ -188,12 +187,10 @@ test('switch: pressing the label row marks the control and toggles exactly once'
 
 test('checkbox and radio: label-row press lands on the control with the halo ripple', async ({ page }) => {
     test.skip(media(test.info().project.name), 'covered by the media-specific tests');
-    await openForms(page);
     await clearLog(page);
-    // Both rows are on the Forms tab. The Components tab's size ramp also
-    // renders a checkbox per step — `.first()` reached one of those, in the
-    // panel this test just navigated away from, and waited 30s for a hidden
-    // element to become clickable.
+    // The size-ramp demo also renders a checkbox per step — `.first()` once
+    // reached one of those instead of this named row, and waited 30s for a
+    // hidden element to become clickable.
     await demoLabelled(page, 'checkbox', 'Weekly newsletter')('label').click();
     // One group, three items: the item is named, not counted off.
     await part(page, 'radio-group', 'item-label').filter({ hasText: 'Pro' }).click();
@@ -204,9 +201,8 @@ test('checkbox and radio: label-row press lands on the control with the halo rip
 
 test('select: the trigger ripples; a real option press selects', async ({ page }) => {
     test.skip(media(test.info().project.name), 'covered by the media-specific tests');
-    await openForms(page);
     await clearLog(page);
-    // The fruit select — the one that posts `name="fruit"`. The Forms tab
+    // The fruit select — the one that posts `name="fruit"`. The Select demo
     // renders an invalid sample with the same placeholder and the same three
     // options, and the size ramp renders one per step: seven triggers in all.
     const fruit = demoPosting(page, 'select', 'fruit');
@@ -246,8 +242,7 @@ test('disclosure triggers ripple on their native summaries', async ({ page }) =>
 });
 
 test('slider: the press survives a drag that leaves the track (capture) and never one-shots', async ({ page }) => {
-    await openForms(page);
-    // The Volume slider — the Forms tab also renders an invalid one, whose
+    // The Volume slider — the Slider demo also renders an invalid one, whose
     // control is the same anatomy.
     const slider = demoLabelled(page, 'slider', 'Volume')('control');
     await slider.hover(); // scrolls into view; coordinates measured after

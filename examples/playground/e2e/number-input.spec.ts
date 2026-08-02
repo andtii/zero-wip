@@ -8,21 +8,17 @@
  */
 import { test, expect } from '@playwright/test';
 import { demoLabelled, settledBox } from './demo';
+import { bootPage } from './nav';
 
 test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-        localStorage.setItem('zero-ds', 'basic');
-    });
-    await page.goto('/');
-    await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', 'basic');
-    await page.getByRole('tab', { name: 'Forms' }).click();
+    await bootPage(page, 'number-input', 'basic');
 });
 
 /**
  * The two demos this spec drives, each named by its own label rather than by
  * where it happens to sit.
  *
- * The Forms tab renders five NumberInputs (quantity, price, disabled, readonly,
+ * The NumberInput page renders five (quantity, price, disabled, readonly,
  * invalid) and will render more. `roots.first()` / `roots.nth(1)` only pointed
  * at these two because every addition so far happened to be APPENDED — prepend
  * one and `nth(1)` silently becomes a different control while the comment next

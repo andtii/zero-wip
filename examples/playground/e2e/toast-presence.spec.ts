@@ -9,13 +9,10 @@
  * transition collapses to nothing.
  */
 import { test, expect } from '@playwright/test';
+import { bootPage } from './nav';
 
 test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-        localStorage.setItem('zero-ds', 'basic');
-    });
-    await page.goto('/');
-    await expect(page.locator('link[data-zero-ds]')).toHaveAttribute('data-zero-ds', 'basic');
+    await bootPage(page, 'toast', 'basic');
 });
 
 test('a toast enters, reaches open, and unmounts after close', async ({ page }) => {
