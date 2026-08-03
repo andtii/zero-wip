@@ -17,6 +17,14 @@
  */
 import type { ManifestComponent, ZeroManifest } from './contract.js';
 
+/**
+ * The shape of a bare or scoped npm specifier, optionally with subpath
+ * segments. Deliberately conservative — the specifier is interpolated into
+ * generated import statements and comments, so anything a quote, backslash or
+ * whitespace could smuggle into emitted code must never get past the merge.
+ */
+const PACKAGE_SPECIFIER_PATTERN = /^(@[a-z0-9~][\w.~-]*\/)?[a-z0-9~][\w.~-]*(\/[\w.~-]+)*$/;
+
 export interface ManifestFragment {
     /**
      * The package that owns these scopes — provenance for diagnostics, the
@@ -50,12 +58,24 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
         if (typeof fragment?.package !== 'string' || fragment.package.length === 0) {
             throw new Error(`[zero-kit] ${where} declares no "package" — a manifest fragment must name the package that owns its scopes`);
         }
+        if (!PACKAGE_SPECIFIER_PATTERN.test(fragment.package)) {
+            throw new Error(`[zero-kit] ${where}: "${fragment.package}" is not a package specifier — it becomes an import specifier in generated artifacts`);
+        }
         if (!Array.isArray(fragment.components) || fragment.components.length === 0) {
             throw new Error(`[zero-kit] ${where} has no "components" array — nothing to merge`);
         }
         for (const component of fragment.components) {
-            if (typeof component?.scope !== 'string' || !Array.isArray(component.parts)) {
+            if (typeof component?.scope !== 'string' || !Array.isArray(component.parts) || component.parts.length === 0) {
                 throw new Error(`[zero-kit] ${where} has a component without a "scope" and "parts" — not an anatomy (defineAnatomy().toJSON() emits the expected shape)`);
+            }
+            // Fail here, by name, rather than as a confusing downstream throw
+            // in recipe compilation — this is the exported programmatic entry,
+            // not only the schema-validated CLI path.
+            for (const part of component.parts) {
+                if (typeof part?.name !== 'string' || typeof part?.element !== 'string'
+                    || typeof part?.selectors !== 'object' || part.selectors === null) {
+                    throw new Error(`[zero-kit] ${where}: component "${component.scope}" has a part without "name", "element" and "selectors" — not an anatomy (defineAnatomy().toJSON() emits the expected shape)`);
+                }
             }
             const owner = owners.get(component.scope);
             if (owner) {

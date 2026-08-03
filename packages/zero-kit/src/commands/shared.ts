@@ -105,7 +105,12 @@ export async function loadManifest(cwd: string, explicit?: string, extras: strin
         // full manifest passed where a fragment belongs, which would otherwise
         // read as "declares no package".
         const fragment = parsed as Record<string, unknown> | null;
-        if (fragment && typeof fragment === 'object' && !('package' in fragment) && Array.isArray(fragment['components'])) {
+        // `zeroVersion`/`tokens` mark an actual full manifest — a fragment
+        // that merely forgot "package" must fall through to the merge's own
+        // "declares no package" error rather than this misdiagnosis.
+        if (fragment && typeof fragment === 'object' && !('package' in fragment)
+            && Array.isArray(fragment['components'])
+            && ('zeroVersion' in fragment || 'tokens' in fragment)) {
             throw new Error(
                 `${resolved} looks like a full anatomy manifest, not a fragment — --extra-manifest takes { "package": "<specifier>", "components": [...] }; to replace the base manifest use --manifest`,
             );

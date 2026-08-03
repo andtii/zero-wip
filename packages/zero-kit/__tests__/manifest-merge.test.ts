@@ -94,6 +94,24 @@ describe('mergeManifests', () => {
         expect(() => mergeManifests(baseManifest(), { package: '@acme/x', components: [{} as ManifestComponent] }))
             .toThrow(/without a "scope" and "parts"/);
     });
+
+    it('rejects a package specifier that could not survive interpolation into generated code', () => {
+        // The specifier lands inside single quotes in emitted import
+        // statements — a quote, backslash or whitespace must never get there.
+        for (const bad of ["@acme/x'; import 'y", '@acme/x y', 'UPPER/case', '@acme\\x']) {
+            expect(() => mergeManifests(baseManifest(), { ...fragment(), package: bad }))
+                .toThrow(/not a package specifier/);
+        }
+    });
+
+    it('rejects a component whose parts are not anatomy-shaped', () => {
+        const malformed: ManifestFragment = {
+            package: '@acme/zero-stepper',
+            components: [{ scope: 'acme-stepper', parts: [{ name: 'root' } as ManifestComponent['parts'][number]] }],
+        };
+        expect(() => mergeManifests(baseManifest(), malformed))
+            .toThrow(/part without "name", "element" and "selectors"/);
+    });
 });
 
 describe('a merged ecosystem scope in the pipeline', () => {
