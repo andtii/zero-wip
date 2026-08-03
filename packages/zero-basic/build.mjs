@@ -2,10 +2,18 @@
 // dist/*.js (the design-system module) — see the package build script.
 import { fileURLToPath } from 'node:url';
 import { anatomies } from '@sigx/zero/anatomy';
-import { buildReport, compileDesignSystem, validateDesignSystem, writeArtifacts } from '@sigx/zero-kit';
-import { designSystem } from './dist/design-system.js';
+import { buildReport, compileDesignSystem, mergeManifests, validateDesignSystem, writeArtifacts } from '@sigx/zero-kit';
+import { fragment } from '@sigx/zero-ext-example/fragment';
+import { adopted as designSystem } from './dist/design-system.js';
 
-const manifest = { components: Object.values(anatomies).map((a) => a.toJSON()) };
+// Merged, not replaced: the ecosystem fragment joins zero's manifest so the
+// adopted ext-stepper recipe validates and compiles like any other scope,
+// with provenance — the emitted register.d.ts excludes the scope by name
+// from its ZeroScope gate (see type-tests/ecosystem/).
+const manifest = mergeManifests(
+    { components: Object.values(anatomies).map((a) => a.toJSON()) },
+    fragment,
+);
 
 const result = validateDesignSystem(designSystem, manifest);
 for (const issue of [...result.errors, ...result.warnings]) {
