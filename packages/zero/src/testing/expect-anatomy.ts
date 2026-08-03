@@ -37,7 +37,15 @@ function fail(anatomy: Anatomy, message: string): never {
  */
 export function expectAnatomy(container: ParentNode, anatomy: Anatomy, options: ExpectAnatomyOptions = {}): void {
     const axisAttrs = new Set((options.axes ?? []).map((axis) => `data-${axis}`));
-    const rendered = container.querySelectorAll(`[data-scope="${anatomy.scope}"]`);
+    const selector = `[data-scope="${anatomy.scope}"]`;
+    // querySelectorAll only sees descendants, and the container is often the
+    // component's own root part — which must not escape the walk. Duck-typed
+    // rather than `instanceof Element`: a Document or DocumentFragment has no
+    // `matches`, and cross-realm elements fail instanceof.
+    const rendered = [
+        ...('matches' in container && (container as Element).matches(selector) ? [container as Element] : []),
+        ...container.querySelectorAll(selector),
+    ];
     if (rendered.length === 0) fail(anatomy, 'no parts rendered for this scope');
 
     for (const el of rendered) {

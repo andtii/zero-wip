@@ -38,6 +38,17 @@ describe('expectAnatomy (public conformance helper)', () => {
         expect(() => expectAnatomy(container, demoAnatomy)).not.toThrow();
     });
 
+    it('validates the container itself when it is a scoped part', () => {
+        // The common shape: the component's root element is what the test has
+        // in hand. Its own violations must not escape the walk.
+        const root = part('root', { 'data-state': 'idle' });
+        root.append(part('step', { 'data-state': 'active' }));
+        expect(() => expectAnatomy(root, demoAnatomy)).not.toThrow();
+
+        const bad = part('root', { 'data-state': 'exploded' });
+        expect(() => expectAnatomy(bad, demoAnatomy)).toThrow(/data-state="exploded"/);
+    });
+
     it('fails when nothing rendered for the scope', () => {
         expect(() => expectAnatomy(mount(), demoAnatomy)).toThrow(/no parts rendered/);
     });
