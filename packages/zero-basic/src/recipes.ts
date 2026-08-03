@@ -2867,8 +2867,182 @@ export const treeView: RecipeInput = {
     },
 };
 
+/**
+ * The plain text field — the same well of paper the number input, the select
+ * and the combobox all sit in, with nothing inside it but the text. One ink
+ * move: the border goes primary under the petrol ring on focus, and the caret
+ * carries the role.
+ */
+export const input: RecipeInput = {
+    component: 'input',
+    tokens: { '--input-accent': 'var(--color-primary)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--color-error)' },
+                required: {},
+            },
+        },
+        control: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'stretch',
+                background: 'var(--color-base-100)',
+                border: hairline,
+                borderRadius: 'var(--radius-field)',
+                overflow: 'hidden',
+                transition: 'border-color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { borderColor: 'var(--color-secondary)' },
+                invalid: { borderColor: 'var(--color-error)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                readonly: {},
+                'focus-visible': {
+                    outline: '2px solid var(--color-primary)',
+                    outlineOffset: '2px',
+                    borderColor: 'var(--color-primary)',
+                },
+            },
+            selectors: {
+                // Same one exception the other three fields make: an invalid
+                // field rings in error, because the error signal outranks
+                // one-ink.
+                '&[data-invalid][data-focus-visible]': {
+                    outline: '2px solid var(--color-error)',
+                    borderColor: 'var(--color-error)',
+                },
+            },
+        },
+        input: {
+            base: {
+                // Unlike the number input's 5rem readout, a text field fills
+                // whatever the author gave it; `minWidth: 0` keeps it from
+                // forcing its flex parent open.
+                width: '100%',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                caretColor: 'var(--input-accent)',
+                font: 'inherit',
+                fontSize: 'var(--text-sm)',
+                padding: '0.5rem 0.625rem',
+            },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                readonly: {},
+                invalid: {},
+                required: {},
+            },
+            selectors: {
+                '&::placeholder': { color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)' },
+            },
+        },
+    },
+    // The visible ring lives on `control`; the input delegates.
+    skipStates: { input: ['focus-visible'] },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--input-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { input: { base: { fontSize: 'var(--text-xs)', padding: '0.25rem 0.375rem' } } },
+            sm: { input: { base: { fontSize: 'var(--text-xs)', padding: '0.375rem 0.5rem' } } },
+            // `md` is the un-attributed render: the base already IS the
+            // middle step.
+            md: {},
+            lg: { input: { base: { fontSize: 'var(--text-md)', padding: '0.625rem 0.75rem' } } },
+            xl: { input: { base: { fontSize: 'var(--text-lg)', padding: '0.75rem 0.875rem' } } },
+        },
+    },
+};
+
+/**
+ * The multi-line field. Same paper, same border, same ring — drawn on the
+ * element itself, because the anatomy has no `control` to draw them on and
+ * nothing to put in one. `resize: vertical` is the design system's call, not
+ * the runtime's: horizontal resize breaks whatever column the field sits in.
+ */
+export const textarea: RecipeInput = {
+    component: 'textarea',
+    tokens: { '--textarea-accent': 'var(--color-primary)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--color-error)' },
+                required: {},
+            },
+        },
+        textarea: {
+            base: {
+                display: 'block',
+                width: '100%',
+                minWidth: '0',
+                appearance: 'none',
+                background: 'var(--color-base-100)',
+                border: hairline,
+                borderRadius: 'var(--radius-field)',
+                color: 'inherit',
+                caretColor: 'var(--textarea-accent)',
+                font: 'inherit',
+                fontSize: 'var(--text-sm)',
+                lineHeight: '1.5',
+                padding: '0.5rem 0.625rem',
+                resize: 'vertical',
+                transition: 'border-color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { borderColor: 'var(--color-secondary)' },
+                invalid: { borderColor: 'var(--color-error)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                readonly: {},
+                required: {},
+                'focus-visible': {
+                    outline: '2px solid var(--color-primary)',
+                    outlineOffset: '2px',
+                    borderColor: 'var(--color-primary)',
+                },
+            },
+            selectors: {
+                '&::placeholder': { color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)' },
+                '&[data-invalid][data-focus-visible]': {
+                    outline: '2px solid var(--color-error)',
+                    borderColor: 'var(--color-error)',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--textarea-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { textarea: { base: { fontSize: 'var(--text-xs)', padding: '0.25rem 0.375rem' } } },
+            sm: { textarea: { base: { fontSize: 'var(--text-xs)', padding: '0.375rem 0.5rem' } } },
+            md: {},
+            lg: { textarea: { base: { fontSize: 'var(--text-md)', padding: '0.625rem 0.75rem' } } },
+            xl: { textarea: { base: { fontSize: 'var(--text-lg)', padding: '0.75rem 0.875rem' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup, treeView,
+    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
 ];

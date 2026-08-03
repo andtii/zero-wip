@@ -31,13 +31,15 @@ import { toggleGroupAnatomy } from './components/toggle-group/anatomy.js';
 import { numberInputAnatomy } from './components/number-input/anatomy.js';
 import { ratingGroupAnatomy } from './components/rating-group/anatomy.js';
 import { treeViewAnatomy } from './components/tree-view/anatomy.js';
+import { inputAnatomy } from './components/input/anatomy.js';
+import { textareaAnatomy } from './components/textarea/anatomy.js';
 
 export {
     buttonAnatomy,
     tabsAnatomy, collapsibleAnatomy, switchAnatomy, dialogAnatomy, popoverAnatomy, tooltipAnatomy, menuAnatomy,
     fieldAnatomy, checkboxAnatomy, radioGroupAnatomy, progressAnatomy, sliderAnatomy, accordionAnatomy, selectAnatomy,
     avatarAnatomy, toastAnatomy, comboboxAnatomy, toggleAnatomy, toggleGroupAnatomy, numberInputAnatomy,
-    ratingGroupAnatomy, treeViewAnatomy,
+    ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy,
 };
 
 export const anatomies = {
@@ -64,6 +66,8 @@ export const anatomies = {
     'number-input': numberInputAnatomy,
     'rating-group': ratingGroupAnatomy,
     'tree-view': treeViewAnatomy,
+    input: inputAnatomy,
+    textarea: textareaAnatomy,
 } as const satisfies Record<string, Anatomy>;
 
 /**

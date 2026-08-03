@@ -54,9 +54,9 @@ describe('defineAnatomy', () => {
 describe('anatomy registry', () => {
     it('contains every component', () => {
         expect(Object.keys(anatomies).sort()).toEqual([
-            'accordion', 'avatar', 'button', 'checkbox', 'collapsible', 'combobox', 'dialog', 'field', 'menu',
+            'accordion', 'avatar', 'button', 'checkbox', 'collapsible', 'combobox', 'dialog', 'field', 'input', 'menu',
             'number-input', 'popover',
-            'progress', 'radio-group', 'rating-group', 'select', 'slider', 'switch', 'tabs', 'toast', 'toggle', 'toggle-group', 'tooltip',
+            'progress', 'radio-group', 'rating-group', 'select', 'slider', 'switch', 'tabs', 'textarea', 'toast', 'toggle', 'toggle-group', 'tooltip',
             'tree-view',
         ]);
     });

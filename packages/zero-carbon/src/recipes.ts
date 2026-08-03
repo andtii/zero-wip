@@ -2614,8 +2614,150 @@ export const treeView: RecipeInput = {
     },
 };
 
+// ── Text fields ───────────────────────────────────────────────────────────
+/**
+ * Carbon's text input: `field-01` — a filled well with a single strong rule
+ * under it, no side or top borders. The inset focus ring and the invalid
+ * outline draw on the box, the same way the number input, the select and the
+ * combobox do it, and the five Carbon field heights ride `minHeight` on the
+ * control. No `color` axis: this design system declares no colour roles.
+ */
+export const input: RecipeInput = {
+    component: 'input',
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { ...fieldLabel },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--carbon-danger)' },
+                required: {},
+            },
+        },
+        control: {
+            base: {
+                ...field01,
+                display: 'inline-flex',
+                alignItems: 'stretch',
+                minHeight: '2.5rem',
+                color: 'var(--color-base-content)',
+                transition: motion('background'),
+            },
+            states: {
+                ...fieldHover,
+                invalid: { outline: '2px solid var(--carbon-danger)', outlineOffset: '-2px' },
+                disabled: { opacity: 'var(--disabled-opacity)', borderBlockEndColor: 'transparent' },
+                readonly: {},
+                ...focusRing,
+            },
+        },
+        input: {
+            base: {
+                width: '100%',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                padding: '0 var(--space-md)',
+            },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                readonly: {},
+                invalid: {},
+                required: {},
+            },
+            selectors: {
+                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' },
+            },
+        },
+    },
+    variants: {
+        /** Carbon's five field heights: 32 / 40 / 48 / 64 / 80. */
+        size: {
+            sm: { control: { base: { minHeight: '2rem' } } },
+            md: {},
+            lg: { control: { base: { minHeight: '3rem' } } },
+            xl: { control: { base: { minHeight: '4rem' } } },
+            '2xl': { control: { base: { minHeight: '5rem' } } },
+        },
+    },
+    // The visible ring lives on `control`; the input delegates.
+    skipStates: { input: ['focus-visible'] },
+};
+
+/**
+ * Carbon's text area: the same `field-01` well, drawn on the element (the
+ * anatomy has no `control`). The size ramp moves the FLOOR rather than the
+ * height — a text area's height is the reader's, which is what `resize` is
+ * for; Carbon's own text area ships a `rows`-driven default and a resize
+ * handle for the same reason.
+ */
+export const textarea: RecipeInput = {
+    component: 'textarea',
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { ...fieldLabel },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--carbon-danger)' },
+                required: {},
+            },
+        },
+        textarea: {
+            base: {
+                ...field01,
+                display: 'block',
+                width: '100%',
+                minWidth: '0',
+                minHeight: '5rem',
+                appearance: 'none',
+                color: 'var(--color-base-content)',
+                font: 'inherit',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+                padding: 'var(--space-sm) var(--space-md)',
+                resize: 'vertical',
+                transition: motion('background'),
+            },
+            states: {
+                ...fieldHover,
+                invalid: { outline: '2px solid var(--carbon-danger)', outlineOffset: '-2px' },
+                disabled: { opacity: 'var(--disabled-opacity)', borderBlockEndColor: 'transparent', cursor: 'not-allowed' },
+                readonly: {},
+                required: {},
+                ...focusRing,
+            },
+            selectors: {
+                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { textarea: { base: { minHeight: '4rem' } } },
+            md: {},
+            lg: { textarea: { base: { minHeight: '6rem' } } },
+            xl: { textarea: { base: { minHeight: '8rem' } } },
+            '2xl': { textarea: { base: { minHeight: '10rem' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup, treeView,
+    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
 ];

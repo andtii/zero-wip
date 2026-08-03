@@ -2512,8 +2512,161 @@ export const treeView: RecipeInput = {
     },
 };
 
+/**
+ * daisy "input" flavor: the shared field box with nothing in it but the text.
+ * Same `fieldControl` metrics as select's trigger, combobox's control and the
+ * number input's — the whole point of that helper is that a row of mixed
+ * fields lines up.
+ */
+export const input: RecipeInput = {
+    component: 'input',
+    tokens: { '--input-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-sm)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: roleInk('error') },
+                required: {},
+            },
+        },
+        control: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'stretch',
+                ...fieldControl,
+                overflow: 'hidden',
+                transition: 'border-color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { borderColor: 'var(--color-base-content)' },
+                invalid: { borderColor: 'var(--color-error)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                readonly: {},
+                'focus-visible': { ...focusRing['focus-visible'], outline: '2px solid var(--input-accent)' },
+            },
+        },
+        input: {
+            base: {
+                width: '100%',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                font: 'inherit',
+                fontSize: 'var(--text-sm)',
+                padding: 'var(--space-sm) var(--space-md)',
+            },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                readonly: {},
+                invalid: {},
+                required: {},
+            },
+            selectors: {
+                // Same muting, same reason as `number-input/input` (#264).
+                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)' },
+            },
+        },
+    },
+    // The visible ring lives on `control`; the input delegates.
+    skipStates: { input: ['focus-visible'] },
+    variants: {
+        // The ring carries the role — daisy's field chrome is neutral, so
+        // focus is the only place colour surfaces.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--input-accent': `var(--color-${c})`,
+        } } }])),
+        // The control carries the height off the shared field ramp; the text
+        // follows so the box stays proportional.
+        size: {
+            xs: { control: { base: { height: fieldHeight('xs') } }, input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } } },
+            sm: { control: { base: { height: fieldHeight('sm') } }, input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-sm)' } } },
+            // `md` is the un-attributed render: the base already IS the
+            // middle step.
+            md: {},
+            lg: { control: { base: { height: fieldHeight('lg') } }, input: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-lg)' } } },
+            xl: { control: { base: { height: fieldHeight('xl') } }, input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-xl)' } } },
+        },
+    },
+};
+
+/**
+ * daisy "textarea" flavor. The `fieldControl` box minus its `height`: the
+ * whole point of a textarea is that its height is the content's (and the
+ * reader's, via `resize`), so the shared ramp becomes a `min-height` floor
+ * rather than a fixed measure.
+ */
+export const textarea: RecipeInput = {
+    component: 'textarea',
+    tokens: { '--textarea-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-sm)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: roleInk('error') },
+                required: {},
+            },
+        },
+        textarea: {
+            base: {
+                ...fieldControl,
+                display: 'block',
+                height: 'auto',
+                minHeight: `calc(${fieldHeight('md')} * 2)`,
+                width: '100%',
+                minWidth: '0',
+                appearance: 'none',
+                color: 'inherit',
+                font: 'inherit',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+                padding: 'var(--space-sm) var(--space-md)',
+                resize: 'vertical',
+                transition: 'border-color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { borderColor: 'var(--color-base-content)' },
+                invalid: { borderColor: 'var(--color-error)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                readonly: {},
+                required: {},
+                'focus-visible': { ...focusRing['focus-visible'], outline: '2px solid var(--textarea-accent)' },
+            },
+            selectors: {
+                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--textarea-accent': `var(--color-${c})`,
+        } } }])),
+        // The ramp moves the type and the floor together — a bigger textarea
+        // is a taller one, not just a wider-set one.
+        size: {
+            xs: { textarea: { base: { fontSize: 'var(--text-xs)', minHeight: `calc(${fieldHeight('xs')} * 2)`, padding: 'var(--space-2xs) var(--space-xs)' } } },
+            sm: { textarea: { base: { fontSize: 'var(--text-xs)', minHeight: `calc(${fieldHeight('sm')} * 2)`, padding: 'var(--space-xs) var(--space-sm)' } } },
+            md: {},
+            lg: { textarea: { base: { fontSize: 'var(--text-md)', minHeight: `calc(${fieldHeight('lg')} * 2)`, padding: 'var(--space-md) var(--space-lg)' } } },
+            xl: { textarea: { base: { fontSize: 'var(--text-lg)', minHeight: `calc(${fieldHeight('xl')} * 2)`, padding: 'var(--space-lg) var(--space-xl)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup, treeView,
+    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
 ];

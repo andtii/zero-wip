@@ -35,3 +35,5 @@ export { ToggleGroup } from '@sigx/zero/toggle-group';
 export { NumberInput } from '@sigx/zero/number-input';
 export { RatingGroup } from '@sigx/zero/rating-group';
 export { TreeView } from '@sigx/zero/tree-view';
+export { Input } from '@sigx/zero/input';
+export { Textarea } from '@sigx/zero/textarea';

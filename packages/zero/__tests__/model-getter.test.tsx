@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
-import { Switch, Tabs } from '@sigx/zero';
+import { Input, Switch, Tabs } from '@sigx/zero';
 
 describe('getter-form model binding', () => {
     let container: HTMLElement;
@@ -41,5 +41,25 @@ describe('getter-form model binding', () => {
         expect(state.tab).toBe('b');
         state.tab = 'a';
         expect(tabs[0]!.getAttribute('data-state')).toBe('active');
+    });
+
+    it('Input: model={() => state.email} two-way', () => {
+        const state = signal({ email: '' });
+        render(
+            <Input.Root model={() => state.email}>
+                <Input.Control><Input.Input /></Input.Control>
+            </Input.Root>,
+            container,
+        );
+        const input = container.querySelector<HTMLInputElement>('[data-part="input"]')!;
+
+        input.value = 'a@b.c';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        expect(state.email).toBe('a@b.c');
+
+        // The read direction, which typing alone cannot prove: the field
+        // follows the signal when something else writes it.
+        state.email = 'x@y.z';
+        expect(input.value).toBe('x@y.z');
     });
 });

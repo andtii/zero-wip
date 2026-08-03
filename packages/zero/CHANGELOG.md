@@ -4,6 +4,36 @@
 
 ### Added
 
+- **`Input` and `Textarea` — the two basic form controls zero was missing**
+  (#309). The form family was otherwise complete (Field, Checkbox, Switch,
+  RadioGroup, Slider, Select, Combobox, NumberInput, RatingGroup), but the
+  only real text inputs in the package were locked inside Combobox and
+  NumberInput, and a raw `<input>` dropped into a `Field.Root` got no
+  `for` / `aria-describedby` wiring — adoption only happens when a zero
+  control asks for the field context itself.
+
+  `Input` is `Root/Label/Control/Input`, the same control-wraps-input split
+  Combobox and NumberInput use: the border, the focus ring and the invalid
+  tint draw on `control`, and that seam is what makes a leading icon or a
+  trailing affordance possible later without a breaking anatomy change.
+  `type` is a closed union — `text | email | password | search | tel | url` —
+  because `number` is NumberInput's job, the selection types are other
+  components wearing the same tag name, and the date/time types render
+  browser chrome no recipe can honour.
+
+  `Textarea` is `Root/Label/Textarea`, deliberately without a `control`:
+  nothing sits inside a textarea for a wrapper to hold (the scrollbar and the
+  resize handle belong to the element), so the chrome draws on the element
+  itself. `rows` passes through; auto-sizing is a layout behavior zero does
+  not take on, and `resize` is the design system's call.
+
+  Both take a plain `string` model written through on every keystroke — no
+  draft/commit split, since a half-typed string is still a string — and both
+  carry `name` on the visible element rather than through a `hidden-input`,
+  because unlike Checkbox/Switch/NumberInput the visible element *is* the
+  form control. Neither wires a `variant` axis (#175). All six design systems
+  ship recipes for them.
+
 - **`@sigx/zero/testing` — the anatomy conformance assertion, published**
   (#300). `expectAnatomy(container, anatomy, { axes? })` walks every rendered
   part of a scope and checks it against the declaration: known part,

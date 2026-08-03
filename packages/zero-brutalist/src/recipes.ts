@@ -2130,8 +2130,152 @@ export const treeView: RecipeInput = {
     },
 };
 
+// ── Text fields ───────────────────────────────────────────────────────────
+/**
+ * A slab you type into. Same inked frame and hard shadow as the number
+ * input's, and the same mono uppercase label above it — but the typed value
+ * itself stays in the reading face. Uppercasing what the user wrote would be
+ * the design system editing their data, which is a different thing from
+ * styling it; the placeholder, being ours, is fair game.
+ */
+export const input: RecipeInput = {
+    component: 'input',
+    tokens: { '--input-accent': 'var(--color-primary)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { ...label, fontSize: 'var(--text-xs)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--color-error)' },
+                required: {},
+            },
+            selectors: { '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' } },
+        },
+        control: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'stretch',
+                ...inked,
+                boxShadow: 'var(--shadow-xs)',
+                overflow: 'hidden',
+            },
+            states: {
+                invalid: { borderColor: 'var(--color-error)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                readonly: {},
+                'focus-visible': { ...focusRing['focus-visible'], outline: 'var(--border) solid var(--input-accent)' },
+            },
+        },
+        input: {
+            base: {
+                width: '100%',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                padding: 'var(--space-sm) var(--space-md)',
+            },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                readonly: {},
+                invalid: {},
+                required: {},
+            },
+            selectors: {
+                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 55%, transparent)', textTransform: 'uppercase' },
+            },
+        },
+    },
+    // The visible ring lives on `control`; the input delegates.
+    skipStates: { input: ['focus-visible'] },
+    variants: {
+        // The field's own ring carries the role — the frame is always the
+        // ink, so focus is the only place a text field shows colour.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--input-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } } },
+            sm: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-sm)' } } },
+            // `md` is the un-attributed render: the base already IS the
+            // middle step.
+            md: {},
+            lg: { input: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-md) var(--space-lg)' } } },
+            xl: { input: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-lg) var(--space-xl)' } } },
+        },
+    },
+};
+
+/** The same slab, taller, drawn on the element — see the textarea anatomy. */
+export const textarea: RecipeInput = {
+    component: 'textarea',
+    tokens: { '--textarea-accent': 'var(--color-primary)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { ...label, fontSize: 'var(--text-xs)' },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                invalid: { color: 'var(--color-error)' },
+                required: {},
+            },
+            selectors: { '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' } },
+        },
+        textarea: {
+            base: {
+                display: 'block',
+                width: '100%',
+                minWidth: '0',
+                appearance: 'none',
+                ...inked,
+                boxShadow: 'var(--shadow-xs)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: 'var(--leading-normal)',
+                padding: 'var(--space-sm) var(--space-md)',
+                resize: 'vertical',
+            },
+            states: {
+                invalid: { borderColor: 'var(--color-error)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                readonly: {},
+                required: {},
+                'focus-visible': { ...focusRing['focus-visible'], outline: 'var(--border) solid var(--textarea-accent)' },
+            },
+            selectors: {
+                '&::placeholder': { color: 'color-mix(in oklab, var(--color-base-content) 55%, transparent)', textTransform: 'uppercase' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--textarea-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { textarea: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)' } } },
+            sm: { textarea: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-sm)' } } },
+            md: {},
+            lg: { textarea: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-md) var(--space-lg)' } } },
+            xl: { textarea: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-lg) var(--space-xl)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup, treeView,
+    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
 ];

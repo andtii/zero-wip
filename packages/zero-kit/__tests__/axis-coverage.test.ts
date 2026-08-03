@@ -67,10 +67,10 @@ const designSystems = {
  * a deferral (#175, discharging RFC 0003 §9 phase 5's gate: "wire it, or record
  * the divergence per component with its reason").
  *
- * The fourteen were surveyed one at a time against RFC 0003 §7.2's set — the
+ * The sixteen were surveyed one at a time against RFC 0003 §7.2's set — the
  * reasons below are the survey — and the result is more uniform than the issue
- * guessed. **Twelve of the fourteen do carry a variant in a real design system.
- * Not one of the twelve spells it `solid | outline | soft | ghost`.**
+ * guessed. **Fourteen of the sixteen do carry a variant in a real design
+ * system. Not one of the fourteen spells it `solid | outline | soft | ghost`.**
  *
  * That is §1.1's thesis arriving at its consequence. The four convention design
  * systems declare a BUTTON's vocabulary and declare it design-system-wide, so
@@ -82,10 +82,11 @@ const designSystems = {
  * of every scope's vocabulary rather than the button's — so the reasons below
  * no longer say "inexpressible", they say "not declared yet". Wiring any of
  * the fourteen is now a design system's decision, taken one skin at a time,
- * and it costs the recipes plus the contrast audit's ancestor chains (thirteen
- * of the fourteen carry their axes on a part that renders no text).
+ * and it costs the recipes plus the contrast audit's ancestor chains (fifteen
+ * of the sixteen carry their axes on a part that renders no text — `toggle` is
+ * the one whose carrier is the text-bearing element itself).
  *
- * So `never` is still the correct compiled answer for all fourteen today —
+ * So `never` is still the correct compiled answer for all sixteen today —
  * none of the six declares a vocabulary for them — and this ledger is the
  * reason it is correct rather than merely absent.
  *
@@ -103,6 +104,11 @@ const NO_VARIANT: Record<string, string> = {
         + 'the issue\'s guess that a varied progress bar is meaningless is wrong; '
         + 'what is meaningless is a GHOST one.',
     'number-input': 'Radix Themes TextField varies as classic | surface | soft.',
+    // The two the entry above was already describing: `number-input`'s cited
+    // source IS Radix's text field, so the plain one and its multi-line
+    // sibling inherit the same answer rather than a new one.
+    input: 'Radix Themes TextField varies as classic | surface | soft.',
+    textarea: 'Radix Themes TextArea varies as classic | surface | soft.',
 
     /**
      * The sharpest one, and the case #294 was settled against. Radix's Select

@@ -433,11 +433,16 @@ describe('report shape', () => {
 });
 
 describe('formatReport', () => {
+    // Derived, not retyped: every one of these lines is "N of all components",
+    // and hardcoding the total makes four assertions that fail for the one
+    // reason they are not about — a new component landing.
+    const total = manifest.components.length;
+
     it('names the design system, the coverage and every theme', () => {
         const lines = formatReport(reportFor(herouiDS as DesignSystemInput));
         expect(lines[0]).toBe('heroui — coverage report');
-        expect(lines.join('\n')).toContain('components styled: 23/23 (100%)');
-        expect(lines.join('\n')).toContain('color wired: 0/23 (0%) — no such axis');
+        expect(lines.join('\n')).toContain(`components styled: ${total}/${total} (100%)`);
+        expect(lines.join('\n')).toContain(`color wired: 0/${total} (0%) — no such axis`);
         expect(lines.join('\n')).toContain('theme hero-light: min contrast');
     });
 
@@ -446,9 +451,9 @@ describe('formatReport', () => {
         // `variant` exists and only `button` wires it. Same zero, different
         // advice.
         expect(formatReport(reportFor(herouiDS as DesignSystemInput)).join('\n'))
-            .toContain('color wired: 0/23 (0%) — no such axis');
+            .toContain(`color wired: 0/${total} (0%) — no such axis`);
         expect(formatReport(reportFor(basicDS as DesignSystemInput)).join('\n'))
-            .toContain('variant wired: 1/23 (4%)');
+            .toContain(`variant wired: 1/${total} (`);
     });
 
     it('returns lines rather than printing, so the caller picks the channel', () => {
