@@ -27,9 +27,11 @@ component's anatomy). No component code is ever written or changed.
    `display` you set on such a part is dead in those states rather than
    dangerous — it used to defeat the hiding entirely (#209).
 
-2. **Set up the package.** There is no `sigx zero:init` yet (see issue #10),
-   so copy the shape of an existing design system — `@sigx/zero-basic` is the
-   smallest:
+2. **Set up the package.** There is no scaffolding command and there will not
+   be one in this package (#10, closed): a sigx CLI plugin only loads where
+   `@sigx/zero-kit` is already installed, so it could never run in the empty
+   directory a new design system starts as. Copy the shape of an existing
+   design system instead — `@sigx/zero-basic` is the smallest:
 
    ```
    packages/<name>/

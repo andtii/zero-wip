@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "23 kB",
+        "limit": "25 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -171,6 +171,46 @@
         "name": "@sigx/zero/textarea",
         "path": "packages/zero/dist/components/textarea/index.js",
         "limit": "3 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/card",
+        "path": "packages/zero/dist/components/card/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/alert",
+        "path": "packages/zero/dist/components/alert/index.js",
+        "limit": "3 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/badge",
+        "path": "packages/zero/dist/components/badge/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/divider",
+        "path": "packages/zero/dist/components/divider/index.js",
+        "limit": "2 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

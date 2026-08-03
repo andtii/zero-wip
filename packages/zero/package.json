@@ -135,6 +135,22 @@
         "./textarea": {
             "types": "./dist/components/textarea/index.d.ts",
             "import": "./dist/components/textarea/index.js"
+        },
+        "./card": {
+            "types": "./dist/components/card/index.d.ts",
+            "import": "./dist/components/card/index.js"
+        },
+        "./alert": {
+            "types": "./dist/components/alert/index.d.ts",
+            "import": "./dist/components/alert/index.js"
+        },
+        "./badge": {
+            "types": "./dist/components/badge/index.d.ts",
+            "import": "./dist/components/badge/index.js"
+        },
+        "./divider": {
+            "types": "./dist/components/divider/index.d.ts",
+            "import": "./dist/components/divider/index.js"
         }
     },
     "files": [

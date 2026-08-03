@@ -4,6 +4,36 @@
 
 ### Added
 
+- **The content tier — `Card`, `Alert`, `Badge`, `Divider`** (#311). RFC 0002
+  §8 named the gap ("the content tier a design system is visually judged on is
+  absent: card, alert, badge, skeleton, spinner, steps, divider, rating,
+  table"), and this takes the four the next RFC then singled out. `steps` is
+  deliberately left out — `zero-ext-example` ships `Stepper` precisely as a
+  component zero does not (#304) — and `table` is markup and styling rather
+  than behavior.
+
+  `Card` is a styling container and nothing else: no state, no context, no
+  ids. The obvious `aria-labelledby` from `root` to `title` is deliberately
+  absent — it does nothing on a plain `div`, and giving `root` a role to make
+  it work would turn every card on a page into a landmark to walk past.
+  `Card.Title` renders an `<h3>` so a page of cards is navigable from a
+  heading list.
+
+  `Alert` carries `role="alert"`, and that is the line between it and Card: an
+  alert nobody is told about is a coloured box, and a coloured box is a card.
+  The role costs nothing when server-rendered, because a live region announces
+  *changes* — static content at load is silent, and an alert inserted later is
+  announced. Its model is presence and defaults to open; `Alert.Close` sets it
+  false and the runtime sets `hidden`, declared as `hiddenIn: ['closed']`, so
+  no design system paints `closed` and the state-legibility guard accepts the
+  pair on presence alone.
+
+  `Badge` is one part, and that shape is load-bearing: its carrier IS its
+  text-bearing part, which is the only shape the contrast audit's one-element
+  probe can measure. That is why badge, alone in this batch, wires its own
+  `variant` vocabulary — see below. `Divider` is `role="separator"`,
+  non-focusable, with `aria-orientation` emitted only for `vertical`.
+
 - **`Input` and `Textarea` — the two basic form controls zero was missing**
   (#309). The form family was otherwise complete (Field, Checkbox, Switch,
   RadioGroup, Slider, Select, Combobox, NumberInput, RatingGroup), but the

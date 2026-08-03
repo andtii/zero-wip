@@ -212,10 +212,16 @@ describe('the axis-agnostic divergence report (RFC 0003 §4)', () => {
     it('lists only components that wire something — wiring nothing is `never`, not divergence', () => {
         const basic = reportFor(basicDS as DesignSystemInput);
         const variant = basic.divergence['variant']!;
-        // Only `button` wires variant across all four colour systems (RFC 0003
-        // §9 phase 5 / #175), so there is exactly one entry and no subset.
-        expect(Object.keys(variant.byComponent)).toEqual(['button']);
-        expect(variant.subsets).toEqual([]);
+        // `button` wires the whole vocabulary and `badge` wires the three it
+        // declares for itself (#311) — the repo's only two variant carriers,
+        // per RFC 0003 §9 phase 5 / #175.
+        expect(Object.keys(variant.byComponent)).toEqual(['badge', 'button']);
+        // Badge IS a strict subset, and that is the point: `declared` is what
+        // keeps the report from crying wolf about it. A narrowing the design
+        // system wrote down is not divergence, and this is the assertion that
+        // says the two are told apart rather than conflated.
+        expect(variant.subsets.map((s) => s.scope)).toEqual(['badge']);
+        expect(variant.declared).toEqual(['badge']);
     });
 
     it('flags a component wiring a strict subset of its siblings', () => {
@@ -453,7 +459,8 @@ describe('formatReport', () => {
         expect(formatReport(reportFor(herouiDS as DesignSystemInput)).join('\n'))
             .toContain(`color wired: 0/${total} (0%) — no such axis`);
         expect(formatReport(reportFor(basicDS as DesignSystemInput)).join('\n'))
-            .toContain(`variant wired: 1/${total} (`);
+            // Two now: button on the full vocabulary, badge on its own (#311).
+            .toContain(`variant wired: 2/${total} (`);
     });
 
     it('returns lines rather than printing, so the caller picks the channel', () => {

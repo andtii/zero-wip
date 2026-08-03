@@ -54,7 +54,8 @@ describe('defineAnatomy', () => {
 describe('anatomy registry', () => {
     it('contains every component', () => {
         expect(Object.keys(anatomies).sort()).toEqual([
-            'accordion', 'avatar', 'button', 'checkbox', 'collapsible', 'combobox', 'dialog', 'field', 'input', 'menu',
+            'accordion', 'alert', 'avatar', 'badge', 'button', 'card', 'checkbox', 'collapsible', 'combobox', 'dialog',
+            'divider', 'field', 'input', 'menu',
             'number-input', 'popover',
             'progress', 'radio-group', 'rating-group', 'select', 'slider', 'switch', 'tabs', 'textarea', 'toast', 'toggle', 'toggle-group', 'tooltip',
             'tree-view',
@@ -110,7 +111,7 @@ describe('anatomy registry', () => {
         // Adding one to the runtime without declaring it here is the drift
         // this pins: the DOM half is asserted by `expectAnatomy`.
         expect([...new Set(declared)].sort()).toEqual([
-            'avatar.fallback', 'avatar.image', 'tabs.panel', 'tree-view.branch-content',
+            'alert.root', 'avatar.fallback', 'avatar.image', 'tabs.panel', 'tree-view.branch-content',
         ]);
     });
 

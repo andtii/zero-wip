@@ -3041,8 +3041,307 @@ export const textarea: RecipeInput = {
     },
 };
 
+// ── Content tier (#311) ───────────────────────────────────────────────────
+/**
+ * Card — paper on paper. A hairline and a radius, no shadow: in this identity
+ * elevation is reserved for things that float over the page (dialog, popover,
+ * menu), and a card does not float. The role accent is a single rule along
+ * the reading edge rather than a tint, so a wall of cards stays a wall of
+ * paper.
+ */
+export const card: RecipeInput = {
+    component: 'card',
+    tokens: { '--card-accent': 'var(--color-base-300)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                border: hairline,
+                borderInlineStartWidth: 'calc(var(--border) * 3)',
+                borderInlineStartColor: 'var(--card-accent)',
+                borderRadius: 'var(--radius-box)',
+                overflow: 'hidden',
+            },
+        },
+        header: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-2xs)',
+                padding: 'var(--space-lg) var(--space-xl) 0',
+            },
+        },
+        title: {
+            base: {
+                margin: '0',
+                fontSize: 'var(--text-lg)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-tight)',
+            },
+        },
+        description: {
+            base: {
+                margin: '0',
+                fontSize: 'var(--text-sm)',
+                color: 'color-mix(in oklch, var(--color-base-content) 72%, transparent)',
+            },
+        },
+        body: {
+            base: {
+                padding: 'var(--space-lg) var(--space-xl)',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+            },
+        },
+        footer: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-md)',
+                padding: '0 var(--space-xl) var(--space-lg)',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--card-accent': `var(--color-${c})`,
+        } } }])),
+        // The ramp moves the padding, not the type: a small card is a tighter
+        // card, and shrinking the body copy of a content surface is how a
+        // design system ends up with four unreadable sizes.
+        size: {
+            xs: { header: { base: { padding: 'var(--space-sm) var(--space-md) 0' } }, body: { base: { padding: 'var(--space-sm) var(--space-md)' } }, footer: { base: { padding: '0 var(--space-md) var(--space-sm)' } } },
+            sm: { header: { base: { padding: 'var(--space-md) var(--space-lg) 0' } }, body: { base: { padding: 'var(--space-md) var(--space-lg)' } }, footer: { base: { padding: '0 var(--space-lg) var(--space-md)' } } },
+            md: {},
+            lg: { header: { base: { padding: 'var(--space-xl) var(--space-2xl) 0' } }, body: { base: { padding: 'var(--space-xl) var(--space-2xl)' } }, footer: { base: { padding: '0 var(--space-2xl) var(--space-xl)' } } },
+            xl: { header: { base: { padding: 'var(--space-2xl) var(--space-2xl) 0' } }, body: { base: { padding: 'var(--space-2xl)' } }, footer: { base: { padding: '0 var(--space-2xl) var(--space-2xl)' } } },
+        },
+    },
+};
+
+/**
+ * Alert — the soft tint of its role, a rule along the reading edge, and the
+ * accent spent on the icon. The text stays base-content on purpose: the
+ * contrast audit measures every text-bearing part standing on the page's own
+ * paper, and a title written in an on-accent ink would be white on white
+ * there. The role is carried by the things that are not words.
+ *
+ * `closed` is unpainted, and correctly so — the anatomy declares
+ * `hiddenIn: ['closed']`, so the runtime removes the root from the page and
+ * no rule for that state could ever render.
+ */
+export const alert: RecipeInput = {
+    component: 'alert',
+    tokens: {
+        '--alert-accent': 'var(--color-info)',
+        '--alert-tint': 'var(--color-info-soft)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr auto',
+                alignItems: 'start',
+                gap: 'var(--space-sm) var(--space-md)',
+                background: 'var(--alert-tint)',
+                color: 'var(--color-base-content)',
+                border: hairline,
+                borderInlineStartWidth: 'calc(var(--border) * 3)',
+                borderInlineStartColor: 'var(--alert-accent)',
+                borderRadius: 'var(--radius-box)',
+                padding: 'var(--space-md) var(--space-lg)',
+            },
+            states: { open: {}, closed: {} },
+        },
+        icon: {
+            base: {
+                gridRow: '1 / span 2',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--alert-accent)',
+                fontSize: 'var(--text-lg)',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        title: {
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-tight)',
+            },
+        },
+        description: {
+            base: {
+                gridColumn: '2',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+                color: 'color-mix(in oklch, var(--color-base-content) 78%, transparent)',
+            },
+        },
+        close: {
+            base: {
+                gridRow: '1',
+                gridColumn: '3',
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                borderRadius: 'var(--radius-selector)',
+                padding: 'var(--space-2xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: inkWash },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                'focus-visible': {
+                    outline: '2px solid var(--color-primary)',
+                    outlineOffset: '2px',
+                },
+            },
+            selectors: { ...pressedInk },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--alert-accent': `var(--color-${c})`,
+            '--alert-tint': `var(--color-${c}-soft)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-sm)' } }, title: { base: { fontSize: 'var(--text-xs)' } }, description: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { padding: 'var(--space-xs) var(--space-md)' } }, title: { base: { fontSize: 'var(--text-xs)' } }, description: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { padding: 'var(--space-lg) var(--space-xl)' } }, title: { base: { fontSize: 'var(--text-md)' } }, description: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { padding: 'var(--space-xl) var(--space-2xl)' } }, title: { base: { fontSize: 'var(--text-lg)' } }, description: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
+/**
+ * Badge — the one content-tier scope that wires its own `variant`, and the
+ * repo's first caller of `tokens.scopes` (RFC 0003 §4.1, #294). zero-basic
+ * declares `solid | outline | soft | ghost` design-system-wide; badge narrows
+ * to the first three in `tokens.ts`.
+ *
+ * `ghost` is the value it drops, and the reason is the whole argument for
+ * per-scope vocabularies: a ghost button is furniture that reveals itself on
+ * hover, but a badge has no hover and nothing to reveal — a ghost badge is a
+ * word with no box, which is a word. Radix Themes' Badge reaches the same
+ * answer independently (`solid | soft | surface | outline`, no ghost).
+ *
+ * Same two-token join as the button: `color` rebinds the accent pair, the
+ * three fills read it. Three roles × three fills is six rules, not nine.
+ */
+export const badge: RecipeInput = {
+    component: 'badge',
+    tokens: {
+        '--badge-accent': 'var(--color-primary)',
+        '--badge-on-accent': 'var(--color-primary-content)',
+        '--badge-soft': 'var(--color-primary-soft)',
+        '--badge-ink': softInk('primary'),
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375em',
+                border: 'var(--border) solid transparent',
+                borderRadius: 'var(--radius-field)',
+                padding: '0.125rem 0.5rem',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-medium)',
+                lineHeight: 'var(--leading-normal)',
+                fontVariantNumeric: 'tabular-nums',
+                whiteSpace: 'nowrap',
+                // A badge is often a link or a remove-button via `asChild`;
+                // these are inert on a span and correct on both of those.
+                textDecoration: 'none',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--badge-accent': `var(--color-${c})`,
+            '--badge-on-accent': `var(--color-${c}-content)`,
+            '--badge-soft': `var(--color-${c}-soft)`,
+            '--badge-ink': softInk(c),
+        } } }])),
+        variant: {
+            solid: { root: { base: {
+                background: 'var(--badge-accent)',
+                color: 'var(--badge-on-accent)',
+            } } },
+            soft: { root: { base: {
+                background: 'var(--badge-soft)',
+                color: 'var(--badge-ink)',
+            } } },
+            outline: { root: { base: {
+                background: 'transparent',
+                borderColor: 'var(--badge-accent)',
+                color: 'var(--badge-ink)',
+            } } },
+        },
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 0.375rem' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)', padding: '0.0625rem 0.4375rem' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-sm)', padding: '0.1875rem 0.625rem' } } },
+            xl: { root: { base: { fontSize: 'var(--text-md)', padding: '0.25rem 0.75rem' } } },
+        },
+    },
+    defaultVariants: { variant: 'soft' },
+};
+
+/**
+ * Divider — the hairline, standing alone. `size` is the one axis that means
+ * something here: a divider has no type and no padding, so the ramp moves the
+ * only dimension it has, its thickness.
+ */
+export const divider: RecipeInput = {
+    component: 'divider',
+    tokens: { '--divider-ink': 'var(--color-base-300)', '--divider-thickness': 'var(--border)' },
+    parts: {
+        root: {
+            base: {
+                border: 'none',
+                background: 'var(--divider-ink)',
+                alignSelf: 'stretch',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': {
+                    inlineSize: '100%',
+                    blockSize: 'var(--divider-thickness)',
+                },
+                '&[data-orientation="vertical"]': {
+                    inlineSize: 'var(--divider-thickness)',
+                    minBlockSize: '1em',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--divider-ink': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--divider-thickness': 'var(--border)' } } },
+            sm: { root: { base: { '--divider-thickness': 'var(--border)' } } },
+            md: {},
+            lg: { root: { base: { '--divider-thickness': 'calc(var(--border) * 2)' } } },
+            xl: { root: { base: { '--divider-thickness': 'calc(var(--border) * 3)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
+    card, alert, badge, divider,
 ];

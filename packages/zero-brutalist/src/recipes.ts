@@ -2274,8 +2274,229 @@ export const textarea: RecipeInput = {
     },
 };
 
+// ── Content tier (#311) ───────────────────────────────────────────────────
+/** A card is a slab: the ink frame, the hard shadow, square corners. */
+export const card: RecipeInput = {
+    component: 'card',
+    tokens: { '--card-pad': 'var(--space-lg)', '--card-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                ...inked,
+                boxShadow: 'var(--shadow-md)',
+                borderBlockStartWidth: 'calc(var(--border) * 2)',
+                borderBlockStartColor: 'var(--card-accent)',
+            },
+        },
+        header: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-2xs)',
+                padding: 'var(--card-pad) var(--card-pad) 0',
+                borderBlockEnd: 'var(--border) solid var(--color-base-content)',
+                paddingBlockEnd: 'var(--space-sm)',
+            },
+        },
+        title: {
+            base: { margin: '0', ...label, fontSize: 'var(--text-md)', lineHeight: 'var(--leading-tight)' },
+        },
+        description: {
+            base: {
+                margin: '0',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+            },
+        },
+        body: {
+            base: {
+                padding: 'var(--card-pad)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-normal)',
+            },
+        },
+        footer: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-md)',
+                padding: '0 var(--card-pad) var(--card-pad)',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--card-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--card-pad': 'var(--space-sm)' } } },
+            sm: { root: { base: { '--card-pad': 'var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { '--card-pad': 'var(--space-xl)' } } },
+            xl: { root: { base: { '--card-pad': 'var(--space-2xl)' } } },
+        },
+    },
+};
+
+/** An alert is a stamped notice: the role as a solid block on the reading edge. */
+export const alert: RecipeInput = {
+    component: 'alert',
+    tokens: { '--alert-accent': 'var(--color-primary)' },
+    parts: {
+        root: {
+            base: {
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr auto',
+                alignItems: 'start',
+                gap: 'var(--space-xs) var(--space-md)',
+                ...inked,
+                boxShadow: 'var(--shadow-xs)',
+                borderInlineStartWidth: 'calc(var(--border) * 4)',
+                borderInlineStartColor: 'var(--alert-accent)',
+                padding: 'var(--space-md) var(--space-lg)',
+            },
+            states: { open: {}, closed: {} },
+        },
+        icon: {
+            base: {
+                gridRow: '1 / span 2',
+                display: 'inline-flex',
+                alignItems: 'center',
+                color: 'var(--alert-accent)',
+                fontSize: 'var(--text-md)',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        title: {
+            base: { ...label, fontSize: 'var(--text-xs)', lineHeight: 'var(--leading-tight)' },
+        },
+        description: {
+            base: {
+                gridColumn: '2',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-normal)',
+            },
+        },
+        close: {
+            base: {
+                gridRow: '1',
+                gridColumn: '3',
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                padding: 'var(--space-2xs)',
+                cursor: 'pointer',
+                transition: motion('background, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'var(--color-base-200)',
+                    transform: 'translate(1px, 1px)',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--alert-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-sm)' } } },
+            sm: { root: { base: { padding: 'var(--space-xs) var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { padding: 'var(--space-lg) var(--space-xl)' } } },
+            xl: { root: { base: { padding: 'var(--space-xl) var(--space-2xl)' } } },
+        },
+    },
+};
+
+/** A badge is a stamp: square corners, full ink frame, mono uppercase. */
+export const badge: RecipeInput = {
+    component: 'badge',
+    tokens: { '--badge-fill': 'var(--color-base-200)', '--badge-ink': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375em',
+                background: 'var(--badge-fill)',
+                color: 'var(--badge-ink)',
+                border: 'var(--border) solid var(--color-base-content)',
+                borderRadius: '0',
+                padding: '0 var(--space-sm)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-normal)',
+                whiteSpace: 'nowrap',
+                textDecoration: 'none',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--badge-fill': `var(--color-${c})`,
+            '--badge-ink': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-xs)' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-sm)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-sm)', padding: '0 var(--space-md)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-2xs) var(--space-lg)' } } },
+        },
+    },
+};
+
+/** A rule, at slab weight — this identity has no hairlines. */
+export const divider: RecipeInput = {
+    component: 'divider',
+    tokens: { '--divider-ink': 'var(--color-base-content)', '--divider-thickness': 'calc(var(--border) * 2)' },
+    parts: {
+        root: {
+            base: { border: 'none', background: 'var(--divider-ink)', alignSelf: 'stretch' },
+            selectors: {
+                '&[data-orientation="horizontal"]': {
+                    inlineSize: '100%',
+                    blockSize: 'var(--divider-thickness)',
+                },
+                '&[data-orientation="vertical"]': {
+                    inlineSize: 'var(--divider-thickness)',
+                    minBlockSize: '1em',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--divider-ink': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--divider-thickness': 'var(--border)' } } },
+            sm: { root: { base: { '--divider-thickness': 'calc(var(--border) * 2)' } } },
+            md: {},
+            lg: { root: { base: { '--divider-thickness': 'calc(var(--border) * 3)' } } },
+            xl: { root: { base: { '--divider-thickness': 'calc(var(--border) * 4)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
+    card, alert, badge, divider,
 ];

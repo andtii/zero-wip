@@ -67,10 +67,10 @@ const designSystems = {
  * a deferral (#175, discharging RFC 0003 §9 phase 5's gate: "wire it, or record
  * the divergence per component with its reason").
  *
- * The sixteen were surveyed one at a time against RFC 0003 §7.2's set — the
+ * The nineteen were surveyed one at a time against RFC 0003 §7.2's set — the
  * reasons below are the survey — and the result is more uniform than the issue
- * guessed. **Fourteen of the sixteen do carry a variant in a real design
- * system. Not one of the fourteen spells it `solid | outline | soft | ghost`.**
+ * guessed. **Seventeen of the nineteen do carry a variant in a real design
+ * system. Not one of the seventeen spells it `solid | outline | soft | ghost`.**
  *
  * That is §1.1's thesis arriving at its consequence. The four convention design
  * systems declare a BUTTON's vocabulary and declare it design-system-wide, so
@@ -82,11 +82,18 @@ const designSystems = {
  * of every scope's vocabulary rather than the button's — so the reasons below
  * no longer say "inexpressible", they say "not declared yet". Wiring any of
  * the fourteen is now a design system's decision, taken one skin at a time,
- * and it costs the recipes plus the contrast audit's ancestor chains (fifteen
- * of the sixteen carry their axes on a part that renders no text — `toggle` is
+ * and it costs the recipes plus the contrast audit's ancestor chains (eighteen
+ * of the nineteen carry their axes on a part that renders no text — `toggle` is
  * the one whose carrier is the text-bearing element itself).
  *
- * So `never` is still the correct compiled answer for all sixteen today —
+ * `badge` is deliberately NOT here, and is the reason the ledger is no longer
+ * the whole story: zero-basic wires its variant against a vocabulary badge
+ * declares for itself (`tokens.scopes`, RFC 0003 §4.1 / #294 / #311). It is
+ * the content tier's arrival that §4 said would trigger this, and it could go
+ * first because its carrier IS its text-bearing part — the one shape the
+ * contrast audit's one-element probe can measure without #297's chains.
+ *
+ * So `never` is still the correct compiled answer for all nineteen today —
  * none of the six declares a vocabulary for them — and this ledger is the
  * reason it is correct rather than merely absent.
  *
@@ -140,6 +147,16 @@ const NO_VARIANT: Record<string, string> = {
 
     // ── Bucket B: no surveyed system varies these at all. The only two where
     //    "no variant here" is the whole answer, and §4 would not change it. ──
+    // ── The content tier (#311). Card and alert have a variant in a surveyed
+    //    system and cannot wire it yet: their text sits BELOW a non-text
+    //    carrier, which the contrast audit's `axis coverage` guard rejects
+    //    until #297 lands the ancestor chains. Divider is bucket B's third.
+    card: 'Radix Themes Card varies as surface | classic | ghost.',
+    alert: 'Radix Themes Callout varies as soft | surface | outline.',
+    divider: 'Ant Design Divider varies as solid | dashed | dotted — a stroke '
+        + 'style rather than a fill, which is the axis in a different sense '
+        + 'again and exactly §7.2\'s point.',
+
     'rating-group': 'no surveyed system varies a rating control — Ant Design\'s '
         + 'Rate has size and character, no style axis.',
     'tree-view': 'no surveyed system varies a tree — Ant Design\'s Tree styles '

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Avatar, Collapsible, Combobox, Dialog, Input, NumberInput, RatingGroup, Switch, Tabs, Textarea, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Card, Collapsible, Combobox, Dialog, Divider, Input, NumberInput, RatingGroup, Switch, Tabs, Textarea, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -62,6 +62,22 @@ function page() {
                 <Textarea.Label>Bio</Textarea.Label>
                 <Textarea.Textarea />
             </Textarea.Root>
+            <Card.Root variant="outline">
+                <Card.Header>
+                    <Card.Title>Report</Card.Title>
+                    <Card.Description>Updated</Card.Description>
+                </Card.Header>
+                <Card.Body>Body</Card.Body>
+                <Card.Footer>Footer</Card.Footer>
+            </Card.Root>
+            <Alert.Root color="warning">
+                <Alert.Icon>!</Alert.Icon>
+                <Alert.Title>Quota</Alert.Title>
+                <Alert.Description>92% used.</Alert.Description>
+                <Alert.Close />
+            </Alert.Root>
+            <Badge color="success">Active</Badge>
+            <Divider />
             <RatingGroup.Root name="stars" defaultValue={2.5} allowHalf>
                 <RatingGroup.Label>Stars</RatingGroup.Label>
                 <RatingGroup.Control>

@@ -260,6 +260,41 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
+            /** card — color, size wired. */
+            'card': {
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+                /** Accepts `variant` at runtime, but no basic recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
+            /** alert — color, size wired. */
+            'alert': {
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+                /** Accepts `variant` at runtime, but no basic recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
+            /** badge — color, size, variant wired. */
+            'badge': {
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+                variant: 'solid' | 'soft' | 'outline';
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
+            /** divider — color, size wired. */
+            'divider': {
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+                /** Accepts `variant` at runtime, but no basic recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
         };
     }
 }

@@ -2712,8 +2712,250 @@ export const textarea: RecipeInput = {
     },
 };
 
+// ── Content tier (#311) ───────────────────────────────────────────────────
+/**
+ * Material's elevated card: a tonal surface container rather than base-100,
+ * the `radius-box` corner, and one elevation step. The role rides the same
+ * `--md-*` indirection the rest of this skin uses.
+ */
+export const card: RecipeInput = {
+    component: 'card',
+    tokens: { '--card-pad': 'var(--space-lg)', '--card-accent': 'var(--color-primary)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                background: 'var(--color-surface-container)',
+                color: 'var(--color-surface-container-content)',
+                borderRadius: 'var(--radius-box)',
+                boxShadow: 'var(--shadow-level1)',
+                overflow: 'hidden',
+            },
+        },
+        header: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-2xs)',
+                padding: 'var(--card-pad) var(--card-pad) 0',
+            },
+        },
+        title: {
+            base: {
+                margin: '0',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-lg)',
+                fontWeight: 'var(--weight-medium)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: 'var(--leading-tight)',
+            },
+        },
+        description: {
+            base: {
+                margin: '0',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+                opacity: '0.78',
+            },
+        },
+        body: {
+            base: { padding: 'var(--card-pad)', fontSize: 'var(--text-md)', lineHeight: 'var(--leading-normal)' },
+        },
+        footer: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: 'var(--space-sm)',
+                padding: '0 var(--card-pad) var(--card-pad)',
+            },
+        },
+    },
+    variants: {
+        // Material tints an accented card through its border, not its fill:
+        // the tonal surface IS the card's colour, and re-tinting it would
+        // fight the elevation ramp it belongs to.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--card-accent': `var(--color-${c})`,
+            borderTop: `calc(var(--border) * 3) solid var(--card-accent)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--card-pad': 'var(--space-sm)' } } },
+            sm: { root: { base: { '--card-pad': 'var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { '--card-pad': 'var(--space-xl)' } } },
+            xl: { root: { base: { '--card-pad': 'var(--space-2xl)' } } },
+        },
+    },
+};
+
+/** Material's banner: the role's soft tint, its outline, and the icon in ink. */
+export const alert: RecipeInput = {
+    component: 'alert',
+    tokens: {
+        '--alert-tint': 'var(--color-info-soft)',
+        '--alert-accent': 'var(--color-info)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr auto',
+                alignItems: 'center',
+                gap: 'var(--space-2xs) var(--space-md)',
+                background: 'var(--alert-tint)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--alert-accent)',
+                borderRadius: 'var(--radius-box)',
+                padding: 'var(--space-md) var(--space-lg)',
+            },
+            states: { open: {}, closed: {} },
+        },
+        icon: {
+            base: {
+                gridRow: '1 / span 2',
+                display: 'inline-flex',
+                alignItems: 'center',
+                color: 'var(--alert-accent)',
+                fontSize: 'var(--text-lg)',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        title: {
+            base: {
+                ...label,
+                fontSize: 'var(--text-md)',
+                lineHeight: 'var(--leading-tight)',
+            },
+        },
+        description: {
+            base: {
+                gridColumn: '2',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+            },
+        },
+        close: {
+            base: {
+                gridRow: '1',
+                gridColumn: '3',
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                borderRadius: 'var(--radius-selector)',
+                padding: 'var(--space-2xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: 'color-mix(in oklab, var(--color-base-content) 8%, transparent)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklab, var(--color-base-content) 15%, transparent)',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--alert-tint': `var(--color-${c}-soft)`,
+            '--alert-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-sm)' } } },
+            sm: { root: { base: { padding: 'var(--space-xs) var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { padding: 'var(--space-lg) var(--space-xl)' } } },
+            xl: { root: { base: { padding: 'var(--space-xl) var(--space-2xl)' } } },
+        },
+    },
+};
+
+/** Material's badge: a small filled pill in the role's own on-accent pair. */
+export const badge: RecipeInput = {
+    component: 'badge',
+    tokens: {
+        '--badge-fill': 'var(--color-error)',
+        '--badge-ink': 'var(--color-error-content)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375em',
+                background: 'var(--badge-fill)',
+                color: 'var(--badge-ink)',
+                borderRadius: 'var(--radius-selector)',
+                padding: '0.125rem 0.5rem',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-medium)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: 'var(--leading-normal)',
+                whiteSpace: 'nowrap',
+                textDecoration: 'none',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--badge-fill': `var(--color-${c})`,
+            '--badge-ink': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-xs)' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-sm)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-2xs) var(--space-md)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-xs) var(--space-lg)' } } },
+        },
+    },
+};
+
+/** Material's divider: the outline tone, at hairline weight. */
+export const divider: RecipeInput = {
+    component: 'divider',
+    tokens: { '--divider-ink': 'var(--color-outline)', '--divider-thickness': 'var(--border)' },
+    parts: {
+        root: {
+            base: { border: 'none', background: 'var(--divider-ink)', alignSelf: 'stretch' },
+            selectors: {
+                '&[data-orientation="horizontal"]': {
+                    inlineSize: '100%',
+                    blockSize: 'var(--divider-thickness)',
+                },
+                '&[data-orientation="vertical"]': {
+                    inlineSize: 'var(--divider-thickness)',
+                    minBlockSize: '1em',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--divider-ink': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--divider-thickness': 'var(--border)' } } },
+            sm: { root: { base: { '--divider-thickness': 'var(--border)' } } },
+            md: {},
+            lg: { root: { base: { '--divider-thickness': 'calc(var(--border) * 2)' } } },
+            xl: { root: { base: { '--divider-thickness': 'calc(var(--border) * 3)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
+    card, alert, badge, divider,
 ];

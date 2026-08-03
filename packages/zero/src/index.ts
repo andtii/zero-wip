@@ -176,3 +176,21 @@ export type {
     TextareaLabelProps,
     TextareaTextareaProps,
 } from './components/textarea/index.js';
+
+export { Card, cardAnatomy } from './components/card/index.js';
+export type { CardRootProps, CardPartProps } from './components/card/index.js';
+
+export { Alert, alertAnatomy, useAlertContext } from './components/alert/index.js';
+export type {
+    AlertRootProps,
+    AlertIconProps,
+    AlertTitleProps,
+    AlertDescriptionProps,
+    AlertCloseProps,
+} from './components/alert/index.js';
+
+export { Badge, badgeAnatomy } from './components/badge/index.js';
+export type { BadgeRootProps } from './components/badge/index.js';
+
+export { Divider, dividerAnatomy } from './components/divider/index.js';
+export type { DividerRootProps } from './components/divider/index.js';
