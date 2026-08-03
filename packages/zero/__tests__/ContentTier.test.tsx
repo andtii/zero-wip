@@ -16,8 +16,20 @@ import {
 } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
+const selector = (scope: string, name: string) => `[data-scope="${scope}"][data-part="${name}"]`;
+
+/** The part, asserted present — for the cases that go on to read it. */
 const part = (c: HTMLElement, scope: string, name: string) =>
-    c.querySelector<HTMLElement>(`[data-scope="${scope}"][data-part="${name}"]`)!;
+    c.querySelector<HTMLElement>(selector(scope, name))!;
+
+/**
+ * The part as the DOM actually reports it. Absence assertions go through this
+ * rather than `part()`: the `!` there is a compile-time claim, so
+ * `expect(part(…)).toBeNull()` passes at runtime while asserting something
+ * the types say cannot happen — which is a lie that would survive a refactor.
+ */
+const maybePart = (c: HTMLElement, scope: string, name: string) =>
+    c.querySelector<HTMLElement>(selector(scope, name));
 
 describe('Card', () => {
     let container: HTMLElement;
@@ -57,8 +69,8 @@ describe('Card', () => {
     it('renders with only the parts the caller used', () => {
         render(<Card.Root><Card.Body>Just a body.</Card.Body></Card.Root>, container);
         expectAnatomy(container, cardAnatomy);
-        expect(part(container, 'card', 'header')).toBeNull();
-        expect(part(container, 'card', 'footer')).toBeNull();
+        expect(maybePart(container, 'card', 'header')).toBeNull();
+        expect(maybePart(container, 'card', 'footer')).toBeNull();
     });
 });
 
