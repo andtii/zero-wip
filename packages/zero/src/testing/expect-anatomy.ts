@@ -1,5 +1,5 @@
 import type { Anatomy } from '../contract/anatomy.js';
-import { MOD_ATTR_PREFIX } from '../contract/props.js';
+import { MOD_ATTR_PREFIX, RESERVED_AXES, VARIANT_AXES } from '../contract/props.js';
 
 /**
  * Options for `expectAnatomy`. A component that renders custom `axes`
@@ -36,6 +36,14 @@ function fail(anatomy: Anatomy, message: string): never {
  * whatever runner it uses.
  */
 export function expectAnatomy(container: ParentNode, anatomy: Anatomy, options: ExpectAnatomyOptions = {}): void {
+    // The same guards `variantAttrs` enforces at render time: an axis the
+    // contract owns could never legitimately render, so declaring one here
+    // would silently exempt a real attribute from the walk.
+    for (const axis of options.axes ?? []) {
+        if (RESERVED_AXES.has(axis) || Object.prototype.hasOwnProperty.call(VARIANT_AXES, axis)) {
+            fail(anatomy, `axes: "${axis}" is part of the anatomy contract — data-${axis} already means something and cannot be exempted`);
+        }
+    }
     const axisAttrs = new Set((options.axes ?? []).map((axis) => `data-${axis}`));
     const selector = `[data-scope="${anatomy.scope}"]`;
     // querySelectorAll only sees descendants, and the container is often the

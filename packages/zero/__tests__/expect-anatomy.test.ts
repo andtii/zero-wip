@@ -93,6 +93,15 @@ describe('expectAnatomy (public conformance helper)', () => {
         // The same custom axis without the declaration reads as an undeclared flag.
         expect(() => expectAnatomy(container, demoAnatomy)).toThrow(/undeclared flag "emphasis"/);
     });
+
+    it('rejects contract-owned names in the axes option', () => {
+        const container = mount(part('root', { 'data-state': 'idle' }));
+        // A flag from the shared vocabulary, and an axis with a prop of its
+        // own — exempting either would silently bypass a real check.
+        expect(() => expectAnatomy(container, demoAnatomy, { axes: ['disabled'] })).toThrow(/part of the anatomy contract/);
+        expect(() => expectAnatomy(container, demoAnatomy, { axes: ['state'] })).toThrow(/part of the anatomy contract/);
+        expect(() => expectAnatomy(container, demoAnatomy, { axes: ['color'] })).toThrow(/part of the anatomy contract/);
+    });
 });
 
 describe('synthesizesClickFrom (public asChild helper)', () => {
