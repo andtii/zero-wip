@@ -101,6 +101,14 @@ describe('expectAnatomy (public conformance helper)', () => {
         expect(() => expectAnatomy(container, demoAnatomy, { axes: ['disabled'] })).toThrow(/part of the anatomy contract/);
         expect(() => expectAnatomy(container, demoAnatomy, { axes: ['state'] })).toThrow(/part of the anatomy contract/);
         expect(() => expectAnatomy(container, demoAnatomy, { axes: ['color'] })).toThrow(/part of the anatomy contract/);
+        // HTML lowercases attribute names — a camelCase exemption can never
+        // match, so it is rejected rather than silently not applying.
+        expect(() => expectAnatomy(container, demoAnatomy, { axes: ['iconOnly'] })).toThrow(/kebab-case/);
+    });
+
+    it('holds mods to presence-only even though they are exempt from declaration', () => {
+        const container = mount(part('root', { 'data-state': 'idle', 'data-mod-icon-only': 'true' }));
+        expect(() => expectAnatomy(container, demoAnatomy)).toThrow(/presence-only/);
     });
 });
 

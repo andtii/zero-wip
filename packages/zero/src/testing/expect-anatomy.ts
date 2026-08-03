@@ -1,5 +1,6 @@
 import type { Anatomy } from '../contract/anatomy.js';
 import { MOD_ATTR_PREFIX, RESERVED_AXES, VARIANT_AXES } from '../contract/props.js';
+import { TOKEN_KEY_PATTERN as AXIS_NAME_PATTERN } from '../contract/tokens.js';
 
 /**
  * Options for `expectAnatomy`. A component that renders custom `axes`
@@ -43,6 +44,12 @@ export function expectAnatomy(container: ParentNode, anatomy: Anatomy, options: 
         if (RESERVED_AXES.has(axis) || Object.prototype.hasOwnProperty.call(VARIANT_AXES, axis)) {
             fail(anatomy, `axes: "${axis}" is part of the anatomy contract — data-${axis} already means something and cannot be exempted`);
         }
+        // HTML lowercases attribute names, so a camelCase entry would build an
+        // exemption no attribute can ever match — the misconfiguration surfaces
+        // as a baffling "undeclared flag" failure unless caught here.
+        if (!AXIS_NAME_PATTERN.test(axis)) {
+            fail(anatomy, `axes: "${axis}" is not a kebab-case identifier — it becomes the attribute name data-${axis}`);
+        }
     }
     const axisAttrs = new Set((options.axes ?? []).map((axis) => `data-${axis}`));
     const selector = `[data-scope="${anatomy.scope}"]`;
@@ -85,8 +92,14 @@ export function expectAnatomy(container: ParentNode, anatomy: Anatomy, options: 
         for (const attr of el.getAttributeNames()) {
             if (!attr.startsWith('data-') || CONTRACT_ATTRS.has(attr) || axisAttrs.has(attr)) continue;
             // Modifiers are declared design-system vocabulary rendered through
-            // `mods`, namespaced so they can never collide with flags.
-            if (attr.startsWith(MOD_ATTR_PREFIX)) continue;
+            // `mods`, namespaced so they can never collide with flags — exempt
+            // from declaration, but presence-only like every boolean attribute.
+            if (attr.startsWith(MOD_ATTR_PREFIX)) {
+                if (el.getAttribute(attr) !== '') {
+                    fail(anatomy, `modifier ${attr} on part "${partName}" must be presence-only, got "${el.getAttribute(attr)}"`);
+                }
+                continue;
+            }
             const flag = attr.slice(5);
             if (!(spec.flags ?? []).includes(flag)) {
                 fail(anatomy, `part "${partName}" renders undeclared flag "${flag}"`);
