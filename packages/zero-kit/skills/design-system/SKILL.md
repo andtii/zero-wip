@@ -18,7 +18,7 @@ component's anatomy). No component code is ever written or changed.
    where "the manifest" means zero's PLUS any ecosystem fragments the project
    merges (see "Ecosystem components" below): check the project for packages
    shipping a manifest fragment (`{ "package": …, "components": […] }`, or a
-   `fragment` export) before deciding the component list is zero's 23.
+   `fragment` export) before deciding the component list is zero's built-ins.
    A part may also carry `hiddenIn`: the states in which zero's runtime sets
    the `hidden` attribute on it (`avatar.image` while `error`, `tabs.panel`
    while `inactive`). Those states never paint — don't style them, and don't

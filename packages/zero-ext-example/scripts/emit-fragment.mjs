@@ -11,4 +11,5 @@ await writeFile(out, `${JSON.stringify({
     $schema: 'https://signalxjs.github.io/zero/schemas/fragment.schema.json',
     ...fragment,
 }, null, 4)}\n`);
-console.log(`[zero-ext-example] wrote fragment.json (${fragment.components.length} component)`);
+const n = fragment.components.length;
+console.log(`[zero-ext-example] wrote fragment.json (${n} component${n === 1 ? '' : 's'})`);
