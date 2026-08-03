@@ -160,3 +160,19 @@ export type {
     ComboboxItemProps,
     ComboboxEmptyProps,
 } from './components/combobox/index.js';
+
+export { Input, inputAnatomy, useInputContext } from './components/input/index.js';
+export type {
+    InputRootProps,
+    InputLabelProps,
+    InputControlProps,
+    InputInputProps,
+    InputType,
+} from './components/input/index.js';
+
+export { Textarea, textareaAnatomy, useTextareaContext } from './components/textarea/index.js';
+export type {
+    TextareaRootProps,
+    TextareaLabelProps,
+    TextareaTextareaProps,
+} from './components/textarea/index.js';

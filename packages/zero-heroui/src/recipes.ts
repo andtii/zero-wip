@@ -2274,8 +2274,150 @@ function withPresence(presence: PartStyles, styles: PartStyles): PartStyles {
     };
 }
 
+// ── Text fields ───────────────────────────────────────────────────────────
+/**
+ * HeroUI's bordered input. Same chrome as the number input's control, and the
+ * same three-step ramp — no `color` axis, because this design system declares
+ * none (`roles: {}`); the ring is always `--hero-focus` and the invalid border
+ * always `--hero-danger`.
+ */
+export const input: RecipeInput = {
+    component: 'input',
+    tokens: { '--input-text': 'var(--text-sm)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { ...label },
+            states: {
+                disabled: {},
+                invalid: { color: 'var(--hero-danger)' },
+                // v3 marks required with the label's own weight, not an asterisk.
+                required: { fontWeight: 'var(--weight-semibold)' },
+            },
+        },
+        control: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'stretch',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-field)',
+                background: 'var(--color-base-100)',
+                transition: motion('border-color'),
+            },
+            states: {
+                hover: { borderColor: 'var(--color-base-content)' },
+                invalid: { borderColor: 'var(--hero-danger)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                readonly: {},
+                ...focusRing,
+            },
+        },
+        input: {
+            base: {
+                width: '100%',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                padding: 'var(--space-sm) var(--space-md)',
+                color: 'var(--color-base-content)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--input-text)',
+            },
+            states: {
+                disabled: { cursor: 'not-allowed' },
+                invalid: {}, required: {}, readonly: {},
+            },
+            selectors: {
+                '&::placeholder': { color: 'var(--hero-muted)' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: {
+                root: { base: { '--input-text': 'var(--text-xs)' } },
+                input: { base: { padding: 'var(--space-xs) var(--space-sm)' } },
+            },
+            md: {},
+            lg: {
+                root: { base: { '--input-text': 'var(--text-md)' } },
+                input: { base: { padding: 'var(--space-md) var(--space-lg)' } },
+            },
+        },
+    },
+    // The ring draws on `control`; the input delegates.
+    skipStates: { input: ['focus-visible'] },
+};
+
+/** The same bordered field, drawn on the element — see the textarea anatomy. */
+export const textarea: RecipeInput = {
+    component: 'textarea',
+    tokens: { '--textarea-text': 'var(--text-sm)' },
+    parts: {
+        root: {
+            base: { display: 'inline-flex', flexDirection: 'column', gap: 'var(--space-2xs)' },
+            states: { disabled: {}, invalid: {}, required: {}, readonly: {} },
+        },
+        label: {
+            base: { ...label },
+            states: {
+                disabled: {},
+                invalid: { color: 'var(--hero-danger)' },
+                required: { fontWeight: 'var(--weight-semibold)' },
+            },
+        },
+        textarea: {
+            base: {
+                display: 'block',
+                width: '100%',
+                minWidth: '0',
+                appearance: 'none',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-field)',
+                background: 'var(--color-base-100)',
+                padding: 'var(--space-sm) var(--space-md)',
+                color: 'var(--color-base-content)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--textarea-text)',
+                lineHeight: 'var(--leading-normal)',
+                resize: 'vertical',
+                transition: motion('border-color'),
+            },
+            states: {
+                hover: { borderColor: 'var(--color-base-content)' },
+                invalid: { borderColor: 'var(--hero-danger)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                readonly: {},
+                required: {},
+                ...focusRing,
+            },
+            selectors: {
+                '&::placeholder': { color: 'var(--hero-muted)' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: {
+                root: { base: { '--textarea-text': 'var(--text-xs)' } },
+                textarea: { base: { padding: 'var(--space-xs) var(--space-sm)' } },
+            },
+            md: {},
+            lg: {
+                root: { base: { '--textarea-text': 'var(--text-md)' } },
+                textarea: { base: { padding: 'var(--space-md) var(--space-lg)' } },
+            },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup, treeView,
+    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
 ];

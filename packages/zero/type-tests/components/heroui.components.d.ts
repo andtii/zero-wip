@@ -29,6 +29,8 @@ import type { ToggleGroup as ZToggleGroup } from '@sigx/zero/toggle-group';
 import type { NumberInput as ZNumberInput } from '@sigx/zero/number-input';
 import type { RatingGroup as ZRatingGroup } from '@sigx/zero/rating-group';
 import type { TreeView as ZTreeView } from '@sigx/zero/tree-view';
+import type { Input as ZInput } from '@sigx/zero/input';
+import type { Textarea as ZTextarea } from '@sigx/zero/textarea';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -179,3 +181,17 @@ type TreeViewProps = {
 };
 type TreeViewAdapted = Adapted<typeof ZTreeView, ZeroAxisProp, TreeViewProps>;
 export declare const TreeView: TreeViewAdapted & AdaptedStatics<typeof ZTreeView> & { Root: TreeViewAdapted };
+
+/** input — no vendor route; the wired surface keeps zero's names. */
+type InputProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type InputAdapted = Adapted<typeof ZInput, ZeroAxisProp, InputProps>;
+export declare const Input: InputAdapted & AdaptedStatics<typeof ZInput> & { Root: InputAdapted };
+
+/** textarea — no vendor route; the wired surface keeps zero's names. */
+type TextareaProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type TextareaAdapted = Adapted<typeof ZTextarea, ZeroAxisProp, TextareaProps>;
+export declare const Textarea: TextareaAdapted & AdaptedStatics<typeof ZTextarea> & { Root: TextareaAdapted };

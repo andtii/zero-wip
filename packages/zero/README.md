@@ -29,7 +29,7 @@ import '@sigx/zero-basic/css';         // ← the design system (swappable)
 Button · Tabs · Collapsible · Accordion · Dialog · Popover · Tooltip · Menu ·
 Select · Switch · Checkbox · RadioGroup · Slider · Progress · Field · Avatar ·
 Toast · Combobox · Toggle · ToggleGroup · NumberInput · RatingGroup ·
-TreeView
+TreeView · Input · Textarea
 
 All state is one two-way `model` prop (sigx `Define.Model`) — bind a signal
 property with `model={() => state.open}`, or leave it uncontrolled with

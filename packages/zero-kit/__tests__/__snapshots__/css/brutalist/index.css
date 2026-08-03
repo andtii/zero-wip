@@ -3623,3 +3623,257 @@
         --tree-text: var(--text-lg);
     }
 }
+
+@layer zero.recipes {
+    [data-scope="input"][data-part="root"] {
+        --input-accent: var(--color-primary);
+    }
+
+    [data-scope="input"][data-part="root"] {
+        display: inline-flex;
+        flex-direction: column;
+        gap: var(--space-xs);
+    }
+
+    [data-scope="input"][data-part="label"] {
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="input"][data-part="label"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="input"][data-part="label"][data-invalid] {
+        color: var(--color-error);
+    }
+
+    [data-scope="input"][data-part="label"][data-required]::after {
+        content: " *";
+        color: var(--color-error);
+    }
+
+    [data-scope="input"][data-part="control"] {
+        display: inline-flex;
+        align-items: stretch;
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        box-shadow: var(--shadow-xs);
+        overflow: hidden;
+    }
+
+    [data-scope="input"][data-part="control"][data-invalid] {
+        border-color: var(--color-error);
+    }
+
+    [data-scope="input"][data-part="control"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="input"][data-part="control"][data-focus-visible] {
+        outline: var(--border) solid var(--input-accent);
+        outline-offset: 3px;
+    }
+
+    [data-scope="input"][data-part="input"] {
+        width: 100%;
+        min-width: 0;
+        appearance: none;
+        border: none;
+        outline: none;
+        background: transparent;
+        color: inherit;
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    [data-scope="input"][data-part="input"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="input"][data-part="input"]::placeholder {
+        color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+        text-transform: uppercase;
+    }
+
+    [data-scope="input"][data-part="root"][data-color="primary"] {
+        --input-accent: var(--color-primary);
+    }
+
+    [data-scope="input"][data-part="root"][data-color="secondary"] {
+        --input-accent: var(--color-secondary);
+    }
+
+    [data-scope="input"][data-part="root"][data-color="accent"] {
+        --input-accent: var(--color-accent);
+    }
+
+    [data-scope="input"][data-part="root"][data-color="neutral"] {
+        --input-accent: var(--color-neutral);
+    }
+
+    [data-scope="input"][data-part="root"][data-color="info"] {
+        --input-accent: var(--color-info);
+    }
+
+    [data-scope="input"][data-part="root"][data-color="success"] {
+        --input-accent: var(--color-success);
+    }
+
+    [data-scope="input"][data-part="root"][data-color="warning"] {
+        --input-accent: var(--color-warning);
+    }
+
+    [data-scope="input"][data-part="root"][data-color="error"] {
+        --input-accent: var(--color-error);
+    }
+
+    [data-scope="input"][data-part="root"][data-size="xs"] [data-scope="input"][data-part="input"] {
+        font-size: var(--text-xs);
+        padding: var(--space-2xs) var(--space-xs);
+    }
+
+    [data-scope="input"][data-part="root"][data-size="sm"] [data-scope="input"][data-part="input"] {
+        font-size: var(--text-xs);
+        padding: var(--space-xs) var(--space-sm);
+    }
+
+    [data-scope="input"][data-part="root"][data-size="lg"] [data-scope="input"][data-part="input"] {
+        font-size: var(--text-sm);
+        padding: var(--space-md) var(--space-lg);
+    }
+
+    [data-scope="input"][data-part="root"][data-size="xl"] [data-scope="input"][data-part="input"] {
+        font-size: var(--text-md);
+        padding: var(--space-lg) var(--space-xl);
+    }
+}
+
+@layer zero.recipes {
+    [data-scope="textarea"][data-part="root"] {
+        --textarea-accent: var(--color-primary);
+    }
+
+    [data-scope="textarea"][data-part="root"] {
+        display: inline-flex;
+        flex-direction: column;
+        gap: var(--space-xs);
+    }
+
+    [data-scope="textarea"][data-part="label"] {
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
+        text-transform: uppercase;
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="textarea"][data-part="label"][data-disabled] {
+        opacity: var(--disabled-opacity);
+    }
+
+    [data-scope="textarea"][data-part="label"][data-invalid] {
+        color: var(--color-error);
+    }
+
+    [data-scope="textarea"][data-part="label"][data-required]::after {
+        content: " *";
+        color: var(--color-error);
+    }
+
+    [data-scope="textarea"][data-part="textarea"] {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        appearance: none;
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: var(--color-base-100);
+        color: var(--color-base-content);
+        box-shadow: var(--shadow-xs);
+        font-family: var(--font-mono);
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        line-height: var(--leading-normal);
+        padding: var(--space-sm) var(--space-md);
+        resize: vertical;
+    }
+
+    [data-scope="textarea"][data-part="textarea"][data-invalid] {
+        border-color: var(--color-error);
+    }
+
+    [data-scope="textarea"][data-part="textarea"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="textarea"][data-part="textarea"][data-focus-visible] {
+        outline: var(--border) solid var(--textarea-accent);
+        outline-offset: 3px;
+    }
+
+    [data-scope="textarea"][data-part="textarea"]::placeholder {
+        color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+        text-transform: uppercase;
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="primary"] {
+        --textarea-accent: var(--color-primary);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="secondary"] {
+        --textarea-accent: var(--color-secondary);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="accent"] {
+        --textarea-accent: var(--color-accent);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="neutral"] {
+        --textarea-accent: var(--color-neutral);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="info"] {
+        --textarea-accent: var(--color-info);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="success"] {
+        --textarea-accent: var(--color-success);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="warning"] {
+        --textarea-accent: var(--color-warning);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-color="error"] {
+        --textarea-accent: var(--color-error);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-size="xs"] [data-scope="textarea"][data-part="textarea"] {
+        font-size: var(--text-xs);
+        padding: var(--space-2xs) var(--space-xs);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-size="sm"] [data-scope="textarea"][data-part="textarea"] {
+        font-size: var(--text-xs);
+        padding: var(--space-xs) var(--space-sm);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-size="lg"] [data-scope="textarea"][data-part="textarea"] {
+        font-size: var(--text-sm);
+        padding: var(--space-md) var(--space-lg);
+    }
+
+    [data-scope="textarea"][data-part="root"][data-size="xl"] [data-scope="textarea"][data-part="textarea"] {
+        font-size: var(--text-md);
+        padding: var(--space-lg) var(--space-xl);
+    }
+}

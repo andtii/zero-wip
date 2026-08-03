@@ -127,6 +127,14 @@
         "./tree-view": {
             "types": "./dist/components/tree-view/index.d.ts",
             "import": "./dist/components/tree-view/index.js"
+        },
+        "./input": {
+            "types": "./dist/components/input/index.d.ts",
+            "import": "./dist/components/input/index.js"
+        },
+        "./textarea": {
+            "types": "./dist/components/textarea/index.d.ts",
+            "import": "./dist/components/textarea/index.js"
         }
     },
     "files": [

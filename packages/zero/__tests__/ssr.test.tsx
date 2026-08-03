@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Avatar, Collapsible, Combobox, Dialog, NumberInput, RatingGroup, Switch, Tabs, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
+import { Avatar, Collapsible, Combobox, Dialog, Input, NumberInput, RatingGroup, Switch, Tabs, Textarea, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -52,6 +52,16 @@ function page() {
                     <NumberInput.IncrementTrigger>+</NumberInput.IncrementTrigger>
                 </NumberInput.Control>
             </NumberInput.Root>
+            <Input.Root name="email" type="email" defaultValue="a@b.c">
+                <Input.Label>Email</Input.Label>
+                <Input.Control>
+                    <Input.Input placeholder="you@example.com" />
+                </Input.Control>
+            </Input.Root>
+            <Textarea.Root name="bio" rows={3} defaultValue="hi">
+                <Textarea.Label>Bio</Textarea.Label>
+                <Textarea.Textarea />
+            </Textarea.Root>
             <RatingGroup.Root name="stars" defaultValue={2.5} allowHalf>
                 <RatingGroup.Label>Stars</RatingGroup.Label>
                 <RatingGroup.Control>
