@@ -4,6 +4,32 @@
 
 ### Added
 
+- **Ecosystem manifest fragments: `mergeManifests` and `--extra-manifest`**
+  (#302, the building-on-top-of-zero track). An ecosystem component package —
+  a peer of `@sigx/zero` shipping its own scopes, built from zero's public
+  authoring surface — publishes `{ "package": "<specifier>", "components":
+  [anatomy.toJSON()] }` (JSON Schema: `schemas/fragment.schema.json`), and a
+  design system opts into covering it by MERGING the fragment into the base
+  manifest rather than replacing it: `--extra-manifest <path|specifier>`
+  (repeatable) on `zero:build`/`zero:validate`, or `mergeManifests(base,
+  ...fragments)` programmatically. The merge stamps each component with its
+  owning package and hard-errors on any scope collision; everything downstream
+  was already scope-agnostic, so the merged scope flows through validation,
+  recipe compilation, per-scope vocabularies and the coverage report unchanged.
+
+- **The register artifact tolerates external scopes without weakening its
+  gate.** `ZeroScope` stays closed on purpose — a merged scope's anatomy lives
+  outside zero's registry, so it can never satisfy the union. The generated
+  `register.d.ts` now excludes external scopes BY NAME
+  (`Exclude<keyof ZeroVocabulary['components'], 'acme-stepper'> extends
+  ZeroScope`), keeping the typo/version-skew guard (RFC 0002 §3.1) at full
+  strength for every zero-origin scope, and records each external scope's
+  owning package in the emitted comment. A design system with no external
+  scopes emits byte-identical output. Under api mode, the generated
+  `./components` module imports an external scope from its owning package's
+  root export instead of the nonexistent `@sigx/zero/<scope>` subpath.
+  Compiled provenance rides on `CompiledDesignSystem.externalScopes`.
+
 - **A vocabulary can belong to one scope: `tokens.scopes`** (#294, RFC 0003
   §4.1). Per-scope axis vocabularies, the thing §4 deferred "until the content
   tier makes divergence real" — and the caller that arrived first was the

@@ -129,13 +129,23 @@ function componentApiOf(compiled: CompiledDesignSystem): Record<string, Compiled
     return compiled.componentApi;
 }
 
+/**
+ * Where a scope's component is imported from. Zero's own components live on
+ * subpath exports; an ecosystem scope's live at the root of the package its
+ * manifest fragment named — the fragment convention is that the package's
+ * root export carries `componentExportName(scope)`.
+ */
+function moduleSpecifierFor(compiled: CompiledDesignSystem, scope: string): string {
+    return compiled.externalScopes?.[scope] ?? `@sigx/zero/${scope}`;
+}
+
 export function compileComponentsDts(compiled: CompiledDesignSystem): string {
     const componentApi = componentApiOf(compiled);
     const scopes = Object.keys(compiled.components);
 
     const imports = scopes.map((scope) => {
         const name = componentExportName(scope);
-        return `import type { ${name} as Z${name} } from '@sigx/zero/${scope}';`;
+        return `import type { ${name} as Z${name} } from '${moduleSpecifierFor(compiled, scope)}';`;
     });
 
     const blocks = scopes.map((scope) => {
@@ -213,11 +223,11 @@ export function compileComponentsJs(compiled: CompiledDesignSystem): string {
         ...(adapted.length > 0 ? ["import { adapt } from '@sigx/zero/adapt';"] : []),
         ...adapted.map((scope) => {
             const name = componentExportName(scope);
-            return `import { ${name} as Z${name} } from '@sigx/zero/${scope}';`;
+            return `import { ${name} as Z${name} } from '${moduleSpecifierFor(compiled, scope)}';`;
         }),
         '',
         ...calls.flatMap((call) => [call, '']),
-        ...reexported.map((scope) => `export { ${componentExportName(scope)} } from '@sigx/zero/${scope}';`),
+        ...reexported.map((scope) => `export { ${componentExportName(scope)} } from '${moduleSpecifierFor(compiled, scope)}';`),
         '',
     ].join('\n');
 }

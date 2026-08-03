@@ -13,6 +13,8 @@ import { loadInputs } from './shared.js';
 export interface ValidateOptions {
     entry: string;
     manifest?: string;
+    /** Ecosystem manifest fragments to merge into the base manifest. */
+    extraManifest?: string[];
     /** Treat warnings as failures. */
     strict: boolean;
     /** Print the human-readable coverage report. */
@@ -52,7 +54,7 @@ function tryBuildReport(
 }
 
 export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promise<void> {
-    const { ds, manifest, result } = await loadInputs(env, opts.entry, opts.manifest);
+    const { ds, manifest, result } = await loadInputs(env, opts.entry, opts.manifest, opts.extraManifest ?? []);
 
     // `--report-json -` makes stdout the JSON and nothing else, so it can be
     // piped straight into a tool. The CLI logger's `log` goes to stdout (its

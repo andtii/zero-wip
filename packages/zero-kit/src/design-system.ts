@@ -98,6 +98,16 @@ export interface CompiledDesignSystem {
     /** scope → the axis vocabulary the recipes actually wire. */
     components: Record<string, CompiledComponentAxes>;
     /**
+     * Styled scopes whose anatomy came from an ecosystem manifest fragment
+     * rather than zero's registry: scope → the owning package (the fragment's
+     * `package`, stamped by `mergeManifests`). Present only when non-empty, so
+     * a design system compiled against the stock manifest is unchanged. The
+     * register artifact excludes exactly these scopes from its ZeroScope
+     * compile gate, and the api emitters import them from the owning package
+     * instead of `@sigx/zero/<scope>`.
+     */
+    externalScopes?: Record<string, string>;
+    /**
      * scope → the vendor-named API filtered to what that scope wires —
      * present iff the design system declares an `api` (issue #179). Part of
      * the compiled form (rather than a `writeArtifacts` parameter, the shape
@@ -348,6 +358,15 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
         };
     });
 
+    // Provenance survives compilation: a styled scope whose manifest entry
+    // names an owning package is external, and downstream emitters read the
+    // fact from the compiled form rather than re-consulting the manifest.
+    const externalScopes: Record<string, string> = {};
+    for (const scope of Object.keys(components)) {
+        const pkg = byScope.get(scope)?.package;
+        if (pkg) externalScopes[scope] = pkg;
+    }
+
     const componentApi = ds.api
         ? Object.fromEntries(
             Object.entries(components).map(([scope, axes]) => [
@@ -364,6 +383,7 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
         indexCss,
         themes,
         components,
+        ...(Object.keys(externalScopes).length > 0 ? { externalScopes } : {}),
         ...(componentApi ? { componentApi } : {}),
         tokens: {
             roles,

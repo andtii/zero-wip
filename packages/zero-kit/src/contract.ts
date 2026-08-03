@@ -396,6 +396,14 @@ export interface ManifestComponent {
     scope: string;
     orientation?: boolean;
     parts: ManifestPart[];
+    /**
+     * Present exactly on components merged from an ecosystem manifest
+     * fragment (`mergeManifests`): the package that owns the scope. Zero's
+     * own manifest never carries it — its absence is what marks a scope as
+     * zero-origin, which the register artifact's compile gate and the
+     * api-mode import specifiers both depend on.
+     */
+    package?: string;
 }
 
 /**

@@ -27,6 +27,12 @@ const manifestArg = a
     .valueHint('path')
     .describe('Anatomy manifest path (default: @sigx/zero/manifest.json, resolved from this directory)');
 
+const extraManifestArg = a
+    .string()
+    .valueHint('path')
+    .multiple()
+    .describe('Ecosystem manifest fragment ({ package, components }) merged into the base manifest — repeatable');
+
 /**
  * A design-system package is one that pulls in the kit.
  *
@@ -62,11 +68,17 @@ export default definePlugin({
             args: {
                 entry: entryArg,
                 manifest: manifestArg,
+                extraManifest: extraManifestArg,
                 out: a.string().valueHint('dir').default('./dist').describe('Output directory'),
             },
             async run(ctx) {
                 const { runBuild } = await import('./commands/build.js');
-                await runBuild(ctx, { entry: ctx.args.entry, manifest: ctx.args.manifest, out: ctx.args.out });
+                await runBuild(ctx, {
+                    entry: ctx.args.entry,
+                    manifest: ctx.args.manifest,
+                    extraManifest: ctx.args.extraManifest,
+                    out: ctx.args.out,
+                });
             },
         },
         'zero:validate': {
@@ -75,6 +87,7 @@ export default definePlugin({
             args: {
                 entry: entryArg,
                 manifest: manifestArg,
+                extraManifest: extraManifestArg,
                 strict: a.boolean().default(false).describe('Fail on warnings, not just errors'),
                 // Two flags for one concept, because @sigx/args has no
                 // optional-value form: a value flag given no value is a
@@ -93,6 +106,7 @@ export default definePlugin({
                 await runValidate(ctx, {
                     entry: ctx.args.entry,
                     manifest: ctx.args.manifest,
+                    extraManifest: ctx.args.extraManifest,
                     strict: ctx.args.strict,
                     report: ctx.args.report,
                     reportJson: ctx.args.reportJson,
