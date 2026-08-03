@@ -94,6 +94,41 @@ function componentEntry(
     ].join('\n');
 }
 
+/**
+ * The compile gate: every scope this module augments must be in zero's
+ * anatomy registry, or the module fails to typecheck — a typo or a version
+ * skew would otherwise silently take the open fallback (RFC 0002 §3.1).
+ *
+ * Ecosystem scopes merged from a manifest fragment are excluded BY NAME
+ * rather than the gate being dropped: `ZeroScope` stays closed (their anatomy
+ * lives outside zero's registry, so it can never satisfy the union), the
+ * guard keeps its full strength for every zero-origin scope, and the emitted
+ * lines double as the record of which scopes are foreign and who owns them.
+ */
+function scopesValid(compiled: CompiledDesignSystem): string[] {
+    const external = Object.keys(compiled.components)
+        .filter((scope) => compiled.externalScopes?.[scope])
+        .sort();
+    const scopesExpr = external.length > 0
+        ? `Exclude<keyof import('@sigx/zero').ZeroVocabulary['components'], ${union(external)}>`
+        : "keyof import('@sigx/zero').ZeroVocabulary['components']";
+    return [
+        '// Fails to compile if a scope above is not in zero\'s anatomy registry',
+        '// (a typo or a version skew would otherwise silently take the open',
+        '// fallback — RFC 0002 §3.1).',
+        ...(external.length > 0 ? [
+            '// Ecosystem scopes are excluded from the gate by name — their anatomy',
+            '// was merged from a manifest fragment, not zero\'s registry:',
+            ...external.map((scope) => `//   ${scope} — ${compiled.externalScopes![scope]}`),
+        ] : []),
+        'type _MustBeTrue<T extends true> = T;',
+        'type _ScopesValid = _MustBeTrue<',
+        `    ${scopesExpr} extends import('@sigx/zero').ZeroScope`,
+        '        ? true : false',
+        '>;',
+    ];
+}
+
 export function compileRegisterDts(compiled: CompiledDesignSystem): string {
     const themes = compiled.themes.map((t) => t.name);
     const breakpoints = Object.keys(compiled.tokens.breakpoints);
@@ -127,14 +162,7 @@ export function compileRegisterDts(compiled: CompiledDesignSystem): string {
         '    }',
         '}',
         '',
-        '// Fails to compile if a scope above is not in zero\'s anatomy registry',
-        '// (a typo or a version skew would otherwise silently take the open',
-        '// fallback — RFC 0002 §3.1).',
-        'type _MustBeTrue<T extends true> = T;',
-        'type _ScopesValid = _MustBeTrue<',
-        "    keyof import('@sigx/zero').ZeroVocabulary['components'] extends import('@sigx/zero').ZeroScope",
-        '        ? true : false',
-        '>;',
+        ...scopesValid(compiled),
         'export {};',
         '',
     ].join('\n');

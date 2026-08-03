@@ -229,9 +229,10 @@ CLI discovers it there and offers its commands in any directory that looks like
 a design-system package.
 
 ```
-sigx zero:validate [entry] [--manifest <path>] [--strict]
-                   [--report] [--report-json <path>]
-sigx zero:build    [entry] [--manifest <path>] [--out <dir>]
+sigx zero:validate [entry] [--manifest <path>] [--extra-manifest <path>]...
+                   [--strict] [--report] [--report-json <path>]
+sigx zero:build    [entry] [--manifest <path>] [--extra-manifest <path>]...
+                   [--out <dir>]
 ```
 
 `entry` is a compiled ES module (default `./dist/design-system.js`) exporting
@@ -240,6 +241,48 @@ defaults to `@sigx/zero/manifest.json` resolved from the current directory, so
 the contract checked is the one the project ships; it takes either a path or a
 module specifier. `--strict` turns warnings into a failure — the flag to use in
 CI.
+
+`--extra-manifest` (repeatable, path or module specifier) merges an ecosystem
+**manifest fragment** into the base manifest instead of replacing it — how a
+design system opts into covering a component some other package ships. See
+"Ecosystem components" below.
+
+## Ecosystem components
+
+An ecosystem component package is a peer of `@sigx/zero`: it builds its
+component from zero's public surface (`defineAnatomy`, the behaviors, the
+contract helpers — see zero's "Building your own components") and publishes a
+**manifest fragment**:
+
+```json
+{
+    "package": "@acme/zero-stepper",
+    "components": [ /* defineAnatomy(...).toJSON() */ ]
+}
+```
+
+A design system that wants to cover it merges the fragment —
+`--extra-manifest` on the CLI, or `mergeManifests(base, fragment)` in a
+`build.mjs`-style script — and writes (or imports) a recipe for the scope like
+any other. Everything downstream is scope-agnostic, so validation, recipe
+compilation, the vocabulary system and the coverage report all just work; the
+merge hard-errors on a scope collision, which is why fragment scopes should
+carry a vendor prefix (`acme-stepper`).
+
+Provenance travels with the merge. Merged scopes are tracked as *external* on
+the compiled design system (`externalScopes`), the generated `register.d.ts`
+excludes exactly them — by name — from its ZeroScope compile gate (the
+typo/version-skew guard keeps full strength for zero-origin scopes, and the
+emitted comment records who owns what), and under api mode the generated
+`./components` module imports an external scope from its owning package's root
+export instead of `@sigx/zero/<scope>`.
+
+A component may also ship a **recipe pack** — `RecipeInput[]` written against
+the recommended token grammar (`var(--color-primary)`, the recommended sizes)
+— so any design system that keeps the recommended vocabulary can adopt its
+styling by importing the recipes rather than writing them. A design system
+that never merges the fragment simply leaves the component unstyled — which is
+still accessible and correctly attributed, the contract's baseline.
 
 The commands are namespaced so another plugin's `build` can't shadow them; the
 bare `sigx build` / `sigx validate` aliases also resolve when nothing else
@@ -311,6 +354,8 @@ URL where they will be served (publishing tracked on the docs repo):
   `$schema`)
 - `https://signalxjs.github.io/zero/schemas/report.schema.json` — the coverage
   report (`dist/report.json` declares it as its `$schema`)
+- `https://signalxjs.github.io/zero/schemas/fragment.schema.json` — the
+  ecosystem manifest fragment (`--extra-manifest` / `mergeManifests`)
 
 They close the JSON-first authoring loop: a generator (AI or otherwise) emits
 tokens and recipes as plain JSON, checks them against the schema for

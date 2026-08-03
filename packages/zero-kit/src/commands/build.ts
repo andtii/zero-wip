@@ -9,11 +9,13 @@ import { loadInputs } from './shared.js';
 export interface BuildOptions {
     entry: string;
     manifest?: string;
+    /** Ecosystem manifest fragments to merge into the base manifest. */
+    extraManifest?: string[];
     out: string;
 }
 
 export async function runBuild(env: CommandEnv, opts: BuildOptions): Promise<void> {
-    const { ds, manifest, result } = await loadInputs(env, opts.entry, opts.manifest);
+    const { ds, manifest, result } = await loadInputs(env, opts.entry, opts.manifest, opts.extraManifest ?? []);
     // Never emit from an invalid source — the anatomy manifest is the contract.
     if (!result.ok) {
         throw new Error(`"${ds.name}" failed validation (${result.errors.length} errors) — nothing written`);

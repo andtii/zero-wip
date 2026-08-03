@@ -16,6 +16,8 @@ import { resolve } from 'node:path';
 import type { Logger } from '@sigx/cli/plugin';
 import type { ZeroManifest } from '../contract.js';
 import type { DesignSystemInput } from '../design-system.js';
+import type { ManifestFragment } from '../manifest.js';
+import { mergeManifests } from '../manifest.js';
 import type { ValidationResult } from '../resolve/validate.js';
 import { validateDesignSystem } from '../resolve/validate.js';
 
@@ -38,54 +40,81 @@ function isModuleSpecifier(value: string): boolean {
  * `--manifest` takes a path, but also accepts a module specifier: the default
  * is documented as `@sigx/zero/manifest.json`, so passing that exact string
  * must work rather than being read as a directory named `@sigx`.
+ *
+ * `extras` are ecosystem manifest fragments (`--extra-manifest`, repeatable),
+ * resolved the same way and MERGED rather than replacing — that is the whole
+ * difference between covering an ecosystem component and forking the contract.
  */
-export async function loadManifest(cwd: string, explicit?: string): Promise<ZeroManifest> {
+export async function loadManifest(cwd: string, explicit?: string, extras: string[] = []): Promise<ZeroManifest> {
     const require = createRequire(resolve(cwd, 'package.json'));
-    let path: string;
 
-    if (!explicit) {
+    const readJson = async (spec: string, what: string): Promise<{ resolved: string; parsed: unknown }> => {
+        let path: string;
+        if (isModuleSpecifier(spec)) {
+            try {
+                path = require.resolve(spec);
+            } catch {
+                throw new Error(`cannot resolve the ${what} "${spec}" from ${cwd}`);
+            }
+        } else {
+            path = spec;
+        }
+        const resolved = resolve(cwd, path);
+        let source: string;
+        try {
+            source = await readFile(resolved, 'utf8');
+        } catch {
+            throw new Error(`cannot read the ${what} at ${resolved}`);
+        }
+        try {
+            return { resolved, parsed: JSON.parse(source) };
+        } catch (err) {
+            throw new Error(`${resolved} is not valid JSON: ${err instanceof Error ? err.message : String(err)}`);
+        }
+    };
+
+    let baseSpec = explicit;
+    if (!baseSpec) {
         // Bare MODULE_NOT_FOUND here reads as an internal failure — it means
         // the project has no @sigx/zero, or the command ran somewhere without
         // one. Name both the cause and the escape hatch.
         try {
-            path = require.resolve('@sigx/zero/manifest.json');
+            baseSpec = require.resolve('@sigx/zero/manifest.json');
         } catch {
             throw new Error(
                 `cannot resolve @sigx/zero/manifest.json from ${cwd} — install @sigx/zero there, or pass --manifest <path>`,
             );
         }
-    } else if (isModuleSpecifier(explicit)) {
-        try {
-            path = require.resolve(explicit);
-        } catch {
-            throw new Error(`cannot resolve the anatomy manifest "${explicit}" from ${cwd}`);
-        }
-    } else {
-        path = explicit;
     }
 
-    const resolved = resolve(cwd, path);
-    let source: string;
-    try {
-        source = await readFile(resolved, 'utf8');
-    } catch {
-        throw new Error(`cannot read the anatomy manifest at ${resolved}`);
-    }
-    let parsed: unknown;
-    try {
-        parsed = JSON.parse(source);
-    } catch (err) {
-        throw new Error(`${resolved} is not valid JSON: ${err instanceof Error ? err.message : String(err)}`);
-    }
+    const base = await readJson(baseSpec, 'anatomy manifest');
     // A design system emits its own dist/manifest.json, so pointing --manifest
     // at the wrong one of two identically named files is an easy mistake — and
     // without this it surfaces as "components.map is not a function".
-    if (!Array.isArray((parsed as ZeroManifest | null)?.components)) {
+    if (!Array.isArray((base.parsed as ZeroManifest | null)?.components)) {
         throw new Error(
-            `${resolved} has no "components" array, so it is not the zero anatomy manifest — expected @sigx/zero/manifest.json, not a design system's own dist/manifest.json`,
+            `${base.resolved} has no "components" array, so it is not the zero anatomy manifest — expected @sigx/zero/manifest.json, not a design system's own dist/manifest.json`,
         );
     }
-    return parsed as ZeroManifest;
+
+    const fragments: ManifestFragment[] = [];
+    for (const extra of extras) {
+        const { resolved, parsed } = await readJson(extra, 'manifest fragment');
+        // Shape errors past this point come from `mergeManifests`, which names
+        // the fragment by its package — the one mistake it cannot name is a
+        // full manifest passed where a fragment belongs, which would otherwise
+        // read as "declares no package".
+        const fragment = parsed as Record<string, unknown> | null;
+        if (fragment && typeof fragment === 'object' && !('package' in fragment) && Array.isArray(fragment['components'])) {
+            throw new Error(
+                `${resolved} looks like a full anatomy manifest, not a fragment — --extra-manifest takes { "package": "<specifier>", "components": [...] }; to replace the base manifest use --manifest`,
+            );
+        }
+        fragments.push(fragment as unknown as ManifestFragment);
+    }
+    return fragments.length > 0
+        ? mergeManifests(base.parsed as ZeroManifest, ...fragments)
+        : base.parsed as ZeroManifest;
 }
 
 export async function loadDesignSystem(cwd: string, entry: string): Promise<DesignSystemInput> {
@@ -109,10 +138,10 @@ export interface LoadedInputs {
  * `validate` treat a failing result differently (`--strict` also fails on
  * warnings), so the decision stays with the caller.
  */
-export async function loadInputs(env: CommandEnv, entry: string, manifest?: string): Promise<LoadedInputs> {
+export async function loadInputs(env: CommandEnv, entry: string, manifest?: string, extraManifests: string[] = []): Promise<LoadedInputs> {
     const [ds, loadedManifest] = await Promise.all([
         loadDesignSystem(env.cwd, entry),
-        loadManifest(env.cwd, manifest),
+        loadManifest(env.cwd, manifest, extraManifests),
     ]);
     const result = validateDesignSystem(ds, loadedManifest);
     for (const issue of [...result.errors, ...result.warnings]) {

@@ -106,6 +106,9 @@ export { validateRecipes } from './resolve/validate-recipes.js';
 
 export { writeArtifacts } from './artifacts.js';
 
+export type { ManifestFragment } from './manifest.js';
+export { mergeManifests } from './manifest.js';
+
 export type {
     RoleDecl,
     RecommendedRole,
