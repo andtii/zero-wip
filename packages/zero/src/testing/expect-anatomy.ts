@@ -50,6 +50,11 @@ export function expectAnatomy(container: ParentNode, anatomy: Anatomy, options: 
         if (!AXIS_NAME_PATTERN.test(axis)) {
             fail(anatomy, `axes: "${axis}" is not a kebab-case identifier — it becomes the attribute name data-${axis}`);
         }
+        // A "mod-…" axis would land its exemption inside the modifier
+        // namespace and skip the presence-only check that walk enforces.
+        if (`data-${axis}`.startsWith(MOD_ATTR_PREFIX)) {
+            fail(anatomy, `axes: "${axis}" is inside the modifier namespace (${MOD_ATTR_PREFIX}*) — declare it through mods, not axes`);
+        }
     }
     const axisAttrs = new Set((options.axes ?? []).map((axis) => `data-${axis}`));
     const selector = `[data-scope="${anatomy.scope}"]`;

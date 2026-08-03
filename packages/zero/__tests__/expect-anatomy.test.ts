@@ -104,6 +104,8 @@ describe('expectAnatomy (public conformance helper)', () => {
         // HTML lowercases attribute names — a camelCase exemption can never
         // match, so it is rejected rather than silently not applying.
         expect(() => expectAnatomy(container, demoAnatomy, { axes: ['iconOnly'] })).toThrow(/kebab-case/);
+        // A "mod-…" axis would exempt a modifier from its presence-only check.
+        expect(() => expectAnatomy(container, demoAnatomy, { axes: ['mod-icon-only'] })).toThrow(/modifier namespace/);
     });
 
     it('holds mods to presence-only even though they are exempt from declaration', () => {
