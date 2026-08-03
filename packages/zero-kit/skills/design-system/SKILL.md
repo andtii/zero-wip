@@ -14,7 +14,11 @@ component's anatomy). No component code is ever written or changed.
 1. **Read the anatomy manifest** — `node_modules/@sigx/zero/dist/manifest.json`
    (or https://signalxjs.github.io/zero/manifest.json). It lists every
    component's parts, their `data-state` values (as ready-made selectors),
-   boolean flags, and token hints. Style ONLY what the manifest declares.
+   boolean flags, and token hints. Style ONLY what the manifest declares —
+   where "the manifest" means zero's PLUS any ecosystem fragments the project
+   merges (see "Ecosystem components" below): check the project for packages
+   shipping a manifest fragment (`{ "package": …, "components": […] }`, or a
+   `fragment` export) before deciding the component list is zero's built-ins.
    A part may also carry `hiddenIn`: the states in which zero's runtime sets
    the `hidden` attribute on it (`avatar.image` while `error`, `tabs.panel`
    while `inactive`). Those states never paint — don't style them, and don't
@@ -769,6 +773,35 @@ component's anatomy). No component code is ever written or changed.
 7. **Build**: `sigx zero:build` (or the package's `build.mjs`) emits
    `dist/css/index.css` + per-component files. The app consumes it with two
    lines: `import '<pkg>/css'` and `installThemes()`.
+
+## Ecosystem components (merged manifest fragments)
+
+A project may use components zero doesn't ship — peer packages built on
+zero's public authoring surface, each publishing a **manifest fragment**
+(`{ "package": "<specifier>", "components": [anatomy.toJSON()] }`, JSON
+Schema `fragment.schema.json`). A design system that should cover them
+**merges** the fragment rather than replacing the manifest:
+
+- CLI: `sigx zero:validate --extra-manifest <path|specifier>` (repeatable),
+  same flag on `zero:build`.
+- Programmatic (`build.mjs`): `mergeManifests(zeroManifest, fragment)` from
+  `@sigx/zero-kit`. If the ecosystem package is private, do the adoption in
+  `build.mjs` only — never import it from the package's `src/`, or the
+  published module graph breaks.
+
+Once merged, the scope is ordinary: write a `RecipeInput` for it like any
+component, or adopt the package's **recipe pack** (a `recipes` export written
+against the recommended token grammar) by spreading it into `recipes` — but
+only when this design system keeps the recommended role names; a fused or
+renamed vocabulary needs a hand-written recipe. The merge hard-errors on
+scope collisions, provenance is stamped per component, and the generated
+`register.d.ts` excludes merged scopes by name from its ZeroScope gate — all
+automatic. A design system that deliberately does NOT cover an ecosystem
+component simply never merges its fragment: the component renders unstyled
+but accessible, which is the contract's baseline, not a failure.
+
+The reference pair: `@sigx/zero-ext-example` (the fragment + pack) and
+`@sigx/zero-basic`'s `build.mjs` (the adoption).
 
 ## What `validate` will catch
 

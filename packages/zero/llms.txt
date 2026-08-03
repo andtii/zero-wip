@@ -290,6 +290,26 @@ completeness, WCAG contrast on every declared role/-content pair, state
 coverage). Reference implementation: @sigx/zero-basic; daisyUI-flavored
 skin: @sigx/zero-daisyui.
 
+## Building your own component (ecosystem packages)
+
+The authoring surface is public: defineAnatomy (from @sigx/zero/anatomy;
+`toJSON()` emits the manifest component shape), every behavior
+(@sigx/zero/behaviors: controllable state, SSR-safe ids, list/tree
+registration, roving tabindex, dismissal, focus, press feedback, typeahead,
+anchor positioning), the contract helpers (dataAttr, stateAttr, variantAttrs,
+renderAsChild + synthesizesClickFrom for asChild keyboard activation), and
+the conformance assertion expectAnatomy (@sigx/zero/testing — throws plain
+Error, any test runner). Convention: vendor-prefix the scope (`acme-…`),
+publish a manifest fragment `{package: "<npm specifier>", components:
+[anatomy.toJSON()]}` and optionally a recipe pack (RecipeInput[] against the
+recommended token grammar). A design system opts in by MERGING the fragment
+(`mergeManifests(base, fragment)` from @sigx/zero-kit, or `--extra-manifest`
+on zero:build/zero:validate) and writing or adopting a recipe; one that never
+merges it leaves the component unstyled but accessible. ZeroScope stays
+closed — merged scopes carry provenance and are excluded by name from the
+generated register.d.ts gate. Worked example: @sigx/zero-ext-example
+(in-repo), adopted by @sigx/zero-basic's build.mjs.
+
 ## Docs
 
 - https://sigx.dev/llms.txt (the framework)
