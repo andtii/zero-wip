@@ -13,10 +13,11 @@
  * narrow every component's props (the leak the button axes tests canary).
  */
 import { describe, it, expect } from 'vitest';
-import { compileDesignSystem, compileRegisterDts, compileRegisterJs } from '@sigx/zero-kit';
+import { compileDesignSystem, compileRegisterDts, compileRegisterJs, mergeManifests } from '@sigx/zero-kit';
 import type { DesignSystemInput, ManifestComponent, RecipeInput } from '@sigx/zero-kit';
 import { anatomies } from '@sigx/zero/anatomy';
 import { designSystem as basicDS } from '@sigx/zero-basic';
+import { fragment as extFragment, recipes as extRecipes } from '@sigx/zero-ext-example/fragment';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import { designSystem as materialDS } from '@sigx/zero-material';
 import { designSystem as brutalistDS } from '@sigx/zero-brutalist';
@@ -38,6 +39,24 @@ describe('register.d.ts goldens', () => {
     ])('%s matches its golden', async (_name, ds, golden) => {
         const compiled = compileDesignSystem(ds, manifest);
         await expect(compileRegisterDts(compiled)).toMatchFileSnapshot(golden);
+    });
+
+    it('basic + the adopted ecosystem pack matches its golden (the Exclude-form compile gate)', async () => {
+        // The same composition zero-basic's build.mjs performs — spread the
+        // pack, merge the fragment. Composed here rather than exported from
+        // zero-basic: the private ext-example package must stay out of the
+        // published package's module graph, so the adoption has no importable
+        // home. Like material's golden, the output lives in an isolated
+        // type-tests project (`ecosystem/`) where `pnpm test:types` compiles
+        // it against zero's real source — proving a register module carrying
+        // an ecosystem scope typechecks with the scope excluded by name.
+        const ds = basicDS as DesignSystemInput;
+        const compiled = compileDesignSystem(
+            { ...ds, recipes: [...ds.recipes, ...extRecipes] },
+            mergeManifests(manifest, extFragment),
+        );
+        await expect(compileRegisterDts(compiled))
+            .toMatchFileSnapshot('../../zero/type-tests/ecosystem/basic-ext.register.d.ts');
     });
 });
 

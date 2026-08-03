@@ -106,7 +106,7 @@ pnpm test -- -t "name of test"        # single test by name (vitest -t)
 pnpm test:watch
 pnpm test:coverage
 pnpm typecheck     # tsgo --noEmit against package sources (path-aliased)
-pnpm test:types    # compile-time type tests (zero's ZeroVocabulary seam), two isolated tsconfig projects
+pnpm test:types    # compile-time type tests (zero's ZeroVocabulary seam), five isolated tsconfig projects under packages/zero/type-tests/
 pnpm lint          # oxlint packages
 pnpm lint:fix
 pnpm verify:catalog  # catalog: usage check for @sigx core deps
@@ -238,6 +238,18 @@ that null reports a `TypeError` instead of "the popup was not showing".
   `./components` module. Full recipe coverage; the `kind` axis and the remap
   stay Button-only — it exercises the vendor-named API surface that motivated
   #179, not a product. Private.
+- `packages/zero-ext-example` → `@sigx/zero-ext-example` — the
+  **ecosystem-component acceptance test** (#304): a `Stepper` zero doesn't
+  ship, built entirely from `@sigx/zero`'s public surface (`defineAnatomy`,
+  behaviors, contract helpers; `expectAnatomy` from `@sigx/zero/testing` in
+  its tests) and published to design systems from a data-only `./fragment`
+  entry — the manifest fragment (`{ package, components }`) plus a recipe
+  pack written against the recommended token grammar. zero-basic adopts both
+  in `build.mjs` (spread the pack, `mergeManifests` the fragment — build-only,
+  so the private package stays out of the published module graph), which makes
+  its emitted `register.d.ts` the Exclude-form compile proof
+  (`packages/zero/type-tests/ecosystem/`). Private — it proves the loop the
+  way zero-heroui proves axis shapes.
 - `examples/playground` — private demo app, structured like a docs site: a
   sidebar of per-component pages (hash-routed, `src/pages/registry.ts` is the
   single source the sidebar, the router and the derived `#/all` kitchen-sink

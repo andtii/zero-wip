@@ -20,7 +20,9 @@
       "@sigx/zero-material": ["./packages/zero-material/src/index.ts"],
       "@sigx/zero-brutalist": ["./packages/zero-brutalist/src/index.ts"],
       "@sigx/zero-heroui": ["./packages/zero-heroui/src/index.ts"],
-      "@sigx/zero-carbon": ["./packages/zero-carbon/src/index.ts"]
+      "@sigx/zero-carbon": ["./packages/zero-carbon/src/index.ts"],
+      "@sigx/zero-ext-example": ["./packages/zero-ext-example/src/index.ts"],
+      "@sigx/zero-ext-example/fragment": ["./packages/zero-ext-example/src/fragment.ts"]
     }
   },
   "include": [

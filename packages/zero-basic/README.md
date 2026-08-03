@@ -59,4 +59,16 @@ What moved here: the toast viewport's start/end placements, the submenu
 chevron (margin and glyph both), the switch thumb, the collapsed tree indicator
 and the indeterminate progress sweep.
 
+## Ecosystem adoption
+
+zero-basic is also the reference **adopter** of an ecosystem component
+(#304): it covers `@sigx/zero-ext-example`'s `ext-stepper` scope by spreading
+its recipe pack and merging its manifest fragment (`mergeManifests`) — both in
+`build.mjs`, and deliberately ONLY there. The ext-example package is private,
+so it must stay out of the published module graph: `src/` never imports it,
+the `designSystem` export stays zero-only (it is also the reference input for
+the kit's golden and coverage suites), and adoption is pure build-time
+composition. The shipped CSS, manifest, report and `register.d.ts` all carry
+the ecosystem scope, the register in its `Exclude<…>` form.
+
 MIT © Andreas Ekdahl
