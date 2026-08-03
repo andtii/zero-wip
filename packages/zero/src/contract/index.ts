@@ -63,4 +63,4 @@ export type {
     PartProps,
 } from './props.js';
 export { variantAttrs, RESERVED_AXES, VARIANT_AXES, MOD_ATTR_PREFIX } from './props.js';
-export { renderAsChild } from './as-child.js';
+export { renderAsChild, synthesizesClickFrom } from './as-child.js';

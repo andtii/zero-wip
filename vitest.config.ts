@@ -15,6 +15,7 @@ export default defineConfig({
             '@sigx/zero/anatomy': new URL('./packages/zero/src/anatomy.ts', import.meta.url).pathname,
             '@sigx/zero/contract': new URL('./packages/zero/src/contract/index.ts', import.meta.url).pathname,
             '@sigx/zero/adapt': new URL('./packages/zero/src/adapt/index.ts', import.meta.url).pathname,
+            '@sigx/zero/testing': new URL('./packages/zero/src/testing/index.ts', import.meta.url).pathname,
             '@sigx/zero': new URL('./packages/zero/src/index.ts', import.meta.url).pathname,
             '@sigx/zero-kit': new URL('./packages/zero-kit/src/index.ts', import.meta.url).pathname,
             '@sigx/zero-basic': new URL('./packages/zero-basic/src/index.ts', import.meta.url).pathname,

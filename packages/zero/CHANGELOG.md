@@ -4,6 +4,25 @@
 
 ### Added
 
+- **`@sigx/zero/testing` — the anatomy conformance assertion, published**
+  (#300). `expectAnatomy(container, anatomy, { axes? })` walks every rendered
+  part of a scope and checks it against the declaration: known part,
+  `data-state` from the closed set, flags declared and presence-only, and the
+  `hidden` attribute exactly where `hiddenIn` says it goes. Framework-agnostic
+  on purpose — it throws a plain `Error` rather than using any runner's
+  assertion API — so an ecosystem component package can hold its parts to the
+  same contract zero's own components are held to (zero's test suite now runs
+  through this exact helper). The variant surface is exempt as declared
+  vocabulary: contract axes and `data-mod-*` always, custom axes when named
+  via `axes`.
+
+- **`synthesizesClickFrom` is public** (#300). The per-key, per-element test
+  for native click synthesis that zero's components use to synthesize
+  keyboard activation for `asChild` parts without double-activating — a
+  `<button>` synthesizes from both keys, an anchor only from Enter.
+  `renderAsChild` was already exported; this is its sibling, and the missing
+  piece for a third-party part combining `asChild` with keyboard activation.
+
 - **`--print-ink` — the ink a print fallback draws with** (#233). Declared in
   `css/base.css` beside the other structural fallbacks, and the one colour
   there that is not a design decision: it is a fact about the medium. A mark

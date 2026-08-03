@@ -99,6 +99,29 @@ spec is kit-generated and kit-validated data; `adapt` performs no validation,
 and the generated `components.d.ts` (instantiating the exported `Adapted`
 type) is the typed surface consumers see.
 
+## Building your own components
+
+The authoring surface zero's own components are built from is public, so an
+ecosystem package can ship a component zero doesn't — same anatomy contract,
+same behaviors, held to the same conformance assertion:
+
+- `defineAnatomy` (from `@sigx/zero/anatomy` or the root) declares the scope,
+  parts, closed `data-state` sets, flags and `hiddenIn` — and `toJSON()`
+  emits exactly the shape zero's own `manifest.json` carries per component.
+- `@sigx/zero/behaviors` — controllable state, SSR-safe ids, roving tabindex,
+  dismissal, focus management, list/tree registration, typeahead, anchor
+  positioning, press feedback.
+- The contract helpers — `dataAttr`, `stateAttr`, `variantAttrs`,
+  `renderAsChild`, and `synthesizesClickFrom` for parts that combine
+  `asChild` with keyboard activation (skip the keys the platform already
+  synthesizes a click from, or an anchor activates twice per Enter).
+- `@sigx/zero/testing` — `expectAnatomy(container, anatomy)`, the assertion
+  zero's own test suite runs against every rendered part: declared parts
+  only, states from the closed set, flags declared and presence-only,
+  `hidden` exactly where `hiddenIn` says. It throws a plain `Error`, so it
+  works under any test runner. A component rendering custom axes names them:
+  `expectAnatomy(el, anatomy, { axes: ['emphasis'] })`.
+
 ## For tooling / AI
 
 - `@sigx/zero/anatomy` — every component's parts × states × flags as typed
