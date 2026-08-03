@@ -558,8 +558,27 @@ export function validateDesignSystem<R extends RolesDecl>(
         // added for someone else. Named here, at the declaration, rather than
         // discovered later as a coverage finding against the sibling.
         const styledScopes = [...new Set(ds.recipes.map((r) => r.component))].sort();
+        /**
+         * …but only a scope that actually PAINTS the axis is exposed by a
+         * sibling's narrowing. One that wires no rules for it offers nothing
+         * to begin with — the recipe harvest already compiles it to `never`
+         * in `register.d.ts` and to an empty list in the manifest — so naming
+         * it here would be reporting a exposure that does not exist.
+         *
+         * Found by writing the first `scopes` declaration in this repo (#311):
+         * zero-basic narrows `badge`, and the warning named all twenty-nine
+         * other styled scopes, twenty-eight of which wire no `variant` at all
+         * (#175). A list that long reads as "you did something wrong", when
+         * the one real question in it was whether `button` means to carry the
+         * whole set — which it does, and now says so.
+         */
+        const wiresAxis = (scope: string, axis: string): boolean =>
+            ds.recipes.some((r) => r.component === scope
+                && Object.keys(
+                    (r.variants as Record<string, Record<string, unknown>> | undefined)?.[axis] ?? {},
+                ).length > 0);
         for (const [axis, scopes] of [...restrictedAxes].sort(([a], [b]) => a.localeCompare(b))) {
-            const open = styledScopes.filter((scope) => !scopes.has(scope));
+            const open = styledScopes.filter((scope) => !scopes.has(scope) && wiresAxis(scope, axis));
             if (open.length === 0) continue;
             warn(
                 'tokens.scopes',

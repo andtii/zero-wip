@@ -2756,8 +2756,230 @@ export const textarea: RecipeInput = {
     },
 };
 
+// ── Content tier (#311) ───────────────────────────────────────────────────
+/**
+ * Carbon's tile: a layer surface, square corners, no shadow — depth here is
+ * the layer ramp, not elevation. No `color` axis (`roles: {}`), so the five
+ * Carbon steps are the only ramp these four carry.
+ */
+export const card: RecipeInput = {
+    component: 'card',
+    tokens: { '--card-pad': 'var(--space-lg)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--carbon-line)',
+                borderRadius: 'var(--radius-box)',
+                overflow: 'hidden',
+            },
+        },
+        header: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-2xs)',
+                padding: 'var(--card-pad) var(--card-pad) 0',
+            },
+        },
+        title: {
+            base: {
+                margin: '0',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-md)',
+                fontWeight: 'var(--weight-semibold)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: 'var(--leading-tight)',
+            },
+        },
+        description: {
+            base: {
+                margin: '0',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                color: 'color-mix(in oklab, var(--color-base-content) 78%, transparent)',
+            },
+        },
+        body: {
+            base: {
+                padding: 'var(--card-pad)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+            },
+        },
+        footer: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-md)',
+                padding: '0 var(--card-pad) var(--card-pad)',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--card-pad': 'var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { '--card-pad': 'var(--space-xl)' } } },
+            xl: { root: { base: { '--card-pad': 'var(--space-2xl)' } } },
+            '2xl': { root: { base: { '--card-pad': 'var(--space-2xl)' } } },
+        },
+    },
+};
+
+/**
+ * Carbon's inline notification: the 3px status rule on the reading edge over
+ * a layer fill, square corners, and the text left where the layer put it.
+ */
+export const alert: RecipeInput = {
+    component: 'alert',
+    parts: {
+        root: {
+            base: {
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr auto',
+                alignItems: 'start',
+                gap: 'var(--space-2xs) var(--space-md)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                borderRadius: 'var(--radius-box)',
+                borderInlineStart: '3px solid var(--carbon-danger)',
+                padding: 'var(--space-md) var(--space-lg)',
+            },
+            states: { open: {}, closed: {} },
+        },
+        icon: {
+            base: {
+                gridRow: '1 / span 2',
+                display: 'inline-flex',
+                alignItems: 'center',
+                color: 'var(--carbon-danger)',
+                fontSize: 'var(--text-md)',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        title: {
+            base: {
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-tight)',
+            },
+        },
+        description: {
+            base: {
+                gridColumn: '2',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+            },
+        },
+        close: {
+            base: {
+                gridRow: '1',
+                gridColumn: '3',
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                borderRadius: '0',
+                padding: 'var(--space-2xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: layerHover },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { '&[data-pressed]:not([data-disabled])': { background: layerActive } },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { padding: 'var(--space-sm) var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { padding: 'var(--space-lg) var(--space-xl)' } } },
+            xl: { root: { base: { padding: 'var(--space-xl) var(--space-2xl)' } } },
+            '2xl': { root: { base: { padding: 'var(--space-2xl)' } } },
+        },
+    },
+};
+
+/** Carbon's tag: a square-cornered chip on the layer above the surface. */
+export const badge: RecipeInput = {
+    component: 'badge',
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375em',
+                background: 'var(--color-base-300)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid transparent',
+                borderRadius: 'var(--radius-selector)',
+                padding: '0 var(--space-md)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: 'var(--leading-normal)',
+                whiteSpace: 'nowrap',
+                textDecoration: 'none',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-sm)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-sm)', padding: '0 var(--space-lg)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-2xs) var(--space-xl)' } } },
+            '2xl': { root: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-xs) var(--space-2xl)' } } },
+        },
+    },
+};
+
+/** Carbon's divider: the hairline every field and menu here is drawn with. */
+export const divider: RecipeInput = {
+    component: 'divider',
+    tokens: { '--divider-thickness': 'var(--border)' },
+    parts: {
+        root: {
+            base: { border: 'none', background: 'var(--carbon-line)', alignSelf: 'stretch' },
+            selectors: {
+                '&[data-orientation="horizontal"]': {
+                    inlineSize: '100%',
+                    blockSize: 'var(--divider-thickness)',
+                },
+                '&[data-orientation="vertical"]': {
+                    inlineSize: 'var(--divider-thickness)',
+                    minBlockSize: '1em',
+                },
+            },
+        },
+    },
+    variants: {
+        // No `color` axis: this design system declares `roles: {}`, so a
+        // divider has exactly one ink and the ramp moves its weight alone.
+        size: {
+            sm: { root: { base: { '--divider-thickness': 'var(--border)' } } },
+            md: {},
+            lg: { root: { base: { '--divider-thickness': 'calc(var(--border) * 2)' } } },
+            xl: { root: { base: { '--divider-thickness': 'calc(var(--border) * 3)' } } },
+            '2xl': { root: { base: { '--divider-thickness': 'calc(var(--border) * 4)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
+    card, alert, badge, divider,
 ];

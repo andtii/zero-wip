@@ -33,6 +33,7 @@ import { accordionPage } from './accordion';
 import { collapsiblePage } from './collapsible';
 import { treeViewPage } from './tree-view';
 import { avatarPage } from './avatar';
+import { cardPage, alertPage, badgePage, dividerPage } from './content-tier';
 import { progressPage } from './progress';
 import { sizeRampPage } from './size-ramp';
 import { extensibleRolesPage } from './extensible-roles';
@@ -91,6 +92,10 @@ export const pages: PageEntry[] = [
     collapsiblePage,
     treeViewPage,
     avatarPage,
+    cardPage,
+    alertPage,
+    badgePage,
+    dividerPage,
     progressPage,
     sizeRampPage,
     extensibleRolesPage,

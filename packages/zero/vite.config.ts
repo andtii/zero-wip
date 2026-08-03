@@ -36,7 +36,11 @@ export default defineLibConfig({
         'components/rating-group/index': 'src/components/rating-group/index.ts',
         'components/tree-view/index': 'src/components/tree-view/index.ts',
         'components/input/index': 'src/components/input/index.ts',
-        'components/textarea/index': 'src/components/textarea/index.ts'
+        'components/textarea/index': 'src/components/textarea/index.ts',
+        'components/card/index': 'src/components/card/index.ts',
+        'components/alert/index': 'src/components/alert/index.ts',
+        'components/badge/index': 'src/components/badge/index.ts',
+        'components/divider/index': 'src/components/divider/index.ts'
     },
     external: ['sigx', 'sigx/jsx-runtime', 'sigx/jsx-dev-runtime'],
     jsx: true

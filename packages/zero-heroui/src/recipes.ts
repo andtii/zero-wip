@@ -2416,8 +2416,211 @@ export const textarea: RecipeInput = {
     },
 };
 
+// ── Content tier (#311) ───────────────────────────────────────────────────
+/**
+ * HeroUI's card: base-100 inside the hairline, `radius-box`, a soft shadow.
+ * No `color` axis anywhere in this skin (`roles: {}`), so the only axis these
+ * four carry is the three-step size ramp.
+ */
+export const card: RecipeInput = {
+    component: 'card',
+    tokens: { '--card-pad': 'var(--space-lg)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+                boxShadow: 'var(--shadow-sm)',
+                overflow: 'hidden',
+            },
+        },
+        header: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-2xs)',
+                padding: 'var(--card-pad) var(--card-pad) 0',
+            },
+        },
+        title: {
+            base: {
+                margin: '0',
+                ...label,
+                fontSize: 'var(--text-md)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-tight)',
+            },
+        },
+        description: {
+            base: { margin: '0', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', color: 'var(--hero-muted)' },
+        },
+        body: {
+            base: {
+                padding: 'var(--card-pad)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+            },
+        },
+        footer: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: 'var(--space-sm)',
+                padding: '0 var(--card-pad) var(--card-pad)',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--card-pad': 'var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { '--card-pad': 'var(--space-xl)' } } },
+        },
+    },
+};
+
+/** HeroUI's alert: a bordered panel in the danger tone this skin ships. */
+export const alert: RecipeInput = {
+    component: 'alert',
+    parts: {
+        root: {
+            base: {
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr auto',
+                alignItems: 'center',
+                gap: 'var(--space-2xs) var(--space-md)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+                padding: 'var(--space-md) var(--space-lg)',
+            },
+            states: { open: {}, closed: {} },
+        },
+        icon: {
+            base: {
+                gridRow: '1 / span 2',
+                display: 'inline-flex',
+                alignItems: 'center',
+                color: 'var(--hero-primary)',
+                fontSize: 'var(--text-md)',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        title: {
+            base: { ...label, fontWeight: 'var(--weight-semibold)', lineHeight: 'var(--leading-tight)' },
+        },
+        description: {
+            base: {
+                gridColumn: '2',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        close: {
+            base: {
+                gridRow: '1',
+                gridColumn: '3',
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--hero-muted)',
+                borderRadius: 'var(--radius-selector)',
+                padding: 'var(--space-2xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: motion('background, color, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-300)', color: 'var(--color-base-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { '&[data-pressed]:not([data-disabled])': { transform: 'scale(0.97)' } },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { padding: 'var(--space-sm) var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { padding: 'var(--space-lg) var(--space-xl)' } } },
+        },
+    },
+};
+
+/** HeroUI's chip: a pill in base-200, muted ink, the hairline around it. */
+export const badge: RecipeInput = {
+    component: 'badge',
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375em',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-selector)',
+                padding: '0.125rem 0.625rem',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-medium)',
+                lineHeight: 'var(--leading-normal)',
+                whiteSpace: 'nowrap',
+                textDecoration: 'none',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-sm)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-2xs) var(--space-lg)' } } },
+        },
+    },
+};
+
+/** HeroUI's divider: the same hairline every bordered surface here uses. */
+export const divider: RecipeInput = {
+    component: 'divider',
+    tokens: { '--divider-thickness': 'var(--border)' },
+    parts: {
+        root: {
+            base: { border: 'none', background: 'var(--hero-line)', alignSelf: 'stretch' },
+            selectors: {
+                '&[data-orientation="horizontal"]': {
+                    inlineSize: '100%',
+                    blockSize: 'var(--divider-thickness)',
+                },
+                '&[data-orientation="vertical"]': {
+                    inlineSize: 'var(--divider-thickness)',
+                    minBlockSize: '1em',
+                },
+            },
+        },
+    },
+    variants: {
+        // No `color` axis: this design system declares `roles: {}`, so a
+        // divider has exactly one ink and the ramp moves its weight alone.
+        size: {
+            sm: { root: { base: { '--divider-thickness': 'var(--border)' } } },
+            md: {},
+            lg: { root: { base: { '--divider-thickness': 'calc(var(--border) * 2)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
+    card, alert, badge, divider,
 ];

@@ -171,6 +171,19 @@ component renders; the root is called out separately where it carries props.
   through on every keystroke — no draft/commit split. `control` is the field
   chrome (border/ring/invalid tint), the <input> inside it is transparent.
   NO hidden input: the visible <input> IS the form control and carries `name`.
+- Card: Root/Header/Title/Description/Body/Footer. No state, no context, no
+  ids — a styling container. Title renders <h3> so a page of cards is
+  navigable from a heading list. Every part below Root is optional.
+- Alert: Root(model=open, default TRUE)/Icon/Title/Description/Close.
+  role=alert on Root; a live region announces CHANGES, so a server-rendered
+  alert is silent at load and one inserted later is announced. Close sets the
+  model false and the runtime sets `hidden` (anatomy: hiddenIn: ['closed']),
+  so design systems never paint `closed`. Icon is aria-hidden.
+- Badge: Root only — the carrier IS the text-bearing part, which is why it is
+  the one scope that can wire its own `variant` vocabulary against the
+  contrast audit's one-element probe. asChild.
+- Divider: Root only, role=separator, orientation. Non-focusable;
+  aria-orientation emitted only for `vertical`.
 - Textarea: Root(model=string)/Label/Textarea. Input's shape minus `control`
   — nothing sits inside a textarea for a wrapper to hold, so the chrome draws
   on the element. `rows` passes through; auto-sizing is not zero's job and
@@ -268,7 +281,7 @@ named model bound as `model:<stateName>` in JSX (sigx
 value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Button, Tabs, Switch,
-Checkbox, RadioGroup, Slider, Progress, Select, Combobox, Input and Textarea;
+Checkbox, RadioGroup, Slider, Progress, Select, Combobox, Input, Textarea, Card, Alert, Badge and Divider;
 they pass through as
 data-* and zero attaches no styling to them. Button is the worked example:
 route `color` through a component token pair (`--btn-accent` and its

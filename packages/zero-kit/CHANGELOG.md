@@ -4,6 +4,36 @@
 
 ### Added
 
+- **`tokens.scopes` has its first real caller** (#311). `#294` landed
+  per-scope axis vocabularies and RFC 0003 §4 said to revisit them "when the
+  content tier lands (card, alert, badge, chip)" — until now no design system
+  declared one, so the mechanism shipped unexercised. `@sigx/zero-basic` now
+  narrows `badge` to `solid | soft | outline` out of its design-system-wide
+  `solid | outline | soft | ghost`. `ghost` is the value it drops, and the
+  reason is the argument for the whole feature: a ghost button is furniture
+  that reveals itself on hover, but a badge has no hover and nothing to
+  reveal.
+
+  The narrowing is enforced end to end, which this exercise checked rather
+  than assumed: a badge recipe keying `ghost` fails validation with a message
+  naming `tokens.scopes.badge`, the emitted `register.d.ts` types `Badge`'s
+  `variant` as the three while `Button` keeps four in the same file, and the
+  compiled manifest advertises only the three. `AxisDivergence.declared`
+  already told a declared narrowing apart from accidental divergence, and now
+  has a case proving it.
+
+### Changed
+
+- **The partial-narrowing warning no longer names scopes that wire nothing**
+  (#311). Writing the first `tokens.scopes` declaration made the validator
+  warn about every *styled* scope that had not declared one — twenty-nine of
+  them in zero-basic, twenty-eight of which wire no `variant` at all (#175)
+  and so offer nothing a sibling's narrowing could expose; the recipe harvest
+  already compiles those to `never`. A list that long reads as "you did
+  something wrong" rather than as the one question actually worth asking,
+  which was whether `button` means to carry the whole set. The warning now
+  considers only scopes that paint the axis, and `button` says so explicitly.
+
 - **Ecosystem manifest fragments: `mergeManifests` and `--extra-manifest`**
   (#302, the building-on-top-of-zero track). An ecosystem component package —
   a peer of `@sigx/zero` shipping its own scopes, built from zero's public

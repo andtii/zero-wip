@@ -106,6 +106,30 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
     // The `variant` axis vocabulary — what button's variants.variant keys on.
     // Declared so a recipe typo is a build error, not a minted value.
     variants: ['solid', 'outline', 'soft', 'ghost'],
+    /**
+     * Per-scope narrowing (RFC 0003 §4.1, #294) — and this is the repo's
+     * first use of it, so it is worth saying what it buys.
+     *
+     * `scopes` narrows and never widens: badge offers three of the four
+     * values above, and `ghost` is the one it drops. A ghost BUTTON is
+     * furniture that reveals itself on hover; a badge has no hover and
+     * nothing to reveal, so a ghost badge is a word with no box — which is a
+     * word. Radix Themes' Badge lands on the same three-plus-surface set with
+     * no ghost, independently.
+     *
+     * The narrowing is enforced, not documentation: a badge recipe keying
+     * `variants.variant.ghost` is a validation error, `register.d.ts` narrows
+     * `variant` on `Badge` to the three, and the compiled manifest advertises
+     * only those. Button keeps the full set.
+     */
+    scopes: {
+        badge: { variants: ['solid', 'soft', 'outline'] },
+        // Restating the union is not redundancy — it is the explicit claim
+        // "yes, button carries all four", which is the answer to the question
+        // badge's narrowing raises. The validator asks it of every scope that
+        // paints the axis, and button is the only other one that does (#175).
+        button: { variants: ['solid', 'outline', 'soft', 'ghost'] },
+    },
     system,
     systemDark,
     // Mobile-first min-widths. Declaration order is emission order, so these

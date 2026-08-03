@@ -2665,8 +2665,254 @@ export const textarea: RecipeInput = {
     },
 };
 
+// ── Content tier (#311) ───────────────────────────────────────────────────
+/**
+ * daisy "card" flavor: `bg-base-100` on a `rounded-box` with a real shadow —
+ * daisy's card IS elevated where zero-basic's is not, and `card-body` carries
+ * the padding rather than the card.
+ */
+export const card: RecipeInput = {
+    component: 'card',
+    tokens: { '--card-pad': 'var(--space-xl)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                borderRadius: 'var(--radius-box)',
+                boxShadow: 'var(--shadow-md)',
+                overflow: 'hidden',
+            },
+        },
+        header: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-2xs)',
+                padding: 'var(--card-pad) var(--card-pad) 0',
+            },
+        },
+        title: {
+            base: {
+                margin: '0',
+                fontSize: 'var(--text-lg)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-tight)',
+            },
+        },
+        description: {
+            base: {
+                margin: '0',
+                fontSize: 'var(--text-sm)',
+                color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        body: {
+            base: { padding: 'var(--card-pad)', fontSize: 'var(--text-sm)', lineHeight: 'var(--leading-normal)' },
+        },
+        footer: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: 'var(--space-md)',
+                padding: '0 var(--card-pad) var(--card-pad)',
+            },
+        },
+    },
+    variants: {
+        // daisy's card has no colour of its own; the accent lands on the top
+        // rule, which is how `card-bordered` reads with a role applied.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            borderTop: `calc(var(--border) * 3) solid var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--card-pad': 'var(--space-sm)' } } },
+            sm: { root: { base: { '--card-pad': 'var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { '--card-pad': 'var(--space-2xl)' } } },
+            xl: { root: { base: { '--card-pad': 'var(--space-2xl)' } } },
+        },
+    },
+};
+
+/**
+ * daisy "alert" flavor: the role's soft tint edge to edge, its ink for the
+ * words, and a rounded-box corner. The text ink is `roleInk`, the same
+ * on-tint mix daisy's own alerts use and the one the token validator has
+ * already measured — NOT the role at full strength, which is a fill.
+ */
+export const alert: RecipeInput = {
+    component: 'alert',
+    tokens: {
+        '--alert-tint': 'var(--color-info-soft)',
+        '--alert-ink': 'var(--color-base-content)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr auto',
+                alignItems: 'center',
+                gap: 'var(--space-sm) var(--space-md)',
+                background: 'var(--alert-tint)',
+                color: 'var(--color-base-content)',
+                borderRadius: 'var(--radius-box)',
+                padding: 'var(--space-md) var(--space-lg)',
+            },
+            states: { open: {}, closed: {} },
+        },
+        icon: {
+            base: {
+                gridRow: '1 / span 2',
+                display: 'inline-flex',
+                alignItems: 'center',
+                color: 'var(--alert-ink)',
+                fontSize: 'var(--text-lg)',
+                lineHeight: 'var(--leading-none)',
+            },
+        },
+        title: {
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-tight)',
+            },
+        },
+        description: {
+            base: {
+                gridColumn: '2',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-normal)',
+            },
+        },
+        close: {
+            base: {
+                gridRow: '1',
+                gridColumn: '3',
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                borderRadius: 'var(--radius-selector)',
+                padding: 'var(--space-2xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'color-mix(in oklab, var(--color-base-content) 10%, transparent)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklab, var(--color-base-content) 18%, transparent)',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--alert-tint': `var(--color-${c}-soft)`,
+            '--alert-ink': roleInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-sm)' } } },
+            sm: { root: { base: { padding: 'var(--space-xs) var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { padding: 'var(--space-lg) var(--space-xl)' } } },
+            xl: { root: { base: { padding: 'var(--space-xl) var(--space-2xl)' } } },
+        },
+    },
+};
+
+/**
+ * daisy "badge" flavor: a fully-rounded pill with a hairline, filled by the
+ * role. No `variant` — the repo-wide decision (#175) holds everywhere except
+ * zero-basic's badge, which narrows its own vocabulary through `tokens.scopes`
+ * to prove the mechanism.
+ */
+export const badge: RecipeInput = {
+    component: 'badge',
+    tokens: {
+        '--badge-fill': 'var(--color-base-200)',
+        '--badge-ink': 'var(--color-base-content)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375em',
+                background: 'var(--badge-fill)',
+                color: 'var(--badge-ink)',
+                border: 'var(--border) solid transparent',
+                // daisy badges are pills; a large radius rather than 9999px so
+                // a square-cornered theme can still say so through the token.
+                borderRadius: 'var(--radius-selector)',
+                padding: '0.125rem 0.625rem',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-normal)',
+                whiteSpace: 'nowrap',
+                textDecoration: 'none',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--badge-fill': `var(--color-${c})`,
+            '--badge-ink': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-sm)' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-md)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-2xs) var(--space-lg)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-xs) var(--space-xl)' } } },
+        },
+    },
+};
+
+/** daisy "divider": the base-300 rule, thickening with the ramp. */
+export const divider: RecipeInput = {
+    component: 'divider',
+    tokens: { '--divider-ink': 'var(--color-base-300)', '--divider-thickness': 'var(--border)' },
+    parts: {
+        root: {
+            base: { border: 'none', background: 'var(--divider-ink)', alignSelf: 'stretch' },
+            selectors: {
+                '&[data-orientation="horizontal"]': {
+                    inlineSize: '100%',
+                    blockSize: 'var(--divider-thickness)',
+                },
+                '&[data-orientation="vertical"]': {
+                    inlineSize: 'var(--divider-thickness)',
+                    minBlockSize: '1em',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--divider-ink': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--divider-thickness': 'var(--border)' } } },
+            sm: { root: { base: { '--divider-thickness': 'var(--border)' } } },
+            md: {},
+            lg: { root: { base: { '--divider-thickness': 'calc(var(--border) * 2)' } } },
+            xl: { root: { base: { '--divider-thickness': 'calc(var(--border) * 3)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
+    card, alert, badge, divider,
 ];

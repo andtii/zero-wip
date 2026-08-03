@@ -31,6 +31,10 @@ import type { RatingGroup as ZRatingGroup } from '@sigx/zero/rating-group';
 import type { TreeView as ZTreeView } from '@sigx/zero/tree-view';
 import type { Input as ZInput } from '@sigx/zero/input';
 import type { Textarea as ZTextarea } from '@sigx/zero/textarea';
+import type { Card as ZCard } from '@sigx/zero/card';
+import type { Alert as ZAlert } from '@sigx/zero/alert';
+import type { Badge as ZBadge } from '@sigx/zero/badge';
+import type { Divider as ZDivider } from '@sigx/zero/divider';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -195,3 +199,31 @@ type TextareaProps = {
 };
 type TextareaAdapted = Adapted<typeof ZTextarea, ZeroAxisProp, TextareaProps>;
 export declare const Textarea: TextareaAdapted & AdaptedStatics<typeof ZTextarea> & { Root: TextareaAdapted };
+
+/** card — no vendor route; the wired surface keeps zero's names. */
+type CardProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type CardAdapted = Adapted<typeof ZCard, ZeroAxisProp, CardProps>;
+export declare const Card: CardAdapted & AdaptedStatics<typeof ZCard> & { Root: CardAdapted };
+
+/** alert — no vendor route; the wired surface keeps zero's names. */
+type AlertProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type AlertAdapted = Adapted<typeof ZAlert, ZeroAxisProp, AlertProps>;
+export declare const Alert: AlertAdapted & AdaptedStatics<typeof ZAlert> & { Root: AlertAdapted };
+
+/** badge — no vendor route; the wired surface keeps zero's names. */
+type BadgeProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type BadgeAdapted = Adapted<typeof ZBadge, ZeroAxisProp, BadgeProps>;
+export declare const Badge: BadgeAdapted & { Root: BadgeAdapted };
+
+/** divider — no vendor route; the wired surface keeps zero's names. */
+type DividerProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type DividerAdapted = Adapted<typeof ZDivider, ZeroAxisProp, DividerProps>;
+export declare const Divider: DividerAdapted & { Root: DividerAdapted };

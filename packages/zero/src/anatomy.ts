@@ -33,6 +33,10 @@ import { ratingGroupAnatomy } from './components/rating-group/anatomy.js';
 import { treeViewAnatomy } from './components/tree-view/anatomy.js';
 import { inputAnatomy } from './components/input/anatomy.js';
 import { textareaAnatomy } from './components/textarea/anatomy.js';
+import { cardAnatomy } from './components/card/anatomy.js';
+import { alertAnatomy } from './components/alert/anatomy.js';
+import { badgeAnatomy } from './components/badge/anatomy.js';
+import { dividerAnatomy } from './components/divider/anatomy.js';
 
 export {
     buttonAnatomy,
@@ -40,6 +44,7 @@ export {
     fieldAnatomy, checkboxAnatomy, radioGroupAnatomy, progressAnatomy, sliderAnatomy, accordionAnatomy, selectAnatomy,
     avatarAnatomy, toastAnatomy, comboboxAnatomy, toggleAnatomy, toggleGroupAnatomy, numberInputAnatomy,
     ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy,
+    cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy,
 };
 
 export const anatomies = {
@@ -68,6 +73,10 @@ export const anatomies = {
     'tree-view': treeViewAnatomy,
     input: inputAnatomy,
     textarea: textareaAnatomy,
+    card: cardAnatomy,
+    alert: alertAnatomy,
+    badge: badgeAnatomy,
+    divider: dividerAnatomy,
 } as const satisfies Record<string, Anatomy>;
 
 /**
