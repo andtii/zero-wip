@@ -65,6 +65,20 @@ describe('Stepper (ecosystem acceptance)', () => {
         expect(items(container)[1]!.getAttribute('data-state')).toBe('active');
     });
 
+    it('with no step set, nothing is active or complete, and the first item is the tab stop', () => {
+        render(
+            <Stepper.Root label="Steps">
+                <Stepper.Item value="a">A</Stepper.Item>
+                <Stepper.Item value="b">B</Stepper.Item>
+            </Stepper.Root>,
+            container,
+        );
+        expect(items(container).map((el) => el.getAttribute('data-state')))
+            .toEqual(['inactive', 'inactive']);
+        expect(items(container).map((el) => el.tabIndex)).toEqual([0, -1]);
+        expectAnatomy(container, stepperAnatomy);
+    });
+
     it('a disabled item renders the presence-only flag and does not select', () => {
         render(
             <Stepper.Root defaultStep="a" label="Steps">

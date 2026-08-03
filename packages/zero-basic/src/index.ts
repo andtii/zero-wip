@@ -10,7 +10,7 @@ import { tokens } from './tokens.js';
 
 export { tokens } from './tokens.js';
 export { recipes } from './recipes.js';
-export { designSystem, adopted } from './design-system.js';
+export { designSystem } from './design-system.js';
 
 export function installThemes(): void {
     registerThemes(tokens);

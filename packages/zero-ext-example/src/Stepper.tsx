@@ -153,6 +153,11 @@ const StepperItem = component<StepperItemProps>(({ props, slots, onUnmounted, si
 
     const phase = (): 'active' | 'complete' | 'inactive' => {
         const current = stepper.state.value;
+        // No step set (uncontrolled, no defaultStep): nothing is active and
+        // nothing has been walked past — the same "no active step" reading
+        // isTabbable takes, which otherwise diverges here into every item
+        // claiming complete via the indexOf(-1) path below.
+        if (!current) return 'inactive';
         if (props.value === current) return 'active';
         // Registration isn't reactive, so at first render an item may only
         // depend on items registered BEFORE it (DOM order) plus the model.

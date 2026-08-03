@@ -245,8 +245,9 @@ that null reports a `TypeError` instead of "the popup was not showing".
   its tests) and published to design systems from a data-only `./fragment`
   entry — the manifest fragment (`{ package, components }`) plus a recipe
   pack written against the recommended token grammar. zero-basic adopts both
-  (its `adopted` export + `mergeManifests` in `build.mjs`), which makes its
-  emitted `register.d.ts` the Exclude-form compile proof
+  in `build.mjs` (spread the pack, `mergeManifests` the fragment — build-only,
+  so the private package stays out of the published module graph), which makes
+  its emitted `register.d.ts` the Exclude-form compile proof
   (`packages/zero/type-tests/ecosystem/`). Private — it proves the loop the
   way zero-heroui proves axis shapes.
 - `examples/playground` — private demo app, structured like a docs site: a

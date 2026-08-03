@@ -3,13 +3,16 @@
 import { fileURLToPath } from 'node:url';
 import { anatomies } from '@sigx/zero/anatomy';
 import { buildReport, compileDesignSystem, mergeManifests, validateDesignSystem, writeArtifacts } from '@sigx/zero-kit';
-import { fragment } from '@sigx/zero-ext-example/fragment';
-import { adopted as designSystem } from './dist/design-system.js';
+import { fragment, recipes as extRecipes } from '@sigx/zero-ext-example/fragment';
+import { designSystem as base } from './dist/design-system.js';
 
-// Merged, not replaced: the ecosystem fragment joins zero's manifest so the
-// adopted ext-stepper recipe validates and compiles like any other scope,
-// with provenance — the emitted register.d.ts excludes the scope by name
-// from its ZeroScope gate (see type-tests/ecosystem/).
+// The ecosystem adoption (#304), and it lives HERE on purpose: this script is
+// build tooling the `files` list never ships, so the private ext-example
+// package stays out of the published module graph. Adoption is pure
+// composition — spread the recipe pack, merge the fragment (merged, not
+// replaced) — and the emitted register.d.ts excludes the ecosystem scope by
+// name from its ZeroScope gate (see type-tests/ecosystem/).
+const designSystem = { ...base, recipes: [...base.recipes, ...extRecipes] };
 const manifest = mergeManifests(
     { components: Object.values(anatomies).map((a) => a.toJSON()) },
     fragment,
