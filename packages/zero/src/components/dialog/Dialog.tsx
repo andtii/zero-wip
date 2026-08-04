@@ -21,6 +21,8 @@ import { component, compound, defineInjectable, defineProvide, effect } from 'si
 import type { Define } from 'sigx';
 import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
+import { createDismissable } from '../../behaviors/dismiss.js';
+import { createFocusRestore } from '../../behaviors/focus.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
@@ -100,6 +102,10 @@ const DialogRoot = component<DialogRootProps>(({ props, slots, emit, signal }) =
     };
     defineProvide(useDialogContext, () => ctx);
 
+    // `showModal()` restores focus natively on close; `show()` does not —
+    // cover the non-modal path so Escape/Close never strand focus.
+    createFocusRestore(() => state.value && !(props.modal ?? true));
+
     return () => <>{slots.default?.()}</>;
 }, { name: 'Dialog.Root' });
 
@@ -167,6 +173,17 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
     const dialog = useDialogContext();
     let el: HTMLDialogElement | null = null;
 
+    // A non-modal <dialog> fires no cancel event, so `dismissible` would be
+    // a silent no-op without this fallback. Escape only — a non-modal dialog
+    // (a find bar, a tool palette) is expected to survive clicks elsewhere,
+    // and it has no backdrop to click.
+    createDismissable({
+        getElement: () => el,
+        isOpen: () => dialog.state.value && !dialog.modal() && dialog.dismissible(),
+        dismiss: () => { dialog.state.value = false; },
+        outsidePress: false,
+    });
+
     onMounted(() => {
         effect(() => {
             const open = dialog.state.value;
@@ -200,11 +217,19 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
                 if (dialog.dismissible()) dialog.state.value = false;
             }}
             onClick={(e: MouseEvent) => {
-                // A click that lands on the <dialog> itself (not its
-                // children) is a backdrop click.
-                if (dialog.dismissible() && e.target === el) {
-                    dialog.state.value = false;
-                }
+                // A ::backdrop click targets the <dialog> element itself —
+                // but so does a click on the dialog's own padding. Geometry
+                // decides: only a pointer position outside the dialog's box
+                // can be the backdrop. Modal only — a non-modal dialog has
+                // no backdrop at all.
+                if (!dialog.modal() || !dialog.dismissible()) return;
+                if (!el || e.target !== el) return;
+                // A keyboard-synthesized click carries no geometry.
+                if (e.detail === 0) return;
+                const rect = el.getBoundingClientRect();
+                const inside = e.clientX >= rect.left && e.clientX <= rect.right
+                    && e.clientY >= rect.top && e.clientY <= rect.bottom;
+                if (!inside) dialog.state.value = false;
             }}
         >
             {slots.default?.()}
