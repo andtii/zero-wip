@@ -128,6 +128,54 @@ describe('api mode composed with an ecosystem fragment (#316)', () => {
     });
 });
 
+/**
+ * A probe for the #318 api surface: a respelled `size`, a DS-wide `variant`
+ * rename, and a per-scope `components.button` override that replaces it.
+ * Button is the only wired scope, so the override is observable end to end.
+ */
+const scopedProbe = (): DesignSystemInput => {
+    const ds = carbonProbe();
+    (ds.recipes[0] as RecipeInput).variants!['size'] = {
+        sm: { root: { base: { padding: '0.25rem' } } },
+        md: { root: { base: { padding: '0.5rem' } } },
+    };
+    ds.api = {
+        size: { values: { sm: 'small', md: 'medium' } },
+        variant: { as: 'kind' },
+        components: { button: { variant: { as: 'buttonKind' } } },
+    };
+    return ds;
+};
+
+describe('per-scope overrides and the color/size surface (#318)', () => {
+    it('the scoped golden compiles end to end (test:types)', async () => {
+        const compiled = compileDesignSystem(scopedProbe(), manifest);
+        await expect(compileComponentsDts(compiled))
+            .toMatchFileSnapshot('../../zero/type-tests/components/scoped.components.d.ts');
+    });
+
+    it('a size respell routes like any axis, and the override replaces the DS-wide rename', () => {
+        const api = compileDesignSystem(scopedProbe(), manifest).componentApi!['button']!;
+        expect(api.props['size']).toEqual({ axis: 'size', values: { medium: 'md', small: 'sm' } });
+        expect(api.props['buttonKind']).toEqual(expect.objectContaining({ axis: 'variant' }));
+        expect(api.props['kind']).toBeUndefined();
+    });
+
+    it('the d.ts carries the respelled size union and the overridden prop name', () => {
+        const dts = compileComponentsDts(compileDesignSystem(scopedProbe(), manifest));
+        expect(dts).toContain("'size'?: 'small' | 'medium';");
+        expect(dts).toContain("'buttonKind'?:");
+        expect(dts).not.toContain("'kind'?:");
+    });
+
+    it('the js routes through adapt with the per-scope spec', () => {
+        const js = compileComponentsJs(compileDesignSystem(scopedProbe(), manifest));
+        expect(js).toContain("'size': { axis: 'size', values: { 'medium': 'md', 'small': 'sm' } },");
+        expect(js).toContain("'buttonKind': { axis: 'variant' },");
+        expect(js).not.toContain("'kind':");
+    });
+});
+
 describe('the generated shapes', () => {
     const compiled = () => compileDesignSystem(carbonProbe(), manifest);
 

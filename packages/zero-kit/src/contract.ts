@@ -314,6 +314,18 @@ export const MEDIUM_PROPERTIES = [
     '--print-ink',
 ] as const;
 
+/**
+ * The cascade-layer order of the whole zero system, exactly as
+ * `@sigx/zero/css/base.css` declares it (pinned byte-equal by
+ * `layer-order.test.ts`). Emitted at the top of every compiled `tokens.css`
+ * and `index.css`: the FIRST mention of a layer establishes its position, so
+ * a design-system stylesheet parsed before base.css would otherwise create
+ * `zero.tokens` first and leave base.css's `zero.fallback` ABOVE it —
+ * neutral fallbacks silently overriding the design system's tokens.
+ * Restating the order is idempotent; relying on load order is not.
+ */
+export const LAYER_ORDER_STATEMENT = '@layer zero.fallback, zero.tokens, zero.recipes, zero.structure;';
+
 /** Interaction states resolved to real pseudo-classes, not data attributes. */
 export const INTERACTION_STATES: Record<string, string> = {
     hover: ':hover:not([data-disabled])',

@@ -1,3 +1,5 @@
+@layer zero.fallback, zero.tokens, zero.recipes, zero.structure;
+
 @property --color-primary { syntax: '<color>'; inherits: true; initial-value: oklch(56% 0.24 28); }
 @property --color-secondary { syntax: '<color>'; inherits: true; initial-value: oklch(45% 0.2 265); }
 @property --color-accent { syntax: '<color>'; inherits: true; initial-value: oklch(80% 0.18 92); }

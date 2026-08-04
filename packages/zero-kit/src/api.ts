@@ -16,7 +16,8 @@
  * a mapping the artifact doesn't implement — they are the same data.
  */
 import type { ManifestComponent } from './contract.js';
-import { RESERVED_AXES, VARIANT_AXES, carrierPart } from './contract.js';
+import { RESERVED_AXES, TOKEN_KEY_PATTERN, VARIANT_AXES, carrierPart, resolveRoles, resolveSizes } from './contract.js';
+import type { RolesDecl } from './tokens.js';
 import type { CompiledComponentAxes } from './design-system.js';
 import type { ValidationIssue } from './resolve/validate.js';
 
@@ -28,9 +29,13 @@ export interface AxisApi {
      * distinct from declaring no mapping at all (`unsupported`).
      *
      * A vendor name may shadow a component-specific prop (Ant's `type` over
-     * Button's native `type`) — that is vendor-faithful, and the generated
-     * module documents the shadowing. It may NOT take a name zero's contract
-     * owns on every component (`variant`, `mods`, `class`, `asChild`, …).
+     * Button's native `type`) — that is vendor-faithful, but it is a
+     * PER-COMPONENT decision: declare it under `api.components.<scope>`,
+     * where the shadowing is chosen for that scope. Design-system-wide, a
+     * name in `RESERVED_PROPS_BY_SCOPE` is rejected — `api.variant = { as:
+     * 'name' }` would silently delete Select's `name` on every wired scope.
+     * A name zero's contract owns on every component (`variant`, `mods`,
+     * `class`, `asChild`, …) is rejected at either tier.
      */
     as?: string;
     /**
@@ -52,12 +57,17 @@ export interface ModifierApi {
 }
 
 /**
- * The whole declaration. `color` and `size` deliberately have no entry — no
- * surveyed design system renames either — and per-component overrides are
- * reserved for a future `components` key (rejected by the validator until it
- * exists, so adding it later is additive rather than silently ignored today).
+ * One tier of the declaration — the design-system-wide surface, and also the
+ * shape of a per-scope override (#318): every named axis, the custom axes,
+ * and the modifiers. An override REPLACES the DS-wide entry for a surface it
+ * names (entry-level, per axis / per modifier), and says nothing about the
+ * surfaces it omits.
  */
-export interface DesignSystemApi {
+export interface ScopeApiOverride {
+    /** The `color` axis (values are the declared roles). */
+    color?: AxisApi;
+    /** The `size` axis (values are the declared ramp). */
+    size?: AxisApi;
     /** The `variant` axis. */
     variant?: AxisApi;
     /** Custom axes (`tokens.axes`): axis name → its surfacing. */
@@ -66,21 +76,44 @@ export interface DesignSystemApi {
     modifiers?: Record<string, ModifierApi>;
 }
 
+/**
+ * The whole declaration: the DS-wide tier plus per-scope overrides. `color`
+ * and `size` have first-class entries (#318 — carbon's `size` could never be
+ * respelled without them), and `components` is the formerly reserved
+ * per-scope key: scope → the overrides for that component. A DS-wide rename
+ * that would shadow one scope's component-specific prop (Select's `name`) is
+ * rejected with a pointer here — the override is scoped ON PURPOSE, so the
+ * shadowing is a per-component decision, never a design-system-wide accident.
+ */
+export interface DesignSystemApi extends ScopeApiOverride {
+    /** Per-scope overrides: component scope → its own surfacing. */
+    components?: Record<string, ScopeApiOverride>;
+}
+
 /** `AxisApi` with `values` keys narrowed to a declared vocabulary. */
 export interface AxisApiFor<Value extends string> {
     as?: string;
     values?: Partial<Record<Value, string>>;
 }
 
-/** `DesignSystemApi` narrowed against a declared vocabulary — see `defineApi`. */
+/**
+ * `DesignSystemApi` narrowed against a declared vocabulary — see `defineApi`.
+ * `C`/`S` (colors and sizes) trail with open defaults so declarations written
+ * before those axes had entries keep compiling unchanged.
+ */
 export interface DesignSystemApiFor<
     V extends string,
     M extends string,
     A extends Record<string, readonly string[]>,
+    C extends string = string,
+    S extends string = string,
 > {
+    color?: AxisApiFor<C>;
+    size?: AxisApiFor<S>;
     variant?: AxisApiFor<V>;
     axes?: { [K in keyof A]?: AxisApiFor<Extract<A[K][number], string>> };
     modifiers?: Partial<Record<M, ModifierApi>>;
+    components?: Record<string, Omit<DesignSystemApiFor<V, M, A, C, S>, 'components'>>;
 }
 
 /**
@@ -99,9 +132,11 @@ export function defineApi<
     const V extends readonly string[] = readonly never[],
     const M extends readonly string[] = readonly never[],
     const A extends Record<string, readonly string[]> = Record<never, readonly string[]>,
+    const C extends readonly string[] = readonly string[],
+    const S extends readonly string[] = readonly string[],
 >(
-    vocabulary: { variants?: V; modifiers?: M; axes?: A },
-    api: DesignSystemApiFor<V[number] & string, M[number] & string, A>,
+    vocabulary: { variants?: V; modifiers?: M; axes?: A; colors?: C; sizes?: S },
+    api: DesignSystemApiFor<V[number] & string, M[number] & string, A, C[number] & string, S[number] & string>,
 ): DesignSystemApi;
 export function defineApi(first: object, second?: object): DesignSystemApi {
     return (second ?? first) as DesignSystemApi;
@@ -175,10 +210,79 @@ const CONTRACT_PROPS = new Set([
 
 /** The vocabulary half of `TokensInput` — all `validateApi` needs to read. */
 export interface ApiVocabulary {
+    /**
+     * The declared colour roles — the `TokensInput` declaration shape, or a
+     * bare list of role names (the conformance fixtures' shape). Resolved
+     * like compilation resolves them: omitted means the recommended roles,
+     * explicitly empty means the axis does not exist.
+     */
+    roles?: RolesDecl | readonly string[];
+    /** The declared size ramp — resolved like compilation resolves it. */
+    sizes?: readonly string[];
     variants?: readonly string[];
     modifiers?: readonly string[];
     axes?: Record<string, readonly string[]>;
 }
+
+export interface ValidateApiOptions {
+    /**
+     * The component scopes of the anatomy manifest, for checking
+     * `api.components` keys. Optional because a conformance fixture validates
+     * without a manifest; `validateDesignSystem` always passes it.
+     */
+    scopes?: readonly string[];
+}
+
+/**
+ * Component-specific props on each scope's ROOT component — the props a
+ * vendor rename would shadow through `adapt()`'s props view, beyond the
+ * structural `CONTRACT_PROPS` every component shares. A DS-WIDE mapping onto
+ * one of these names is rejected (it silently deletes the prop on that scope
+ * — `api.variant = { as: 'name' }` deleted Select's `name`); the same
+ * mapping under `api.components.<scope>` is the deliberate, vendor-faithful
+ * shadowing and is allowed.
+ *
+ * Hand-maintained mirror of zero's component sources, kept honest by
+ * `reserved-props-parity.test.ts`, which re-derives this table from the
+ * `*RootProps` declarations in `packages/zero/src/components` and fails on
+ * any drift.
+ */
+export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>> = {
+    accordion: ['collapsible', 'defaultValue', 'multiple', 'value'],
+    alert: ['defaultOpen', 'value'],
+    avatar: [],
+    badge: [],
+    button: ['onBlur', 'onClick', 'onFocus', 'onKeydown', 'type'],
+    card: [],
+    checkbox: ['defaultChecked', 'indeterminate', 'invalid', 'name', 'required', 'value'],
+    collapsible: ['defaultOpen', 'value'],
+    combobox: ['defaultInputValue', 'defaultOpen', 'defaultValue', 'invalid', 'name', 'placeholder', 'placement', 'positionStrategy', 'readonly', 'required', 'value'],
+    dialog: ['defaultOpen', 'dismissible', 'modal', 'value'],
+    divider: ['orientation'],
+    field: ['invalid', 'required'],
+    input: ['autocomplete', 'defaultValue', 'invalid', 'maxlength', 'name', 'readonly', 'required', 'type', 'value'],
+    menu: ['closeOnSelect', 'offset', 'placement', 'positionStrategy', 'value'],
+    'number-input': ['allowWheel', 'clampOnBlur', 'defaultValue', 'format', 'invalid', 'max', 'min', 'name', 'parse', 'readonly', 'required', 'step', 'value'],
+    popover: ['defaultOpen', 'offset', 'placement', 'positionStrategy', 'value'],
+    progress: ['max', 'min', 'value'],
+    'radio-group': ['defaultValue', 'invalid', 'name', 'required', 'value'],
+    'rating-group': ['allowHalf', 'count', 'defaultValue', 'deselectable', 'invalid', 'name', 'readonly', 'required', 'value'],
+    select: ['defaultValue', 'invalid', 'name', 'placeholder', 'placement', 'positionStrategy', 'required', 'value'],
+    skeleton: ['defaultLoading', 'value'],
+    slider: ['defaultValue', 'invalid', 'max', 'min', 'name', 'step', 'value'],
+    spinner: ['label'],
+    switch: ['defaultChecked', 'invalid', 'name', 'required', 'value'],
+    tabs: ['activationMode', 'defaultValue', 'loop', 'value'],
+    textarea: ['autocomplete', 'defaultValue', 'invalid', 'maxlength', 'name', 'readonly', 'required', 'rows', 'value'],
+    toast: ['toast'],
+    toggle: ['defaultPressed', 'label', 'value'],
+    'toggle-group': ['defaultValue', 'deselectable', 'label', 'loop', 'multiple', 'value'],
+    tooltip: ['closeDelay', 'offset', 'openDelay', 'placement', 'positionStrategy', 'value'],
+    'tree-view': ['defaultExpandedValues', 'defaultValue', 'value'],
+};
+
+/** The surface keys one tier of the declaration may carry. */
+const TIER_KEYS = ['color', 'size', 'variant', 'axes', 'modifiers'] as const;
 
 /**
  * Validate a declaration against the vocabulary it maps. Standalone (rather
@@ -186,7 +290,11 @@ export interface ApiVocabulary {
  * its api against its own vocabulary without constructing a full design
  * system — the fixture and the validator see the same objects.
  */
-export function validateApi(api: DesignSystemApi, vocabulary: ApiVocabulary): ValidationIssue[] {
+export function validateApi(
+    api: DesignSystemApi,
+    vocabulary: ApiVocabulary,
+    options: ValidateApiOptions = {},
+): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
     const error = (where: string, message: string) => issues.push({ level: 'error', where, message });
     const warn = (where: string, message: string) => issues.push({ level: 'warning', where, message });
@@ -195,29 +303,14 @@ export function validateApi(api: DesignSystemApi, vocabulary: ApiVocabulary): Va
     // An unknown key is an error, not a skip: a newer declaration read by an
     // older kit must fail loudly rather than silently emit less than it says.
     for (const key of Object.keys(api)) {
-        if (key === 'variant' || key === 'axes' || key === 'modifiers') continue;
-        error('api', key === 'components'
-            ? 'per-component api overrides are not implemented yet (reserved key "components") — declare the mapping at the design-system level'
-            : `unknown key "${key}" — the api declares variant, axes and modifiers`);
+        if ((TIER_KEYS as readonly string[]).includes(key) || key === 'components') continue;
+        error('api', `unknown key "${key}" — the api declares color, size, variant, axes, modifiers and components`);
     }
     const checkEntryKeys = (where: string, entry: object, allowed: readonly string[]): void => {
         for (const key of Object.keys(entry)) {
             if (!allowed.includes(key)) {
                 error(where, `unknown key "${key}" — a mapping declares ${allowed.join(' and ')}`);
             }
-        }
-    };
-
-    // ── Every effective prop, for cross-entry duplicate detection ──
-    // An entry without `as` still occupies a prop (its own name): two routes
-    // to one prop would leave adapt() unable to say which axis a value is for.
-    const propOwners = new Map<string, string>();
-    const claim = (where: string, prop: string): void => {
-        const owner = propOwners.get(prop);
-        if (owner) {
-            error('api', `${owner} and ${where} both expose the prop "${prop}" — every vendor prop must route to exactly one axis`);
-        } else {
-            propOwners.set(prop, where);
         }
     };
 
@@ -237,6 +330,24 @@ export function validateApi(api: DesignSystemApi, vocabulary: ApiVocabulary): Va
         } else if (CONTRACT_PROPS.has(as)) {
             error(where, `as: "${as}" is a structural prop on every zero component — the adapter could never forward it`);
         }
+    };
+
+    /**
+     * DS-WIDE tier only: a prop that is component-specific on some scope may
+     * not be claimed design-system-wide — the rename would silently shadow
+     * that scope's own prop. Scoped under `api.components.<scope>` the same
+     * name is the deliberate vendor shadowing, so per-scope entries skip this.
+     */
+    const checkReservedByScope = (where: string, prop: string): void => {
+        const clashing = Object.entries(RESERVED_PROPS_BY_SCOPE)
+            .filter(([, props]) => props.includes(prop))
+            .map(([scope]) => `"${scope}"`);
+        if (clashing.length === 0) return;
+        error(
+            where,
+            `"${prop}" is a component-specific prop on ${clashing.join(', ')} — a design-system-wide mapping would shadow it there. ` +
+            'Declare the mapping under api.components.<scope> for the scopes that want the vendor shadowing, or pick another name.',
+        );
     };
 
     const checkValues = (
@@ -270,51 +381,167 @@ export function validateApi(api: DesignSystemApi, vocabulary: ApiVocabulary): Va
         }
     };
 
-    // ── variant ──
-    if (api.variant) {
-        const where = 'api.variant';
-        checkEntryKeys(where, api.variant, ['as', 'values']);
-        const declared = new Set(vocabulary.variants ?? []);
-        if (declared.size === 0) {
-            error(where, 'maps the variant axis, but tokens.variants is undeclared — declare the vocabulary so the generated types have a union to narrow');
-        }
-        if (api.variant.as !== undefined) checkAs(where, api.variant.as, 'variant');
-        claim(where, api.variant.as ?? 'variant');
-        if (api.variant.values) checkValues(where, api.variant.values, declared, 'tokens.variants');
-    }
+    // ── The named axes and the vocabulary each maps ──
+    // `color`/`size` resolve exactly as compilation resolves them: an omitted
+    // declaration means the recommended vocabulary, an explicitly empty one
+    // (`roles: {}` / `sizes: []`) means the axis does not exist.
+    const namedAxes = [
+        {
+            axis: 'color' as const,
+            declared: Array.isArray(vocabulary.roles)
+                ? [...(vocabulary.roles as readonly string[])]
+                : Object.keys(resolveRoles(vocabulary.roles as RolesDecl | undefined)),
+            surface: 'tokens.roles',
+            emptyMessage: 'maps the color axis, but this design system declares no colour axis (roles: {})',
+        },
+        {
+            axis: 'size' as const,
+            declared: [...resolveSizes(vocabulary.sizes)],
+            surface: 'tokens.sizes',
+            emptyMessage: 'maps the size axis, but this design system declares no size axis (sizes: [])',
+        },
+        {
+            axis: 'variant' as const,
+            declared: [...(vocabulary.variants ?? [])],
+            surface: 'tokens.variants',
+            emptyMessage: 'maps the variant axis, but tokens.variants is undeclared — declare the vocabulary so the generated types have a union to narrow',
+        },
+    ];
 
-    // ── custom axes ──
-    for (const [axis, entry] of Object.entries(api.axes ?? {})) {
-        const where = `api.axes.${axis}`;
-        checkEntryKeys(where, entry, ['as', 'values']);
-        const declared = vocabulary.axes?.[axis];
-        if (!declared) {
-            error('api.axes', `"${axis}" is not declared in tokens.axes — declare the axis or remove the mapping`);
+    /**
+     * One tier — the DS-wide declaration, or one scope's override. `claim`
+     * carries the tier's duplicate-prop table; `dsWide` gates the
+     * reserved-by-scope check, which is exactly the difference between the
+     * accidental shadowing and the deliberate one.
+     */
+    const validateTier = (
+        tier: ScopeApiOverride,
+        prefix: string,
+        claim: (where: string, prop: string) => void,
+        dsWide: boolean,
+    ): void => {
+        for (const { axis, declared, surface, emptyMessage } of namedAxes) {
+            const entry = tier[axis];
+            if (!entry) continue;
+            const where = `${prefix}.${axis}`;
+            checkEntryKeys(where, entry, ['as', 'values']);
+            if (declared.length === 0) error(where, emptyMessage);
+            if (entry.as !== undefined) checkAs(where, entry.as, axis);
+            const prop = entry.as ?? axis;
+            if (dsWide && entry.as !== undefined) checkReservedByScope(where, prop);
+            claim(where, prop);
+            if (entry.values) checkValues(where, entry.values, new Set(declared), surface);
         }
-        if (entry.as !== undefined) checkAs(where, entry.as, axis);
-        claim(where, entry.as ?? axis);
-        if (entry.values) checkValues(where, entry.values, new Set(declared ?? []), `tokens.axes.${axis}`);
-    }
 
-    // ── modifiers ──
-    for (const [name, entry] of Object.entries(api.modifiers ?? {})) {
-        const where = `api.modifiers.${name}`;
-        checkEntryKeys(where, entry, ['as']);
-        if (!(vocabulary.modifiers ?? []).includes(name)) {
-            error('api.modifiers', `"${name}" is not declared in tokens.modifiers — declare the modifier or remove the mapping`);
+        for (const [axis, entry] of Object.entries(tier.axes ?? {})) {
+            const where = `${prefix}.axes.${axis}`;
+            checkEntryKeys(where, entry, ['as', 'values']);
+            const declared = vocabulary.axes?.[axis];
+            if (!declared) {
+                error(`${prefix}.axes`, `"${axis}" is not declared in tokens.axes — declare the axis or remove the mapping`);
+            }
+            if (entry.as !== undefined) checkAs(where, entry.as, axis);
+            const prop = entry.as ?? axis;
+            if (dsWide) checkReservedByScope(where, prop);
+            claim(where, prop);
+            if (entry.values) checkValues(where, entry.values, new Set(declared ?? []), `tokens.axes.${axis}`);
         }
-        if (entry.as !== undefined) {
-            checkAs(where, entry.as, name);
-        } else if (CONTRACT_PROPS.has(name) || RESERVED_AXES.has(name)) {
-            // Modifier NAMES live behind the data-mod- prefix, so declaration
-            // never checks them against the contract's namespace — but a
-            // modifier surfacing as a PROP steps out from behind the prefix.
-            error(where, `"${name}" would surface as a prop zero already owns — give it a vendor name with \`as\``);
+
+        for (const [name, entry] of Object.entries(tier.modifiers ?? {})) {
+            const where = `${prefix}.modifiers.${name}`;
+            checkEntryKeys(where, entry, ['as']);
+            if (!(vocabulary.modifiers ?? []).includes(name)) {
+                error(`${prefix}.modifiers`, `"${name}" is not declared in tokens.modifiers — declare the modifier or remove the mapping`);
+            }
+            if (entry.as !== undefined) {
+                checkAs(where, entry.as, name);
+            } else if (CONTRACT_PROPS.has(name) || RESERVED_AXES.has(name)) {
+                // Modifier NAMES live behind the data-mod- prefix, so
+                // declaration never checks them against the contract's
+                // namespace — but a modifier surfacing as a PROP steps out
+                // from behind the prefix.
+                error(where, `"${name}" would surface as a prop zero already owns — give it a vendor name with \`as\``);
+            }
+            const prop = entry.as ?? name;
+            if (dsWide) checkReservedByScope(where, prop);
+            claim(where, prop);
         }
-        claim(where, entry.as ?? name);
+    };
+
+    // ── DS-wide tier ──
+    // An entry without `as` still occupies a prop (its own name): two routes
+    // to one prop would leave adapt() unable to say which axis a value is for.
+    const propOwners = new Map<string, string>();
+    validateTier(api, 'api', (where, prop) => {
+        const owner = propOwners.get(prop);
+        if (owner) {
+            error('api', `${owner} and ${where} both expose the prop "${prop}" — every vendor prop must route to exactly one axis`);
+        } else {
+            propOwners.set(prop, where);
+        }
+    }, true);
+
+    // ── Per-scope overrides (#318) ──
+    for (const [scope, override] of Object.entries(api.components ?? {})) {
+        const where = `api.components.${scope}`;
+        if (!TOKEN_KEY_PATTERN.test(scope) || (options.scopes && !options.scopes.includes(scope))) {
+            error(where, `"${scope}" is not a component scope in the anatomy manifest`);
+        }
+        for (const key of Object.keys(override)) {
+            if ((TIER_KEYS as readonly string[]).includes(key)) continue;
+            error(where, key === 'components'
+                ? 'overrides cannot nest — `components` only exists at the top level'
+                : `unknown key "${key}" — an override declares color, size, variant, axes and modifiers`);
+        }
+
+        // The duplicate-prop table for THIS scope's effective surface: seeded
+        // with every DS-wide prop that survives the override (an overridden
+        // surface's DS-wide prop is replaced, so its name is free again), then
+        // the override's own entries claim against it. Seeds never re-report
+        // collisions among themselves — those are DS-level findings.
+        const scopeOwners = new Map<string, string>();
+        for (const { axis } of namedAxes) {
+            const entry = api[axis];
+            if (entry && !override[axis]) scopeOwners.set(entry.as ?? axis, `api.${axis}`);
+        }
+        for (const [axis, entry] of Object.entries(api.axes ?? {})) {
+            if (!override.axes?.[axis]) scopeOwners.set(entry.as ?? axis, `api.axes.${axis}`);
+        }
+        for (const [name, entry] of Object.entries(api.modifiers ?? {})) {
+            if (!override.modifiers?.[name]) scopeOwners.set(entry.as ?? name, `api.modifiers.${name}`);
+        }
+        validateTier(override, where, (entryWhere, prop) => {
+            const owner = scopeOwners.get(prop);
+            if (owner) {
+                error(where, `${owner} and ${entryWhere} both expose the prop "${prop}" — every vendor prop must route to exactly one axis`);
+            } else {
+                scopeOwners.set(prop, entryWhere);
+            }
+        }, false);
     }
 
     return issues;
+}
+
+/**
+ * The declaration in force for ONE scope: the DS-wide tier with that scope's
+ * `components` override applied — entry-level replacement per surface, per
+ * custom axis and per modifier. The single seam every consumer of a
+ * per-component api goes through (`compileDesignSystem` calls it before
+ * `deriveComponentApi`), so the emitters, the manifest and the runtime spec
+ * all read one merge.
+ */
+export function scopeApi(api: DesignSystemApi, scope: string): ScopeApiOverride {
+    const override = api.components?.[scope];
+    if (!override) return api;
+    const merged: ScopeApiOverride = {};
+    for (const axis of ['color', 'size', 'variant'] as const) {
+        const entry = override[axis] ?? api[axis];
+        if (entry) merged[axis] = entry;
+    }
+    if (api.axes || override.axes) merged.axes = { ...api.axes, ...override.axes };
+    if (api.modifiers || override.modifiers) merged.modifiers = { ...api.modifiers, ...override.modifiers };
+    return merged;
 }
 
 /**
@@ -346,14 +573,16 @@ export interface CompiledComponentApi {
 }
 
 /**
- * Filter the declaration down to one component's wired surface.
+ * Filter the declaration down to one component's wired surface. Callers with
+ * a per-scope `components` override resolve it FIRST (`scopeApi`) — this
+ * function reads one flat tier.
  *
  * An axis entry without `as` still produces a route (under the axis's own
  * name): the generated `.d.ts` replaces the WHOLE variant surface, so even an
  * unrenamed axis flows through the same door — one mechanism, graded `exact`.
  */
 export function deriveComponentApi(
-    api: DesignSystemApi,
+    api: ScopeApiOverride,
     axes: CompiledComponentAxes,
     component: ManifestComponent,
 ): CompiledComponentApi {
@@ -370,9 +599,11 @@ export function deriveComponentApi(
         return entries.length > 0 ? Object.fromEntries(entries) : undefined;
     };
 
-    if (api.variant && axes.variant.length > 0) {
-        const values = inverted(api.variant.values, axes.variant);
-        props[api.variant.as ?? 'variant'] = { axis: 'variant', ...(values ? { values } : {}) };
+    for (const axis of ['color', 'size', 'variant'] as const) {
+        const entry = api[axis];
+        if (!entry || axes[axis].length === 0) continue;
+        const values = inverted(entry.values, axes[axis]);
+        props[entry.as ?? axis] = { axis, ...(values ? { values } : {}) };
     }
     for (const [axis, entry] of Object.entries(api.axes ?? {})) {
         const wired = axes.axes[axis];

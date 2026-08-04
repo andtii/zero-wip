@@ -6,7 +6,7 @@
 import type { ManifestComponent, RoleDecl, ZeroManifest } from './contract.js';
 import { DEFAULT_ROLES, defaultSwatch, resolveRoles, resolveSizes } from './contract.js';
 import type { CompiledComponentApi, DesignSystemApi } from './api.js';
-import { deriveComponentApi } from './api.js';
+import { deriveComponentApi, scopeApi } from './api.js';
 import type { CustomTokenDecl, RolesDecl, ScopeVocabulary, SystemTokens, TokensInput } from './tokens.js';
 import { compileTokensCss } from './targets/web/tokens-css.js';
 import type { RecipeInput } from './recipes.js';
@@ -371,7 +371,9 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
         ? Object.fromEntries(
             Object.entries(components).map(([scope, axes]) => [
                 scope,
-                deriveComponentApi(ds.api!, axes, byScope.get(scope)!),
+                // Per-scope overrides resolve HERE, once — the emitters, the
+                // manifest and the runtime spec all read the same merge.
+                deriveComponentApi(scopeApi(ds.api!, scope), axes, byScope.get(scope)!),
             ]),
         )
         : undefined;

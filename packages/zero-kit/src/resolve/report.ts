@@ -169,7 +169,7 @@ export interface ThemeContrastReport {
 export interface ApiSurfaceReport {
     /** The vendor prop consumers write (`kind`, `isIconOnly`). */
     prop: string;
-    /** Where it routes: `variant`, `axes.<axis>` or `mods.<modifier>`. */
+    /** Where it routes: `color`, `size`, `variant`, `axes.<axis>` or `mods.<modifier>`. */
     zero: string;
     /** Never `unsupported` — an unmapped surface has no row (see `MappedGrade`). */
     grade: MappedGrade;
@@ -522,12 +522,16 @@ function apiSurfaces(api: DesignSystemApi): ApiSurfaceReport[] {
     const respelled = (values?: Record<string, string>): string[] =>
         sorted(Object.entries(values ?? {}).flatMap(([zero, vendor]) => (vendor === zero ? [] : [vendor])));
     const surfaces: ApiSurfaceReport[] = [];
-    if (api.variant) {
+    // The DS-wide tier only: per-scope `components` overrides surface through
+    // the manifest's per-scope api, not this design-system-level summary.
+    for (const axis of ['color', 'size', 'variant'] as const) {
+        const entry = api[axis];
+        if (!entry) continue;
         surfaces.push({
-            prop: api.variant.as ?? 'variant',
-            zero: 'variant',
-            grade: apiGrade(api.variant),
-            respelled: respelled(api.variant.values),
+            prop: entry.as ?? axis,
+            zero: axis,
+            grade: apiGrade(entry),
+            respelled: respelled(entry.values),
         });
     }
     for (const [axis, entry] of Object.entries(api.axes ?? {})) {

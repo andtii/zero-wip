@@ -17,6 +17,8 @@ export default defineConfig({
             '@sigx/zero/adapt': new URL('./packages/zero/src/adapt/index.ts', import.meta.url).pathname,
             '@sigx/zero/testing': new URL('./packages/zero/src/testing/index.ts', import.meta.url).pathname,
             '@sigx/zero': new URL('./packages/zero/src/index.ts', import.meta.url).pathname,
+            '@sigx/zero-kit/build': new URL('./packages/zero-kit/src/build.ts', import.meta.url).pathname,
+            '@sigx/zero-kit/define': new URL('./packages/zero-kit/src/define.ts', import.meta.url).pathname,
             '@sigx/zero-kit': new URL('./packages/zero-kit/src/index.ts', import.meta.url).pathname,
             '@sigx/zero-basic': new URL('./packages/zero-basic/src/index.ts', import.meta.url).pathname,
             '@sigx/zero-daisyui': new URL('./packages/zero-daisyui/src/index.ts', import.meta.url).pathname,

@@ -15,6 +15,8 @@
       "@sigx/zero/testing": ["./packages/zero/src/testing/index.ts"],
       "@sigx/zero/*": ["./packages/zero/src/*"],
       "@sigx/zero-kit": ["./packages/zero-kit/src/index.ts"],
+      "@sigx/zero-kit/build": ["./packages/zero-kit/src/build.ts"],
+      "@sigx/zero-kit/define": ["./packages/zero-kit/src/define.ts"],
       "@sigx/zero-basic": ["./packages/zero-basic/src/index.ts"],
       "@sigx/zero-daisyui": ["./packages/zero-daisyui/src/index.ts"],
       "@sigx/zero-material": ["./packages/zero-material/src/index.ts"],

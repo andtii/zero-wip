@@ -4,6 +4,70 @@
 
 ### Added
 
+- **`@sigx/zero-kit/build` — the standard build as one function** (#318).
+  `runStandardBuild({ designSystem, manifest, fragments?, outDir, logger? })`
+  runs merge → validate → compile → `buildReport` → `writeArtifacts` with
+  uniform issue printing, and throws (after printing every issue) when
+  validation fails. The six in-repo design systems' `build.mjs` files shrink
+  to data/config calls, and `sigx zero:build` calls the same function — one
+  derivation of "what a build is", however it is invoked.
+
+- **`@sigx/zero-kit/define` — the authoring surface for browser graphs**
+  (#318). Re-exports `defineTokens` / `defineRecipe` / `defineDesignSystem` /
+  `defineApi` from a module graph that is `node:`-free by contract:
+  `ds-runtime-imports.test.ts` walks it and fails on the first non-relative
+  import. A design-system module in a package's runtime graph may
+  value-import this subpath (and only this subpath) — zero-carbon and
+  zero-heroui drop their `satisfies` reimplementations for the real
+  two-argument `defineApi`.
+
+- **api: `color`/`size` entries, per-scope `components` overrides, and
+  `RESERVED_PROPS_BY_SCOPE`** (#318). The vendor-named api declaration gains
+  first-class `color` and `size` entries (validated against the roles/ramp as
+  compilation resolves them — Carbon's `size` can finally be respelled), and
+  the formerly reserved `components` key activates: scope → an override that
+  replaces the DS-wide entry per surface. One merge seam (`scopeApi`) feeds
+  `deriveComponentApi`, so the emitters, the manifest and the runtime spec
+  read the same resolution. A DS-WIDE `as` rename onto a scope's
+  component-specific prop (Select's `name`, Button's `type`) is now an error
+  naming the clashing scopes and pointing at `api.components.<scope>` — the
+  same rename scoped to one component is the deliberate, vendor-faithful
+  shadowing and stays legal. The table of component-specific props is pinned
+  to zero's actual `RootProps` declarations by a parity test.
+
+- **Layer-order emission** (#318). Every compiled `tokens.css` (and therefore
+  `index.css`) opens with `@layer zero.fallback, zero.tokens, zero.recipes,
+  zero.structure;` from a shared `LAYER_ORDER_STATEMENT` constant pinned
+  byte-equal to the statement in `@sigx/zero/css/base.css`. Compiled DS CSS
+  previously relied on base.css being parsed first; loading the DS stylesheet
+  first created `zero.tokens` before `zero.fallback` existed and left the
+  neutral fallbacks overriding the design system's tokens.
+
+- **Interpolation guards on the remaining verbatim compiler sites** (#318).
+  Declaration property names get a CSS property grammar (camelCase authoring
+  and vendor prefixes pass), declaration values and `selectors` keys get a
+  breakout guard (no braces, semicolons or newlines), and `@keyframes` names
+  must be a single CSS identifier that is not a CSS-wide keyword — modeled on
+  the `assertAxisToken` / `PSEUDO_ELEMENT_PATTERN` precedent, red-first with
+  the documented incident inputs.
+
+- **Token-layer validation** (#318). `tokens.custom` and `theme.extra` names
+  now answer to `TOKEN_KEY_PATTERN` (a `--My Token:` declaration was emitted
+  verbatim and silently dropped by the browser); every `var()` reference in
+  token VALUES (system / systemDark / theme.system / theme.custom /
+  theme.extra) resolves against the declared vocabulary with the same
+  error-or-fallback-warning semantics the recipe layer has always had; and
+  custom-property definition cycles (`--a: var(--b); --b: var(--a)`) are
+  detected per theme — CSS makes every property in a cycle invalid,
+  fallbacks included.
+
+- **Fragment hardening** (#318). `mergeManifests` requires kebab-case scope
+  and part names (a fragment's scope is both a selector and the
+  `css/components/<scope>.css` filename, so one grammar closes selector
+  injection and path traversal) and applies the breakout guard to per-state
+  selector fragments; `writeArtifacts` gets the same grammar as a backstop
+  for direct callers.
+
 - **The spinner joins the contrast audit's indicator matrix** (#314). Its name
   matches no `PAINT_ONLY_PART` pattern, so it was opted in by hand: a spinner
   is pure paint on the page and an invisible one is a real bug, answering to

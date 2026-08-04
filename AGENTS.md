@@ -212,7 +212,11 @@ that null reports a `TypeError` instead of "the popup was not showing".
   design system by the kit, since only it knows the declared role names).
 - `packages/zero-kit` → `@sigx/zero-kit` — Node-only authoring kit:
   `defineTokens` / `defineRecipe` / `defineDesignSystem`, the tokens/recipes →
-  plain-CSS compiler, the `sigx` CLI plugin (`zero:build | zero:validate`,
+  plain-CSS compiler, the `/build` subpath (`runStandardBuild` — the whole
+  validate → compile → report → writeArtifacts pipeline every DS `build.mjs`
+  and the CLI call), the `/define` subpath (the `define*` helpers from a
+  `node:`-free module graph, the ONE zero-kit surface a DS package may
+  value-import at runtime), the `sigx` CLI plugin (`zero:build | zero:validate`,
   aliased `build | validate`; `init` and `eject` are planned — see issues
   #10/#11), and the design-system generation agent skill, and the JSON schemas
   for manifest/tokens/recipes (shipped in `schemas/`, referenced by
@@ -256,8 +260,9 @@ that null reports a `TypeError` instead of "the popup was not showing".
   its tests) and published to design systems from a data-only `./fragment`
   entry — the manifest fragment (`{ package, components }`) plus a recipe
   pack written against the recommended token grammar. zero-basic adopts both
-  in `build.mjs` (spread the pack, `mergeManifests` the fragment — build-only,
-  so the private package stays out of the published module graph), which makes
+  in `build.mjs` (spread the pack, pass the fragment to `runStandardBuild` —
+  build-only, so the private package stays out of the published module
+  graph), which makes
   its emitted `register.d.ts` the Exclude-form compile proof
   (`packages/zero/type-tests/ecosystem/`). Private — it proves the loop the
   way zero-heroui proves axis shapes.

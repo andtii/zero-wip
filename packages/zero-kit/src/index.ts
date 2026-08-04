@@ -56,13 +56,17 @@ export type {
     DesignSystemApiFor,
     MappedGrade,
     ModifierApi,
+    ScopeApiOverride,
+    ValidateApiOptions,
 } from './api.js';
 export {
     API_PROP_PATTERN,
+    RESERVED_PROPS_BY_SCOPE,
     apiGrade,
     defineApi,
     deriveComponentApi,
     modifierGrade,
+    scopeApi,
     validateApi,
 } from './api.js';
 export {
@@ -106,6 +110,9 @@ export { validateRecipes } from './resolve/validate-recipes.js';
 
 export { writeArtifacts } from './artifacts.js';
 
+export type { StandardBuildLogger, StandardBuildOptions, StandardBuildResult } from './build.js';
+export { runStandardBuild } from './build.js';
+
 export type { ManifestFragment } from './manifest.js';
 export { mergeManifests } from './manifest.js';
 
@@ -130,6 +137,7 @@ export {
     // retype it: `sizes: [...SIZE_SCALE_LIST, '2xl']`.
     SIZE_SCALE_LIST,
     BASE_SURFACE_TOKEN_LIST,
+    LAYER_ORDER_STATEMENT,
     TOKEN_CATEGORIES,
     TOKEN_KEY_PATTERN,
     TEXT_FIXED_PREFIX,

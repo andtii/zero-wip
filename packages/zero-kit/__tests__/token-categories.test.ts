@@ -455,7 +455,7 @@ describe('duration value validation', () => {
     });
 
     it('accepts times and functional values', () => {
-        expect(withDurations({ a: '150ms', b: '0.3s', c: 'var(--app-speed)' })).toEqual([]);
+        expect(withDurations({ a: '150ms', b: '0.3s', c: 'var(--duration-fast)' })).toEqual([]);
     });
 });
 

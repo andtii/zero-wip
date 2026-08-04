@@ -21,6 +21,7 @@
 import { generateTypeScale } from '../../scale.js';
 import {
     BASE_SURFACE_TOKEN_LIST,
+    LAYER_ORDER_STATEMENT,
     TEXT_FIXED_PREFIX,
     TOKEN_CATEGORIES,
     TOKEN_KEY_PATTERN,
@@ -461,5 +462,8 @@ export function compileTokensCss<R extends RolesDecl, T extends SystemTokens>(
 
     const registrations = propertyRegistrations(input, roles, light);
     const preamble = registrations.length ? `${registrations.join('\n')}\n\n` : '';
-    return `${preamble}@layer zero.tokens {\n${blocks.join('\n\n')}\n}\n`;
+    // The layer-order statement comes first: writing into `zero.tokens` below
+    // must never be the first mention of a zero layer, or loading this file
+    // before base.css puts `zero.fallback` above the design system's tokens.
+    return `${LAYER_ORDER_STATEMENT}\n\n${preamble}@layer zero.tokens {\n${blocks.join('\n\n')}\n}\n`;
 }
