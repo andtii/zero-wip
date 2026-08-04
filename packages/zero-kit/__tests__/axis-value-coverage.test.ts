@@ -369,7 +369,8 @@ describe('every declared axis value is honoured or claimed', () => {
         // …and `lg` is Carbon's un-attributed button step, written and silent.
         expect(participatingCells(carbon).find((c) => c.scope === 'button' && c.axis === 'size')?.claims)
             .toEqual(['lg']);
-        expect(participatingCells(carbon).filter((c) => c.axis === 'size').length).toBe(23);
+        // 23 before #321; the eight Contract v1 carriers joined the axis.
+        expect(participatingCells(carbon).filter((c) => c.axis === 'size').length).toBe(31);
     });
 
     it.each(SYSTEMS.map((s) => s.name))(

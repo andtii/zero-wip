@@ -189,24 +189,13 @@ const NO_VARIANT: Record<string, string> = {
  * ledgered exception to the colour/size rule below, in the same
  * bound-from-both-ends style as `NO_VARIANT`.
  *
- * Every entry here is DEBT with an issue, not a decision: the Contract v1
- * carriers (#317 item 4) landed their runtime axis surface in one coordinated
- * break, and the recipes that answer it are per-skin work tracked in #321.
- * The stale check below deletes entries as the skins wire them; letting one
- * linger past its recipes would silently re-open the accepts-but-unwired hole
- * this file exists to close.
+ * Every entry here is DEBT with an issue, not a decision. The ledger's one
+ * population so far — the Contract v1 carriers' colour and size axes (#317
+ * item 4) — emptied when #321 wired all six skins, and the stale check below
+ * is what forces that cleanup: an entry outliving its recipes would silently
+ * re-open the accepts-but-unwired hole this file exists to close.
  */
-const UNWIRED_AXES: Record<string, string> = Object.fromEntries([
-    // The `.color` entries left with the fourth colour-declaring skin
-    // (basic, daisyui, material, brutalist — heroui and carbon declare
-    // `roles: {}`, so for them there is no colour axis to wire). The `.size`
-    // entries leave with the last size-declaring skin.
-    ...['accordion', 'collapsible', 'dialog', 'field', 'menu', 'popover', 'tooltip']
-        .map((scope) => [`${scope}.size`, 'Contract v1 carrier — per-skin wiring tracked in #321']),
-    // toast.color is wired (the previously-unreachable recipes #317 made
-    // reachable); only the size ramp is still per-skin work.
-    ['toast.size', 'Contract v1 carrier — per-skin wiring tracked in #321'],
-]);
+const UNWIRED_AXES: Record<string, string> = {};
 
 const CHECKED_AXES = (['color', 'size'] as const);
 
