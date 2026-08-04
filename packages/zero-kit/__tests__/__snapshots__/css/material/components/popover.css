@@ -1,5 +1,9 @@
 @layer zero.recipes {
     [data-scope="popover"][data-part="trigger"] {
+        --overlay-accent: var(--color-primary);
+    }
+
+    [data-scope="popover"][data-part="trigger"] {
         position: relative;
         overflow: hidden;
         -webkit-tap-highlight-color: transparent;
@@ -7,7 +11,7 @@
         border-radius: 624rem;
         border: var(--border) solid var(--color-outline);
         background: transparent;
-        color: var(--color-primary);
+        color: var(--overlay-accent);
         padding: var(--space-xs) var(--space-lg);
         font-family: var(--font-sans);
         font-size: var(--text-sm);
@@ -25,7 +29,7 @@
         content: "";
         position: absolute;
         inset: 0;
-        background: var(--color-primary);
+        background: var(--overlay-accent);
         opacity: 0;
         pointer-events: none;
         transition: opacity var(--duration-fast) var(--ease-standard);
@@ -47,7 +51,7 @@
         width: calc(var(--press-r, 0px) * 2);
         height: calc(var(--press-r, 0px) * 2);
         border-radius: 50%;
-        background: var(--color-primary);
+        background: var(--overlay-accent);
         transform: translate(-50%, -50%) scale(0);
         opacity: 0;
         pointer-events: none;
@@ -135,6 +139,62 @@
 
     [data-scope="popover"][data-part="close"][data-press-animating]::after {
         animation: popover-ripple var(--duration-slow) var(--ease-standard);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="primary"] {
+        --overlay-accent: var(--color-primary);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="secondary"] {
+        --overlay-accent: var(--color-secondary);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="tertiary"] {
+        --overlay-accent: var(--color-tertiary);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="error"] {
+        --overlay-accent: var(--color-error);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="neutral"] {
+        --overlay-accent: var(--color-neutral);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="info"] {
+        --overlay-accent: var(--color-info);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="success"] {
+        --overlay-accent: var(--color-success);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="warning"] {
+        --overlay-accent: var(--color-warning);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="accent"] {
+        --overlay-accent: var(--color-accent);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-size="xs"] {
+        padding: var(--space-2xs) var(--space-sm);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-size="sm"] {
+        padding: var(--space-xs) var(--space-md);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-size="lg"] {
+        padding: var(--space-sm) var(--space-xl);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-size="xl"] {
+        padding: var(--space-md) var(--space-2xl);
+        font-size: var(--text-lg);
     }
 
     @media (hover: none) {

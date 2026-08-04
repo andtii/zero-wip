@@ -517,7 +517,10 @@ export const tabs: RecipeInput = {
 // this design system says it. The inset hairline is the structural half of
 // the same sentence: the header now has a panel under it. `box-shadow`, not
 // `border-block-end`, so nothing reflows on toggle.
-const disclosureTrigger = (prefix: string): PartStyles => withPresence(pressable(prefix), {
+// The accent pair rides two custom properties (`--disclosure-accent`/`-soft`)
+// declared in each recipe's `tokens:` — the un-attributed render IS the
+// primary variant and `variants.color` only rebinds them on the carrier.
+const disclosureTrigger = (prefix: string): PartStyles => withPresence(pressable(prefix, 'var(--disclosure-accent)'), {
     base: {
         display: 'flex',
         alignItems: 'center',
@@ -530,8 +533,8 @@ const disclosureTrigger = (prefix: string): PartStyles => withPresence(pressable
     },
     states: {
         open: {
-            background: 'var(--color-primary-soft)',
-            color: 'var(--color-primary)',
+            background: 'var(--disclosure-soft)',
+            color: 'var(--disclosure-accent)',
             boxShadow: 'inset 0 -1px 0 var(--color-outline)',
         },
         closed: {},
@@ -550,8 +553,43 @@ const disclosureTrigger = (prefix: string): PartStyles => withPresence(pressable
     },
 });
 
+/** The selected-container pair, per role — what `variants.color` rebinds. */
+const disclosureColors = (): Record<string, Record<string, PartStyles>> =>
+    Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+        '--disclosure-accent': `var(--color-${c})`,
+        '--disclosure-soft': `var(--color-${c}-soft)`,
+    } } }]));
+
+/**
+ * The disclosure size ramp — trigger padding/type plus the panel inset that
+ * follows it. `md` is the un-attributed render.
+ */
+const disclosureSizes: Record<string, Record<string, PartStyles>> = {
+    xs: {
+        trigger: { base: { padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } },
+        panel: { base: { padding: '0 var(--space-xs) var(--space-xs)' } },
+    },
+    sm: {
+        trigger: { base: { padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-sm)' } },
+        panel: { base: { padding: '0 var(--space-sm) var(--space-sm)' } },
+    },
+    md: {},
+    lg: {
+        trigger: { base: { padding: 'var(--space-lg)', fontSize: 'var(--text-lg)' } },
+        panel: { base: { padding: '0 var(--space-lg) var(--space-lg)' } },
+    },
+    xl: {
+        trigger: { base: { padding: 'var(--space-xl)', fontSize: 'var(--text-xl)' } },
+        panel: { base: { padding: '0 var(--space-xl) var(--space-xl)' } },
+    },
+};
+
 export const collapsible: RecipeInput = {
     component: 'collapsible',
+    tokens: {
+        '--disclosure-accent': 'var(--color-primary)',
+        '--disclosure-soft': 'var(--color-primary-soft)',
+    },
     parts: {
         root: withPresence(disclosurePresence, {
             base: {
@@ -569,10 +607,15 @@ export const collapsible: RecipeInput = {
         },
     },
     keyframes: rippleKeyframes('collapsible'),
+    variants: { color: disclosureColors(), size: disclosureSizes },
 };
 
 export const accordion: RecipeInput = {
     component: 'accordion',
+    tokens: {
+        '--disclosure-accent': 'var(--color-primary)',
+        '--disclosure-soft': 'var(--color-primary-soft)',
+    },
     parts: {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' } },
         item: withPresence(disclosurePresence, {
@@ -591,6 +634,7 @@ export const accordion: RecipeInput = {
         },
     },
     keyframes: rippleKeyframes('accordion'),
+    variants: { color: disclosureColors(), size: disclosureSizes },
 };
 
 /**
@@ -603,17 +647,48 @@ const outlinedTrigger: CssProps = {
     borderRadius: '624rem',
     border: 'var(--border) solid var(--color-outline)',
     background: 'transparent',
-    color: 'var(--color-primary)',
+    // `--overlay-accent` is declared in each wearing recipe's `tokens:` and
+    // lands on the trigger itself — the carrier part of these rootless
+    // scopes — so `variants.color` below only rebinds it.
+    color: 'var(--overlay-accent)',
     padding: 'var(--space-xs) var(--space-lg)',
     ...label,
     cursor: 'pointer',
 };
 
+/** What every outlined-trigger recipe declares — the accent's resting value. */
+const overlayTriggerTokens = { '--overlay-accent': 'var(--color-primary)' };
+
+/**
+ * The axes for the outlined overlay triggers (#321). Dialog, popover,
+ * tooltip and menu carry their axis attributes on the TRIGGER — the
+ * anatomy's carrier part — and their popups are top-layer siblings the
+ * compiled `@scope` donut can never reach, so the axes style the pill
+ * itself: colour re-inks the label (Material's role tokens are inks by
+ * construction — the same raw-role ink the button's outlined variant
+ * uses), size steps the pill on the button's own ramp.
+ */
+const overlayTriggerColors = (): Record<string, Record<string, PartStyles>> =>
+    Object.fromEntries(ROLES.map((c) => [c, { trigger: { base: {
+        '--overlay-accent': `var(--color-${c})`,
+    } } }]));
+
+const overlayTriggerSizes: Record<string, Record<string, PartStyles>> = {
+    xs: { trigger: { base: { padding: 'var(--space-2xs) var(--space-sm)', fontSize: 'var(--text-xs)' } } },
+    sm: { trigger: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-sm)' } } },
+    // `md` is the un-attributed render — `outlinedTrigger` already IS the
+    // button ramp's middle step.
+    md: {},
+    lg: { trigger: { base: { padding: 'var(--space-sm) var(--space-xl)', fontSize: 'var(--text-md)' } } },
+    xl: { trigger: { base: { padding: 'var(--space-md) var(--space-2xl)', fontSize: 'var(--text-lg)' } } },
+};
+
 // ── Dialog ────────────────────────────────────────────────────────────────
 export const dialog: RecipeInput = {
     component: 'dialog',
+    tokens: overlayTriggerTokens,
     parts: {
-        trigger: withPresence(pressable('dialog'), {
+        trigger: withPresence(pressable('dialog', 'var(--overlay-accent)'), {
             base: outlinedTrigger,
             states: { open: {}, closed: {}, disabled: {}, ...focusRing },
         }),
@@ -710,6 +785,9 @@ export const dialog: RecipeInput = {
         }),
     },
     keyframes: rippleKeyframes('dialog'),
+    // Trigger-carried axes — see `overlayTriggerColors` for why the popup is
+    // out of reach and the trigger is the whole story here.
+    variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 
 // ── Floating surfaces ─────────────────────────────────────────────────────
@@ -717,8 +795,9 @@ const floating: CssProps = { ...raised('level2'), padding: 'var(--space-xs)' };
 
 export const popover: RecipeInput = {
     component: 'popover',
+    tokens: overlayTriggerTokens,
     parts: {
-        trigger: withPresence(pressable('popover'), {
+        trigger: withPresence(pressable('popover', 'var(--overlay-accent)'), {
             base: outlinedTrigger,
             states: { open: {}, closed: {}, disabled: {}, ...focusRing },
         }),
@@ -741,10 +820,13 @@ export const popover: RecipeInput = {
         }),
     },
     keyframes: rippleKeyframes('popover'),
+    // Trigger-carried axes — same wiring as dialog, same reason.
+    variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 
 export const tooltip: RecipeInput = {
     component: 'tooltip',
+    tokens: overlayTriggerTokens,
     parts: {
         // The outlined trigger its three sibling overlays wear, without
         // `pressable`. Not all of `pressable` would be dead here — its hover
@@ -774,12 +856,16 @@ export const tooltip: RecipeInput = {
             states: { open: {}, closed: {} },
         }),
     },
+    // Trigger-carried axes — same wiring as dialog, same reason. The bubble
+    // stays Material's inverse-surface tooltip whatever the trigger's colour.
+    variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 
 export const menu: RecipeInput = {
     component: 'menu',
+    tokens: overlayTriggerTokens,
     parts: {
-        trigger: withPresence(pressable('menu'), {
+        trigger: withPresence(pressable('menu', 'var(--overlay-accent)'), {
             base: outlinedTrigger,
             states: { open: {}, closed: {}, disabled: {}, ...focusRing },
         }),
@@ -898,6 +984,9 @@ export const menu: RecipeInput = {
         },
     },
     keyframes: rippleKeyframes('menu'),
+    // Trigger-carried axes — same wiring as dialog, same reason. The popup
+    // and its items are top-layer siblings the donut cannot reach.
+    variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 
 export const select: RecipeInput = {
@@ -1543,15 +1632,43 @@ export const radioGroup: RecipeInput = {
 // ── Field, slider, progress ───────────────────────────────────────────────
 export const field: RecipeInput = {
     component: 'field',
+    // The label's accent ink — base-content by default, so the un-attributed
+    // field is unchanged and a role only arrives through `data-color`.
+    tokens: { '--field-accent': 'var(--color-base-content)' },
     parts: {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-2xs)' } },
         label: {
-            base: { ...label, color: 'var(--color-base-content)' },
+            base: { ...label, color: 'var(--field-accent)' },
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
             selectors: { '&[data-required]::after': { content: '" *"', color: 'var(--color-error)' } },
         },
         description: { base: { margin: '0', fontSize: 'var(--text-xs)', color: 'var(--color-outline)' } },
         error: { base: { margin: '0', fontSize: 'var(--text-xs)', color: 'var(--color-error)' } },
+    },
+    variants: {
+        // Colour accents the LABEL ink only — Material's role tokens are inks
+        // by construction; the supporting text keeps its outline grey and the
+        // error message stays error whatever the field's role.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--field-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { label: { base: { fontSize: 'var(--text-xs)' } } },
+            // `md` is the un-attributed render — the base already IS the
+            // middle step.
+            md: {},
+            lg: {
+                label: { base: { fontSize: 'var(--text-md)' } },
+                description: { base: { fontSize: 'var(--text-sm)' } },
+                error: { base: { fontSize: 'var(--text-sm)' } },
+            },
+            xl: {
+                label: { base: { fontSize: 'var(--text-lg)' } },
+                description: { base: { fontSize: 'var(--text-md)' } },
+                error: { base: { fontSize: 'var(--text-md)' } },
+            },
+        },
     },
     skipStates: { label: ['invalid', 'required'], error: ['invalid'] },
 };
@@ -2056,6 +2173,27 @@ export const toast: RecipeInput = {
             role,
             { root: { base: { '--toast-accent': `var(--color-${role})` } } },
         ])),
+        // Size moves the snackbar's box — padding and type — never the
+        // status marker. The description steps only at the wide end.
+        size: {
+            xs: { root: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--text-sm)' } } },
+            // `md` is the un-attributed render — the base already IS the
+            // middle step.
+            md: {},
+            // The title wears the `label` mixin's fixed `text-sm`, so the
+            // wide steps restate it — unlike the skins where it inherits.
+            lg: {
+                root: { base: { padding: 'var(--space-lg) var(--space-xl)', fontSize: 'var(--text-md)' } },
+                title: { base: { fontSize: 'var(--text-md)' } },
+                description: { base: { fontSize: 'var(--text-sm)' } },
+            },
+            xl: {
+                root: { base: { padding: 'var(--space-xl) var(--space-2xl)', fontSize: 'var(--text-lg)' } },
+                title: { base: { fontSize: 'var(--text-lg)' } },
+                description: { base: { fontSize: 'var(--text-md)' } },
+            },
+        },
     },
     keyframes: rippleKeyframes('toast'),
 };
