@@ -39,6 +39,17 @@ Native-platform first: `<dialog>` +
 top layer (no Portal), the `popover` attribute, `<details>`, real form
 inputs. SSR-safe ids via `app.use(zeroPlugin())` per request.
 
+The peer-parity surfaces ship too: Menu has stateful items
+(`Menu.CheckboxItem`, `Menu.RadioGroup`/`Menu.RadioItem` — APG
+menuitemcheckbox/menuitemradio; toggling keeps the menu open unless the item
+sets `closeOnSelect`); Dialog has an alert-dialog preset
+(`role="alertdialog"`: no backdrop dismiss, initial focus on the
+least-destructive `Dialog.Cancel`); Slider's `model` accepts `number[]` for a
+composed multi-thumb range (`Slider.Track`/`Range`/`Thumb`, thumbs clamp at
+their neighbors, `marks` renders ticks) while a scalar model keeps the native
+`<input type=range>`; Select and Combobox group options
+(`Group`/`GroupLabel`, the optgroup equivalent).
+
 Interaction state is published as data for the design system to style:
 `data-focus-visible`, and press feedback on every interactive part —
 `data-pressed` while the pointer/key is down (a press ends when the gesture
