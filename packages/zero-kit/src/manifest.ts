@@ -41,7 +41,21 @@ const PACKAGE_SPECIFIER_PATTERN = /^(@[a-z0-9~][\w.~-]*\/)?[a-z0-9~][\w.~-]*(\/[
  */
 const CSS_BREAKOUT = /[{};\n\r]/;
 
+/**
+ * The version of the fragment CONTRACT this kit understands. A fragment
+ * declares the version it was built against; the merge hard-errors on a
+ * missing or unknown one, because an unversioned fragment merges whatever
+ * contract era it came from — a pre-`hiddenIn` fragment used to slide
+ * straight through (#317 item 5).
+ */
+export const FRAGMENT_VERSION = 1;
+
 export interface ManifestFragment {
+    /**
+     * The fragment contract version this fragment was built against —
+     * `FRAGMENT_VERSION` at publish time. Required: see the constant.
+     */
+    version: number;
     /**
      * The package that owns these scopes — provenance for diagnostics, the
      * import specifier for api-mode emitters, and required on purpose: an
@@ -76,6 +90,12 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
         }
         if (!PACKAGE_SPECIFIER_PATTERN.test(fragment.package)) {
             throw new Error(`[zero-kit] ${where}: "${fragment.package}" is not a package specifier — it becomes an import specifier in generated artifacts`);
+        }
+        if (fragment.version === undefined) {
+            throw new Error(`[zero-kit] ${where} declares no "version" — a fragment states the contract version it was built against (currently ${FRAGMENT_VERSION}), so a stale one fails here instead of merging silently`);
+        }
+        if (fragment.version !== FRAGMENT_VERSION) {
+            throw new Error(`[zero-kit] ${where} declares fragment version ${fragment.version}, but this kit understands version ${FRAGMENT_VERSION} — rebuild the fragment against a matching @sigx/zero-kit`);
         }
         if (!Array.isArray(fragment.components) || fragment.components.length === 0) {
             throw new Error(`[zero-kit] ${where} has no "components" array — nothing to merge`);

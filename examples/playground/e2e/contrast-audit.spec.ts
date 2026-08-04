@@ -65,6 +65,7 @@ import { test, expect, type Page } from '@playwright/test';
 // other while both drifting from what the CSS actually says (#297).
 import { carrierPart } from '@sigx/zero-kit';
 import type {
+    DesignSystemManifest,
     ManifestComponent as KitManifestComponent,
     ManifestPart as KitManifestPart,
 } from '@sigx/zero-kit';
@@ -250,20 +251,7 @@ const cellKey = (ds: string, theme: string, c: Cell): string =>
 // ── The axis surface (#207) ─────────────────────────────────────────────────
 
 /** One scope's wired axis vocabulary, as `@sigx/zero-kit` emits it. */
-interface WiredAxes {
-    color: string[];
-    size: string[];
-    variant: string[];
-    /** Declared custom axes: name → wired values. */
-    axes: Record<string, string[]>;
-    /** Presence-only modifiers — rendered `data-mod-<name>`. */
-    mods: string[];
-}
-
-interface DesignSystemManifest {
-    themes: { name: string; colorScheme: string }[];
-    components: Record<string, WiredAxes>;
-}
+type WiredAxes = DesignSystemManifest['components'][string];
 
 /** Which axes of a scope can carry colour — see `axisCellsFor`. */
 function colourBearingAxes(wired: WiredAxes): Record<string, string[]> {
@@ -348,7 +336,7 @@ function derivedChainAncestors(component: ManifestComponent, part: ManifestPart)
     const ancestors: string[] = [];
     let cursor: ManifestPart | undefined = part;
     while (cursor && cursor.name !== carrier) {
-        const parent = cursor.parent === undefined ? undefined : byName.get(cursor.parent);
+        const parent: ManifestPart | undefined = cursor.parent === undefined ? undefined : byName.get(cursor.parent);
         if (!parent) return undefined;
         ancestors.unshift(parent.states?.includes('open') ? `${parent.name}=open` : parent.name);
         cursor = parent;

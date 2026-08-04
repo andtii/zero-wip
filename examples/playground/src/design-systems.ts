@@ -72,6 +72,11 @@
  */
 import { signal } from 'sigx';
 import { clearThemes, getTheme, themeController } from '@sigx/zero';
+// Type-only, and that is load-bearing: @sigx/zero-kit is a Node-only tool,
+// so a VALUE import would drag it into the browser bundle. The type is the
+// kit's own emitted-manifest contract — the playground stops hand-declaring
+// the shape it reads (#317 item 5).
+import type { DesignSystemManifest } from '@sigx/zero-kit';
 
 import basicCss from '@sigx/zero-basic/css?url';
 import daisyuiCss from '@sigx/zero-daisyui/css?url';
@@ -129,28 +134,17 @@ export interface AxisVocabulary {
     perScope: Record<string, { variants: string[] }>;
 }
 
-interface DesignSystemManifest {
-    tokens: {
-        roles: Record<string, unknown>;
-        sizes: string[];
-        variants: string[];
-        modifiers?: string[];
-    };
-    components?: Record<string, { variant?: string[] }>;
-}
-
 const EMPTY_VOCABULARY: AxisVocabulary = { colors: [], sizes: [], variants: [], modifiers: [], perScope: {} };
 
 const vocabularyOf = (manifest: DesignSystemManifest): AxisVocabulary => ({
     colors: Object.keys(manifest.tokens.roles),
     sizes: [...manifest.tokens.sizes],
     variants: [...manifest.tokens.variants],
-    // Optional: a manifest built before modifiers existed has no such key.
-    modifiers: [...(manifest.tokens.modifiers ?? [])],
+    modifiers: [...manifest.tokens.modifiers],
     perScope: Object.fromEntries(
-        Object.entries(manifest.components ?? {}).map(([scope, wired]) => [
+        Object.entries(manifest.components).map(([scope, wired]) => [
             scope,
-            { variants: [...(wired.variant ?? [])] },
+            { variants: [...wired.variant] },
         ]),
     ),
 });
@@ -164,7 +158,16 @@ async function loadVocabulary(entry: DesignSystemEntry): Promise<AxisVocabulary>
     try {
         const response = await fetch(entry.manifestHref);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const vocabulary = vocabularyOf(await response.json() as DesignSystemManifest);
+        const manifest = await response.json() as DesignSystemManifest;
+        // The manifest is versioned now (#317): a shape mismatch is a named
+        // failure here, not a hand-maintained pile of `?? []` drift defenses.
+        // The literal matches DS_MANIFEST_VERSION in @sigx/zero-kit — a value
+        // import would pull the Node-only kit into the browser bundle, which
+        // is why only the TYPE is imported above.
+        if (manifest.manifestVersion !== 1) {
+            throw new Error(`unsupported manifestVersion ${String(manifest.manifestVersion)} — this playground reads version 1`);
+        }
+        const vocabulary = vocabularyOf(manifest);
         vocabularies.set(entry.id, vocabulary);
         return vocabulary;
     } catch (cause) {

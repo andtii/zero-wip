@@ -108,13 +108,14 @@ export type { TokenVocabulary } from './resolve/vocabulary.js';
 export { tokenVocabulary } from './resolve/vocabulary.js';
 export { validateRecipes } from './resolve/validate-recipes.js';
 
-export { writeArtifacts } from './artifacts.js';
+export { writeArtifacts, DS_MANIFEST_VERSION } from './artifacts.js';
+export type { DesignSystemManifest } from './artifacts.js';
 
 export type { StandardBuildLogger, StandardBuildOptions, StandardBuildResult } from './build.js';
 export { runStandardBuild } from './build.js';
 
 export type { ManifestFragment } from './manifest.js';
-export { mergeManifests } from './manifest.js';
+export { mergeManifests, FRAGMENT_VERSION } from './manifest.js';
 
 export type {
     RoleDecl,

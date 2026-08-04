@@ -36,6 +36,7 @@ const stepperAnatomy = defineAnatomy('acme-stepper', {
 });
 
 const fragment = (): ManifestFragment => ({
+    version: 1,
     package: '@acme/zero-stepper',
     components: [stepperAnatomy.toJSON() as ManifestComponent],
 });
@@ -83,6 +84,7 @@ describe('mergeManifests', () => {
 
     it('hard-errors on a scope collision, naming both owners', () => {
         const shadowing: ManifestFragment = {
+            version: 1,
             package: '@acme/zero-tabs',
             components: [{ scope: 'tabs', parts: [{ name: 'root', element: 'div', selectors: {} }] }],
         };
@@ -92,12 +94,23 @@ describe('mergeManifests', () => {
             .toThrow(/redeclares scope "acme-stepper", already owned by @acme\/zero-stepper/);
     });
 
+    it('rejects a fragment without a version, or with one this kit does not know', () => {
+        // Pre-version fragments merged silently whatever contract era they
+        // were built in (a pre-hiddenIn fragment slid straight through) —
+        // required, so the mistake is a named error at the merge (#317 item 5).
+        const { version: _dropped, ...unversioned } = fragment();
+        expect(() => mergeManifests(baseManifest(), unversioned as ManifestFragment))
+            .toThrow(/declares no "version"/);
+        expect(() => mergeManifests(baseManifest(), { ...fragment(), version: 2 }))
+            .toThrow(/fragment version 2.*version 1/s);
+    });
+
     it('rejects a fragment without provenance or without components', () => {
         expect(() => mergeManifests(baseManifest(), { components: fragment().components } as ManifestFragment))
             .toThrow(/declares no "package"/);
-        expect(() => mergeManifests(baseManifest(), { package: '@acme/zero-stepper', components: [] }))
+        expect(() => mergeManifests(baseManifest(), { version: 1, package: '@acme/zero-stepper', components: [] }))
             .toThrow(/no "components" array/);
-        expect(() => mergeManifests(baseManifest(), { package: '@acme/x', components: [{} as ManifestComponent] }))
+        expect(() => mergeManifests(baseManifest(), { version: 1, package: '@acme/x', components: [{} as ManifestComponent] }))
             .toThrow(/without a "scope" and "parts"/);
     });
 
@@ -112,6 +125,7 @@ describe('mergeManifests', () => {
 
     it('rejects a component whose parts are not anatomy-shaped', () => {
         const malformed: ManifestFragment = {
+            version: 1,
             package: '@acme/zero-stepper',
             components: [{ scope: 'acme-stepper', parts: [{ name: 'root' } as ManifestComponent['parts'][number]] }],
         };
@@ -127,6 +141,7 @@ describe('mergeManifests', () => {
     // binds for ecosystem packages.
 
     const withPart = (part: Partial<ManifestComponent['parts'][number]>): ManifestFragment => ({
+        version: 1,
         package: '@acme/zero-stepper',
         components: [{
             scope: 'acme-stepper',
