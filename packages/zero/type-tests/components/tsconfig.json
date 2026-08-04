@@ -1,22 +1,8 @@
 {
     "extends": "../tsconfig.base.json",
-    "include": ["./**/*.ts", "../assert.ts"],
-    "compilerOptions": {
-        // The goldens import zero's per-scope subpaths, which the base
-        // config's `../src/*` wildcard cannot reach (components live under
-        // src/components/<scope>/). Paths are not merged across `extends`,
-        // so the full map is restated here, relative to this directory.
-        "paths": {
-            "@sigx/zero": ["../../src/index.ts"],
-            "@sigx/zero/adapt": ["../../src/adapt/index.ts"],
-            "@sigx/zero/button": ["../../src/components/button/index.ts"],
-            "@sigx/zero/tabs": ["../../src/components/tabs/index.ts"],
-            "@sigx/zero/switch": ["../../src/components/switch/index.ts"],
-            "@sigx/zero/checkbox": ["../../src/components/checkbox/index.ts"],
-            "@sigx/zero/select": ["../../src/components/select/index.ts"],
-            "@sigx/zero/dialog": ["../../src/components/dialog/index.ts"],
-            "@sigx/zero/field": ["../../src/components/field/index.ts"],
-            "@sigx/zero/toast": ["../../src/components/toast/index.ts"]
-        }
-    }
+    "include": ["./**/*.ts", "../assert.ts"]
+    // Subpath resolution comes from the base config's paths map, whose
+    // wildcards reach src/components/<scope>/ — the partial per-scope
+    // restatement that used to live here let unlisted subpaths fall through
+    // to the stale dist/ (#316).
 }

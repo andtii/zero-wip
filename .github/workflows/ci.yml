@@ -45,13 +45,18 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      # Isolated projects — module augmentation leaks program-wide, so the
-      # augmented assertions must never share a program with `pnpm typecheck`.
-      - name: Type tests
-        run: pnpm test:types
-
       - name: Build
         run: pnpm build
+
+      # Isolated projects — module augmentation leaks program-wide, so the
+      # augmented assertions must never share a program with `pnpm typecheck`.
+      # After Build as a belt: the paths map resolves everything in source
+      # (pinned by type-test-paths.test.ts), but until #316 unmapped subpaths
+      # fell through to dist/ — absent here — and skipLibCheck swallowed the
+      # unresolved imports, so this step was green while checking a quarter
+      # of the components surface.
+      - name: Type tests
+        run: pnpm test:types
 
       - name: Test
         run: pnpm test
@@ -73,6 +78,11 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      # The root typecheck excludes examples/, so the playground has its own —
+      # and until #316 no CI step ran it.
+      - name: Playground typecheck
+        run: pnpm --filter zero-playground typecheck
 
       - name: Install Playwright browsers
         run: pnpm --filter zero-playground exec playwright install --with-deps chromium firefox webkit

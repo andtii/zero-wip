@@ -1,7 +1,7 @@
 # @sigx/zero-ext-example
 
 The acceptance test for the **ecosystem-component contract**: a component zero
-doesn't ship (`Stepper`, scope `ext-stepper`), built **entirely from
+doesn't ship (`ExtStepper`, scope `ext-stepper`), built **entirely from
 `@sigx/zero`'s public surface** — `defineAnatomy`, the behaviors
 (controllable state, list registration, roving tabindex, press feedback,
 focus-visible), the contract helpers (`variantAttrs`, `renderAsChild`,

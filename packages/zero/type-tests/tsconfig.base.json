@@ -18,9 +18,20 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "types": [],
+        // Every candidate must reach SOURCE. A subpath that matches none of
+        // these falls through to Node resolution, which lands in the stale,
+        // gitignored dist/ (or, in CI, resolves to nothing and is silently
+        // skipped under skipLibCheck) — the hollow-gate failure #316 closed.
+        // Components live at src/components/<scope>/, so the bare `../src/*`
+        // wildcard alone cannot reach them. Pinned against package.json
+        // exports by __tests__/type-test-paths.test.ts.
         "paths": {
             "@sigx/zero": ["../src/index.ts"],
-            "@sigx/zero/*": ["../src/*"]
+            "@sigx/zero/*": [
+                "../src/components/*/index.ts",
+                "../src/*/index.ts",
+                "../src/*"
+            ]
         }
     }
 }

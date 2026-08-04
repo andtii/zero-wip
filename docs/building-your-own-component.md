@@ -5,7 +5,7 @@ ecosystem component package is a *peer* of `@sigx/zero` — it ships a
 component zero doesn't, built from the same public machinery zero's own
 components are built from, and held to the same contract. This guide is the
 map; the worked example is
-[`packages/zero-ext-example`](../packages/zero-ext-example) (a `Stepper`),
+[`packages/zero-ext-example`](../packages/zero-ext-example) (an `ExtStepper`),
 adopted end to end by
 [`packages/zero-basic`](../packages/zero-basic)'s `build.mjs`.
 
@@ -16,7 +16,7 @@ Four exports, two entries:
 | What | From | Why |
 |---|---|---|
 | the anatomy | main entry | `defineAnatomy('<vendor>-<name>', parts)` — the source of truth |
-| the component | main entry | built from `@sigx/zero`'s behaviors + contract helpers |
+| the component | main entry | built from `@sigx/zero`'s behaviors + contract helpers — exported under the scope's Pascal spelling (`acme-stepper` → `AcmeStepper`): an api-declaring design system's generated `./components` module imports exactly that name |
 | the **manifest fragment** | a data-only entry | how a design system learns the scope exists |
 | a **recipe pack** (optional) | the same data entry | default styling any recommended-vocabulary DS can adopt |
 

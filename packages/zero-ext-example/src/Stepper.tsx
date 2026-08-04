@@ -37,7 +37,7 @@ import type {
     WithAsChild,
     WithClass,
     WithDisabled,
-    WithVariantAxes,
+    WithVariantAxesOpen,
 } from '@sigx/zero';
 import { stepperAnatomy } from './anatomy.js';
 
@@ -76,7 +76,7 @@ export type StepperRootProps =
     & Define.Prop<'loop', boolean, false>
     /** Accessible name for the `role="group"` container (`aria-label`). */
     & Define.Prop<'label', string, false>
-    & WithVariantAxes<'ext-stepper'>
+    & WithVariantAxesOpen<'ext-stepper'>
     & WithDisabled
     & WithClass
     & Define.Slot<'default'>;

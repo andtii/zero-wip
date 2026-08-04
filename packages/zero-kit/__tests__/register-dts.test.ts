@@ -30,7 +30,7 @@ const manifest = {
 
 describe('register.d.ts goldens', () => {
     it.each<[string, DesignSystemInput, string]>([
-        ['basic', basicDS as DesignSystemInput, '../__goldens__/register/basic.register.d.ts'],
+        ['basic', basicDS as DesignSystemInput, '../../zero/type-tests/registered-components/basic.register.d.ts'],
         ['daisyui', daisyDS as DesignSystemInput, '../__goldens__/register/daisyui.register.d.ts'],
         ['material', materialDS as DesignSystemInput, '../../zero/type-tests/generated/material.register.d.ts'],
         ['brutalist', brutalistDS as DesignSystemInput, '../__goldens__/register/brutalist.register.d.ts'],
