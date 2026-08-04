@@ -58,6 +58,25 @@ describe('RatingGroup', () => {
         expect(all[0]!.getAttribute('aria-checked')).toBe('false');
     });
 
+    it('items default to an "N of M" name; itemLabel overrides it', () => {
+        mount(container, { defaultValue: 3 });
+        expect(items(container)[2]!.getAttribute('aria-label')).toBe('3 of 5');
+
+        const other = document.createElement('div');
+        document.body.appendChild(other);
+        render(
+            <RatingGroup.Root defaultValue={2} itemLabel={(index, count) => `${index} av ${count} stjärnor`}>
+                <RatingGroup.Control>
+                    {Array.from({ length: 5 }, (_, i) => <RatingGroup.Item index={i + 1} />)}
+                </RatingGroup.Control>
+            </RatingGroup.Root>,
+            other,
+        );
+        // The hardcoded English string was untranslatable — the override is
+        // the localization seam.
+        expect(items(other)[2]!.getAttribute('aria-label')).toBe('3 av 5 stjärnor');
+    });
+
     it('data-state mirrors the committed value: full up to it, empty after', () => {
         mount(container, { defaultValue: 3 });
         const states = [...items(container)].map((i) => i.getAttribute('data-state'));

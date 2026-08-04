@@ -365,6 +365,8 @@ const ToastAction = component<ToastActionProps>(({ props, slots, emit, signal })
 // ── Close ──
 
 export type ToastCloseProps =
+    /** Accessible name for the close button (default "Close"). */
+    & Define.Prop<'label', string, false>
     & WithDisabled
     & WithClass
     & WithAsChild
@@ -384,6 +386,10 @@ const ToastClose = component<ToastCloseProps>(({ props, slots, signal }) => {
         'data-part': 'close',
         'data-disabled': dataAttr(props.disabled),
         'data-focus-visible': dataAttr(focus.visible),
+        // The button's own content is usually a glyph, so it needs a name of
+        // its own; "Close" is the conventional one and `label` overrides it
+        // (Alert.Close's pattern).
+        'aria-label': props.label ?? 'Close',
         onClick: () => {
             if (!props.disabled) item.dismiss();
         },

@@ -4,6 +4,9 @@ import { signal } from 'sigx';
 import { Popover, popoverAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
+/** Presence flags land one microtask after the render pass; settle them. */
+const tick = () => new Promise((r) => setTimeout(r, 0));
+
 describe('Popover', () => {
     let container: HTMLElement;
     beforeEach(() => {
@@ -52,9 +55,10 @@ describe('Popover', () => {
         );
     }
 
-    it('trigger toggles, close closes, aria wiring holds', () => {
+    it('trigger toggles, close closes, aria wiring holds', async () => {
         const state = signal({ open: false });
         mount(state);
+        await tick();
         const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
         const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
         expect(trigger.getAttribute('aria-controls')).toBe(popup.id);
@@ -71,6 +75,21 @@ describe('Popover', () => {
         trigger.click();
         container.querySelector<HTMLElement>('[data-part="close"]')!.click();
         expect(state.open).toBe(false);
+    });
+
+    it('omits aria-labelledby when no Title is rendered', async () => {
+        render(
+            <Popover.Root>
+                <Popover.Trigger>Filters</Popover.Trigger>
+                <Popover.Popup>
+                    <Popover.Close>Done</Popover.Close>
+                </Popover.Popup>
+            </Popover.Root>,
+            container,
+        );
+        await tick();
+        const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
+        expect(popup.hasAttribute('aria-labelledby')).toBe(false);
     });
 
     it('publishes press feedback on the trigger and the close button', () => {
@@ -94,6 +113,38 @@ describe('Popover', () => {
         const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
         trigger.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
         expect(trigger.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('moves focus to the first tabbable in the popup on open, restores on close', async () => {
+        const state = signal({ open: false });
+        mount(state);
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.focus();
+        trigger.click();
+        await tick();
+        // Title is a heading; the close button is the first tabbable.
+        expect(document.activeElement).toBe(container.querySelector('[data-part="close"]'));
+        state.open = false;
+        await tick();
+        expect(document.activeElement).toBe(trigger);
+    });
+
+    it('with nothing tabbable inside, the popup itself takes focus', async () => {
+        const state = signal({ open: false });
+        render(
+            <Popover.Root model={[state, 'open']}>
+                <Popover.Trigger>Filters</Popover.Trigger>
+                <Popover.Popup>
+                    <Popover.Title>Filters</Popover.Title>
+                </Popover.Popup>
+            </Popover.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.focus();
+        trigger.click();
+        await tick();
+        expect(document.activeElement).toBe(container.querySelector('[data-part="popup"]'));
     });
 
     it('native toggle events (light dismiss) sync into the model', () => {

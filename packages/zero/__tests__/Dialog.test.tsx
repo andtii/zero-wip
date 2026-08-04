@@ -4,6 +4,9 @@ import { signal } from 'sigx';
 import { Dialog, dialogAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
+/** Presence flags land one microtask after the render pass; settle them. */
+const tick = () => new Promise((r) => setTimeout(r, 0));
+
 function mount(container: HTMLElement, state: { open: boolean }) {
     render(
         <Dialog.Root model={[state, 'open']}>
@@ -49,13 +52,33 @@ describe('Dialog', () => {
         expect(trigger.getAttribute('data-size')).toBe('sm');
     });
 
-    it('labels the popup from rendered title and description', () => {
+    it('labels the popup from rendered title and description', async () => {
         mount(container, signal({ open: false }));
+        await tick();
         const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
         const title = container.querySelector<HTMLElement>('[data-part="title"]')!;
         const description = container.querySelector<HTMLElement>('[data-part="description"]')!;
         expect(popup.getAttribute('aria-labelledby')).toBe(title.id);
         expect(popup.getAttribute('aria-describedby')).toBe(description.id);
+    });
+
+    it('omits the label refs when Title and Description are not rendered', async () => {
+        render(
+            <Dialog.Root>
+                <Dialog.Trigger>Open</Dialog.Trigger>
+                <Dialog.Popup>
+                    <Dialog.Close>Close</Dialog.Close>
+                </Dialog.Popup>
+            </Dialog.Root>,
+            container,
+        );
+        await tick();
+        const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
+        // An aria-labelledby pointing at a never-rendered id names NOTHING —
+        // worse than no reference, it hides the popup's own content from the
+        // accessible-name computation.
+        expect(popup.hasAttribute('aria-labelledby')).toBe(false);
+        expect(popup.hasAttribute('aria-describedby')).toBe(false);
     });
 
     it('trigger opens, close closes, state stays in the model', () => {
@@ -96,6 +119,93 @@ describe('Dialog', () => {
         const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
         trigger.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true }));
         expect(trigger.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('modal={false}: Escape dismisses through the fallback layer (no native cancel)', async () => {
+        const state = signal({ open: true });
+        render(
+            <Dialog.Root model={[state, 'open']} modal={false}>
+                <Dialog.Trigger>Open</Dialog.Trigger>
+                <Dialog.Popup>
+                    <Dialog.Title>Title</Dialog.Title>
+                </Dialog.Popup>
+            </Dialog.Root>,
+            container,
+        );
+        await tick();
+        // A non-modal <dialog> fires no cancel event, so without the
+        // fallback Escape is a silent no-op.
+        document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+        expect(state.open).toBe(false);
+    });
+
+    it('modal={false} + dismissible={false}: Escape leaves it open', async () => {
+        const state = signal({ open: true });
+        render(
+            <Dialog.Root model={[state, 'open']} modal={false} dismissible={false}>
+                <Dialog.Popup>
+                    <Dialog.Title>Title</Dialog.Title>
+                </Dialog.Popup>
+            </Dialog.Root>,
+            container,
+        );
+        await tick();
+        document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+        expect(state.open).toBe(true);
+    });
+
+    it('modal={false}: restores focus to the previously focused element on close', async () => {
+        const state = signal({ open: false });
+        mountNonModal(state);
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.focus();
+        trigger.click();
+        expect(state.open).toBe(true);
+        await tick();
+        // Focus wandered into the dialog while it was open…
+        container.querySelector<HTMLElement>('[data-part="close"]')!.focus();
+        state.open = false;
+        await tick();
+        // …showModal() would restore natively; show() does not — the
+        // component must.
+        expect(document.activeElement).toBe(trigger);
+    });
+
+    function mountNonModal(state: { open: boolean }) {
+        render(
+            <Dialog.Root model={[state, 'open']} modal={false}>
+                <Dialog.Trigger>Open</Dialog.Trigger>
+                <Dialog.Popup>
+                    <Dialog.Title>Title</Dialog.Title>
+                    <Dialog.Close>Close</Dialog.Close>
+                </Dialog.Popup>
+            </Dialog.Root>,
+            container,
+        );
+    }
+
+    it('a click on the dialog surface itself (padding) does not close; the backdrop does', () => {
+        const state = signal({ open: true });
+        mount(container, state);
+        const popup = container.querySelector<HTMLDialogElement>('dialog')!;
+        popup.getBoundingClientRect = () =>
+            ({ left: 0, top: 0, right: 200, bottom: 100, width: 200, height: 100, x: 0, y: 0, toJSON: () => ({}) }) as DOMRect;
+        // Inside the dialog's own box: its padding, not the backdrop.
+        popup.dispatchEvent(new MouseEvent('click', { clientX: 50, clientY: 50, detail: 1, bubbles: true }));
+        expect(state.open).toBe(true);
+        // Outside the box: only the ::backdrop can be there.
+        popup.dispatchEvent(new MouseEvent('click', { clientX: 300, clientY: 50, detail: 1, bubbles: true }));
+        expect(state.open).toBe(false);
+    });
+
+    it('modal={false}: a click targeting the dialog never closes (there is no backdrop)', () => {
+        const state = signal({ open: true });
+        mountNonModal(state);
+        const popup = container.querySelector<HTMLDialogElement>('dialog')!;
+        popup.getBoundingClientRect = () =>
+            ({ left: 0, top: 0, right: 200, bottom: 100, width: 200, height: 100, x: 0, y: 0, toJSON: () => ({}) }) as DOMRect;
+        popup.dispatchEvent(new MouseEvent('click', { clientX: 300, clientY: 50, detail: 1, bubbles: true }));
+        expect(state.open).toBe(true);
     });
 
     it('native close events sync back into the model', () => {

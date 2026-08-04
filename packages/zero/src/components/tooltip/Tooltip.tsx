@@ -19,6 +19,7 @@ import { component, compound, defineInjectable, defineProvide, effect } from 'si
 import type { Define } from 'sigx';
 import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
+import { createDismissable } from '../../behaviors/dismiss.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
@@ -121,6 +122,24 @@ const TooltipRoot = component<TooltipRootProps>(({ props, slots, emit, onUnmount
         strategy: props.positionStrategy,
     });
 
+    // Escape must dismiss the tooltip no matter where focus is (WCAG 2.1
+    // SC 1.4.13) — a trigger-local keydown only fires when the tooltip was
+    // focus-opened. The dismiss layer's document listener covers hover-opens
+    // too. Outside press stays off: a tooltip closes because pointer/focus
+    // left, never because the user clicked elsewhere. The dismissal is
+    // immediate (no closeDelay) and clears any pending hover-open so the
+    // tooltip cannot pop back up after the user asked it to go away.
+    createDismissable({
+        getElement: () => popup,
+        isOpen: () => state.value,
+        dismiss: () => {
+            clearTimeout(openTimer);
+            clearTimeout(closeTimer);
+            state.value = false;
+        },
+        outsidePress: false,
+    });
+
     return () => <>{slots.default?.()}</>;
 }, { name: 'Tooltip.Root' });
 
@@ -147,13 +166,8 @@ const TooltipTrigger = component<TooltipTriggerProps>(({ props, slots }) => {
         onPointerleave: () => tooltip.hide(),
         onFocus: () => tooltip.show(true),
         onBlur: () => tooltip.hide(),
-        onKeydown: (e: KeyboardEvent) => {
-            // Escape dismisses without moving focus.
-            if (e.key === 'Escape' && tooltip.state.value) {
-                e.preventDefault();
-                tooltip.hide();
-            }
-        },
+        // Escape is handled by the dismiss layer in Root (document-level,
+        // WCAG 1.4.13) — no trigger-local keydown needed.
         ref: (node: HTMLElement | null) => tooltip.setAnchor(node),
     });
 

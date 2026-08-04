@@ -21,6 +21,8 @@ import { component, compound, defineInjectable, defineProvide, effect } from 'si
 import type { Define } from 'sigx';
 import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
+import { createDismissable } from '../../behaviors/dismiss.js';
+import { createFocusRestore } from '../../behaviors/focus.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
@@ -36,6 +38,11 @@ interface DialogContext {
     modal(): boolean;
     dismissible(): boolean;
     ids: { popup: string; title: string; description: string };
+    /** Title/Description report their presence so the popup's ARIA refs never dangle. */
+    titlePresent(): boolean;
+    descriptionPresent(): boolean;
+    setTitlePresent(present: boolean): void;
+    setDescriptionPresent(present: boolean): void;
 }
 
 function makeInert(): DialogContext {
@@ -48,6 +55,10 @@ function makeInert(): DialogContext {
         modal: () => true,
         dismissible: () => true,
         ids: { popup: 'zx-dialog-inert', title: 'zx-dialog-inert-title', description: 'zx-dialog-inert-desc' },
+        titlePresent: () => false,
+        descriptionPresent: () => false,
+        setTitlePresent: () => {},
+        setDescriptionPresent: () => {},
     };
 }
 
@@ -63,13 +74,18 @@ export type DialogRootProps =
     & Define.Prop<'dismissible', boolean, false>
     & Define.Slot<'default'>;
 
-const DialogRoot = component<DialogRootProps>(({ props, slots, emit }) => {
+const DialogRoot = component<DialogRootProps>(({ props, slots, emit, signal }) => {
     const state = createControllableState<boolean>(
         () => props.model,
         props.defaultOpen ?? false,
         (v) => emit('openChange', v),
     );
     const baseId = createId('zx-dialog');
+    // Written from Title/Description one microtask after their setup — a
+    // write made during the render pass is invisible to the already-rendered
+    // popup (Toast's presence flags heal at the enter flip; a dialog has no
+    // such flip, so the write itself is deferred instead).
+    const present = signal({ title: false, description: false });
     const ctx: DialogContext = {
         state,
         modal: () => props.modal ?? true,
@@ -79,8 +95,16 @@ const DialogRoot = component<DialogRootProps>(({ props, slots, emit }) => {
             title: `${baseId}-title`,
             description: `${baseId}-desc`,
         },
+        titlePresent: () => present.title,
+        descriptionPresent: () => present.description,
+        setTitlePresent: (p) => { present.title = p; },
+        setDescriptionPresent: (p) => { present.description = p; },
     };
     defineProvide(useDialogContext, () => ctx);
+
+    // `showModal()` restores focus natively on close; `show()` does not —
+    // cover the non-modal path so Escape/Close never strand focus.
+    createFocusRestore(() => state.value && !(props.modal ?? true));
 
     return () => <>{slots.default?.()}</>;
 }, { name: 'Dialog.Root' });
@@ -149,6 +173,17 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
     const dialog = useDialogContext();
     let el: HTMLDialogElement | null = null;
 
+    // A non-modal <dialog> fires no cancel event, so `dismissible` would be
+    // a silent no-op without this fallback. Escape only — a non-modal dialog
+    // (a find bar, a tool palette) is expected to survive clicks elsewhere,
+    // and it has no backdrop to click.
+    createDismissable({
+        getElement: () => el,
+        isOpen: () => dialog.state.value && !dialog.modal() && dialog.dismissible(),
+        dismiss: () => { dialog.state.value = false; },
+        outsidePress: false,
+    });
+
     onMounted(() => {
         effect(() => {
             const open = dialog.state.value;
@@ -169,8 +204,8 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
             data-scope={SCOPE}
             data-part="popup"
             data-state={stateAttr(dialog.state.value, 'open', 'closed')}
-            aria-labelledby={dialog.ids.title}
-            aria-describedby={dialog.ids.description}
+            aria-labelledby={dialog.titlePresent() ? dialog.ids.title : undefined}
+            aria-describedby={dialog.descriptionPresent() ? dialog.ids.description : undefined}
             class={props.class}
             ref={(node: HTMLDialogElement | null) => { el = node; }}
             onClose={() => { dialog.state.value = false; }}
@@ -182,11 +217,19 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
                 if (dialog.dismissible()) dialog.state.value = false;
             }}
             onClick={(e: MouseEvent) => {
-                // A click that lands on the <dialog> itself (not its
-                // children) is a backdrop click.
-                if (dialog.dismissible() && e.target === el) {
-                    dialog.state.value = false;
-                }
+                // A ::backdrop click targets the <dialog> element itself —
+                // but so does a click on the dialog's own padding. Geometry
+                // decides: only a pointer position outside the dialog's box
+                // can be the backdrop. Modal only — a non-modal dialog has
+                // no backdrop at all.
+                if (!dialog.modal() || !dialog.dismissible()) return;
+                if (!el || e.target !== el) return;
+                // A keyboard-synthesized click carries no geometry.
+                if (e.detail === 0) return;
+                const rect = el.getBoundingClientRect();
+                const inside = e.clientX >= rect.left && e.clientX <= rect.right
+                    && e.clientY >= rect.top && e.clientY <= rect.bottom;
+                if (!inside) dialog.state.value = false;
             }}
         >
             {slots.default?.()}
@@ -198,8 +241,15 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
 
 export type DialogTitleProps = WithClass & Define.Slot<'default'>;
 
-const DialogTitle = component<DialogTitleProps>(({ props, slots }) => {
+const DialogTitle = component<DialogTitleProps>(({ props, slots, onUnmounted }) => {
     const dialog = useDialogContext();
+    // Deferred past the render pass — see the note on `present` in Root.
+    let alive = true;
+    queueMicrotask(() => { if (alive) dialog.setTitlePresent(true); });
+    onUnmounted(() => {
+        alive = false;
+        dialog.setTitlePresent(false);
+    });
     return () => (
         <h2 id={dialog.ids.title} data-scope={SCOPE} data-part="title" class={props.class}>
             {slots.default?.()}
@@ -209,8 +259,15 @@ const DialogTitle = component<DialogTitleProps>(({ props, slots }) => {
 
 export type DialogDescriptionProps = WithClass & Define.Slot<'default'>;
 
-const DialogDescription = component<DialogDescriptionProps>(({ props, slots }) => {
+const DialogDescription = component<DialogDescriptionProps>(({ props, slots, onUnmounted }) => {
     const dialog = useDialogContext();
+    // Deferred past the render pass — see the note on `present` in Root.
+    let alive = true;
+    queueMicrotask(() => { if (alive) dialog.setDescriptionPresent(true); });
+    onUnmounted(() => {
+        alive = false;
+        dialog.setDescriptionPresent(false);
+    });
     return () => (
         <p id={dialog.ids.description} data-scope={SCOPE} data-part="description" class={props.class}>
             {slots.default?.()}

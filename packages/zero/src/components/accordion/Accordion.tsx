@@ -16,6 +16,7 @@
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createId } from '../../behaviors/create-id.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
@@ -42,11 +43,13 @@ export const useAccordionContext = defineInjectable<AccordionContext>(() => INER
 interface AccordionItemContext {
     value(): string;
     disabled(): boolean;
+    ids: { panel: string };
 }
 
 const INERT_ITEM: AccordionItemContext = {
     value: () => '',
     disabled: () => false,
+    ids: { panel: 'zx-accordion-inert-panel' },
 };
 
 const useAccordionItemContext = defineInjectable<AccordionItemContext>(() => INERT_ITEM);
@@ -104,9 +107,11 @@ export type AccordionItemProps =
 
 const AccordionItem = component<AccordionItemProps>(({ props, slots }) => {
     const accordion = useAccordionContext();
+    const baseId = createId('zx-accordion-item');
     const itemCtx: AccordionItemContext = {
         value: () => props.value,
         disabled: () => !!props.disabled || accordion.disabled(),
+        ids: { panel: `${baseId}-panel` },
     };
     defineProvide(useAccordionItemContext, () => itemCtx);
 
@@ -145,6 +150,12 @@ const AccordionTrigger = component<AccordionTriggerProps>(({ props, slots, signa
             data-state={stateAttr(accordion.isOpen(item.value()), 'open', 'closed')}
             data-disabled={dataAttr(item.disabled())}
             data-focus-visible={dataAttr(focus.visible)}
+            // Native <summary> conveys expansion in most ATs; the explicit
+            // wiring covers the rest, and <summary> has no disabled
+            // attribute, so aria-disabled is the only announcement it gets.
+            aria-expanded={accordion.isOpen(item.value()) ? 'true' : 'false'}
+            aria-controls={item.ids.panel}
+            aria-disabled={item.disabled() ? 'true' : undefined}
             class={props.class}
             ref={(node: HTMLElement | null) => { el = node; }}
             onClick={(e: MouseEvent) => {
@@ -177,6 +188,7 @@ const AccordionPanel = component<AccordionPanelProps>(({ props, slots }) => {
     const item = useAccordionItemContext();
     return () => (
         <div
+            id={item.ids.panel}
             data-scope={SCOPE}
             data-part="panel"
             data-state={stateAttr(accordion.isOpen(item.value()), 'open', 'closed')}

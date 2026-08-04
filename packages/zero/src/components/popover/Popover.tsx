@@ -22,7 +22,7 @@ import type { Define } from 'sigx';
 import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
-import { createFocusRestore } from '../../behaviors/focus.js';
+import { createFocusRestore, focusFirst } from '../../behaviors/focus.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
@@ -36,6 +36,9 @@ const SCOPE = popoverAnatomy.scope;
 interface PopoverContext {
     state: ControllableState<boolean>;
     ids: { popup: string; title: string };
+    /** Title reports its presence so the popup's ARIA ref never dangles. */
+    titlePresent(): boolean;
+    setTitlePresent(present: boolean): void;
     setAnchor(el: HTMLElement | null): void;
     getAnchor(): HTMLElement | null;
     setPopup(el: HTMLElement | null): void;
@@ -50,6 +53,8 @@ function makeInert(): PopoverContext {
             set value(v: boolean) { open = v; },
         },
         ids: { popup: 'zx-popover-inert', title: 'zx-popover-inert-title' },
+        titlePresent: () => false,
+        setTitlePresent: () => {},
         setAnchor: () => {},
         getAnchor: () => null,
         setPopup: () => {},
@@ -70,19 +75,24 @@ export type PopoverRootProps =
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     & Define.Slot<'default'>;
 
-const PopoverRoot = component<PopoverRootProps>(({ props, slots, emit }) => {
+const PopoverRoot = component<PopoverRootProps>(({ props, slots, emit, signal }) => {
     const state = createControllableState<boolean>(
         () => props.model,
         props.defaultOpen ?? false,
         (v) => emit('openChange', v),
     );
     const baseId = createId('zx-popover');
+    // Written from Title one microtask after its setup — a write made during
+    // the render pass is invisible to the already-rendered popup.
+    const present = signal({ title: false });
     let anchor: HTMLElement | null = null;
     let popup: HTMLElement | null = null;
 
     const ctx: PopoverContext = {
         state,
         ids: { popup: `${baseId}-popup`, title: `${baseId}-title` },
+        titlePresent: () => present.title,
+        setTitlePresent: (p) => { present.title = p; },
         setAnchor: (el) => { anchor = el; },
         getAnchor: () => anchor,
         setPopup: (el) => { popup = el; },
@@ -171,10 +181,24 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
         effect(() => {
             const open = popover.state.value;
             const node = el as (HTMLElement & { showPopover?(): void; hidePopover?(): void; matches(s: string): boolean }) | null;
-            if (!node || typeof node.showPopover !== 'function') return;
-            const showing = node.matches(':popover-open');
-            if (open && !showing) node.showPopover();
-            else if (!open && showing) node.hidePopover!();
+            if (!node) return;
+            if (typeof node.showPopover === 'function') {
+                const showing = node.matches(':popover-open');
+                if (open && !showing) node.showPopover();
+                else if (!open && showing) node.hidePopover!();
+            }
+            // A dialog-role popup receives focus on open (APG): the first
+            // tabbable, or the popup itself (tabIndex -1 below). After
+            // showPopover(), never before — an unshown popover cannot take
+            // focus. Deferred a task: createFocusRestore's watch captures
+            // the previously focused element on a microtask, and moving
+            // focus before that capture would make it "restore" into the
+            // popup itself on close.
+            if (open) {
+                setTimeout(() => {
+                    if (popover.state.value && node.isConnected) focusFirst(node);
+                }, 0);
+            }
         });
     });
 
@@ -186,7 +210,8 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
             data-state={stateAttr(popover.state.value, 'open', 'closed')}
             popover="auto"
             role="dialog"
-            aria-labelledby={popover.ids.title}
+            tabIndex={-1}
+            aria-labelledby={popover.titlePresent() ? popover.ids.title : undefined}
             class={props.class}
             ref={(node: HTMLElement | null) => { el = node; popover.setPopup(node); }}
             onToggle={(e: Event) => {
@@ -204,8 +229,15 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
 
 export type PopoverTitleProps = WithClass & Define.Slot<'default'>;
 
-const PopoverTitle = component<PopoverTitleProps>(({ props, slots }) => {
+const PopoverTitle = component<PopoverTitleProps>(({ props, slots, onUnmounted }) => {
     const popover = usePopoverContext();
+    // Deferred past the render pass — see the note on `present` in Root.
+    let alive = true;
+    queueMicrotask(() => { if (alive) popover.setTitlePresent(true); });
+    onUnmounted(() => {
+        alive = false;
+        popover.setTitlePresent(false);
+    });
     return () => (
         <h3 id={popover.ids.title} data-scope={SCOPE} data-part="title" class={props.class}>
             {slots.default?.()}

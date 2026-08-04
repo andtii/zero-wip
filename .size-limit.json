@@ -32,7 +32,7 @@
     {
         "name": "@sigx/zero/dialog",
         "path": "packages/zero/dist/components/dialog/index.js",
-        "limit": "2.85 kB",
+        "limit": "3.5 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -42,7 +42,7 @@
     {
         "name": "@sigx/zero/menu",
         "path": "packages/zero/dist/components/menu/index.js",
-        "limit": "5.8 kB",
+        "limit": "6 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

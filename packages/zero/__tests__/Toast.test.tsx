@@ -267,6 +267,33 @@ describe('Toast (component)', () => {
         expect(root.getAttribute('aria-atomic')).toBe('true');
     });
 
+    it('the close button carries an accessible name; label overrides it', async () => {
+        const t = createToaster({ duration: Infinity });
+        render(
+            <Toast.Viewport toaster={t}>
+                {(data: ToastData) => (
+                    <Toast.Root toast={data} key={data.id}>
+                        <Toast.Title>{data.title}</Toast.Title>
+                        {data.data === 'labelled'
+                            ? <Toast.Close label="Stäng">✕</Toast.Close>
+                            : <Toast.Close>✕</Toast.Close>}
+                    </Toast.Root>
+                )}
+            </Toast.Viewport>,
+            container,
+        );
+        t.create({ title: 'Default' });
+        await settle();
+        // "✕" is announced literally without a name of its own.
+        expect(container.querySelector('[data-part="close"]')!.getAttribute('aria-label')).toBe('Close');
+
+        t.dismiss(t.toasts()[0]!.id);
+        t.create({ title: 'Custom', data: 'labelled' });
+        await settle();
+        const closes = Array.from(container.querySelectorAll('[data-part="close"]'));
+        expect(closes.at(-1)!.getAttribute('aria-label')).toBe('Stäng');
+    });
+
     it('ARIA refs only point at parts that are actually rendered', async () => {
         const t = mount();
         t.create({ title: 'Only a title' });

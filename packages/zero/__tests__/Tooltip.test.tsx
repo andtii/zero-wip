@@ -60,12 +60,42 @@ describe('Tooltip', () => {
         expect(trigger.getAttribute('aria-describedby')).toBeNull();
     });
 
-    it('opens immediately on focus and dismisses on Escape without losing state', () => {
+    it('opens immediately on focus and dismisses on Escape without losing state', async () => {
         mount();
         const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
         trigger.dispatchEvent(new Event('focus'));
         expect(trigger.getAttribute('data-state')).toBe('open');
-        trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true }));
+        // The dismiss layer attaches one tick after the open flip.
+        await vi.advanceTimersByTimeAsync(0);
+        trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+        expect(trigger.getAttribute('data-state')).toBe('closed');
+    });
+
+    it('Escape dismisses no matter where focus is (WCAG 2.1 SC 1.4.13)', async () => {
+        mount();
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        // Hover-open: focus never touched the trigger, so a trigger-local
+        // keydown handler would never see the Escape.
+        trigger.dispatchEvent(new Event('pointerenter'));
+        vi.advanceTimersByTime(500);
+        expect(trigger.getAttribute('data-state')).toBe('open');
+        await vi.advanceTimersByTimeAsync(0);
+        document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+        expect(trigger.getAttribute('data-state')).toBe('closed');
+    });
+
+    it('Escape also cancels a pending hover-open', async () => {
+        mount();
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.dispatchEvent(new Event('focus'));
+        expect(trigger.getAttribute('data-state')).toBe('open');
+        await vi.advanceTimersByTimeAsync(0);
+        // Re-hovering schedules a (redundant) open; Escape must clear it so
+        // the tooltip does not pop back up after the dismissal.
+        trigger.dispatchEvent(new Event('pointerenter'));
+        document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+        expect(trigger.getAttribute('data-state')).toBe('closed');
+        vi.advanceTimersByTime(1000);
         expect(trigger.getAttribute('data-state')).toBe('closed');
     });
 });

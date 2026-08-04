@@ -58,7 +58,14 @@ const SCOPE = menuAnatomy.scope;
 interface MenuContext {
     state: ControllableState<boolean>;
     list: ReturnType<typeof createListController>;
-    ids: { popup: string };
+    ids: { trigger: string; popup: string };
+    /**
+     * The popup is labelled by its trigger only while a Menu.Trigger is
+     * actually rendered — a context-menu-only composition has no visible
+     * trigger to name it, and a dangling aria-labelledby is worse than none.
+     */
+    triggerPresent(): boolean;
+    setTriggerPresent(present: boolean): void;
     keydown(e: KeyboardEvent, value: string): void;
     select(value: string): void;
     setAnchor(anchor: PositionAnchor | null): void;
@@ -79,7 +86,9 @@ function makeInert(): MenuContext {
             set value(v: boolean) { open = v; },
         },
         list: createListController(),
-        ids: { popup: 'zx-menu-inert' },
+        ids: { trigger: 'zx-menu-inert-trigger', popup: 'zx-menu-inert' },
+        triggerPresent: () => false,
+        setTriggerPresent: () => {},
         keydown: () => {},
         select: () => {},
         setAnchor: () => {},
@@ -102,7 +111,7 @@ export type MenuRootProps =
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     & Define.Slot<'default'>;
 
-const MenuRoot = component<MenuRootProps>(({ props, slots, emit }) => {
+const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal }) => {
     const state = createControllableState<boolean>(
         () => props.model,
         false,
@@ -110,6 +119,9 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit }) => {
     );
     const list = createListController();
     const baseId = createId('zx-menu');
+    // Written from Trigger one microtask after its setup — a write made
+    // during the render pass is invisible to the already-rendered popup.
+    const present = signal({ trigger: false });
     let anchor: PositionAnchor | null = null;
     let popup: HTMLElement | null = null;
 
@@ -135,7 +147,9 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit }) => {
     const ctx: MenuContext = {
         state,
         list,
-        ids: { popup: `${baseId}-popup` },
+        ids: { trigger: `${baseId}-trigger`, popup: `${baseId}-popup` },
+        triggerPresent: () => present.trigger,
+        setTriggerPresent: (p) => { present.trigger = p; },
         keydown(e, value) {
             roving(e, value);
             if (!e.defaultPrevented) typeahead(e, value);
@@ -168,7 +182,7 @@ export type MenuTriggerProps =
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
-const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal }) => {
+const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal, onUnmounted }) => {
     const menu = useMenuContext();
     let el: HTMLElement | null = null;
     const focus = signal({ visible: false });
@@ -176,8 +190,16 @@ const MenuTrigger = component<MenuTriggerProps>(({ props, slots, signal }) => {
         getElement: () => el,
         isDisabled: () => !!props.disabled,
     });
+    // Deferred past the render pass — see the note on `present` in Root.
+    let alive = true;
+    queueMicrotask(() => { if (alive) menu.setTriggerPresent(true); });
+    onUnmounted(() => {
+        alive = false;
+        menu.setTriggerPresent(false);
+    });
 
     const bag = (): PartProps => ({
+        id: menu.ids.trigger,
         'data-scope': SCOPE,
         'data-part': 'trigger',
         ...variantAttrs(props),
@@ -361,6 +383,7 @@ const MenuPopup = component<MenuPopupProps>(({ props, slots, onMounted }) => {
             data-state={stateAttr(menu.state.value, 'open', 'closed')}
             popover="auto"
             role="menu"
+            aria-labelledby={menu.triggerPresent() ? menu.ids.trigger : undefined}
             class={props.class}
             ref={(node: HTMLElement | null) => { el = node; menu.setPopup(node); }}
             onToggle={(e: Event) => {
@@ -565,7 +588,11 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
     const subCtx: MenuContext = {
         state,
         list,
-        ids: { popup: `${baseId}-popup` },
+        ids: { trigger: `${baseId}-trigger`, popup: `${baseId}-popup` },
+        // The SubPopup labels itself from the sub-trigger unconditionally —
+        // a submenu without its trigger cannot open at all.
+        triggerPresent: () => true,
+        setTriggerPresent: () => {},
         keydown(e, value) {
             const closeKey = isRtl() ? 'ArrowRight' : 'ArrowLeft';
             if (e.key === closeKey) {
@@ -808,11 +835,43 @@ const MenuSubPopup = component<MenuSubPopupProps>(({ props, slots, onMounted }) 
 
 // ── Group / GroupLabel / Separator ──
 
+interface MenuGroupContext {
+    labelId: string;
+    labelPresent(): boolean;
+    setLabelPresent(present: boolean): void;
+}
+
+function makeInertGroup(): MenuGroupContext {
+    return {
+        labelId: 'zx-menu-group-inert-label',
+        labelPresent: () => false,
+        setLabelPresent: () => {},
+    };
+}
+
+export const useMenuGroupContext = defineInjectable<MenuGroupContext>(() => makeInertGroup());
+
 export type MenuGroupProps = WithClass & Define.Slot<'default'>;
 
-const MenuGroup = component<MenuGroupProps>(({ props, slots }) => {
+const MenuGroup = component<MenuGroupProps>(({ props, slots, signal }) => {
+    const baseId = createId('zx-menu-group');
+    // Written from GroupLabel one microtask after its setup — a write made
+    // during the render pass is invisible to the already-rendered group.
+    const present = signal({ label: false });
+    const ctx: MenuGroupContext = {
+        labelId: `${baseId}-label`,
+        labelPresent: () => present.label,
+        setLabelPresent: (p) => { present.label = p; },
+    };
+    defineProvide(useMenuGroupContext, () => ctx);
     return () => (
-        <div data-scope={SCOPE} data-part="group" role="group" class={props.class}>
+        <div
+            data-scope={SCOPE}
+            data-part="group"
+            role="group"
+            aria-labelledby={ctx.labelPresent() ? ctx.labelId : undefined}
+            class={props.class}
+        >
             {slots.default?.()}
         </div>
     );
@@ -820,9 +879,20 @@ const MenuGroup = component<MenuGroupProps>(({ props, slots }) => {
 
 export type MenuGroupLabelProps = WithClass & Define.Slot<'default'>;
 
-const MenuGroupLabel = component<MenuGroupLabelProps>(({ props, slots }) => {
+const MenuGroupLabel = component<MenuGroupLabelProps>(({ props, slots, onUnmounted }) => {
+    const group = useMenuGroupContext();
+    // Deferred past the render pass — see the note on `present` in Group.
+    let alive = true;
+    queueMicrotask(() => { if (alive) group.setLabelPresent(true); });
+    onUnmounted(() => {
+        alive = false;
+        group.setLabelPresent(false);
+    });
+    // No role: the label must stay in the accessibility tree for the group's
+    // aria-labelledby to compute a name from it — role="presentation" was
+    // self-defeating.
     return () => (
-        <div data-scope={SCOPE} data-part="group-label" role="presentation" class={props.class}>
+        <div id={group.labelId} data-scope={SCOPE} data-part="group-label" class={props.class}>
             {slots.default?.()}
         </div>
     );

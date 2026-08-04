@@ -44,6 +44,47 @@ export function sortByDomOrder<T extends ListItem>(registered: readonly T[]): T[
     return [...sorted, ...withoutEl];
 }
 
+/** One step of listbox-highlight movement: relative, or straight to an edge. */
+export type HighlightStep = 1 | -1 | 'first' | 'last';
+
+/**
+ * Move a `highlighted` ref through the enabled items of a list — the shared
+ * listbox-highlight step Select and Combobox both drive from their keyboard
+ * handlers (previously duplicated byte-for-byte in each). Relative steps
+ * clamp at the edges (APG listbox: no wrap).
+ */
+export function moveHighlight(
+    list: ListController,
+    highlighted: { value: string | null },
+    step: HighlightStep,
+): void {
+    const items = list.enabledItems();
+    if (items.length === 0) return;
+    if (step === 'first') { highlighted.value = items[0]!.value; return; }
+    if (step === 'last') { highlighted.value = items[items.length - 1]!.value; return; }
+    const current = items.findIndex((i) => i.value === highlighted.value);
+    const next = Math.min(items.length - 1, Math.max(0, current === -1 ? 0 : current + step));
+    highlighted.value = items[next]!.value;
+}
+
+/**
+ * An option's label text — child text minus decorative parts (the selected
+ * `item-indicator` would otherwise leak into the value display and
+ * typeahead). Shared by Select and Combobox items.
+ */
+export function optionText(el: HTMLElement | null): string | undefined {
+    if (!el) return undefined;
+    let text = '';
+    for (const node of el.childNodes) {
+        if (node.nodeType === Node.TEXT_NODE) text += node.textContent ?? '';
+        else if (node instanceof HTMLElement && node.getAttribute('data-part') !== 'item-indicator') {
+            text += node.textContent ?? '';
+        }
+    }
+    const trimmed = text.trim();
+    return trimmed === '' ? undefined : trimmed;
+}
+
 export function createListController(): ListController {
     const registered: ListItem[] = [];
 

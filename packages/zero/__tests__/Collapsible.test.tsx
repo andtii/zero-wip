@@ -89,6 +89,45 @@ describe('Collapsible', () => {
         expect(trigger.hasAttribute('data-pressed')).toBe(false);
     });
 
+    it('wires explicit disclosure semantics: aria-expanded + aria-controls', () => {
+        const state = signal({ open: false });
+        mount(state);
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        const panel = container.querySelector<HTMLElement>('[data-part="panel"]')!;
+        // Native <summary> conveys expansion in most ATs, but explicit
+        // wiring covers the rest and keeps the contract inspectable.
+        expect(panel.id).not.toBe('');
+        expect(trigger.getAttribute('aria-controls')).toBe(panel.id);
+        expect(trigger.getAttribute('aria-expanded')).toBe('false');
+        state.open = true;
+        expect(trigger.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('a disabled root announces aria-disabled on the trigger', () => {
+        render(
+            <Collapsible.Root disabled>
+                <Collapsible.Trigger>Toggle</Collapsible.Trigger>
+                <Collapsible.Panel>Content</Collapsible.Panel>
+            </Collapsible.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        // <summary> has no disabled attribute — without aria-disabled the
+        // inert trigger announces as an ordinary interactive one.
+        expect(trigger.getAttribute('aria-disabled')).toBe('true');
+
+        const other = document.createElement('div');
+        document.body.appendChild(other);
+        render(
+            <Collapsible.Root>
+                <Collapsible.Trigger>Toggle</Collapsible.Trigger>
+                <Collapsible.Panel>Content</Collapsible.Panel>
+            </Collapsible.Root>,
+            other,
+        );
+        expect(other.querySelector<HTMLElement>('[data-part="trigger"]')!.hasAttribute('aria-disabled')).toBe(false);
+    });
+
     it('disabled root blocks toggling', () => {
         render(
             <Collapsible.Root disabled>

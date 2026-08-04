@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Card, Collapsible, Combobox, Dialog, Divider, Input, NumberInput, RatingGroup, Skeleton, Spinner, Switch, Tabs, Textarea, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Card, Collapsible, Combobox, Dialog, Divider, Input, NumberInput, RatingGroup, Select, Skeleton, Spinner, Switch, Tabs, Textarea, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -40,6 +40,16 @@ function page() {
                     <Combobox.Item value="apple">Apple</Combobox.Item>
                 </Combobox.Popup>
             </Combobox.Root>
+            <Select.Root name="pet" defaultValue="cat" placeholder="Pick a pet…">
+                <Select.Trigger>
+                    <Select.Value />
+                    <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popup>
+                    <Select.Item value="cat">Cat</Select.Item>
+                    <Select.Item value="dog">Dog</Select.Item>
+                </Select.Popup>
+            </Select.Root>
             <ToggleGroup.Root defaultValue={['b']}>
                 <ToggleGroup.Item value="a">A</ToggleGroup.Item>
                 <ToggleGroup.Item value="b">B</ToggleGroup.Item>
@@ -138,6 +148,9 @@ describe('SSR', () => {
         expect(html).not.toMatch(/data-scope="toast"[^>]*data-part="root"/);
         // The combobox posts pre-hydration and renders its popup closed.
         expect(html).toMatch(/data-scope="combobox"[^>]*data-part="hidden-input"[^>]*value="apple"/);
+        // The select posts pre-hydration too, and its listbox renders closed.
+        expect(html).toMatch(/data-scope="select"[^>]*data-part="hidden-input"[^>]*value="cat"/);
+        expect(html).toMatch(/data-scope="select"[^>]*data-part="popup"[^>]*data-state="closed"/);
         expect(html).toMatch(/data-scope="combobox"[^>]*data-part="popup"[^>]*data-state="closed"/);
         // The toggle group's single tab stop resolves server-side from the
         // model (registration order stands in for DOM order).

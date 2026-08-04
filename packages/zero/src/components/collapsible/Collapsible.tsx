@@ -15,6 +15,7 @@
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createId } from '../../behaviors/create-id.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
@@ -27,6 +28,7 @@ const SCOPE = collapsibleAnatomy.scope;
 interface CollapsibleContext {
     state: ControllableState<boolean>;
     disabled(): boolean;
+    ids: { panel: string };
 }
 
 function makeInert(): CollapsibleContext {
@@ -37,6 +39,7 @@ function makeInert(): CollapsibleContext {
             set value(v: boolean) { open = v; },
         },
         disabled: () => false,
+        ids: { panel: 'zx-collapsible-inert-panel' },
     };
 }
 
@@ -59,9 +62,11 @@ const CollapsibleRoot = component<CollapsibleRootProps>(({ props, slots, emit })
         props.defaultOpen ?? false,
         (v) => emit('openChange', v),
     );
+    const baseId = createId('zx-collapsible');
     const ctx: CollapsibleContext = {
         state,
         disabled: () => !!props.disabled,
+        ids: { panel: `${baseId}-panel` },
     };
     defineProvide(useCollapsibleContext, () => ctx);
 
@@ -100,6 +105,12 @@ const CollapsibleTrigger = component<CollapsibleTriggerProps>(({ props, slots, s
             data-state={stateAttr(ctx.state.value, 'open', 'closed')}
             data-disabled={dataAttr(ctx.disabled())}
             data-focus-visible={dataAttr(focus.visible)}
+            // Native <summary> conveys expansion in most ATs; the explicit
+            // wiring covers the rest, and <summary> has no disabled
+            // attribute, so aria-disabled is the only announcement it gets.
+            aria-expanded={ctx.state.value ? 'true' : 'false'}
+            aria-controls={ctx.ids.panel}
+            aria-disabled={ctx.disabled() ? 'true' : undefined}
             class={props.class}
             ref={(node: HTMLElement | null) => { el = node; }}
             onClick={(e: MouseEvent) => {
@@ -133,6 +144,7 @@ const CollapsiblePanel = component<CollapsiblePanelProps>(({ props, slots }) => 
     const ctx = useCollapsibleContext();
     return () => (
         <div
+            id={ctx.ids.panel}
             data-scope={SCOPE}
             data-part="panel"
             data-state={stateAttr(ctx.state.value, 'open', 'closed')}

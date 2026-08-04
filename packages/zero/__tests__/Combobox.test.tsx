@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { component, signal } from 'sigx';
 import { Combobox, Field, comboboxAnatomy } from '@sigx/zero';
@@ -177,6 +177,19 @@ describe('Combobox', () => {
         expect(item.hasAttribute('data-pressed')).toBe(true);
         item.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
         expect(item.hasAttribute('data-pressed')).toBe(false);
+    });
+
+    it('scrolls the highlighted option into view as the highlight moves', async () => {
+        const h = harness();
+        h.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true, bubbles: true }));
+        await tick();
+        const items = container.querySelectorAll<HTMLElement>('[data-part="item"]');
+        const scrolled = vi.fn();
+        items[1]!.scrollIntoView = scrolled;
+        h.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true, bubbles: true }));
+        await tick();
+        // block:'nearest' — never yank the page, just keep the option visible.
+        expect(scrolled).toHaveBeenCalledWith({ block: 'nearest' });
     });
 
     it('adopts field wiring: label for, describedby, invalid', () => {
