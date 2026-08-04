@@ -6,8 +6,8 @@ export { createId, useIdGenerator, zeroPlugin } from './create-id.js';
 export type { ControllableState } from './controllable.js';
 export { createControllableState } from './controllable.js';
 
-export type { ListItem, ListController } from './list.js';
-export { createListController } from './list.js';
+export type { ListItem, ListController, HighlightStep } from './list.js';
+export { createListController, moveHighlight, optionText } from './list.js';
 
 export type { RovingOptions } from './roving.js';
 export { createRovingKeydown } from './roving.js';

@@ -1,8 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
-import { Select, selectAnatomy } from '@sigx/zero';
+import { Field, Select, selectAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
+
+/** watch()-driven syncs settle a microtask after the write. */
+const tick = () => new Promise((r) => setTimeout(r, 0));
 
 describe('Select', () => {
     let container: HTMLElement;
@@ -141,5 +144,61 @@ describe('Select', () => {
         trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true }));
         expect(trigger.getAttribute('aria-expanded')).toBe('false');
         expect(state.fruit).toBe('');
+    });
+
+    it('adopts field wiring: label for, describedby, invalid, required', () => {
+        render(
+            <Field.Root invalid required>
+                <Field.Label>Fruit</Field.Label>
+                <Select.Root placeholder="Pick a fruit…">
+                    <Select.Trigger>
+                        <Select.Value />
+                    </Select.Trigger>
+                    <Select.Popup>
+                        <Select.Item value="apple">Apple</Select.Item>
+                    </Select.Popup>
+                </Select.Root>
+                <Field.Error>Required</Field.Error>
+            </Field.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-scope="select"][data-part="trigger"]')!;
+        const label = container.querySelector<HTMLElement>('[data-scope="field"][data-part="label"]')!;
+        // The trigger IS the field's control: a button is labelable, so
+        // Field.Label names it through `for` exactly like an input.
+        expect(label.getAttribute('for')).toBe(trigger.id);
+        expect(trigger.getAttribute('aria-invalid')).toBe('true');
+        expect(trigger.getAttribute('aria-required')).toBe('true');
+        expect(trigger.getAttribute('aria-describedby')).toBeTruthy();
+        // The listbox keeps pointing at the trigger under the adopted id.
+        expect(container.querySelector('[data-scope="select"][data-part="popup"]')!.getAttribute('aria-labelledby')).toBe(trigger.id);
+    });
+
+    it('a bare select outside a field announces its own invalid/required props', () => {
+        render(
+            <Select.Root invalid required placeholder="Pick a fruit…">
+                <Select.Trigger>
+                    <Select.Value />
+                </Select.Trigger>
+            </Select.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        expect(trigger.getAttribute('aria-invalid')).toBe('true');
+        expect(trigger.getAttribute('aria-required')).toBe('true');
+    });
+
+    it('scrolls the highlighted option into view as the highlight moves', async () => {
+        const state = signal({ fruit: '' });
+        mount(state);
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.click();
+        const items = container.querySelectorAll<HTMLElement>('[data-part="item"]');
+        const scrolled = vi.fn();
+        items[1]!.scrollIntoView = scrolled;
+        trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true, bubbles: true }));
+        await tick();
+        // block:'nearest' — never yank the page, just keep the option visible.
+        expect(scrolled).toHaveBeenCalledWith({ block: 'nearest' });
     });
 });

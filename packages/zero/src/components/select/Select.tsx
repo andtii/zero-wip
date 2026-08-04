@@ -20,11 +20,11 @@
  * (selects directly) and open (moves the highlight), Enter/Space select,
  * Escape closes. A hidden input carries the value for form posts.
  */
-import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
+import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
-import { createListController, type ListController, type ListItem } from '../../behaviors/list.js';
+import { createListController, moveHighlight, optionText, type ListController, type ListItem } from '../../behaviors/list.js';
 import { createTypeahead } from '../../behaviors/typeahead.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { useFieldContext } from '../../behaviors/field.js';
@@ -49,11 +49,14 @@ interface SelectContext {
     open: { value: boolean };
     highlighted: { value: string | null };
     list: ListController;
-    ids: { trigger: string; popup: string };
+    ids: { popup: string };
+    /** The trigger's rendered id — the field's control id when wrapped in a Field. */
+    triggerId(): string;
     placeholder(): string | undefined;
     disabled(): boolean;
     invalid(): boolean;
     required(): boolean;
+    describedBy(): string | undefined;
     selectValue(value: string): void;
     optionId(value: string): string;
     setTrigger(el: HTMLElement | null): void;
@@ -71,11 +74,13 @@ function makeInert(): SelectContext {
         open: { value: false },
         highlighted: { value: null },
         list: createListController(),
-        ids: { trigger: 'zx-select-inert-trigger', popup: 'zx-select-inert-popup' },
+        ids: { popup: 'zx-select-inert-popup' },
+        triggerId: () => 'zx-select-inert-trigger',
         placeholder: () => undefined,
         disabled: () => false,
         invalid: () => false,
         required: () => false,
+        describedBy: () => undefined,
         selectValue: () => {},
         optionId: (v) => `zx-select-inert-option-${v}`,
         setTrigger: () => {},
@@ -129,16 +134,6 @@ const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal }) =
         }
     };
 
-    const moveHighlight = (delta: 1 | -1 | 'first' | 'last') => {
-        const items = list.enabledItems();
-        if (items.length === 0) return;
-        if (delta === 'first') { highlighted.value = items[0]!.value; return; }
-        if (delta === 'last') { highlighted.value = items[items.length - 1]!.value; return; }
-        const current = items.findIndex((i) => i.value === highlighted.value);
-        const next = Math.min(items.length - 1, Math.max(0, current === -1 ? 0 : current + delta));
-        highlighted.value = items[next]!.value;
-    };
-
     const typeahead = createTypeahead({
         list,
         onMatch(item: ListItem) {
@@ -155,11 +150,15 @@ const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal }) =
         },
         highlighted,
         list,
-        ids: { trigger: `${baseId}-trigger`, popup: `${baseId}-popup` },
+        ids: { popup: `${baseId}-popup` },
+        // Adopting the field's control id is what lets Field.Label name the
+        // trigger through `for` — a button is a labelable element.
+        triggerId: () => (field.inert ? `${baseId}-trigger` : field.ids.control),
         placeholder: () => props.placeholder,
         disabled: () => !!props.disabled || field.disabled(),
         invalid: () => !!props.invalid || field.invalid(),
         required: () => !!props.required || field.required(),
+        describedBy: () => field.describedBy(),
         selectValue(value) {
             state.value = value;
             setOpen(false);
@@ -179,10 +178,10 @@ const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal }) =
                 typeahead(e, state.value || null);
                 return;
             }
-            if (key === 'ArrowDown') { e.preventDefault(); moveHighlight(1); return; }
-            if (key === 'ArrowUp') { e.preventDefault(); moveHighlight(-1); return; }
-            if (key === 'Home') { e.preventDefault(); moveHighlight('first'); return; }
-            if (key === 'End') { e.preventDefault(); moveHighlight('last'); return; }
+            if (key === 'ArrowDown') { e.preventDefault(); moveHighlight(list, highlighted, 1); return; }
+            if (key === 'ArrowUp') { e.preventDefault(); moveHighlight(list, highlighted, -1); return; }
+            if (key === 'Home') { e.preventDefault(); moveHighlight(list, highlighted, 'first'); return; }
+            if (key === 'End') { e.preventDefault(); moveHighlight(list, highlighted, 'last'); return; }
             if (key === 'Enter' || key === ' ') {
                 e.preventDefault();
                 if (highlighted.value != null) ctx.selectValue(highlighted.value);
@@ -203,6 +202,16 @@ const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal }) =
         offset: () => 4,
         strategy: props.positionStrategy,
     });
+
+    // Keyboard highlight can walk below a scrolled listbox's fold —
+    // aria-activedescendant moves no real focus, so nothing scrolls natively.
+    watch(
+        () => highlighted.value,
+        (value) => {
+            if (value == null) return;
+            list.find(value)?.el()?.scrollIntoView?.({ block: 'nearest' });
+        },
+    );
 
     return () => (
         <div
@@ -244,7 +253,7 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
     });
 
     const bag = (): PartProps => ({
-        id: select.ids.trigger,
+        id: select.triggerId(),
         'data-scope': SCOPE,
         'data-part': 'trigger',
         'data-state': stateAttr(select.open.value, 'open', 'closed'),
@@ -256,6 +265,9 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
         'aria-haspopup': 'listbox',
         'aria-expanded': select.open.value ? 'true' : 'false',
         'aria-controls': select.ids.popup,
+        'aria-invalid': select.invalid() ? 'true' : undefined,
+        'aria-required': select.required() ? 'true' : undefined,
+        'aria-describedby': select.describedBy(),
         'aria-activedescendant': select.open.value && select.highlighted.value != null
             ? select.optionId(select.highlighted.value)
             : undefined,
@@ -360,7 +372,7 @@ const SelectPopup = component<SelectPopupProps>(({ props, slots, onMounted }) =>
             data-state={stateAttr(select.open.value, 'open', 'closed')}
             popover="auto"
             role="listbox"
-            aria-labelledby={select.ids.trigger}
+            aria-labelledby={select.triggerId()}
             class={props.class}
             ref={(node: HTMLElement | null) => { el = node; select.setPopup(node); }}
             onToggle={(e: Event) => {
@@ -382,21 +394,6 @@ export type SelectItemProps =
     & WithClass
     & WithAsChild
     & Define.Slot<'default', PartProps>;
-
-// The option's label text — child text minus decorative parts (the
-// selected-indicator would otherwise leak into Value/typeahead).
-function optionText(el: HTMLElement | null): string | undefined {
-    if (!el) return undefined;
-    let text = '';
-    for (const node of el.childNodes) {
-        if (node.nodeType === Node.TEXT_NODE) text += node.textContent ?? '';
-        else if (node instanceof HTMLElement && node.getAttribute('data-part') !== 'item-indicator') {
-            text += node.textContent ?? '';
-        }
-    }
-    const trimmed = text.trim();
-    return trimmed === '' ? undefined : trimmed;
-}
 
 const SelectItem = component<SelectItemProps>(({ props, slots, onUnmounted }) => {
     const select = useSelectContext();

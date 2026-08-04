@@ -42,7 +42,7 @@ import { component, compound, defineInjectable, defineProvide, effect, watch } f
 import type { Define, Model } from 'sigx';
 import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
-import { createListController, type ListController, type ListItem } from '../../behaviors/list.js';
+import { createListController, moveHighlight, optionText, type HighlightStep, type ListController, type ListItem } from '../../behaviors/list.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { createDismissable } from '../../behaviors/dismiss.js';
 import { useFieldContext } from '../../behaviors/field.js';
@@ -190,15 +190,7 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal 
         if (!v) highlighted.value = null;
     };
 
-    const moveHighlight = (delta: 1 | -1 | 'first' | 'last'): void => {
-        const items = list.enabledItems();
-        if (items.length === 0) return;
-        if (delta === 'first') { highlighted.value = items[0]!.value; return; }
-        if (delta === 'last') { highlighted.value = items[items.length - 1]!.value; return; }
-        const current = items.findIndex((i) => i.value === highlighted.value);
-        const next = Math.min(items.length - 1, Math.max(0, current === -1 ? 0 : current + delta));
-        highlighted.value = items[next]!.value;
-    };
+    const step = (delta: HighlightStep): void => moveHighlight(list, highlighted, delta);
 
     const ctx: ComboboxContext = {
         state,
@@ -240,10 +232,10 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal 
                 e.preventDefault();
                 if (!openState.value) {
                     setOpen(true);
-                    moveHighlight(key === 'ArrowDown' ? 'first' : 'last');
+                    step(key === 'ArrowDown' ? 'first' : 'last');
                     return;
                 }
-                moveHighlight(key === 'ArrowDown' ? 1 : -1);
+                step(key === 'ArrowDown' ? 1 : -1);
                 return;
             }
             if (key === 'Enter') {
@@ -295,6 +287,16 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal 
         escape: false,
         getExtraTargets: () => [control, input, trigger],
     });
+
+    // Keyboard highlight can walk below a scrolled listbox's fold —
+    // aria-activedescendant moves no real focus, so nothing scrolls natively.
+    watch(
+        () => highlighted.value,
+        (value) => {
+            if (value == null) return;
+            list.find(value)?.el()?.scrollIntoView?.({ block: 'nearest' });
+        },
+    );
 
     // An external value write (form reset, server data) reflects into the
     // input text once the matching item is known.
@@ -502,20 +504,6 @@ export type ComboboxItemProps =
     & WithClass
     & WithAsChild
     & Define.Slot<'default', PartProps>;
-
-// The option's label text minus the decorative indicator.
-function optionText(el: HTMLElement | null): string | undefined {
-    if (!el) return undefined;
-    let text = '';
-    for (const node of el.childNodes) {
-        if (node.nodeType === Node.TEXT_NODE) text += node.textContent ?? '';
-        else if (node instanceof HTMLElement && node.getAttribute('data-part') !== 'item-indicator') {
-            text += node.textContent ?? '';
-        }
-    }
-    const trimmed = text.trim();
-    return trimmed === '' ? undefined : trimmed;
-}
 
 const ComboboxItem = component<ComboboxItemProps>(({ props, slots, onMounted, onUnmounted }) => {
     const combobox = useComboboxContext();
