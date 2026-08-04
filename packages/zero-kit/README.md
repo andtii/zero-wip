@@ -2,8 +2,11 @@
 
 Design-system authoring for [SignalX Zero](https://npmjs.com/package/@sigx/zero):
 typed tokens and per-part recipes compiled to plain, layered CSS against the
-zero anatomy manifest. Node-only — a built design system ships CSS plus a tiny
-runtime module.
+zero anatomy manifest. The barrel is Node-only — a built design system ships
+CSS plus a tiny runtime module — with two purpose-built subpaths:
+`@sigx/zero-kit/define` (the `define*` helpers from a `node:`-free module
+graph, safe in a browser bundle) and `@sigx/zero-kit/build` (the standard
+build pipeline as one function).
 
 ```bash
 npm install -D @sigx/zero-kit @sigx/cli
@@ -171,25 +174,72 @@ grows with the design system rather than being a list to maintain.
 The `skills/design-system` folder ships an agent skill that generates a
 complete design system from a style brief and iterates against `validate`.
 
+## Building a design system
+
+Every design system runs the same pipeline; it ships as one function on the
+`@sigx/zero-kit/build` subpath, and a package's `build.mjs` is only its data:
+
+```js
+import { fileURLToPath } from 'node:url';
+import { anatomies } from '@sigx/zero/anatomy';
+import { runStandardBuild } from '@sigx/zero-kit/build';
+import { designSystem } from './dist/design-system.js';
+
+await runStandardBuild({
+    designSystem,
+    manifest: { components: Object.values(anatomies).map((a) => a.toJSON()) },
+    // fragments: [fragment],   // ecosystem manifest fragments, merged in
+    outDir: fileURLToPath(new URL('./dist', import.meta.url)),
+});
+```
+
+It validates, prints every issue, refuses to emit from an invalid source
+(throws after printing), compiles, builds the coverage report and writes the
+artifacts. `sigx zero:build` calls the same function.
+
+## The authoring surface in a browser graph
+
+The kit's barrel is Node-only — a design-system package may never
+value-import it at runtime (one import drags `node:fs` into every browser
+consumer). The `define*` helpers live on `@sigx/zero-kit/define`, whose
+module graph is `node:`-free by contract (pinned by a test that walks it), so
+a design-system module that sits in a package's runtime graph writes:
+
+```ts
+import { defineApi } from '@sigx/zero-kit/define';
+```
+
+and keeps the full literal narrowing without a `satisfies` reimplementation.
+
 ## The vendor-named component API
 
 A design system may declare, beside `tokens` and `recipes`, how zero's axis
 surfaces appear under the vendor's own prop names (issue #179, RFC 0003 §2):
 
 ```ts
-import { defineApi } from '@sigx/zero-kit';
+import { defineApi } from '@sigx/zero-kit/define';
 import { variants, modifiers } from './tokens.js';
 
 export const api = defineApi({ variants, modifiers }, {
     variant: { as: 'kind', values: { 'danger-tertiary': 'danger--tertiary' } },
+    size: { values: { sm: 'small', md: 'medium' } },
     modifiers: { 'icon-only': { as: 'hasIconOnly' } },
+    components: { button: { variant: { as: 'type' } } },
 });
 ```
 
 `as` renames a surface (Carbon's `kind`, Ant's `type`); `values` respells
 individual members whose vendor spelling the attribute grammar cannot hold —
 the rendered attribute keeps the zero spelling, only the prop surface
-respells. Zero's own components are untouched: `variant` stays `variant`
+respells. All five surfaces map: `color`, `size`, `variant`, custom `axes`
+and `modifiers`. `components` scopes an override to one component,
+REPLACING the DS-wide entry for the surfaces it names — and it is where a
+rename that shadows a component-specific prop must live: `api.variant = {
+as: 'name' }` design-system-wide would silently delete Select's `name`, so
+the validator rejects any DS-wide mapping onto a prop in
+`RESERVED_PROPS_BY_SCOPE` and points at `api.components.<scope>`, where the
+shadowing is a per-component decision (Ant's `type` over Button's native
+`type` — vendor-faithful, chosen for Button alone). Zero's own components are untouched: `variant` stays `variant`
 everywhere, and the declaration only shapes the design system's *additional*
 `./components` module. The declaration is validated against the declared
 vocabulary (`validateApi`, run inside `validateDesignSystem`), and the
