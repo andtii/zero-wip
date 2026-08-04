@@ -71,6 +71,15 @@ test('Escape closes without selecting; outside click light-dismisses', async ({ 
     await expect(parts('popup')).toHaveAttribute('data-state', 'closed');
 });
 
+test('the variants row is manifest-driven: each wired select variant renders once', async ({ page }) => {
+    // zero-basic wires outline | soft | ghost on the select scope (its
+    // manifest's per-scope list — the page maps it rather than a literal).
+    // A page-wide count is right here: the subject IS the page composition.
+    for (const v of ['outline', 'soft', 'ghost']) {
+        await expect(page.locator(`[data-scope="select"][data-part="root"][data-variant="${v}"]`)).toHaveCount(1);
+    }
+});
+
 test('the listbox is labelled by the trigger', async ({ page }) => {
     const parts = demo(page);
     const triggerId = await parts('trigger').getAttribute('id');

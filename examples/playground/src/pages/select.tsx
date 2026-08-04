@@ -1,6 +1,6 @@
 import { component, signal } from 'sigx';
 import { Select } from '@sigx/zero';
-import { pickScopeVariant } from '../design-systems';
+import { activeVocabulary } from '../design-systems';
 import type { PageEntry } from './registry';
 
 const SelectDemos = component(() => {
@@ -46,22 +46,25 @@ const SelectDemos = component(() => {
               * `solid`, because a field filled with the role at full strength
               * reads as a button.
               *
-              * `pickScopeVariant`, not `pickVariant`: the other five design
-              * systems DECLARE the same four values design-system-wide and
-              * wire none of them on `select`, so asking the union would set an
-              * attribute matching no rule there. The question has to be asked
-              * of the scope.
+              * The row is the manifest's, not a retyped literal: it maps the
+              * live design system's per-scope wired list, so a design system
+              * that wires two variants shows two and one that wires none
+              * shows none — the same rule the axis rows follow, asked of the
+              * scope. Retyping a hardcoded array here was exactly the drift
+              * the axis rows already paid for (see the note above
+              * `basicManifestUrl` in design-systems.ts).
               */}
             <p>
                 <small>
-                    zero-basic wires a per-scope <code>variant</code> here:{' '}
-                    <code>outline | soft | ghost</code>. Other design systems
-                    offer none, and the prop goes unset.
+                    Every <code>variant</code> the live design system wires on
+                    the <code>select</code> scope, straight from its manifest.
+                    zero-basic wires <code>outline | soft | ghost</code>; other
+                    design systems wire none here, and the row is empty.
                 </small>
             </p>
-            {(['outline', 'soft', 'ghost'] as const).map((v) => (
+            {(activeVocabulary().perScope['select']?.variants ?? []).map((v) => (
                 <>
-                    <Select.Root variant={pickScopeVariant('select', v)} placeholder={`${v}…`}>
+                    <Select.Root variant={v} placeholder={`${v}…`}>
                         <Select.Trigger>
                             <Select.Value />
                             <Select.Indicator />
