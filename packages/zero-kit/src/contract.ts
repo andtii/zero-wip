@@ -361,16 +361,91 @@ export const VARIANT_AXES: Record<string, string> = {
 export const MOD_ATTR_PREFIX = 'data-mod-';
 
 /**
+ * The shared boolean-flag vocabulary. Mirrors `FLAG_VOCABULARY` in
+ * `@sigx/zero/contract` (parity-tested): `mergeManifests` holds ecosystem
+ * fragments to it — the "no synonyms" rule, enforced on the surface the
+ * README sells to ecosystem authors rather than only on zero's own anatomies.
+ */
+export const FLAG_VOCABULARY = [
+    'disabled',
+    'highlighted',
+    'selected',
+    'invalid',
+    'required',
+    'readonly',
+    'placeholder',
+    'focus-visible',
+    'pressed',
+    'press-animating',
+] as const;
+
+/**
+ * The governed `data-state` vocabulary, grouped by family — the states half
+ * of the same governance. Mirrors `STATE_VOCABULARY` in `@sigx/zero/contract`
+ * (parity-tested). Families are documentation; membership is checked against
+ * the union (`STATE_NAMES`).
+ */
+export const STATE_VOCABULARY = {
+    presence: ['open', 'closed'],
+    selection: ['checked', 'unchecked', 'indeterminate'],
+    activation: ['active', 'inactive'],
+    toggle: ['on', 'off'],
+    loading: ['loading', 'loaded', 'complete', 'error'],
+    fill: ['full', 'half', 'empty'],
+} as const;
+
+/** Every governed `data-state` value, flat. Mirrors zero's `STATE_NAMES`. */
+export const STATE_NAMES: ReadonlySet<string> = new Set(Object.values(STATE_VOCABULARY).flat());
+
+/**
+ * Spellings the state vocabulary deliberately does not contain, mapped to the
+ * member that means the same thing — diagnostic only. Mirrors
+ * `STATE_SYNONYMS` in `@sigx/zero/contract` (parity-tested).
+ */
+export const STATE_SYNONYMS: Record<string, string> = {
+    expanded: 'open',
+    collapsed: 'closed',
+    visible: 'open',
+    shown: 'open',
+    hidden: 'closed',
+    dismissed: 'closed',
+    selected: 'checked',
+    unselected: 'unchecked',
+    mixed: 'indeterminate',
+    current: 'active',
+    pressed: 'on',
+    unpressed: 'off',
+    busy: 'loading',
+    pending: 'loading',
+    done: 'complete',
+    finished: 'complete',
+    failed: 'error',
+    errored: 'error',
+};
+
+/**
+ * The closed `data-placement` vocabulary. Mirrors `PLACEMENT_VOCABULARY` in
+ * `@sigx/zero/contract` (parity-tested); a part's declared `placements` must
+ * be a subset.
+ */
+export const PLACEMENT_VOCABULARY = [
+    'top', 'top-start', 'top-end',
+    'bottom', 'bottom-start', 'bottom-end',
+    'left', 'left-start', 'left-end',
+    'right', 'right-start', 'right-end',
+] as const;
+
+/**
  * Axis names that are NOT available, because the anatomy contract already
  * gives `data-<name>` a meaning. Mirrors `RESERVED_AXES` in
  * `@sigx/zero/contract` (parity-tested): the validator must reject exactly
  * what the runtime refuses to render, or a design system would compile
- * selectors nothing is ever able to set.
+ * selectors nothing is ever able to set. Derived from the flag vocabulary the
+ * same way zero derives it, so the two lists cannot drift independently
+ * WITHIN the kit either.
  */
 export const RESERVED_AXES: ReadonlySet<string> = new Set([
-    'scope', 'part', 'state', 'orientation',
-    'disabled', 'highlighted', 'selected', 'invalid', 'required',
-    'readonly', 'placeholder', 'focus-visible', 'pressed', 'press-animating',
+    'scope', 'part', 'state', 'orientation', ...FLAG_VOCABULARY,
 ]);
 
 // ── Minimal structural mirror of @sigx/zero's AnatomyJSON/manifest types ──
@@ -389,6 +464,12 @@ export interface ManifestPart {
     parent?: string;
     states?: readonly string[];
     flags?: readonly string[];
+    /**
+     * The `data-placement` values this part can carry — declared contract
+     * data, a subset of `PLACEMENT_VOCABULARY`. Absent for parts the runtime
+     * never stamps.
+     */
+    placements?: readonly string[];
     /**
      * States in which zero's runtime sets `hidden` on this part, so it paints
      * nothing while it is in them (avatar's `image` while `error`). Styling

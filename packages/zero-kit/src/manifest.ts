@@ -16,7 +16,13 @@
  * compile gate, the api emitters' import specifiers) reads it from there.
  */
 import type { ManifestComponent, ZeroManifest } from './contract.js';
-import { TOKEN_KEY_PATTERN } from './contract.js';
+import {
+    FLAG_VOCABULARY,
+    PLACEMENT_VOCABULARY,
+    STATE_NAMES,
+    STATE_SYNONYMS,
+    TOKEN_KEY_PATTERN,
+} from './contract.js';
 
 /**
  * The shape of a bare or scoped npm specifier, optionally with subpath
@@ -102,6 +108,61 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                     if (CSS_BREAKOUT.test(fragmentSelector)) {
                         throw new Error(`[zero-kit] ${where}: selector for "${component.scope}"."${part.name}" state "${state}" cannot hold a brace, semicolon or newline — it is spliced into compiled selectors verbatim`);
                     }
+                }
+            }
+            // The shared vocabularies, enforced on the ECOSYSTEM surface.
+            // Zero's own anatomies are governed by zero's test suite and
+            // `defineAnatomy` carries no runtime guard (it is on every
+            // component's size budget) — so a published fragment's flags,
+            // states, placements and part tree are checked HERE, where the
+            // fragment joins the pipeline. The "no synonyms" rule finally
+            // binds for third-party scopes.
+            const flagSet = new Set<string>(FLAG_VOCABULARY);
+            const placementSet = new Set<string>(PLACEMENT_VOCABULARY);
+            const partNames = new Set(component.parts.map((p) => p.name));
+            const at = (part: string) => `${where}: "${component.scope}"."${part}"`;
+            for (const part of component.parts) {
+                for (const flag of part.flags ?? []) {
+                    if (!flagSet.has(flag)) {
+                        throw new Error(`[zero-kit] ${at(part.name)} declares flag "${flag}", which is not in the shared flag vocabulary [${FLAG_VOCABULARY.join(', ')}] — components never invent synonyms`);
+                    }
+                }
+                for (const state of part.states ?? []) {
+                    if (!STATE_NAMES.has(state)) {
+                        const synonym = STATE_SYNONYMS[state];
+                        throw new Error(`[zero-kit] ${at(part.name)} declares state "${state}", which is not in the governed state vocabulary${synonym ? ` — use "${synonym}"` : ''}`);
+                    }
+                }
+                for (const placement of part.placements ?? []) {
+                    if (!placementSet.has(placement)) {
+                        throw new Error(`[zero-kit] ${at(part.name)} declares placement "${placement}", which is not in the placement vocabulary [${PLACEMENT_VOCABULARY.join(', ')}]`);
+                    }
+                }
+                for (const state of part.hiddenIn ?? []) {
+                    if (!(part.states ?? []).includes(state)) {
+                        throw new Error(`[zero-kit] ${at(part.name)} declares hiddenIn "${state}", which is not one of the part's own states`);
+                    }
+                }
+                if (part.parent !== undefined) {
+                    if (part.parent === part.name) {
+                        throw new Error(`[zero-kit] ${at(part.name)} declares itself as its own parent`);
+                    }
+                    if (!partNames.has(part.parent)) {
+                        throw new Error(`[zero-kit] ${at(part.name)} declares parent "${part.parent}", which is not a declared part`);
+                    }
+                }
+            }
+            // Acyclicity over the whole tree — bounded walk per part, so a
+            // cycle fails by name instead of hanging the build.
+            const byName = new Map(component.parts.map((p) => [p.name, p]));
+            for (const part of component.parts) {
+                let cursor = part.parent;
+                let hops = 0;
+                while (cursor !== undefined) {
+                    if (++hops > component.parts.length) {
+                        throw new Error(`[zero-kit] ${at(part.name)}: parent chain does not terminate (cycle)`);
+                    }
+                    cursor = byName.get(cursor)?.parent;
                 }
             }
             const owner = owners.get(component.scope);

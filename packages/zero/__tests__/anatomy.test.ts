@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { anatomies, defineAnatomy } from '@sigx/zero/anatomy';
-import { FLAG_VOCABULARY } from '@sigx/zero';
+import { FLAG_VOCABULARY, PLACEMENT_VOCABULARY, STATE_NAMES, STATE_SYNONYMS } from '@sigx/zero';
 
 describe('defineAnatomy', () => {
     const a = defineAnatomy('demo', {
@@ -154,5 +154,43 @@ describe('anatomy registry', () => {
                 }
             }
         }
+    });
+
+    it('all states come from the governed vocabulary', () => {
+        // Flags have been governed from the start; this is the symmetric half
+        // (#317 item 3). A state outside the vocabulary is either a synonym —
+        // in which case the failure names the member to use — or a genuinely
+        // new value, which is a contract change in STATE_VOCABULARY first.
+        for (const anatomy of Object.values(anatomies)) {
+            for (const [name, part] of Object.entries<{ states?: readonly string[] }>(anatomy.parts)) {
+                for (const state of part.states ?? []) {
+                    const hint = STATE_SYNONYMS[state] ? ` — use "${STATE_SYNONYMS[state]}"` : '';
+                    expect(STATE_NAMES.has(state), `${anatomy.scope}.${name}: state "${state}"${hint}`).toBe(true);
+                }
+            }
+        }
+    });
+
+    it('all placements come from the placement vocabulary, and exactly the stamping parts declare them', () => {
+        const vocabulary = new Set<string>(PLACEMENT_VOCABULARY);
+        const declared: string[] = [];
+        for (const anatomy of Object.values(anatomies)) {
+            for (const [name, part] of Object.entries<{ placements?: readonly string[] }>(anatomy.parts)) {
+                if (!part.placements) continue;
+                // Absent, never empty — same reasoning as hiddenIn.
+                expect(part.placements.length, `${anatomy.scope}.${name}: empty placements — omit it`).toBeGreaterThan(0);
+                for (const placement of part.placements) {
+                    expect(vocabulary.has(placement), `${anatomy.scope}.${name}: placement "${placement}"`).toBe(true);
+                }
+                declared.push(`${anatomy.scope}.${name}`);
+            }
+        }
+        // Every part the runtime stamps `data-placement` on, and no other:
+        // the six anchored-position popups plus toast's viewport/root pair.
+        // The DOM half is asserted by expectAnatomy in each component's tests.
+        expect(declared.sort()).toEqual([
+            'combobox.popup', 'menu.popup', 'menu.sub-popup', 'popover.popup',
+            'select.popup', 'toast.root', 'toast.viewport', 'tooltip.popup',
+        ]);
     });
 });

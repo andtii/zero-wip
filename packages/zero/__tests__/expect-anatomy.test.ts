@@ -114,6 +114,41 @@ describe('expectAnatomy (public conformance helper)', () => {
     });
 });
 
+describe('expectAnatomy placements (declared contract data, not a blanket exemption)', () => {
+    const placed = defineAnatomy('demo-float', {
+        'anchor': { element: 'button' },
+        'float': { element: 'div', states: ['open', 'closed'], placements: ['top', 'bottom-start'] },
+    });
+
+    const float = (attrs: Record<string, string>): HTMLElement => {
+        const el = document.createElement('div');
+        el.setAttribute('data-scope', 'demo-float');
+        el.setAttribute('data-part', 'float');
+        for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+        return el;
+    };
+
+    it('passes a declared placement value', () => {
+        const container = mount(float({ 'data-state': 'open', 'data-placement': 'bottom-start' }));
+        expect(() => expectAnatomy(container, placed)).not.toThrow();
+    });
+
+    it('fails a placement value outside the declared subset', () => {
+        const container = mount(float({ 'data-state': 'open', 'data-placement': 'left-end' }));
+        expect(() => expectAnatomy(container, placed)).toThrow(/data-placement="left-end"/);
+    });
+
+    it('fails data-placement on a part that declares no placements', () => {
+        // The blanket exemption this replaces let ANY part carry the
+        // attribute unchecked.
+        const anchor = document.createElement('button');
+        anchor.setAttribute('data-scope', 'demo-float');
+        anchor.setAttribute('data-part', 'anchor');
+        anchor.setAttribute('data-placement', 'top');
+        expect(() => expectAnatomy(mount(anchor), placed)).toThrow(/declares no placements/);
+    });
+});
+
 describe('expectAnatomy nesting (the declared part tree)', () => {
     // A tree with an intermediate that is NOT a part between `popup` and
     // `option` in some renders — the declared parent must be found among

@@ -18,6 +18,7 @@ const { anatomies } = await import(distAnatomy);
 const {
     RECOMMENDED_ROLE_LIST, BASE_SURFACE_TOKEN_LIST,
     TOKEN_CATEGORIES, SIZE_SCALE_LIST, FLAG_VOCABULARY, VARIANT_AXES,
+    STATE_VOCABULARY, STATE_SYNONYMS, PLACEMENT_VOCABULARY,
 } = await import(distContract);
 
 const manifest = {
@@ -29,6 +30,15 @@ const manifest = {
         state: 'data-state',
         flagForm: 'presence (data-<flag>=""), never "false"',
         flagVocabulary: [...FLAG_VOCABULARY],
+        // The governed data-state vocabulary (grouped by family, checked
+        // against the union) and the synonym table governance failures cite.
+        stateVocabulary: Object.fromEntries(
+            Object.entries(STATE_VOCABULARY).map(([family, states]) => [family, [...states]]),
+        ),
+        stateSynonyms: { ...STATE_SYNONYMS },
+        // The closed data-placement vocabulary; each part declares its subset
+        // as `placements`.
+        placementVocabulary: [...PLACEMENT_VOCABULARY],
         // The axes with named props. NOT a closed set — a design system may
         // declare others (density, emphasis, tone) and reach them through the
         // `axes` prop, which spells them by the same rule.

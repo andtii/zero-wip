@@ -1,4 +1,5 @@
 import { defineAnatomy } from '../../contract/anatomy.js';
+import { PLACEMENT_VOCABULARY } from '../../contract/data-attrs.js';
 
 export const comboboxAnatomy = defineAnatomy('combobox', {
     root: {
@@ -35,6 +36,7 @@ export const comboboxAnatomy = defineAnatomy('combobox', {
         element: 'div',
         parent: 'root',
         states: ['open', 'closed'],
+        placements: [...PLACEMENT_VOCABULARY],
         tokens: ['color', 'radius-box'],
     },
     item: {

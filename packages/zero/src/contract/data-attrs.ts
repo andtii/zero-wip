@@ -53,6 +53,80 @@ export const FLAG_VOCABULARY = [
 export type FlagName = typeof FLAG_VOCABULARY[number];
 
 /**
+ * The governed `data-state` vocabulary, grouped by family. Flags have been a
+ * closed vocabulary from the start; states were the asymmetric half — every
+ * component free to invent `on|off` next to `active|inactive` — so this
+ * closes them the same way: every value in every anatomy's `states` must be a
+ * member, and a NEW state value is a contract change here first.
+ *
+ * The families are documentation (which values belong together), not a
+ * per-part constraint: progress legitimately mixes `loading|complete` with
+ * `indeterminate`, because an indeterminate progress bar is exactly a
+ * checkbox-style third state on a loading lifecycle. Membership is checked
+ * against the union.
+ */
+export const STATE_VOCABULARY = {
+    /** Disclosure and presence — popups, panels, dismissables. */
+    presence: ['open', 'closed'],
+    /** Selection controls — checkbox, radio, and their third state. */
+    selection: ['checked', 'unchecked', 'indeterminate'],
+    /** One-of-many activation — tabs. */
+    activation: ['active', 'inactive'],
+    /** Two-state toggles that are neither selection nor disclosure. */
+    toggle: ['on', 'off'],
+    /** Asynchronous lifecycles — avatar, skeleton, progress. */
+    loading: ['loading', 'loaded', 'complete', 'error'],
+    /** Graded fill — the rating star. */
+    fill: ['full', 'half', 'empty'],
+} as const;
+
+/** Every governed `data-state` value, flat — the membership check's set. */
+export const STATE_NAMES: ReadonlySet<string> = new Set(Object.values(STATE_VOCABULARY).flat());
+
+/**
+ * The synonym table — spellings the vocabulary deliberately does NOT contain,
+ * mapped to the member that means the same thing. Purely diagnostic: a
+ * governance failure that says "expanded → use open" is actionable where a
+ * bare rejection is a scavenger hunt. Mirrored in `@sigx/zero-kit` (parity-
+ * tested) so `mergeManifests` can say the same thing to ecosystem fragments.
+ */
+export const STATE_SYNONYMS: Record<string, string> = {
+    expanded: 'open',
+    collapsed: 'closed',
+    visible: 'open',
+    shown: 'open',
+    hidden: 'closed',
+    dismissed: 'closed',
+    selected: 'checked',
+    unselected: 'unchecked',
+    mixed: 'indeterminate',
+    current: 'active',
+    pressed: 'on',
+    unpressed: 'off',
+    busy: 'loading',
+    pending: 'loading',
+    done: 'complete',
+    finished: 'complete',
+    failed: 'error',
+    errored: 'error',
+};
+
+/**
+ * The closed `data-placement` vocabulary — side, optionally refined by an
+ * alignment. Written by the anchored-position behavior on floating parts and
+ * by Toast on its viewport and roots; a part that can carry the attribute
+ * declares which subset in its anatomy (`PartSpec.placements`).
+ */
+export const PLACEMENT_VOCABULARY = [
+    'top', 'top-start', 'top-end',
+    'bottom', 'bottom-start', 'bottom-end',
+    'left', 'left-start', 'left-end',
+    'right', 'right-start', 'right-end',
+] as const;
+
+export type PlacementName = typeof PLACEMENT_VOCABULARY[number];
+
+/**
  * Presence-boolean helper: `dataAttr(props.disabled)` → `'' | undefined`.
  * Spread-friendly: an `undefined` value removes the attribute entirely.
  */

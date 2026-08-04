@@ -44,6 +44,18 @@ const SHARED: Record<string, [unknown, unknown]> = {
     // meaning here, and this is the list the validator must reject by exactly
     // when the runtime refuses to render it.
     RESERVED_AXES: [[...zero.RESERVED_AXES].sort(), [...kit.RESERVED_AXES].sort()],
+    // The boolean-flag vocabulary — the runtime renders exactly these, the
+    // kit's mergeManifests holds ecosystem fragments to them.
+    FLAG_VOCABULARY: [zero.FLAG_VOCABULARY, kit.FLAG_VOCABULARY],
+    // The governed data-state vocabulary — families compared including order
+    // (they are documentation, and reordering one copy is drift).
+    STATE_VOCABULARY: [zero.STATE_VOCABULARY, kit.STATE_VOCABULARY],
+    STATE_NAMES: [[...zero.STATE_NAMES].sort(), [...kit.STATE_NAMES].sort()],
+    // The synonym table both sides use for the same diagnostic.
+    STATE_SYNONYMS: [zero.STATE_SYNONYMS, kit.STATE_SYNONYMS],
+    // The closed data-placement vocabulary — zero's position strategy writes
+    // these, the kit's mergeManifests holds fragment `placements` to them.
+    PLACEMENT_VOCABULARY: [zero.PLACEMENT_VOCABULARY, kit.PLACEMENT_VOCABULARY],
     // The named-prop axes and the attributes they render. Zero's copy guards
     // the runtime `axes` bag; the kit's drives selector emission.
     VARIANT_AXES: [zero.VARIANT_AXES, kit.VARIANT_AXES],
@@ -116,6 +128,15 @@ describe('kit ↔ zero contract parity', () => {
         // they need a separate deny-list rather than a stricter pattern.
         expect(kit.ROLE_NAME_PATTERN.test('transparent')).toBe(true);
         expect(kit.RESERVED_ROLE_NAMES.has('transparent')).toBe(true);
+    });
+
+    it('the synonym table points into the state vocabulary, from outside it', () => {
+        // A key that IS a member would reject a legal state; a value that is
+        // NOT a member would recommend an illegal one.
+        for (const [synonym, member] of Object.entries(kit.STATE_SYNONYMS)) {
+            expect(kit.STATE_NAMES.has(synonym), `synonym "${synonym}" is itself a vocabulary member`).toBe(false);
+            expect(kit.STATE_NAMES.has(member), `synonym "${synonym}" points at "${member}", which is not a member`).toBe(true);
+        }
     });
 
     it('the reserved axis names really are the anatomy contract', () => {

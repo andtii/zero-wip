@@ -20,7 +20,7 @@
             "description": "How the anatomy contract is spelled in the DOM: the attribute names, the presence-only flag form, the closed flag vocabulary, and the variant axes.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["scope", "part", "state", "flagForm", "flagVocabulary", "variantAxes", "extraAxisForm"],
+            "required": ["scope", "part", "state", "flagForm", "flagVocabulary", "stateVocabulary", "stateSynonyms", "placementVocabulary", "variantAxes", "extraAxisForm"],
             "properties": {
                 "scope": { "const": "data-scope" },
                 "part": { "const": "data-part" },
@@ -31,6 +31,28 @@
                 },
                 "flagVocabulary": {
                     "description": "The closed set of boolean data-* flags. Adding a flag is a contract change, so a new zero version ships a new manifest (and schema) rather than this list being open.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" },
+                    "minItems": 1
+                },
+                "stateVocabulary": {
+                    "description": "The governed data-state vocabulary, grouped by family. Every value in every part's `states` is a member of some family; a new state value is a contract change here first. Families are documentation — membership is checked against the union.",
+                    "type": "object",
+                    "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": { "$ref": "#/$defs/kebabToken" },
+                        "minItems": 1
+                    }
+                },
+                "stateSynonyms": {
+                    "description": "Spellings the state vocabulary deliberately does not contain, mapped to the member that means the same thing — diagnostic data for governance failures.",
+                    "type": "object",
+                    "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+                    "additionalProperties": { "$ref": "#/$defs/kebabToken" }
+                },
+                "placementVocabulary": {
+                    "description": "The closed data-placement vocabulary (side, optionally refined by an alignment). A part that can carry the attribute declares its subset in `placements`.",
                     "type": "array",
                     "items": { "$ref": "#/$defs/kebabToken" },
                     "minItems": 1
@@ -195,6 +217,12 @@
                     "description": "Boolean data-* flags this part can carry, drawn from attributeSpec.flagVocabulary.",
                     "type": "array",
                     "items": { "$ref": "#/$defs/kebabToken" }
+                },
+                "placements": {
+                    "description": "The data-placement values this part can carry, drawn from attributeSpec.placementVocabulary — the anchored-position behavior writes the attribute on open floats, and Toast stamps its viewport and roots. Omitted entirely for parts the runtime never stamps; never empty.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" },
+                    "minItems": 1
                 },
                 "hiddenIn": {
                     "description": "States in which the runtime sets the hidden attribute on this part, so it paints nothing and leaves the accessibility tree (avatar's image while \"error\"). Always a subset of `states`. A rule targeting one of these states can never render, so styling it identically to a visible state is correct — the difference is presence, and the runtime owns it. Omitted entirely for parts the runtime never hides.",

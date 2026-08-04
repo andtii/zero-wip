@@ -99,6 +99,17 @@ export interface PartSpec {
      * rendered by zero and still has to look like the state it is in.
      */
     hiddenIn?: readonly string[];
+    /**
+     * The `data-placement` values this part can carry, if any — a closed
+     * subset of the contract's `PLACEMENT_VOCABULARY`. Declared contract data
+     * exactly like `states`: the anchored-position behavior writes the
+     * attribute on open floats (a popup that flipped reports where it
+     * actually is) and Toast stamps its viewport and roots, so a design
+     * system keys placement-dependent styling on it. A part the runtime never
+     * stamps OMITS the key — `expectAnatomy` fails an undeclared
+     * `data-placement` rather than blanket-exempting the attribute.
+     */
+    placements?: readonly string[];
     /** Contract token groups that typically style this part. */
     tokens?: readonly TokenHint[];
     /** True when the part supports `asChild`. */
