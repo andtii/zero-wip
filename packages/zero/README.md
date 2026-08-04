@@ -51,6 +51,19 @@ row and surface it on the visible control. That is what makes a
 pointer-anchored effect like Material's ink ripple — or its selection-control
 halo and slider-thumb halo — expressible as pure CSS.
 
+ARIA wiring is presence-aware: an overlay references its `Title` /
+`Description` ids only while those parts are actually rendered, so omitting a
+title never leaves a dangling `aria-labelledby` (which would suppress the
+accessible-name fallback). Escape dismissal is universal — a tooltip closes
+from anywhere (WCAG 2.1 SC 1.4.13), and a non-modal Dialog falls back to the
+dismiss layer where the platform fires no `cancel`. Close buttons whose
+content is a glyph (`Alert.Close`, `Toast.Close`) default to
+`aria-label="Close"` with a `label` prop override, and RatingGroup's per-item
+names localize through `itemLabel={(index, count) => …}`. Controls that
+consume the Field context (Input, Textarea, Combobox, Select, RatingGroup,
+…) adopt its control id, so `Field.Label` names them — Select's trigger
+included, a button being a labelable element.
+
 `css/base.css` also declares `--print-ink`, the ink a print fallback draws
 with. Paper is not theme-aware — `print-color-adjust: economy` drops background
 paint, so a mark drawn as a background comes back as a glyph, and every
@@ -117,8 +130,10 @@ same behaviors, held to the same conformance assertion:
   `mergeManifests` enforces all three on published fragments, so an ecosystem
   scope cannot invent synonyms either.
 - `@sigx/zero/behaviors` — controllable state, SSR-safe ids, roving tabindex,
-  dismissal, focus management, list/tree registration, typeahead, anchor
-  positioning, press feedback.
+  dismissal, focus management (`createFocusRestore`, `focusFirst`,
+  `getTabbables`), list/tree registration with listbox-highlight stepping
+  (`moveHighlight`, `optionText`), typeahead, anchor positioning, press
+  feedback.
 - The contract helpers — `dataAttr`, `stateAttr`, `variantAttrs`,
   `renderAsChild`, and `synthesizesClickFrom` for parts that combine
   `asChild` with keyboard activation (skip the keys the platform already

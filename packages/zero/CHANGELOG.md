@@ -4,6 +4,51 @@
 
 ### Added
 
+- **Runtime a11y + consistency** (#319). The accessible-name and dismissal
+  gaps found by the architecture review, closed in one pass:
+
+  - Dialog and Popover popups reference their Title/Description ids only
+    while those parts are actually rendered (Toast's presence-tracking
+    pattern) — composing a dialog without a `Title` no longer leaves an
+    `aria-labelledby` naming nothing, which suppressed the accessible-name
+    fallback entirely.
+  - Tooltip: Escape dismisses no matter where focus is (WCAG 2.1
+    SC 1.4.13) through the dismiss layer's document listener, immediately,
+    clearing any pending hover-open. The trigger-local handler — which only
+    fired for focus-opened tooltips — is gone.
+  - Dialog `modal={false}`: `dismissible` works now — a non-modal
+    `<dialog>` fires no `cancel`, so Escape goes through a dismiss-layer
+    fallback; focus is restored on close (`show()` doesn't restore the way
+    `showModal()` does); and backdrop-click detection is modal-only and
+    geometric, so a click on the dialog's own padding no longer closes it.
+  - Menu: the trigger carries an id and the root popup is labelled by it,
+    presence-tracked (a context-menu-only composition stays unlabelled
+    rather than dangling); `Menu.Group` is named by its `GroupLabel`, which
+    gains an id and loses the self-defeating `role="presentation"`.
+  - Select field integration: the trigger adopts `field.ids.control` so
+    `Field.Label` names it (a button is labelable), and announces
+    `aria-invalid` / `aria-required` / `aria-describedby` from the merged
+    field + prop state. Both Select and Combobox scroll the highlighted
+    option into view (`block: 'nearest'`) — `aria-activedescendant` moves
+    no real focus, so nothing scrolled natively. Select joins the SSR
+    suite and gains its first e2e spec.
+  - `behaviors/list.ts` gains `moveHighlight` and `optionText` (exported
+    from the behaviors barrel), replacing byte-identical private copies in
+    Select and Combobox.
+  - `Toast.Close` defaults `aria-label="Close"` with a `label` prop
+    override (Alert.Close's pattern); RatingGroup gains
+    `itemLabel?: (index, count) => string` as the localization seam over
+    the previously hardcoded English `"N of M"`; `Tabs.Tab` carries
+    `aria-disabled` in its bag so asChild consumers (an `<a>` has no
+    `disabled` attribute) announce disabled tabs.
+  - Accordion and Collapsible wire explicit disclosure semantics: panels
+    mint SSR-safe ids, triggers carry `aria-expanded` / `aria-controls`,
+    and `aria-disabled` when disabled (`<summary>` has no `disabled`
+    attribute to announce).
+  - Popover moves focus into the popup on open — the first tabbable, or
+    the popup itself (`tabIndex={-1}`) — and `createFocusRestore` hands it
+    back on close; `focusFirst`/`getTabbables` gain their first tests.
+
 - **Contract v1: the part tree, governed states, declared placements, and
   axes on all 31** (#317). One coordinated contract break carrying every
   shape change at once:
