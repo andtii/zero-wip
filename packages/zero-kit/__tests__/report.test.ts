@@ -212,16 +212,17 @@ describe('the axis-agnostic divergence report (RFC 0003 §4)', () => {
     it('lists only components that wire something — wiring nothing is `never`, not divergence', () => {
         const basic = reportFor(basicDS as DesignSystemInput);
         const variant = basic.divergence['variant']!;
-        // `button` wires the whole vocabulary and `badge` wires the three it
-        // declares for itself (#311) — the repo's only two variant carriers,
-        // per RFC 0003 §9 phase 5 / #175.
-        expect(Object.keys(variant.byComponent)).toEqual(['badge', 'button']);
-        // Badge IS a strict subset, and that is the point: `declared` is what
-        // keeps the report from crying wolf about it. A narrowing the design
-        // system wrote down is not divergence, and this is the assertion that
-        // says the two are told apart rather than conflated.
-        expect(variant.subsets.map((s) => s.scope)).toEqual(['badge']);
-        expect(variant.declared).toEqual(['badge']);
+        // `button` wires the whole vocabulary; `badge` and `select` wire the
+        // subsets they declare for themselves (#311, #297). Three carriers,
+        // per RFC 0003 §9 phase 5 / #175 and its successors.
+        expect(Object.keys(variant.byComponent)).toEqual(['badge', 'button', 'select']);
+        // Both narrowings ARE strict subsets, and that is the point:
+        // `declared` is what keeps the report from crying wolf about them. A
+        // narrowing the design system wrote down is not divergence, and this
+        // is the assertion that says the two are told apart rather than
+        // conflated.
+        expect(variant.subsets.map((s) => s.scope)).toEqual(['badge', 'select']);
+        expect(variant.declared).toEqual(['badge', 'select']);
     });
 
     it('flags a component wiring a strict subset of its siblings', () => {
@@ -459,8 +460,9 @@ describe('formatReport', () => {
         expect(formatReport(reportFor(herouiDS as DesignSystemInput)).join('\n'))
             .toContain(`color wired: 0/${total} (0%) — no such axis`);
         expect(formatReport(reportFor(basicDS as DesignSystemInput)).join('\n'))
-            // Two now: button on the full vocabulary, badge on its own (#311).
-            .toContain(`variant wired: 2/${total} (`);
+            // Three now: button on the full vocabulary, badge and select on
+            // vocabularies of their own (#311, #297).
+            .toContain(`variant wired: 3/${total} (`);
     });
 
     it('returns lines rather than printing, so the caller picks the channel', () => {
