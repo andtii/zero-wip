@@ -115,6 +115,38 @@ describe('Popover', () => {
         expect(trigger.hasAttribute('data-pressed')).toBe(false);
     });
 
+    it('moves focus to the first tabbable in the popup on open, restores on close', async () => {
+        const state = signal({ open: false });
+        mount(state);
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.focus();
+        trigger.click();
+        await tick();
+        // Title is a heading; the close button is the first tabbable.
+        expect(document.activeElement).toBe(container.querySelector('[data-part="close"]'));
+        state.open = false;
+        await tick();
+        expect(document.activeElement).toBe(trigger);
+    });
+
+    it('with nothing tabbable inside, the popup itself takes focus', async () => {
+        const state = signal({ open: false });
+        render(
+            <Popover.Root model={[state, 'open']}>
+                <Popover.Trigger>Filters</Popover.Trigger>
+                <Popover.Popup>
+                    <Popover.Title>Filters</Popover.Title>
+                </Popover.Popup>
+            </Popover.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.focus();
+        trigger.click();
+        await tick();
+        expect(document.activeElement).toBe(container.querySelector('[data-part="popup"]'));
+    });
+
     it('native toggle events (light dismiss) sync into the model', () => {
         const state = signal({ open: true });
         mount(state);

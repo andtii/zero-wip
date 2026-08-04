@@ -22,7 +22,7 @@ import type { Define } from 'sigx';
 import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
-import { createFocusRestore } from '../../behaviors/focus.js';
+import { createFocusRestore, focusFirst } from '../../behaviors/focus.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
@@ -181,10 +181,24 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
         effect(() => {
             const open = popover.state.value;
             const node = el as (HTMLElement & { showPopover?(): void; hidePopover?(): void; matches(s: string): boolean }) | null;
-            if (!node || typeof node.showPopover !== 'function') return;
-            const showing = node.matches(':popover-open');
-            if (open && !showing) node.showPopover();
-            else if (!open && showing) node.hidePopover!();
+            if (!node) return;
+            if (typeof node.showPopover === 'function') {
+                const showing = node.matches(':popover-open');
+                if (open && !showing) node.showPopover();
+                else if (!open && showing) node.hidePopover!();
+            }
+            // A dialog-role popup receives focus on open (APG): the first
+            // tabbable, or the popup itself (tabIndex -1 below). After
+            // showPopover(), never before — an unshown popover cannot take
+            // focus. Deferred a task: createFocusRestore's watch captures
+            // the previously focused element on a microtask, and moving
+            // focus before that capture would make it "restore" into the
+            // popup itself on close.
+            if (open) {
+                setTimeout(() => {
+                    if (popover.state.value && node.isConnected) focusFirst(node);
+                }, 0);
+            }
         });
     });
 
@@ -196,6 +210,7 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
             data-state={stateAttr(popover.state.value, 'open', 'closed')}
             popover="auto"
             role="dialog"
+            tabIndex={-1}
             aria-labelledby={popover.titlePresent() ? popover.ids.title : undefined}
             class={props.class}
             ref={(node: HTMLElement | null) => { el = node; popover.setPopup(node); }}

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
     createAnchorPosition, createControllableState, createListController, createRovingKeydown,
-    fixedPositionStrategy, pointAnchor,
+    fixedPositionStrategy, focusFirst, getTabbables, moveHighlight, pointAnchor,
 } from '@sigx/zero';
 import type { ListItem, PositionAnchor } from '@sigx/zero';
 import { signal } from 'sigx';
@@ -216,5 +216,79 @@ describe('createAnchorPosition handle', () => {
         anchor = pointAnchor(400, 300);
         handle.update();
         expect(floating.style.left).toBe('300px');
+    });
+});
+
+describe('getTabbables / focusFirst', () => {
+    function fixture(html: string): HTMLElement {
+        const c = document.createElement('div');
+        c.innerHTML = html;
+        document.body.appendChild(c);
+        return c;
+    }
+
+    it('finds tabbable descendants in DOM order, skipping the untabbable', () => {
+        const c = fixture(`
+            <span>text</span>
+            <button disabled>disabled</button>
+            <input type="hidden">
+            <a>anchor without href</a>
+            <button hidden>hidden</button>
+            <div tabindex="-1">opted out</div>
+            <a href="#x">link</a>
+            <input type="text">
+            <div tabindex="0">stop</div>
+        `);
+        expect(getTabbables(c).map((el) => el.tagName)).toEqual(['A', 'INPUT', 'DIV']);
+    });
+
+    it('focusFirst focuses the first tabbable', () => {
+        const c = fixture('<button>first</button><button>second</button>');
+        focusFirst(c);
+        expect(document.activeElement).toBe(c.querySelector('button'));
+    });
+
+    it('focusFirst falls back to the container itself when nothing is tabbable', () => {
+        const c = fixture('<span>text only</span>');
+        c.tabIndex = -1;
+        focusFirst(c);
+        expect(document.activeElement).toBe(c);
+    });
+
+    it('focusFirst tolerates null', () => {
+        expect(() => focusFirst(null)).not.toThrow();
+    });
+});
+
+describe('moveHighlight', () => {
+    function listOf(...values: string[]) {
+        const list = createListController();
+        for (const value of values) {
+            list.register(fakeItem(value, value.startsWith('!')));
+        }
+        return list;
+    }
+
+    it('steps through enabled items, clamping at the edges (no wrap)', () => {
+        const list = listOf('a', '!b', 'c');
+        const highlighted = { value: null as string | null };
+        moveHighlight(list, highlighted, 1);
+        expect(highlighted.value).toBe('a');
+        moveHighlight(list, highlighted, 1);
+        expect(highlighted.value).toBe('c'); // b is disabled
+        moveHighlight(list, highlighted, 1);
+        expect(highlighted.value).toBe('c'); // clamped, no wrap
+        moveHighlight(list, highlighted, 'first');
+        expect(highlighted.value).toBe('a');
+        moveHighlight(list, highlighted, -1);
+        expect(highlighted.value).toBe('a'); // clamped at the start
+        moveHighlight(list, highlighted, 'last');
+        expect(highlighted.value).toBe('c');
+    });
+
+    it('does nothing on an empty (or fully disabled) list', () => {
+        const highlighted = { value: 'stale' as string | null };
+        moveHighlight(listOf('!a'), highlighted, 1);
+        expect(highlighted.value).toBe('stale');
     });
 });
