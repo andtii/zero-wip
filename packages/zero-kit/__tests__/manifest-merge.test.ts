@@ -5,6 +5,9 @@
  * excluded by name from the register artifact's ZeroScope compile gate, and
  * imported from its owning package under api mode.
  */
+import { existsSync, mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { describe, it, expect } from 'vitest';
 import {
     compileComponentsDts,
@@ -14,6 +17,7 @@ import {
     defineApi,
     mergeManifests,
     validateDesignSystem,
+    writeArtifacts,
 } from '@sigx/zero-kit';
 import type { DesignSystemInput, ManifestComponent, ManifestFragment, RecipeInput } from '@sigx/zero-kit';
 import { anatomies, defineAnatomy } from '@sigx/zero/anatomy';
@@ -154,5 +158,57 @@ describe('a merged ecosystem scope in the pipeline', () => {
         expect(compileComponentsDts(compiled)).toContain("from '@acme/zero-stepper';");
         expect(compileComponentsJs(compiled)).toContain("from '@acme/zero-stepper';");
         expect(compileComponentsDts(compiled)).not.toContain('@sigx/zero/acme-stepper');
+    });
+});
+
+describe('fragment hardening (#318)', () => {
+    const rawFragment = (component: Partial<ManifestComponent>): ManifestFragment => ({
+        package: '@acme/zero-evil',
+        components: [{
+            scope: 'acme-widget',
+            parts: [{ name: 'root', element: 'div', selectors: {} }],
+            ...component,
+        } as ManifestComponent],
+    });
+
+    it('rejects a scope that is not a kebab-case identifier', () => {
+        // A fragment's scope becomes `[data-scope="…"]` selectors AND the
+        // artifact filename `dist/css/components/<scope>.css` — both closed
+        // by one grammar. `../../escape` is the filesystem half of that.
+        for (const scope of ['../../escape', 'Bad Scope', 'x"] html [x="']) {
+            expect(() => mergeManifests(baseManifest(), rawFragment({ scope })), scope)
+                .toThrow(/kebab-case/);
+        }
+    });
+
+    it('rejects a part name that is not a kebab-case identifier', () => {
+        expect(() => mergeManifests(baseManifest(), rawFragment({
+            parts: [{ name: 'root"] [data-x="', element: 'div', selectors: {} }],
+        }))).toThrow(/kebab-case/);
+    });
+
+    it('rejects a selectors value that would break out of its rule', () => {
+        expect(() => mergeManifests(baseManifest(), rawFragment({
+            parts: [{
+                name: 'root',
+                element: 'div',
+                states: ['open'],
+                selectors: { open: '[data-state="open"] { } html { color: red' },
+            }],
+        }))).toThrow(/brace, semicolon or newline/);
+    });
+
+    it('accepts the shapes real anatomies emit', () => {
+        expect(() => mergeManifests(baseManifest(), fragment())).not.toThrow();
+    });
+
+    it('writeArtifacts refuses a scope that could escape the components dir', async () => {
+        const out = mkdtempSync(join(tmpdir(), 'zero-kit-artifacts-'));
+        const compiled = compileDesignSystem(stepperDS(), mergeManifests(baseManifest(), fragment()));
+        compiled.componentCss['../../escape'] = '/* out of tree */';
+        await expect(writeArtifacts(compiled, join(out, 'nested', 'dist')))
+            .rejects.toThrow(/kebab-case/);
+        // `dist/css/components/../../escape.css` resolves to `dist/escape.css`.
+        expect(existsSync(resolve(out, 'nested', 'dist', 'escape.css'))).toBe(false);
     });
 });

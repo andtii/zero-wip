@@ -16,6 +16,7 @@
  */
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { TOKEN_KEY_PATTERN } from './contract.js';
 import type { CompiledDesignSystem } from './design-system.js';
 import type { DesignSystemReport } from './resolve/report.js';
 import { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
@@ -45,6 +46,15 @@ export async function writeArtifacts(
 
     await write(join(cssDir, 'tokens.css'), compiled.tokensCss);
     for (const [scope, css] of Object.entries(compiled.componentCss)) {
+        // Backstop for direct callers: every pipeline entry (zero's registry,
+        // `mergeManifests`) already enforces this grammar, but `writeArtifacts`
+        // is public API and `join(dir, '../../escape.css')` walks wherever it
+        // is pointed. The scope IS the filename, so the grammar is the guard.
+        if (!TOKEN_KEY_PATTERN.test(scope)) {
+            throw new Error(
+                `[zero-kit] compiled scope "${scope}" is not a kebab-case identifier — it becomes the css/components/<scope>.css filename, so anything else could escape the output directory`,
+            );
+        }
         await write(join(componentsDir, `${scope}.css`), css);
     }
     await write(join(cssDir, 'index.css'), compiled.indexCss);

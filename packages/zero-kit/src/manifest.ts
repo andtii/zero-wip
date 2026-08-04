@@ -16,6 +16,7 @@
  * compile gate, the api emitters' import specifiers) reads it from there.
  */
 import type { ManifestComponent, ZeroManifest } from './contract.js';
+import { TOKEN_KEY_PATTERN } from './contract.js';
 
 /**
  * The shape of a bare or scoped npm specifier, optionally with subpath
@@ -24,6 +25,15 @@ import type { ManifestComponent, ZeroManifest } from './contract.js';
  * whitespace could smuggle into emitted code must never get past the merge.
  */
 const PACKAGE_SPECIFIER_PATTERN = /^(@[a-z0-9~][\w.~-]*\/)?[a-z0-9~][\w.~-]*(\/[\w.~-]+)*$/;
+
+/**
+ * What can never appear in a selector fragment a fragment ships: the
+ * characters that close the current rule and start another. A fragment's
+ * `selectors` values are spliced into compiled selectors verbatim (the same
+ * surface `stateSelector` trusts for zero's own anatomies), so this is the
+ * merge-time twin of the recipe compiler's breakout guard.
+ */
+const CSS_BREAKOUT = /[{};\n\r]/;
 
 export interface ManifestFragment {
     /**
@@ -68,6 +78,15 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
             if (typeof component?.scope !== 'string' || !Array.isArray(component.parts) || component.parts.length === 0) {
                 throw new Error(`[zero-kit] ${where} has a component without a "scope" and "parts" — not an anatomy (defineAnatomy().toJSON() emits the expected shape)`);
             }
+            // A fragment's scope becomes `[data-scope="…"]` in every compiled
+            // selector AND the artifact filename `dist/css/components/
+            // <scope>.css` — one grammar closes both the selector-injection
+            // and the path-traversal reading of a hostile scope. Zero's own
+            // registry is out of reach here by construction; this checks the
+            // one door anatomies enter from outside.
+            if (!TOKEN_KEY_PATTERN.test(component.scope)) {
+                throw new Error(`[zero-kit] ${where}: scope "${component.scope}" is not a kebab-case identifier — it becomes [data-scope="…"] selectors and the css/components/<scope>.css filename`);
+            }
             // Fail here, by name, rather than as a confusing downstream throw
             // in recipe compilation — this is the exported programmatic entry,
             // not only the schema-validated CLI path.
@@ -75,6 +94,14 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                 if (typeof part?.name !== 'string' || typeof part?.element !== 'string'
                     || typeof part?.selectors !== 'object' || part.selectors === null) {
                     throw new Error(`[zero-kit] ${where}: component "${component.scope}" has a part without "name", "element" and "selectors" — not an anatomy (defineAnatomy().toJSON() emits the expected shape)`);
+                }
+                if (!TOKEN_KEY_PATTERN.test(part.name)) {
+                    throw new Error(`[zero-kit] ${where}: part "${part.name}" of "${component.scope}" is not a kebab-case identifier — it becomes [data-part="…"] selectors`);
+                }
+                for (const [state, fragmentSelector] of Object.entries(part.selectors)) {
+                    if (CSS_BREAKOUT.test(fragmentSelector)) {
+                        throw new Error(`[zero-kit] ${where}: selector for "${component.scope}"."${part.name}" state "${state}" cannot hold a brace, semicolon or newline — it is spliced into compiled selectors verbatim`);
+                    }
                 }
             }
             const owner = owners.get(component.scope);
