@@ -15,7 +15,7 @@ import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
-const pkgRoot = resolve(__dirname, '..');
+const pkgRoot = resolve(import.meta.dirname, '..');
 
 /** tsconfig files carry `//` comments; strip them before JSON.parse. */
 function readJsonc(path: string): unknown {

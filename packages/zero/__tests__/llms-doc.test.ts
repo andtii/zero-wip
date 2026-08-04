@@ -10,7 +10,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { anatomies } from '@sigx/zero/anatomy';
 
-const pkgRoot = resolve(__dirname, '..');
+const pkgRoot = resolve(import.meta.dirname, '..');
 const llms = readFileSync(join(pkgRoot, 'llms.txt'), 'utf8');
 
 /** 'radio-group' → 'RadioGroup' — the spelling the prose uses. */
