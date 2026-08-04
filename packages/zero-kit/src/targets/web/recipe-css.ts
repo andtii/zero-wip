@@ -18,9 +18,44 @@ import { BUILTIN_CONDITIONS } from '../../recipes.js';
 const kebab = (prop: string): string =>
     prop.startsWith('--') ? prop : prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
 
-const declBlock = (props: CssProps, indent: string): string =>
+/**
+ * A CSS property name after kebab-casing: an optional vendor prefix
+ * (`-webkit-line-clamp`) followed by a kebab-case identifier, or a custom
+ * property. Everything else is written into a declaration verbatim, so it is
+ * the same injection surface `assertAxisToken` closes for axis values — a
+ * property name carrying `;` or `{` ends the declaration early and everything
+ * after it is read as CSS. `base: { 'x;} [data-scope]{color': 'red' }`
+ * emitted a rule that restyled every scoped element on the page.
+ */
+const PROPERTY_NAME_PATTERN = /^(?:--[A-Za-z_][A-Za-z0-9_-]*|-?[a-z][a-z0-9]*(?:-[a-z0-9]+)*)$/;
+
+/**
+ * What can never appear in a declaration value or a selector fragment: the
+ * structural characters that end the current declaration/rule and start
+ * another. Quotes, commas and parens all stay legal — `content: '";"'` is the
+ * one legitimate spelling this rejects, and a hard error beats an escape.
+ */
+const CSS_BREAKOUT = /[{};\n\r]/;
+
+function assertDeclaration(where: string, prop: string, value: string): void {
+    if (!PROPERTY_NAME_PATTERN.test(kebab(prop))) {
+        throw new Error(
+            `[zero-kit] ${where} declares "${prop}", which is not a CSS property name — it would be written into the stylesheet verbatim`,
+        );
+    }
+    if (CSS_BREAKOUT.test(value)) {
+        throw new Error(
+            `[zero-kit] ${where}: the value of "${prop}" cannot hold a brace, semicolon or newline — it would end the declaration and everything after it would be read as CSS`,
+        );
+    }
+}
+
+const declBlock = (props: CssProps, indent: string, where = 'recipe'): string =>
     Object.entries(props)
-        .map(([k, v]) => `${indent}${kebab(k)}: ${v};`)
+        .map(([k, v]) => {
+            assertDeclaration(where, k, String(v));
+            return `${indent}${kebab(k)}: ${v};`;
+        })
         .join('\n');
 
 function findPart(component: ManifestComponent, part: string): ManifestPart {
@@ -221,8 +256,9 @@ function emitPartStyles(
     path: readonly Condition[] = [],
 ): void {
     const part = findPart(component, partName);
+    const where = `recipe for "${component.scope}"."${partName}"`;
     const rule = (selector: string, props: CssProps) =>
-        push(sink, path, `${selector} {\n${declBlock(props, '    ')}\n}`);
+        push(sink, path, `${selector} {\n${declBlock(props, '    ', where)}\n}`);
 
     if (styles.base && Object.keys(styles.base).length > 0) {
         rule(`${baseSelector}${pseudoSuffix}`, styles.base);
@@ -236,12 +272,20 @@ function emitPartStyles(
     }
     for (const [nested, props] of Object.entries(styles.selectors ?? {})) {
         if (Object.keys(props).length === 0) continue;
+        // A `selectors` key is spliced into the emitted selector verbatim, so
+        // it gets the same breakout guard declaration values do. Any real
+        // selector passes — what cannot is one that closes the rule and opens
+        // another (`'& svg { } [data-scope="dialog"] { … }'`).
+        if (CSS_BREAKOUT.test(nested)) {
+            throw new Error(
+                `[zero-kit] ${where}: the selectors key "${nested}" cannot hold a brace, semicolon or newline — it is written into a selector verbatim`,
+            );
+        }
         const self = `${baseSelector}${pseudoSuffix}`;
         const sel = nested.includes('&') ? nested.replace(/&/g, self) : `${self} ${nested}`;
         rule(sel, props);
     }
     for (const [key, nested] of Object.entries(styles.at ?? {})) {
-        const where = `recipe for "${component.scope}"."${partName}"`;
         const condition = resolveCondition(key, context, where, registry);
         emitPartStyles(component, partName, nested, baseSelector, sink, context, registry, pseudoSuffix, [...path, condition]);
     }
@@ -326,7 +370,7 @@ export function compileRecipeCss(
     // Component-level tokens on the carrier part.
     if (recipe.tokens && Object.keys(recipe.tokens).length > 0) {
         const carrier = partSelector(component.scope, carrierPart(component));
-        push(sink, [], `${carrier} {\n${declBlock(recipe.tokens, '    ')}\n}`);
+        push(sink, [], `${carrier} {\n${declBlock(recipe.tokens, '    ', `recipe for "${component.scope}" tokens`)}\n}`);
     }
 
     for (const [partName, styles] of Object.entries(recipe.parts)) {
@@ -412,7 +456,32 @@ export function compileRecipeCss(
 
     let css = `@layer zero.recipes {\n${blocks.join('\n\n')}\n}\n`;
     for (const [name, body] of Object.entries(recipe.keyframes ?? {})) {
+        assertKeyframesName(name, component.scope);
         css += `@keyframes ${name} {\n    ${body.trim()}\n}\n`;
     }
     return css;
+}
+
+/**
+ * A `@keyframes` name is a CSS custom identifier — written after the at-rule
+ * verbatim, so the grammar is the guard, exactly as for axis tokens. Looser
+ * than `TOKEN_KEY_PATTERN` on purpose (camelCase animation names are
+ * idiomatic CSS), but still a single identifier: anything with a space or
+ * brace escapes the prelude. The CSS-wide keywords plus `none` are excluded —
+ * `animation: none` must never resolve to a design system's keyframes.
+ */
+const KEYFRAMES_NAME_PATTERN = /^-?[a-zA-Z_][a-zA-Z0-9_-]*$/;
+const RESERVED_KEYFRAMES_NAMES = new Set(['none', 'inherit', 'initial', 'unset', 'revert', 'revert-layer', 'default']);
+
+function assertKeyframesName(name: string, scope: string): void {
+    if (!KEYFRAMES_NAME_PATTERN.test(name)) {
+        throw new Error(
+            `[zero-kit] recipe for "${scope}" declares keyframes "${name}", which is not a CSS identifier — it would be written into the @keyframes prelude verbatim`,
+        );
+    }
+    if (RESERVED_KEYFRAMES_NAMES.has(name.toLowerCase())) {
+        throw new Error(
+            `[zero-kit] recipe for "${scope}" declares keyframes "${name}", which is a CSS keyword — \`animation-name\` could never reference it`,
+        );
+    }
 }
