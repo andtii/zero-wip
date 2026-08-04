@@ -128,15 +128,115 @@ describe('validateApi — values remaps', () => {
     });
 });
 
+describe('validateApi — color and size axes (#318)', () => {
+    const withColors: ApiVocabulary = { ...vocabulary, roles: { primary: {}, danger: {} }, sizes: ['sm', 'md', 'lg'] };
+
+    it('accepts a color mapping against the declared roles', () => {
+        expect(validate({ color: { as: 'tone' } }, withColors)).toEqual([]);
+        expect(validate({ color: { values: { danger: 'destructive' } } }, withColors)).toEqual([]);
+    });
+
+    it('accepts a size mapping against the declared ramp — carbon can finally respell size', () => {
+        expect(validate({ size: { values: { sm: 'small', md: 'medium', lg: 'large' } } }, withColors)).toEqual([]);
+    });
+
+    it('rejects a remap of an undeclared role or size', () => {
+        expect(errors({ color: { values: { brand: 'Brand' } } }, withColors).map((i) => i.message).join())
+            .toContain('"brand", which is not in tokens.roles');
+        expect(errors({ size: { values: { xl: 'huge' } } }, withColors).map((i) => i.message).join())
+            .toContain('"xl", which is not in tokens.sizes');
+    });
+
+    it('rejects a color mapping when the design system declared the axis out of existence', () => {
+        const issues = errors({ color: { as: 'tone' } }, { ...vocabulary, roles: {}, sizes: [] });
+        expect(issues.map((i) => i.message).join()).toContain('roles: {}');
+        const size = errors({ size: { as: 'scale' } }, { ...vocabulary, roles: {}, sizes: [] });
+        expect(size.map((i) => i.message).join()).toContain('sizes: []');
+    });
+
+    it('an undeclared vocabulary falls back to the recommended defaults', () => {
+        // Omitting roles/sizes means the recommended vocabulary, exactly as
+        // compilation resolves them — so a mapping may respell those.
+        expect(validate({ size: { values: { xs: 'compact' } } }, vocabulary)).toEqual([]);
+    });
+});
+
+describe('validateApi — per-scope components overrides (#318)', () => {
+    const scopes = ['button', 'select'];
+
+    it('accepts an override that replaces a DS-wide entry for one scope', () => {
+        expect(validate(
+            { variant: { as: 'kind' }, components: { select: { variant: { as: 'look' } } } },
+            vocabulary,
+        )).toEqual([]);
+    });
+
+    it('rejects an override for an unknown scope when the manifest scopes are provided', () => {
+        const issues = validateApi(
+            { components: { selct: { variant: { as: 'look' } } } },
+            vocabulary,
+            { scopes },
+        ).filter((i) => i.level === 'error');
+        expect(issues.map((i) => i.message).join()).toContain('"selct" is not a component scope');
+    });
+
+    it('applies the same entry checks inside an override', () => {
+        const issues = errors({ components: { select: { variant: { as: 'data prop' } } } });
+        expect(issues.map((i) => i.message).join()).toContain('not a valid prop name');
+        const values = errors({ components: { select: { variant: { values: { nope: 'x' } } } } });
+        expect(values.map((i) => i.message).join()).toContain('"nope", which is not in tokens.variants');
+    });
+
+    it('rejects an override whose prop collides with a surviving DS-wide prop', () => {
+        const issues = errors({
+            variant: { as: 'kind' },
+            components: { select: { axes: { shape: { as: 'kind' } } } },
+        });
+        expect(issues.map((i) => i.message).join()).toContain('both expose the prop "kind"');
+    });
+
+    it('does not re-report a DS-wide prop the override replaces', () => {
+        // The override REPLACES api.variant for select, so `kind` is free.
+        expect(validate({
+            variant: { as: 'kind' },
+            components: { select: { variant: {}, axes: { shape: { as: 'kind' } } } },
+        })).toEqual([]);
+    });
+});
+
+describe('validateApi — RESERVED_PROPS_BY_SCOPE (#318)', () => {
+    it("rejects a DS-wide rename onto a scope's component-specific prop, naming the fix", () => {
+        // The G8 incident: `api.variant = { as: 'name' }` silently deleted
+        // Select's `name` prop on every wired scope.
+        const issues = errors({ variant: { as: 'name' } });
+        const text = issues.map((i) => i.message).join();
+        expect(text).toContain('"select"');
+        expect(text).toContain('api.components');
+    });
+
+    it('applies to a modifier surfacing under its own colliding name', () => {
+        const issues = errors(
+            { modifiers: { placeholder: {} } },
+            { modifiers: ['placeholder'] },
+        );
+        // `placeholder` is contract-reserved already; use a scope-specific one.
+        const scoped = errors(
+            { modifiers: { name: {} } },
+            { modifiers: ['name'] },
+        );
+        expect([...issues, ...scoped].length).toBeGreaterThan(0);
+        expect(scoped.map((i) => i.message).join()).toContain('component-specific prop');
+    });
+
+    it('allows the same rename scoped to one component — deliberate vendor shadowing', () => {
+        expect(validate({ components: { select: { variant: { as: 'name' } } } })).toEqual([]);
+    });
+});
+
 describe('validateApi — declaration shape', () => {
     it('rejects unknown top-level keys', () => {
         const issues = errors({ colour: {} } as DesignSystemApi);
         expect(issues.map((i) => i.message).join()).toContain('unknown key "colour"');
-    });
-
-    it('rejects the reserved `components` key with the roadmap message', () => {
-        const issues = errors({ components: {} } as DesignSystemApi);
-        expect(issues.map((i) => i.message).join()).toContain('not implemented yet');
     });
 
     it('rejects unknown keys inside an entry', () => {

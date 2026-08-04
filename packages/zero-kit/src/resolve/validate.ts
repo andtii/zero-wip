@@ -612,7 +612,8 @@ export function validateDesignSystem<R extends RolesDecl>(
     // fixture can run them against its own vocabulary without a full design
     // system.
     if (ds.api) {
-        for (const issue of validateApi(ds.api, ds.tokens)) {
+        const scopes = manifest.components.map((c) => c.scope);
+        for (const issue of validateApi(ds.api, ds.tokens, { scopes })) {
             (issue.level === 'error' ? errors : warnings).push(issue);
         }
     }

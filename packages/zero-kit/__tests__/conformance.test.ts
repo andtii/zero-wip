@@ -24,6 +24,7 @@ import {
     formatConformanceMatrix,
     modifierGrade,
     reportRows,
+    scopeApi,
     validateApi,
     validateDesignSystem,
 } from '@sigx/zero-kit';
@@ -152,7 +153,11 @@ const EXPECTED: Record<string, Record<string, ConformanceGrade>> = {
 
 describe.each(FIXTURES)('derived grades: %s', (name, fixture) => {
     it('match what the matrix row claims', () => {
-        const api = (fixture as { api?: typeof carbon.api }).api;
+        // Through the same per-scope resolution the matrix rows use: the
+        // matrix is Button-scoped, and Ant's `type` rename lives under
+        // `api.components.button` since #318.
+        const declared = (fixture as { api?: typeof carbon.api }).api;
+        const api = declared === undefined ? undefined : scopeApi(declared, 'button');
         const derived: Record<string, ConformanceGrade> = {};
         if (api?.variant) derived['variant'] = apiGrade(api.variant);
         for (const [axis, entry] of Object.entries(api?.axes ?? {})) {

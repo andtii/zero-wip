@@ -5,8 +5,11 @@
  * component prop, an exact custom axis, and modifiers under their own
  * names.** Ant's `type` is zero's `variant` renamed — and `type` is also
  * zero-Button's native button-type prop. The shadowing is vendor-faithful
- * (Ant itself spells the native attribute `htmlType`), which is why the
- * validator deliberately does not reserve component-specific prop names.
+ * (Ant itself spells the native attribute `htmlType`) — and since #318 it is
+ * a PER-SCOPE decision: `type` sits in `RESERVED_PROPS_BY_SCOPE`, so the
+ * rename is declared under `api.components.button`, where the shadowing is
+ * chosen for Button rather than inflicted on every scope. This fixture is
+ * therefore also the acceptance test for the per-scope `components` key.
  * `shape` is a custom axis surfacing unrenamed; `danger`/`ghost`/`block` are
  * presence flags surfacing as boolean props of the same name.
  */
@@ -33,7 +36,7 @@ export const vocabulary = {
 } as const;
 
 export const api = defineApi(vocabulary, {
-    variant: { as: 'type' },
+    components: { button: { variant: { as: 'type' } } },
     axes: { shape: {} },
     modifiers: { danger: {}, ghost: {}, block: {} },
 });

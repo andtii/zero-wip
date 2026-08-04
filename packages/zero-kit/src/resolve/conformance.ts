@@ -20,7 +20,7 @@
  * row↔fixture parity §7.4 asks for — they are the same object.
  */
 import type { DesignSystemApi } from '../api.js';
-import { apiGrade, modifierGrade } from '../api.js';
+import { apiGrade, modifierGrade, scopeApi } from '../api.js';
 import type { ConformanceGrade } from '../api.js';
 import type { DesignSystemReport } from './report.js';
 
@@ -87,7 +87,11 @@ const respelled = (values: readonly string[], remap?: Record<string, string>): s
 
 /** Derive every row a fixture's declaration supports. */
 export function conformanceRows(fixture: ConformanceFixtureInput): ConformanceRow[] {
-    const { system, tier, source, vocabulary, api, provenBy } = fixture;
+    const { system, tier, source, vocabulary, provenBy } = fixture;
+    // The matrix is Button-scoped by charter (§7.2), so a fixture's
+    // `api.components.button` override — Ant's `type`, the shadowing that is
+    // per-scope since #318 — resolves into the surface the rows describe.
+    const api = fixture.api === undefined ? undefined : scopeApi(fixture.api, 'button');
     const native = api === undefined;
     const rows: ConformanceRow[] = [];
     const row = (partial: Omit<ConformanceRow, 'system' | 'tier' | 'source' | 'provenBy'>) =>

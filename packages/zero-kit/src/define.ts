@@ -44,5 +44,6 @@ export type {
     DesignSystemApi,
     DesignSystemApiFor,
     ModifierApi,
+    ScopeApiOverride,
 } from './api.js';
 export { defineApi } from './api.js';

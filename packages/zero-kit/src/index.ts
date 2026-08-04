@@ -56,13 +56,17 @@ export type {
     DesignSystemApiFor,
     MappedGrade,
     ModifierApi,
+    ScopeApiOverride,
+    ValidateApiOptions,
 } from './api.js';
 export {
     API_PROP_PATTERN,
+    RESERVED_PROPS_BY_SCOPE,
     apiGrade,
     defineApi,
     deriveComponentApi,
     modifierGrade,
+    scopeApi,
     validateApi,
 } from './api.js';
 export {
