@@ -35,7 +35,10 @@ const manifest = {
 
 // The workspace root's bin stub — the same tsgo `pnpm typecheck` runs.
 // (import.meta.dirname, not import.meta.url: the transform URL is not file:)
-const tsgo = resolve(import.meta.dirname, '../../../node_modules/.bin/tsgo');
+// On Windows the extensionless shim is not spawnable; the .CMD twin is, and
+// .cmd files must go through a shell since Node's CVE-2024-27980 hardening.
+const win = process.platform === 'win32';
+const tsgo = resolve(import.meta.dirname, `../../../node_modules/.bin/tsgo${win ? '.CMD' : ''}`);
 
 const stub = [
     "declare module '@sigx/zero' {",
@@ -69,7 +72,15 @@ function compiles(name: string, dts: string): { ok: boolean; output: string } {
             paths: { '@sigx/zero': ['../zero-stub.d.ts'] },
         },
     }));
-    const run = spawnSync(tsgo, ['--noEmit', '-p', caseDir], { encoding: 'utf8' });
+    const run = spawnSync(
+        win ? `"${tsgo}"` : tsgo,
+        ['--noEmit', '-p', win ? `"${caseDir}"` : caseDir],
+        { encoding: 'utf8', shell: win },
+    );
+    // A spawn failure is NOT a compile failure — without this, the red cases
+    // below would pass vacuously on a platform where tsgo never ran (which is
+    // exactly how the Windows CI leg first failed).
+    if (run.error) throw run.error;
     return { ok: run.status === 0, output: `${run.stdout}\n${run.stderr}` };
 }
 
@@ -101,19 +112,25 @@ describe('every emitted register.d.ts survives a full lib check', () => {
     it('rejects an emission naming a scope the registry lacks', () => {
         const compiled = compileDesignSystem(basicDS as DesignSystemInput, manifest);
         const dts = compileRegisterDts(compiled).replace("'button':", "'buton':");
-        expect(compiles('bad-scope', dts).ok).toBe(false);
+        const result = compiles('bad-scope', dts);
+        expect(result.ok).toBe(false);
+        expect(result.output).toContain('error TS');
     });
 
     it('rejects an entry that dropped one of its five members', () => {
         const compiled = compileDesignSystem(basicDS as DesignSystemInput, manifest);
         const dts = compileRegisterDts(compiled)
             .replace('                mods: Record<string, never>;\n', '');
-        expect(compiles('bad-entry', dts).ok).toBe(false);
+        const result = compiles('bad-entry', dts);
+        expect(result.ok).toBe(false);
+        expect(result.output).toContain('error TS');
     });
 
     it('rejects a syntactically broken emission', () => {
         const compiled = compileDesignSystem(basicDS as DesignSystemInput, manifest);
         const dts = compileRegisterDts(compiled).replace("theme: '", "theme: ;'");
-        expect(compiles('bad-syntax', dts).ok).toBe(false);
+        const result = compiles('bad-syntax', dts);
+        expect(result.ok).toBe(false);
+        expect(result.output).toContain('error TS');
     });
 });
