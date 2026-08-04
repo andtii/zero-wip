@@ -49,6 +49,10 @@ installThemes();
 | [`@sigx/zero-ext-example`](packages/zero-ext-example) | Ecosystem-component acceptance test — a `Stepper` zero doesn't ship, built entirely from `@sigx/zero`'s public surface, published as a manifest fragment + recipe pack and adopted by zero-basic |
 
 `examples/playground` is the kitchen sink — `pnpm --filter zero-playground dev`.
+`examples/typed-app` is the consumer-side type capstone — three isolated
+programs compiling against the *emitted* packages (`/register` narrowing,
+heroui's `./components`, carbon's renamed props); `pnpm build`, then
+`pnpm --filter zero-typed-app typecheck`.
 
 ## Why zero is different
 

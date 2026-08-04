@@ -117,8 +117,19 @@ To run the playground: `pnpm build` (it loads each design system's compiled CSS
 from `dist/`), then `pnpm --filter zero-playground dev`.
 
 Real-browser interaction tests (Playwright over the playground; press-feedback
-contract plus combobox/menu-submenu/toast interaction specs on
-chromium/firefox/webkit plus reduced-motion and forced-colors projects, and
+contract plus per-component interaction specs on chromium/firefox/webkit —
+combobox, menu-submenu, toast, select, and since #326 the overlays and
+composites a simulated DOM cannot host: dialog (real `showModal()` top layer,
+the geometric backdrop-vs-padding click from #324, the non-modal
+dismiss-layer fallback), popover (`focusFirst` on open, light dismiss, focus
+restore — the restore tests open by KEYBOARD, because WebKit does not focus
+buttons on click, so a click-open leaves the restore target as body and the
+assertion would prove nothing), tooltip (hover-intent delay asserted as a
+lower bound only, and WCAG 1.4.13: Escape dismisses a hover-opened tooltip
+while focus sits elsewhere), tabs (one roving tab stop, automatic
+activation), slider drag under implicit pointer capture, and tree-view
+keyboard (expand/descend/collapse/climb, typeahead against the accessible
+text) — plus reduced-motion and forced-colors projects, and
 the state-matrix contrast audit — two matrices over every state combination ×
 design system × theme, hard-fail below 3:1, chromium-only: **text legibility**
 for every text-bearing part, and **indicator paint** for every part whose job
@@ -162,7 +173,22 @@ chevron point at the reading end, and the indeterminate progress sweep travels
 the reading way (seeked through `getAnimations()`, since the loop makes
 wall-clock sampling straddle a wrap). It exists because a `transform` has no
 logical spelling, so the kit's physical-direction lint cannot see it — the two
-checks are complementary, not redundant): `pnpm build`,
+checks are complementary, not redundant;
+and the **axe audit** (`e2e/axe-audit.spec.ts`, #326) — the ARIA counterpart
+to the contrast audit: chromium + zero-basic only (semantics are engine- and
+skin-independent), it walks every registry page (ids read from the rendered
+sidebar — importing the registry would drag every page's JSX through
+Playwright's transpiler), opens the primary overlay on pages whose component
+idles closed (a closed popup contributes nothing to the scanned tree), and
+hard-fails on serious/critical WCAG A/AA violations. `color-contrast` is
+disabled by name: contrast answers to the contrast audit's own floors, not
+axe's single resting-state sample. Documented exceptions live in
+`e2e/axe-allowlist.json` as `{ rule, selector, reason }` rows; stale rows
+fail the spec, and a real bug never goes there — it gets fixed in
+`packages/zero`, which is how this audit already paid for itself: a nameless
+Select trigger (`role="combobox"` prohibits name-from-content — hence
+`Select.Trigger`'s `label` prop), an invalid `aria-expanded` on the
+role-less context-menu surface, and unlabelled combobox demo inputs): `pnpm build`,
 then `pnpm --filter zero-playground e2e` (first run:
 `pnpm --filter zero-playground exec playwright install`). Filtering needs
 `exec` — `pnpm --filter zero-playground e2e -- <name>` drops the argument and
@@ -277,6 +303,19 @@ that null reports a `TypeError` instead of "the popup was not showing".
   system is live at a time — recipe CSS is not `data-theme`-scoped, so two
   stylesheets would blend rather than replace. Needs `pnpm build` first: the
   playground resolves each DS's CSS from its `dist/`.
+- `examples/typed-app` — the consumer-side type capstone (#326): three
+  isolated tsconfig programs compiling against the **emitted** dist/
+  artifacts through real package exports (so it needs `pnpm build` first) —
+  (a) `@sigx/zero-basic/register` narrowing with `@ts-expect-error` probes
+  on invalid axis values and unwired axes, (b) heroui's no-register
+  `./components` surface, (c) carbon's renamed `kind` prop with the
+  `danger--tertiary` respelling. `pnpm --filter zero-typed-app typecheck`
+  runs all three; CI runs it in the e2e job after Build. `skipLibCheck`
+  stays `true` for now — every program transitively reaches
+  `@sigx/runtime-core`, whose shipped d.ts fails a full lib check (see
+  `tsconfig.base.json` there); flip it to `false` when core ships clean
+  declarations. Private, excluded from the root typecheck like the
+  playground.
 
 **Lockstep versioning**: every publishable package shares one version. Never
 bump a single package's version — use `pnpm version:patch|minor|major`.
