@@ -1,3 +1,5 @@
+@layer zero.fallback, zero.tokens, zero.recipes, zero.structure;
+
 @property --carbon-interactive { syntax: '<color>'; inherits: true; initial-value: oklch(53% 0.23 262); }
 @property --carbon-interactive-ink { syntax: '<color>'; inherits: true; initial-value: oklch(100% 0 0); }
 @property --carbon-secondary { syntax: '<color>'; inherits: true; initial-value: oklch(35.6% 0 0); }
