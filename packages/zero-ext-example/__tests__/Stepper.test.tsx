@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import { expectAnatomy } from '@sigx/zero/testing';
-import { Stepper, stepperAnatomy } from '@sigx/zero-ext-example';
+import { ExtStepper as Stepper, stepperAnatomy } from '@sigx/zero-ext-example';
 
 function mountStepper(container: HTMLElement, extra: { defaultStep?: string } = {}) {
     render(

@@ -20,11 +20,14 @@ import {
     compileComponentsJs,
     compileDesignSystem,
     componentExportName,
+    mergeManifests,
 } from '@sigx/zero-kit';
-import type { DesignSystemInput, ManifestComponent, RecipeInput } from '@sigx/zero-kit';
+import type { CompiledDesignSystem, DesignSystemInput, ManifestComponent, RecipeInput } from '@sigx/zero-kit';
 import { anatomies } from '@sigx/zero/anatomy';
 import * as zero from '@sigx/zero';
 import { designSystem as herouiDS } from '@sigx/zero-heroui';
+import { designSystem as basicDS } from '@sigx/zero-basic';
+import { fragment as extFragment, recipes as extRecipes } from '@sigx/zero-ext-example/fragment';
 import * as carbonFixture from '../skills/design-system/conformance/carbon.js';
 
 const manifest = {
@@ -86,6 +89,42 @@ describe('components goldens', () => {
         const compiled = compileDesignSystem(carbonProbe(), manifest);
         await expect(compileComponentsDts(compiled))
             .toMatchFileSnapshot('../../zero/type-tests/components/carbon.components.d.ts');
+    });
+});
+
+describe('api mode composed with an ecosystem fragment (#316)', () => {
+    // Never composed before this test existed: the one DS that adopts the
+    // fragment (zero-basic) declares no api, and the api-declaring DSes
+    // adopt no fragment — so the emitter's import of
+    // componentExportName('ext-stepper') from the fragment's package went
+    // unresolved-by-anything while the package exported `Stepper`.
+    const composed = (): CompiledDesignSystem => {
+        const ds = basicDS as DesignSystemInput;
+        return compileDesignSystem(
+            { ...ds, recipes: [...ds.recipes, ...extRecipes], api: {} },
+            mergeManifests(manifest, extFragment),
+        );
+    };
+
+    it('imports the ecosystem scope from its package under the convention name', () => {
+        const dts = compileComponentsDts(composed());
+        expect(dts).toContain(
+            "import type { ExtStepper as ZExtStepper } from '@sigx/zero-ext-example';",
+        );
+    });
+
+    it('every import the emitted module writes actually resolves to an export', async () => {
+        const compiled = composed();
+        for (const scope of Object.keys(compiled.components)) {
+            const name = componentExportName(scope);
+            // Zero's per-scope subpaths have no vitest alias — load their
+            // source modules directly; the package specifier the emitter
+            // writes for an ecosystem scope resolves as-is.
+            const specifier = compiled.externalScopes?.[scope]
+                ?? resolve(process.cwd(), `packages/zero/src/components/${scope}/index.ts`);
+            const mod = await import(specifier) as Record<string, unknown>;
+            expect(mod[name], `${scope}: expected export ${name}`).toBeTypeOf('function');
+        }
     });
 });
 
