@@ -1,4 +1,5 @@
-import type { DesignSystemApiFor, DesignSystemInput } from '@sigx/zero-kit';
+import type { DesignSystemInput } from '@sigx/zero-kit';
+import { defineApi } from '@sigx/zero-kit/define';
 import { modifiers, roles, system, tokens, variants } from './tokens.js';
 import { recipes } from './recipes.js';
 
@@ -12,26 +13,30 @@ import { recipes } from './recipes.js';
  * `conformance/carbon.ts` fixture into a shipped artifact — the matrix row
  * and the emitted module are the same object.
  *
- * `satisfies` rather than `defineApi()`, deliberately: this module is in the
- * package's RUNTIME graph (the barrel re-exports `designSystem`), and
- * zero-kit is Node-only — a design system may never import it at runtime,
- * only its types. The `satisfies` form keeps the same literal narrowing the
- * two-argument `defineApi` gives, with a type-only import (guarded by
- * zero-kit's `ds-runtime-imports.test.ts`).
+ * `defineApi` from `@sigx/zero-kit/define`, the node:-free authoring
+ * subpath (#318): this module is in the package's RUNTIME graph (the barrel
+ * re-exports `designSystem`), and the kit's BARREL is Node-only — but the
+ * define surface is importable from a browser graph by contract, pinned by
+ * zero-kit's `ds-runtime-imports.test.ts`. The two-argument form narrows
+ * `values` keys and modifier names against the declared vocabulary, the same
+ * checking the previous `satisfies` reimplementation hand-rolled.
  */
-const api = {
-    variant: {
-        as: 'kind',
-        values: {
-            'danger-tertiary': 'danger--tertiary',
-            'danger-ghost': 'danger--ghost',
+const api = defineApi(
+    { variants, modifiers },
+    {
+        variant: {
+            as: 'kind',
+            values: {
+                'danger-tertiary': 'danger--tertiary',
+                'danger-ghost': 'danger--ghost',
+            },
+        },
+        modifiers: {
+            'icon-only': { as: 'hasIconOnly' },
+            expressive: { as: 'isExpressive' },
         },
     },
-    modifiers: {
-        'icon-only': { as: 'hasIconOnly' },
-        expressive: { as: 'isExpressive' },
-    },
-} satisfies DesignSystemApiFor<(typeof variants)[number], (typeof modifiers)[number], Record<never, readonly string[]>>;
+);
 
 export const designSystem: DesignSystemInput<typeof roles, typeof system> = {
     name: 'carbon',

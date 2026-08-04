@@ -1,4 +1,5 @@
-import type { DesignSystemApiFor, DesignSystemInput } from '@sigx/zero-kit';
+import type { DesignSystemInput } from '@sigx/zero-kit';
+import { defineApi } from '@sigx/zero-kit/define';
 import { modifiers, roles, system, tokens, variants } from './tokens.js';
 import { recipes } from './recipes.js';
 
@@ -10,20 +11,25 @@ import { recipes } from './recipes.js';
  * graduation of the kit's `conformance/heroui.ts` fixture into a shipped
  * artifact — the matrix row and the emitted module are the same object.
  *
- * `satisfies` rather than `defineApi()`, deliberately: this module is in the
- * package's RUNTIME graph (the barrel re-exports `designSystem`, and the
- * playground imports the barrel in the browser), and zero-kit is Node-only —
- * a design system may never import it at runtime, only its types. The
- * `satisfies` form keeps the same literal narrowing the two-argument
- * `defineApi` gives, with a type-only import.
+ * `defineApi` from `@sigx/zero-kit/define`, the node:-free authoring
+ * subpath (#318): this module is in the package's RUNTIME graph (the barrel
+ * re-exports `designSystem`, and the playground imports the barrel in the
+ * browser), and the kit's BARREL is Node-only — but the define surface is
+ * importable from a browser graph by contract, pinned by zero-kit's
+ * `ds-runtime-imports.test.ts`. The two-argument form narrows modifier
+ * names and any `values` keys against the declared vocabulary, the same
+ * checking the previous `satisfies` reimplementation hand-rolled.
  */
-const api = {
-    variant: {},
-    modifiers: {
-        'icon-only': { as: 'isIconOnly' },
-        pending: { as: 'isPending' },
+const api = defineApi(
+    { variants, modifiers },
+    {
+        variant: {},
+        modifiers: {
+            'icon-only': { as: 'isIconOnly' },
+            pending: { as: 'isPending' },
+        },
     },
-} satisfies DesignSystemApiFor<(typeof variants)[number], (typeof modifiers)[number], Record<never, readonly string[]>>;
+);
 
 export const designSystem: DesignSystemInput<typeof roles, typeof system> = {
     name: 'heroui',
