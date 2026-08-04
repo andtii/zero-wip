@@ -29,6 +29,7 @@ import {
     TOKEN_KEY_PATTERN,
     VARIANT_AXES,
     systemNodeAt,
+    tokenProperty,
     ROLE_NAME_PATTERN,
     contrastPairs,
     requiredColorTokens,
@@ -77,6 +78,9 @@ function isWhollyFunctional(text: string): boolean {
 }
 const TIME_VALUE = /^[+-]?(?:\d+\.?\d*|\.\d+)m?s$/i;
 const NUMBER_VALUE = /^[+-]?(?:\d+\.?\d*|\.\d+)$/;
+
+/** Same shape as the recipe layer's walk: a captured `(,)?` marks a fallback. */
+const VAR_REF = /var\(\s*(--[A-Za-z0-9_-]+)\s*(,)?/g;
 
 /**
  * Check a declared value against its category's grammar, for the grammars
@@ -660,6 +664,115 @@ export function validateDesignSystem<R extends RolesDecl>(
         previousWidth = size;
     }
 
+    // ── Token VALUES: var() references and definition cycles ──
+    // The recipe layer has resolved every `var()` against the declared
+    // vocabulary from the start; the token layer never did, so a typo'd
+    // reference INSIDE a token value (`--shadow-md: 0 0 8px
+    // var(--color-brnad)`) compiled clean and resolved to nothing at runtime.
+    // Same walk, same messages, at the layer the tokens are declared.
+    const vocabulary = tokenVocabulary(ds.tokens);
+    /** Every token declaration site: where (for diagnostics) + prop + value. */
+    const tokenDeclarations: Array<{ where: string; prop: string; value: string }> = [];
+    const collectCategories = (
+        where: string,
+        tier: unknown,
+        into?: Array<{ prop: string; value: string }>,
+    ): void => {
+        if (!tier) return;
+        for (const category of TOKEN_CATEGORIES) {
+            const node = systemNodeAt(tier, category.path);
+            if (node === undefined || node === null) continue;
+            const site = `${where}.${category.path.join('.')}`;
+            const push = (prop: string, value: string): void => {
+                tokenDeclarations.push({ where: site, prop, value });
+                into?.push({ prop, value });
+            };
+            if (category.shape === 'scalar') {
+                push(tokenProperty(category), String(node));
+                continue;
+            }
+            if (typeof node !== 'object') continue; // already an error above
+            for (const [key, value] of Object.entries(node as Record<string, unknown>)) {
+                if (value === undefined || value === null || !TOKEN_KEY_PATTERN.test(key)) continue;
+                push(tokenProperty(category, key), String(value));
+            }
+        }
+    };
+    collectCategories('tokens.system', ds.tokens.system);
+    collectCategories('tokens.systemDark', ds.tokens.systemDark);
+    /** themeName → that theme's own definitions, for per-theme cycle detection. */
+    const themeDeclarations = new Map<string, Array<{ prop: string; value: string }>>();
+    for (const [themeName, theme] of Object.entries(ds.tokens.themes)) {
+        const own: Array<{ prop: string; value: string }> = [];
+        const collectOwn = (site: string, source: Record<string, string> | undefined): void => {
+            for (const [name, value] of Object.entries(source ?? {})) {
+                const decl = { where: site, prop: normProp(name), value: String(value) };
+                tokenDeclarations.push(decl);
+                own.push(decl);
+            }
+        };
+        collectCategories(`themes.${themeName}.system`, theme.system, own);
+        collectOwn(`themes.${themeName}.custom`, theme.custom as Record<string, string> | undefined);
+        collectOwn(`themes.${themeName}.extra`, theme.extra);
+        themeDeclarations.set(themeName, own);
+    }
+
+    for (const { where, value } of tokenDeclarations) {
+        for (const match of value.matchAll(VAR_REF)) {
+            const token = match[1]!;
+            const hasFallback = Boolean(match[2]);
+            if (vocabulary.names.has(token)) continue;
+            const near = vocabulary.nearest(token);
+            const hint = near ? ` — did you mean "${near}"?` : '';
+            if (hasFallback) {
+                warn(where, `references undeclared token "${token}", but has a fallback so it still renders${hint}`);
+            } else {
+                error(where, `references "${token}", which this design system never declares — it resolves to nothing${hint}`);
+            }
+        }
+    }
+
+    // ── Definition cycles ──
+    // `--a: var(--b); --b: var(--a)` marks every property in the cycle
+    // invalid at computed-value time — fallbacks included, per spec — so it
+    // can never be what the author meant. Detected per theme (each theme is
+    // one resolution context: system → systemDark → theme.system → its own
+    // custom/extra values), deduped so one cycle reports once.
+    const reportedCycles = new Set<string>();
+    const baseDefinitions = tokenDeclarations.filter((d) => d.where.startsWith('tokens.'));
+    for (const [themeName, own] of themeDeclarations) {
+        const defs = new Map<string, string>();
+        for (const { prop, value } of baseDefinitions) defs.set(prop, value);
+        for (const { prop, value } of own) defs.set(prop, value);
+        const refsOf = (prop: string): string[] =>
+            [...(defs.get(prop) ?? '').matchAll(VAR_REF)].map((m) => m[1]!).filter((ref) => defs.has(ref));
+        const state = new Map<string, 'visiting' | 'done'>();
+        const stack: string[] = [];
+        const visit = (prop: string): void => {
+            state.set(prop, 'visiting');
+            stack.push(prop);
+            for (const ref of refsOf(prop)) {
+                const seen = state.get(ref);
+                if (seen === 'visiting') {
+                    const cycle = [...stack.slice(stack.indexOf(ref)), ref];
+                    const key = [...new Set(cycle)].sort().join(' ');
+                    if (!reportedCycles.has(key)) {
+                        reportedCycles.add(key);
+                        error(
+                            `themes.${themeName}`,
+                            `custom properties reference each other in a cycle (${cycle.join(' → ')}) — CSS makes every property in a cycle invalid, fallbacks included`,
+                        );
+                    }
+                } else if (seen === undefined) {
+                    visit(ref);
+                }
+            }
+            stack.pop();
+            state.set(prop, 'done');
+        };
+        for (const prop of defs.keys()) if (!state.has(prop)) visit(prop);
+    }
+
     // ── Recipes: unknown parts/states are hard compile errors — surface
     //    them as validation errors rather than throwing. ──
     try {
@@ -671,7 +784,7 @@ export function validateDesignSystem<R extends RolesDecl>(
     // ── Recipe CONTENT: token references, literals, coverage ──
     // (Colour-variant role membership is checked in validateRecipes as an
     // error — a second, weaker copy of the rule here would double-report.)
-    for (const issue of validateRecipes(ds.recipes, manifest, tokenVocabulary(ds.tokens))) {
+    for (const issue of validateRecipes(ds.recipes, manifest, vocabulary)) {
         (issue.level === 'error' ? errors : warnings).push(issue);
     }
 

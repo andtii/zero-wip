@@ -213,7 +213,7 @@ describe('unitless token validation', () => {
     });
 
     it('accepts unitless numbers and functional values', () => {
-        expect(errors({ weights: { bold: 700 }, leading: { normal: '1.5', tight: 'var(--app-leading)' } }))
+        expect(errors({ weights: { bold: 700 }, leading: { normal: '1.5', tight: 'var(--leading-normal)' } }))
             .toEqual([]);
     });
 
@@ -260,7 +260,7 @@ describe('functional values must be the whole value', () => {
     });
 
     it('accepts a whole functional value, including nested calls', () => {
-        expect(errors({ weights: { bold: 'calc(var(--base-weight) + max(100, 200))' } })).toEqual([]);
+        expect(errors({ weights: { bold: 'calc(var(--weight-normal) + max(100, 200))' } })).toEqual([]);
     });
 });
 
