@@ -388,6 +388,18 @@ describe('variants', () => {
         expect(warnings.filter((w) => w.includes('density'))).toEqual([]);
     });
 
+    it('errors on an axis that declares no values', () => {
+        // A value-less axis is not a smaller axis: the harvest records it,
+        // and the vendor-api emitter would print `'density'?: ;` — an empty
+        // union is a syntax error inside a generated .d.ts, exactly where a
+        // consumer's skipLibCheck hides it (#316).
+        expect(check({
+            component: 'tabs',
+            parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            variants: { density: {} },
+        }).errors).toContainEqual(expect.stringContaining('declares no values'));
+    });
+
     it('errors on an axis that shadows the anatomy contract', () => {
         // `data-state` from userland would make every [data-state="open"]
         // rule in the design system match the wrong thing, silently.

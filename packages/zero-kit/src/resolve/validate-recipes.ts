@@ -808,6 +808,16 @@ export function validateRecipes(
 
         for (const [axis, values_] of Object.entries(recipe.variants ?? {})) {
             checkAxisName(axis, `${where}.variants`);
+            // An axis with NO values is not a smaller axis, it is a broken
+            // artifact downstream: the harvest records it, and the vendor-api
+            // emitter would print `'axis'?: ;` — an empty union is a syntax
+            // error inside a generated .d.ts, where skipLibCheck hides it.
+            if (Object.keys(values_).length === 0) {
+                error(
+                    `${where}.variants.${axis}`,
+                    `axis "${axis}" declares no values — remove the axis or wire at least one value`,
+                );
+            }
             for (const value of Object.keys(values_)) {
                 checkAxisValue(axis, value, `${where}.variants.${axis}`);
                 checkMembership(axis, value, `${where}.variants.${axis}`);

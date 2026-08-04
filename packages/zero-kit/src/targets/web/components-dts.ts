@@ -26,7 +26,15 @@
 import type { CompiledComponentApi } from '../../api.js';
 import type { CompiledComponentAxes, CompiledDesignSystem } from '../../design-system.js';
 
-const union = (values: readonly string[]): string => values.map((v) => `'${v}'`).join(' | ');
+const union = (values: readonly string[]): string => {
+    // Defense in depth behind the validator's empty-axis rule: an empty
+    // union prints as nothing, and `'axis'?: ;` is a syntax error inside a
+    // generated .d.ts — exactly where skipLibCheck would hide it.
+    if (values.length === 0) {
+        throw new Error('components.d.ts: refusing to emit an empty union — an axis with no wired values reached the emitter');
+    }
+    return values.map((v) => `'${v}'`).join(' | ');
+};
 
 /** `'radio-group'` → `RadioGroup` — the export-binding convention of `@sigx/zero/<scope>`. */
 export function componentExportName(scope: string): string {

@@ -350,4 +350,17 @@ type _ScopesValid = _MustBeTrue<
     keyof import('@sigx/zero').ZeroVocabulary['components'] extends import('@sigx/zero').ZeroScope
         ? true : false
 >;
+// Fails to compile if any entry above drops one of the five members.
+// A dropped key is not a smaller entry: the vocabulary resolvers fall
+// back to the OPEN union for a member they cannot find, so a truncated
+// entry silently un-narrows the axis it omitted (#316).
+type _EntryShape = {
+    color: string; size: string; variant: string;
+    axes: Record<string, string>; mods: Record<string, boolean>;
+};
+type _Entries = import('@sigx/zero').ZeroVocabulary['components'];
+type _EntriesValid = _MustBeTrue<
+    { [K in keyof _Entries]: _Entries[K] extends _EntryShape ? true : false }[keyof _Entries] extends true
+        ? true : false
+>;
 export {};
