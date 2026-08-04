@@ -190,29 +190,39 @@
         --combobox-soft: var(--color-error-soft);
     }
 
-    [data-scope="combobox"][data-part="root"][data-size="xs"] [data-scope="combobox"][data-part="input"] {
-        padding: 0.25rem 0.5rem;
-        font-size: var(--text-xs);
+    @scope ([data-scope="combobox"][data-part="root"][data-size="xs"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="input"] {
+            padding: 0.25rem 0.5rem;
+            font-size: var(--text-xs);
+        }
     }
 
-    [data-scope="combobox"][data-part="root"][data-size="sm"] [data-scope="combobox"][data-part="input"] {
-        padding: 0.375rem 0.625rem;
-        font-size: var(--text-sm);
+    @scope ([data-scope="combobox"][data-part="root"][data-size="sm"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="input"] {
+            padding: 0.375rem 0.625rem;
+            font-size: var(--text-sm);
+        }
     }
 
-    [data-scope="combobox"][data-part="root"][data-size="md"] [data-scope="combobox"][data-part="input"] {
-        padding: 0.5rem 0.75rem;
-        font-size: var(--text-sm);
+    @scope ([data-scope="combobox"][data-part="root"][data-size="md"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="input"] {
+            padding: 0.5rem 0.75rem;
+            font-size: var(--text-sm);
+        }
     }
 
-    [data-scope="combobox"][data-part="root"][data-size="lg"] [data-scope="combobox"][data-part="input"] {
-        padding: 0.625rem 0.875rem;
-        font-size: var(--text-md);
+    @scope ([data-scope="combobox"][data-part="root"][data-size="lg"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="input"] {
+            padding: 0.625rem 0.875rem;
+            font-size: var(--text-md);
+        }
     }
 
-    [data-scope="combobox"][data-part="root"][data-size="xl"] [data-scope="combobox"][data-part="input"] {
-        padding: 0.75rem 1rem;
-        font-size: var(--text-lg);
+    @scope ([data-scope="combobox"][data-part="root"][data-size="xl"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="input"] {
+            padding: 0.75rem 1rem;
+            font-size: var(--text-lg);
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {

@@ -172,40 +172,50 @@
         --radio-size: calc(var(--size-selector) * 4);
     }
 
-    [data-scope="radio-group"][data-part="root"][data-size="xs"] [data-scope="radio-group"][data-part="item-label"] {
-        font-size: var(--text-xs);
-    }
-
     [data-scope="radio-group"][data-part="root"][data-size="sm"] {
         --radio-size: calc(var(--size-selector) * 5);
-    }
-
-    [data-scope="radio-group"][data-part="root"][data-size="sm"] [data-scope="radio-group"][data-part="item-label"] {
-        font-size: var(--text-sm);
     }
 
     [data-scope="radio-group"][data-part="root"][data-size="md"] {
         --radio-size: calc(var(--size-selector) * 6);
     }
 
-    [data-scope="radio-group"][data-part="root"][data-size="md"] [data-scope="radio-group"][data-part="item-label"] {
-        font-size: var(--text-md);
-    }
-
     [data-scope="radio-group"][data-part="root"][data-size="lg"] {
         --radio-size: calc(var(--size-selector) * 7);
-    }
-
-    [data-scope="radio-group"][data-part="root"][data-size="lg"] [data-scope="radio-group"][data-part="item-label"] {
-        font-size: var(--text-lg);
     }
 
     [data-scope="radio-group"][data-part="root"][data-size="xl"] {
         --radio-size: calc(var(--size-selector) * 8);
     }
 
-    [data-scope="radio-group"][data-part="root"][data-size="xl"] [data-scope="radio-group"][data-part="item-label"] {
-        font-size: var(--text-xl);
+    @scope ([data-scope="radio-group"][data-part="root"][data-size="xs"]) to ([data-scope="radio-group"][data-part="root"]) {
+        [data-scope="radio-group"][data-part="item-label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="radio-group"][data-part="root"][data-size="sm"]) to ([data-scope="radio-group"][data-part="root"]) {
+        [data-scope="radio-group"][data-part="item-label"] {
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="radio-group"][data-part="root"][data-size="md"]) to ([data-scope="radio-group"][data-part="root"]) {
+        [data-scope="radio-group"][data-part="item-label"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="radio-group"][data-part="root"][data-size="lg"]) to ([data-scope="radio-group"][data-part="root"]) {
+        [data-scope="radio-group"][data-part="item-label"] {
+            font-size: var(--text-lg);
+        }
+    }
+
+    @scope ([data-scope="radio-group"][data-part="root"][data-size="xl"]) to ([data-scope="radio-group"][data-part="root"]) {
+        [data-scope="radio-group"][data-part="item-label"] {
+            font-size: var(--text-xl);
+        }
     }
 
     @media (hover: none) {

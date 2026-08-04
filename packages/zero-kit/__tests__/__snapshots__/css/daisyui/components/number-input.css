@@ -165,39 +165,47 @@
         --number-input-accent: var(--color-error);
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="xs"] [data-scope="number-input"][data-part="control"] {
-        height: calc(var(--size-field) * 8);
+    @scope ([data-scope="number-input"][data-part="root"][data-size="xs"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="control"] {
+            height: calc(var(--size-field) * 8);
+        }
+
+        [data-scope="number-input"][data-part="input"] {
+            font-size: var(--text-xs);
+            padding: var(--space-2xs) var(--space-xs);
+        }
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="xs"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-xs);
-        padding: var(--space-2xs) var(--space-xs);
+    @scope ([data-scope="number-input"][data-part="root"][data-size="sm"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="control"] {
+            height: calc(var(--size-field) * 10);
+        }
+
+        [data-scope="number-input"][data-part="input"] {
+            font-size: var(--text-xs);
+            padding: var(--space-xs) var(--space-sm);
+        }
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="sm"] [data-scope="number-input"][data-part="control"] {
-        height: calc(var(--size-field) * 10);
+    @scope ([data-scope="number-input"][data-part="root"][data-size="lg"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="control"] {
+            height: calc(var(--size-field) * 14);
+        }
+
+        [data-scope="number-input"][data-part="input"] {
+            font-size: var(--text-md);
+            padding: var(--space-md) var(--space-lg);
+        }
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="sm"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-xs);
-        padding: var(--space-xs) var(--space-sm);
-    }
+    @scope ([data-scope="number-input"][data-part="root"][data-size="xl"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="control"] {
+            height: calc(var(--size-field) * 16);
+        }
 
-    [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="control"] {
-        height: calc(var(--size-field) * 14);
-    }
-
-    [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-md);
-        padding: var(--space-md) var(--space-lg);
-    }
-
-    [data-scope="number-input"][data-part="root"][data-size="xl"] [data-scope="number-input"][data-part="control"] {
-        height: calc(var(--size-field) * 16);
-    }
-
-    [data-scope="number-input"][data-part="root"][data-size="xl"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-lg);
-        padding: var(--space-lg) var(--space-xl);
+        [data-scope="number-input"][data-part="input"] {
+            font-size: var(--text-lg);
+            padding: var(--space-lg) var(--space-xl);
+        }
     }
 }

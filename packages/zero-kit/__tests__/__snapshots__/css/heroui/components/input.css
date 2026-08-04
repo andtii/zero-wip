@@ -75,15 +75,19 @@
         --input-text: var(--text-xs);
     }
 
-    [data-scope="input"][data-part="root"][data-size="sm"] [data-scope="input"][data-part="input"] {
-        padding: var(--space-xs) var(--space-sm);
-    }
-
     [data-scope="input"][data-part="root"][data-size="lg"] {
         --input-text: var(--text-md);
     }
 
-    [data-scope="input"][data-part="root"][data-size="lg"] [data-scope="input"][data-part="input"] {
-        padding: var(--space-md) var(--space-lg);
+    @scope ([data-scope="input"][data-part="root"][data-size="sm"]) to ([data-scope="input"][data-part="root"]) {
+        [data-scope="input"][data-part="input"] {
+            padding: var(--space-xs) var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="input"][data-part="root"][data-size="lg"]) to ([data-scope="input"][data-part="root"]) {
+        [data-scope="input"][data-part="input"] {
+            padding: var(--space-md) var(--space-lg);
+        }
     }
 }

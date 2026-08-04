@@ -80,51 +80,59 @@
         --card-accent: var(--color-error);
     }
 
-    [data-scope="card"][data-part="root"][data-size="xs"] [data-scope="card"][data-part="header"] {
-        padding: var(--space-sm) var(--space-md) 0;
+    @scope ([data-scope="card"][data-part="root"][data-size="xs"]) to ([data-scope="card"][data-part="root"]) {
+        [data-scope="card"][data-part="header"] {
+            padding: var(--space-sm) var(--space-md) 0;
+        }
+
+        [data-scope="card"][data-part="body"] {
+            padding: var(--space-sm) var(--space-md);
+        }
+
+        [data-scope="card"][data-part="footer"] {
+            padding: 0 var(--space-md) var(--space-sm);
+        }
     }
 
-    [data-scope="card"][data-part="root"][data-size="xs"] [data-scope="card"][data-part="body"] {
-        padding: var(--space-sm) var(--space-md);
+    @scope ([data-scope="card"][data-part="root"][data-size="sm"]) to ([data-scope="card"][data-part="root"]) {
+        [data-scope="card"][data-part="header"] {
+            padding: var(--space-md) var(--space-lg) 0;
+        }
+
+        [data-scope="card"][data-part="body"] {
+            padding: var(--space-md) var(--space-lg);
+        }
+
+        [data-scope="card"][data-part="footer"] {
+            padding: 0 var(--space-lg) var(--space-md);
+        }
     }
 
-    [data-scope="card"][data-part="root"][data-size="xs"] [data-scope="card"][data-part="footer"] {
-        padding: 0 var(--space-md) var(--space-sm);
+    @scope ([data-scope="card"][data-part="root"][data-size="lg"]) to ([data-scope="card"][data-part="root"]) {
+        [data-scope="card"][data-part="header"] {
+            padding: var(--space-xl) var(--space-2xl) 0;
+        }
+
+        [data-scope="card"][data-part="body"] {
+            padding: var(--space-xl) var(--space-2xl);
+        }
+
+        [data-scope="card"][data-part="footer"] {
+            padding: 0 var(--space-2xl) var(--space-xl);
+        }
     }
 
-    [data-scope="card"][data-part="root"][data-size="sm"] [data-scope="card"][data-part="header"] {
-        padding: var(--space-md) var(--space-lg) 0;
-    }
+    @scope ([data-scope="card"][data-part="root"][data-size="xl"]) to ([data-scope="card"][data-part="root"]) {
+        [data-scope="card"][data-part="header"] {
+            padding: var(--space-2xl) var(--space-2xl) 0;
+        }
 
-    [data-scope="card"][data-part="root"][data-size="sm"] [data-scope="card"][data-part="body"] {
-        padding: var(--space-md) var(--space-lg);
-    }
+        [data-scope="card"][data-part="body"] {
+            padding: var(--space-2xl);
+        }
 
-    [data-scope="card"][data-part="root"][data-size="sm"] [data-scope="card"][data-part="footer"] {
-        padding: 0 var(--space-lg) var(--space-md);
-    }
-
-    [data-scope="card"][data-part="root"][data-size="lg"] [data-scope="card"][data-part="header"] {
-        padding: var(--space-xl) var(--space-2xl) 0;
-    }
-
-    [data-scope="card"][data-part="root"][data-size="lg"] [data-scope="card"][data-part="body"] {
-        padding: var(--space-xl) var(--space-2xl);
-    }
-
-    [data-scope="card"][data-part="root"][data-size="lg"] [data-scope="card"][data-part="footer"] {
-        padding: 0 var(--space-2xl) var(--space-xl);
-    }
-
-    [data-scope="card"][data-part="root"][data-size="xl"] [data-scope="card"][data-part="header"] {
-        padding: var(--space-2xl) var(--space-2xl) 0;
-    }
-
-    [data-scope="card"][data-part="root"][data-size="xl"] [data-scope="card"][data-part="body"] {
-        padding: var(--space-2xl);
-    }
-
-    [data-scope="card"][data-part="root"][data-size="xl"] [data-scope="card"][data-part="footer"] {
-        padding: 0 var(--space-2xl) var(--space-2xl);
+        [data-scope="card"][data-part="footer"] {
+            padding: 0 var(--space-2xl) var(--space-2xl);
+        }
     }
 }

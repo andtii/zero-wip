@@ -120,20 +120,28 @@
         font-size: var(--text-xs);
     }
 
-    [data-scope="select"][data-part="root"][data-size="sm"] [data-scope="select"][data-part="trigger"] {
-        min-height: 2rem;
+    @scope ([data-scope="select"][data-part="root"][data-size="sm"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            min-height: 2rem;
+        }
     }
 
-    [data-scope="select"][data-part="root"][data-size="lg"] [data-scope="select"][data-part="trigger"] {
-        min-height: 3rem;
+    @scope ([data-scope="select"][data-part="root"][data-size="lg"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            min-height: 3rem;
+        }
     }
 
-    [data-scope="select"][data-part="root"][data-size="xl"] [data-scope="select"][data-part="trigger"] {
-        min-height: 4rem;
+    @scope ([data-scope="select"][data-part="root"][data-size="xl"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            min-height: 4rem;
+        }
     }
 
-    [data-scope="select"][data-part="root"][data-size="2xl"] [data-scope="select"][data-part="trigger"] {
-        min-height: 5rem;
+    @scope ([data-scope="select"][data-part="root"][data-size="2xl"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            min-height: 5rem;
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {

@@ -125,19 +125,27 @@
         filter: brightness(0.9);
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="sm"] [data-scope="number-input"][data-part="control"] {
-        min-height: 2rem;
+    @scope ([data-scope="number-input"][data-part="root"][data-size="sm"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="control"] {
+            min-height: 2rem;
+        }
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="control"] {
-        min-height: 3rem;
+    @scope ([data-scope="number-input"][data-part="root"][data-size="lg"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="control"] {
+            min-height: 3rem;
+        }
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="xl"] [data-scope="number-input"][data-part="control"] {
-        min-height: 4rem;
+    @scope ([data-scope="number-input"][data-part="root"][data-size="xl"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="control"] {
+            min-height: 4rem;
+        }
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="2xl"] [data-scope="number-input"][data-part="control"] {
-        min-height: 5rem;
+    @scope ([data-scope="number-input"][data-part="root"][data-size="2xl"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="control"] {
+            min-height: 5rem;
+        }
     }
 }

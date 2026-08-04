@@ -174,23 +174,31 @@
         --number-input-accent: var(--color-error);
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="xs"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-xs);
-        padding: var(--space-2xs) var(--space-2xs);
+    @scope ([data-scope="number-input"][data-part="root"][data-size="xs"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="input"] {
+            font-size: var(--text-xs);
+            padding: var(--space-2xs) var(--space-2xs);
+        }
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="sm"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-xs);
-        padding: var(--space-xs) var(--space-2xs);
+    @scope ([data-scope="number-input"][data-part="root"][data-size="sm"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="input"] {
+            font-size: var(--text-xs);
+            padding: var(--space-xs) var(--space-2xs);
+        }
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-sm);
-        padding: var(--space-md) var(--space-sm);
+    @scope ([data-scope="number-input"][data-part="root"][data-size="lg"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="input"] {
+            font-size: var(--text-sm);
+            padding: var(--space-md) var(--space-sm);
+        }
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="xl"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-md);
-        padding: var(--space-lg) var(--space-md);
+    @scope ([data-scope="number-input"][data-part="root"][data-size="xl"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="input"] {
+            font-size: var(--text-md);
+            padding: var(--space-lg) var(--space-md);
+        }
     }
 }

@@ -2491,16 +2491,20 @@
         --number-input-text: var(--text-xs);
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="sm"] [data-scope="number-input"][data-part="input"] {
-        padding: var(--space-xs) var(--space-sm);
-    }
-
     [data-scope="number-input"][data-part="root"][data-size="lg"] {
         --number-input-text: var(--text-md);
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="input"] {
-        padding: var(--space-md) var(--space-lg);
+    @scope ([data-scope="number-input"][data-part="root"][data-size="sm"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="input"] {
+            padding: var(--space-xs) var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="number-input"][data-part="root"][data-size="lg"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="input"] {
+            padding: var(--space-md) var(--space-lg);
+        }
     }
 }
 
@@ -2912,16 +2916,20 @@
         --input-text: var(--text-xs);
     }
 
-    [data-scope="input"][data-part="root"][data-size="sm"] [data-scope="input"][data-part="input"] {
-        padding: var(--space-xs) var(--space-sm);
-    }
-
     [data-scope="input"][data-part="root"][data-size="lg"] {
         --input-text: var(--text-md);
     }
 
-    [data-scope="input"][data-part="root"][data-size="lg"] [data-scope="input"][data-part="input"] {
-        padding: var(--space-md) var(--space-lg);
+    @scope ([data-scope="input"][data-part="root"][data-size="sm"]) to ([data-scope="input"][data-part="root"]) {
+        [data-scope="input"][data-part="input"] {
+            padding: var(--space-xs) var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="input"][data-part="root"][data-size="lg"]) to ([data-scope="input"][data-part="root"]) {
+        [data-scope="input"][data-part="input"] {
+            padding: var(--space-md) var(--space-lg);
+        }
     }
 }
 
@@ -2994,16 +3002,20 @@
         --textarea-text: var(--text-xs);
     }
 
-    [data-scope="textarea"][data-part="root"][data-size="sm"] [data-scope="textarea"][data-part="textarea"] {
-        padding: var(--space-xs) var(--space-sm);
-    }
-
     [data-scope="textarea"][data-part="root"][data-size="lg"] {
         --textarea-text: var(--text-md);
     }
 
-    [data-scope="textarea"][data-part="root"][data-size="lg"] [data-scope="textarea"][data-part="textarea"] {
-        padding: var(--space-md) var(--space-lg);
+    @scope ([data-scope="textarea"][data-part="root"][data-size="sm"]) to ([data-scope="textarea"][data-part="root"]) {
+        [data-scope="textarea"][data-part="textarea"] {
+            padding: var(--space-xs) var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="textarea"][data-part="root"][data-size="lg"]) to ([data-scope="textarea"][data-part="root"]) {
+        [data-scope="textarea"][data-part="textarea"] {
+            padding: var(--space-md) var(--space-lg);
+        }
     }
 }
 

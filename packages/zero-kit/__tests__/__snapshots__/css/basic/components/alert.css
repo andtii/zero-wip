@@ -118,47 +118,55 @@
         padding: var(--space-2xs) var(--space-sm);
     }
 
-    [data-scope="alert"][data-part="root"][data-size="xs"] [data-scope="alert"][data-part="title"] {
-        font-size: var(--text-xs);
-    }
-
-    [data-scope="alert"][data-part="root"][data-size="xs"] [data-scope="alert"][data-part="description"] {
-        font-size: var(--text-xs);
-    }
-
     [data-scope="alert"][data-part="root"][data-size="sm"] {
         padding: var(--space-xs) var(--space-md);
-    }
-
-    [data-scope="alert"][data-part="root"][data-size="sm"] [data-scope="alert"][data-part="title"] {
-        font-size: var(--text-xs);
-    }
-
-    [data-scope="alert"][data-part="root"][data-size="sm"] [data-scope="alert"][data-part="description"] {
-        font-size: var(--text-xs);
     }
 
     [data-scope="alert"][data-part="root"][data-size="lg"] {
         padding: var(--space-lg) var(--space-xl);
     }
 
-    [data-scope="alert"][data-part="root"][data-size="lg"] [data-scope="alert"][data-part="title"] {
-        font-size: var(--text-md);
-    }
-
-    [data-scope="alert"][data-part="root"][data-size="lg"] [data-scope="alert"][data-part="description"] {
-        font-size: var(--text-md);
-    }
-
     [data-scope="alert"][data-part="root"][data-size="xl"] {
         padding: var(--space-xl) var(--space-2xl);
     }
 
-    [data-scope="alert"][data-part="root"][data-size="xl"] [data-scope="alert"][data-part="title"] {
-        font-size: var(--text-lg);
+    @scope ([data-scope="alert"][data-part="root"][data-size="xs"]) to ([data-scope="alert"][data-part="root"]) {
+        [data-scope="alert"][data-part="title"] {
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="alert"][data-part="description"] {
+            font-size: var(--text-xs);
+        }
     }
 
-    [data-scope="alert"][data-part="root"][data-size="xl"] [data-scope="alert"][data-part="description"] {
-        font-size: var(--text-md);
+    @scope ([data-scope="alert"][data-part="root"][data-size="sm"]) to ([data-scope="alert"][data-part="root"]) {
+        [data-scope="alert"][data-part="title"] {
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="alert"][data-part="description"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="alert"][data-part="root"][data-size="lg"]) to ([data-scope="alert"][data-part="root"]) {
+        [data-scope="alert"][data-part="title"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="alert"][data-part="description"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="alert"][data-part="root"][data-size="xl"]) to ([data-scope="alert"][data-part="root"]) {
+        [data-scope="alert"][data-part="title"] {
+            font-size: var(--text-lg);
+        }
+
+        [data-scope="alert"][data-part="description"] {
+            font-size: var(--text-md);
+        }
     }
 }

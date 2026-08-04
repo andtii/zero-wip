@@ -146,34 +146,44 @@
         --select-accent: var(--color-error);
     }
 
-    [data-scope="select"][data-part="root"][data-size="xs"] [data-scope="select"][data-part="trigger"] {
-        height: calc(var(--size-field) * 8);
-        padding-inline: calc(var(--size-field) * 2);
-        font-size: var(--text-xs);
+    @scope ([data-scope="select"][data-part="root"][data-size="xs"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            height: calc(var(--size-field) * 8);
+            padding-inline: calc(var(--size-field) * 2);
+            font-size: var(--text-xs);
+        }
     }
 
-    [data-scope="select"][data-part="root"][data-size="sm"] [data-scope="select"][data-part="trigger"] {
-        height: calc(var(--size-field) * 10);
-        padding-inline: calc(var(--size-field) * 3);
-        font-size: var(--text-sm);
+    @scope ([data-scope="select"][data-part="root"][data-size="sm"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            height: calc(var(--size-field) * 10);
+            padding-inline: calc(var(--size-field) * 3);
+            font-size: var(--text-sm);
+        }
     }
 
-    [data-scope="select"][data-part="root"][data-size="md"] [data-scope="select"][data-part="trigger"] {
-        height: calc(var(--size-field) * 12);
-        padding-inline: calc(var(--size-field) * 4);
-        font-size: var(--text-sm);
+    @scope ([data-scope="select"][data-part="root"][data-size="md"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            height: calc(var(--size-field) * 12);
+            padding-inline: calc(var(--size-field) * 4);
+            font-size: var(--text-sm);
+        }
     }
 
-    [data-scope="select"][data-part="root"][data-size="lg"] [data-scope="select"][data-part="trigger"] {
-        height: calc(var(--size-field) * 14);
-        padding-inline: calc(var(--size-field) * 5);
-        font-size: var(--text-md);
+    @scope ([data-scope="select"][data-part="root"][data-size="lg"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            height: calc(var(--size-field) * 14);
+            padding-inline: calc(var(--size-field) * 5);
+            font-size: var(--text-md);
+        }
     }
 
-    [data-scope="select"][data-part="root"][data-size="xl"] [data-scope="select"][data-part="trigger"] {
-        height: calc(var(--size-field) * 16);
-        padding-inline: calc(var(--size-field) * 6);
-        font-size: var(--text-lg);
+    @scope ([data-scope="select"][data-part="root"][data-size="xl"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            height: calc(var(--size-field) * 16);
+            padding-inline: calc(var(--size-field) * 6);
+            font-size: var(--text-lg);
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {

@@ -194,9 +194,11 @@ describe('composition', () => {
                 size: { lg: { tab: { base: { fontSize: '1rem' }, at: { md: { base: { fontSize: '2rem' } } } } } },
             },
         });
-        const media = css.slice(css.indexOf('@media (min-width: 768px)'));
-        expect(media).toContain('[data-size="lg"]');
-        expect(media).toContain('font-size: 2rem;');
+        // `tab` sits below the carrier, so the axis attribute lives on the
+        // enclosing `@scope` donut and the breakpoint nests inside it (#317).
+        const donut = css.slice(css.indexOf('@scope ([data-scope="tabs"][data-part="root"][data-size="lg"])'));
+        expect(donut).toContain('@media (min-width: 768px)');
+        expect(donut.slice(donut.indexOf('@media'))).toContain('font-size: 2rem;');
     });
 });
 

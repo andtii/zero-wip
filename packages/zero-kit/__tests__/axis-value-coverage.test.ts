@@ -140,8 +140,15 @@ function declaredVocabulary(compiled: CompiledDesignSystem): Record<string, read
     return out;
 }
 
-/** Rules that apply somewhere other than the plain, default-viewport render. */
-const isDefaultContext = (rule: CssRule): boolean => rule.at.every((p) => p.startsWith('@layer'));
+/**
+ * Rules that apply somewhere other than the plain, default-viewport render.
+ * `@scope` is a WHERE, not a WHEN: the donut that bounds a non-carrier axis
+ * rule (#317) narrows which elements match, exactly like the selector it
+ * replaced, and applies in the default render — so it does not make a rule
+ * conditional the way `@media` does.
+ */
+const isDefaultContext = (rule: CssRule): boolean =>
+    rule.at.every((p) => p.startsWith('@layer') || p.startsWith('@scope'));
 
 /**
  * The values of `axis` this stylesheet matches on.
@@ -158,6 +165,13 @@ function paintedValues(css: string, axis: string, where: 'default' | 'anywhere')
     for (const rule of parseRules(css)) {
         if (where === 'default' && !isDefaultContext(rule)) continue;
         for (const [, value] of rule.selector.matchAll(attr)) out.add(value!);
+        // A non-carrier axis rule carries its attribute in the `@scope` donut
+        // prelude rather than in its own selector (#317) — the value is still
+        // painted by every rule inside the donut.
+        for (const prelude of rule.at) {
+            if (!prelude.startsWith('@scope')) continue;
+            for (const [, value] of prelude.matchAll(attr)) out.add(value!);
+        }
     }
     return out;
 }

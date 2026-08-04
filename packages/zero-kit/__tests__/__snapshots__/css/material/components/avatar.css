@@ -96,31 +96,39 @@
         --avatar-size: calc(var(--size-selector) * 6);
     }
 
-    [data-scope="avatar"][data-part="root"][data-size="xs"] [data-scope="avatar"][data-part="fallback"] {
-        font-size: var(--text-xs);
-    }
-
     [data-scope="avatar"][data-part="root"][data-size="sm"] {
         --avatar-size: calc(var(--size-selector) * 8);
-    }
-
-    [data-scope="avatar"][data-part="root"][data-size="sm"] [data-scope="avatar"][data-part="fallback"] {
-        font-size: var(--text-xs);
     }
 
     [data-scope="avatar"][data-part="root"][data-size="lg"] {
         --avatar-size: calc(var(--size-selector) * 12);
     }
 
-    [data-scope="avatar"][data-part="root"][data-size="lg"] [data-scope="avatar"][data-part="fallback"] {
-        font-size: var(--text-md);
-    }
-
     [data-scope="avatar"][data-part="root"][data-size="xl"] {
         --avatar-size: calc(var(--size-selector) * 16);
     }
 
-    [data-scope="avatar"][data-part="root"][data-size="xl"] [data-scope="avatar"][data-part="fallback"] {
-        font-size: var(--text-lg);
+    @scope ([data-scope="avatar"][data-part="root"][data-size="xs"]) to ([data-scope="avatar"][data-part="root"]) {
+        [data-scope="avatar"][data-part="fallback"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="avatar"][data-part="root"][data-size="sm"]) to ([data-scope="avatar"][data-part="root"]) {
+        [data-scope="avatar"][data-part="fallback"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="avatar"][data-part="root"][data-size="lg"]) to ([data-scope="avatar"][data-part="root"]) {
+        [data-scope="avatar"][data-part="fallback"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="avatar"][data-part="root"][data-size="xl"]) to ([data-scope="avatar"][data-part="root"]) {
+        [data-scope="avatar"][data-part="fallback"] {
+            font-size: var(--text-lg);
+        }
     }
 }
