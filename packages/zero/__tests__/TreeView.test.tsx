@@ -226,6 +226,18 @@ describe('TreeView', () => {
         expect(document.activeElement).toBe(byValue(container, 'README.md'));
     });
 
+    it('typeahead matches a branch by its visible label, not its indicator glyph', () => {
+        mountTree(container, { defaultExpandedValues: ['src'] });
+        // The src trigger renders `›src` in textContent terms — the default
+        // BranchIndicator glyph comes FIRST. Typeahead must see the
+        // accessible text (`src`), or no branch with an indicator is ever
+        // reachable by its label (#326).
+        const readme = byValue(container, 'README.md');
+        readme.focus();
+        readme.dispatchEvent(key('s'));
+        expect(document.activeElement).toBe(byValue(container, 'src'));
+    });
+
     it('one tab stop: the selected node, else the first visible enabled node', () => {
         mountTree(container, { defaultValue: 'README.md' });
         expect(byValue(container, 'README.md').tabIndex).toBe(0);

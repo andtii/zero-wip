@@ -55,6 +55,19 @@ import { treeViewAnatomy } from './anatomy.js';
 
 const SCOPE = treeViewAnatomy.scope;
 
+/**
+ * The text a reader is given: descend like `textContent`, but skip anything
+ * `aria-hidden` — decorative glyphs (the default BranchIndicator's `›`) are
+ * invisible to AT and must be invisible to typeahead too.
+ */
+function visibleText(node: Node): string {
+    if (node.nodeType === Node.TEXT_NODE) return node.textContent ?? '';
+    if (node instanceof Element && node.getAttribute('aria-hidden') === 'true') return '';
+    let text = '';
+    for (const child of node.childNodes) text += visibleText(child);
+    return text;
+}
+
 interface TreeNodeInfo {
     value: string;
     isBranch: boolean;
@@ -386,9 +399,15 @@ const TreeViewBranch = component<TreeViewBranchProps>(({ props, slots, onUnmount
         isBranch: () => true,
         disabled: () => disabled(),
         el: () => el,
-        // The branch's text is its trigger row, not the whole subtree.
-        textValue: () =>
-            el?.querySelector('[data-part="branch-trigger"]')?.textContent?.trim() ?? props.value,
+        // The branch's text is its trigger row, not the whole subtree — and
+        // not the row's decoration either: the default BranchIndicator is a
+        // `›` glyph, and `textContent` would put it FIRST, so typeahead
+        // could never match a branch by the label the user actually reads.
+        // What typeahead searches is the accessible text (#326).
+        textValue: () => {
+            const row = el?.querySelector('[data-part="branch-trigger"]');
+            return row ? visibleText(row).trim() || props.value : props.value;
+        },
     };
     const unregister = ctx.tree.registerNode(node);
     onUnmounted(() => unregister());
