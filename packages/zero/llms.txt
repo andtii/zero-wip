@@ -166,8 +166,12 @@ component renders; the root is called out separately where it carries props.
   Keyboard: ArrowRight/Enter/Space open + focus first item, ArrowLeft closes
   back (mirrored under RTL); Escape closes one level (native popover);
   hover opens without moving focus.
-- Select: Root(model=value)/Trigger/Value/Indicator/Popup/Item/ItemIndicator/
-  HiddenInput.
+- Select: Root(model=value)/Trigger/Value/Indicator/Popup/Group/GroupLabel/
+  Item/ItemIndicator/HiddenInput. Option groups are the optgroup equivalent:
+  Group renders role=group inside the listbox, named by its GroupLabel while
+  one is rendered (presence-tracked — an unlabelled group stays anonymous).
+  Labels never register as options, so typeahead and the highlight walk
+  straight through group boundaries.
 - Switch: Root(model=checked)/Control/Thumb/Label/HiddenInput, role=switch.
 - Checkbox: Root(model=checked)/Control/Indicator/Label/HiddenInput; supports
   `indeterminate`.
@@ -245,7 +249,10 @@ component renders; the root is called out separately where it carries props.
   never `@starting-style`/`allow-discrete` on toast parts, and gate any
   viewport `display` behind `&:popover-open`.
 - Combobox: Root(model=value, model:inputValue, model:open)/Control/Input/
-  Trigger/Popup/Item(asChild)/ItemIndicator/Empty/HiddenInput. APG editable
+  Trigger/Popup/Group/GroupLabel/Item(asChild)/ItemIndicator/Empty/
+  HiddenInput. Group/GroupLabel work exactly as Select's (role=group +
+  presence-tracked aria-labelledby); the consumer's filter renders or omits
+  whole groups. APG editable
   combobox: focus stays in the real <input> (role=combobox,
   aria-autocomplete=list, aria-activedescendant); Control is the field
   chrome wrapping input + trigger and mirrors open/invalid/focus-visible so

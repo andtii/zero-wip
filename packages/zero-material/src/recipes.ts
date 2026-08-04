@@ -941,6 +941,16 @@ export const select: RecipeInput = {
         value: { base: { flex: '1', textAlign: 'start' } },
         indicator: { base: { opacity: '0.7', transition: motion('transform') }, states: { open: { transform: 'rotate(180deg)' }, closed: {} } },
         popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } }),
+        // The optgroup equivalent (#325) — the menu's group grammar.
+        group: { base: { padding: 'var(--space-2xs) 0' } },
+        'group-label': {
+            base: {
+                padding: 'var(--space-2xs) var(--space-md)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'var(--color-outline)',
+            },
+        },
         item: withPresence(pressable('select', 'var(--select-accent)'), {
             base: {
                 display: 'flex',
@@ -2124,6 +2134,16 @@ export const combobox: RecipeInput = {
             },
         }),
         popup: withPresence(popupPresence('scale(0.9)'), { base: { ...floating, minWidth: '12rem' }, states: { open: {}, closed: {} } }),
+        // The optgroup equivalent (#325) — the menu's group grammar.
+        group: { base: { padding: 'var(--space-2xs) 0' } },
+        'group-label': {
+            base: {
+                padding: 'var(--space-2xs) var(--space-md)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'var(--color-outline)',
+            },
+        },
         item: withPresence(pressable('combobox', 'var(--combobox-accent)'), {
             base: {
                 display: 'flex',

@@ -94,13 +94,15 @@ export type {
 export { Accordion, accordionAnatomy, useAccordionContext } from './components/accordion/index.js';
 export type { AccordionRootProps, AccordionItemProps, AccordionTriggerProps, AccordionPanelProps } from './components/accordion/index.js';
 
-export { Select, selectAnatomy, useSelectContext } from './components/select/index.js';
+export { Select, selectAnatomy, useSelectContext, useSelectGroupContext } from './components/select/index.js';
 export type {
     SelectRootProps,
     SelectTriggerProps,
     SelectValueProps,
     SelectIndicatorProps,
     SelectPopupProps,
+    SelectGroupProps,
+    SelectGroupLabelProps,
     SelectItemProps,
 } from './components/select/index.js';
 
@@ -163,13 +165,15 @@ export type {
     TreeViewBranchContentProps,
 } from './components/tree-view/index.js';
 
-export { Combobox, comboboxAnatomy, useComboboxContext } from './components/combobox/index.js';
+export { Combobox, comboboxAnatomy, useComboboxContext, useComboboxGroupContext } from './components/combobox/index.js';
 export type {
     ComboboxRootProps,
     ComboboxControlProps,
     ComboboxInputProps,
     ComboboxTriggerProps,
     ComboboxPopupProps,
+    ComboboxGroupProps,
+    ComboboxGroupLabelProps,
     ComboboxItemProps,
     ComboboxEmptyProps,
 } from './components/combobox/index.js';

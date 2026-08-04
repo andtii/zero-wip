@@ -146,6 +146,64 @@ describe('Select', () => {
         expect(state.fruit).toBe('');
     });
 
+    it('option groups: role=group named by its label, items keep working, and a valid anatomy', async () => {
+        const state = signal({ fruit: '' });
+        render(
+            <Select.Root model={[state, 'fruit']}>
+                <Select.Trigger>
+                    <Select.Value />
+                </Select.Trigger>
+                <Select.Popup>
+                    <Select.Group>
+                        <Select.GroupLabel>Citrus</Select.GroupLabel>
+                        <Select.Item value="lemon">Lemon</Select.Item>
+                        <Select.Item value="lime">Lime</Select.Item>
+                    </Select.Group>
+                    <Select.Group>
+                        <Select.GroupLabel>Stone</Select.GroupLabel>
+                        <Select.Item value="peach">Peach</Select.Item>
+                    </Select.Group>
+                </Select.Popup>
+            </Select.Root>,
+            container,
+        );
+        await tick();
+        expectAnatomy(container, selectAnatomy);
+        const groups = container.querySelectorAll<HTMLElement>('[data-part="group"]');
+        const labels = container.querySelectorAll<HTMLElement>('[data-part="group-label"]');
+        expect(groups.length).toBe(2);
+        expect(groups[0]!.getAttribute('role')).toBe('group');
+        expect(labels[0]!.id).not.toBe('');
+        expect(groups[0]!.getAttribute('aria-labelledby')).toBe(labels[0]!.id);
+        expect(groups[1]!.getAttribute('aria-labelledby')).toBe(labels[1]!.id);
+        // The label is NOT an option: never highlighted, never selectable —
+        // only items register, so the keyboard walks straight through groups.
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true, bubbles: true }));
+        trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true, bubbles: true }));
+        trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true, bubbles: true }));
+        const items = container.querySelectorAll<HTMLElement>('[data-part="item"]');
+        expect(items[2]!.hasAttribute('data-highlighted')).toBe(true);
+        trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true }));
+        expect(state.fruit).toBe('peach');
+    });
+
+    it('a group without a label stays anonymous rather than dangling', async () => {
+        render(
+            <Select.Root>
+                <Select.Trigger><Select.Value /></Select.Trigger>
+                <Select.Popup>
+                    <Select.Group>
+                        <Select.Item value="lemon">Lemon</Select.Item>
+                    </Select.Group>
+                </Select.Popup>
+            </Select.Root>,
+            container,
+        );
+        await tick();
+        expect(container.querySelector<HTMLElement>('[data-part="group"]')!.hasAttribute('aria-labelledby')).toBe(false);
+    });
+
     it('adopts field wiring: label for, describedby, invalid, required', () => {
         render(
             <Field.Root invalid required>

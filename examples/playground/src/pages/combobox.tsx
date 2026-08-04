@@ -48,6 +48,31 @@ const ComboboxDemos = component(() => {
                 </Combobox.Popup>
             </Combobox.Root>
             <p><small>Selected: <code>{state.country || '—'}</code></small></p>
+            <h2>Option groups</h2>
+            <p>
+                <small>
+                    <code>Combobox.Group</code> + <code>Combobox.GroupLabel</code>{' '}
+                    — the optgroup equivalent; the consumer's filter renders or
+                    omits whole groups.
+                </small>
+            </p>
+            <Combobox.Root name="grouped-country" placeholder="Pick a region…">
+                <Combobox.Control>
+                    <Combobox.Input />
+                    <Combobox.Trigger />
+                </Combobox.Control>
+                <Combobox.Popup>
+                    <Combobox.Group>
+                        <Combobox.GroupLabel>Nordics</Combobox.GroupLabel>
+                        <Combobox.Item value="norway">Norway</Combobox.Item>
+                        <Combobox.Item value="sweden">Sweden</Combobox.Item>
+                    </Combobox.Group>
+                    <Combobox.Group>
+                        <Combobox.GroupLabel>Oceania</Combobox.GroupLabel>
+                        <Combobox.Item value="australia">Australia</Combobox.Item>
+                    </Combobox.Group>
+                </Combobox.Popup>
+            </Combobox.Root>
             <p>
                 <code>readonly</code> and <code>invalid</code> are chrome, not
                 branches you have to write: readonly keeps the value, refuses to

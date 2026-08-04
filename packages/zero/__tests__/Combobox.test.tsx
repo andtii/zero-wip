@@ -263,4 +263,59 @@ describe('Combobox', () => {
         expect(apple.getAttribute('data-selected')).toBe('');
         expect(apple.querySelector('[data-part="item-indicator"]')).not.toBeNull();
     });
+
+    it('option groups: role=group named by its label, keyboard walks through, valid anatomy', async () => {
+        const state = signal({ value: '' });
+        render(
+            <Combobox.Root model={[state, 'value']}>
+                <Combobox.Control>
+                    <Combobox.Input />
+                    <Combobox.Trigger />
+                </Combobox.Control>
+                <Combobox.Popup>
+                    <Combobox.Group>
+                        <Combobox.GroupLabel>Citrus</Combobox.GroupLabel>
+                        <Combobox.Item value="lemon">Lemon</Combobox.Item>
+                    </Combobox.Group>
+                    <Combobox.Group>
+                        <Combobox.GroupLabel>Stone</Combobox.GroupLabel>
+                        <Combobox.Item value="peach">Peach</Combobox.Item>
+                    </Combobox.Group>
+                </Combobox.Popup>
+            </Combobox.Root>,
+            container,
+        );
+        await tick();
+        expectAnatomy(container, comboboxAnatomy);
+        const groups = container.querySelectorAll<HTMLElement>('[data-part="group"]');
+        const labels = container.querySelectorAll<HTMLElement>('[data-part="group-label"]');
+        expect(groups.length).toBe(2);
+        expect(groups[0]!.getAttribute('role')).toBe('group');
+        expect(groups[0]!.getAttribute('aria-labelledby')).toBe(labels[0]!.id);
+        // Labels never register as options: the highlight walks item→item
+        // straight across the group boundary.
+        const input = container.querySelector<HTMLInputElement>('[data-part="input"]')!;
+        key(input, 'ArrowDown');
+        key(input, 'ArrowDown');
+        const items = container.querySelectorAll<HTMLElement>('[data-part="item"]');
+        expect(items[1]!.hasAttribute('data-highlighted')).toBe(true);
+        key(input, 'Enter');
+        expect(state.value).toBe('peach');
+    });
+
+    it('a group without a label stays anonymous rather than dangling', async () => {
+        render(
+            <Combobox.Root>
+                <Combobox.Control><Combobox.Input /></Combobox.Control>
+                <Combobox.Popup>
+                    <Combobox.Group>
+                        <Combobox.Item value="lemon">Lemon</Combobox.Item>
+                    </Combobox.Group>
+                </Combobox.Popup>
+            </Combobox.Root>,
+            container,
+        );
+        await tick();
+        expect(container.querySelector<HTMLElement>('[data-part="group"]')!.hasAttribute('aria-labelledby')).toBe(false);
+    });
 });

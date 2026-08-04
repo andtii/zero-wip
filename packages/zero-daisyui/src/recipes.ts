@@ -1507,6 +1507,16 @@ export const select: RecipeInput = {
             base: { ...floatingPanel, padding: 'var(--space-md)', minWidth: '13rem' },
             states: { open: {}, closed: {} },
         }),
+        // The optgroup equivalent (#325) — the menu's group grammar.
+        group: { base: {} },
+        'group-label': {
+            base: {
+                padding: 'var(--space-md) var(--space-lg) var(--space-xs)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-bold)',
+                opacity: '0.6',
+            },
+        },
         item: {
             base: {
                 display: 'flex',
@@ -1954,6 +1964,16 @@ export const combobox: RecipeInput = {
             base: { ...floatingPanel, padding: 'var(--space-md)', minWidth: '13rem' },
             states: { open: {}, closed: {} },
         }),
+        // The optgroup equivalent (#325) — the menu's group grammar.
+        group: { base: {} },
+        'group-label': {
+            base: {
+                padding: 'var(--space-md) var(--space-lg) var(--space-xs)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-bold)',
+                opacity: '0.6',
+            },
+        },
         item: {
             base: {
                 display: 'flex',

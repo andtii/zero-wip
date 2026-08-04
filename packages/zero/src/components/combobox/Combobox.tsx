@@ -603,12 +603,84 @@ const ComboboxEmpty = component<ComboboxEmptyProps>(({ props, slots }) => {
     );
 }, { name: 'Combobox.Empty' });
 
+
+// ── Group / GroupLabel ──
+
+interface ComboboxGroupContext {
+    labelId: string;
+    labelPresent(): boolean;
+    setLabelPresent(present: boolean): void;
+}
+
+function makeInertGroup(): ComboboxGroupContext {
+    return {
+        labelId: 'zx-combobox-group-inert-label',
+        labelPresent: () => false,
+        setLabelPresent: () => {},
+    };
+}
+
+export const useComboboxGroupContext = defineInjectable<ComboboxGroupContext>(() => makeInertGroup());
+
+export type ComboboxGroupProps = WithClass & Define.Slot<'default'>;
+
+/**
+ * The optgroup equivalent — `role="group"` inside the listbox, named by its
+ * `GroupLabel` while one is rendered (Menu.Group's presence-tracked shape:
+ * an unlabelled group stays anonymous rather than dangling a reference).
+ */
+const ComboboxGroup = component<ComboboxGroupProps>(({ props, slots, signal }) => {
+    const baseId = createId('zx-combobox-group');
+    // Written from GroupLabel one microtask after its setup — a write made
+    // during the render pass is invisible to the already-rendered group.
+    const present = signal({ label: false });
+    const ctx: ComboboxGroupContext = {
+        labelId: `${baseId}-label`,
+        labelPresent: () => present.label,
+        setLabelPresent: (p) => { present.label = p; },
+    };
+    defineProvide(useComboboxGroupContext, () => ctx);
+    return () => (
+        <div
+            data-scope={SCOPE}
+            data-part="group"
+            role="group"
+            aria-labelledby={ctx.labelPresent() ? ctx.labelId : undefined}
+            class={props.class}
+        >
+            {slots.default?.()}
+        </div>
+    );
+}, { name: 'Combobox.Group' });
+
+export type ComboboxGroupLabelProps = WithClass & Define.Slot<'default'>;
+
+const ComboboxGroupLabel = component<ComboboxGroupLabelProps>(({ props, slots, onUnmounted }) => {
+    const group = useComboboxGroupContext();
+    // Deferred past the render pass — see the note on `present` in Group.
+    let alive = true;
+    queueMicrotask(() => { if (alive) group.setLabelPresent(true); });
+    onUnmounted(() => {
+        alive = false;
+        group.setLabelPresent(false);
+    });
+    // No role: the label must stay in the accessibility tree for the group's
+    // aria-labelledby to compute a name from it.
+    return () => (
+        <div id={group.labelId} data-scope={SCOPE} data-part="group-label" class={props.class}>
+            {slots.default?.()}
+        </div>
+    );
+}, { name: 'Combobox.GroupLabel' });
+
 export const Combobox = compound(ComboboxRoot, {
     Root: ComboboxRoot,
     Control: ComboboxControl,
     Input: ComboboxInput,
     Trigger: ComboboxTrigger,
     Popup: ComboboxPopup,
+    Group: ComboboxGroup,
+    GroupLabel: ComboboxGroupLabel,
     Item: ComboboxItem,
     Empty: ComboboxEmpty,
 });

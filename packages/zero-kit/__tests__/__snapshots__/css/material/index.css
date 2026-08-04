@@ -2027,6 +2027,17 @@
         transform: none;
     }
 
+    [data-scope="select"][data-part="group"] {
+        padding: var(--space-2xs) 0;
+    }
+
+    [data-scope="select"][data-part="group-label"] {
+        padding: var(--space-2xs) var(--space-md);
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        color: var(--color-outline);
+    }
+
     [data-scope="select"][data-part="item"] {
         position: relative;
         overflow: hidden;
@@ -4037,6 +4048,17 @@
     [data-scope="combobox"][data-part="popup"][data-state="open"] {
         opacity: 1;
         transform: none;
+    }
+
+    [data-scope="combobox"][data-part="group"] {
+        padding: var(--space-2xs) 0;
+    }
+
+    [data-scope="combobox"][data-part="group-label"] {
+        padding: var(--space-2xs) var(--space-md);
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        color: var(--color-outline);
     }
 
     [data-scope="combobox"][data-part="item"] {

@@ -1830,6 +1830,14 @@
         transform: none;
     }
 
+    [data-scope="select"][data-part="group-label"] {
+        padding: var(--space-xs) var(--space-sm);
+        font-family: var(--font-sans);
+        font-size: var(--text-xs);
+        font-weight: var(--weight-semibold);
+        color: var(--hero-muted);
+    }
+
     [data-scope="select"][data-part="item"] {
         display: flex;
         align-items: center;
@@ -2320,6 +2328,14 @@
     [data-scope="combobox"][data-part="popup"][data-state="open"] {
         opacity: 1;
         transform: none;
+    }
+
+    [data-scope="combobox"][data-part="group-label"] {
+        padding: var(--space-xs) var(--space-sm);
+        font-family: var(--font-sans);
+        font-size: var(--text-xs);
+        font-weight: var(--weight-semibold);
+        color: var(--hero-muted);
     }
 
     [data-scope="combobox"][data-part="item"] {

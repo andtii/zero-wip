@@ -627,6 +627,11 @@ export const select: RecipeInput = {
         value: { base: { flex: '1', textAlign: 'start' } },
         indicator: { base: { transition: motion('transform') }, states: { open: { transform: 'rotate(180deg)' }, closed: {} } },
         popup: withPresence(popupPresence('translate(4px, 4px)'), { base: { ...slab, padding: 'var(--space-xs)', minWidth: '12rem' }, states: { open: {}, closed: {} } }),
+        // The optgroup equivalent (#325) — the menu's group grammar.
+        group: { base: { padding: 'var(--space-2xs) 0' } },
+        'group-label': {
+            base: { padding: 'var(--space-2xs) var(--space-sm)', ...label, fontSize: 'var(--text-xs)', opacity: '0.7' },
+        },
         item: {
             base: {
                 display: 'flex',
@@ -1627,6 +1632,11 @@ export const combobox: RecipeInput = {
             },
         },
         popup: withPresence(popupPresence('translate(4px, 4px)'), { base: { ...slab, padding: 'var(--space-xs)', minWidth: '12rem' }, states: { open: {}, closed: {} } }),
+        // The optgroup equivalent (#325) — the menu's group grammar.
+        group: { base: { padding: 'var(--space-2xs) 0' } },
+        'group-label': {
+            base: { padding: 'var(--space-2xs) var(--space-sm)', ...label, fontSize: 'var(--text-xs)', opacity: '0.7' },
+        },
         item: {
             base: {
                 display: 'flex',

@@ -1410,6 +1410,17 @@ export const select: RecipeInput = {
                 minWidth: '12rem',
             },
         }),
+        // The optgroup equivalent (#325) — the menu's group grammar.
+        group: { base: {} },
+        'group-label': {
+            base: {
+                padding: 'var(--space-xs) var(--space-sm)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                color: 'var(--hero-muted)',
+            },
+        },
         item: {
             base: {
                 display: 'flex',
@@ -1809,6 +1820,17 @@ export const combobox: RecipeInput = {
                 minWidth: '12rem',
             },
         }),
+        // The optgroup equivalent (#325) — the menu's group grammar.
+        group: { base: {} },
+        'group-label': {
+            base: {
+                padding: 'var(--space-xs) var(--space-sm)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                color: 'var(--hero-muted)',
+            },
+        },
         item: {
             base: {
                 display: 'flex',

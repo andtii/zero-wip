@@ -1709,6 +1709,20 @@ export const select: RecipeInput = {
             },
             states: { open: {}, closed: {} },
         }),
+        // The optgroup equivalent (#325) — the menu's group grammar: the
+        // overline label, the group itself unstyled.
+        group: { base: {} },
+        'group-label': {
+            base: {
+                padding: 'var(--space-sm) var(--space-lg)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-medium)',
+                textTransform: 'uppercase',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklch, var(--color-base-content) 60%, transparent)',
+            },
+        },
         item: {
             base: {
                 display: 'flex',
@@ -2304,6 +2318,20 @@ export const combobox: RecipeInput = {
             },
             states: { open: {}, closed: {} },
         }),
+        // The optgroup equivalent (#325) — the menu's group grammar: the
+        // overline label, the group itself unstyled.
+        group: { base: {} },
+        'group-label': {
+            base: {
+                padding: 'var(--space-sm) var(--space-lg)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-medium)',
+                textTransform: 'uppercase',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklch, var(--color-base-content) 60%, transparent)',
+            },
+        },
         item: {
             base: {
                 display: 'flex',

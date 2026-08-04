@@ -34,6 +34,19 @@ export const selectAnatomy = defineAnatomy('select', {
         placements: [...PLACEMENT_VOCABULARY],
         tokens: ['color', 'radius-box'],
     },
+    // The optgroup equivalent (#325): role=group inside the listbox, named
+    // by its group-label (presence-tracked — an unlabelled group stays
+    // anonymous rather than dangling). Labels never register as options, so
+    // typeahead and the highlight walk straight through.
+    group: {
+        element: 'div',
+        parent: 'popup',
+    },
+    'group-label': {
+        element: 'div',
+        parent: 'group',
+        tokens: ['color', 'text'],
+    },
     item: {
         element: 'div',
         parent: 'popup',
