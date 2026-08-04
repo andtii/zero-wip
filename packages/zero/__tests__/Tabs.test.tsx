@@ -145,4 +145,24 @@ describe('Tabs', () => {
         expect(link.getAttribute('role')).toBe('tab');
         expect(link.getAttribute('data-state')).toBe('active');
     });
+
+    it('a disabled tab announces aria-disabled through the bag (asChild included)', () => {
+        render(
+            <Tabs.Root defaultValue="a">
+                <Tabs.List>
+                    <Tabs.Tab value="a">A</Tabs.Tab>
+                    <Tabs.Tab value="b" disabled asChild>
+                        {(p: PartProps) => <a href="#b" {...p}>Link tab</a>}
+                    </Tabs.Tab>
+                </Tabs.List>
+            </Tabs.Root>,
+            container,
+        );
+        // An <a> has no disabled attribute — without aria-disabled in the
+        // bag, an asChild consumer's disabled tab announces as a normal one.
+        const link = container.querySelector('a')!;
+        expect(link.getAttribute('aria-disabled')).toBe('true');
+        const enabled = container.querySelector<HTMLElement>('[data-part="tab"]')!;
+        expect(enabled.hasAttribute('aria-disabled')).toBe(false);
+    });
 });

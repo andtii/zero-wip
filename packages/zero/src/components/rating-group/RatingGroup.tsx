@@ -62,6 +62,8 @@ interface RatingGroupContext {
     labelId(): string | undefined;
     controlId(): string;
     describedBy(): string | undefined;
+    /** The item's accessible name — the `itemLabel` prop or the "N of M" default. */
+    itemLabel(index: number): string;
     isRtl(): boolean;
     setControl(el: HTMLElement | null): void;
     registerItem(index: number, el: HTMLElement | null): void;
@@ -88,6 +90,7 @@ function makeInert(): RatingGroupContext {
         labelId: () => undefined,
         controlId: () => 'zx-rating-inert',
         describedBy: () => undefined,
+        itemLabel: (index) => `${index} of 5`,
         isRtl: () => false,
         setControl: () => {},
         registerItem: () => {},
@@ -114,6 +117,8 @@ export type RatingGroupRootProps =
     & Define.Prop<'required', boolean, false>
     & Define.Prop<'invalid', boolean, false>
     & Define.Prop<'readonly', boolean, false>
+    /** Per-item accessible name (default `${index} of ${count}`) — the localization seam. */
+    & Define.Prop<'itemLabel', (index: number, count: number) => string, false>
     & WithDisabled
     & WithVariantAxes<'rating-group'>
     & WithClass
@@ -179,6 +184,7 @@ const RatingGroupRoot = component<RatingGroupRootProps>(({ props, slots, emit, s
         labelId: () => (field.inert ? `${baseId}-label` : field.ids.label),
         controlId: () => (field.inert ? `${baseId}-control` : field.ids.control),
         describedBy: () => (field.inert ? undefined : field.describedBy()),
+        itemLabel: (index) => (props.itemLabel ?? ((i, c) => `${i} of ${c}`))(index, count()),
         isRtl,
         setControl: (el) => { controlEl = el; },
         registerItem: (index, el) => {
@@ -374,7 +380,7 @@ const RatingGroupItem = component<RatingGroupItemProps>(({ props, slots, onUnmou
                 data-focus-visible={dataAttr(focus.visible)}
                 tabIndex={isTabbable() ? 0 : -1}
                 aria-checked={ctx.state.value > 0 && Math.ceil(ctx.state.value) === props.index ? 'true' : 'false'}
-                aria-label={`${props.index} of ${ctx.count()}`}
+                aria-label={ctx.itemLabel(props.index)}
                 aria-disabled={ctx.disabled() ? 'true' : undefined}
                 class={props.class}
                 ref={(node: HTMLElement | null) => {

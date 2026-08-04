@@ -165,6 +165,9 @@ const TabsTab = component<TabsTabProps>(({ props, slots, onUnmounted, signal }) 
         tabIndex: isTabbable() ? 0 : -1,
         'aria-selected': isSelected() ? 'true' : 'false',
         'aria-controls': tabs.panelId(props.value),
+        // In the bag, not only the native `disabled` attribute — an asChild
+        // consumer's element (an <a>) has no disabled attribute to announce.
+        'aria-disabled': props.disabled ? 'true' : undefined,
         onClick: () => select(),
         onKeydown: (e: KeyboardEvent) => {
             press.onKeydown(e);
