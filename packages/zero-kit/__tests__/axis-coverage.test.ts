@@ -67,10 +67,10 @@ const designSystems = {
  * a deferral (#175, discharging RFC 0003 §9 phase 5's gate: "wire it, or record
  * the divergence per component with its reason").
  *
- * The nineteen were surveyed one at a time against RFC 0003 §7.2's set — the
+ * The eighteen were surveyed one at a time against RFC 0003 §7.2's set — the
  * reasons below are the survey — and the result is more uniform than the issue
- * guessed. **Seventeen of the nineteen do carry a variant in a real design
- * system. Not one of the seventeen spells it `solid | outline | soft | ghost`.**
+ * guessed. **Sixteen of the eighteen do carry a variant in a real design
+ * system. Not one of the sixteen spells it `solid | outline | soft | ghost`.**
  *
  * That is §1.1's thesis arriving at its consequence. The four convention design
  * systems declare a BUTTON's vocabulary and declare it design-system-wide, so
@@ -82,9 +82,15 @@ const designSystems = {
  * of every scope's vocabulary rather than the button's — so the reasons below
  * no longer say "inexpressible", they say "not declared yet". Wiring any of
  * the fourteen is now a design system's decision, taken one skin at a time,
- * and it costs the recipes plus the contrast audit's ancestor chains (eighteen
- * of the nineteen carry their axes on a part that renders no text — `toggle` is
- * the one whose carrier is the text-bearing element itself).
+ * and it costs the recipes plus the contrast audit's ancestor chains
+ * (seventeen of the eighteen carry their axes on a part that renders no text —
+ * `toggle` is the one whose carrier is the text-bearing element itself).
+ *
+ * `select` LEFT this ledger in #297, and how it left is the template for the
+ * rest: zero-basic gives it `outline | soft | ghost` through `tokens.scopes`,
+ * and the contrast audit reaches its trigger, value and items through declared
+ * `AXIS_CHAINS` rather than the one-element probe that could never see them.
+ * The blocker on the other seventeen is now work, not expressiveness.
  *
  * `badge` is deliberately NOT here, and is the reason the ledger is no longer
  * the whole story: zero-basic wires its variant against a vocabulary badge
@@ -93,7 +99,7 @@ const designSystems = {
  * first because its carrier IS its text-bearing part — the one shape the
  * contrast audit's one-element probe can measure without #297's chains.
  *
- * So `never` is still the correct compiled answer for all nineteen today —
+ * So `never` is still the correct compiled answer for all eighteen today —
  * none of the six declares a vocabulary for them — and this ledger is the
  * reason it is correct rather than merely absent.
  *
@@ -116,23 +122,6 @@ const NO_VARIANT: Record<string, string> = {
     // sibling inherit the same answer rather than a new one.
     input: 'Radix Themes TextField varies as classic | surface | soft.',
     textarea: 'Radix Themes TextArea varies as classic | surface | soft.',
-
-    /**
-     * The sharpest one, and the case #294 was settled against. Radix's Select
-     * varies BOTH halves and gives them DIFFERENT vocabularies — Trigger
-     * `classic | surface | soft | ghost`, Content `solid | soft`. Zero carries
-     * `variant` as one attribute on the scope's carrier part, so this was read
-     * as evidence that the restriction unit had to be the PART.
-     *
-     * RFC 0003 §4.1 settled it the other way: one attribute per axis, cascaded
-     * to every part below the carrier, means two vocabularies inside one scope
-     * are two AXES. The Content half is a declared custom axis — which zero
-     * has always been able to express — and the restriction unit stays the
-     * scope. So this entry is now "not declared yet", like its thirteen
-     * siblings, rather than "cannot be said".
-     */
-    select: 'Radix Themes Select varies Trigger as classic | surface | soft | '
-        + 'ghost and Content as solid | soft — two vocabularies, one scope.',
 
     // ── The rest of bucket A: a variant exists, spelled differently again. ──
     avatar: 'Radix Themes Avatar varies as solid | soft.',

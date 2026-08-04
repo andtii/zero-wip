@@ -4,6 +4,61 @@
 
 ### Added
 
+- **Ancestor chains for the contrast audit's axis matrix, and the first
+  non-button carrier wired against its own vocabulary** (#297). #294 landed
+  per-scope vocabularies and #311 gave them a first caller in `badge`, which
+  could go first only because its carrier IS its text-bearing part — the one
+  shape the audit's one-element probe can measure. Thirteen of the remaining
+  carriers fail that: `select`'s text lives in `trigger`, `value` and `item`,
+  none of which is the carrier, and the `axis coverage` guard hard-failed on
+  exactly that.
+
+  The audit now declares chains for those parts (`AXIS_CHAINS`, the sibling of
+  `INDICATORS`), builds the real ancestor nesting, and — the load-bearing
+  detail — puts the axis attributes on the chain ROOT rather than the measured
+  element, because that is where the compiler anchors the selector
+  (`[data-part="root"][data-variant="soft"] [data-part="trigger"]`). A probe
+  carrying the attribute itself would select a rule that does not exist and
+  report the unvaried colour as a pass. The measured part is read against its
+  nearest painted ancestor rather than the page, so an item is measured on the
+  popup's fill.
+
+  `@sigx/zero-basic` wires `select` to `outline | soft | ghost` — three of the
+  four values `button` offers, without `solid`, because a field filled with the
+  role at full strength stops reading as an input. `select` leaves the
+  `NO_VARIANT` ledger; the blocker on the other seventeen is now work rather
+  than expressiveness.
+
+  Chained cells are bounded to the resting combos (`{}` plus each state, no
+  state × flag pairs) — the roles are deliberately NOT the dimension cut, since
+  the daisyUI #210 finding was per-role. The count is annotated on every run
+  and capped by `AXIS_CELL_BUDGET`, so the next scope that lands shows up in
+  the output rather than in the wall clock.
+
+### Fixed
+
+- **`data-variant` is checked per SCOPE, not against the design system's
+  union** (#297). `ds-smoke`'s undeclared-value invariant (#215) asked whether
+  a value exists design-system-wide, which stopped being the right question the
+  moment a scope could wire its own: daisyUI declares `soft` and wires it on
+  `button` alone, so `select[data-variant="soft"]` passed while selecting
+  nothing — #215's own bug, one level down from where that fix looked.
+
+  Two playground demos were doing exactly that and neither failed until the
+  check existed: `badge` (shipped in #311) and `select` (in this PR before
+  review). Both now go through a new scope-aware `pickScopeVariant`, and the
+  invariant names the scope and what it actually wires when it fires.
+
+### Changed
+
+- **The contrast audit reads `carrierPart` and the manifest types from
+  `@sigx/zero-kit`** (#297) instead of a hand copy. The copy had no parity
+  test and was about to become load-bearing in two places at once — it decides
+  both the chain roots and the guard that checks them, so a drifted copy would
+  have let the two agree with each other while both were wrong. The local
+  `ManifestPart` mirror went the same way: it had silently omitted `hiddenIn`
+  and `selectors`.
+
 - **`tokens.scopes` has its first real caller** (#311). `#294` landed
   per-scope axis vocabularies and RFC 0003 §4 said to revisit them "when the
   content tier lands (card, alert, badge, chip)" — until now no design system

@@ -152,12 +152,11 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** select — color, size wired. */
+            /** select — color, size, variant wired. */
             'select': {
                 color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-                /** Accepts `variant` at runtime, but no basic recipe wires it — the attribute would match nothing. */
-                variant: never;
+                variant: 'outline' | 'soft' | 'ghost';
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };

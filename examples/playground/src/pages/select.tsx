@@ -1,5 +1,6 @@
 import { component, signal } from 'sigx';
 import { Select } from '@sigx/zero';
+import { pickScopeVariant } from '../design-systems';
 import type { PageEntry } from './registry';
 
 const SelectDemos = component(() => {
@@ -38,6 +39,41 @@ const SelectDemos = component(() => {
                     <Select.Item value="banana">Banana</Select.Item>
                 </Select.Popup>
             </Select.Root>
+            {/*
+              * The first scope other than button to wire a variant (#297).
+              * zero-basic gives select its OWN three-value vocabulary through
+              * `tokens.scopes` — `outline | soft | ghost`, without button's
+              * `solid`, because a field filled with the role at full strength
+              * reads as a button.
+              *
+              * `pickScopeVariant`, not `pickVariant`: the other five design
+              * systems DECLARE the same four values design-system-wide and
+              * wire none of them on `select`, so asking the union would set an
+              * attribute matching no rule there. The question has to be asked
+              * of the scope.
+              */}
+            <p>
+                <small>
+                    zero-basic wires a per-scope <code>variant</code> here:{' '}
+                    <code>outline | soft | ghost</code>. Other design systems
+                    offer none, and the prop goes unset.
+                </small>
+            </p>
+            {(['outline', 'soft', 'ghost'] as const).map((v) => (
+                <>
+                    <Select.Root variant={pickScopeVariant('select', v)} placeholder={`${v}…`}>
+                        <Select.Trigger>
+                            <Select.Value />
+                            <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popup>
+                            <Select.Item value="apple">Apple</Select.Item>
+                            <Select.Item value="banana">Banana</Select.Item>
+                        </Select.Popup>
+                    </Select.Root>
+                    {' '}
+                </>
+            ))}
         </>
     );
 }, { name: 'SelectDemos' });

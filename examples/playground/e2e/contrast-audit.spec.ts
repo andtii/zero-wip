@@ -59,18 +59,27 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test, expect, type Page } from '@playwright/test';
+// Not a hand copy: `carrierPart` decides where the compiler anchors a variant
+// selector, and this file now uses it for BOTH the chain roots and the guard
+// that checks them. A local reimplementation would let the two agree with each
+// other while both drifting from what the CSS actually says (#297).
+import { carrierPart } from '@sigx/zero-kit';
+import type {
+    ManifestComponent as KitManifestComponent,
+    ManifestPart as KitManifestPart,
+} from '@sigx/zero-kit';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const read = (p: string): string => readFileSync(join(root, p), 'utf8');
 
-interface ManifestPart {
-    name: string;
-    element?: string;
-    states?: string[];
-    flags?: string[];
-    tokens?: string[];
-}
-interface ManifestComponent { scope: string; parts: ManifestPart[] }
+/**
+ * The anatomy's own types, not a local restatement of them. `hiddenIn` and
+ * `selectors` were missing from the copy this replaces, which is the ordinary
+ * way a hand-maintained mirror rots: nothing fails, the extra facts are simply
+ * invisible to the file that needed them (#297).
+ */
+type ManifestPart = KitManifestPart;
+type ManifestComponent = KitManifestComponent;
 
 const anatomy: { components: ManifestComponent[] } = JSON.parse(read('packages/zero/dist/manifest.json'));
 const baseCss = read('packages/zero/css/base.css');
@@ -92,6 +101,11 @@ function combosFor(part: ManifestPart): Combo[] {
     return combos;
 }
 
+/** One node of a rendered chain — enough for the page to rebuild it. */
+// `readonly` because the anatomy's arrays are: NodeSpec copies them out of
+// the manifest rather than owning them.
+interface NodeSpec { part: string; element: string; states: readonly string[]; flags: readonly string[]; pin?: string }
+
 interface Cell {
     scope: string;
     part: string;
@@ -101,6 +115,12 @@ interface Cell {
     axes?: Record<string, string>;
     /** Presence-only modifiers to set — `pending` → `data-mod-pending`. */
     mods?: string[];
+    /**
+     * Declared ancestor chain, outermost first, this part last (#297). Present
+     * only for a text part below its scope's carrier: the axis attributes go on
+     * `chain[0]`, which is where the compiler anchors the selector.
+     */
+    chain?: NodeSpec[];
 }
 
 const cells: Cell[] = anatomy.components.flatMap((component) =>
@@ -245,17 +265,6 @@ interface DesignSystemManifest {
     components: Record<string, WiredAxes>;
 }
 
-/**
- * The part a recipe's variant selectors are anchored on — `root`, else the
- * first declared part. Mirrors `carrierPart` in `@sigx/zero-kit`; the compiler
- * emits `[data-part="<carrier>"][data-variant="x"]` for the carrier itself and
- * `[data-part="<carrier>"][data-variant="x"] [data-part="<other>"]` for
- * everything below it, so the carrier is the only part a ONE-ELEMENT probe can
- * put an axis attribute on. `axis coverage` below is the guard that says so.
- */
-const carrierPart = (component: ManifestComponent): string =>
-    component.parts.find((p) => p.name === 'root')?.name ?? component.parts[0]!.name;
-
 /** Which axes of a scope can carry colour — see `axisCellsFor`. */
 function colourBearingAxes(wired: WiredAxes): Record<string, string[]> {
     const fused: Record<string, string[]> = {};
@@ -300,6 +309,50 @@ function colourBearingAxes(wired: WiredAxes): Record<string, string[]> {
  * Cost: `button` is the only variant-wiring scope in all six design systems,
  * and its anatomy is one part with three resting flags.
  */
+/**
+ * Text-bearing parts that sit BELOW their scope's carrier, with the chain the
+ * component really renders (#297) — the axis matrix's counterpart to
+ * `INDICATORS`, and read by the `axis coverage` guard as well as by the probe.
+ *
+ * The one-element probe can only put `data-variant` on the carrier, because
+ * that is where the compiler anchors it: the emitted rule is
+ * `[data-part="root"][data-variant="x"] [data-part="trigger"]`. A scope whose
+ * text lives below the carrier therefore has no measurable colour at all until
+ * the ancestor is there to select on — which is why every entry's FIRST node
+ * must be the carrier, and why the axis attributes go on `nodes[0]` rather
+ * than on the measured element.
+ *
+ * `part=state` pins work exactly as they do in `INDICATORS`, and for the same
+ * reason: a closed popup is `visibility: hidden`, which inherits, so an item
+ * measured inside a default-state popup reports "not painted" and the cell
+ * quietly leaves the matrix.
+ */
+interface AxisChainSpec { scope: string; part: string; ancestors: string[] }
+
+const AXIS_CHAINS: AxisChainSpec[] = [
+    // Select is the carrier #294 named and the one whose parts fan out
+    // furthest below the carrier — trigger, its value, and the popup's items
+    // are three different backdrops for one `data-variant`.
+    { scope: 'select', part: 'trigger', ancestors: ['root'] },
+    { scope: 'select', part: 'value', ancestors: ['root', 'trigger'] },
+    { scope: 'select', part: 'item', ancestors: ['root', 'popup=open'] },
+];
+
+/**
+ * Chained axis cells are bounded to the RESTING combos — `{}` plus each state,
+ * without the state × flag pairs the carrier's own probe keeps.
+ *
+ * The pairs re-measure a colour the singles already produced, and the product
+ * is not small: select alone is 4 variants × 8 roles × ~18 combos × 3 text
+ * parts ≈ 1,728 cells per (design system, theme). The role dimension is
+ * deliberately NOT the one cut instead — the daisyUI #210 finding was
+ * per-role (`neutral` at 1.12:1 where `primary` passed), so collapsing roles
+ * would drop exactly the bug this matrix exists to catch.
+ */
+function restingCombos(part: ManifestPart): Combo[] {
+    return [{}, ...(part.states ?? []).map((state) => ({ state }))];
+}
+
 function axisCellsFor(components: Record<string, WiredAxes>): Cell[] {
     const out: Cell[] = [];
     for (const [scope, wired] of Object.entries(components)) {
@@ -310,9 +363,6 @@ function axisCellsFor(components: Record<string, WiredAxes>): Cell[] {
         const component = anatomy.components.find((c) => c.scope === scope);
         if (!component) continue;
         const carrier = component.parts.find((p) => p.name === carrierPart(component))!;
-        // Guarded by `axis coverage`: a variant-wiring scope whose carrier
-        // renders no text needs the indicator matrix's chain, not this probe.
-        if (!carrier.tokens?.includes('text')) continue;
 
         let axisCombos: Record<string, string>[] = [{}];
         for (const [axis, values] of Object.entries(fused)) {
@@ -320,22 +370,56 @@ function axisCellsFor(components: Record<string, WiredAxes>): Cell[] {
         }
         const modSets: string[][] = [[], ...(wired.mods ?? []).map((m) => [m])];
 
+        /**
+         * Two shapes, one product. A carrier that renders text is measured by
+         * the one-element probe as before; text BELOW the carrier is measured
+         * through its declared chain, with the axis attributes on the chain's
+         * root. `axis coverage` is the guard that every text-bearing part of a
+         * colour-bearing scope is reached by one of the two.
+         */
+        const targets: Array<{ part: ManifestPart; chain?: NodeSpec[] }> = [];
+        if (carrier.tokens?.includes('text')) targets.push({ part: carrier });
+        for (const spec of AXIS_CHAINS.filter((s) => s.scope === scope)) {
+            targets.push({
+                part: partOf(scope, spec.part),
+                chain: chainFor(scope, [...spec.ancestors, spec.part]),
+            });
+        }
+
         for (const axes of axisCombos) {
             for (const mods of modSets) {
-                for (const combo of combosFor(carrier)) {
-                    out.push({
-                        scope,
-                        part: carrier.name,
-                        ...combo,
-                        axes,
-                        ...(mods.length > 0 ? { mods } : {}),
-                    });
+                for (const target of targets) {
+                    // Resting combos only for a chained cell — see
+                    // `restingCombos` for why the pairs are the dimension cut
+                    // and the roles are not.
+                    const combos = target.chain ? restingCombos(target.part) : combosFor(target.part);
+                    for (const combo of combos) {
+                        out.push({
+                            scope,
+                            part: target.part.name,
+                            ...combo,
+                            axes,
+                            ...(mods.length > 0 ? { mods } : {}),
+                            ...(target.chain ? { chain: target.chain } : {}),
+                        });
+                    }
                 }
             }
         }
     }
     return out;
 }
+
+/**
+ * A hard ceiling on the chained product, tripped rather than silently applied.
+ *
+ * A cap nobody sees reads as "covered everything" when it did not, so the
+ * count is annotated on every run and this throws when the next scope pushes
+ * it over. Raise it deliberately, with the wall-clock cost in hand — the
+ * number is per (design system, theme), which is where the multiplication
+ * that matters happens.
+ */
+const AXIS_CELL_BUDGET = 2500;
 
 // ── Colour math, shared by both matrices ────────────────────────────────────
 
@@ -508,20 +592,29 @@ const partOf = (scope: string, name: string): ManifestPart => {
     return part;
 };
 
-/** One node of a rendered chain — enough for the page to rebuild it. */
-interface NodeSpec { part: string; element: string; states: string[]; flags: string[]; pin?: string }
-
 interface IndicatorCell extends Cell {
     /** Outermost ancestor first; the indicator itself is last. */
     chain: NodeSpec[];
     glyph?: string;
 }
 
-const indicatorCells: IndicatorCell[] = INDICATORS.flatMap((spec) => {
-    const chain: NodeSpec[] = [...spec.ancestors, spec.part].map((entry) => {
+/**
+ * A declared ancestor chain, resolved against the anatomy — outermost first,
+ * the measured part last. Shared by both tables that declare nesting: the
+ * indicator matrix's `INDICATORS` and the axis matrix's `AXIS_CHAINS` (#297).
+ *
+ * The two throw-on-typo checks are the point of resolving it here rather than
+ * trusting the string: `partOf` rejects a part the anatomy does not declare,
+ * and the `=state` pin is rejected unless that part really has that state. A
+ * renamed part or a dropped state becomes a loud failure at collection time
+ * instead of a chain that silently measures the wrong node — or measures
+ * nothing, which reads identically to a clean run.
+ */
+function chainFor(scope: string, path: string[]): NodeSpec[] {
+    return path.map((entry) => {
         const [name, pin] = entry.split('=');
-        const part = partOf(spec.scope, name);
-        if (pin && !part.states?.includes(pin)) throw new Error(`${spec.scope}/${name} has no state "${pin}"`);
+        const part = partOf(scope, name);
+        if (pin && !part.states?.includes(pin)) throw new Error(`${scope}/${name} has no state "${pin}"`);
         return {
             part: name,
             element: part.element ?? 'div',
@@ -530,6 +623,10 @@ const indicatorCells: IndicatorCell[] = INDICATORS.flatMap((spec) => {
             pin,
         };
     });
+}
+
+const indicatorCells: IndicatorCell[] = INDICATORS.flatMap((spec) => {
+    const chain = chainFor(spec.scope, [...spec.ancestors, spec.part]);
     const part = partOf(spec.scope, spec.part);
     if (spec.only && !part.flags?.includes(spec.only)) {
         throw new Error(`${spec.scope}/${spec.part} has no flag "${spec.only}"`);
@@ -587,14 +684,23 @@ test('indicator coverage: every paint-only part has an ancestor chain', ({}, tes
 });
 
 /**
- * The variant surface has to be reachable from the one-element probe the TEXT
- * matrix builds. It is today — `button` is one part, and that part is its own
- * carrier — and this test is what says so when it stops being true: a
- * variant-wiring scope with text below its carrier needs the ancestor chain
- * the INDICATOR matrix builds, not a bare element, and `axisCellsFor` would
- * otherwise skip the new surface in silence.
+ * Every text-bearing part of a colour-bearing scope has to be REACHED — by the
+ * one-element probe when it is the carrier, or by a declared `AXIS_CHAINS`
+ * entry rooted at the carrier when it is not.
+ *
+ * Before #297 this said something narrower and stricter: the carrier had to be
+ * the only text-bearing part, full stop. That was the honest statement of what
+ * the probe could render, and it is why thirteen of the fourteen `variant`
+ * carriers could not be wired at all — `select`'s text lives in `trigger`,
+ * `value` and `item`, none of which is the carrier. The rule is the same
+ * ("nothing silently measures nothing"); what changed is that there is now a
+ * way to say yes.
+ *
+ * A chain must be rooted at the carrier because that is where the compiler
+ * anchors the selector. A chain rooted anywhere else would build a DOM the
+ * emitted CSS never matches, and report the unvaried colour as a pass.
  */
-test('axis coverage: every variant-wiring scope carries its axes on a text-bearing carrier', ({}, testInfo) => {
+test('axis coverage: every text-bearing part of a variant-wiring scope is reachable', ({}, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'one engine is enough');
 
     const unreachable: string[] = [];
@@ -609,20 +715,54 @@ test('axis coverage: every variant-wiring scope carries its axes on a text-beari
                 continue;
             }
             const carrier = carrierPart(component);
-            const textParts = component.parts.filter((p) => p.tokens?.includes('text')).map((p) => p.name);
-            if (!textParts.includes(carrier)) {
-                unreachable.push(`${ds}/${scope} — carrier "${carrier}" is not text-bearing (axes: ${fused.join(', ')})`);
-            }
-            for (const part of textParts) {
-                if (part !== carrier) unreachable.push(`${ds}/${scope}/${part} — text below the carrier "${carrier}"`);
+            const chained = new Map(
+                AXIS_CHAINS.filter((s) => s.scope === scope).map((s) => [s.part, s.ancestors]),
+            );
+            for (const part of component.parts) {
+                if (!part.tokens?.includes('text')) continue;
+                if (part.name === carrier) continue;
+                const ancestors = chained.get(part.name);
+                if (!ancestors) {
+                    unreachable.push(
+                        `${ds}/${scope}/${part.name} — text below the carrier "${carrier}" with no AXIS_CHAINS entry`,
+                    );
+                } else if (ancestors[0]?.split('=')[0] !== carrier) {
+                    // A chain rooted below the carrier cannot select the rule
+                    // the compiler emitted, so it would measure the unvaried
+                    // colour and call it a pass.
+                    unreachable.push(
+                        `${ds}/${scope}/${part.name} — AXIS_CHAINS entry starts at "${ancestors[0]}", not the carrier "${carrier}"`,
+                    );
+                }
             }
         }
     }
 
     expect(
         unreachable,
-        'variant surfaces the one-element probe cannot render — give the scope an ancestor chain like INDICATORS declares, or the axis cells silently measure nothing',
+        'variant surfaces nothing renders — give the part an AXIS_CHAINS entry rooted at its carrier, or the axis cells silently measure nothing',
     ).toEqual([]);
+});
+
+/**
+ * `AXIS_CHAINS` entries that name nothing, and the reverse. The table is read
+ * by the guard above as well as by the probe, so a stale entry would satisfy
+ * the guard for a part that no longer exists.
+ */
+test('axis chains: every declared chain names a real part below a real carrier', ({}, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium', 'one engine is enough');
+
+    for (const spec of AXIS_CHAINS) {
+        const component = anatomy.components.find((c) => c.scope === spec.scope);
+        expect(component, `AXIS_CHAINS names scope "${spec.scope}", which the anatomy does not declare`).toBeDefined();
+        // Throws on a part or pin the anatomy does not declare — the same two
+        // checks INDICATORS gets, from the same builder.
+        expect(() => chainFor(spec.scope, [...spec.ancestors, spec.part])).not.toThrow();
+        expect(
+            spec.ancestors[0]?.split('=')[0],
+            `AXIS_CHAINS ${spec.scope}/${spec.part} must be rooted at the carrier`,
+        ).toBe(carrierPart(component!));
+    }
 });
 
 /**
@@ -680,6 +820,20 @@ for (const ds of DESIGN_SYSTEMS) {
 
             await stage(page, theme.name);
 
+            // The chained product is the one that grows without anyone
+            // noticing, so it is counted out loud on every run and capped
+            // hard. A silent cap reads as "covered everything" when it did not.
+            const chainedCount = textCells.filter((c) => c.chain).length;
+            testInfo.annotations.push({
+                type: 'axis-cell-count',
+                description: `${ds}/${theme.name}: ${textCells.length} text cells `
+                    + `(${chainedCount} through a declared chain, budget ${AXIS_CELL_BUDGET})`,
+            });
+            expect(
+                chainedCount,
+                `chained axis cells exceed AXIS_CELL_BUDGET — raise it deliberately, with the wall-clock cost in hand`,
+            ).toBeLessThanOrEqual(AXIS_CELL_BUDGET);
+
             const readings: Reading[] = await page.evaluate(({ cells }) => {
                 const { resolve, blend, contrast, hasInk } = window.zeroColorMath;
                 const bodyBg = resolve(getComputedStyle(document.body).backgroundColor, [255, 255, 255]);
@@ -690,27 +844,76 @@ for (const ds of DESIGN_SYSTEMS) {
                 const out: Reading[] = [];
 
                 for (const cell of cells) {
-                    const el = document.createElement('div');
-                    el.setAttribute('data-scope', cell.scope);
-                    el.setAttribute('data-part', cell.part);
+                    /**
+                     * A chained cell rebuilds its declared ancestors and
+                     * measures the innermost node; an unchained one is the
+                     * one-element probe this matrix has always used. Either
+                     * way `el` is the measured element and `root` is what gets
+                     * appended and removed.
+                     *
+                     * The ancestors carry `data-scope`/`data-part` and their
+                     * `=state` pins ONLY. Their own states and flags are not
+                     * varied: the cell's state/flag belongs to the measured
+                     * part, and a chain that permuted every ancestor too would
+                     * multiply the product by the very dimension `restingCombos`
+                     * exists to bound.
+                     */
+                    const build = (part: string, tag: string): HTMLElement => {
+                        const node = document.createElement(tag);
+                        node.setAttribute('data-scope', cell.scope);
+                        node.setAttribute('data-part', part);
+                        return node;
+                    };
+                    const chain = cell.chain ?? [];
+                    let root: HTMLElement;
+                    let el: HTMLElement;
+                    if (chain.length > 0) {
+                        const nodes = chain.map((n) => {
+                            const node = build(n.part, n.element === 'input' ? 'div' : n.element);
+                            if (n.pin) node.setAttribute('data-state', n.pin);
+                            return node;
+                        });
+                        for (let i = 1; i < nodes.length; i++) nodes[i - 1].appendChild(nodes[i]);
+                        root = nodes[0];
+                        el = nodes[nodes.length - 1];
+                    } else {
+                        root = el = build(cell.part, 'div');
+                    }
                     if (cell.state) el.setAttribute('data-state', cell.state);
                     if (cell.flag) el.setAttribute('data-' + cell.flag, '');
                     // The design system's own axis surface: `data-variant`,
                     // `data-color` and any custom axis are all `data-<axis>`
                     // (VARIANT_AXES in `@sigx/zero-kit`), modifiers are
                     // presence-only under the `data-mod-` namespace.
+                    //
+                    // They go on the CHAIN ROOT, never on the probe: the
+                    // compiler emits `[data-part="root"][data-variant="x"]
+                    // [data-part="trigger"]`, so putting them on the measured
+                    // element would select a rule that does not exist and
+                    // report the unvaried colour as though the axis had been
+                    // applied (#297).
                     for (const [axis, value] of Object.entries(cell.axes ?? {})) {
-                        el.setAttribute('data-' + axis, value);
+                        root.setAttribute('data-' + axis, value);
                     }
-                    for (const mod of cell.mods ?? []) el.setAttribute('data-mod-' + mod, '');
+                    for (const mod of cell.mods ?? []) root.setAttribute('data-mod-' + mod, '');
                     el.textContent = 'Sample';
-                    document.body.appendChild(el);
+                    document.body.appendChild(root);
 
                     const cs = getComputedStyle(el);
-                    // Effective background: the part's own paint over the app
-                    // surface (parts are transparent unless the recipe fills them).
+                    /**
+                     * Effective background: the part's own paint over what is
+                     * behind it. For a chained cell that backdrop is the
+                     * nearest painted ancestor rather than the page — a menu
+                     * item sits on the popup's fill, and measuring it against
+                     * base-100 would report a contrast nobody sees.
+                     */
+                    let behind = bodyBg;
+                    for (let node = el.parentElement; node && node !== document.body; node = node.parentElement) {
+                        const nb = getComputedStyle(node).backgroundColor;
+                        if (hasInk(nb)) { behind = resolve(nb, bodyBg); break; }
+                    }
                     const ownBg = cs.backgroundColor;
-                    const bg = hasInk(ownBg) ? resolve(ownBg, bodyBg) : bodyBg;
+                    const bg = hasInk(ownBg) ? resolve(ownBg, behind) : behind;
                     // Text renders over that background; semi-transparent ink
                     // (color-mix fades) composites before measuring.
                     const ink = resolve(cs.color, bg);
@@ -728,12 +931,12 @@ for (const ds of DESIGN_SYSTEMS) {
                      * state nobody is looking at.
                      */
                     const opacity = num(cs.opacity);
-                    const seenInk = blend(ink, bodyBg, opacity);
-                    const seenBg = blend(bg, bodyBg, opacity);
+                    const seenInk = blend(ink, behind, opacity);
+                    const seenBg = blend(bg, behind, opacity);
                     out.push({
                         key: cell.key,
                         color: cs.color,
-                        bg: hasInk(ownBg) ? ownBg : 'inherit(base-100)',
+                        bg: hasInk(ownBg) ? ownBg : (chain.length > 0 ? 'inherit(ancestor)' : 'inherit(base-100)'),
                         ratio: Math.round(contrast(seenInk, seenBg) * 100) / 100,
                         inGroup: Math.round(contrast(ink, bg) * 100) / 100,
                         disabled: cell.flag === 'disabled',
@@ -743,7 +946,7 @@ for (const ds of DESIGN_SYSTEMS) {
                         // recipe hides in this state.
                         unrendered: cs.display === 'none' || cs.visibility === 'hidden' || opacity <= 0,
                     });
-                    el.remove();
+                    root.remove();
                 }
                 return out;
             }, { cells: textCells.map((c) => ({ ...c, key: cellKey(ds, theme.name, c) })) });

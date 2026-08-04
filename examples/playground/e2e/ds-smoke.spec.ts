@@ -102,6 +102,8 @@ interface Vocabulary {
     variants: string[];
     modifiers: string[];
     themes: string[];
+    /** scope → the variant values that scope wires (empty = none). */
+    scopeVariants: Record<string, string[]>;
 }
 
 interface Manifest {
@@ -112,6 +114,7 @@ interface Manifest {
         variants: string[];
         modifiers?: string[];
     };
+    components?: Record<string, { variant?: string[] }>;
 }
 
 function vocabularyOf(id: string): Vocabulary {
@@ -124,6 +127,13 @@ function vocabularyOf(id: string): Vocabulary {
         // Optional: a manifest built before modifiers existed has no such key.
         modifiers: [...(manifest.tokens.modifiers ?? [])],
         themes: manifest.themes.map((theme) => theme.name),
+        /**
+         * What each SCOPE wires, which is the question `data-variant` actually
+         * has to answer. See the check below for why the union is not enough.
+         */
+        scopeVariants: Object.fromEntries(
+            Object.entries(manifest.components ?? {}).map(([scope, wired]) => [scope, [...(wired.variant ?? [])]]),
+        ),
     };
 }
 
@@ -262,7 +272,6 @@ const readAxes = (page: Page, vocabulary: Vocabulary): Promise<RenderedAxes> =>
         const axes = [
             { attr: 'data-color', allowed: declared.colors, bucket: seen.colors },
             { attr: 'data-size', allowed: declared.sizes, bucket: seen.sizes },
-            { attr: 'data-variant', allowed: declared.variants, bucket: seen.variants },
         ];
 
         for (const el of document.querySelectorAll<HTMLElement>('*')) {
@@ -272,6 +281,37 @@ const readAxes = (page: Page, vocabulary: Vocabulary): Promise<RenderedAxes> =>
                 axis.bucket.add(value);
                 if (!axis.allowed.includes(value)) {
                     undeclared.push(`${where(el)} ${axis.attr}="${value}"`);
+                }
+            }
+            /**
+             * `data-variant` is checked against the SCOPE's vocabulary, not the
+             * design system's union — the one axis where the two differ.
+             *
+             * A scope can narrow the union (`tokens.scopes`, RFC 0003 §4.1) and
+             * most scopes wire nothing at all, so a value that is real
+             * design-system-wide can still match no rule on the component
+             * carrying it. That is #215's bug ("rendered buttons that matched
+             * nothing") one level down, and checking the union cannot see it:
+             * daisyUI declares `soft` and wires it on `button` alone, so
+             * `select[data-variant="soft"]` passed a union check while
+             * selecting nothing. Both playground demos that hit this — badge
+             * (#311) and select (#297) — were written against the union and
+             * neither failed here until this check existed.
+             */
+            const variant = el.getAttribute('data-variant');
+            const scope = el.getAttribute('data-scope');
+            if (variant !== null) {
+                // Still collected for the converse assertion — that every
+                // DECLARED value appears somewhere, which is what proves the
+                // manifest was refetched after a switch.
+                seen.variants.add(variant);
+            }
+            if (variant !== null && scope !== null) {
+                const wired = declared.scopeVariants[scope] ?? [];
+                if (!wired.includes(variant)) {
+                    undeclared.push(
+                        `${where(el)} data-variant="${variant}" — ${scope} wires ${wired.length > 0 ? wired.join(' | ') : 'no variant'}`,
+                    );
                 }
             }
             for (const attribute of el.attributes) {

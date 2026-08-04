@@ -1471,6 +1471,9 @@ export const select: RecipeInput = {
     tokens: {
         '--select-accent': 'var(--color-primary)',
         '--select-soft': 'var(--color-primary-soft)',
+        // The role's readable ink ON its own tint — what `soft` writes with.
+        // See `softInk` for the two roles that are not simply the raw token.
+        '--select-ink': softInk('primary'),
     },
     parts: {
         root: {
@@ -1587,7 +1590,52 @@ export const select: RecipeInput = {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--select-accent': `var(--color-${c})`,
             '--select-soft': `var(--color-${c}-soft)`,
+            '--select-ink': softInk(c),
         } } }])),
+        /**
+         * The first scope in this repo to wire a variant that is not the
+         * button's (#297, RFC 0003 §4.1). The vocabulary is declared in
+         * `tokens.ts` under `scopes.select` and is three of the four values
+         * button offers — see there for why `solid` is not one of them.
+         *
+         * All three move the WELL and leave the popup alone: the trigger is
+         * what sits in the page's layout beside other fields, and a menu that
+         * changed its fill with the trigger's would make one `data-variant`
+         * mean two different things.
+         */
+        variant: {
+            // The hairline well — the base already IS this, so the entry is
+            // empty on purpose. Restating it would be a second copy free to
+            // drift, and `defaultVariants` below claims it.
+            outline: {},
+            soft: {
+                trigger: {
+                    base: {
+                        background: 'var(--select-soft)',
+                        borderColor: 'transparent',
+                        color: 'var(--select-ink)',
+                    },
+                    states: {
+                        hover: { borderColor: 'var(--select-accent)' },
+                        open: { borderColor: 'var(--select-accent)' },
+                    },
+                },
+            },
+            ghost: {
+                trigger: {
+                    base: {
+                        background: 'transparent',
+                        borderColor: 'transparent',
+                    },
+                    states: {
+                        // Furniture until you reach for it — the well appears
+                        // on hover and stays while open.
+                        hover: { background: 'var(--color-base-200)', borderColor: 'var(--color-secondary)' },
+                        open: { background: 'var(--color-base-100)', borderColor: 'var(--select-accent)' },
+                    },
+                },
+            },
+        },
         size: {
             xs: { trigger: { base: { padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } } },
             sm: { trigger: { base: { padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-sm)' } } },
@@ -1596,6 +1644,9 @@ export const select: RecipeInput = {
             xl: { trigger: { base: { padding: 'var(--space-xl) var(--space-2xl)', fontSize: 'var(--text-lg)' } } },
         },
     },
+    // `outline` is the un-attributed render, so its empty entry above is a
+    // claim rather than an omission — the same shape carbon's `lg` button uses.
+    defaultVariants: { variant: 'outline' },
 };
 
 export const button: RecipeInput = {

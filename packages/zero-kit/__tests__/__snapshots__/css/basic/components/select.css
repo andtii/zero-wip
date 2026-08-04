@@ -2,6 +2,7 @@
     [data-scope="select"][data-part="root"] {
         --select-accent: var(--color-primary);
         --select-soft: var(--color-primary-soft);
+        --select-ink: var(--color-primary);
     }
 
     [data-scope="select"][data-part="root"] {
@@ -128,41 +129,78 @@
     [data-scope="select"][data-part="root"][data-color="primary"] {
         --select-accent: var(--color-primary);
         --select-soft: var(--color-primary-soft);
+        --select-ink: var(--color-primary);
     }
 
     [data-scope="select"][data-part="root"][data-color="secondary"] {
         --select-accent: var(--color-secondary);
         --select-soft: var(--color-secondary-soft);
+        --select-ink: var(--color-secondary);
     }
 
     [data-scope="select"][data-part="root"][data-color="accent"] {
         --select-accent: var(--color-accent);
         --select-soft: var(--color-accent-soft);
+        --select-ink: var(--color-accent);
     }
 
     [data-scope="select"][data-part="root"][data-color="neutral"] {
         --select-accent: var(--color-neutral);
         --select-soft: var(--color-neutral-soft);
+        --select-ink: var(--color-base-content);
     }
 
     [data-scope="select"][data-part="root"][data-color="info"] {
         --select-accent: var(--color-info);
         --select-soft: var(--color-info-soft);
+        --select-ink: var(--color-info);
     }
 
     [data-scope="select"][data-part="root"][data-color="success"] {
         --select-accent: var(--color-success);
         --select-soft: var(--color-success-soft);
+        --select-ink: var(--color-success);
     }
 
     [data-scope="select"][data-part="root"][data-color="warning"] {
         --select-accent: var(--color-warning);
         --select-soft: var(--color-warning-soft);
+        --select-ink: color-mix(in oklch, var(--color-warning) 45%, var(--color-base-content));
     }
 
     [data-scope="select"][data-part="root"][data-color="error"] {
         --select-accent: var(--color-error);
         --select-soft: var(--color-error-soft);
+        --select-ink: var(--color-error);
+    }
+
+    [data-scope="select"][data-part="root"][data-variant="soft"] [data-scope="select"][data-part="trigger"] {
+        background: var(--select-soft);
+        border-color: transparent;
+        color: var(--select-ink);
+    }
+
+    [data-scope="select"][data-part="root"][data-variant="soft"] [data-scope="select"][data-part="trigger"]:hover:not([data-disabled]) {
+        border-color: var(--select-accent);
+    }
+
+    [data-scope="select"][data-part="root"][data-variant="soft"] [data-scope="select"][data-part="trigger"][data-state="open"] {
+        border-color: var(--select-accent);
+    }
+
+    [data-scope="select"][data-part="root"][data-variant="ghost"] [data-scope="select"][data-part="trigger"] {
+        background: transparent;
+        border-color: transparent;
+    }
+
+    [data-scope="select"][data-part="root"][data-variant="ghost"] [data-scope="select"][data-part="trigger"]:hover:not([data-disabled]) {
+        background: var(--color-base-200);
+        border-color: var(--color-secondary);
+    }
+
+    [data-scope="select"][data-part="root"][data-variant="ghost"] [data-scope="select"][data-part="trigger"][data-state="open"] {
+        background: var(--color-base-100);
+        border-color: var(--select-accent);
     }
 
     [data-scope="select"][data-part="root"][data-size="xs"] [data-scope="select"][data-part="trigger"] {

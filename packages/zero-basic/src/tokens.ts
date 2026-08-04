@@ -124,6 +124,20 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
      */
     scopes: {
         badge: { variants: ['solid', 'soft', 'outline'] },
+        /**
+         * A select is a FIELD, and a field filled with the role at full
+         * strength stops reading as an input and starts reading as a button —
+         * so `solid` is the value select drops. What is left is the three ways
+         * a well can be drawn: `outline` is the hairline default, `soft` fills
+         * it with the role's tint, `ghost` removes the border until you reach
+         * for it.
+         *
+         * Radix Themes' Select reaches the same count by a different route
+         * (`classic | surface | soft | ghost` on the Trigger); the spellings
+         * are its own vocabulary, and RFC 0003 §1.1's Claim A is that zero
+         * owes the visual states, not the prop names.
+         */
+        select: { variants: ['outline', 'soft', 'ghost'] },
         // Restating the union is not redundancy — it is the explicit claim
         // "yes, button carries all four", which is the answer to the question
         // badge's narrowing raises. The validator asks it of every scope that

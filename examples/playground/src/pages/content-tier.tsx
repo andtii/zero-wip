@@ -2,7 +2,7 @@ import { component, signal } from 'sigx';
 import { Alert, Badge, Card, Divider } from '@sigx/zero';
 import type { PartProps } from '@sigx/zero';
 import { DemoRow } from '../demo/Section';
-import { pickRole, pickVariant } from '../design-systems';
+import { pickRole, pickScopeVariant } from '../design-systems';
 import type { PageEntry } from './registry';
 
 // ── Card ──────────────────────────────────────────────────────────────────
@@ -118,9 +118,15 @@ const BadgeDemos = component(() => () => (
         </p>
         <DemoRow gap="0.5rem">
             <Badge color={pickRole('primary')}>Default</Badge>
-            <Badge color={pickRole('success')} variant={pickVariant('solid')}>Active</Badge>
-            <Badge color={pickRole('warning')} variant={pickVariant('soft')}>Pending</Badge>
-            <Badge color={pickRole('error', 'danger')} variant={pickVariant('outline')}>Failed</Badge>
+            {/*
+              * `pickScopeVariant`, not `pickVariant`: only zero-basic wires a
+              * variant on badge. The other five DECLARE the same values
+              * design-system-wide and wire none of them here, so asking the
+              * union would set an attribute matching no badge rule (#297).
+              */}
+            <Badge color={pickRole('success')} variant={pickScopeVariant('badge', 'solid')}>Active</Badge>
+            <Badge color={pickRole('warning')} variant={pickScopeVariant('badge', 'soft')}>Pending</Badge>
+            <Badge color={pickRole('error', 'danger')} variant={pickScopeVariant('badge', 'outline')}>Failed</Badge>
         </DemoRow>
         <p>
             <code>asChild</code>, because a badge is so often already something
