@@ -17,12 +17,14 @@ export const avatarAnatomy = defineAnatomy('avatar', {
     },
     image: {
         element: 'img',
+        parent: 'root',
         states: ['loading', 'loaded', 'error'],
         hiddenIn: ['error'],
         asChild: true,
     },
     fallback: {
         element: 'span',
+        parent: 'root',
         states: ['loading', 'loaded', 'error'],
         hiddenIn: ['loaded'],
         tokens: ['color', 'radius-selector', 'text'],

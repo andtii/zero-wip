@@ -101,23 +101,31 @@
         --textarea-accent: var(--color-accent);
     }
 
-    [data-scope="textarea"][data-part="root"][data-size="xs"] [data-scope="textarea"][data-part="textarea"] {
-        font-size: var(--text-sm);
-        padding: var(--space-2xs) var(--space-xs);
+    @scope ([data-scope="textarea"][data-part="root"][data-size="xs"]) to ([data-scope="textarea"][data-part="root"]) {
+        [data-scope="textarea"][data-part="textarea"] {
+            font-size: var(--text-sm);
+            padding: var(--space-2xs) var(--space-xs);
+        }
     }
 
-    [data-scope="textarea"][data-part="root"][data-size="sm"] [data-scope="textarea"][data-part="textarea"] {
-        font-size: var(--text-sm);
-        padding: var(--space-xs) var(--space-sm);
+    @scope ([data-scope="textarea"][data-part="root"][data-size="sm"]) to ([data-scope="textarea"][data-part="root"]) {
+        [data-scope="textarea"][data-part="textarea"] {
+            font-size: var(--text-sm);
+            padding: var(--space-xs) var(--space-sm);
+        }
     }
 
-    [data-scope="textarea"][data-part="root"][data-size="lg"] [data-scope="textarea"][data-part="textarea"] {
-        font-size: var(--text-lg);
-        padding: var(--space-md) var(--space-lg);
+    @scope ([data-scope="textarea"][data-part="root"][data-size="lg"]) to ([data-scope="textarea"][data-part="root"]) {
+        [data-scope="textarea"][data-part="textarea"] {
+            font-size: var(--text-lg);
+            padding: var(--space-md) var(--space-lg);
+        }
     }
 
-    [data-scope="textarea"][data-part="root"][data-size="xl"] [data-scope="textarea"][data-part="textarea"] {
-        font-size: var(--text-xl);
-        padding: var(--space-lg) var(--space-xl);
+    @scope ([data-scope="textarea"][data-part="root"][data-size="xl"]) to ([data-scope="textarea"][data-part="root"]) {
+        [data-scope="textarea"][data-part="textarea"] {
+            font-size: var(--text-xl);
+            padding: var(--space-lg) var(--space-xl);
+        }
     }
 }

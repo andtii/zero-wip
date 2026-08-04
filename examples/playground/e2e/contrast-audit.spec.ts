@@ -65,6 +65,7 @@ import { test, expect, type Page } from '@playwright/test';
 // other while both drifting from what the CSS actually says (#297).
 import { carrierPart } from '@sigx/zero-kit';
 import type {
+    DesignSystemManifest,
     ManifestComponent as KitManifestComponent,
     ManifestPart as KitManifestPart,
 } from '@sigx/zero-kit';
@@ -250,20 +251,7 @@ const cellKey = (ds: string, theme: string, c: Cell): string =>
 // ── The axis surface (#207) ─────────────────────────────────────────────────
 
 /** One scope's wired axis vocabulary, as `@sigx/zero-kit` emits it. */
-interface WiredAxes {
-    color: string[];
-    size: string[];
-    variant: string[];
-    /** Declared custom axes: name → wired values. */
-    axes: Record<string, string[]>;
-    /** Presence-only modifiers — rendered `data-mod-<name>`. */
-    mods: string[];
-}
-
-interface DesignSystemManifest {
-    themes: { name: string; colorScheme: string }[];
-    components: Record<string, WiredAxes>;
-}
+type WiredAxes = DesignSystemManifest['components'][string];
 
 /** Which axes of a scope can carry colour — see `axisCellsFor`. */
 function colourBearingAxes(wired: WiredAxes): Record<string, string[]> {
@@ -310,33 +298,51 @@ function colourBearingAxes(wired: WiredAxes): Record<string, string[]> {
  * and its anatomy is one part with three resting flags.
  */
 /**
- * Text-bearing parts that sit BELOW their scope's carrier, with the chain the
- * component really renders (#297) — the axis matrix's counterpart to
- * `INDICATORS`, and read by the `axis coverage` guard as well as by the probe.
+ * Text-bearing parts that sit BELOW their scope's carrier are reached through
+ * the chain the component really renders (#297) — the axis matrix's
+ * counterpart to `INDICATORS`, and read by the `axis coverage` guard as well
+ * as by the probe.
  *
  * The one-element probe can only put `data-variant` on the carrier, because
- * that is where the compiler anchors it: the emitted rule is
- * `[data-part="root"][data-variant="x"] [data-part="trigger"]`. A scope whose
- * text lives below the carrier therefore has no measurable colour at all until
- * the ancestor is there to select on — which is why every entry's FIRST node
- * must be the carrier, and why the axis attributes go on `nodes[0]` rather
- * than on the measured element.
+ * that is where the compiler anchors it: the emitted rule is scoped to
+ * `[data-part="root"][data-variant="x"]`. A scope whose text lives below the
+ * carrier therefore has no measurable colour at all until the ancestor is
+ * there to select on — which is why every chain's FIRST node is the carrier,
+ * and why the axis attributes go on `nodes[0]` rather than on the measured
+ * element.
  *
- * `part=state` pins work exactly as they do in `INDICATORS`, and for the same
- * reason: a closed popup is `visibility: hidden`, which inherits, so an item
- * measured inside a default-state popup reports "not painted" and the cell
- * quietly leaves the matrix.
+ * DERIVED from the anatomy's part tree (`PartSpec.parent`, #317), not
+ * hand-maintained: the hand list this replaces (`AXIS_CHAINS`) restated
+ * nesting the components already knew, and a renamed part or a new
+ * variant-wiring scope had to be re-declared here by hand or its cells
+ * silently measured nothing.
+ *
+ * Every ancestor that declares an `open` state is PINNED open, the same
+ * `part=state` pin `INDICATORS` uses: a chain exists to measure a part while
+ * it is ON SCREEN, and for a popup ancestor the pin is the difference between
+ * measuring and not — a closed popup is `visibility: hidden`, which inherits,
+ * so a part measured inside a default-state popup reports "not painted" and
+ * the cell quietly leaves the matrix. For an ancestor that is visible either
+ * way (an open-capable trigger above a value) the pin simply measures the
+ * state in which the descendant is actually being read.
+ *
+ * `undefined` means the tree declares no path from the carrier down to the
+ * part — the `axis coverage` guard turns that into a named failure instead of
+ * letting the cells vanish.
  */
-interface AxisChainSpec { scope: string; part: string; ancestors: string[] }
-
-const AXIS_CHAINS: AxisChainSpec[] = [
-    // Select is the carrier #294 named and the one whose parts fan out
-    // furthest below the carrier — trigger, its value, and the popup's items
-    // are three different backdrops for one `data-variant`.
-    { scope: 'select', part: 'trigger', ancestors: ['root'] },
-    { scope: 'select', part: 'value', ancestors: ['root', 'trigger'] },
-    { scope: 'select', part: 'item', ancestors: ['root', 'popup=open'] },
-];
+function derivedChainAncestors(component: ManifestComponent, part: ManifestPart): string[] | undefined {
+    const carrier = carrierPart(component);
+    const byName = new Map(component.parts.map((p) => [p.name, p]));
+    const ancestors: string[] = [];
+    let cursor: ManifestPart | undefined = part;
+    while (cursor && cursor.name !== carrier) {
+        const parent: ManifestPart | undefined = cursor.parent === undefined ? undefined : byName.get(cursor.parent);
+        if (!parent) return undefined;
+        ancestors.unshift(parent.states?.includes('open') ? `${parent.name}=open` : parent.name);
+        cursor = parent;
+    }
+    return cursor ? ancestors : undefined;
+}
 
 /**
  * Chained axis cells are bounded to the RESTING combos — `{}` plus each state,
@@ -373,16 +379,20 @@ function axisCellsFor(components: Record<string, WiredAxes>): Cell[] {
         /**
          * Two shapes, one product. A carrier that renders text is measured by
          * the one-element probe as before; text BELOW the carrier is measured
-         * through its declared chain, with the axis attributes on the chain's
-         * root. `axis coverage` is the guard that every text-bearing part of a
-         * colour-bearing scope is reached by one of the two.
+         * through the chain the part tree derives, with the axis attributes on
+         * the chain's root. `axis coverage` is the guard that every
+         * text-bearing part of a colour-bearing scope is reached by one of the
+         * two.
          */
         const targets: Array<{ part: ManifestPart; chain?: NodeSpec[] }> = [];
         if (carrier.tokens?.includes('text')) targets.push({ part: carrier });
-        for (const spec of AXIS_CHAINS.filter((s) => s.scope === scope)) {
+        for (const part of component.parts) {
+            if (part.name === carrier.name || !part.tokens?.includes('text')) continue;
+            const ancestors = derivedChainAncestors(component, part);
+            if (!ancestors) continue; // `axis coverage` names this as a failure
             targets.push({
-                part: partOf(scope, spec.part),
-                chain: chainFor(scope, [...spec.ancestors, spec.part]),
+                part,
+                chain: chainFor(scope, [...ancestors, part.name]),
             });
         }
 
@@ -614,8 +624,8 @@ interface IndicatorCell extends Cell {
 
 /**
  * A declared ancestor chain, resolved against the anatomy — outermost first,
- * the measured part last. Shared by both tables that declare nesting: the
- * indicator matrix's `INDICATORS` and the axis matrix's `AXIS_CHAINS` (#297).
+ * the measured part last. Shared by the indicator matrix's hand-declared
+ * `INDICATORS` and the axis matrix's tree-derived chains (#297, #317).
  *
  * The two throw-on-typo checks are the point of resolving it here rather than
  * trusting the string: `partOf` rejects a part the anatomy does not declare,
@@ -699,8 +709,8 @@ test('indicator coverage: every paint-only part has an ancestor chain', ({}, tes
 
 /**
  * Every text-bearing part of a colour-bearing scope has to be REACHED — by the
- * one-element probe when it is the carrier, or by a declared `AXIS_CHAINS`
- * entry rooted at the carrier when it is not.
+ * one-element probe when it is the carrier, or through a chain the part tree
+ * derives (rooted at the carrier by construction) when it is not.
  *
  * Before #297 this said something narrower and stricter: the carrier had to be
  * the only text-bearing part, full stop. That was the honest statement of what
@@ -729,23 +739,12 @@ test('axis coverage: every text-bearing part of a variant-wiring scope is reacha
                 continue;
             }
             const carrier = carrierPart(component);
-            const chained = new Map(
-                AXIS_CHAINS.filter((s) => s.scope === scope).map((s) => [s.part, s.ancestors]),
-            );
             for (const part of component.parts) {
                 if (!part.tokens?.includes('text')) continue;
                 if (part.name === carrier) continue;
-                const ancestors = chained.get(part.name);
-                if (!ancestors) {
+                if (!derivedChainAncestors(component, part)) {
                     unreachable.push(
-                        `${ds}/${scope}/${part.name} — text below the carrier "${carrier}" with no AXIS_CHAINS entry`,
-                    );
-                } else if (ancestors[0]?.split('=')[0] !== carrier) {
-                    // A chain rooted below the carrier cannot select the rule
-                    // the compiler emitted, so it would measure the unvaried
-                    // colour and call it a pass.
-                    unreachable.push(
-                        `${ds}/${scope}/${part.name} — AXIS_CHAINS entry starts at "${ancestors[0]}", not the carrier "${carrier}"`,
+                        `${ds}/${scope}/${part.name} — text below the carrier "${carrier}" with no parent path to it`,
                     );
                 }
             }
@@ -754,29 +753,38 @@ test('axis coverage: every text-bearing part of a variant-wiring scope is reacha
 
     expect(
         unreachable,
-        'variant surfaces nothing renders — give the part an AXIS_CHAINS entry rooted at its carrier, or the axis cells silently measure nothing',
+        'variant surfaces nothing renders — declare the part tree (PartSpec.parent) down to the part, or the axis cells silently measure nothing',
     ).toEqual([]);
 });
 
 /**
- * `AXIS_CHAINS` entries that name nothing, and the reverse. The table is read
- * by the guard above as well as by the probe, so a stale entry would satisfy
- * the guard for a part that no longer exists.
+ * The derivation itself, held to the same two checks the hand list used to
+ * get: every derived chain resolves against the anatomy (a dangling parent or
+ * a pin on a state the part lost throws in `chainFor`), and it is rooted at
+ * the carrier by construction — asserted anyway, because the axis attributes
+ * go on `nodes[0]` and a chain rooted anywhere else would measure the
+ * unvaried colour and call it a pass.
  */
-test('axis chains: every declared chain names a real part below a real carrier', ({}, testInfo) => {
+test('axis chains: every derived chain resolves against the anatomy, rooted at the carrier', ({}, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'one engine is enough');
 
-    for (const spec of AXIS_CHAINS) {
-        const component = anatomy.components.find((c) => c.scope === spec.scope);
-        expect(component, `AXIS_CHAINS names scope "${spec.scope}", which the anatomy does not declare`).toBeDefined();
-        // Throws on a part or pin the anatomy does not declare — the same two
-        // checks INDICATORS gets, from the same builder.
-        expect(() => chainFor(spec.scope, [...spec.ancestors, spec.part])).not.toThrow();
-        expect(
-            spec.ancestors[0]?.split('=')[0],
-            `AXIS_CHAINS ${spec.scope}/${spec.part} must be rooted at the carrier`,
-        ).toBe(carrierPart(component!));
+    let derived = 0;
+    for (const component of anatomy.components) {
+        const carrier = carrierPart(component);
+        for (const part of component.parts) {
+            if (part.name === carrier || !part.tokens?.includes('text')) continue;
+            const ancestors = derivedChainAncestors(component, part);
+            if (!ancestors) continue;
+            derived += 1;
+            expect(() => chainFor(component.scope, [...ancestors, part.name])).not.toThrow();
+            expect(
+                ancestors[0]?.split('=')[0],
+                `derived chain for ${component.scope}/${part.name} must be rooted at the carrier`,
+            ).toBe(carrier);
+        }
     }
+    // The guard must not pass vacuously — select alone contributes three.
+    expect(derived).toBeGreaterThanOrEqual(3);
 });
 
 /**

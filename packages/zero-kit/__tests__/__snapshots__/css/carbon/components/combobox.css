@@ -144,20 +144,28 @@
         color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
     }
 
-    [data-scope="combobox"][data-part="root"][data-size="sm"] [data-scope="combobox"][data-part="control"] {
-        min-height: 2rem;
+    @scope ([data-scope="combobox"][data-part="root"][data-size="sm"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="control"] {
+            min-height: 2rem;
+        }
     }
 
-    [data-scope="combobox"][data-part="root"][data-size="lg"] [data-scope="combobox"][data-part="control"] {
-        min-height: 3rem;
+    @scope ([data-scope="combobox"][data-part="root"][data-size="lg"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="control"] {
+            min-height: 3rem;
+        }
     }
 
-    [data-scope="combobox"][data-part="root"][data-size="xl"] [data-scope="combobox"][data-part="control"] {
-        min-height: 4rem;
+    @scope ([data-scope="combobox"][data-part="root"][data-size="xl"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="control"] {
+            min-height: 4rem;
+        }
     }
 
-    [data-scope="combobox"][data-part="root"][data-size="2xl"] [data-scope="combobox"][data-part="control"] {
-        min-height: 5rem;
+    @scope ([data-scope="combobox"][data-part="root"][data-size="2xl"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="control"] {
+            min-height: 5rem;
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {

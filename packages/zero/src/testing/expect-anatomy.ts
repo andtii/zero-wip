@@ -12,13 +12,14 @@ export interface ExpectAnatomyOptions {
 }
 
 /**
- * Attributes the anatomy contract itself owns. `data-placement` is published
- * positioning data, not a flag: the fixed position strategy writes it on open
- * floats, and toast parts carry it for placement-keyed styling.
+ * Attributes the anatomy contract itself owns. `data-placement` is NOT here:
+ * it is declared contract data (`PartSpec.placements`), checked per part like
+ * `data-state` — the blanket exemption it used to have let any part carry any
+ * placement unchecked.
  */
 const CONTRACT_ATTRS = new Set([
     'data-scope', 'data-part', 'data-state', 'data-orientation',
-    'data-color', 'data-size', 'data-variant', 'data-placement',
+    'data-color', 'data-size', 'data-variant',
 ]);
 
 function fail(anatomy: Anatomy, message: string): never {
@@ -79,6 +80,19 @@ export function expectAnatomy(container: ParentNode, anatomy: Anatomy, options: 
             fail(anatomy, `part "${partName}" renders data-state="${state}", which is not in its declared set [${(spec.states ?? []).join(', ')}]`);
         }
 
+        // `data-placement` is declared contract data, exactly like states: a
+        // part that can carry it names its subset, and one that declares
+        // nothing must render nothing.
+        const placement = el.getAttribute('data-placement');
+        if (placement !== null) {
+            if (!spec.placements) {
+                fail(anatomy, `part "${partName}" renders data-placement="${placement}" but declares no placements`);
+            }
+            if (!spec.placements.includes(placement)) {
+                fail(anatomy, `part "${partName}" renders data-placement="${placement}", which is not in its declared set [${spec.placements.join(', ')}]`);
+            }
+        }
+
         // `hiddenIn` is a promise about the DOM, and design systems style
         // against it (a state that never paints needs no rule), so it is
         // checked in BOTH directions: hidden in every state it names, visible
@@ -94,8 +108,34 @@ export function expectAnatomy(container: ParentNode, anatomy: Anatomy, options: 
             }
         }
 
+        // The declared part tree, checked against the real DOM: a part with a
+        // `parent` must render somewhere INSIDE that part. Ancestors rather
+        // than the immediate parent element, because other parts and consumer
+        // markup legally sit in between (a menu item inside a group is still
+        // inside the popup). A part with no declared parent claims nothing —
+        // which is what keeps nested INSTANCES legal (a card in a card puts
+        // the inner root under the outer body, and that is not misnesting).
+        if (spec.parent) {
+            let ancestor = el.parentElement;
+            let found = false;
+            while (ancestor) {
+                if (ancestor.getAttribute('data-scope') === anatomy.scope
+                    && ancestor.getAttribute('data-part') === spec.parent) {
+                    found = true;
+                    break;
+                }
+                ancestor = ancestor.parentElement;
+            }
+            if (!found) {
+                fail(anatomy, `part "${partName}" renders outside its declared parent "${spec.parent}" — no ancestor carries data-part="${spec.parent}"`);
+            }
+        }
+
         for (const attr of el.getAttributeNames()) {
             if (!attr.startsWith('data-') || CONTRACT_ATTRS.has(attr) || axisAttrs.has(attr)) continue;
+            // Checked against the part's declared subset above — here it must
+            // only not fall through into the flag walk.
+            if (attr === 'data-placement') continue;
             // Modifiers are declared design-system vocabulary rendered through
             // `mods`, namespaced so they can never collide with flags — exempt
             // from declaration, but presence-only like every boolean attribute.

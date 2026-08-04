@@ -18,21 +18,25 @@ export const ratingGroupAnatomy = defineAnatomy('rating-group', {
     },
     label: {
         element: 'div',
+        parent: 'root',
         flags: ['disabled', 'invalid', 'required'],
         tokens: ['color', 'text'],
     },
     control: {
         element: 'div',
+        parent: 'root',
         flags: ['disabled', 'readonly', 'focus-visible'],
         tokens: ['color', 'size'],
     },
     item: {
         element: 'span',
+        parent: 'control',
         states: ['full', 'half', 'empty'],
         flags: ['highlighted', 'disabled', 'readonly', 'focus-visible'],
         tokens: ['color', 'size'],
     },
     'hidden-input': {
         element: 'input',
+        parent: 'root',
     },
 });

@@ -18,7 +18,8 @@ import type { Define } from 'sigx';
 import { createId } from '../../behaviors/create-id.js';
 import { provideFieldContext, useFieldContext, type FieldContext } from '../../behaviors/field.js';
 import { dataAttr } from '../../contract/data-attrs.js';
-import type { WithClass, WithDisabled } from '../../contract/props.js';
+import { variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
 import { fieldAnatomy } from './anatomy.js';
 
 const SCOPE = fieldAnatomy.scope;
@@ -27,6 +28,7 @@ export type FieldRootProps =
     & WithDisabled
     & Define.Prop<'invalid', boolean, false>
     & Define.Prop<'required', boolean, false>
+    & WithVariantAxes<'field'>
     & WithClass
     & Define.Slot<'default'>;
 
@@ -54,6 +56,7 @@ const FieldRoot = component<FieldRootProps>(({ props, slots }) => {
             data-disabled={dataAttr(props.disabled)}
             data-invalid={dataAttr(props.invalid)}
             data-required={dataAttr(props.required)}
+            {...variantAttrs(props)}
             class={props.class}
         >
             {slots.default?.()}

@@ -26,18 +26,22 @@ export const dialogAnatomy = defineAnatomy('dialog', {
     },
     title: {
         element: 'h2',
+        parent: 'popup',
         tokens: ['color', 'text'],
     },
     description: {
         element: 'p',
+        parent: 'popup',
         tokens: ['color', 'text'],
     },
     footer: {
         element: 'footer',
+        parent: 'popup',
         tokens: ['color'],
     },
     close: {
         element: 'button',
+        parent: 'popup',
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size'],
         asChild: true,

@@ -164,23 +164,31 @@
         --number-input-accent: var(--color-error);
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="xs"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-xs);
-        padding: 0.25rem 0.375rem;
+    @scope ([data-scope="number-input"][data-part="root"][data-size="xs"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="input"] {
+            font-size: var(--text-xs);
+            padding: 0.25rem 0.375rem;
+        }
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="sm"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-xs);
-        padding: 0.375rem 0.4375rem;
+    @scope ([data-scope="number-input"][data-part="root"][data-size="sm"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="input"] {
+            font-size: var(--text-xs);
+            padding: 0.375rem 0.4375rem;
+        }
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="lg"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-md);
-        padding: 0.625rem 0.625rem;
+    @scope ([data-scope="number-input"][data-part="root"][data-size="lg"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="input"] {
+            font-size: var(--text-md);
+            padding: 0.625rem 0.625rem;
+        }
     }
 
-    [data-scope="number-input"][data-part="root"][data-size="xl"] [data-scope="number-input"][data-part="input"] {
-        font-size: var(--text-lg);
-        padding: 0.75rem 0.75rem;
+    @scope ([data-scope="number-input"][data-part="root"][data-size="xl"]) to ([data-scope="number-input"][data-part="root"]) {
+        [data-scope="number-input"][data-part="input"] {
+            font-size: var(--text-lg);
+            padding: 0.75rem 0.75rem;
+        }
     }
 }

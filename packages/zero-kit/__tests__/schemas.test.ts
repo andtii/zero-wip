@@ -26,6 +26,9 @@ import {
     TOKEN_CATEGORIES,
     SIZE_SCALE_LIST,
     FLAG_VOCABULARY,
+    STATE_VOCABULARY,
+    STATE_SYNONYMS,
+    PLACEMENT_VOCABULARY,
 } from '@sigx/zero/contract';
 import { buildReport, compileDesignSystem } from '@sigx/zero-kit';
 import type { DesignSystemInput, ManifestComponent } from '@sigx/zero-kit';
@@ -94,6 +97,11 @@ const manifest = {
         state: 'data-state',
         flagForm: 'presence (data-<flag>=""), never "false"',
         flagVocabulary: [...FLAG_VOCABULARY],
+        stateVocabulary: Object.fromEntries(
+            Object.entries(STATE_VOCABULARY).map(([family, states]) => [family, [...states]]),
+        ),
+        stateSynonyms: { ...STATE_SYNONYMS },
+        placementVocabulary: [...PLACEMENT_VOCABULARY],
         variantAxes: {
             color: 'data-color',
             size: 'data-size',

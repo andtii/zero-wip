@@ -43,8 +43,16 @@ export type {
 } from './vocabulary.js';
 export { cssVar, token } from './vocabulary.js';
 
-export type { FlagName, Orientation } from './data-attrs.js';
-export { FLAG_VOCABULARY, dataAttr, stateAttr } from './data-attrs.js';
+export type { FlagName, Orientation, PlacementName } from './data-attrs.js';
+export {
+    FLAG_VOCABULARY,
+    STATE_VOCABULARY,
+    STATE_NAMES,
+    STATE_SYNONYMS,
+    PLACEMENT_VOCABULARY,
+    dataAttr,
+    stateAttr,
+} from './data-attrs.js';
 
 export type { Anatomy, AnatomyJSON, PartSpec, PartJSON, PartPseudo, TokenHint } from './anatomy.js';
 export { defineAnatomy } from './anatomy.js';

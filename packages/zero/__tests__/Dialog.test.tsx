@@ -37,6 +37,18 @@ describe('Dialog', () => {
         expect(container.querySelector('[data-part="backdrop"]')).toBeNull();
     });
 
+    it('passes the variant axes through on the trigger (the carrier part)', () => {
+        render(
+            <Dialog.Root>
+                <Dialog.Trigger color="primary" size="sm">Open</Dialog.Trigger>
+            </Dialog.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-scope="dialog"][data-part="trigger"]')!;
+        expect(trigger.getAttribute('data-color')).toBe('primary');
+        expect(trigger.getAttribute('data-size')).toBe('sm');
+    });
+
     it('labels the popup from rendered title and description', () => {
         mount(container, signal({ open: false }));
         const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;

@@ -18,6 +18,7 @@ export const toggleGroupAnatomy = defineAnatomy('toggle-group', {
     },
     item: {
         element: 'button',
+        parent: 'root',
         states: ['on', 'off'],
         flags: ['disabled', 'selected', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'text'],

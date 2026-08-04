@@ -9,12 +9,14 @@ export const collapsibleAnatomy = defineAnatomy('collapsible', {
     },
     trigger: {
         element: 'summary',
+        parent: 'root',
         states: ['open', 'closed'],
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size', 'text'],
     },
     panel: {
         element: 'div',
+        parent: 'root',
         states: ['open', 'closed'],
         tokens: ['color', 'text'],
     },

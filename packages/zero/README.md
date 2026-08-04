@@ -107,8 +107,15 @@ ecosystem package can ship a component zero doesn't — same anatomy contract,
 same behaviors, held to the same conformance assertion:
 
 - `defineAnatomy` (from `@sigx/zero/anatomy` or the root) declares the scope,
-  parts, closed `data-state` sets, flags and `hiddenIn` — and `toJSON()`
+  parts, closed `data-state` sets, flags, `hiddenIn`, the part tree
+  (`parent` — which same-scope part each part renders inside) and, for parts
+  that carry `data-placement`, the `placements` subset — and `toJSON()`
   emits exactly the shape zero's own `manifest.json` carries per component.
+  States are governed: every value must be a member of `STATE_VOCABULARY`
+  (with `STATE_SYNONYMS` naming the member for a rejected spelling), flags of
+  `FLAG_VOCABULARY`, placements of `PLACEMENT_VOCABULARY` — and
+  `mergeManifests` enforces all three on published fragments, so an ecosystem
+  scope cannot invent synonyms either.
 - `@sigx/zero/behaviors` — controllable state, SSR-safe ids, roving tabindex,
   dismissal, focus management, list/tree registration, typeahead, anchor
   positioning, press feedback.
@@ -119,9 +126,10 @@ same behaviors, held to the same conformance assertion:
 - `@sigx/zero/testing` — `expectAnatomy(container, anatomy)`, the assertion
   zero's own test suite runs against every rendered part: declared parts
   only, states from the closed set, flags declared and presence-only,
-  `hidden` exactly where `hiddenIn` says. It throws a plain `Error`, so it
-  works under any test runner. A component rendering custom axes names them:
-  `expectAnatomy(el, anatomy, { axes: ['emphasis'] })`.
+  `data-placement` from the part's declared subset, DOM nesting matching the
+  declared part tree, and `hidden` exactly where `hiddenIn` says. It throws a
+  plain `Error`, so it works under any test runner. A component rendering
+  custom axes names them: `expectAnatomy(el, anatomy, { axes: ['emphasis'] })`.
 
 ## For tooling / AI
 
@@ -134,6 +142,10 @@ same behaviors, held to the same conformance assertion:
   those states never paint, so a design system may leave them unstyled (and
   need not tell them apart from a visible state), and a generator can skip
   emitting them.
+- A part's `parent` names the same-scope part it renders inside — the
+  anatomy's part TREE, from which tooling derives real ancestor chains
+  (the contrast audit builds its measurement DOM from it) instead of
+  hand-maintaining nesting tables. Top-level parts omit it.
 - **A slotted default is a text node; a consumer's symbol is an element.**
   Where zero renders default content at all, it renders bare text — no
   wrapper. That is a difference CSS can see, and design systems depend on it

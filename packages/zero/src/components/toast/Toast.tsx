@@ -38,7 +38,8 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled } from '../../contract/props.js';
+import { variantAttrs } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
 import { toastAnatomy } from './anatomy.js';
 import { createToaster, useToaster, type Toaster, type ToastData } from './toaster.js';
 
@@ -185,6 +186,7 @@ const ToastViewport = component<ToastViewportProps>(({ props, slots, onMounted }
 
 export type ToastRootProps =
     & Define.Prop<'toast', ToastData, true>
+    & WithVariantAxes<'toast'>
     & WithClass
     & Define.Slot<'default'>;
 
@@ -250,12 +252,21 @@ const ToastRoot = component<ToastRootProps>(({ props, slots, signal, onMounted, 
 
     const index = (): number => viewport.toaster().toasts().findIndex((t) => t.id === props.toast.id);
 
+    // The queue's per-toast colour is the common path (`toast({ color })`);
+    // an explicit prop on a composed root wins over it, and both flow through
+    // the shared `variantAttrs` guard rather than a hand-rolled attribute.
     return () => (
         <li
             data-scope={SCOPE}
             data-part="root"
             data-state={stateAttr(props.toast.open, 'open', 'closed')}
-            data-color={props.toast.color}
+            {...variantAttrs({
+                color: props.color ?? props.toast.color,
+                size: props.size,
+                variant: props.variant,
+                axes: props.axes,
+                mods: props.mods,
+            })}
             data-placement={viewport.placement()}
             role={props.toast.role === 'alert' ? 'alert' : 'status'}
             aria-atomic="true"

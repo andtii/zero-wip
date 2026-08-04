@@ -15,31 +15,37 @@ export const sliderAnatomy = defineAnatomy('slider', {
     },
     label: {
         element: 'label',
+        parent: 'root',
         flags: ['disabled'],
         tokens: ['color', 'text'],
     },
     control: {
         element: 'input',
+        parent: 'root',
         flags: ['disabled', 'invalid', 'focus-visible', 'pressed'],
         tokens: ['color', 'radius-selector', 'size'],
     },
     track: {
         element: 'div',
+        parent: 'root',
         flags: ['disabled'],
         tokens: ['color', 'radius-selector', 'size'],
     },
     range: {
         element: 'div',
+        parent: 'track',
         flags: ['disabled'],
         tokens: ['color', 'radius-selector'],
     },
     thumb: {
         element: 'div',
+        parent: 'track',
         flags: ['disabled', 'pressed'],
         tokens: ['color', 'radius-selector', 'size'],
     },
     'value-text': {
         element: 'output',
+        parent: 'root',
         tokens: ['color', 'text'],
     },
 }, { orientation: true });

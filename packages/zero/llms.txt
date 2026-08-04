@@ -289,11 +289,16 @@ named model bound as `model:<stateName>` in JSX (sigx
 `default<StateName>` + `<stateName>Change`. Combobox: `model` = selected
 value, `model:inputValue` = text, `model:open` = open.
 
-Variant axes (`color`/`size`/`variant`) are accepted by Alert, Avatar, Badge,
-Button, Card, Checkbox, Combobox, Divider, Input, NumberInput, Progress,
-RadioGroup, RatingGroup, Select, Skeleton, Slider, Spinner, Switch, Tabs,
-Textarea, Toggle, ToggleGroup and TreeView;
-they pass through as
+Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
+Avatar, Badge, Button, Card, Checkbox, Collapsible, Combobox, Dialog, Divider,
+Field, Input, Menu, NumberInput, Popover, Progress, RadioGroup, RatingGroup,
+Select, Skeleton, Slider, Spinner, Switch, Tabs, Textarea, Toast, Toggle,
+ToggleGroup, Tooltip and TreeView;
+that is every component. Where the Root renders a fragment (a
+dialog/menu/popover/tooltip) the props live on the Trigger, which renders the
+carrier part the compiled axis selectors anchor on, and Toast routes the
+queue's `toast({ color })` through the same pass-through with an explicit prop
+on a composed Root winning. The axes pass through as
 data-* and zero attaches no styling to them. Button is the worked example:
 route `color` through a component token pair (`--btn-accent` and its
 content colour) that the `variant` rules read, so the two axes compose

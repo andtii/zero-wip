@@ -170,49 +170,59 @@
         --combobox-accent: var(--color-error);
     }
 
-    [data-scope="combobox"][data-part="root"][data-size="xs"] [data-scope="combobox"][data-part="control"] {
-        height: calc(var(--size-field) * 8);
+    @scope ([data-scope="combobox"][data-part="root"][data-size="xs"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="control"] {
+            height: calc(var(--size-field) * 8);
+        }
+
+        [data-scope="combobox"][data-part="input"] {
+            padding: var(--space-2xs) var(--space-md);
+            font-size: var(--text-xs);
+        }
     }
 
-    [data-scope="combobox"][data-part="root"][data-size="xs"] [data-scope="combobox"][data-part="input"] {
-        padding: var(--space-2xs) var(--space-md);
-        font-size: var(--text-xs);
+    @scope ([data-scope="combobox"][data-part="root"][data-size="sm"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="control"] {
+            height: calc(var(--size-field) * 10);
+        }
+
+        [data-scope="combobox"][data-part="input"] {
+            padding: var(--space-xs) var(--space-md);
+            font-size: var(--text-sm);
+        }
     }
 
-    [data-scope="combobox"][data-part="root"][data-size="sm"] [data-scope="combobox"][data-part="control"] {
-        height: calc(var(--size-field) * 10);
+    @scope ([data-scope="combobox"][data-part="root"][data-size="md"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="control"] {
+            height: calc(var(--size-field) * 12);
+        }
+
+        [data-scope="combobox"][data-part="input"] {
+            padding: var(--space-sm) var(--space-lg);
+            font-size: var(--text-sm);
+        }
     }
 
-    [data-scope="combobox"][data-part="root"][data-size="sm"] [data-scope="combobox"][data-part="input"] {
-        padding: var(--space-xs) var(--space-md);
-        font-size: var(--text-sm);
+    @scope ([data-scope="combobox"][data-part="root"][data-size="lg"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="control"] {
+            height: calc(var(--size-field) * 14);
+        }
+
+        [data-scope="combobox"][data-part="input"] {
+            padding: var(--space-md) var(--space-xl);
+            font-size: var(--text-md);
+        }
     }
 
-    [data-scope="combobox"][data-part="root"][data-size="md"] [data-scope="combobox"][data-part="control"] {
-        height: calc(var(--size-field) * 12);
-    }
+    @scope ([data-scope="combobox"][data-part="root"][data-size="xl"]) to ([data-scope="combobox"][data-part="root"]) {
+        [data-scope="combobox"][data-part="control"] {
+            height: calc(var(--size-field) * 16);
+        }
 
-    [data-scope="combobox"][data-part="root"][data-size="md"] [data-scope="combobox"][data-part="input"] {
-        padding: var(--space-sm) var(--space-lg);
-        font-size: var(--text-sm);
-    }
-
-    [data-scope="combobox"][data-part="root"][data-size="lg"] [data-scope="combobox"][data-part="control"] {
-        height: calc(var(--size-field) * 14);
-    }
-
-    [data-scope="combobox"][data-part="root"][data-size="lg"] [data-scope="combobox"][data-part="input"] {
-        padding: var(--space-md) var(--space-xl);
-        font-size: var(--text-md);
-    }
-
-    [data-scope="combobox"][data-part="root"][data-size="xl"] [data-scope="combobox"][data-part="control"] {
-        height: calc(var(--size-field) * 16);
-    }
-
-    [data-scope="combobox"][data-part="root"][data-size="xl"] [data-scope="combobox"][data-part="input"] {
-        padding: var(--space-lg) var(--space-2xl);
-        font-size: var(--text-lg);
+        [data-scope="combobox"][data-part="input"] {
+            padding: var(--space-lg) var(--space-2xl);
+            font-size: var(--text-lg);
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {

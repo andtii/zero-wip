@@ -18,7 +18,8 @@ import { createControllableState, type ControllableState } from '../../behaviors
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
-import type { WithClass, WithDisabled } from '../../contract/props.js';
+import { variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
 import { collapsibleAnatomy } from './anatomy.js';
 
 const SCOPE = collapsibleAnatomy.scope;
@@ -48,6 +49,7 @@ export type CollapsibleRootProps =
     & Define.Prop<'defaultOpen', boolean, false>
     & Define.Event<'openChange', boolean>
     & WithDisabled
+    & WithVariantAxes<'collapsible'>
     & WithClass
     & Define.Slot<'default'>;
 
@@ -69,6 +71,7 @@ const CollapsibleRoot = component<CollapsibleRootProps>(({ props, slots, emit })
             data-part="root"
             data-state={stateAttr(state.value, 'open', 'closed')}
             data-disabled={dataAttr(props.disabled)}
+            {...variantAttrs(props)}
             open={state.value}
             class={props.class}
         >

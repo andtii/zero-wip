@@ -129,17 +129,9 @@
         --slider-thumb-size: calc(var(--size-selector) * 4);
     }
 
-    [data-scope="slider"][data-part="root"][data-size="xs"] [data-scope="slider"][data-part="label"] {
-        font-size: var(--text-xs);
-    }
-
     [data-scope="slider"][data-part="root"][data-size="sm"] {
         --slider-track-size: calc(var(--size-selector) * 1.5);
         --slider-thumb-size: calc(var(--size-selector) * 4.5);
-    }
-
-    [data-scope="slider"][data-part="root"][data-size="sm"] [data-scope="slider"][data-part="label"] {
-        font-size: var(--text-sm);
     }
 
     [data-scope="slider"][data-part="root"][data-size="lg"] {
@@ -147,17 +139,33 @@
         --slider-thumb-size: calc(var(--size-selector) * 6);
     }
 
-    [data-scope="slider"][data-part="root"][data-size="lg"] [data-scope="slider"][data-part="label"] {
-        font-size: var(--text-md);
-    }
-
     [data-scope="slider"][data-part="root"][data-size="xl"] {
         --slider-track-size: calc(var(--size-selector) * 4);
         --slider-thumb-size: calc(var(--size-selector) * 7);
     }
 
-    [data-scope="slider"][data-part="root"][data-size="xl"] [data-scope="slider"][data-part="label"] {
-        font-size: var(--text-lg);
+    @scope ([data-scope="slider"][data-part="root"][data-size="xs"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="slider"][data-part="root"][data-size="sm"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="label"] {
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="slider"][data-part="root"][data-size="lg"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="label"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="slider"][data-part="root"][data-size="xl"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="label"] {
+            font-size: var(--text-lg);
+        }
     }
 
     @media (forced-colors: active) {

@@ -102,74 +102,102 @@
         border-block-start: var(--border) solid var(--color-outline);
     }
 
-    [data-scope="toggle-group"][data-part="root"][data-size="xs"] [data-scope="toggle-group"][data-part="item"] {
-        font-size: var(--text-xs);
-        padding: var(--space-2xs) var(--space-2xs);
+    @scope ([data-scope="toggle-group"][data-part="root"][data-size="xs"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            font-size: var(--text-xs);
+            padding: var(--space-2xs) var(--space-2xs);
+        }
     }
 
-    [data-scope="toggle-group"][data-part="root"][data-size="sm"] [data-scope="toggle-group"][data-part="item"] {
-        font-size: var(--text-xs);
-        padding: var(--space-2xs) var(--space-xs);
+    @scope ([data-scope="toggle-group"][data-part="root"][data-size="sm"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            font-size: var(--text-xs);
+            padding: var(--space-2xs) var(--space-xs);
+        }
     }
 
-    [data-scope="toggle-group"][data-part="root"][data-size="lg"] [data-scope="toggle-group"][data-part="item"] {
-        font-size: var(--text-sm);
-        padding: var(--space-xs) var(--space-md);
+    @scope ([data-scope="toggle-group"][data-part="root"][data-size="lg"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            font-size: var(--text-sm);
+            padding: var(--space-xs) var(--space-md);
+        }
     }
 
-    [data-scope="toggle-group"][data-part="root"][data-size="xl"] [data-scope="toggle-group"][data-part="item"] {
-        font-size: var(--text-md);
-        padding: var(--space-sm) var(--space-lg);
+    @scope ([data-scope="toggle-group"][data-part="root"][data-size="xl"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            font-size: var(--text-md);
+            padding: var(--space-sm) var(--space-lg);
+        }
     }
 
-    [data-scope="toggle-group"][data-part="root"][data-color="primary"] [data-scope="toggle-group"][data-part="item"] {
-        --toggle-group-fill: var(--color-primary-soft);
-        --toggle-group-on-fill: var(--color-primary);
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="primary"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-fill: var(--color-primary-soft);
+            --toggle-group-on-fill: var(--color-primary);
+        }
     }
 
-    [data-scope="toggle-group"][data-part="root"][data-color="secondary"] [data-scope="toggle-group"][data-part="item"] {
-        --toggle-group-fill: var(--color-secondary-soft);
-        --toggle-group-on-fill: var(--color-secondary);
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="secondary"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-fill: var(--color-secondary-soft);
+            --toggle-group-on-fill: var(--color-secondary);
+        }
     }
 
-    [data-scope="toggle-group"][data-part="root"]:not([data-color]) [data-scope="toggle-group"][data-part="item"] {
-        --toggle-group-fill: var(--color-secondary-soft);
-        --toggle-group-on-fill: var(--color-secondary);
+    @scope ([data-scope="toggle-group"][data-part="root"]:not([data-color])) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-fill: var(--color-secondary-soft);
+            --toggle-group-on-fill: var(--color-secondary);
+        }
     }
 
-    [data-scope="toggle-group"][data-part="root"][data-color="tertiary"] [data-scope="toggle-group"][data-part="item"] {
-        --toggle-group-fill: var(--color-tertiary-soft);
-        --toggle-group-on-fill: var(--color-tertiary);
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="tertiary"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-fill: var(--color-tertiary-soft);
+            --toggle-group-on-fill: var(--color-tertiary);
+        }
     }
 
-    [data-scope="toggle-group"][data-part="root"][data-color="error"] [data-scope="toggle-group"][data-part="item"] {
-        --toggle-group-fill: var(--color-error-soft);
-        --toggle-group-on-fill: var(--color-error);
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="error"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-fill: var(--color-error-soft);
+            --toggle-group-on-fill: var(--color-error);
+        }
     }
 
-    [data-scope="toggle-group"][data-part="root"][data-color="neutral"] [data-scope="toggle-group"][data-part="item"] {
-        --toggle-group-fill: var(--color-neutral-soft);
-        --toggle-group-on-fill: var(--color-neutral);
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="neutral"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-fill: var(--color-neutral-soft);
+            --toggle-group-on-fill: var(--color-neutral);
+        }
     }
 
-    [data-scope="toggle-group"][data-part="root"][data-color="info"] [data-scope="toggle-group"][data-part="item"] {
-        --toggle-group-fill: var(--color-info-soft);
-        --toggle-group-on-fill: var(--color-info);
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="info"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-fill: var(--color-info-soft);
+            --toggle-group-on-fill: var(--color-info);
+        }
     }
 
-    [data-scope="toggle-group"][data-part="root"][data-color="success"] [data-scope="toggle-group"][data-part="item"] {
-        --toggle-group-fill: var(--color-success-soft);
-        --toggle-group-on-fill: var(--color-success);
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="success"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-fill: var(--color-success-soft);
+            --toggle-group-on-fill: var(--color-success);
+        }
     }
 
-    [data-scope="toggle-group"][data-part="root"][data-color="warning"] [data-scope="toggle-group"][data-part="item"] {
-        --toggle-group-fill: var(--color-warning-soft);
-        --toggle-group-on-fill: var(--color-warning);
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="warning"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-fill: var(--color-warning-soft);
+            --toggle-group-on-fill: var(--color-warning);
+        }
     }
 
-    [data-scope="toggle-group"][data-part="root"][data-color="accent"] [data-scope="toggle-group"][data-part="item"] {
-        --toggle-group-fill: var(--color-accent-soft);
-        --toggle-group-on-fill: var(--color-accent);
+    @scope ([data-scope="toggle-group"][data-part="root"][data-color="accent"]) to ([data-scope="toggle-group"][data-part="root"]) {
+        [data-scope="toggle-group"][data-part="item"] {
+            --toggle-group-fill: var(--color-accent-soft);
+            --toggle-group-on-fill: var(--color-accent);
+        }
     }
 
     @media (hover: none) {

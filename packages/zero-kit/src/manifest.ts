@@ -16,7 +16,13 @@
  * compile gate, the api emitters' import specifiers) reads it from there.
  */
 import type { ManifestComponent, ZeroManifest } from './contract.js';
-import { TOKEN_KEY_PATTERN } from './contract.js';
+import {
+    FLAG_VOCABULARY,
+    PLACEMENT_VOCABULARY,
+    STATE_NAMES,
+    STATE_SYNONYMS,
+    TOKEN_KEY_PATTERN,
+} from './contract.js';
 
 /**
  * The shape of a bare or scoped npm specifier, optionally with subpath
@@ -35,7 +41,21 @@ const PACKAGE_SPECIFIER_PATTERN = /^(@[a-z0-9~][\w.~-]*\/)?[a-z0-9~][\w.~-]*(\/[
  */
 const CSS_BREAKOUT = /[{};\n\r]/;
 
+/**
+ * The version of the fragment CONTRACT this kit understands. A fragment
+ * declares the version it was built against; the merge hard-errors on a
+ * missing or unknown one, because an unversioned fragment merges whatever
+ * contract era it came from — a pre-`hiddenIn` fragment used to slide
+ * straight through (#317 item 5).
+ */
+export const FRAGMENT_VERSION = 1;
+
 export interface ManifestFragment {
+    /**
+     * The fragment contract version this fragment was built against —
+     * `FRAGMENT_VERSION` at publish time. Required: see the constant.
+     */
+    version: number;
     /**
      * The package that owns these scopes — provenance for diagnostics, the
      * import specifier for api-mode emitters, and required on purpose: an
@@ -71,6 +91,12 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
         if (!PACKAGE_SPECIFIER_PATTERN.test(fragment.package)) {
             throw new Error(`[zero-kit] ${where}: "${fragment.package}" is not a package specifier — it becomes an import specifier in generated artifacts`);
         }
+        if (fragment.version === undefined) {
+            throw new Error(`[zero-kit] ${where} declares no "version" — a fragment states the contract version it was built against (currently ${FRAGMENT_VERSION}), so a stale one fails here instead of merging silently`);
+        }
+        if (fragment.version !== FRAGMENT_VERSION) {
+            throw new Error(`[zero-kit] ${where} declares fragment version ${fragment.version}, but this kit understands version ${FRAGMENT_VERSION} — rebuild the fragment against a matching @sigx/zero-kit`);
+        }
         if (!Array.isArray(fragment.components) || fragment.components.length === 0) {
             throw new Error(`[zero-kit] ${where} has no "components" array — nothing to merge`);
         }
@@ -102,6 +128,61 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                     if (CSS_BREAKOUT.test(fragmentSelector)) {
                         throw new Error(`[zero-kit] ${where}: selector for "${component.scope}"."${part.name}" state "${state}" cannot hold a brace, semicolon or newline — it is spliced into compiled selectors verbatim`);
                     }
+                }
+            }
+            // The shared vocabularies, enforced on the ECOSYSTEM surface.
+            // Zero's own anatomies are governed by zero's test suite and
+            // `defineAnatomy` carries no runtime guard (it is on every
+            // component's size budget) — so a published fragment's flags,
+            // states, placements and part tree are checked HERE, where the
+            // fragment joins the pipeline. The "no synonyms" rule finally
+            // binds for third-party scopes.
+            const flagSet = new Set<string>(FLAG_VOCABULARY);
+            const placementSet = new Set<string>(PLACEMENT_VOCABULARY);
+            const partNames = new Set(component.parts.map((p) => p.name));
+            const at = (part: string) => `${where}: "${component.scope}"."${part}"`;
+            for (const part of component.parts) {
+                for (const flag of part.flags ?? []) {
+                    if (!flagSet.has(flag)) {
+                        throw new Error(`[zero-kit] ${at(part.name)} declares flag "${flag}", which is not in the shared flag vocabulary [${FLAG_VOCABULARY.join(', ')}] — components never invent synonyms`);
+                    }
+                }
+                for (const state of part.states ?? []) {
+                    if (!STATE_NAMES.has(state)) {
+                        const synonym = STATE_SYNONYMS[state];
+                        throw new Error(`[zero-kit] ${at(part.name)} declares state "${state}", which is not in the governed state vocabulary${synonym ? ` — use "${synonym}"` : ''}`);
+                    }
+                }
+                for (const placement of part.placements ?? []) {
+                    if (!placementSet.has(placement)) {
+                        throw new Error(`[zero-kit] ${at(part.name)} declares placement "${placement}", which is not in the placement vocabulary [${PLACEMENT_VOCABULARY.join(', ')}]`);
+                    }
+                }
+                for (const state of part.hiddenIn ?? []) {
+                    if (!(part.states ?? []).includes(state)) {
+                        throw new Error(`[zero-kit] ${at(part.name)} declares hiddenIn "${state}", which is not one of the part's own states`);
+                    }
+                }
+                if (part.parent !== undefined) {
+                    if (part.parent === part.name) {
+                        throw new Error(`[zero-kit] ${at(part.name)} declares itself as its own parent`);
+                    }
+                    if (!partNames.has(part.parent)) {
+                        throw new Error(`[zero-kit] ${at(part.name)} declares parent "${part.parent}", which is not a declared part`);
+                    }
+                }
+            }
+            // Acyclicity over the whole tree — bounded walk per part, so a
+            // cycle fails by name instead of hanging the build.
+            const byName = new Map(component.parts.map((p) => [p.name, p]));
+            for (const part of component.parts) {
+                let cursor = part.parent;
+                let hops = 0;
+                while (cursor !== undefined) {
+                    if (++hops > component.parts.length) {
+                        throw new Error(`[zero-kit] ${at(part.name)}: parent chain does not terminate (cycle)`);
+                    }
+                    cursor = byName.get(cursor)?.parent;
                 }
             }
             const owner = owners.get(component.scope);

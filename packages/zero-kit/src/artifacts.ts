@@ -6,7 +6,7 @@
  * dist/css/tokens.css
  * dist/css/components/<scope>.css
  * dist/css/index.css
- * dist/manifest.json        (DS-level: name, themes, declared tokens, per-component wired axes)
+ * dist/manifest.json        (DS-level: versioned envelope, themes, declared tokens, per-component wired axes)
  * dist/register.d.ts        (GENERATED ZeroVocabulary augmentation — RFC 0002 §5)
  * dist/register.js          (empty module so the /register subpath resolves)
  * dist/report.json          (coverage report — RFC 0003 §7.4; only when given one)
@@ -15,12 +15,80 @@
  * ```
  */
 import { mkdir, writeFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createRequire } from 'node:module';
+import { Ajv2020 } from 'ajv/dist/2020.js';
+import type { ValidateFunction } from 'ajv/dist/2020.js';
 import { TOKEN_KEY_PATTERN } from './contract.js';
-import type { CompiledDesignSystem } from './design-system.js';
+import type { CompiledComponentApi } from './api.js';
+import type {
+    CompiledComponentAxes,
+    CompiledDesignSystem,
+    CompiledTheme,
+} from './design-system.js';
 import type { DesignSystemReport } from './resolve/report.js';
 import { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
 import { compileComponentsDts, compileComponentsJs } from './targets/web/components-dts.js';
+
+const require = createRequire(import.meta.url);
+
+/**
+ * The version of the DS manifest's SHAPE — `manifestVersion` in every emitted
+ * dist/manifest.json, and the constant a consumer checks against instead of
+ * sniffing keys. Bumped only on an incompatible change to the manifest
+ * contract; `schemas/ds-manifest.schema.json` pins the same number.
+ */
+export const DS_MANIFEST_VERSION = 1;
+
+const DS_MANIFEST_SCHEMA_URL = 'https://signalxjs.github.io/zero/schemas/ds-manifest.schema.json';
+
+/**
+ * The manifest a compiled design system ships as `dist/manifest.json` — the
+ * versioned envelope around the compiled form's themes/tokens/components.
+ * Exported so consumers (the playground, e2e suites, docs tooling) type the
+ * file from the kit instead of hand-declaring the shape, which is how every
+ * one of them had drifted before the version existed (#317 item 5).
+ *
+ * NOT the zero anatomy manifest: `@sigx/zero/manifest.json` describes zero's
+ * component anatomies and validates against `manifest.schema.json`. The two
+ * artifacts share a basename and nothing else.
+ */
+export interface DesignSystemManifest {
+    $schema: typeof DS_MANIFEST_SCHEMA_URL;
+    manifestVersion: typeof DS_MANIFEST_VERSION;
+    /** The @sigx/zero contract version compiled against (lockstep with the kit). */
+    zeroVersion: string;
+    name: string;
+    themes: CompiledTheme[];
+    tokens: CompiledDesignSystem['tokens'];
+    /** Scope → wired axes (scope names remain reachable as this record's keys). */
+    components: Record<string, CompiledComponentAxes>;
+    /** Scope → the vendor-named API surface — present iff the DS declares an `api` (#179). */
+    api?: Record<string, CompiledComponentApi>;
+}
+
+/**
+ * The schema, loaded from wherever this module runs: `dist/schemas/` in the
+ * published package (the build copies them beside the compiled output),
+ * `../schemas/` when running from source under the test aliases.
+ */
+let validateManifest: ValidateFunction | null = null;
+function manifestValidator(): ValidateFunction {
+    if (validateManifest) return validateManifest;
+    // require.resolve rather than new URL(import.meta.url): under a test
+    // transform import.meta.url is not a file: URL, while createRequire
+    // normalizes it either way.
+    let path: string;
+    try {
+        path = require.resolve('./schemas/ds-manifest.schema.json');
+    } catch {
+        path = require.resolve('../schemas/ds-manifest.schema.json');
+    }
+    const raw = readFileSync(path, 'utf8');
+    const ajv = new Ajv2020({ allErrors: true, strict: true, allowUnionTypes: true });
+    return (validateManifest = ajv.compile(JSON.parse(raw) as Record<string, unknown>));
+}
 
 /**
  * `report` is a parameter rather than something built here because
@@ -44,6 +112,37 @@ export async function writeArtifacts(
         written.push(path);
     };
 
+    const manifest: DesignSystemManifest = {
+        $schema: DS_MANIFEST_SCHEMA_URL,
+        manifestVersion: DS_MANIFEST_VERSION,
+        // Lockstep versioning: the kit's own version IS the zero contract
+        // version it emits for.
+        zeroVersion: (require('../package.json') as { version: string }).version,
+        name: compiled.name,
+        themes: compiled.themes,
+        tokens: compiled.tokens,
+        // Scope → wired axes (was a bare scope-name array; the scope names
+        // remain reachable as this record's keys).
+        components: compiled.components,
+        // Scope → the vendor-named API surface, for tooling and the
+        // conformance matrix's generated rows (issue #179).
+        ...(compiled.componentApi ? { api: compiled.componentApi } : {}),
+    };
+    // Self-validation: a manifest the schema rejects fails the build that
+    // PRODUCES it, not the app that reads it. JSON-roundtripped first so the
+    // thing validated is byte-for-byte the thing written.
+    const emitted: unknown = JSON.parse(JSON.stringify(manifest));
+    const validate = manifestValidator();
+    if (!validate(emitted)) {
+        const details = validate.errors
+            ?.map((e) => `  ${e.instancePath || '(root)'} ${e.message ?? ''}`)
+            .join('\n');
+        throw new Error(
+            `[zero-kit] the compiled manifest for "${compiled.name}" does not validate against `
+            + `ds-manifest.schema.json — refusing to write it:\n${details}`,
+        );
+    }
+
     await write(join(cssDir, 'tokens.css'), compiled.tokensCss);
     for (const [scope, css] of Object.entries(compiled.componentCss)) {
         // Backstop for direct callers: every pipeline entry (zero's registry,
@@ -58,24 +157,7 @@ export async function writeArtifacts(
         await write(join(componentsDir, `${scope}.css`), css);
     }
     await write(join(cssDir, 'index.css'), compiled.indexCss);
-    await write(
-        join(outDir, 'manifest.json'),
-        JSON.stringify(
-            {
-                name: compiled.name,
-                themes: compiled.themes,
-                tokens: compiled.tokens,
-                // Scope → wired axes (was a bare scope-name array; the scope
-                // names remain reachable as this record's keys).
-                components: compiled.components,
-                // Scope → the vendor-named API surface, for tooling and the
-                // conformance matrix's generated rows (issue #179).
-                ...(compiled.componentApi ? { api: compiled.componentApi } : {}),
-            },
-            null,
-            2,
-        ),
-    );
+    await write(join(outDir, 'manifest.json'), JSON.stringify(emitted, null, 2));
     await write(join(outDir, 'register.d.ts'), compileRegisterDts(compiled));
     await write(join(outDir, 'register.js'), compileRegisterJs(compiled));
     if (compiled.componentApi) {

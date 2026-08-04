@@ -84,6 +84,20 @@ describe('Field', () => {
     });
 });
 
+describe('Field (variant axes)', () => {
+    it('passes the variant axes through on the root', () => {
+        render(
+            <Field.Root color="primary" size="lg">
+                <Field.Label>Email</Field.Label>
+            </Field.Root>,
+            container,
+        );
+        const root = container.querySelector<HTMLElement>('[data-scope="field"][data-part="root"]')!;
+        expect(root.getAttribute('data-color')).toBe('primary');
+        expect(root.getAttribute('data-size')).toBe('lg');
+    });
+});
+
 describe('RadioGroup', () => {
     it('renders anatomy with a shared generated name and syncs the model', () => {
         const state = signal({ plan: 'free' });
@@ -246,6 +260,22 @@ describe('Accordion', () => {
         mount(state, true);
         container.querySelectorAll<HTMLElement>('[data-part="trigger"]')[1]!.click();
         expect(state.open).toEqual(['a', 'b']);
+    });
+
+    it('passes the variant axes through on the root', () => {
+        render(
+            <Accordion.Root color="primary" size="sm">
+                <Accordion.Item value="a">
+                    <Accordion.Trigger>Section A</Accordion.Trigger>
+                    <Accordion.Panel>Content A</Accordion.Panel>
+                </Accordion.Item>
+            </Accordion.Root>,
+            container,
+        );
+        const root = container.querySelector<HTMLElement>('[data-scope="accordion"][data-part="root"]')!;
+        expect(root.getAttribute('data-color')).toBe('primary');
+        expect(root.getAttribute('data-size')).toBe('sm');
+        expectAnatomy(container, accordionAnatomy);
     });
 
     it('publishes press feedback on a trigger press and release', () => {

@@ -238,29 +238,39 @@
         --select-soft: var(--color-accent-soft);
     }
 
-    [data-scope="select"][data-part="root"][data-size="xs"] [data-scope="select"][data-part="trigger"] {
-        padding: var(--space-2xs) var(--space-xs);
-        font-size: var(--text-xs);
+    @scope ([data-scope="select"][data-part="root"][data-size="xs"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            padding: var(--space-2xs) var(--space-xs);
+            font-size: var(--text-xs);
+        }
     }
 
-    [data-scope="select"][data-part="root"][data-size="sm"] [data-scope="select"][data-part="trigger"] {
-        padding: var(--space-xs) var(--space-sm);
-        font-size: var(--text-sm);
+    @scope ([data-scope="select"][data-part="root"][data-size="sm"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            padding: var(--space-xs) var(--space-sm);
+            font-size: var(--text-sm);
+        }
     }
 
-    [data-scope="select"][data-part="root"][data-size="md"] [data-scope="select"][data-part="trigger"] {
-        padding: var(--space-sm) var(--space-md);
-        font-size: var(--text-md);
+    @scope ([data-scope="select"][data-part="root"][data-size="md"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            padding: var(--space-sm) var(--space-md);
+            font-size: var(--text-md);
+        }
     }
 
-    [data-scope="select"][data-part="root"][data-size="lg"] [data-scope="select"][data-part="trigger"] {
-        padding: var(--space-md) var(--space-lg);
-        font-size: var(--text-lg);
+    @scope ([data-scope="select"][data-part="root"][data-size="lg"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            padding: var(--space-md) var(--space-lg);
+            font-size: var(--text-lg);
+        }
     }
 
-    [data-scope="select"][data-part="root"][data-size="xl"] [data-scope="select"][data-part="trigger"] {
-        padding: var(--space-lg) var(--space-xl);
-        font-size: var(--text-xl);
+    @scope ([data-scope="select"][data-part="root"][data-size="xl"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            padding: var(--space-lg) var(--space-xl);
+            font-size: var(--text-xl);
+        }
     }
 
     @media (hover: none) {

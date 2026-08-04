@@ -32,6 +32,19 @@ describe('Tooltip', () => {
         expect(popup.getAttribute('role')).toBe('tooltip');
     });
 
+    it('passes the variant axes through on the trigger (the carrier part)', () => {
+        render(
+            <Tooltip.Root>
+                <Tooltip.Trigger color="primary" size="sm">Save</Tooltip.Trigger>
+                <Tooltip.Popup>Save the document</Tooltip.Popup>
+            </Tooltip.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-scope="tooltip"][data-part="trigger"]')!;
+        expect(trigger.getAttribute('data-color')).toBe('primary');
+        expect(trigger.getAttribute('data-size')).toBe('sm');
+    });
+
     it('opens after the hover delay and closes on leave', () => {
         mount();
         const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;

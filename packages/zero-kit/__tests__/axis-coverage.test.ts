@@ -159,7 +159,53 @@ const NO_VARIANT: Record<string, string> = {
         + 'Rate has size and character, no style axis.',
     'tree-view': 'no surveyed system varies a tree — Ant Design\'s Tree styles '
         + 'through showLine / blockNode / classNames, not a style axis.',
+
+    // ── The Contract v1 carriers (#317 item 4): the eight scopes that had no
+    //    axis surface at all. Several DO carry a variant in a surveyed system,
+    //    and none of the six skins declares a vocabulary for them yet — the
+    //    same "not declared yet" status the rest of this ledger records. ──
+    accordion: 'HeroUI v2 Accordion varies as light | shadow | bordered | '
+        + 'splitted; no shipped skin declares a vocabulary for it yet (#321).',
+    collapsible: 'no surveyed system varies a bare disclosure — the chrome '
+        + 'belongs to the accordion it usually composes into.',
+    dialog: 'no surveyed system varies a dialog\'s chrome — Radix, HeroUI and '
+        + 'Material all size it and leave the surface singular.',
+    field: 'no surveyed system varies a form-field wrapper — the variant '
+        + 'lives on the control inside it (Radix TextField\'s '
+        + 'classic | surface | soft).',
+    menu: 'no surveyed system varies a menu — Radix DropdownMenu and HeroUI '
+        + 'Dropdown style through the item, not a style axis.',
+    popover: 'no surveyed system varies a popover surface.',
+    toast: 'Chakra\'s toast varies as solid | subtle | left-accent | '
+        + 'top-accent; no shipped skin declares a vocabulary for it yet '
+        + '(#321) — colour, its actual axis here, IS wired (toast.color).',
+    tooltip: 'Ant Design Tooltip varies by `color`, not a chrome variant; '
+        + 'HeroUI colours it through its fused variant, undeclared for '
+        + 'tooltip in the shipped skins.',
 };
+
+/**
+ * (scope, axis) pairs a design system may leave unwired FOR NOW — the
+ * ledgered exception to the colour/size rule below, in the same
+ * bound-from-both-ends style as `NO_VARIANT`.
+ *
+ * Every entry here is DEBT with an issue, not a decision: the Contract v1
+ * carriers (#317 item 4) landed their runtime axis surface in one coordinated
+ * break, and the recipes that answer it are per-skin work tracked in #321.
+ * The stale check below deletes entries as the skins wire them; letting one
+ * linger past its recipes would silently re-open the accepts-but-unwired hole
+ * this file exists to close.
+ */
+const UNWIRED_AXES: Record<string, string> = Object.fromEntries([
+    ...['accordion', 'collapsible', 'dialog', 'field', 'menu', 'popover', 'tooltip']
+        .flatMap((scope) => [
+            [`${scope}.color`, 'Contract v1 carrier — per-skin wiring tracked in #321'],
+            [`${scope}.size`, 'Contract v1 carrier — per-skin wiring tracked in #321'],
+        ]),
+    // toast.color is wired (the previously-unreachable recipes #317 made
+    // reachable); only the size ramp is still per-skin work.
+    ['toast.size', 'Contract v1 carrier — per-skin wiring tracked in #321'],
+]);
 
 const CHECKED_AXES = (['color', 'size'] as const);
 
@@ -196,10 +242,41 @@ describe('no component accepts an axis no design system wires', () => {
             // would make this fail for a reason it was not built to catch.
             if (!wired) continue;
             for (const axis of CHECKED_AXES) {
+                if (`${scope}.${axis}` in UNWIRED_AXES) continue;
                 if (declared[axis] && wired[axis].length === 0) gaps.push(`${scope}.${axis}`);
             }
         }
         expect(gaps, `${name} accepts these axes at runtime and wires nothing for them`).toEqual([]);
+    });
+
+    // The unwired ledger, bound from both ends like NO_VARIANT: an entry must
+    // name a real carrier, and it must still be describing a real gap — an
+    // entry whose axis every declaring skin now wires is dead weight that
+    // would absorb the next regression.
+    it('every UNWIRED_AXES entry names a real carrier and axis', () => {
+        for (const key of Object.keys(UNWIRED_AXES)) {
+            const [scope, axis] = key.split('.') as [string, string];
+            expect(carriers, `UNWIRED_AXES: "${scope}" is not a variant-axes carrier`).toContain(scope);
+            expect(CHECKED_AXES as readonly string[], `UNWIRED_AXES: "${axis}" is not a checked axis`).toContain(axis);
+        }
+    });
+
+    it('every UNWIRED_AXES entry still describes a gap in some design system', () => {
+        const stale = Object.keys(UNWIRED_AXES).filter((key) => {
+            const [scope, axis] = key.split('.') as [string, 'color' | 'size'];
+            return !Object.values(designSystems).some((ds) => {
+                const declared = axis === 'color'
+                    ? Object.keys(ds.tokens.roles).length > 0
+                    : ds.tokens.sizes.length > 0;
+                const wired = ds.components[scope];
+                return declared && wired !== undefined && wired[axis].length === 0;
+            });
+        });
+        expect(
+            stale,
+            'these axes are now wired by every design system that declares them — delete the entry '
+                + '(and close its box on #321), or it silently absorbs the next regression',
+        ).toEqual([]);
     });
 
     // The ledger has to bind from both ends, because the two ways it goes

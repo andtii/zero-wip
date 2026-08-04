@@ -69,6 +69,8 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test, expect, type Page } from '@playwright/test';
+import { DS_MANIFEST_VERSION } from '@sigx/zero-kit';
+import type { DesignSystemManifest } from '@sigx/zero-kit';
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 
@@ -106,33 +108,26 @@ interface Vocabulary {
     scopeVariants: Record<string, string[]>;
 }
 
-interface Manifest {
-    themes: { name: string }[];
-    tokens: {
-        roles: Record<string, unknown>;
-        sizes: string[];
-        variants: string[];
-        modifiers?: string[];
-    };
-    components?: Record<string, { variant?: string[] }>;
-}
-
 function vocabularyOf(id: string): Vocabulary {
     const path = join(repoRoot, 'packages', `zero-${id}`, 'dist', 'manifest.json');
-    const manifest = JSON.parse(readFileSync(path, 'utf8')) as Manifest;
+    // The kit's own manifest type, version-checked — not a hand-declared
+    // mirror with `?? []` drift defenses (#317 item 5).
+    const manifest = JSON.parse(readFileSync(path, 'utf8')) as DesignSystemManifest;
+    if (manifest.manifestVersion !== DS_MANIFEST_VERSION) {
+        throw new Error(`${id}: manifest declares version ${String(manifest.manifestVersion)}, this suite reads ${DS_MANIFEST_VERSION}`);
+    }
     return {
         colors: Object.keys(manifest.tokens.roles),
         sizes: [...manifest.tokens.sizes],
         variants: [...manifest.tokens.variants],
-        // Optional: a manifest built before modifiers existed has no such key.
-        modifiers: [...(manifest.tokens.modifiers ?? [])],
+        modifiers: [...manifest.tokens.modifiers],
         themes: manifest.themes.map((theme) => theme.name),
         /**
          * What each SCOPE wires, which is the question `data-variant` actually
          * has to answer. See the check below for why the union is not enough.
          */
         scopeVariants: Object.fromEntries(
-            Object.entries(manifest.components ?? {}).map(([scope, wired]) => [scope, [...(wired.variant ?? [])]]),
+            Object.entries(manifest.components).map(([scope, wired]) => [scope, [...wired.variant]]),
         ),
     };
 }

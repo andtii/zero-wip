@@ -85,20 +85,28 @@
         color: color-mix(in oklab, var(--color-base-content) 78%, transparent);
     }
 
-    [data-scope="slider"][data-part="root"][data-size="sm"] [data-scope="slider"][data-part="control"] {
-        height: 2rem;
+    @scope ([data-scope="slider"][data-part="root"][data-size="sm"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="control"] {
+            height: 2rem;
+        }
     }
 
-    [data-scope="slider"][data-part="root"][data-size="lg"] [data-scope="slider"][data-part="control"] {
-        height: 3rem;
+    @scope ([data-scope="slider"][data-part="root"][data-size="lg"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="control"] {
+            height: 3rem;
+        }
     }
 
-    [data-scope="slider"][data-part="root"][data-size="xl"] [data-scope="slider"][data-part="control"] {
-        height: 4rem;
+    @scope ([data-scope="slider"][data-part="root"][data-size="xl"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="control"] {
+            height: 4rem;
+        }
     }
 
-    [data-scope="slider"][data-part="root"][data-size="2xl"] [data-scope="slider"][data-part="control"] {
-        height: 5rem;
+    @scope ([data-scope="slider"][data-part="root"][data-size="2xl"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="control"] {
+            height: 5rem;
+        }
     }
 
     @media (forced-colors: active) {

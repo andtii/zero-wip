@@ -116,18 +116,42 @@ function partProjection(
 }
 
 /**
- * Selector for a part narrowed by a variant axis value. On the carrier part
- * the attribute sits on the element itself; on other parts it is inherited
- * from the carrier ancestor.
+ * Where a part's axis-narrowed rules attach. On the carrier part the
+ * attribute sits on the element itself, so the rule is flat. On any other
+ * part the attribute is on the carrier ANCESTOR — and a bare descendant
+ * selector (`[carrier][attr] [part]`) is unbounded: nest one instance of the
+ * scope inside another (card in card) and the outer carrier's axis rules
+ * reach the inner instance's parts too, with source order rather than
+ * proximity deciding which value wins.
+ *
+ * So a non-carrier rule is emitted inside an `@scope` DONUT instead:
+ *
+ *     @scope ([carrier][attr]) to ([carrier]) { [part] { … } }
+ *
+ * The axis-carrying carrier is the scoping root, any nested same-scope
+ * carrier is the lower boundary (its subtree leaves the scope), and when two
+ * instances both carry a value, CSS scoping proximity — which outranks source
+ * order — resolves each part to its NEAREST carrier. An unscoped rule counts
+ * as infinitely far, so the axis refinement also keeps beating the flat base
+ * rules it used to outrank by specificity.
+ *
+ * Returned as a prelude + inner selector rather than one string because the
+ * donut is an at-rule: it joins the emission sink as a condition on the
+ * rule's path (nesting correctly under/over `@media` and friends), not as a
+ * selector fragment.
  */
-function variantSelector(
+function variantTarget(
     component: ManifestComponent,
     part: string,
     axisAttrs: string,
-): string {
+): { selector: string; scopePrelude?: string } {
     const carrier = carrierPart(component);
-    if (part === carrier) return `${partSelector(component.scope, part)}${axisAttrs}`;
-    return `${partSelector(component.scope, carrier)}${axisAttrs} ${partSelector(component.scope, part)}`;
+    if (part === carrier) return { selector: `${partSelector(component.scope, part)}${axisAttrs}` };
+    const carrierSelector = partSelector(component.scope, carrier);
+    return {
+        selector: partSelector(component.scope, part),
+        scopePrelude: `@scope (${carrierSelector}${axisAttrs}) to (${carrierSelector})`,
+    };
 }
 
 /** One resolved `at` key. `tier`/`ordinal` decide emission order. */
@@ -378,20 +402,32 @@ export function compileRecipeCss(
         emitPartStyles(component, partName, styles, partSelector(component.scope, host), sink, context, registry, suffix);
     }
 
+    // One resolver for every axis-narrowed emission: flat on the carrier, an
+    // `@scope` donut condition on any other part — see `variantTarget`.
+    const emitVariantStyles = (
+        partName: string,
+        styles: PartStyles,
+        axisAttrs: string,
+    ): void => {
+        const { host, suffix } = partProjection(component, partName);
+        const target = variantTarget(component, host, axisAttrs);
+        const path = target.scopePrelude
+            ? [resolveCondition(target.scopePrelude, context, `recipe for "${component.scope}"."${partName}"`, registry)]
+            : [];
+        emitPartStyles(component, partName, styles, target.selector, sink, context, registry, suffix, path);
+    };
+
     for (const [axis, values] of Object.entries(recipe.variants ?? {})) {
         const attr = axisAttr(axis, component.scope);
         for (const [value, parts] of Object.entries(values)) {
             for (const [partName, styles] of Object.entries(parts)) {
-                const { host, suffix } = partProjection(component, partName);
-                const selector = variantSelector(component, host, `[${attr}="${assertAxisToken('value', value, component.scope)}"]`);
-                emitPartStyles(component, partName, styles, selector, sink, context, registry, suffix);
+                emitVariantStyles(partName, styles, `[${attr}="${assertAxisToken('value', value, component.scope)}"]`);
 
                 // CSS-only default: the same styles apply when the attribute
                 // is absent. Never conflicts with the explicit-value rule —
                 // the attribute is either present or not.
                 if (recipe.defaultVariants?.[axis] === value) {
-                    const dflt = variantSelector(component, host, `:not([${attr}])`);
-                    emitPartStyles(component, partName, styles, dflt, sink, context, registry, suffix);
+                    emitVariantStyles(partName, styles, `:not([${attr}])`);
                 }
             }
         }
@@ -401,9 +437,7 @@ export function compileRecipeCss(
     for (const [name, parts] of Object.entries(recipe.modifiers ?? {})) {
         const attr = modAttr(name, component.scope);
         for (const [partName, styles] of Object.entries(parts)) {
-            const { host, suffix } = partProjection(component, partName);
-            const selector = variantSelector(component, host, `[${attr}]`);
-            emitPartStyles(component, partName, styles, selector, sink, context, registry, suffix);
+            emitVariantStyles(partName, styles, `[${attr}]`);
         }
     }
 
@@ -430,13 +464,12 @@ export function compileRecipeCss(
             [''],
         );
         for (const [partName, styles] of Object.entries(compoundVariant.parts)) {
-            const { host, suffix } = partProjection(component, partName);
             // Separate rules rather than one comma-joined selector:
             // `emitPartStyles` appends pseudo-element suffixes, state selectors
             // and `&` substitutions to what it is handed, and those bind only to
             // the last selector of a list.
             for (const attrs of matches) {
-                emitPartStyles(component, partName, styles, variantSelector(component, host, attrs), sink, context, registry, suffix);
+                emitVariantStyles(partName, styles, attrs);
             }
         }
     }

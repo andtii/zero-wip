@@ -18,6 +18,12 @@ import { stepperAnatomy } from './anatomy.js';
  * every downstream artifact records.
  */
 export const fragment = {
+    // The fragment contract version this package was built against
+    // (`FRAGMENT_VERSION` in @sigx/zero-kit) — a literal rather than the
+    // constant, because the kit import must stay type-only for this entry to
+    // remain loadable without the kit at runtime. mergeManifests hard-errors
+    // on a mismatch, which is the point: a stale fragment fails by name.
+    version: 1,
     package: '@sigx/zero-ext-example',
     components: [stepperAnatomy.toJSON()],
 };

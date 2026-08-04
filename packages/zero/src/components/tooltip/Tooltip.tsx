@@ -22,7 +22,8 @@ import { createId } from '../../behaviors/create-id.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled } from '../../contract/props.js';
+import { variantAttrs } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
 import { tooltipAnatomy } from './anatomy.js';
 
 const SCOPE = tooltipAnatomy.scope;
@@ -128,6 +129,7 @@ const TooltipRoot = component<TooltipRootProps>(({ props, slots, emit, onUnmount
 export type TooltipTriggerProps =
     & WithDisabled
     & WithClass
+    & WithVariantAxes<'tooltip'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -137,6 +139,7 @@ const TooltipTrigger = component<TooltipTriggerProps>(({ props, slots }) => {
     const bag = (): PartProps => ({
         'data-scope': SCOPE,
         'data-part': 'trigger',
+        ...variantAttrs(props),
         'data-state': stateAttr(tooltip.state.value, 'open', 'closed'),
         'data-disabled': dataAttr(props.disabled),
         'aria-describedby': tooltip.state.value ? tooltip.ids.popup : undefined,

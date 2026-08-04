@@ -104,6 +104,13 @@ scope rather than the part: zero puts one attribute per axis on the scope's
 carrier and cascades it to every part below, so two vocabularies inside one
 component are two **axes** — declare the second in `axes`. See RFC 0003 §4.1.
 
+The cascade to inner parts is emitted as an `@scope` donut
+(`@scope ([carrier][attr]) to ([carrier]) { [part] { … } }`) rather than an
+unbounded descendant selector: nest one instance of a scope inside another (a
+card in a card) and each part resolves its axis to the NEAREST carrier by CSS
+scoping proximity, instead of source order deciding which instance's value
+leaks through.
+
 Not every modifier is an axis, either. An axis answers *which one* and always
 carries a value; some design-system modifiers answer *is it on* and carry none
 — daisyUI's `block` and `wide`, Radix's `high-contrast`, HeroUI's `icon-only`.
@@ -306,10 +313,15 @@ contract helpers — see zero's "Building your own components") and publishes a
 
 ```json
 {
+    "version": 1,
     "package": "@acme/zero-stepper",
     "components": [ /* defineAnatomy(...).toJSON() */ ]
 }
 ```
+
+`version` is the fragment contract version (`FRAGMENT_VERSION`) and is
+required — the merge hard-errors on a missing or unknown one, so a fragment
+built against an older contract fails by name instead of merging silently.
 
 A design system that wants to cover it merges the fragment —
 `--extra-manifest` on the CLI, or `mergeManifests(base, fragment)` in a
@@ -317,7 +329,11 @@ A design system that wants to cover it merges the fragment —
 any other. Everything downstream is scope-agnostic, so validation, recipe
 compilation, the vocabulary system and the coverage report all just work; the
 merge hard-errors on a scope collision, which is why fragment scopes should
-carry a vendor prefix (`acme-stepper`).
+carry a vendor prefix (`acme-stepper`). It also holds the fragment to the
+shared vocabularies — flags, governed states (a synonym like `expanded` fails
+with "use `open`"), placements, `hiddenIn ⊆ states` and an acyclic part
+tree — so the "no synonyms" rule binds on the ecosystem surface, not only on
+zero's own anatomies.
 
 Provenance travels with the merge. Merged scopes are tracked as *external* on
 the compiled design system (`externalScopes`), the generated `register.d.ts`
@@ -402,6 +418,13 @@ URL where they will be served (publishing tracked on the docs repo):
 - `https://signalxjs.github.io/zero/schemas/manifest.schema.json` — the
   `@sigx/zero` anatomy manifest (`dist/manifest.json` declares it as its
   `$schema`)
+- `https://signalxjs.github.io/zero/schemas/ds-manifest.schema.json` — the
+  **design-system** manifest a compiled DS ships as `dist/manifest.json`.
+  A different artifact from the anatomy manifest — the two share a basename
+  and nothing else. Versioned (`manifestVersion`, `DS_MANIFEST_VERSION` in
+  code, the `DesignSystemManifest` type on the package root), and
+  `writeArtifacts` self-validates against it before writing, so a shape break
+  fails the build that produces the manifest rather than the app that reads it
 - `https://signalxjs.github.io/zero/schemas/report.schema.json` — the coverage
   report (`dist/report.json` declares it as its `$schema`)
 - `https://signalxjs.github.io/zero/schemas/fragment.schema.json` — the

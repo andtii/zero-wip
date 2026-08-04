@@ -28,12 +28,15 @@ const baseManifest = () => ({
 
 // An ecosystem anatomy, minted with the same public helper a real peer
 // package uses — vendor-prefixed scope, per the documented convention.
+// States drawn from the governed vocabulary: the merge now enforces it, and
+// the original `idle | stepping` fixture was the first thing it rejected.
 const stepperAnatomy = defineAnatomy('acme-stepper', {
-    'root': { element: 'div', states: ['idle', 'stepping'] },
-    'step': { element: 'button', states: ['active', 'inactive'], flags: ['disabled'] },
+    'root': { element: 'div', states: ['active', 'inactive'] },
+    'step': { element: 'button', parent: 'root', states: ['active', 'inactive'], flags: ['disabled'] },
 });
 
 const fragment = (): ManifestFragment => ({
+    version: 1,
     package: '@acme/zero-stepper',
     components: [stepperAnatomy.toJSON() as ManifestComponent],
 });
@@ -81,6 +84,7 @@ describe('mergeManifests', () => {
 
     it('hard-errors on a scope collision, naming both owners', () => {
         const shadowing: ManifestFragment = {
+            version: 1,
             package: '@acme/zero-tabs',
             components: [{ scope: 'tabs', parts: [{ name: 'root', element: 'div', selectors: {} }] }],
         };
@@ -90,12 +94,23 @@ describe('mergeManifests', () => {
             .toThrow(/redeclares scope "acme-stepper", already owned by @acme\/zero-stepper/);
     });
 
+    it('rejects a fragment without a version, or with one this kit does not know', () => {
+        // Pre-version fragments merged silently whatever contract era they
+        // were built in (a pre-hiddenIn fragment slid straight through) —
+        // required, so the mistake is a named error at the merge (#317 item 5).
+        const { version: _dropped, ...unversioned } = fragment();
+        expect(() => mergeManifests(baseManifest(), unversioned as ManifestFragment))
+            .toThrow(/declares no "version"/);
+        expect(() => mergeManifests(baseManifest(), { ...fragment(), version: 2 }))
+            .toThrow(/fragment version 2.*version 1/s);
+    });
+
     it('rejects a fragment without provenance or without components', () => {
         expect(() => mergeManifests(baseManifest(), { components: fragment().components } as ManifestFragment))
             .toThrow(/declares no "package"/);
-        expect(() => mergeManifests(baseManifest(), { package: '@acme/zero-stepper', components: [] }))
+        expect(() => mergeManifests(baseManifest(), { version: 1, package: '@acme/zero-stepper', components: [] }))
             .toThrow(/no "components" array/);
-        expect(() => mergeManifests(baseManifest(), { package: '@acme/x', components: [{} as ManifestComponent] }))
+        expect(() => mergeManifests(baseManifest(), { version: 1, package: '@acme/x', components: [{} as ManifestComponent] }))
             .toThrow(/without a "scope" and "parts"/);
     });
 
@@ -110,11 +125,57 @@ describe('mergeManifests', () => {
 
     it('rejects a component whose parts are not anatomy-shaped', () => {
         const malformed: ManifestFragment = {
+            version: 1,
             package: '@acme/zero-stepper',
             components: [{ scope: 'acme-stepper', parts: [{ name: 'root' } as ManifestComponent['parts'][number]] }],
         };
         expect(() => mergeManifests(baseManifest(), malformed))
             .toThrow(/part without "name", "element" and "selectors"/);
+    });
+
+    // ── Vocabulary governance on the ecosystem surface (#317 item 3) ──
+    // `defineAnatomy` accepts any flag/state name (it is on every component's
+    // size budget), and zero's own anatomies are checked by zero's test
+    // suite. A published fragment had NEITHER check — `flags: ['busy']`
+    // sailed through — so the merge is where the "no synonyms" rule finally
+    // binds for ecosystem packages.
+
+    const withPart = (part: Partial<ManifestComponent['parts'][number]>): ManifestFragment => ({
+        version: 1,
+        package: '@acme/zero-stepper',
+        components: [{
+            scope: 'acme-stepper',
+            parts: [{ name: 'root', element: 'div', selectors: {}, ...part }],
+        }],
+    });
+
+    it('rejects a fragment flag outside the shared vocabulary', () => {
+        expect(() => mergeManifests(baseManifest(), withPart({ flags: ['busy'] })))
+            .toThrow(/flag "busy".*vocabulary/s);
+    });
+
+    it('rejects a fragment state outside the governed vocabulary, naming the synonym', () => {
+        expect(() => mergeManifests(baseManifest(), withPart({ states: ['expanded', 'collapsed'] })))
+            .toThrow(/state "expanded".*use "open"/s);
+        expect(() => mergeManifests(baseManifest(), withPart({ states: ['levitating'] })))
+            .toThrow(/state "levitating"/);
+    });
+
+    it('rejects a fragment placement outside the placement vocabulary', () => {
+        expect(() => mergeManifests(baseManifest(), withPart({ placements: ['center'] })))
+            .toThrow(/placement "center"/);
+    });
+
+    it('rejects hiddenIn naming a state the part does not declare', () => {
+        expect(() => mergeManifests(baseManifest(), withPart({ states: ['open', 'closed'], hiddenIn: ['inactive'] })))
+            .toThrow(/hiddenIn "inactive"/);
+    });
+
+    it('rejects a dangling or self-referential parent', () => {
+        expect(() => mergeManifests(baseManifest(), withPart({ parent: 'ghost' })))
+            .toThrow(/parent "ghost"/);
+        expect(() => mergeManifests(baseManifest(), withPart({ parent: 'root' })))
+            .toThrow(/its own parent/);
     });
 });
 
@@ -163,6 +224,7 @@ describe('a merged ecosystem scope in the pipeline', () => {
 
 describe('fragment hardening (#318)', () => {
     const rawFragment = (component: Partial<ManifestComponent>): ManifestFragment => ({
+        version: 1,
         package: '@acme/zero-evil',
         components: [{
             scope: 'acme-widget',

@@ -40,6 +40,21 @@ describe('Menu', () => {
         expect(container.querySelector('[data-part="separator"]')!.getAttribute('role')).toBe('separator');
     });
 
+    it('passes the variant axes through on the trigger (the carrier part)', () => {
+        render(
+            <Menu.Root>
+                <Menu.Trigger color="primary" size="sm">Actions</Menu.Trigger>
+                <Menu.Popup>
+                    <Menu.Item value="rename">Rename</Menu.Item>
+                </Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-scope="menu"][data-part="trigger"]')!;
+        expect(trigger.getAttribute('data-color')).toBe('primary');
+        expect(trigger.getAttribute('data-size')).toBe('sm');
+    });
+
     it('opens on click and on ArrowDown', () => {
         mount();
         const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;

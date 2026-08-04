@@ -1,4 +1,5 @@
 import { defineAnatomy } from '../../contract/anatomy.js';
+import { PLACEMENT_VOCABULARY } from '../../contract/data-attrs.js';
 
 export const menuAnatomy = defineAnatomy('menu', {
     trigger: {
@@ -11,10 +12,12 @@ export const menuAnatomy = defineAnatomy('menu', {
     popup: {
         element: 'div',
         states: ['open', 'closed'],
+        placements: [...PLACEMENT_VOCABULARY],
         tokens: ['color', 'radius-box'],
     },
     item: {
         element: 'div',
+        parent: 'popup',
         flags: ['disabled', 'highlighted', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'text'],
         asChild: true,
@@ -24,6 +27,7 @@ export const menuAnatomy = defineAnatomy('menu', {
     // it visually active after focus moves into the submenu.
     'sub-trigger': {
         element: 'div',
+        parent: 'popup',
         states: ['open', 'closed'],
         flags: ['disabled', 'highlighted', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'text'],
@@ -33,7 +37,9 @@ export const menuAnatomy = defineAnatomy('menu', {
     // axis (translateX) without descendant selectors.
     'sub-popup': {
         element: 'div',
+        parent: 'popup',
         states: ['open', 'closed'],
+        placements: [...PLACEMENT_VOCABULARY],
         tokens: ['color', 'radius-box'],
     },
     // The right-click surface. Additive (context menu = the same menu opened
@@ -50,13 +56,16 @@ export const menuAnatomy = defineAnatomy('menu', {
     },
     group: {
         element: 'div',
+        parent: 'popup',
     },
     'group-label': {
         element: 'div',
+        parent: 'group',
         tokens: ['color', 'text'],
     },
     separator: {
         element: 'div',
+        parent: 'popup',
         tokens: ['color'],
     },
 });

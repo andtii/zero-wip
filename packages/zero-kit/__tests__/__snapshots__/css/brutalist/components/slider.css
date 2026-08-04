@@ -156,36 +156,46 @@
         --slider-track-size: calc(var(--size-field) * 2);
     }
 
-    [data-scope="slider"][data-part="root"][data-size="xs"] [data-scope="slider"][data-part="label"] {
-        font-size: var(--text-xs);
-    }
-
     [data-scope="slider"][data-part="root"][data-size="sm"] {
         --slider-track-size: calc(var(--size-field) * 3);
-    }
-
-    [data-scope="slider"][data-part="root"][data-size="sm"] [data-scope="slider"][data-part="label"] {
-        font-size: var(--text-xs);
-    }
-
-    [data-scope="slider"][data-part="root"][data-size="md"] [data-scope="slider"][data-part="label"] {
-        font-size: var(--text-xs);
     }
 
     [data-scope="slider"][data-part="root"][data-size="lg"] {
         --slider-track-size: calc(var(--size-field) * 7);
     }
 
-    [data-scope="slider"][data-part="root"][data-size="lg"] [data-scope="slider"][data-part="label"] {
-        font-size: var(--text-sm);
-    }
-
     [data-scope="slider"][data-part="root"][data-size="xl"] {
         --slider-track-size: calc(var(--size-field) * 9);
     }
 
-    [data-scope="slider"][data-part="root"][data-size="xl"] [data-scope="slider"][data-part="label"] {
-        font-size: var(--text-md);
+    @scope ([data-scope="slider"][data-part="root"][data-size="xs"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="slider"][data-part="root"][data-size="sm"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="slider"][data-part="root"][data-size="md"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="label"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="slider"][data-part="root"][data-size="lg"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="label"] {
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="slider"][data-part="root"][data-size="xl"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="label"] {
+            font-size: var(--text-md);
+        }
     }
 
     @media (forced-colors: active) {

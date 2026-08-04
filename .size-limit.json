@@ -32,7 +32,7 @@
     {
         "name": "@sigx/zero/dialog",
         "path": "packages/zero/dist/components/dialog/index.js",
-        "limit": "2.5 kB",
+        "limit": "2.85 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -42,7 +42,7 @@
     {
         "name": "@sigx/zero/menu",
         "path": "packages/zero/dist/components/menu/index.js",
-        "limit": "5.5 kB",
+        "limit": "5.8 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -70,7 +70,7 @@
     {
         "name": "@sigx/zero/button",
         "path": "packages/zero/dist/components/button/index.js",
-        "limit": "2 kB",
+        "limit": "2.05 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -80,7 +80,7 @@
     {
         "name": "@sigx/zero/avatar",
         "path": "packages/zero/dist/components/avatar/index.js",
-        "limit": "1.5 kB",
+        "limit": "1.6 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -90,7 +90,7 @@
     {
         "name": "@sigx/zero/toast",
         "path": "packages/zero/dist/components/toast/index.js",
-        "limit": "4 kB",
+        "limit": "4.3 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

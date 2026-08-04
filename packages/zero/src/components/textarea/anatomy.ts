@@ -20,11 +20,13 @@ export const textareaAnatomy = defineAnatomy('textarea', {
     },
     label: {
         element: 'label',
+        parent: 'root',
         flags: ['disabled', 'invalid', 'required'],
         tokens: ['color', 'text'],
     },
     textarea: {
         element: 'textarea',
+        parent: 'root',
         flags: ['disabled', 'invalid', 'required', 'readonly', 'focus-visible'],
         tokens: ['color', 'text', 'size', 'radius-field'],
     },

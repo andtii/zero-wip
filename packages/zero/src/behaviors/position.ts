@@ -9,12 +9,12 @@
  * zero depending on it.
  */
 import { watch } from 'sigx';
+import type { PlacementName } from '../contract/data-attrs.js';
 
-export type Placement =
-    | 'top' | 'top-start' | 'top-end'
-    | 'bottom' | 'bottom-start' | 'bottom-end'
-    | 'left' | 'left-start' | 'left-end'
-    | 'right' | 'right-start' | 'right-end';
+// The strategy writes `data-placement` verbatim, so the type IS the
+// contract's closed placement vocabulary — deriving it keeps the two from
+// drifting.
+export type Placement = PlacementName;
 
 export interface PositionOptions {
     placement: Placement;

@@ -1,4 +1,5 @@
 import { defineAnatomy } from '../../contract/anatomy.js';
+import { PLACEMENT_VOCABULARY } from '../../contract/data-attrs.js';
 
 export const tooltipAnatomy = defineAnatomy('tooltip', {
     trigger: {
@@ -10,6 +11,7 @@ export const tooltipAnatomy = defineAnatomy('tooltip', {
     popup: {
         element: 'div',
         states: ['open', 'closed'],
+        placements: [...PLACEMENT_VOCABULARY],
         tokens: ['color', 'radius-field', 'text'],
     },
 });

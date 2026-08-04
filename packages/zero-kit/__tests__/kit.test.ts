@@ -127,7 +127,7 @@ describe('compileRecipeCss', () => {
         )).toThrow(/unknown state "levitating"/);
     });
 
-    it('variant values target the carrier part and descend to inner parts', () => {
+    it('variant values target the carrier part and reach inner parts through the donut', () => {
         const switchComponent = manifest.components.find((c) => c.scope === 'switch')!;
         const recipe: RecipeInput = {
             component: 'switch',
@@ -138,8 +138,57 @@ describe('compileRecipeCss', () => {
             defaultVariants: { color: 'success' },
         };
         const css = compileRecipeCss(recipe, switchComponent);
-        expect(css).toContain('[data-scope="switch"][data-part="root"][data-color="success"] [data-scope="switch"][data-part="control"][data-state="checked"]');
-        expect(css).toContain(':not([data-color])');
+        const carrier = '[data-scope="switch"][data-part="root"]';
+        expect(css).toContain(`@scope (${carrier}[data-color="success"]) to (${carrier}) {`);
+        expect(css).toContain('[data-scope="switch"][data-part="control"][data-state="checked"]');
+        expect(css).toContain(`@scope (${carrier}:not([data-color])) to (${carrier}) {`);
+    });
+
+    it('bounds non-carrier axis rules so a nested same-scope instance resolves by proximity', () => {
+        // The card-in-card leak (#317 item 2). A descendant-anchored axis rule
+        // — `[root][data-variant="tinted"] [title]` — is an UNBOUNDED
+        // descendant selector: put one card inside another and the outer
+        // card's variant styles the inner card's title too, with source order
+        // (not proximity) deciding which variant wins. The rule has to stop at
+        // the nested instance's own root, which is what an `@scope … to …`
+        // donut says: the outer carrier is the scoping root, any nested
+        // same-scope carrier is the lower boundary, and CSS proximity then
+        // resolves between two instances' own rules.
+        const cardComponent = manifest.components.find((c) => c.scope === 'card')!;
+        const css = compileRecipeCss({
+            component: 'card',
+            parts: {},
+            variants: {
+                variant: { tinted: { title: { base: { color: 'purple' } } } },
+            },
+        }, cardComponent);
+
+        const carrier = '[data-scope="card"][data-part="root"]';
+        expect(css).toContain(`@scope (${carrier}[data-variant="tinted"]) to (${carrier}) {`);
+        expect(css).toContain('[data-scope="card"][data-part="title"] {');
+        // The unbounded form must be GONE — its presence is the leak.
+        expect(css).not.toContain(`${carrier}[data-variant="tinted"] [data-scope="card"][data-part="title"]`);
+    });
+
+    it('bounds modifier and compound rules on non-carrier parts the same way', () => {
+        const cardComponent = manifest.components.find((c) => c.scope === 'card')!;
+        const carrier = '[data-scope="card"][data-part="root"]';
+        const css = compileRecipeCss({
+            component: 'card',
+            parts: {},
+            variants: { variant: { tinted: { body: { base: { background: 'lavender' } } } } },
+            modifiers: { flush: { body: { base: { padding: '0' } } } },
+            compoundVariants: [{
+                match: { variant: 'tinted', flush: true },
+                parts: { body: { base: { border: 'none' } } },
+            }],
+            defaultVariants: { variant: 'tinted' },
+        }, cardComponent);
+        expect(css).toContain(`@scope (${carrier}[data-mod-flush]) to (${carrier}) {`);
+        expect(css).toContain(`@scope (${carrier}[data-variant="tinted"][data-mod-flush]) to (${carrier}) {`);
+        // The CSS-only default keeps working under the donut.
+        expect(css).toContain(`@scope (${carrier}:not([data-variant])) to (${carrier}) {`);
+        expect(css).not.toMatch(/\[data-part="root"]\[data-[^\]]*\] \[data-scope="card"]/);
     });
 
     it('emits modifiers as presence-only attributes', () => {

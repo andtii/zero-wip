@@ -28,6 +28,20 @@ describe('Collapsible', () => {
         expect(container.querySelector('summary')?.getAttribute('data-part')).toBe('trigger');
     });
 
+    it('passes the variant axes through on the root', () => {
+        render(
+            <Collapsible.Root defaultOpen color="primary" size="lg">
+                <Collapsible.Trigger>Toggle</Collapsible.Trigger>
+                <Collapsible.Panel>Content</Collapsible.Panel>
+            </Collapsible.Root>,
+            container,
+        );
+        const root = container.querySelector<HTMLElement>('[data-scope="collapsible"][data-part="root"]')!;
+        expect(root.getAttribute('data-color')).toBe('primary');
+        expect(root.getAttribute('data-size')).toBe('lg');
+        expectAnatomy(container, collapsibleAnatomy);
+    });
+
     it('clicking the trigger toggles state and model', () => {
         const state = signal({ open: false });
         mount(state);
