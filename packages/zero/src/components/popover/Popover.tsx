@@ -36,6 +36,9 @@ const SCOPE = popoverAnatomy.scope;
 interface PopoverContext {
     state: ControllableState<boolean>;
     ids: { popup: string; title: string };
+    /** Title reports its presence so the popup's ARIA ref never dangles. */
+    titlePresent(): boolean;
+    setTitlePresent(present: boolean): void;
     setAnchor(el: HTMLElement | null): void;
     getAnchor(): HTMLElement | null;
     setPopup(el: HTMLElement | null): void;
@@ -50,6 +53,8 @@ function makeInert(): PopoverContext {
             set value(v: boolean) { open = v; },
         },
         ids: { popup: 'zx-popover-inert', title: 'zx-popover-inert-title' },
+        titlePresent: () => false,
+        setTitlePresent: () => {},
         setAnchor: () => {},
         getAnchor: () => null,
         setPopup: () => {},
@@ -70,19 +75,24 @@ export type PopoverRootProps =
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     & Define.Slot<'default'>;
 
-const PopoverRoot = component<PopoverRootProps>(({ props, slots, emit }) => {
+const PopoverRoot = component<PopoverRootProps>(({ props, slots, emit, signal }) => {
     const state = createControllableState<boolean>(
         () => props.model,
         props.defaultOpen ?? false,
         (v) => emit('openChange', v),
     );
     const baseId = createId('zx-popover');
+    // Written from Title one microtask after its setup — a write made during
+    // the render pass is invisible to the already-rendered popup.
+    const present = signal({ title: false });
     let anchor: HTMLElement | null = null;
     let popup: HTMLElement | null = null;
 
     const ctx: PopoverContext = {
         state,
         ids: { popup: `${baseId}-popup`, title: `${baseId}-title` },
+        titlePresent: () => present.title,
+        setTitlePresent: (p) => { present.title = p; },
         setAnchor: (el) => { anchor = el; },
         getAnchor: () => anchor,
         setPopup: (el) => { popup = el; },
@@ -186,7 +196,7 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
             data-state={stateAttr(popover.state.value, 'open', 'closed')}
             popover="auto"
             role="dialog"
-            aria-labelledby={popover.ids.title}
+            aria-labelledby={popover.titlePresent() ? popover.ids.title : undefined}
             class={props.class}
             ref={(node: HTMLElement | null) => { el = node; popover.setPopup(node); }}
             onToggle={(e: Event) => {
@@ -204,8 +214,15 @@ const PopoverPopup = component<PopoverPopupProps>(({ props, slots, onMounted }) 
 
 export type PopoverTitleProps = WithClass & Define.Slot<'default'>;
 
-const PopoverTitle = component<PopoverTitleProps>(({ props, slots }) => {
+const PopoverTitle = component<PopoverTitleProps>(({ props, slots, onUnmounted }) => {
     const popover = usePopoverContext();
+    // Deferred past the render pass — see the note on `present` in Root.
+    let alive = true;
+    queueMicrotask(() => { if (alive) popover.setTitlePresent(true); });
+    onUnmounted(() => {
+        alive = false;
+        popover.setTitlePresent(false);
+    });
     return () => (
         <h3 id={popover.ids.title} data-scope={SCOPE} data-part="title" class={props.class}>
             {slots.default?.()}

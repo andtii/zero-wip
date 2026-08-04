@@ -36,6 +36,11 @@ interface DialogContext {
     modal(): boolean;
     dismissible(): boolean;
     ids: { popup: string; title: string; description: string };
+    /** Title/Description report their presence so the popup's ARIA refs never dangle. */
+    titlePresent(): boolean;
+    descriptionPresent(): boolean;
+    setTitlePresent(present: boolean): void;
+    setDescriptionPresent(present: boolean): void;
 }
 
 function makeInert(): DialogContext {
@@ -48,6 +53,10 @@ function makeInert(): DialogContext {
         modal: () => true,
         dismissible: () => true,
         ids: { popup: 'zx-dialog-inert', title: 'zx-dialog-inert-title', description: 'zx-dialog-inert-desc' },
+        titlePresent: () => false,
+        descriptionPresent: () => false,
+        setTitlePresent: () => {},
+        setDescriptionPresent: () => {},
     };
 }
 
@@ -63,13 +72,18 @@ export type DialogRootProps =
     & Define.Prop<'dismissible', boolean, false>
     & Define.Slot<'default'>;
 
-const DialogRoot = component<DialogRootProps>(({ props, slots, emit }) => {
+const DialogRoot = component<DialogRootProps>(({ props, slots, emit, signal }) => {
     const state = createControllableState<boolean>(
         () => props.model,
         props.defaultOpen ?? false,
         (v) => emit('openChange', v),
     );
     const baseId = createId('zx-dialog');
+    // Written from Title/Description one microtask after their setup — a
+    // write made during the render pass is invisible to the already-rendered
+    // popup (Toast's presence flags heal at the enter flip; a dialog has no
+    // such flip, so the write itself is deferred instead).
+    const present = signal({ title: false, description: false });
     const ctx: DialogContext = {
         state,
         modal: () => props.modal ?? true,
@@ -79,6 +93,10 @@ const DialogRoot = component<DialogRootProps>(({ props, slots, emit }) => {
             title: `${baseId}-title`,
             description: `${baseId}-desc`,
         },
+        titlePresent: () => present.title,
+        descriptionPresent: () => present.description,
+        setTitlePresent: (p) => { present.title = p; },
+        setDescriptionPresent: (p) => { present.description = p; },
     };
     defineProvide(useDialogContext, () => ctx);
 
@@ -169,8 +187,8 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
             data-scope={SCOPE}
             data-part="popup"
             data-state={stateAttr(dialog.state.value, 'open', 'closed')}
-            aria-labelledby={dialog.ids.title}
-            aria-describedby={dialog.ids.description}
+            aria-labelledby={dialog.titlePresent() ? dialog.ids.title : undefined}
+            aria-describedby={dialog.descriptionPresent() ? dialog.ids.description : undefined}
             class={props.class}
             ref={(node: HTMLDialogElement | null) => { el = node; }}
             onClose={() => { dialog.state.value = false; }}
@@ -198,8 +216,15 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
 
 export type DialogTitleProps = WithClass & Define.Slot<'default'>;
 
-const DialogTitle = component<DialogTitleProps>(({ props, slots }) => {
+const DialogTitle = component<DialogTitleProps>(({ props, slots, onUnmounted }) => {
     const dialog = useDialogContext();
+    // Deferred past the render pass — see the note on `present` in Root.
+    let alive = true;
+    queueMicrotask(() => { if (alive) dialog.setTitlePresent(true); });
+    onUnmounted(() => {
+        alive = false;
+        dialog.setTitlePresent(false);
+    });
     return () => (
         <h2 id={dialog.ids.title} data-scope={SCOPE} data-part="title" class={props.class}>
             {slots.default?.()}
@@ -209,8 +234,15 @@ const DialogTitle = component<DialogTitleProps>(({ props, slots }) => {
 
 export type DialogDescriptionProps = WithClass & Define.Slot<'default'>;
 
-const DialogDescription = component<DialogDescriptionProps>(({ props, slots }) => {
+const DialogDescription = component<DialogDescriptionProps>(({ props, slots, onUnmounted }) => {
     const dialog = useDialogContext();
+    // Deferred past the render pass — see the note on `present` in Root.
+    let alive = true;
+    queueMicrotask(() => { if (alive) dialog.setDescriptionPresent(true); });
+    onUnmounted(() => {
+        alive = false;
+        dialog.setDescriptionPresent(false);
+    });
     return () => (
         <p id={dialog.ids.description} data-scope={SCOPE} data-part="description" class={props.class}>
             {slots.default?.()}

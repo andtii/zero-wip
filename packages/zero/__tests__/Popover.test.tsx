@@ -4,6 +4,9 @@ import { signal } from 'sigx';
 import { Popover, popoverAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
+/** Presence flags land one microtask after the render pass; settle them. */
+const tick = () => new Promise((r) => setTimeout(r, 0));
+
 describe('Popover', () => {
     let container: HTMLElement;
     beforeEach(() => {
@@ -52,9 +55,10 @@ describe('Popover', () => {
         );
     }
 
-    it('trigger toggles, close closes, aria wiring holds', () => {
+    it('trigger toggles, close closes, aria wiring holds', async () => {
         const state = signal({ open: false });
         mount(state);
+        await tick();
         const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
         const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
         expect(trigger.getAttribute('aria-controls')).toBe(popup.id);
@@ -71,6 +75,21 @@ describe('Popover', () => {
         trigger.click();
         container.querySelector<HTMLElement>('[data-part="close"]')!.click();
         expect(state.open).toBe(false);
+    });
+
+    it('omits aria-labelledby when no Title is rendered', async () => {
+        render(
+            <Popover.Root>
+                <Popover.Trigger>Filters</Popover.Trigger>
+                <Popover.Popup>
+                    <Popover.Close>Done</Popover.Close>
+                </Popover.Popup>
+            </Popover.Root>,
+            container,
+        );
+        await tick();
+        const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
+        expect(popup.hasAttribute('aria-labelledby')).toBe(false);
     });
 
     it('publishes press feedback on the trigger and the close button', () => {

@@ -4,6 +4,9 @@ import { signal } from 'sigx';
 import { Dialog, dialogAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
+/** Presence flags land one microtask after the render pass; settle them. */
+const tick = () => new Promise((r) => setTimeout(r, 0));
+
 function mount(container: HTMLElement, state: { open: boolean }) {
     render(
         <Dialog.Root model={[state, 'open']}>
@@ -49,13 +52,33 @@ describe('Dialog', () => {
         expect(trigger.getAttribute('data-size')).toBe('sm');
     });
 
-    it('labels the popup from rendered title and description', () => {
+    it('labels the popup from rendered title and description', async () => {
         mount(container, signal({ open: false }));
+        await tick();
         const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
         const title = container.querySelector<HTMLElement>('[data-part="title"]')!;
         const description = container.querySelector<HTMLElement>('[data-part="description"]')!;
         expect(popup.getAttribute('aria-labelledby')).toBe(title.id);
         expect(popup.getAttribute('aria-describedby')).toBe(description.id);
+    });
+
+    it('omits the label refs when Title and Description are not rendered', async () => {
+        render(
+            <Dialog.Root>
+                <Dialog.Trigger>Open</Dialog.Trigger>
+                <Dialog.Popup>
+                    <Dialog.Close>Close</Dialog.Close>
+                </Dialog.Popup>
+            </Dialog.Root>,
+            container,
+        );
+        await tick();
+        const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
+        // An aria-labelledby pointing at a never-rendered id names NOTHING —
+        // worse than no reference, it hides the popup's own content from the
+        // accessible-name computation.
+        expect(popup.hasAttribute('aria-labelledby')).toBe(false);
+        expect(popup.hasAttribute('aria-describedby')).toBe(false);
     });
 
     it('trigger opens, close closes, state stays in the model', () => {
