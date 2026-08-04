@@ -1,5 +1,10 @@
 @layer zero.recipes {
     [data-scope="collapsible"][data-part="root"] {
+        --disclosure-accent: var(--color-accent);
+        --disclosure-on-accent: var(--color-accent-content);
+    }
+
+    [data-scope="collapsible"][data-part="root"] {
         interpolate-size: allow-keywords;
         border: var(--border) solid var(--color-base-content);
         border-radius: 0;
@@ -33,8 +38,8 @@
     }
 
     [data-scope="collapsible"][data-part="trigger"][data-state="open"] {
-        background: var(--color-accent);
-        color: var(--color-accent-content);
+        background: var(--disclosure-accent);
+        color: var(--disclosure-on-accent);
     }
 
     [data-scope="collapsible"][data-part="trigger"]:hover:not([data-disabled]) {
@@ -54,6 +59,90 @@
         padding: var(--space-md);
         border-top: var(--border) solid var(--color-base-content);
         line-height: var(--leading-normal);
+    }
+
+    [data-scope="collapsible"][data-part="root"][data-color="primary"] {
+        --disclosure-accent: var(--color-primary);
+        --disclosure-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="collapsible"][data-part="root"][data-color="secondary"] {
+        --disclosure-accent: var(--color-secondary);
+        --disclosure-on-accent: var(--color-secondary-content);
+    }
+
+    [data-scope="collapsible"][data-part="root"][data-color="accent"] {
+        --disclosure-accent: var(--color-accent);
+        --disclosure-on-accent: var(--color-accent-content);
+    }
+
+    [data-scope="collapsible"][data-part="root"][data-color="neutral"] {
+        --disclosure-accent: var(--color-neutral);
+        --disclosure-on-accent: var(--color-neutral-content);
+    }
+
+    [data-scope="collapsible"][data-part="root"][data-color="info"] {
+        --disclosure-accent: var(--color-info);
+        --disclosure-on-accent: var(--color-info-content);
+    }
+
+    [data-scope="collapsible"][data-part="root"][data-color="success"] {
+        --disclosure-accent: var(--color-success);
+        --disclosure-on-accent: var(--color-success-content);
+    }
+
+    [data-scope="collapsible"][data-part="root"][data-color="warning"] {
+        --disclosure-accent: var(--color-warning);
+        --disclosure-on-accent: var(--color-warning-content);
+    }
+
+    [data-scope="collapsible"][data-part="root"][data-color="error"] {
+        --disclosure-accent: var(--color-error);
+        --disclosure-on-accent: var(--color-error-content);
+    }
+
+    @scope ([data-scope="collapsible"][data-part="root"][data-size="xs"]) to ([data-scope="collapsible"][data-part="root"]) {
+        [data-scope="collapsible"][data-part="trigger"] {
+            padding: var(--space-xs);
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="collapsible"][data-part="panel"] {
+            padding: var(--space-xs);
+        }
+    }
+
+    @scope ([data-scope="collapsible"][data-part="root"][data-size="sm"]) to ([data-scope="collapsible"][data-part="root"]) {
+        [data-scope="collapsible"][data-part="trigger"] {
+            padding: var(--space-sm);
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="collapsible"][data-part="panel"] {
+            padding: var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="collapsible"][data-part="root"][data-size="lg"]) to ([data-scope="collapsible"][data-part="root"]) {
+        [data-scope="collapsible"][data-part="trigger"] {
+            padding: var(--space-lg);
+            font-size: var(--text-md);
+        }
+
+        [data-scope="collapsible"][data-part="panel"] {
+            padding: var(--space-lg);
+        }
+    }
+
+    @scope ([data-scope="collapsible"][data-part="root"][data-size="xl"]) to ([data-scope="collapsible"][data-part="root"]) {
+        [data-scope="collapsible"][data-part="trigger"] {
+            padding: var(--space-xl);
+            font-size: var(--text-lg);
+        }
+
+        [data-scope="collapsible"][data-part="panel"] {
+            padding: var(--space-xl);
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {

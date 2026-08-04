@@ -197,11 +197,12 @@ const NO_VARIANT: Record<string, string> = {
  * this file exists to close.
  */
 const UNWIRED_AXES: Record<string, string> = Object.fromEntries([
+    // The `.color` entries left with the fourth colour-declaring skin
+    // (basic, daisyui, material, brutalist — heroui and carbon declare
+    // `roles: {}`, so for them there is no colour axis to wire). The `.size`
+    // entries leave with the last size-declaring skin.
     ...['accordion', 'collapsible', 'dialog', 'field', 'menu', 'popover', 'tooltip']
-        .flatMap((scope) => [
-            [`${scope}.color`, 'Contract v1 carrier — per-skin wiring tracked in #321'],
-            [`${scope}.size`, 'Contract v1 carrier — per-skin wiring tracked in #321'],
-        ]),
+        .map((scope) => [`${scope}.size`, 'Contract v1 carrier — per-skin wiring tracked in #321']),
     // toast.color is wired (the previously-unreachable recipes #317 made
     // reachable); only the size ramp is still per-skin work.
     ['toast.size', 'Contract v1 carrier — per-skin wiring tracked in #321'],

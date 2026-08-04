@@ -274,6 +274,10 @@ export const tabs: RecipeInput = {
 };
 
 // ── Disclosure ────────────────────────────────────────────────────────────
+// The open header is a flat role fill — brutalism's word for "this one is
+// active". The pair rides two custom properties declared in each recipe's
+// `tokens:` (the toast shape), so `variants.color` only rebinds them and the
+// `-content` ink keeps the pair's contrast guarantee under every role.
 const disclosureTrigger: PartStyles = {
     base: {
         display: 'flex',
@@ -286,7 +290,7 @@ const disclosureTrigger: PartStyles = {
         transition: motion('background'),
     },
     states: {
-        open: { background: 'var(--color-accent)', color: 'var(--color-accent-content)' },
+        open: { background: 'var(--disclosure-accent)', color: 'var(--disclosure-on-accent)' },
         closed: {},
         hover: { background: 'var(--color-base-200)' },
         disabled: { opacity: 'var(--disabled-opacity)' },
@@ -294,8 +298,45 @@ const disclosureTrigger: PartStyles = {
     },
 };
 
+/** The accent default: the fixed `accent` role, exactly as before #321. */
+const disclosureTokens = {
+    '--disclosure-accent': 'var(--color-accent)',
+    '--disclosure-on-accent': 'var(--color-accent-content)',
+};
+
+const disclosureColors = (): Record<string, Record<string, PartStyles>> =>
+    Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+        '--disclosure-accent': `var(--color-${c})`,
+        '--disclosure-on-accent': `var(--color-${c}-content)`,
+    } } }]));
+
+/**
+ * The disclosure size ramp — the slab's single padding value stepped with the
+ * label's type; the panel follows. `md` is the un-attributed render.
+ */
+const disclosureSizes: Record<string, Record<string, PartStyles>> = {
+    xs: {
+        trigger: { base: { padding: 'var(--space-xs)', fontSize: 'var(--text-xs)' } },
+        panel: { base: { padding: 'var(--space-xs)' } },
+    },
+    sm: {
+        trigger: { base: { padding: 'var(--space-sm)', fontSize: 'var(--text-xs)' } },
+        panel: { base: { padding: 'var(--space-sm)' } },
+    },
+    md: {},
+    lg: {
+        trigger: { base: { padding: 'var(--space-lg)', fontSize: 'var(--text-md)' } },
+        panel: { base: { padding: 'var(--space-lg)' } },
+    },
+    xl: {
+        trigger: { base: { padding: 'var(--space-xl)', fontSize: 'var(--text-lg)' } },
+        panel: { base: { padding: 'var(--space-xl)' } },
+    },
+};
+
 export const collapsible: RecipeInput = {
     component: 'collapsible',
+    tokens: disclosureTokens,
     parts: {
         root: withPresence(disclosurePresence, { base: { ...inked, boxShadow: 'var(--shadow-sm)' }, states: { open: {}, closed: {} } }),
         trigger: disclosureTrigger,
@@ -308,10 +349,12 @@ export const collapsible: RecipeInput = {
             states: { open: {}, closed: {} },
         },
     },
+    variants: { color: disclosureColors(), size: disclosureSizes },
 };
 
 export const accordion: RecipeInput = {
     component: 'accordion',
+    tokens: disclosureTokens,
     parts: {
         root: { base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' } },
         item: withPresence(disclosurePresence, { base: { ...inked, boxShadow: 'var(--shadow-sm)' }, states: { open: {}, closed: {} } }),
@@ -325,6 +368,7 @@ export const accordion: RecipeInput = {
             states: { open: {}, closed: {} },
         },
     },
+    variants: { color: disclosureColors(), size: disclosureSizes },
 };
 
 // ── Overlays ──────────────────────────────────────────────────────────────
@@ -339,6 +383,34 @@ const overlayTrigger: PartStyles = {
         cursor: 'pointer',
     },
     states: { open: {}, closed: {}, hover: shift('1px'), disabled: { opacity: 'var(--disabled-opacity)' }, ...focusRing },
+};
+
+/**
+ * The axes for the four slab overlay triggers (#321). Dialog, popover,
+ * tooltip and menu carry their axis attributes on the TRIGGER — the
+ * anatomy's carrier part — and their popups are top-layer siblings the
+ * compiled `@scope` donut can never reach, so the axes style the slab
+ * itself. Colour is the solid button's move: a flat role fill under the
+ * black border, with the `-content` ink whose contrast the token pair
+ * guarantees (brutalist light's `accent`/`warning` are far too pale to be
+ * inks, so an ink treatment is not available here anyway). The hover shove
+ * and pressed stamp touch only shadow/transform, so they ride along
+ * untouched. Size is the tab ramp — the slab shares its resting metrics.
+ */
+const overlayTriggerColors = (): Record<string, Record<string, PartStyles>> =>
+    Object.fromEntries(ROLES.map((c) => [c, { trigger: { base: {
+        background: `var(--color-${c})`,
+        color: `var(--color-${c}-content)`,
+    } } }]));
+
+const overlayTriggerSizes: Record<string, Record<string, PartStyles>> = {
+    xs: { trigger: { base: { padding: 'var(--space-2xs) var(--space-sm)', fontSize: 'var(--text-xs)' } } },
+    sm: { trigger: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-xs)' } } },
+    // `md` is the un-attributed render — `overlayTrigger` already IS the
+    // middle step.
+    md: {},
+    lg: { trigger: { base: { padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-sm)' } } },
+    xl: { trigger: { base: { padding: 'var(--space-lg) var(--space-2xl)', fontSize: 'var(--text-md)' } } },
 };
 
 export const dialog: RecipeInput = {
@@ -433,6 +505,9 @@ export const dialog: RecipeInput = {
             states: { hover: shift('1px'), disabled: {}, ...focusRing },
         },
     },
+    // Trigger-carried axes — see `overlayTriggerColors` for why the popup is
+    // out of reach and the trigger is the whole story here.
+    variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 
 const slab: CssProps = { ...inked, boxShadow: 'var(--shadow-md)', padding: 'var(--space-md)' };
@@ -448,6 +523,8 @@ export const popover: RecipeInput = {
             states: { disabled: {}, ...focusRing },
         },
     },
+    // Trigger-carried axes — same wiring as dialog, same reason.
+    variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 
 export const tooltip: RecipeInput = {
@@ -474,6 +551,9 @@ export const tooltip: RecipeInput = {
             states: { open: {}, closed: {} },
         }),
     },
+    // Trigger-carried axes — same wiring as dialog, same reason. The bubble
+    // stays the fixed neutral slab whatever the trigger's colour.
+    variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 
 export const menu: RecipeInput = {
@@ -589,6 +669,9 @@ export const menu: RecipeInput = {
             base: { height: 'var(--border)', margin: 'var(--space-2xs) 0', background: 'var(--color-base-content)' },
         },
     },
+    // Trigger-carried axes — same wiring as dialog, same reason. The popup
+    // and its items are top-layer siblings the donut cannot reach.
+    variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 
 export const select: RecipeInput = {
@@ -1055,6 +1138,46 @@ export const field: RecipeInput = {
         },
         description: { base: { margin: '0', fontSize: 'var(--text-xs)', opacity: '0.75' } },
         error: { base: { margin: '0', ...label, fontSize: 'var(--text-xs)', color: 'var(--color-error)' } },
+    },
+    variants: {
+        // Colour STAMPS the label — a flat role chip hugging its own text,
+        // brutalism's way of accenting a word. An ink treatment is not
+        // available here: light's `accent`/`warning` are far too pale to
+        // write with on paper, while the `-content` pair is guaranteed.
+        // On a chip the required `*` joins the chip's own ink — its error
+        // red would vanish into an `error` fill and has no floor on the
+        // others; description and error text are untouched by the role.
+        color: Object.fromEntries(ROLES.map((c) => [c, { label: {
+            base: {
+                alignSelf: 'flex-start',
+                padding: '0 var(--space-xs)',
+                background: `var(--color-${c})`,
+                color: `var(--color-${c}-content)`,
+            },
+            selectors: { '&[data-required]::after': { color: 'inherit' } },
+        } }])),
+        size: {
+            // `text-xs` is already this vocabulary's floor — the small steps
+            // tighten the stack (and, at `xs`, the label's wide tracking)
+            // instead of shrinking type it does not have.
+            xs: {
+                root: { base: { gap: 'var(--space-2xs)' } },
+                label: { base: { letterSpacing: 'var(--tracking-normal)' } },
+            },
+            sm: { root: { base: { gap: 'var(--space-2xs)' } } },
+            // `md` is the un-attributed render.
+            md: {},
+            lg: {
+                label: { base: { fontSize: 'var(--text-sm)' } },
+                description: { base: { fontSize: 'var(--text-sm)' } },
+                error: { base: { fontSize: 'var(--text-sm)' } },
+            },
+            xl: {
+                label: { base: { fontSize: 'var(--text-md)' } },
+                description: { base: { fontSize: 'var(--text-md)' } },
+                error: { base: { fontSize: 'var(--text-md)' } },
+            },
+        },
     },
     skipStates: { label: ['invalid', 'required'], error: ['invalid'] },
 };
@@ -1560,6 +1683,28 @@ export const toast: RecipeInput = {
             role,
             { root: { base: { '--toast-accent': `var(--color-${role})` } } },
         ])),
+        // Size moves the slab's box — padding and type — never the accent
+        // bar. The title's fixed mono size is restated where it steps.
+        size: {
+            xs: {
+                root: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-xs)' } },
+                title: { base: { fontSize: 'var(--text-xs)' } },
+            },
+            sm: { root: { base: { padding: 'var(--space-sm) var(--space-md)' } } },
+            // `md` is the un-attributed render — the base already IS the
+            // middle step.
+            md: {},
+            lg: {
+                root: { base: { padding: 'var(--space-lg) var(--space-xl)', fontSize: 'var(--text-md)' } },
+                title: { base: { fontSize: 'var(--text-md)' } },
+                description: { base: { fontSize: 'var(--text-sm)' } },
+            },
+            xl: {
+                root: { base: { padding: 'var(--space-xl) var(--space-2xl)', fontSize: 'var(--text-lg)' } },
+                title: { base: { fontSize: 'var(--text-lg)' } },
+                description: { base: { fontSize: 'var(--text-md)' } },
+            },
+        },
     },
 };
 
