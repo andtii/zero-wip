@@ -55,6 +55,60 @@ describe('Menu', () => {
         expect(trigger.getAttribute('data-size')).toBe('sm');
     });
 
+    it('labels the root popup from the trigger', async () => {
+        mount();
+        await tick();
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
+        // SubPopup has always been labelled by its sub-trigger; the root
+        // popup deserves the same name.
+        expect(trigger.id).not.toBe('');
+        expect(popup.getAttribute('aria-labelledby')).toBe(trigger.id);
+    });
+
+    it('omits the popup label when only a context trigger exists', async () => {
+        render(
+            <Menu.Root>
+                <Menu.ContextTrigger>Surface</Menu.ContextTrigger>
+                <Menu.Popup>
+                    <Menu.Item value="rename">Rename</Menu.Item>
+                </Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        await tick();
+        const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
+        expect(popup.hasAttribute('aria-labelledby')).toBe(false);
+    });
+
+    it('names the group from its label', async () => {
+        mount();
+        await tick();
+        const group = container.querySelector<HTMLElement>('[data-part="group"]')!;
+        const label = container.querySelector<HTMLElement>('[data-part="group-label"]')!;
+        expect(label.id).not.toBe('');
+        // role="presentation" would be self-defeating on the element the
+        // group's accessible name is computed from.
+        expect(label.getAttribute('role')).toBeNull();
+        expect(group.getAttribute('aria-labelledby')).toBe(label.id);
+    });
+
+    it('a group without a label stays anonymous rather than dangling', async () => {
+        render(
+            <Menu.Root>
+                <Menu.Popup>
+                    <Menu.Group>
+                        <Menu.Item value="rename">Rename</Menu.Item>
+                    </Menu.Group>
+                </Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        await tick();
+        const group = container.querySelector<HTMLElement>('[data-part="group"]')!;
+        expect(group.hasAttribute('aria-labelledby')).toBe(false);
+    });
+
     it('opens on click and on ArrowDown', () => {
         mount();
         const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
