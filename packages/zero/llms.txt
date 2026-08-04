@@ -130,7 +130,17 @@ component renders; the root is called out separately where it carries props.
 - Tooltip: Root(model=open, openDelay, closeDelay, placement — renders no
   element) then Trigger/Popup.
 - Menu: Root(model=open, closeOnSelect, placement — renders no element) then
-  Trigger/Popup/Item(asChild)/Group/GroupLabel/Separator; `select` event.
+  Trigger/Popup/Item(asChild)/CheckboxItem/RadioGroup/RadioItem/Group/
+  GroupLabel/Separator; `select` event.
+  Stateful items (APG menuitemcheckbox/menuitemradio): CheckboxItem(value,
+  model=checked, closeOnSelect default FALSE — unlike plain items, toggling
+  keeps the menu open) and RadioGroup(model=value — renders the same labelled
+  `group` part Menu.Group does)/RadioItem(value, closeOnSelect default
+  FALSE). Both carry data-state checked|unchecked + aria-checked, emit the
+  root's `select` alongside their own model events, and auto-render an
+  `item-indicator` part mirroring the checked state — zero leaves it empty,
+  the design system draws the mark (recipes key on
+  [data-state="checked"]). asChild renders only the consumer's element.
   Context menu: ContextTrigger(asChild) wraps any surface — right-click /
   Android long-press opens the SAME popup at the pointer via a virtual
   anchor (deferred past the gesture: an auto popover opened mid-gesture

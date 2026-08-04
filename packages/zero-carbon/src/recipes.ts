@@ -742,6 +742,42 @@ export const menu: RecipeInput = {
                 '&[data-pressed]:not([data-disabled])': { background: layerActive },
             },
         },
+        // The stateful rows are the item, unchanged; the mark column in front
+        // carries the state as a tick in the row's own ink.
+        'checkbox-item': {
+            base: menuItem,
+            states: {
+                highlighted: { background: layerHover },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+            },
+        },
+        'radio-item': {
+            base: menuItem,
+            states: {
+                highlighted: { background: layerHover },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+            },
+        },
+        'item-indicator': {
+            base: {
+                width: '1em',
+                flexShrink: '0',
+                fontSize: 'var(--text-xs)',
+                lineHeight: '1',
+            },
+            states: { checked: {}, unchecked: {} },
+            selectors: {
+                '&[data-state="checked"]::after': { content: '"\\2713"' },
+            },
+        },
         // The item look, plus a chevron and an `open` state that keeps it
         // visually active after focus moves into the submenu.
         'sub-trigger': {

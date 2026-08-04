@@ -893,6 +893,71 @@
         background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
     }
 
+    [data-scope="menu"][data-part="checkbox-item"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        min-height: 2.5rem;
+        padding: 0 var(--space-md);
+        font-size: var(--text-sm);
+        letter-spacing: var(--tracking-wide);
+        border-radius: var(--radius-selector);
+        cursor: pointer;
+        outline: none;
+        transition: background var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="menu"][data-part="checkbox-item"][data-highlighted] {
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+    }
+
+    [data-scope="menu"][data-part="checkbox-item"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="menu"][data-part="checkbox-item"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
+    }
+
+    [data-scope="menu"][data-part="radio-item"] {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        min-height: 2.5rem;
+        padding: 0 var(--space-md);
+        font-size: var(--text-sm);
+        letter-spacing: var(--tracking-wide);
+        border-radius: var(--radius-selector);
+        cursor: pointer;
+        outline: none;
+        transition: background var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="menu"][data-part="radio-item"][data-highlighted] {
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+    }
+
+    [data-scope="menu"][data-part="radio-item"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="menu"][data-part="radio-item"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
+    }
+
+    [data-scope="menu"][data-part="item-indicator"] {
+        width: 1em;
+        flex-shrink: 0;
+        font-size: var(--text-xs);
+        line-height: 1;
+    }
+
+    [data-scope="menu"][data-part="item-indicator"][data-state="checked"]::after {
+        content: "\2713";
+    }
+
     [data-scope="menu"][data-part="sub-trigger"] {
         display: flex;
         align-items: center;

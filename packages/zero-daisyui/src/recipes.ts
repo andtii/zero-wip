@@ -588,6 +588,60 @@ export const menu: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
         },
+        // The stateful rows read as the plain item; the mark in front carries
+        // the state, glyph-drawn the way the select's tick is.
+        'checkbox-item': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.625rem',
+                padding: 'var(--space-md) var(--space-lg)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                borderRadius: 'var(--radius-field)',
+                cursor: 'pointer',
+                outline: 'none',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                highlighted: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+            },
+        },
+        'radio-item': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.625rem',
+                padding: 'var(--space-md) var(--space-lg)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                borderRadius: 'var(--radius-field)',
+                cursor: 'pointer',
+                outline: 'none',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                highlighted: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+            },
+        },
+        // A reserved mark column so rows align whether checked or not; the
+        // glyph appears only while checked and rides the row's own ink.
+        'item-indicator': {
+            base: {
+                width: '1em',
+                flexShrink: '0',
+                fontSize: 'var(--text-xs)',
+                lineHeight: '1',
+            },
+            states: { checked: {}, unchecked: {} },
+            selectors: {
+                '&[data-state="checked"]::after': { content: '"\\2713"' },
+            },
+        },
         // The item look plus a chevron; `open` keeps it lit while focus is
         // inside the submenu.
         'sub-trigger': {

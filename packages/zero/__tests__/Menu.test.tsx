@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
+import { signal } from 'sigx';
 import { Menu, menuAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
@@ -379,6 +380,208 @@ describe('Menu submenus', () => {
         expect(subPopups[0]!.getAttribute('data-state')).toBe('open');
         expect(subPopups[1]!.getAttribute('data-state')).toBe('open');
         expectAnatomy(container, menuAnatomy);
+    });
+});
+
+describe('Menu selection items', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    function mountCheckbox(opts: {
+        onSelect?: (v: string) => void;
+        onCheckedChange?: (v: boolean) => void;
+        closeOnSelect?: boolean;
+        disabled?: boolean;
+        defaultChecked?: boolean;
+    } = {}) {
+        render(
+            <Menu.Root onSelect={opts.onSelect}>
+                <Menu.Trigger>View</Menu.Trigger>
+                <Menu.Popup>
+                    <Menu.CheckboxItem
+                        value="statusbar"
+                        defaultChecked={opts.defaultChecked}
+                        closeOnSelect={opts.closeOnSelect}
+                        disabled={opts.disabled}
+                        onCheckedChange={opts.onCheckedChange}
+                    >
+                        Status bar
+                    </Menu.CheckboxItem>
+                    <Menu.CheckboxItem value="minimap" defaultChecked>Minimap</Menu.CheckboxItem>
+                </Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        container.querySelector<HTMLElement>('[data-part="trigger"]')!.click();
+        return container.querySelectorAll<HTMLElement>('[data-part="checkbox-item"]');
+    }
+
+    it('checkbox item renders APG semantics and a valid anatomy', () => {
+        const items = mountCheckbox();
+        expectAnatomy(container, menuAnatomy);
+        expect(items[0]!.getAttribute('role')).toBe('menuitemcheckbox');
+        expect(items[0]!.getAttribute('aria-checked')).toBe('false');
+        expect(items[0]!.getAttribute('data-state')).toBe('unchecked');
+        expect(items[1]!.getAttribute('aria-checked')).toBe('true');
+        expect(items[1]!.getAttribute('data-state')).toBe('checked');
+        // The indicator mirrors the item's state so recipes can draw the mark.
+        const indicator = items[1]!.querySelector<HTMLElement>('[data-part="item-indicator"]')!;
+        expect(indicator.getAttribute('data-state')).toBe('checked');
+        expect(indicator.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('checkbox item toggles without closing the menu, and emits both events', () => {
+        const onSelect = vi.fn();
+        const onCheckedChange = vi.fn();
+        const items = mountCheckbox({ onSelect, onCheckedChange });
+        items[0]!.click();
+        expect(onCheckedChange).toHaveBeenCalledWith(true);
+        expect(onSelect).toHaveBeenCalledWith('statusbar');
+        expect(items[0]!.getAttribute('aria-checked')).toBe('true');
+        expect(items[0]!.getAttribute('data-state')).toBe('checked');
+        // Radix behavior: a checkbox selection keeps the menu open.
+        expect(container.querySelector('[data-part="trigger"]')!.getAttribute('aria-expanded')).toBe('true');
+        items[0]!.click();
+        expect(items[0]!.getAttribute('aria-checked')).toBe('false');
+        expect(onCheckedChange).toHaveBeenLastCalledWith(false);
+    });
+
+    it('checkbox item closeOnSelect closes the menu on toggle', () => {
+        const items = mountCheckbox({ closeOnSelect: true });
+        items[0]!.click();
+        expect(container.querySelector('[data-part="trigger"]')!.getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('Enter and Space toggle a checkbox item; disabled ignores both', () => {
+        const items = mountCheckbox();
+        items[0]!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', cancelable: true, bubbles: true }));
+        expect(items[0]!.getAttribute('aria-checked')).toBe('true');
+        items[0]!.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', cancelable: true, bubbles: true }));
+        expect(items[0]!.getAttribute('aria-checked')).toBe('false');
+
+        const second = document.createElement('div');
+        document.body.appendChild(second);
+        render(
+            <Menu.Root>
+                <Menu.Trigger>View</Menu.Trigger>
+                <Menu.Popup>
+                    <Menu.CheckboxItem value="statusbar" disabled>Status bar</Menu.CheckboxItem>
+                </Menu.Popup>
+            </Menu.Root>,
+            second,
+        );
+        second.querySelector<HTMLElement>('[data-part="trigger"]')!.click();
+        const item = second.querySelector<HTMLElement>('[data-part="checkbox-item"]')!;
+        expect(item.getAttribute('data-disabled')).toBe('');
+        expect(item.getAttribute('aria-disabled')).toBe('true');
+        item.click();
+        expect(item.getAttribute('aria-checked')).toBe('false');
+    });
+
+    it('checkbox item accepts a controlled model', () => {
+        const state = signal({ wrap: true });
+        render(
+            <Menu.Root>
+                <Menu.Trigger>View</Menu.Trigger>
+                <Menu.Popup>
+                    <Menu.CheckboxItem value="wrap" model={() => state.wrap}>Word wrap</Menu.CheckboxItem>
+                </Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        container.querySelector<HTMLElement>('[data-part="trigger"]')!.click();
+        const item = container.querySelector<HTMLElement>('[data-part="checkbox-item"]')!;
+        expect(item.getAttribute('aria-checked')).toBe('true');
+        item.click();
+        expect(state.wrap).toBe(false);
+        expect(item.getAttribute('aria-checked')).toBe('false');
+    });
+
+    function mountRadio(opts: {
+        onValueChange?: (v: string) => void;
+        onSelect?: (v: string) => void;
+        closeOnSelect?: boolean;
+    } = {}) {
+        render(
+            <Menu.Root onSelect={opts.onSelect}>
+                <Menu.Trigger>Sort</Menu.Trigger>
+                <Menu.Popup>
+                    <Menu.RadioGroup defaultValue="name" onValueChange={opts.onValueChange}>
+                        <Menu.GroupLabel>Sort by</Menu.GroupLabel>
+                        <Menu.RadioItem value="name" closeOnSelect={opts.closeOnSelect}>Name</Menu.RadioItem>
+                        <Menu.RadioItem value="date" closeOnSelect={opts.closeOnSelect}>Date</Menu.RadioItem>
+                        <Menu.RadioItem value="size" disabled>Size</Menu.RadioItem>
+                    </Menu.RadioGroup>
+                </Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        container.querySelector<HTMLElement>('[data-part="trigger"]')!.click();
+        return container.querySelectorAll<HTMLElement>('[data-part="radio-item"]');
+    }
+
+    it('radio items render APG semantics inside a labelled group, and a valid anatomy', async () => {
+        const items = mountRadio();
+        await tick();
+        expectAnatomy(container, menuAnatomy);
+        expect(items.length).toBe(3);
+        expect(items[0]!.getAttribute('role')).toBe('menuitemradio');
+        expect(items[0]!.getAttribute('aria-checked')).toBe('true');
+        expect(items[0]!.getAttribute('data-state')).toBe('checked');
+        expect(items[1]!.getAttribute('aria-checked')).toBe('false');
+        // The radio group renders the same labelled `group` part Menu.Group does.
+        const group = container.querySelector<HTMLElement>('[data-part="group"]')!;
+        const label = container.querySelector<HTMLElement>('[data-part="group-label"]')!;
+        expect(group.getAttribute('role')).toBe('group');
+        expect(group.getAttribute('aria-labelledby')).toBe(label.id);
+    });
+
+    it('radio selection is single: checking one unchecks the rest, menu stays open', () => {
+        const onValueChange = vi.fn();
+        const onSelect = vi.fn();
+        const items = mountRadio({ onValueChange, onSelect });
+        items[1]!.click();
+        expect(onValueChange).toHaveBeenCalledWith('date');
+        expect(onSelect).toHaveBeenCalledWith('date');
+        expect(items[0]!.getAttribute('aria-checked')).toBe('false');
+        expect(items[1]!.getAttribute('aria-checked')).toBe('true');
+        expect(container.querySelector('[data-part="trigger"]')!.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('radio item closeOnSelect closes; disabled radio never selects', () => {
+        const items = mountRadio({ closeOnSelect: true });
+        items[2]!.click();
+        expect(items[2]!.getAttribute('aria-checked')).toBe('false');
+        expect(container.querySelector('[data-part="trigger"]')!.getAttribute('aria-expanded')).toBe('true');
+        items[1]!.click();
+        expect(container.querySelector('[data-part="trigger"]')!.getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('selection items participate in the roving list', () => {
+        render(
+            <Menu.Root>
+                <Menu.Trigger>View</Menu.Trigger>
+                <Menu.Popup>
+                    <Menu.Item value="reload">Reload</Menu.Item>
+                    <Menu.CheckboxItem value="statusbar">Status bar</Menu.CheckboxItem>
+                    <Menu.RadioGroup defaultValue="name">
+                        <Menu.RadioItem value="name">Name</Menu.RadioItem>
+                    </Menu.RadioGroup>
+                </Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        container.querySelector<HTMLElement>('[data-part="trigger"]')!.click();
+        const plain = container.querySelector<HTMLElement>('[data-part="item"]')!;
+        const checkbox = container.querySelector<HTMLElement>('[data-part="checkbox-item"]')!;
+        const radio = container.querySelector<HTMLElement>('[data-part="radio-item"]')!;
+        plain.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true, bubbles: true }));
+        expect(document.activeElement).toBe(checkbox);
+        checkbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true, bubbles: true }));
+        expect(document.activeElement).toBe(radio);
     });
 });
 

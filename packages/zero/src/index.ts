@@ -45,13 +45,16 @@ export type {
 export { Tooltip, tooltipAnatomy, useTooltipContext } from './components/tooltip/index.js';
 export type { TooltipRootProps, TooltipTriggerProps, TooltipPopupProps } from './components/tooltip/index.js';
 
-export { Menu, menuAnatomy, useMenuContext } from './components/menu/index.js';
+export { Menu, menuAnatomy, useMenuContext, useMenuRadioGroupContext } from './components/menu/index.js';
 export type {
     MenuRootProps,
     MenuTriggerProps,
     MenuContextTriggerProps,
     MenuPopupProps,
     MenuItemProps,
+    MenuCheckboxItemProps,
+    MenuRadioGroupProps,
+    MenuRadioItemProps,
     MenuGroupProps,
     MenuGroupLabelProps,
     MenuSeparatorProps,

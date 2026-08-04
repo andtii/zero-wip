@@ -614,6 +614,66 @@ export const menu: RecipeInput = {
                 '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
             },
         },
+        // The stateful rows are the item, unchanged; the mark column in front
+        // carries the state (HeroUI marks selected menu rows with a tick).
+        'checkbox-item': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                borderRadius: 'var(--radius-selector)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+                cursor: 'pointer',
+                outline: 'none',
+            },
+            states: {
+                highlighted: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+        'radio-item': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                borderRadius: 'var(--radius-selector)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+                cursor: 'pointer',
+                outline: 'none',
+            },
+            states: {
+                highlighted: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+        // The reserved mark column; the tick appears while checked, in the
+        // row's own ink.
+        'item-indicator': {
+            base: {
+                width: '1em',
+                flexShrink: '0',
+                fontSize: 'var(--text-xs)',
+                lineHeight: '1',
+            },
+            states: { checked: {}, unchecked: {} },
+            selectors: {
+                '&[data-state="checked"]::after': { content: '"\\2713"' },
+            },
+        },
         // The item look, plus an `open` state that keeps it lit after focus
         // moves into the submenu. `open` before `highlighted`, so the pointer
         // hover wins both properties when the two apply at once (#116).

@@ -484,6 +484,57 @@ export const menu: RecipeInput = {
                 ...focusRing,
             },
         },
+        // The stateful rows are the item, unchanged; the mark column in front
+        // carries the state as a hard block glyph.
+        'checkbox-item': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                cursor: 'pointer',
+            },
+            states: {
+                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+                ...focusRing,
+            },
+        },
+        'radio-item': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                cursor: 'pointer',
+            },
+            states: {
+                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+                ...focusRing,
+            },
+        },
+        // A reserved mark column; checked drops in a solid block — brutalism
+        // marks with a filled square, not a calligraphic tick. `currentColor`
+        // so the highlight inversion takes the mark with it.
+        'item-indicator': {
+            base: {
+                width: '0.6em',
+                height: '0.6em',
+                flexShrink: '0',
+                background: 'transparent',
+            },
+            states: {
+                checked: { background: 'currentColor' },
+                unchecked: {},
+            },
+        },
         // The item look plus a hard chevron; `open` inverts like highlight.
         'sub-trigger': {
             base: {

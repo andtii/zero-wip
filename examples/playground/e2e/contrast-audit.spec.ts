@@ -582,6 +582,11 @@ const INDICATORS: IndicatorSpec[] = [
     { scope: 'radio-group', part: 'item-indicator', ancestors: ['root', 'item', 'item-control'] },
     { scope: 'switch', part: 'thumb', ancestors: ['root', 'control'] },
     { scope: 'progress', part: 'range', ancestors: ['root', 'track'] },
+    // Menu's checked mark (#325). No glyph: zero renders an empty span and
+    // the recipe draws the mark (geometry or its own ::after glyph). The
+    // chain pins the host row via checkbox-item; radio-item shares the same
+    // row grammar in all six design systems, so one host chain measures both.
+    { scope: 'menu', part: 'item-indicator', ancestors: ['popup=open', 'checkbox-item'] },
     { scope: 'select', part: 'indicator', ancestors: ['root', 'trigger'], glyph: '▾' },
     { scope: 'select', part: 'item-indicator', ancestors: ['root', 'popup=open', 'item'], glyph: '✓', only: 'selected' },
     { scope: 'combobox', part: 'item-indicator', ancestors: ['root', 'popup=open', 'item'], glyph: '✓', only: 'selected' },

@@ -787,6 +787,60 @@ export const menu: RecipeInput = {
                 ...focusRing,
             },
         }),
+        // The stateful rows share the item's shape and its ripple; the mark
+        // well in front says which are on. No pseudo-element mark on the ROW —
+        // pressable() owns both its pseudos — so the glyph lives on the
+        // indicator part, which has its own.
+        'checkbox-item': withPresence(pressable('menu'), {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-md)',
+                borderRadius: 'var(--radius-selector)',
+                fontSize: 'var(--text-sm)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                highlighted: { background: 'var(--color-primary-soft)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+                ...focusRing,
+            },
+        }),
+        'radio-item': withPresence(pressable('menu'), {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-md)',
+                borderRadius: 'var(--radius-selector)',
+                fontSize: 'var(--text-sm)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                highlighted: { background: 'var(--color-primary-soft)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+                ...focusRing,
+            },
+        }),
+        // The reserved mark column; the glyph appears while checked, in the
+        // row's own ink.
+        'item-indicator': {
+            base: {
+                width: '1em',
+                flexShrink: '0',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+            },
+            states: { checked: {}, unchecked: {} },
+            selectors: {
+                '&[data-state="checked"]::after': { content: '"\\2713"' },
+            },
+        },
         // The item look plus a chevron; `open` keeps the state layer while
         // focus is inside the submenu.
         'sub-trigger': withPresence(pressable('menu'), {
