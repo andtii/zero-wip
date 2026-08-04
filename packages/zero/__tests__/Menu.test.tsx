@@ -414,6 +414,10 @@ describe('Menu.ContextTrigger', () => {
         mountContext();
         const surface = container.querySelector<HTMLElement>('[data-part="context-trigger"]')!;
         expect(surface.getAttribute('aria-haspopup')).toBe('menu');
+        // aria-expanded is a widget state — invalid on this role-less
+        // surface (`generic`), unlike the aria-haspopup/aria-controls
+        // globals it keeps (#326). Open/closed lives on data-state.
+        expect(surface.hasAttribute('aria-expanded')).toBe(false);
         expect(surface.getAttribute('data-state')).toBe('closed');
         const e = contextmenuAt(surface, 120, 80);
         expect(e.defaultPrevented).toBe(true);

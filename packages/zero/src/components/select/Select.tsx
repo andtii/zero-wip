@@ -238,6 +238,15 @@ const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal }) =
 // ── Trigger ──
 
 export type SelectTriggerProps =
+    /**
+     * Accessible name for a Select outside a Field. `role="combobox"`
+     * prohibits name-from-content, so the value/placeholder text inside the
+     * trigger can never name it — without a `Field.Label` (which names the
+     * trigger through the field's control id) a bare Select is a nameless
+     * button to AT (#326). Omit inside a Field: `aria-label` would override
+     * the field's visible label.
+     */
+    & Define.Prop<'label', string, false>
     & WithClass
     & WithAsChild
     & Define.Slot<'default', PartProps>;
@@ -262,6 +271,7 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
         'data-placeholder': dataAttr(!select.state.value),
         'data-focus-visible': dataAttr(focus.visible),
         role: 'combobox',
+        'aria-label': props.label,
         'aria-haspopup': 'listbox',
         'aria-expanded': select.open.value ? 'true' : 'false',
         'aria-controls': select.ids.popup,

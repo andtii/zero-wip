@@ -14,19 +14,20 @@
     "dependencies": {
         "@sigx/zero": "workspace:^",
         "@sigx/zero-basic": "workspace:^",
-        "@sigx/zero-daisyui": "workspace:^",
-        "sigx": "catalog:",
-        "@sigx/zero-material": "workspace:^",
         "@sigx/zero-brutalist": "workspace:^",
+        "@sigx/zero-carbon": "workspace:^",
+        "@sigx/zero-daisyui": "workspace:^",
         "@sigx/zero-heroui": "workspace:^",
-        "@sigx/zero-carbon": "workspace:^"
+        "@sigx/zero-material": "workspace:^",
+        "sigx": "catalog:"
     },
     "devDependencies": {
-        "@sigx/vite": "catalog:",
-        "typescript": "^6.0.3",
-        "vite": "^8.0.3",
-        "@sigx/zero-kit": "workspace:^",
+        "@axe-core/playwright": "^4.12.1",
         "@playwright/test": "^1.58.2",
-        "@types/node": "^22.20.1"
+        "@sigx/vite": "catalog:",
+        "@sigx/zero-kit": "workspace:^",
+        "@types/node": "^22.20.1",
+        "typescript": "^6.0.3",
+        "vite": "^8.0.3"
     }
 }

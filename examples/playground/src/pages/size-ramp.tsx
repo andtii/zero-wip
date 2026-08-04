@@ -36,7 +36,9 @@ const SizeRampDemos = component(() => {
                     <Checkbox.Root size={size} defaultChecked>Checkbox</Checkbox.Root>
                     <Switch.Root size={size} defaultChecked>Switch</Switch.Root>
                     <Select.Root size={size} defaultValue="apple">
-                        <Select.Trigger>
+                        {/* Same reason as the checkbox note above: a bare
+                          * combobox trigger has no name-from-content (#326). */}
+                        <Select.Trigger label={`Fruit (${size})`}>
                             <Select.Value />
                             <Select.Indicator />
                         </Select.Trigger>
