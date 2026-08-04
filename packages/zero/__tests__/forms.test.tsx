@@ -262,6 +262,44 @@ describe('Accordion', () => {
         expect(state.open).toEqual(['a', 'b']);
     });
 
+    it('wires explicit disclosure semantics per item: aria-expanded + aria-controls', () => {
+        const state = signal({ open: ['a'] });
+        mount(state);
+        const triggers = container.querySelectorAll<HTMLElement>('[data-part="trigger"]');
+        const panels = container.querySelectorAll<HTMLElement>('[data-part="panel"]');
+        expect(panels[0]!.id).not.toBe('');
+        expect(panels[1]!.id).not.toBe('');
+        expect(panels[0]!.id).not.toBe(panels[1]!.id);
+        expect(triggers[0]!.getAttribute('aria-controls')).toBe(panels[0]!.id);
+        expect(triggers[1]!.getAttribute('aria-controls')).toBe(panels[1]!.id);
+        expect(triggers[0]!.getAttribute('aria-expanded')).toBe('true');
+        expect(triggers[1]!.getAttribute('aria-expanded')).toBe('false');
+        state.open = ['b'];
+        expect(triggers[0]!.getAttribute('aria-expanded')).toBe('false');
+        expect(triggers[1]!.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('a disabled item announces aria-disabled on its trigger', () => {
+        render(
+            <Accordion.Root>
+                <Accordion.Item value="a" disabled>
+                    <Accordion.Trigger>Section A</Accordion.Trigger>
+                    <Accordion.Panel>Content A</Accordion.Panel>
+                </Accordion.Item>
+                <Accordion.Item value="b">
+                    <Accordion.Trigger>Section B</Accordion.Trigger>
+                    <Accordion.Panel>Content B</Accordion.Panel>
+                </Accordion.Item>
+            </Accordion.Root>,
+            container,
+        );
+        const triggers = container.querySelectorAll<HTMLElement>('[data-part="trigger"]');
+        // <summary> has no disabled attribute — aria-disabled is the only
+        // way the inert trigger announces as such.
+        expect(triggers[0]!.getAttribute('aria-disabled')).toBe('true');
+        expect(triggers[1]!.hasAttribute('aria-disabled')).toBe(false);
+    });
+
     it('passes the variant axes through on the root', () => {
         render(
             <Accordion.Root color="primary" size="sm">
