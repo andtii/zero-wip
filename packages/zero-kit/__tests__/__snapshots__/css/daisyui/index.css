@@ -4186,3 +4186,154 @@
         --divider-thickness: calc(var(--border) * 3);
     }
 }
+
+@layer zero.recipes {
+    [data-scope="skeleton"][data-part="root"] {
+        --skeleton-fill: var(--color-base-300);
+    }
+
+    [data-scope="skeleton"][data-part="root"] {
+        border-radius: var(--radius-box);
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-state="loading"] {
+        color: transparent;
+        background: var(--skeleton-fill);
+        animation: zero-daisyui-skeleton 1.6s ease-in-out infinite;
+        user-select: none;
+        pointer-events: none;
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-color="primary"] {
+        --skeleton-fill: color-mix(in oklab, var(--color-primary) 20%, var(--color-base-300));
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-color="secondary"] {
+        --skeleton-fill: color-mix(in oklab, var(--color-secondary) 20%, var(--color-base-300));
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-color="accent"] {
+        --skeleton-fill: color-mix(in oklab, var(--color-accent) 20%, var(--color-base-300));
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-color="neutral"] {
+        --skeleton-fill: color-mix(in oklab, var(--color-neutral) 20%, var(--color-base-300));
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-color="info"] {
+        --skeleton-fill: color-mix(in oklab, var(--color-info) 20%, var(--color-base-300));
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-color="success"] {
+        --skeleton-fill: color-mix(in oklab, var(--color-success) 20%, var(--color-base-300));
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-color="warning"] {
+        --skeleton-fill: color-mix(in oklab, var(--color-warning) 20%, var(--color-base-300));
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-color="error"] {
+        --skeleton-fill: color-mix(in oklab, var(--color-error) 20%, var(--color-base-300));
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-size="xs"] {
+        border-radius: var(--radius-selector);
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-size="sm"] {
+        border-radius: var(--radius-selector);
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-size="lg"] {
+        border-radius: var(--radius-box);
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-size="xl"] {
+        border-radius: var(--radius-box);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="skeleton"][data-part="root"][data-state="loading"] {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-daisyui-skeleton {
+    from, to { opacity: 1; } 50% { opacity: 0.55; }
+}
+
+@layer zero.recipes {
+    [data-scope="spinner"][data-part="root"] {
+        --spinner-size: calc(var(--size-field) * 0.5);
+        --spinner-ink: var(--color-primary);
+        --spinner-track: var(--color-base-300);
+    }
+
+    [data-scope="spinner"][data-part="root"] {
+        display: inline-block;
+        inline-size: var(--spinner-size);
+        block-size: var(--spinner-size);
+        box-sizing: border-box;
+        border-radius: 50%;
+        border: calc(var(--border) * 2) solid var(--spinner-track);
+        border-block-start-color: var(--spinner-ink);
+        animation: zero-daisyui-spin 0.7s linear infinite;
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="primary"] {
+        --spinner-ink: var(--color-primary);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="secondary"] {
+        --spinner-ink: var(--color-secondary);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="accent"] {
+        --spinner-ink: var(--color-accent);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="neutral"] {
+        --spinner-ink: var(--color-neutral);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="info"] {
+        --spinner-ink: var(--color-info);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="success"] {
+        --spinner-ink: var(--color-success);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="warning"] {
+        --spinner-ink: var(--color-warning);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-color="error"] {
+        --spinner-ink: var(--color-error);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-size="xs"] {
+        --spinner-size: calc(var(--size-field) * 0.35);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-size="sm"] {
+        --spinner-size: calc(var(--size-field) * 0.42);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-size="lg"] {
+        --spinner-size: calc(var(--size-field) * 0.7);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-size="xl"] {
+        --spinner-size: calc(var(--size-field) * 0.9);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="spinner"][data-part="root"] {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-daisyui-spin {
+    to { transform: rotate(360deg); }
+}

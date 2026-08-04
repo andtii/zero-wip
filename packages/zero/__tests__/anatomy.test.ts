@@ -57,7 +57,8 @@ describe('anatomy registry', () => {
             'accordion', 'alert', 'avatar', 'badge', 'button', 'card', 'checkbox', 'collapsible', 'combobox', 'dialog',
             'divider', 'field', 'input', 'menu',
             'number-input', 'popover',
-            'progress', 'radio-group', 'rating-group', 'select', 'slider', 'switch', 'tabs', 'textarea', 'toast', 'toggle', 'toggle-group', 'tooltip',
+            'progress', 'radio-group', 'rating-group', 'select', 'skeleton', 'slider', 'spinner', 'switch', 'tabs',
+            'textarea', 'toast', 'toggle', 'toggle-group', 'tooltip',
             'tree-view',
         ]);
     });

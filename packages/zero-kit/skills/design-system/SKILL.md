@@ -652,7 +652,12 @@ component's anatomy). No component code is ever written or changed.
      ```
      Every axis works this way — `colors`, `sizes`, `variants`, `axes`,
      `modifiers` — and a scope never widens, only narrows. An **absent** key
-     means the scope offers the whole union; an **empty list** is the claim
+     means the scope offers the whole union — but once ANY scope narrows an
+     axis, every sibling that actually *paints* that axis should declare too,
+     and the validator warns until they do. Restating the union is not
+     redundancy: it is the explicit claim "yes, this one carries all of it",
+     which is the answer the first narrowing puts in question. Scopes that
+     wire nothing for the axis are not asked; an **empty list** is the claim
      "this scope has no such axis at all" (`variants: []`), the same grammar
      `sizes: []` uses design-system-wide.
      Two things to know before using it. Restricting one scope while a styled

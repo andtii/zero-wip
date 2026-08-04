@@ -34,6 +34,7 @@ import { collapsiblePage } from './collapsible';
 import { treeViewPage } from './tree-view';
 import { avatarPage } from './avatar';
 import { cardPage, alertPage, badgePage, dividerPage } from './content-tier';
+import { skeletonPage, spinnerPage } from './loading';
 import { progressPage } from './progress';
 import { sizeRampPage } from './size-ramp';
 import { extensibleRolesPage } from './extensible-roles';
@@ -96,6 +97,8 @@ export const pages: PageEntry[] = [
     alertPage,
     badgePage,
     dividerPage,
+    skeletonPage,
+    spinnerPage,
     progressPage,
     sizeRampPage,
     extensibleRolesPage,

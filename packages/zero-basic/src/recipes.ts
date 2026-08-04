@@ -3390,9 +3390,125 @@ export const divider: RecipeInput = {
     },
 };
 
+// ── Loading (#314) ────────────────────────────────────────────────────────
+/**
+ * Skeleton — paper with a sheen moving across it. The children stay in the
+ * DOM (that is the component's whole job), so `loading` has to hide them:
+ * `color: transparent` blanks the text without changing the box it occupies.
+ *
+ * The fill is deliberately quiet. A skeleton is not a control and is not
+ * content — it is the absence of content, and a placeholder loud enough to
+ * clear a 3:1 UI-component floor would read as a filled block someone meant.
+ * That is why it is not in the contrast audit's indicator matrix and the
+ * spinner is: see the note beside `INDICATORS`.
+ */
+export const skeleton: RecipeInput = {
+    component: 'skeleton',
+    tokens: { '--skeleton-fill': 'var(--color-base-200)', '--skeleton-sheen': 'var(--color-base-300)' },
+    parts: {
+        root: {
+            base: { borderRadius: 'var(--radius-field)' },
+            states: {
+                loading: {
+                    color: 'transparent',
+                    // The gradient IS the fill: one layer, moved by
+                    // background-position, so nothing reflows.
+                    backgroundImage: 'linear-gradient(90deg, var(--skeleton-fill) 0%, var(--skeleton-sheen) 50%, var(--skeleton-fill) 100%)',
+                    backgroundSize: '200% 100%',
+                    animation: 'zero-basic-skeleton 1.4s ease-in-out infinite',
+                    userSelect: 'none',
+                    // A placeholder is not a target: it holds the shape of a
+                    // link that is not there yet.
+                    pointerEvents: 'none',
+                },
+                loaded: {},
+            },
+            at: {
+                // Stops, never speeds up — the same rule progress's
+                // indeterminate sweep follows, and the reason the duration
+                // above is a literal rather than a `var(--duration-*)` that
+                // would collapse to 0.01ms and strobe.
+                //
+                // The static fallback is a FLAT fill, not the mid-sweep frame:
+                // it still reads as "not content yet", which is the whole
+                // message the animation was carrying.
+                'reduced-motion': {
+                    states: {
+                        loading: { animation: 'none', backgroundImage: 'none', background: 'var(--skeleton-fill)' },
+                    },
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--skeleton-fill': `color-mix(in oklch, var(--color-${c}) 18%, var(--color-base-200))`,
+            '--skeleton-sheen': `color-mix(in oklch, var(--color-${c}) 32%, var(--color-base-200))`,
+        } } }])),
+        size: {
+            xs: { root: { base: { borderRadius: 'var(--radius-selector)' } } },
+            sm: { root: { base: { borderRadius: 'var(--radius-selector)' } } },
+            md: {},
+            lg: { root: { base: { borderRadius: 'var(--radius-box)' } } },
+            xl: { root: { base: { borderRadius: 'var(--radius-box)' } } },
+        },
+    },
+    keyframes: {
+        'zero-basic-skeleton': 'from { background-position: 100% 0; } to { background-position: -100% 0; }',
+    },
+};
+
+/**
+ * Spinner — a hairline ring with one quadrant inked, turning. Drawn with
+ * borders rather than a gradient so it survives `forced-colors`, where a
+ * `background-image` is dropped and a border is not.
+ *
+ * Under reduced motion it STOPS, and the arc is what carries the meaning
+ * standing still: a ring with one segment in the role's ink still reads as a
+ * progress indicator, where a uniform ring would read as an empty circle.
+ */
+export const spinner: RecipeInput = {
+    component: 'spinner',
+    tokens: {
+        '--spinner-size': 'calc(var(--size-field) * 0.6)',
+        '--spinner-ink': 'var(--color-primary)',
+        '--spinner-track': 'var(--color-base-300)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-block',
+                inlineSize: 'var(--spinner-size)',
+                blockSize: 'var(--spinner-size)',
+                boxSizing: 'border-box',
+                borderRadius: '50%',
+                border: 'calc(var(--border) * 2) solid var(--spinner-track)',
+                borderBlockStartColor: 'var(--spinner-ink)',
+                animation: 'zero-basic-spin 0.7s linear infinite',
+            },
+            at: {
+                'reduced-motion': { base: { animation: 'none' } },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--spinner-ink': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.4)' } } },
+            sm: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.5)' } } },
+            md: {},
+            lg: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.8)' } } },
+            xl: { root: { base: { '--spinner-size': 'var(--size-field)' } } },
+        },
+    },
+    keyframes: { 'zero-basic-spin': 'to { transform: rotate(360deg); }' },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
-    card, alert, badge, divider,
+    card, alert, badge, divider, skeleton, spinner,
 ];

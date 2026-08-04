@@ -2953,9 +2953,94 @@ export const divider: RecipeInput = {
     },
 };
 
+// ── Loading (#314) ────────────────────────────────────────────────────────
+/**
+ * Skeleton — see zero-basic's for the shared reasoning: children stay in the
+ * DOM, `loading` blanks them with `color: transparent`, the loop STOPS under
+ * reduced motion rather than speeding up, and the static fallback is a flat
+ * fill that still reads as "not content yet".
+ */
+export const skeleton: RecipeInput = {
+    component: 'skeleton',
+    tokens: { '--skeleton-fill': 'var(--color-surface-container)' },
+    parts: {
+        root: {
+            base: { borderRadius: 'var(--radius-box)' },
+            states: {
+                loading: {
+                    color: 'transparent',
+                    background: 'var(--skeleton-fill)',
+                    animation: 'zero-material-skeleton 1.6s ease-in-out infinite',
+                    userSelect: 'none',
+                    pointerEvents: 'none',
+                },
+                loaded: {},
+            },
+            at: { 'reduced-motion': { states: { loading: { animation: 'none' } } } },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--skeleton-fill': `color-mix(in oklab, var(--color-${c}) 20%, var(--color-base-300))`,
+        } } }])),
+        size: {
+            xs: { root: { base: { borderRadius: 'var(--radius-selector)' } } },
+            sm: { root: { base: { borderRadius: 'var(--radius-selector)' } } },
+            md: {},
+            lg: { root: { base: { borderRadius: 'var(--radius-box)' } } },
+            xl: { root: { base: { borderRadius: 'var(--radius-box)' } } },
+        },
+    },
+    keyframes: { 'zero-material-skeleton': 'from, to { opacity: 1; } 50% { opacity: 0.55; }' },
+};
+
+/**
+ * Spinner — a ring with one segment in the ink, turning. Borders rather than a
+ * gradient so it survives `forced-colors`, which drops a `background-image`
+ * and keeps a border. Under reduced motion it STOPS; the inked segment is what
+ * carries the meaning standing still, where a uniform ring would read as an
+ * empty circle.
+ */
+export const spinner: RecipeInput = {
+    component: 'spinner',
+    tokens: {
+        '--spinner-size': 'calc(var(--size-field) * 0.6)',
+        '--spinner-ink': 'var(--color-primary)',
+        '--spinner-track': 'var(--color-outline)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-block',
+                inlineSize: 'var(--spinner-size)',
+                blockSize: 'var(--spinner-size)',
+                boxSizing: 'border-box',
+                borderRadius: '50%',
+                border: 'calc(var(--border) * 2) solid var(--spinner-track)',
+                borderBlockStartColor: 'var(--spinner-ink)',
+                animation: 'zero-material-spin 0.7s linear infinite',
+            },
+            at: { 'reduced-motion': { base: { animation: 'none' } } },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--spinner-ink': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.4)' } } },
+            sm: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.5)' } } },
+            md: {},
+            lg: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.8)' } } },
+            xl: { root: { base: { '--spinner-size': 'var(--size-field)' } } },
+        },
+    },
+    keyframes: { 'zero-material-spin': 'to { transform: rotate(360deg); }' },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
-    card, alert, badge, divider,
+    card, alert, badge, divider, skeleton, spinner,
 ];

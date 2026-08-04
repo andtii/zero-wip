@@ -143,7 +143,15 @@ happy-dom cannot resolve), that no element renders a
 `data-color`/`data-size`/`data-variant`/`data-mod-*` value the live manifest
 does not declare, that a toolbar switch leaves exactly one live
 `link[data-zero-ds]` and refetches the vocabulary and theme registry, and that
-boot logs no console error); and the **RTL spec** (`e2e/rtl.spec.ts`), the other
+boot logs no console error); the **reduced-motion spec** (`e2e/reduced-motion.spec.ts`) — the two
+components whose resting state is an infinite loop (Skeleton, Spinner) across
+all six design systems, asserting the OPPOSITE thing in two projects:
+`animation-name` must be running under `chromium` and `none` under
+`reduced-motion`. Both directions, because a one-way check passes for a
+recipe that never animated — and `animation-name` rather than duration,
+because the kit collapses `--duration-*` to ~0 under reduced motion and a
+loop at ~0s strobes rather than stops;
+and the **RTL spec** (`e2e/rtl.spec.ts`), the other
 spec that walks all six — chromium-only, one page load per design system, it
 sets `dir="rtl"` *after* boot (an `addInitScript` runs before `documentElement`
 exists, so the attribute is silently lost, which reads exactly like a broken
@@ -230,7 +238,7 @@ that null reports a `TypeError` instead of "the popup was not showing".
   (`danger-soft` is one member), a declared three-step size ramp, and
   HeroUI's `isIconOnly`/`isPending` as `data-mod-*` modifiers. Where
   zero-material proves vocabularies can be *extended*, this proves they can be
-  a different *shape*. Full component coverage (29 recipes), with `variant`
+  a different *shape*. Full component coverage (31 recipes), with `variant`
   wired on button only (the repo-wide decision, #175) — it exercises the axis
   surface, not a product. Private.
 - `packages/zero-carbon` → `@sigx/zero-carbon` — Carbon-flavoured skin, and

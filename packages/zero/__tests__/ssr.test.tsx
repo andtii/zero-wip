@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Card, Collapsible, Combobox, Dialog, Divider, Input, NumberInput, RatingGroup, Switch, Tabs, Textarea, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Card, Collapsible, Combobox, Dialog, Divider, Input, NumberInput, RatingGroup, Skeleton, Spinner, Switch, Tabs, Textarea, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -78,6 +78,8 @@ function page() {
             </Alert.Root>
             <Badge color="success">Active</Badge>
             <Divider />
+            <Skeleton.Root>Article title</Skeleton.Root>
+            <Spinner label="Loading results" />
             <RatingGroup.Root name="stars" defaultValue={2.5} allowHalf>
                 <RatingGroup.Label>Stars</RatingGroup.Label>
                 <RatingGroup.Control>

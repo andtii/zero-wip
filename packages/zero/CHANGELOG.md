@@ -4,6 +4,34 @@
 
 ### Added
 
+- **`Skeleton` and `Spinner` — closing RFC 0002 §8's content-tier list**
+  (#314). §8 named ten; `rating` shipped, `input`/`textarea` landed in #310,
+  `card`/`alert`/`badge`/`divider` in #311, and two are deliberately out —
+  `steps` would remove `zero-ext-example`'s premise (#304) and `table` is
+  markup and styling rather than behavior. These are the last two.
+
+  `Skeleton` takes a `loading` model defaulting to **true** and keeps its
+  children in the DOM in BOTH states. That is the whole component: it exists
+  to hold the layout its content will occupy, so swapping the children for a
+  placeholder box would make the box the wrong size and the page jump when the
+  real thing arrived. It declares no `hiddenIn` — nothing is hidden in either
+  state, so the two are told apart by paint and every design system has to make
+  them differ.
+
+  `Spinner` has no state (it spins or it is not rendered) and renders an empty
+  element: the mark is the design system's, because how a spinner is drawn is
+  its whole identity. `role="status"` with an `aria-label` defaulting to
+  `"Loading"` — a spinner with no accessible name is a decoration that happens
+  to move, and `status` announces on appearance rather than on every frame.
+
+  Both loop, so both owe a `prefers-reduced-motion` answer, and it has to STOP
+  rather than speed up: the kit collapses declared `--duration-*` tokens to ~0
+  under reduced motion, and a loop at ~0s strobes. Their durations are
+  therefore literals, and `e2e/reduced-motion.spec.ts` asserts the opposite
+  thing in two projects — running under `chromium`, `none` under
+  `reduced-motion` — because a one-way check passes for a recipe that never
+  animated at all.
+
 - **The content tier — `Card`, `Alert`, `Badge`, `Divider`** (#311). RFC 0002
   §8 named the gap ("the content tier a design system is visually judged on is
   absent: card, alert, badge, skeleton, spinner, steps, divider, rating,

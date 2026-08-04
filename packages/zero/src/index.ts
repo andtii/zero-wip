@@ -194,3 +194,9 @@ export type { BadgeRootProps } from './components/badge/index.js';
 
 export { Divider, dividerAnatomy } from './components/divider/index.js';
 export type { DividerRootProps } from './components/divider/index.js';
+
+export { Skeleton, skeletonAnatomy } from './components/skeleton/index.js';
+export type { SkeletonRootProps } from './components/skeleton/index.js';
+
+export { Spinner, spinnerAnatomy } from './components/spinner/index.js';
+export type { SpinnerRootProps } from './components/spinner/index.js';

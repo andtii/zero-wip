@@ -151,6 +151,14 @@
         "./divider": {
             "types": "./dist/components/divider/index.d.ts",
             "import": "./dist/components/divider/index.js"
+        },
+        "./skeleton": {
+            "types": "./dist/components/skeleton/index.d.ts",
+            "import": "./dist/components/skeleton/index.js"
+        },
+        "./spinner": {
+            "types": "./dist/components/spinner/index.d.ts",
+            "import": "./dist/components/spinner/index.js"
         }
     },
     "files": [

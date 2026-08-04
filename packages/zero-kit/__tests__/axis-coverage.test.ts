@@ -67,10 +67,10 @@ const designSystems = {
  * a deferral (#175, discharging RFC 0003 §9 phase 5's gate: "wire it, or record
  * the divergence per component with its reason").
  *
- * The eighteen were surveyed one at a time against RFC 0003 §7.2's set — the
+ * The twenty were surveyed one at a time against RFC 0003 §7.2's set — the
  * reasons below are the survey — and the result is more uniform than the issue
- * guessed. **Sixteen of the eighteen do carry a variant in a real design
- * system. Not one of the sixteen spells it `solid | outline | soft | ghost`.**
+ * guessed. **Eighteen of the twenty do carry a variant in a real design
+ * system. Not one of the eighteen spells it `solid | outline | soft | ghost`.**
  *
  * That is §1.1's thesis arriving at its consequence. The four convention design
  * systems declare a BUTTON's vocabulary and declare it design-system-wide, so
@@ -83,14 +83,14 @@ const designSystems = {
  * no longer say "inexpressible", they say "not declared yet". Wiring any of
  * the fourteen is now a design system's decision, taken one skin at a time,
  * and it costs the recipes plus the contrast audit's ancestor chains
- * (seventeen of the eighteen carry their axes on a part that renders no text —
+ * (nineteen of the twenty carry their axes on a part that renders no text —
  * `toggle` is the one whose carrier is the text-bearing element itself).
  *
  * `select` LEFT this ledger in #297, and how it left is the template for the
  * rest: zero-basic gives it `outline | soft | ghost` through `tokens.scopes`,
  * and the contrast audit reaches its trigger, value and items through declared
  * `AXIS_CHAINS` rather than the one-element probe that could never see them.
- * The blocker on the other seventeen is now work, not expressiveness.
+ * The blocker on the other nineteen is now work, not expressiveness.
  *
  * `badge` is deliberately NOT here, and is the reason the ledger is no longer
  * the whole story: zero-basic wires its variant against a vocabulary badge
@@ -99,7 +99,7 @@ const designSystems = {
  * first because its carrier IS its text-bearing part — the one shape the
  * contrast audit's one-element probe can measure without #297's chains.
  *
- * So `never` is still the correct compiled answer for all eighteen today —
+ * So `never` is still the correct compiled answer for all twenty today —
  * none of the six declares a vocabulary for them — and this ledger is the
  * reason it is correct rather than merely absent.
  *
@@ -133,6 +133,15 @@ const NO_VARIANT: Record<string, string> = {
     toggle: 'Material 3 makes the toggle a MODE of the icon button rather than '
         + 'a component — all four (standard, filled, filled-tonal, outlined) '
         + 'take `toggle`, so the variant is the button\'s and follows it.',
+
+    // ── The animated pair (#314). Both DO have a style axis somewhere, and
+    //    neither is a fill/chrome one — which is §7.2's point twice over. ──
+    skeleton: 'Ant Design Skeleton varies as its `active` shimmer vs a static '
+        + 'block, and Chakra spells the same split `isLoaded` — a MOTION axis, '
+        + 'not a fill one, and zero already carries it as `data-state`.',
+    spinner: 'Ant Design Spin varies by `indicator` (the glyph itself is '
+        + 'replaceable) and Material spells its two `determinate` and '
+        + '`indeterminate` — a shape axis rather than a chrome one.',
 
     // ── Bucket B: no surveyed system varies these at all. The only two where
     //    "no variant here" is the whole answer, and §4 would not change it. ──

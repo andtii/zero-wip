@@ -35,6 +35,8 @@ import type { Card as ZCard } from '@sigx/zero/card';
 import type { Alert as ZAlert } from '@sigx/zero/alert';
 import type { Badge as ZBadge } from '@sigx/zero/badge';
 import type { Divider as ZDivider } from '@sigx/zero/divider';
+import type { Skeleton as ZSkeleton } from '@sigx/zero/skeleton';
+import type { Spinner as ZSpinner } from '@sigx/zero/spinner';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -227,3 +229,17 @@ type DividerProps = {
 };
 type DividerAdapted = Adapted<typeof ZDivider, ZeroAxisProp, DividerProps>;
 export declare const Divider: DividerAdapted & { Root: DividerAdapted };
+
+/** skeleton — no vendor route; the wired surface keeps zero's names. */
+type SkeletonProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type SkeletonAdapted = Adapted<typeof ZSkeleton, ZeroAxisProp, SkeletonProps>;
+export declare const Skeleton: SkeletonAdapted & { Root: SkeletonAdapted };
+
+/** spinner — no vendor route; the wired surface keeps zero's names. */
+type SpinnerProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type SpinnerAdapted = Adapted<typeof ZSpinner, ZeroAxisProp, SpinnerProps>;
+export declare const Spinner: SpinnerAdapted & { Root: SpinnerAdapted };

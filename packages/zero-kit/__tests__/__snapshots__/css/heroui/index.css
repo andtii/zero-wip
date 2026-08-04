@@ -3206,3 +3206,74 @@
         --divider-thickness: calc(var(--border) * 2);
     }
 }
+
+@layer zero.recipes {
+    [data-scope="skeleton"][data-part="root"] {
+        --skeleton-fill: var(--color-base-200);
+    }
+
+    [data-scope="skeleton"][data-part="root"] {
+        border-radius: var(--radius-box);
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-state="loading"] {
+        color: transparent;
+        background: var(--skeleton-fill);
+        animation: zero-heroui-skeleton 1.6s ease-in-out infinite;
+        user-select: none;
+        pointer-events: none;
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-size="sm"] {
+        border-radius: var(--radius-selector);
+    }
+
+    [data-scope="skeleton"][data-part="root"][data-size="lg"] {
+        border-radius: var(--radius-box);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="skeleton"][data-part="root"][data-state="loading"] {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-heroui-skeleton {
+    from, to { opacity: 1; } 50% { opacity: 0.55; }
+}
+
+@layer zero.recipes {
+    [data-scope="spinner"][data-part="root"] {
+        --spinner-size: calc(var(--size-field) * 0.5);
+        --spinner-ink: var(--hero-primary);
+        --spinner-track: var(--hero-line);
+    }
+
+    [data-scope="spinner"][data-part="root"] {
+        display: inline-block;
+        inline-size: var(--spinner-size);
+        block-size: var(--spinner-size);
+        box-sizing: border-box;
+        border-radius: 50%;
+        border: calc(var(--border) * 2) solid var(--spinner-track);
+        border-block-start-color: var(--spinner-ink);
+        animation: zero-heroui-spin 0.7s linear infinite;
+    }
+
+    [data-scope="spinner"][data-part="root"][data-size="sm"] {
+        --spinner-size: calc(var(--size-field) * 0.4);
+    }
+
+    [data-scope="spinner"][data-part="root"][data-size="lg"] {
+        --spinner-size: calc(var(--size-field) * 0.7);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="spinner"][data-part="root"] {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-heroui-spin {
+    to { transform: rotate(360deg); }
+}

@@ -584,6 +584,20 @@ const INDICATORS: IndicatorSpec[] = [
     // The one non-`indicator`-named mark; see PAINT_ONLY_PART above. `★` for
     // every state — the recipes differ in `color`, not in the glyph.
     { scope: 'rating-group', part: 'item', ancestors: ['root', 'control'], glyph: '★' },
+    /**
+     * Spinner is opted in by hand (#314): its name matches no
+     * `PAINT_ONLY_PART` pattern, but it is pure paint on the page and an
+     * invisible one is a real bug — the WCAG 1.4.11 non-text floor is the same
+     * 3:1 this matrix already enforces. No ancestors: a spinner stands on the
+     * app surface, which is what the empty chain measures it against.
+     *
+     * SKELETON is deliberately NOT here, and the distinction is the point. A
+     * skeleton is not a control and not content — it is the absence of
+     * content, and a placeholder loud enough to clear 3:1 would read as a
+     * filled block someone meant. Holding it to a control's floor would make
+     * every design system draw a worse skeleton.
+     */
+    { scope: 'spinner', part: 'root', ancestors: [] },
 ];
 
 const partOf = (scope: string, name: string): ManifestPart => {

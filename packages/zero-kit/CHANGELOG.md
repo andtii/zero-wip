@@ -4,6 +4,18 @@
 
 ### Added
 
+- **The spinner joins the contrast audit's indicator matrix** (#314). Its name
+  matches no `PAINT_ONLY_PART` pattern, so it was opted in by hand: a spinner
+  is pure paint on the page and an invisible one is a real bug, answering to
+  the same 3:1 non-text floor (WCAG 1.4.11) the matrix already enforces. Empty
+  ancestor chain, because a spinner stands on the app surface.
+
+  **Skeleton is deliberately not there**, and the distinction is the point. A
+  skeleton is not a control and not content — it is the absence of content, and
+  a placeholder loud enough to clear 3:1 would read as a filled block someone
+  meant. Holding it to a control's floor would make every design system draw a
+  worse skeleton.
+
 - **Ancestor chains for the contrast audit's axis matrix, and the first
   non-button carrier wired against its own vocabulary** (#297). #294 landed
   per-scope vocabularies and #311 gave them a first caller in `badge`, which
