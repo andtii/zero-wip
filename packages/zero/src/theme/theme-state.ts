@@ -12,7 +12,7 @@
  * `ThemeProvider` provided per request (never the browser singleton).
  */
 import { defineInjectable, signal } from 'sigx';
-import { getTheme, pairOf, pickThemeFor } from './registry.js';
+import { getTheme, onThemesCleared, pairOf, pickThemeFor } from './registry.js';
 import type { ZeroThemeName, ZeroThemeNameOrCustom } from '../contract/vocabulary.js';
 
 export interface ThemeControllerOptions {
@@ -123,7 +123,20 @@ export function themeController(): ThemeController {
             '[zero] themeController() is browser-only. Under SSR, resolve useTheme() from a ThemeProvider.',
         );
     }
-    return (browserController ??= createThemeController());
+    if (!browserController) {
+        browserController = createThemeController();
+        // The SURVIVING controller after a design-system swap: `clearThemes()`
+        // empties the registry, so an explicit theme this singleton still
+        // holds names a stylesheet that just left — reset to follow-the-system
+        // (attribute and persistence included; a host that re-seeds with a
+        // design system defining the same name re-applies it explicitly).
+        // Only the singleton registers: per-request server controllers never
+        // see clearThemes (it throws on the server), and provider-created
+        // client controllers are owned by their provider.
+        const singleton = browserController;
+        onThemesCleared(() => singleton.setTheme(null));
+    }
+    return browserController;
 }
 
 /**

@@ -36,7 +36,37 @@ const themes = new Map<string, ThemeInfo>();
  */
 const schemeDefaults: { light?: string; dark?: string } = {};
 
+/**
+ * Listeners `clearThemes()` runs after emptying the registry — how the
+ * browser theme controller singleton sheds an explicit theme whose design
+ * system just left, without this module importing the controller (it imports
+ * us). Client-only by construction: `clearThemes` throws on the server.
+ * @internal
+ */
+const clearListeners = new Set<() => void>();
+
+/** @internal — see `clearListeners`. */
+export function onThemesCleared(listener: () => void): void {
+    clearListeners.add(listener);
+}
+
 export function registerTheme(info: ThemeInfo): void {
+    // Warn — never throw — on a re-registration that CHANGES the entry.
+    // Design systems register at module init, which on the server runs once
+    // per process while the registry is shared by every concurrent render: a
+    // same-name-different-content registration is one design system bleeding
+    // into another (or two installed without a `clearThemes()` between them).
+    // An identical re-registration is a legitimate double-install and stays
+    // silent. Merge either way: last write wins, loudly.
+    const existing = themes.get(info.name);
+    if (existing && JSON.stringify(existing) !== JSON.stringify(info)) {
+        console.warn(
+            `[zero] theme "${info.name}" is already registered with different settings — re-registering over it. `
+            + 'Two design systems appear to be installing themes into one registry (under SSR, one request\'s '
+            + 'design system bleeding into another\'s); call clearThemes() between design systems on the client, '
+            + 'and never share one process-wide registry across requests that use different design systems.',
+        );
+    }
     themes.set(info.name, info);
 }
 
@@ -111,6 +141,12 @@ export function registerThemes(source: ThemeSource): void {
  * `installThemes()`; between the two calls `listThemes()` is empty and
  * `pickThemeFor()` returns undefined.
  *
+ * Also resets the browser controller singleton's explicit theme to
+ * follow-the-system (attribute and persistence included): theme names are
+ * DS-specific, so whatever it held names a stylesheet that just left. A host
+ * that wants to keep a same-named theme across the swap captures it before
+ * clearing and re-applies it after re-seeding.
+ *
  * Throws on the server rather than trusting the docs: this is the one call that
  * can unpick write-once configuration, and on the server that registry is
  * shared by every concurrent render. Failing loudly beats bleeding one
@@ -125,6 +161,12 @@ export function clearThemes(): void {
     themes.clear();
     delete schemeDefaults.light;
     delete schemeDefaults.dark;
+    // Theme names are DS-specific, so any explicit choice the surviving
+    // browser controller still holds names a theme whose stylesheet just
+    // left — reset it to follow-the-system (the listener is registered by the
+    // controller singleton). A host that re-seeds with a design system
+    // defining the same name re-applies it explicitly afterwards.
+    for (const listener of clearListeners) listener();
 }
 
 export function getTheme(name: ZeroThemeNameOrCustom): ThemeInfo | undefined {

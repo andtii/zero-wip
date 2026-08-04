@@ -24,7 +24,7 @@ import type { Define } from 'sigx';
 import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
-import { dataAttr } from '../../contract/data-attrs.js';
+import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { variantAttrs } from '../../contract/props.js';
 import type {
@@ -77,7 +77,7 @@ const AlertRoot = component<AlertRootProps>(({ props, slots, emit }) => {
             role="alert"
             data-scope={SCOPE}
             data-part="root"
-            data-state={state.value ? 'open' : 'closed'}
+            data-state={stateAttr(state.value, 'open', 'closed')}
             hidden={!state.value}
             {...variantAttrs(props)}
             class={props.class}

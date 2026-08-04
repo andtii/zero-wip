@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import {
     clearThemes, getTheme, listThemes, pairOf, pickThemeFor, registerTheme, registerThemes,
+    themeController,
 } from '@sigx/zero';
 
 const basic = { name: 'basic', colorScheme: 'light', pair: 'basic-dark' } as const;
@@ -114,6 +115,46 @@ describe('theme registry', () => {
         clearThemes();
 
         expect(listThemes()).toEqual([]);
+    });
+
+    // The SSR-bleed guard (#317 item 6): design systems register at module
+    // init on the server, so re-registration must never THROW — but a name
+    // re-registered with DIFFERENT content is one request's design system
+    // bleeding into another's (or two design systems installed without a
+    // clear), so it warns and merges rather than staying silent.
+    it('warns (and merges) when a theme is re-registered with different content', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        try {
+            registerTheme(basic);
+            // Identical content: legitimate double-install, no warning.
+            registerTheme({ ...basic });
+            expect(warn).not.toHaveBeenCalled();
+            // Different content: warn, and the newer registration wins.
+            registerTheme({ name: 'basic', colorScheme: 'dark' });
+            expect(warn).toHaveBeenCalledOnce();
+            expect(String(warn.mock.calls[0])).toMatch(/re-register|already registered/i);
+            expect(getTheme('basic')?.colorScheme).toBe('dark');
+        } finally {
+            warn.mockRestore();
+        }
+    });
+
+    it('clearThemes resets the browser controller\'s stale explicit theme', () => {
+        registerTheme(basic);
+        registerTheme(basicDark);
+        const controller = themeController();
+        controller.setTheme('basic-dark');
+        expect(controller.theme()).toBe('basic-dark');
+        expect(document.documentElement.getAttribute('data-theme')).toBe('basic-dark');
+
+        clearThemes();
+
+        // Theme names are DS-specific: with the registry empty, the explicit
+        // choice names a theme whose stylesheet left with the old DS. The
+        // surviving singleton follows the system again; a host that re-seeds
+        // with a DS defining the same name re-applies it explicitly.
+        expect(controller.theme()).toBeNull();
+        expect(document.documentElement.getAttribute('data-theme')).toBeNull();
     });
 
     it('refuses to clear on the server', () => {

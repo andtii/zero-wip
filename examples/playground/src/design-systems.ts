@@ -395,9 +395,14 @@ export async function activateDesignSystem(entry: DesignSystemEntry): Promise<bo
     link.removeAttribute('media');
 
     // Theme names are DS-specific, so the registry is replaced, not extended.
+    // `clearThemes()` also resets the controller's explicit theme (#317), so
+    // the previous choice is captured FIRST and re-applied afterwards when
+    // the incoming design system defines the same name — daisyui's `dark`
+    // survives a hop to a design system that also ships a `dark`.
+    const previousTheme = themeController().theme();
     clearThemes();
     entry.installThemes();
-    reconcileTheme();
+    if (previousTheme && getTheme(previousTheme)) themeController().setTheme(previousTheme);
 
     // Only now — a failed load leaves the previous design system live, and
     // the vocabulary the demo renders must describe the CSS that is actually
@@ -413,16 +418,3 @@ export async function activateDesignSystem(entry: DesignSystemEntry): Promise<bo
     return true;
 }
 
-/**
- * Drop an explicit theme that the active design system doesn't define.
- *
- * `index.html` restores `data-theme` before first paint, but that name may
- * belong to a design system you are no longer using. The failure is silent —
- * no `[data-theme]` block matches, so you quietly get the active DS's `:root`
- * defaults instead. Falling back to `null` (follow the system) is honest, and
- * needs no JS of its own: compiled themes use `light-dark()`.
- */
-export function reconcileTheme(): void {
-    const current = themeController().theme();
-    if (current && !getTheme(current)) themeController().setTheme(null);
-}
