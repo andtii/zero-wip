@@ -37,6 +37,8 @@ import { cardAnatomy } from './components/card/anatomy.js';
 import { alertAnatomy } from './components/alert/anatomy.js';
 import { badgeAnatomy } from './components/badge/anatomy.js';
 import { dividerAnatomy } from './components/divider/anatomy.js';
+import { skeletonAnatomy } from './components/skeleton/anatomy.js';
+import { spinnerAnatomy } from './components/spinner/anatomy.js';
 
 export {
     buttonAnatomy,
@@ -44,7 +46,7 @@ export {
     fieldAnatomy, checkboxAnatomy, radioGroupAnatomy, progressAnatomy, sliderAnatomy, accordionAnatomy, selectAnatomy,
     avatarAnatomy, toastAnatomy, comboboxAnatomy, toggleAnatomy, toggleGroupAnatomy, numberInputAnatomy,
     ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy,
-    cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy,
+    cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy, skeletonAnatomy, spinnerAnatomy,
 };
 
 export const anatomies = {
@@ -77,6 +79,8 @@ export const anatomies = {
     alert: alertAnatomy,
     badge: badgeAnatomy,
     divider: dividerAnatomy,
+    skeleton: skeletonAnatomy,
+    spinner: spinnerAnatomy,
 } as const satisfies Record<string, Anatomy>;
 
 /**

@@ -2910,9 +2910,95 @@ export const divider: RecipeInput = {
     },
 };
 
+// ── Loading (#314) ────────────────────────────────────────────────────────
+/**
+ * Skeleton — see zero-basic's for the shared reasoning: children stay in the
+ * DOM, `loading` blanks them with `color: transparent`, the loop STOPS under
+ * reduced motion rather than speeding up, and the static fallback is a flat
+ * fill that still reads as "not content yet".
+ */
+export const skeleton: RecipeInput = {
+    component: 'skeleton',
+    tokens: { '--skeleton-fill': 'var(--color-base-300)' },
+    parts: {
+        root: {
+            base: { borderRadius: 'var(--radius-box)' },
+            states: {
+                // daisy's skeleton is a PULSE rather than a sweep — an opacity
+                // loop on a flat fill, which is also why its reduced-motion
+                // fallback is the fill at rest and nothing else changes.
+                loading: {
+                    color: 'transparent',
+                    background: 'var(--skeleton-fill)',
+                    animation: 'zero-daisyui-skeleton 1.6s ease-in-out infinite',
+                    userSelect: 'none',
+                    pointerEvents: 'none',
+                },
+                loaded: {},
+            },
+            at: {
+                'reduced-motion': { states: { loading: { animation: 'none' } } },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--skeleton-fill': `color-mix(in oklab, var(--color-${c}) 20%, var(--color-base-300))`,
+        } } }])),
+        size: {
+            xs: { root: { base: { borderRadius: 'var(--radius-selector)' } } },
+            sm: { root: { base: { borderRadius: 'var(--radius-selector)' } } },
+            md: {},
+            lg: { root: { base: { borderRadius: 'var(--radius-box)' } } },
+            xl: { root: { base: { borderRadius: 'var(--radius-box)' } } },
+        },
+    },
+    keyframes: {
+        'zero-daisyui-skeleton': 'from, to { opacity: 1; } 50% { opacity: 0.55; }',
+    },
+};
+
+/** daisy "loading-spinner": the ring, with one quadrant in the role's ink. */
+export const spinner: RecipeInput = {
+    component: 'spinner',
+    tokens: {
+        '--spinner-size': 'calc(var(--size-field) * 0.5)',
+        '--spinner-ink': 'var(--color-primary)',
+        '--spinner-track': 'var(--color-base-300)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-block',
+                inlineSize: 'var(--spinner-size)',
+                blockSize: 'var(--spinner-size)',
+                boxSizing: 'border-box',
+                borderRadius: '50%',
+                border: 'calc(var(--border) * 2) solid var(--spinner-track)',
+                borderBlockStartColor: 'var(--spinner-ink)',
+                animation: 'zero-daisyui-spin 0.7s linear infinite',
+            },
+            at: { 'reduced-motion': { base: { animation: 'none' } } },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--spinner-ink': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.35)' } } },
+            sm: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.42)' } } },
+            md: {},
+            lg: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.7)' } } },
+            xl: { root: { base: { '--spinner-size': 'calc(var(--size-field) * 0.9)' } } },
+        },
+    },
+    keyframes: { 'zero-daisyui-spin': 'to { transform: rotate(360deg); }' },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
-    card, alert, badge, divider,
+    card, alert, badge, divider, skeleton, spinner,
 ];

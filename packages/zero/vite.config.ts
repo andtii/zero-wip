@@ -40,7 +40,9 @@ export default defineLibConfig({
         'components/card/index': 'src/components/card/index.ts',
         'components/alert/index': 'src/components/alert/index.ts',
         'components/badge/index': 'src/components/badge/index.ts',
-        'components/divider/index': 'src/components/divider/index.ts'
+        'components/divider/index': 'src/components/divider/index.ts',
+        'components/skeleton/index': 'src/components/skeleton/index.ts',
+        'components/spinner/index': 'src/components/spinner/index.ts'
     },
     external: ['sigx', 'sigx/jsx-runtime', 'sigx/jsx-dev-runtime'],
     jsx: true

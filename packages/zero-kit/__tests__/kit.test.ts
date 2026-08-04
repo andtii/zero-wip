@@ -276,7 +276,8 @@ describe('the shipped design systems', () => {
         expect(Object.keys(compiled.componentCss).sort()).toEqual([
             'accordion', 'alert', 'avatar', 'badge', 'button', 'card', 'checkbox', 'collapsible', 'combobox', 'dialog',
             'divider', 'field', 'input', 'menu',
-            'number-input', 'popover', 'progress', 'radio-group', 'rating-group', 'select', 'slider', 'switch', 'tabs',
+            'number-input', 'popover', 'progress', 'radio-group', 'rating-group', 'select', 'skeleton', 'slider',
+            'spinner', 'switch', 'tabs',
             'textarea', 'toast', 'toggle', 'toggle-group', 'tooltip', 'tree-view',
         ]);
         expect(compiled.indexCss).toContain('@layer zero.tokens');
