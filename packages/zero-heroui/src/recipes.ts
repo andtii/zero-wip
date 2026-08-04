@@ -192,7 +192,9 @@ const disclosureTrigger: PartStyles = {
         padding: 'var(--space-md) var(--space-xs)',
         borderRadius: 'var(--radius-field)',
         fontFamily: 'var(--font-sans)',
-        fontSize: 'var(--text-md)',
+        // The text tokens both disclosure recipes declare (the tabs idiom):
+        // `variants.size` rebinds them on the carrier, one flat rule per step.
+        fontSize: 'var(--disclosure-text)',
         fontWeight: 'var(--weight-medium)',
         color: 'var(--color-base-content)',
         cursor: 'pointer',
@@ -228,10 +230,24 @@ const disclosurePanel: PartStyles = {
     base: {
         padding: '0 var(--space-xs) var(--space-md)',
         fontFamily: 'var(--font-sans)',
-        fontSize: 'var(--text-sm)',
+        fontSize: 'var(--disclosure-panel-text)',
         color: 'var(--hero-muted)',
     },
     states: { open: {}, closed: {} },
+};
+
+/** The resting values of the disclosure text tokens — md, the same steps as before #321. */
+const disclosureTokens = {
+    '--disclosure-text': 'var(--text-md)',
+    '--disclosure-panel-text': 'var(--text-sm)',
+};
+
+/** v3's three steps, moving the row's type only — the tabs/select shape. */
+const disclosureSizes: Record<string, Record<string, PartStyles>> = {
+    sm: { root: { base: { '--disclosure-text': 'var(--text-sm)', '--disclosure-panel-text': 'var(--text-xs)' } } },
+    // `md` is the un-attributed render — the tokens above already ARE it.
+    md: {},
+    lg: { root: { base: { '--disclosure-text': 'var(--text-lg)', '--disclosure-panel-text': 'var(--text-md)' } } },
 };
 
 // ── Tabs ──────────────────────────────────────────────────────────────────
@@ -298,6 +314,7 @@ export const tabs: RecipeInput = {
 // ── Collapsible ───────────────────────────────────────────────────────────
 export const collapsible: RecipeInput = {
     component: 'collapsible',
+    tokens: disclosureTokens,
     parts: {
         root: withPresence(disclosurePresence, {
             base: { color: 'var(--color-base-content)' },
@@ -310,6 +327,7 @@ export const collapsible: RecipeInput = {
         trigger: disclosureTrigger,
         panel: disclosurePanel,
     },
+    variants: { size: disclosureSizes },
 };
 
 // ── Switch ────────────────────────────────────────────────────────────────
@@ -459,6 +477,20 @@ const pressableOverlayTrigger: PartStyles = {
     selectors: pressScale,
 };
 
+/**
+ * The size axis for the four overlay triggers (#321). Dialog, popover,
+ * tooltip and menu carry `data-size` on the TRIGGER — the anatomy's carrier
+ * part; their popups are top-layer siblings the compiled `@scope` donut can
+ * never reach, so size means the control itself, stepped exactly as the
+ * button steps its own box. (There is no colour axis to wire: `roles: {}`.)
+ */
+const overlayTriggerSizes: Record<string, Record<string, PartStyles>> = {
+    sm: { trigger: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-xs)' } } },
+    // `md` is the un-attributed render — `secondaryButton` already IS it.
+    md: {},
+    lg: { trigger: { base: { padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-md)' } } },
+};
+
 // ── Dialog ────────────────────────────────────────────────────────────────
 export const dialog: RecipeInput = {
     component: 'dialog',
@@ -513,6 +545,8 @@ export const dialog: RecipeInput = {
         // The alertdialog's least-destructive action — the same quiet chrome.
         cancel: dismissAction,
     },
+    // Trigger-carried size — see `overlayTriggerSizes`.
+    variants: { size: overlayTriggerSizes },
 };
 
 // ── Popover ───────────────────────────────────────────────────────────────
@@ -546,6 +580,8 @@ export const popover: RecipeInput = {
         },
         close: dismissAction,
     },
+    // Trigger-carried size — see `overlayTriggerSizes`.
+    variants: { size: overlayTriggerSizes },
 };
 
 // ── Tooltip ───────────────────────────────────────────────────────────────
@@ -576,6 +612,8 @@ export const tooltip: RecipeInput = {
             },
         }),
     },
+    // Trigger-carried size — see `overlayTriggerSizes`.
+    variants: { size: overlayTriggerSizes },
 };
 
 // ── Menu ──────────────────────────────────────────────────────────────────
@@ -746,6 +784,8 @@ export const menu: RecipeInput = {
     // only to name the part, and deliberately leaves its ring to whatever the
     // app draws around that content.
     skipStates: { 'context-trigger': ['focus-visible'] },
+    // Trigger-carried size — see `overlayTriggerSizes`.
+    variants: { size: overlayTriggerSizes },
 };
 
 // ── Field ─────────────────────────────────────────────────────────────────
@@ -771,6 +811,20 @@ export const field: RecipeInput = {
         error: {
             base: { fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', color: 'var(--hero-danger)' },
             states: { invalid: {} },
+        },
+    },
+    variants: {
+        // v3's three steps, moving type only (the tabs/select shape). There
+        // is no colour axis to wire: `roles: {}`.
+        size: {
+            sm: { label: { base: { fontSize: 'var(--text-xs)' } } },
+            // `md` is the un-attributed render — the base already IS it.
+            md: {},
+            lg: {
+                label: { base: { fontSize: 'var(--text-md)' } },
+                description: { base: { fontSize: 'var(--text-sm)' } },
+                error: { base: { fontSize: 'var(--text-sm)' } },
+            },
         },
     },
 };
@@ -1329,6 +1383,7 @@ export const slider: RecipeInput = {
 // ── Accordion ─────────────────────────────────────────────────────────────
 export const accordion: RecipeInput = {
     component: 'accordion',
+    tokens: disclosureTokens,
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', color: 'var(--color-base-content)' },
@@ -1348,6 +1403,7 @@ export const accordion: RecipeInput = {
         trigger: disclosureTrigger,
         panel: disclosurePanel,
     },
+    variants: { size: disclosureSizes },
 };
 
 // ── Select ────────────────────────────────────────────────────────────────
@@ -1734,6 +1790,27 @@ export const toast: RecipeInput = {
         close: {
             ...iconClose,
             base: { ...iconClose.base, marginInlineStart: 'auto' },
+        },
+    },
+    variants: {
+        // Size moves the card's box and its type together — the three text
+        // parts carry fixed sizes, so each step restates them. There is no
+        // colour axis to wire: `roles: {}`.
+        size: {
+            sm: {
+                root: { base: { padding: 'var(--space-sm) var(--space-md)' } },
+                title: { base: { fontSize: 'var(--text-xs)' } },
+                description: { base: { fontSize: 'var(--text-xs)' } },
+                action: { base: { fontSize: 'var(--text-xs)' } },
+            },
+            // `md` is the un-attributed render — the base already IS it.
+            md: {},
+            lg: {
+                root: { base: { padding: 'var(--space-lg) var(--space-xl)' } },
+                title: { base: { fontSize: 'var(--text-md)' } },
+                description: { base: { fontSize: 'var(--text-md)' } },
+                action: { base: { fontSize: 'var(--text-md)' } },
+            },
         },
     },
 };
