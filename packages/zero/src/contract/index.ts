@@ -58,6 +58,7 @@ export type {
     WithAxes,
     WithMods,
     WithVariantAxes,
+    WithVariantAxesOpen,
     WithOrientation,
     WithAsChild,
     PartProps,

@@ -6,6 +6,9 @@ import type { Define } from 'sigx';
 import type { ColorValue, SizeScale } from './tokens.js';
 import { TOKEN_KEY_PATTERN as AXIS_NAME_PATTERN } from './tokens.js';
 import type { AxesFor, ColorValueFor, ModsFor, SizeScaleFor, VariantValueFor } from './vocabulary.js';
+// Type-only, and acyclic: the anatomy registry imports per-component
+// anatomy.ts data modules, none of which reach back into contract/props.
+import type { ZeroScope } from '../anatomy.js';
 import type { Orientation } from './data-attrs.js';
 import { FLAG_VOCABULARY } from './data-attrs.js';
 
@@ -79,8 +82,24 @@ export type WithMods<S extends string = string> = Define.Prop<'mods', ModsFor<S>
 /**
  * Every variant surface for one component scope — the usual composition, and
  * it cannot mix scopes by accident.
+ *
+ * `S` is constrained to zero's own anatomy registry: a typo'd scope literal
+ * (`WithVariantAxes<'buton'>`) is not a smaller type, it is a *different*
+ * type — `AxisOf` hands an unknown scope the open fallback, silently
+ * un-narrowing exactly the component the literal meant to narrow. Ecosystem
+ * components, whose scopes are not in the registry by definition, use
+ * {@link WithVariantAxesOpen}.
  */
-export type WithVariantAxes<S extends string> =
+export type WithVariantAxes<S extends ZeroScope> =
+    WithColor<S> & WithSize<S> & WithVariant<S> & WithAxes<S> & WithMods<S>;
+
+/**
+ * {@link WithVariantAxes} for ecosystem component scopes, which zero's
+ * anatomy registry cannot know. The open constraint is the deliberate
+ * cost of an out-of-tree scope: nothing type-checks the literal, so a
+ * register module built for the design system is what closes the loop.
+ */
+export type WithVariantAxesOpen<S extends string> =
     WithColor<S> & WithSize<S> & WithVariant<S> & WithAxes<S> & WithMods<S>;
 
 /** Layout direction — rendered as `data-orientation`. */
