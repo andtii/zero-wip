@@ -648,6 +648,24 @@ export const dialog: RecipeInput = {
                 },
             };
         })(),
+        // The alertdialog's least-destructive action: the footer shape of the
+        // ghost close, in flow — Carbon's secondary modal action.
+        cancel: (() => {
+            const shared = ghostIconButton('3rem');
+            return {
+                ...shared,
+                base: {
+                    ...shared.base,
+                    width: 'auto',
+                    height: 'auto',
+                    justifyContent: 'flex-start',
+                    padding: '0 var(--space-md)',
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 'var(--text-sm)',
+                    letterSpacing: 'var(--tracking-wide)',
+                },
+            };
+        })(),
     },
 };
 

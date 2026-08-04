@@ -476,6 +476,16 @@ export const dialog: RecipeInput = {
                 ...focusRing,
             },
         },
+        // The least-destructive action of an alertdialog — the same neutral
+        // btn chrome as close.
+        cancel: {
+            base: btn,
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                ...focusRing,
+            },
+        },
     },
 };
 

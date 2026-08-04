@@ -693,6 +693,21 @@ export const dialog: RecipeInput = {
             },
             states: { disabled: {}, ...focusRing },
         }),
+        // The alertdialog's least-destructive action — Material's text
+        // button, same as close (M3 gives both dialog actions text style).
+        cancel: withPresence(pressable('dialog'), {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--color-primary)',
+                borderRadius: '624rem',
+                padding: 'var(--space-xs) var(--space-lg)',
+                ...label,
+                cursor: 'pointer',
+            },
+            states: { disabled: {}, ...focusRing },
+        }),
     },
     keyframes: rippleKeyframes('dialog'),
 };

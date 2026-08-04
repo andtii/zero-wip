@@ -31,6 +31,7 @@ export type {
     DialogDescriptionProps,
     DialogFooterProps,
     DialogCloseProps,
+    DialogCancelProps,
 } from './components/dialog/index.js';
 
 export { Popover, popoverAnatomy, usePopoverContext } from './components/popover/index.js';

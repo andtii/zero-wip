@@ -628,6 +628,9 @@ export const dialog: RecipeInput = {
             },
         },
         close: dismissAction,
+        // The least-destructive action of an alertdialog — the same quiet
+        // dismiss chrome; the destructive sibling is the app's own button.
+        cancel: dismissAction,
     },
 };
 

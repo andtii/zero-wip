@@ -510,6 +510,8 @@ export const dialog: RecipeInput = {
             base: { display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)', marginBlockStart: 'var(--space-xl)' },
         },
         close: dismissAction,
+        // The alertdialog's least-destructive action — the same quiet chrome.
+        cancel: dismissAction,
     },
 };
 

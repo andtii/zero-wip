@@ -419,6 +419,19 @@ export const dialog: RecipeInput = {
             },
             states: { hover: shift('1px'), disabled: {}, ...focusRing },
         },
+        // The alertdialog's least-destructive action — the same inked slab.
+        cancel: {
+            base: {
+                appearance: 'none',
+                ...inked,
+                ...label,
+                fontSize: 'var(--text-xs)',
+                padding: 'var(--space-sm) var(--space-lg)',
+                boxShadow: 'var(--shadow-xs)',
+                cursor: 'pointer',
+            },
+            states: { hover: shift('1px'), disabled: {}, ...focusRing },
+        },
     },
 };
 

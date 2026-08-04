@@ -40,6 +40,27 @@ const DialogDemos = component(() => {
                     </Dialog.Footer>
                 </Dialog.Popup>
             </Dialog.Root>
+
+            <h2>Alert dialog</h2>
+            <p>
+                <code>role="alertdialog"</code> tightens the pattern: the
+                backdrop no longer dismisses, and initial focus lands on{' '}
+                <code>Dialog.Cancel</code> — the least-destructive action.
+            </p>
+            <Dialog.Root role="alertdialog">
+                <Dialog.Trigger>Delete file…</Dialog.Trigger>
+                <Dialog.Popup>
+                    <Dialog.Title>Delete "report.pdf"?</Dialog.Title>
+                    <Dialog.Description>
+                        This cannot be undone. A backdrop click will not
+                        dismiss; Escape and the actions will.
+                    </Dialog.Description>
+                    <Dialog.Footer>
+                        <Dialog.Cancel>Cancel</Dialog.Cancel>
+                        <Dialog.Close>Delete</Dialog.Close>
+                    </Dialog.Footer>
+                </Dialog.Popup>
+            </Dialog.Root>
         </>
     );
 }, { name: 'DialogDemos' });

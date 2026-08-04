@@ -46,4 +46,16 @@ export const dialogAnatomy = defineAnatomy('dialog', {
         tokens: ['color', 'radius-field', 'size'],
         asChild: true,
     },
+    // The least-destructive action of an alert dialog — behaviorally a close
+    // button, but a distinct part: recipes style it as the quiet member of
+    // the pair, and in `role="alertdialog"` mode it carries `autofocus` so
+    // `showModal()`'s focusing steps land on it (APG: initial focus goes to
+    // the least destructive action).
+    cancel: {
+        element: 'button',
+        parent: 'popup',
+        flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
+        tokens: ['color', 'radius-field', 'size'],
+        asChild: true,
+    },
 });

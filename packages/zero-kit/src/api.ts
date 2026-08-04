@@ -257,7 +257,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     checkbox: ['defaultChecked', 'indeterminate', 'invalid', 'name', 'required', 'value'],
     collapsible: ['defaultOpen', 'value'],
     combobox: ['defaultInputValue', 'defaultOpen', 'defaultValue', 'invalid', 'name', 'placeholder', 'placement', 'positionStrategy', 'readonly', 'required', 'value'],
-    dialog: ['defaultOpen', 'dismissible', 'modal', 'value'],
+    dialog: ['defaultOpen', 'dismissible', 'modal', 'role', 'value'],
     divider: ['orientation'],
     field: ['invalid', 'required'],
     input: ['autocomplete', 'defaultValue', 'invalid', 'maxlength', 'name', 'readonly', 'required', 'type', 'value'],

@@ -118,12 +118,18 @@ component renders; the root is called out separately where it carries props.
 - Collapsible: Root(model=open)/Trigger/Panel on native <details>.
 - Accordion: Root(model=string[])/Item/Trigger/Panel on native <details>;
   `multiple` and `collapsible`.
-- Dialog: Root(model=open, modal, dismissible — renders no element) then
-  Trigger/Popup/Title/Description/Footer/Close on native <dialog> + top layer
-  (no Portal). The backdrop is a `backdrop` part that renders no element on
-  the web — recipes style `parts.backdrop` and the compiler projects it onto
-  [data-scope="dialog"][data-part="popup"]::backdrop (states narrow the
-  popup: [data-state="open"]::backdrop).
+- Dialog: Root(model=open, modal, dismissible, role — renders no element)
+  then Trigger/Popup/Title/Description/Footer/Close/Cancel on native <dialog>
+  + top layer (no Portal). The backdrop is a `backdrop` part that renders no
+  element on the web — recipes style `parts.backdrop` and the compiler
+  projects it onto [data-scope="dialog"][data-part="popup"]::backdrop (states
+  narrow the popup: [data-state="open"]::backdrop).
+  role="alertdialog" is the APG alert-dialog preset on the same anatomy: the
+  popup announces as alertdialog, a backdrop click does NOT dismiss (Escape
+  still does, under `dismissible`), and initial focus goes to the
+  least-destructive action — mark it with Dialog.Cancel, which closes like
+  Close and carries `autofocus` in alertdialog mode so `showModal()`'s
+  focusing steps land on it.
 - Popover: Root(model=open, placement, offset, positionStrategy — renders no
   element) then Trigger/Popup/Title/Close, on the popover attribute + anchor
   positioning.

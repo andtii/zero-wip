@@ -575,6 +575,43 @@
         letter-spacing: var(--tracking-wide);
     }
 
+    [data-scope="dialog"][data-part="cancel"] {
+        appearance: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-start;
+        width: auto;
+        height: auto;
+        padding: 0 var(--space-md);
+        border: none;
+        border-radius: var(--radius-field);
+        background: transparent;
+        color: var(--color-base-content);
+        cursor: pointer;
+        transition: background var(--duration-normal) var(--ease-standard);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        letter-spacing: var(--tracking-wide);
+    }
+
+    [data-scope="dialog"][data-part="cancel"]:hover:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+    }
+
+    [data-scope="dialog"][data-part="cancel"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="dialog"][data-part="cancel"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
+    }
+
+    [data-scope="dialog"][data-part="cancel"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="dialog"][data-part="popup"] {
             transition: none;
