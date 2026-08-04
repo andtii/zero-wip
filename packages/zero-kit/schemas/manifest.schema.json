@@ -182,6 +182,10 @@
                     "type": "string",
                     "minLength": 1
                 },
+                "parent": {
+                    "description": "The same-scope part this part renders inside — the anatomy's part tree. Names the containing part, not necessarily the immediate parent element (other parts or consumer markup may sit between). Omitted for a top-level part, and always omitted on a `pseudo` part (it renders no element; its host is pseudo.of).",
+                    "$ref": "#/$defs/kebabToken"
+                },
                 "states": {
                     "description": "Closed set of data-state values this part can carry.",
                     "type": "array",

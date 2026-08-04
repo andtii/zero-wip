@@ -15,6 +15,7 @@ export const menuAnatomy = defineAnatomy('menu', {
     },
     item: {
         element: 'div',
+        parent: 'popup',
         flags: ['disabled', 'highlighted', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'text'],
         asChild: true,
@@ -24,6 +25,7 @@ export const menuAnatomy = defineAnatomy('menu', {
     // it visually active after focus moves into the submenu.
     'sub-trigger': {
         element: 'div',
+        parent: 'popup',
         states: ['open', 'closed'],
         flags: ['disabled', 'highlighted', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'text'],
@@ -33,6 +35,7 @@ export const menuAnatomy = defineAnatomy('menu', {
     // axis (translateX) without descendant selectors.
     'sub-popup': {
         element: 'div',
+        parent: 'popup',
         states: ['open', 'closed'],
         tokens: ['color', 'radius-box'],
     },
@@ -50,13 +53,16 @@ export const menuAnatomy = defineAnatomy('menu', {
     },
     group: {
         element: 'div',
+        parent: 'popup',
     },
     'group-label': {
         element: 'div',
+        parent: 'group',
         tokens: ['color', 'text'],
     },
     separator: {
         element: 'div',
+        parent: 'popup',
         tokens: ['color'],
     },
 });

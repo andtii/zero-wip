@@ -43,6 +43,32 @@ export interface PartSpec {
      * `pseudo` part, the element of the part it projects from.
      */
     element: string;
+    /**
+     * The same-scope part this part renders INSIDE — its containing part in
+     * the rendered DOM. Omitted for a top-level part (one no other part of the
+     * scope contains: a lone `root`, or a trigger/popup pair whose Root
+     * renders a fragment).
+     *
+     * This is the anatomy's part TREE, and it is a statement about the DOM,
+     * not about the compound-component API: menu's `sub-popup` nests under
+     * `popup` because the rendered element really is a DOM descendant of the
+     * parent popup, while dialog's `popup` is top-level because the native
+     * top layer means it is never inside the trigger.
+     *
+     * `parent` names the CONTAINING part, not necessarily the immediate DOM
+     * parent element — other parts (or consumer markup) may sit in between:
+     * a menu `item` declares `parent: 'popup'` and may render inside a
+     * `group`, which itself nests under the popup. `expectAnatomy` therefore
+     * asserts that the declared parent appears among the rendered element's
+     * same-scope ancestors.
+     *
+     * Tooling reads it wherever nesting matters: the contrast audit derives
+     * its ancestor chains from it instead of hand-maintaining them, and the
+     * recipe compiler bounds descendant-anchored axis rules at nested
+     * same-scope instances. A `pseudo` part renders no element and declares
+     * no parent — its host is `pseudo.of`.
+     */
+    parent?: string;
     /** Closed set of `data-state` values this part can carry, if any. */
     states?: readonly string[];
     /** Boolean `data-*` flags this part can carry (from the flag vocabulary). */

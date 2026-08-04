@@ -30,18 +30,22 @@ export const alertAnatomy = defineAnatomy('alert', {
     },
     icon: {
         element: 'span',
+        parent: 'root',
         tokens: ['color'],
     },
     title: {
         element: 'div',
+        parent: 'root',
         tokens: ['color', 'text'],
     },
     description: {
         element: 'div',
+        parent: 'root',
         tokens: ['color', 'text'],
     },
     close: {
         element: 'button',
+        parent: 'root',
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color'],
         asChild: true,

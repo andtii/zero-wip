@@ -15,10 +15,12 @@ export const popoverAnatomy = defineAnatomy('popover', {
     },
     title: {
         element: 'h3',
+        parent: 'popup',
         tokens: ['color', 'text'],
     },
     close: {
         element: 'button',
+        parent: 'popup',
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size'],
         asChild: true,

@@ -9,6 +9,7 @@ export const switchAnatomy = defineAnatomy('switch', {
     },
     control: {
         element: 'span',
+        parent: 'root',
         states: ['checked', 'unchecked'],
         // `invalid` is here as well as on the root, matching `checkbox`: the
         // track is what a design system paints, and reaching it from the root
@@ -19,16 +20,19 @@ export const switchAnatomy = defineAnatomy('switch', {
     },
     thumb: {
         element: 'span',
+        parent: 'control',
         states: ['checked', 'unchecked'],
         tokens: ['color', 'radius-selector'],
     },
     label: {
         element: 'span',
+        parent: 'root',
         states: ['checked', 'unchecked'],
         flags: ['disabled'],
         tokens: ['color', 'text'],
     },
     'hidden-input': {
         element: 'input',
+        parent: 'root',
     },
 });

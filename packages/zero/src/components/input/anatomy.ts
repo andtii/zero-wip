@@ -23,16 +23,19 @@ export const inputAnatomy = defineAnatomy('input', {
     },
     label: {
         element: 'label',
+        parent: 'root',
         flags: ['disabled', 'invalid', 'required'],
         tokens: ['color', 'text'],
     },
     control: {
         element: 'div',
+        parent: 'root',
         flags: ['disabled', 'invalid', 'readonly', 'focus-visible'],
         tokens: ['color', 'radius-field', 'size'],
     },
     input: {
         element: 'input',
+        parent: 'control',
         flags: ['disabled', 'invalid', 'required', 'readonly', 'focus-visible'],
         tokens: ['color', 'text', 'size'],
     },

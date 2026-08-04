@@ -17,32 +17,38 @@ export const numberInputAnatomy = defineAnatomy('number-input', {
     },
     label: {
         element: 'label',
+        parent: 'root',
         flags: ['disabled', 'invalid', 'required'],
         tokens: ['color', 'text'],
     },
     control: {
         element: 'div',
+        parent: 'root',
         flags: ['disabled', 'invalid', 'readonly', 'focus-visible'],
         tokens: ['color', 'radius-field', 'size'],
     },
     input: {
         element: 'input',
+        parent: 'control',
         flags: ['disabled', 'invalid', 'required', 'readonly', 'focus-visible'],
         tokens: ['color', 'text', 'size'],
     },
     'increment-trigger': {
         element: 'button',
+        parent: 'control',
         flags: ['disabled', 'pressed', 'press-animating'],
         tokens: ['color'],
         asChild: true,
     },
     'decrement-trigger': {
         element: 'button',
+        parent: 'control',
         flags: ['disabled', 'pressed', 'press-animating'],
         tokens: ['color'],
         asChild: true,
     },
     'hidden-input': {
         element: 'input',
+        parent: 'root',
     },
 });

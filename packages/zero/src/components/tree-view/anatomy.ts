@@ -19,25 +19,30 @@ export const treeViewAnatomy = defineAnatomy('tree-view', {
     },
     label: {
         element: 'div',
+        parent: 'root',
         tokens: ['color', 'text'],
     },
     tree: {
         element: 'div',
+        parent: 'root',
         tokens: ['color'],
     },
     item: {
         element: 'div',
+        parent: 'tree',
         flags: ['selected', 'disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'text'],
         asChild: true,
     },
     branch: {
         element: 'div',
+        parent: 'tree',
         states: ['open', 'closed'],
         flags: ['selected', 'disabled'],
     },
     'branch-trigger': {
         element: 'div',
+        parent: 'branch',
         states: ['open', 'closed'],
         flags: ['selected', 'disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'text'],
@@ -45,10 +50,12 @@ export const treeViewAnatomy = defineAnatomy('tree-view', {
     },
     'branch-indicator': {
         element: 'span',
+        parent: 'branch-trigger',
         states: ['open', 'closed'],
     },
     'branch-content': {
         element: 'div',
+        parent: 'branch',
         states: ['open', 'closed'],
         // A collapsed subtree is `hidden`, not merely collapsed — its nodes
         // keep their registration but leave the render entirely, so

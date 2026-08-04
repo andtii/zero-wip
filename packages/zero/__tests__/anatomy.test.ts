@@ -116,6 +116,35 @@ describe('anatomy registry', () => {
         ]);
     });
 
+    it('every parent names a declared part, acyclically', () => {
+        // The part tree is contract data (the contrast audit derives ancestor
+        // chains from it; the recipe compiler bounds axis rules with it), so a
+        // dangling or circular `parent` would corrupt every derivation.
+        for (const anatomy of Object.values(anatomies)) {
+            const parts: Record<string, { parent?: string; pseudo?: unknown }> = anatomy.parts;
+            for (const [name, part] of Object.entries(parts)) {
+                if (part.parent === undefined) continue;
+                expect(parts[part.parent], `${anatomy.scope}.${name} → parent "${part.parent}" is not a declared part`)
+                    .toBeDefined();
+                expect(part.parent, `${anatomy.scope}.${name} declares itself as its own parent`).not.toBe(name);
+                // A pseudo part renders no element, so it can nest nothing and
+                // sits nowhere — its host is `pseudo.of`, not a parent.
+                expect(part.pseudo, `${anatomy.scope}.${name} is a pseudo part and must not declare a parent`)
+                    .toBeUndefined();
+                // Walk to a root; a cycle would never terminate, so bound the
+                // walk by the part count and fail if it is exhausted.
+                let cursor: string | undefined = part.parent;
+                let hops = 0;
+                const budget = Object.keys(parts).length;
+                while (cursor !== undefined) {
+                    hops += 1;
+                    expect(hops, `${anatomy.scope}.${name}: parent chain does not terminate (cycle)`).toBeLessThanOrEqual(budget);
+                    cursor = parts[cursor]?.parent;
+                }
+            }
+        }
+    });
+
     it('all flags come from the shared vocabulary', () => {
         const vocabulary = new Set<string>(FLAG_VOCABULARY);
         for (const anatomy of Object.values(anatomies)) {

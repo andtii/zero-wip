@@ -114,6 +114,71 @@ describe('expectAnatomy (public conformance helper)', () => {
     });
 });
 
+describe('expectAnatomy nesting (the declared part tree)', () => {
+    // A tree with an intermediate that is NOT a part between `popup` and
+    // `option` in some renders — the declared parent must be found among
+    // ANCESTORS, not required to be the immediate parent element.
+    const nested = defineAnatomy('demo-list', {
+        'root': { element: 'div' },
+        'popup': { element: 'div', parent: 'root', states: ['open', 'closed'] },
+        'option': { element: 'div', parent: 'popup' },
+    });
+
+    const scoped = (name: string): HTMLElement => {
+        const el = document.createElement('div');
+        el.setAttribute('data-scope', 'demo-list');
+        el.setAttribute('data-part', name);
+        return el;
+    };
+
+    it('passes a render whose nesting matches the tree', () => {
+        const root = scoped('root');
+        const popup = scoped('popup');
+        popup.setAttribute('data-state', 'open');
+        const option = scoped('option');
+        popup.append(option);
+        root.append(popup);
+        expect(() => expectAnatomy(root, nested)).not.toThrow();
+    });
+
+    it('accepts non-part markup (or other parts) between parent and child', () => {
+        const root = scoped('root');
+        const popup = scoped('popup');
+        popup.setAttribute('data-state', 'open');
+        const wrapper = document.createElement('div'); // consumer markup, no data-scope
+        const option = scoped('option');
+        wrapper.append(option);
+        popup.append(wrapper);
+        root.append(popup);
+        expect(() => expectAnatomy(root, nested)).not.toThrow();
+    });
+
+    it('fails a part rendered outside its declared parent', () => {
+        // The option ends up a SIBLING of the popup — the misnesting the tree
+        // exists to catch.
+        const root = scoped('root');
+        root.append(scoped('popup'), scoped('option'));
+        expect(() => expectAnatomy(root, nested)).toThrow(/parent "popup"/);
+    });
+
+    it('fails a part nested under the wrong part', () => {
+        const root = scoped('root');
+        const option = scoped('option');
+        root.append(option); // option directly under root, popup never involved
+        expect(() => expectAnatomy(root, nested)).toThrow(/parent "popup"/);
+    });
+
+    it('does not constrain a top-level part, even inside another instance', () => {
+        // Instance nesting (card in card): the INNER root sits below the outer
+        // instance's parts, and that is legal — a part with no declared parent
+        // is making no claim about its ancestors.
+        const outer = scoped('root');
+        const inner = scoped('root');
+        outer.append(inner);
+        expect(() => expectAnatomy(outer, nested)).not.toThrow();
+    });
+});
+
 describe('synthesizesClickFrom (public asChild helper)', () => {
     it('reports native click synthesis per element and key', () => {
         expect(synthesizesClickFrom(document.createElement('button'), ' ')).toBe(true);

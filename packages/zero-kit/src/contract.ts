@@ -378,6 +378,15 @@ export const RESERVED_AXES: ReadonlySet<string> = new Set([
 export interface ManifestPart {
     name: string;
     element: string;
+    /**
+     * The same-scope part this part renders inside — the anatomy's part
+     * TREE. Names the containing part, not necessarily the immediate parent
+     * element; absent for a top-level part and for `pseudo` parts. The web
+     * recipe compiler reads it to bound descendant-anchored axis rules at
+     * nested same-scope instances, and the contrast audit derives its
+     * ancestor chains from it.
+     */
+    parent?: string;
     states?: readonly string[];
     flags?: readonly string[];
     /**

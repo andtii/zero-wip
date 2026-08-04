@@ -8,6 +8,7 @@ export const selectAnatomy = defineAnatomy('select', {
     },
     trigger: {
         element: 'button',
+        parent: 'root',
         states: ['open', 'closed'],
         flags: ['disabled', 'invalid', 'focus-visible', 'placeholder', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size', 'text'],
@@ -15,31 +16,37 @@ export const selectAnatomy = defineAnatomy('select', {
     },
     value: {
         element: 'span',
+        parent: 'trigger',
         flags: ['placeholder'],
         tokens: ['color', 'text'],
     },
     indicator: {
         element: 'span',
+        parent: 'trigger',
         states: ['open', 'closed'],
         tokens: ['color'],
     },
     popup: {
         element: 'div',
+        parent: 'root',
         states: ['open', 'closed'],
         tokens: ['color', 'radius-box'],
     },
     item: {
         element: 'div',
+        parent: 'popup',
         flags: ['selected', 'highlighted', 'disabled', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'text'],
         asChild: true,
     },
     'item-indicator': {
         element: 'span',
+        parent: 'item',
         flags: ['selected'],
         tokens: ['color'],
     },
     'hidden-input': {
         element: 'input',
+        parent: 'root',
     },
 });

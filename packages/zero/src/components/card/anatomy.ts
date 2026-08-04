@@ -22,22 +22,27 @@ export const cardAnatomy = defineAnatomy('card', {
     },
     header: {
         element: 'div',
+        parent: 'root',
         tokens: ['color'],
     },
     title: {
         element: 'h3',
+        parent: 'header',
         tokens: ['color', 'text'],
     },
     description: {
         element: 'p',
+        parent: 'header',
         tokens: ['color', 'text'],
     },
     body: {
         element: 'div',
+        parent: 'root',
         tokens: ['color', 'text'],
     },
     footer: {
         element: 'div',
+        parent: 'root',
         tokens: ['color'],
     },
 });

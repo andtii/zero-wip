@@ -8,15 +8,18 @@ export const fieldAnatomy = defineAnatomy('field', {
     },
     label: {
         element: 'label',
+        parent: 'root',
         flags: ['disabled', 'invalid', 'required'],
         tokens: ['color', 'text'],
     },
     description: {
         element: 'p',
+        parent: 'root',
         tokens: ['color', 'text'],
     },
     error: {
         element: 'p',
+        parent: 'root',
         flags: ['invalid'],
         tokens: ['color', 'text'],
     },

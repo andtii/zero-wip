@@ -94,6 +94,29 @@ export function expectAnatomy(container: ParentNode, anatomy: Anatomy, options: 
             }
         }
 
+        // The declared part tree, checked against the real DOM: a part with a
+        // `parent` must render somewhere INSIDE that part. Ancestors rather
+        // than the immediate parent element, because other parts and consumer
+        // markup legally sit in between (a menu item inside a group is still
+        // inside the popup). A part with no declared parent claims nothing —
+        // which is what keeps nested INSTANCES legal (a card in a card puts
+        // the inner root under the outer body, and that is not misnesting).
+        if (spec.parent) {
+            let ancestor = el.parentElement;
+            let found = false;
+            while (ancestor) {
+                if (ancestor.getAttribute('data-scope') === anatomy.scope
+                    && ancestor.getAttribute('data-part') === spec.parent) {
+                    found = true;
+                    break;
+                }
+                ancestor = ancestor.parentElement;
+            }
+            if (!found) {
+                fail(anatomy, `part "${partName}" renders outside its declared parent "${spec.parent}" — no ancestor carries data-part="${spec.parent}"`);
+            }
+        }
+
         for (const attr of el.getAttributeNames()) {
             if (!attr.startsWith('data-') || CONTRACT_ATTRS.has(attr) || axisAttrs.has(attr)) continue;
             // Modifiers are declared design-system vocabulary rendered through
