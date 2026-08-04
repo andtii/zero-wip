@@ -160,6 +160,12 @@ export function validateDesignSystem<R extends RolesDecl>(
     const declaredCustom = new Map<string, string>();
     for (const name of Object.keys(customDecls)) {
         const prop = normProp(name);
+        // The name becomes a custom property spelled verbatim — `--My Token:`
+        // is emitted and then silently dropped by the browser, so the grammar
+        // every other declared name obeys applies here too.
+        if (!TOKEN_KEY_PATTERN.test(prop.slice(2))) {
+            error('tokens.custom', `custom token "${name}" is not a kebab-case identifier (it becomes the custom property ${prop})`);
+        }
         if (prop.startsWith('--color-')) {
             error('tokens.custom', `custom token "${name}" is inside the --color-* namespace — declare a role instead`);
         }
@@ -368,6 +374,14 @@ export function validateDesignSystem<R extends RolesDecl>(
         }
         if (theme.extra && Object.keys(theme.extra).length > 0) {
             warn(`themes.${themeName}`, `uses ${Object.keys(theme.extra).length} undeclared extra token(s) — declare them in tokens.custom so they surface in the manifest`);
+            // Escape hatch or not, an extra's NAME is still emitted as a
+            // custom property verbatim — the same silent-drop trap as
+            // `tokens.custom`, checked with the same grammar.
+            for (const name of Object.keys(theme.extra)) {
+                if (!TOKEN_KEY_PATTERN.test(normProp(name).slice(2))) {
+                    error(`themes.${themeName}.extra`, `extra token "${name}" is not a kebab-case identifier (it becomes the custom property ${normProp(name)})`);
+                }
+            }
         }
         if (theme.pair && !ds.tokens.themes[theme.pair]) {
             error(`themes.${themeName}`, `pair "${theme.pair}" is not a defined theme`);
