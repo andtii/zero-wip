@@ -144,18 +144,44 @@ export type _toastOptionColor = MustBeTrue<Equal<
     BasicColor
 >>;
 
-/* ── the 8 propless scopes: no axis props at all (until #317 wires them) ── */
+/* ── the 8 formerly-propless scopes: #317 gave every component the axis
+ * surface, and this is the flip its docblock promised. basic wires none of
+ * their color/size/variant yet (per-skin work, #321 — toast.color is the
+ * exception), so every axis must be UNUSABLE under the register: `never`, or
+ * the key stripped entirely. A real union here means the axis leaked open. ── */
+type CheckUnwiredCarrier<P> = [
+    Unusable<Axis<P, 'color'>>,
+    Unusable<Axis<P, 'size'>>,
+    Unusable<Axis<P, 'variant'>>,
+][number] extends true ? true : false;
+
+export type _accordion = MustBeTrue<CheckUnwiredCarrier<PropsOf<typeof Accordion.Root>>>;
+export type _collapsible = MustBeTrue<CheckUnwiredCarrier<PropsOf<typeof Collapsible.Root>>>;
+export type _field = MustBeTrue<CheckUnwiredCarrier<PropsOf<typeof Field.Root>>>;
+
+/* Fragment-rooted scopes carry the axis props on the TRIGGER — it renders
+ * the carrier part the compiled axis selectors anchor on. The Root stays
+ * propless: it renders nothing an attribute could sit on. */
 type CheckPropless<P> = [
     Equal<Axis<P, 'color'>, 'absent'>,
     Equal<Axis<P, 'size'>, 'absent'>,
     Equal<Axis<P, 'variant'>, 'absent'>,
 ][number] extends true ? true : false;
 
-export type _accordion = MustBeTrue<CheckPropless<PropsOf<typeof Accordion.Root>>>;
-export type _collapsible = MustBeTrue<CheckPropless<PropsOf<typeof Collapsible.Root>>>;
-export type _dialog = MustBeTrue<CheckPropless<PropsOf<typeof Dialog.Root>>>;
-export type _field = MustBeTrue<CheckPropless<PropsOf<typeof Field.Root>>>;
-export type _menu = MustBeTrue<CheckPropless<PropsOf<typeof Menu.Root>>>;
-export type _popover = MustBeTrue<CheckPropless<PropsOf<typeof Popover.Root>>>;
-export type _toastRoot = MustBeTrue<CheckPropless<PropsOf<typeof Toast.Root>>>;
-export type _tooltip = MustBeTrue<CheckPropless<PropsOf<typeof Tooltip.Root>>>;
+export type _dialogRoot = MustBeTrue<CheckPropless<PropsOf<typeof Dialog.Root>>>;
+export type _menuRoot = MustBeTrue<CheckPropless<PropsOf<typeof Menu.Root>>>;
+export type _popoverRoot = MustBeTrue<CheckPropless<PropsOf<typeof Popover.Root>>>;
+export type _tooltipRoot = MustBeTrue<CheckPropless<PropsOf<typeof Tooltip.Root>>>;
+
+export type _dialogTrigger = MustBeTrue<CheckUnwiredCarrier<PropsOf<typeof Dialog.Trigger>>>;
+export type _menuTrigger = MustBeTrue<CheckUnwiredCarrier<PropsOf<typeof Menu.Trigger>>>;
+export type _popoverTrigger = MustBeTrue<CheckUnwiredCarrier<PropsOf<typeof Popover.Trigger>>>;
+export type _tooltipTrigger = MustBeTrue<CheckUnwiredCarrier<PropsOf<typeof Tooltip.Trigger>>>;
+
+/* Toast.Root: colour is the axis four skins wire (the recipes #317 made
+ * reachable), so under the basic register it narrows; size/variant stay
+ * unusable. */
+type ToastRootProps = PropsOf<typeof Toast.Root>;
+export type _toastRootColor = MustBeTrue<Equal<Axis<ToastRootProps, 'color'>, BasicColor>>;
+export type _toastRootSize = MustBeTrue<Unusable<Axis<ToastRootProps, 'size'>>>;
+export type _toastRootVariant = MustBeTrue<Unusable<Axis<ToastRootProps, 'variant'>>>;
