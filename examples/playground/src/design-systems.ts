@@ -118,6 +118,15 @@ export interface AxisVocabulary {
     sizes: string[];
     variants: string[];
     modifiers: string[];
+    /**
+     * What each SCOPE wires, which is not the same question as what the design
+     * system declares. `tokens.variants` is the union; a scope can narrow it
+     * (`tokens.scopes`, RFC 0003 §4.1) and most scopes wire nothing at all —
+     * so a demo that picks from the union alone renders `data-variant` values
+     * that match no rule for the component it is on. Keyed by scope; a scope
+     * absent here wires nothing.
+     */
+    perScope: Record<string, { variants: string[] }>;
 }
 
 interface DesignSystemManifest {
@@ -127,9 +136,10 @@ interface DesignSystemManifest {
         variants: string[];
         modifiers?: string[];
     };
+    components?: Record<string, { variant?: string[] }>;
 }
 
-const EMPTY_VOCABULARY: AxisVocabulary = { colors: [], sizes: [], variants: [], modifiers: [] };
+const EMPTY_VOCABULARY: AxisVocabulary = { colors: [], sizes: [], variants: [], modifiers: [], perScope: {} };
 
 const vocabularyOf = (manifest: DesignSystemManifest): AxisVocabulary => ({
     colors: Object.keys(manifest.tokens.roles),
@@ -137,6 +147,12 @@ const vocabularyOf = (manifest: DesignSystemManifest): AxisVocabulary => ({
     variants: [...manifest.tokens.variants],
     // Optional: a manifest built before modifiers existed has no such key.
     modifiers: [...(manifest.tokens.modifiers ?? [])],
+    perScope: Object.fromEntries(
+        Object.entries(manifest.components ?? {}).map(([scope, wired]) => [
+            scope,
+            { variants: [...(wired.variant ?? [])] },
+        ]),
+    ),
 });
 
 /** Parsed manifests, kept so a re-visited design system re-reads nothing. */
@@ -278,6 +294,24 @@ export function pickRole(...preferred: string[]): string | undefined {
 /** Pick a `variant` value from the active design system's declared variants. */
 export function pickVariant(...preferred: string[]): string | undefined {
     return pickDeclared(activeVocabulary().variants, preferred);
+}
+
+/**
+ * The same choice, asked of one SCOPE rather than of the design system.
+ *
+ * `pickVariant` answers "does this design system have such a value", which was
+ * the only question worth asking while `button` was the only scope that wired
+ * one. It is the wrong question for any other component: daisyUI, material and
+ * brutalist all DECLARE `solid | outline | soft | ghost` and wire none of it on
+ * `select`, so picking from the union sets an attribute that matches nothing —
+ * the exact "renders but matches nothing" failure #215 is about, one level down
+ * from where that fix looked.
+ *
+ * Nothing catches it either: `ds-smoke`'s undeclared-value invariant checks the
+ * union too. Worth a scope-aware pass there — see the note in that spec.
+ */
+export function pickScopeVariant(scope: string, ...preferred: string[]): string | undefined {
+    return pickDeclared(activeVocabulary().perScope[scope]?.variants ?? [], preferred);
 }
 
 /** The persisted choice, falling back to the default for an unknown id. */

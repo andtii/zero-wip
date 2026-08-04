@@ -35,6 +35,20 @@
   and capped by `AXIS_CELL_BUDGET`, so the next scope that lands shows up in
   the output rather than in the wall clock.
 
+### Fixed
+
+- **`data-variant` is checked per SCOPE, not against the design system's
+  union** (#297). `ds-smoke`'s undeclared-value invariant (#215) asked whether
+  a value exists design-system-wide, which stopped being the right question the
+  moment a scope could wire its own: daisyUI declares `soft` and wires it on
+  `button` alone, so `select[data-variant="soft"]` passed while selecting
+  nothing — #215's own bug, one level down from where that fix looked.
+
+  Two playground demos were doing exactly that and neither failed until the
+  check existed: `badge` (shipped in #311) and `select` (in this PR before
+  review). Both now go through a new scope-aware `pickScopeVariant`, and the
+  invariant names the scope and what it actually wires when it fires.
+
 ### Changed
 
 - **The contrast audit reads `carrierPart` and the manifest types from
