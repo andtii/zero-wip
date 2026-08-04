@@ -50,6 +50,21 @@ export function onThemesCleared(listener: () => void): void {
     clearListeners.add(listener);
 }
 
+/**
+ * Field-by-field equality, deliberately not `JSON.stringify` — stringify is
+ * insertion-order-sensitive, so two semantically identical registrations
+ * whose `swatch` keys arrive in a different order would warn about a change
+ * that is not one.
+ */
+function sameThemeInfo(a: ThemeInfo, b: ThemeInfo): boolean {
+    if (a.name !== b.name || a.colorScheme !== b.colorScheme || a.pair !== b.pair) return false;
+    const aSwatch = a.swatch ?? {};
+    const bSwatch = b.swatch ?? {};
+    const keys = Object.keys(aSwatch);
+    if (keys.length !== Object.keys(bSwatch).length) return false;
+    return keys.every((key) => aSwatch[key] === bSwatch[key]);
+}
+
 export function registerTheme(info: ThemeInfo): void {
     // Warn — never throw — on a re-registration that CHANGES the entry.
     // Design systems register at module init, which on the server runs once
@@ -59,7 +74,7 @@ export function registerTheme(info: ThemeInfo): void {
     // An identical re-registration is a legitimate double-install and stays
     // silent. Merge either way: last write wins, loudly.
     const existing = themes.get(info.name);
-    if (existing && JSON.stringify(existing) !== JSON.stringify(info)) {
+    if (existing && !sameThemeInfo(existing, info)) {
         console.warn(
             `[zero] theme "${info.name}" is already registered with different settings — re-registering over it. `
             + 'Two design systems appear to be installing themes into one registry (under SSR, one request\'s '

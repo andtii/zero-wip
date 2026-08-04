@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
     clearThemes, getTheme, listThemes, pairOf, pickThemeFor, registerTheme, registerThemes,
     themeController,
@@ -125,9 +125,11 @@ describe('theme registry', () => {
     it('warns (and merges) when a theme is re-registered with different content', () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
         try {
-            registerTheme(basic);
-            // Identical content: legitimate double-install, no warning.
-            registerTheme({ ...basic });
+            registerTheme({ ...basic, swatch: { primary: '#111', 'base-100': '#fff' } });
+            // Identical content: legitimate double-install, no warning — and
+            // equality is field-wise, so a swatch whose keys merely arrive in
+            // a different order is still "identical".
+            registerTheme({ ...basic, swatch: { 'base-100': '#fff', primary: '#111' } });
             expect(warn).not.toHaveBeenCalled();
             // Different content: warn, and the newer registration wins.
             registerTheme({ name: 'basic', colorScheme: 'dark' });
