@@ -224,6 +224,7 @@ describe('a merged ecosystem scope in the pipeline', () => {
 
 describe('fragment hardening (#318)', () => {
     const rawFragment = (component: Partial<ManifestComponent>): ManifestFragment => ({
+        version: 1,
         package: '@acme/zero-evil',
         components: [{
             scope: 'acme-widget',
