@@ -3153,6 +3153,68 @@
         box-shadow: 0 0 0 2px var(--color-base-100), 0 0 0 4px var(--color-secondary), 0 0 0 calc(var(--size-selector) * 2.5) var(--slider-halo);
     }
 
+    [data-scope="slider"][data-part="track"] {
+        height: calc(var(--size-selector) * 2);
+        margin-block: calc(var(--size-selector) * 4);
+        border-radius: 624rem;
+        background: var(--color-secondary-soft);
+        cursor: pointer;
+    }
+
+    [data-scope="slider"][data-part="track"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="slider"][data-part="range"] {
+        height: 100%;
+        border-radius: 624rem;
+        background: var(--slider-accent);
+    }
+
+    [data-scope="slider"][data-part="thumb"] {
+        width: calc(var(--size-selector) * 5);
+        height: calc(var(--size-selector) * 5);
+        inset-block-start: 50%;
+        translate: 0 -50%;
+        margin-inline-start: calc(var(--size-selector) * -2.5);
+        border-radius: 624rem;
+        background: var(--slider-accent);
+        cursor: pointer;
+        outline: none;
+        touch-action: none;
+        transition: box-shadow var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="slider"][data-part="thumb"][data-pressed] {
+        box-shadow: 0 0 0 calc(var(--size-selector) * 2.5) color-mix(in oklab, var(--slider-accent) 12%, transparent);
+    }
+
+    [data-scope="slider"][data-part="thumb"][data-focus-visible] {
+        box-shadow: 0 0 0 2px var(--color-base-100), 0 0 0 4px var(--color-secondary), 0 0 0 calc(var(--size-selector) * 2.5) color-mix(in oklab, var(--slider-accent) 10%, transparent);
+    }
+
+    [data-scope="slider"][data-part="thumb"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="slider"][data-part="mark"] {
+        padding-block-start: calc(var(--size-selector) * 2 + var(--space-2xs));
+        font-size: var(--text-xs);
+        line-height: var(--leading-none);
+        white-space: nowrap;
+        color: var(--color-outline);
+    }
+
+    [data-scope="slider"][data-part="mark"]::before {
+        content: "";
+        position: absolute;
+        inset-block-start: 0;
+        inset-inline-start: -1px;
+        width: 2px;
+        height: calc(var(--size-selector) * 2);
+        background: var(--color-outline);
+    }
+
     [data-scope="slider"][data-part="value-text"] {
         font-size: var(--text-xs);
         color: var(--color-outline);

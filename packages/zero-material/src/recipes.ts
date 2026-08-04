@@ -1650,6 +1650,74 @@ export const slider: RecipeInput = {
                 },
             },
         },
+        // The composed range projection (#325): MD3's active/inactive track
+        // and round handle as real parts. Same inks as the gradient control
+        // above — accent fill on a secondary-container rail.
+        track: {
+            base: {
+                height: 'calc(var(--size-selector) * 2)',
+                marginBlock: 'calc(var(--size-selector) * 4)',
+                borderRadius: '624rem',
+                background: 'var(--color-secondary-soft)',
+                cursor: 'pointer',
+            },
+            states: { disabled: { cursor: 'not-allowed' } },
+        },
+        range: {
+            base: {
+                height: '100%',
+                borderRadius: '624rem',
+                background: 'var(--slider-accent)',
+            },
+            states: { disabled: {} },
+        },
+        thumb: {
+            base: {
+                width: 'calc(var(--size-selector) * 5)',
+                height: 'calc(var(--size-selector) * 5)',
+                insetBlockStart: '50%',
+                translate: '0 -50%',
+                marginInlineStart: 'calc(var(--size-selector) * -2.5)',
+                borderRadius: '624rem',
+                background: 'var(--slider-accent)',
+                cursor: 'pointer',
+                outline: 'none',
+                touchAction: 'none',
+                transition: motion('box-shadow'),
+            },
+            states: {
+                // The MD3 state-layer halo, and — for keyboard — the same
+                // crisp two-tone ring the native thumb draws inside it.
+                pressed: { boxShadow: '0 0 0 calc(var(--size-selector) * 2.5) color-mix(in oklab, var(--slider-accent) 12%, transparent)' },
+                'focus-visible': {
+                    boxShadow: '0 0 0 2px var(--color-base-100), '
+                        + '0 0 0 4px var(--color-secondary), '
+                        + '0 0 0 calc(var(--size-selector) * 2.5) color-mix(in oklab, var(--slider-accent) 10%, transparent)',
+                },
+                disabled: { cursor: 'not-allowed' },
+            },
+        },
+        mark: {
+            base: {
+                paddingBlockStart: 'calc(var(--size-selector) * 2 + var(--space-2xs))',
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-none)',
+                whiteSpace: 'nowrap',
+                color: 'var(--color-outline)',
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlockStart: '0',
+                    insetInlineStart: '-1px',
+                    width: '2px',
+                    height: 'calc(var(--size-selector) * 2)',
+                    background: 'var(--color-outline)',
+                },
+            },
+        },
         'value-text': { base: { fontSize: 'var(--text-xs)', color: 'var(--color-outline)' } },
     },
     variants: {

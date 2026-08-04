@@ -80,7 +80,16 @@ export type {
 } from './components/progress/index.js';
 
 export { Slider, sliderAnatomy, useSliderContext } from './components/slider/index.js';
-export type { SliderRootProps, SliderLabelProps, SliderControlProps, SliderValueTextProps } from './components/slider/index.js';
+export type {
+    SliderRootProps,
+    SliderLabelProps,
+    SliderControlProps,
+    SliderTrackProps,
+    SliderRangeProps,
+    SliderThumbProps,
+    SliderValueTextProps,
+    SliderMark,
+} from './components/slider/index.js';
 
 export { Accordion, accordionAnatomy, useAccordionContext } from './components/accordion/index.js';
 export type { AccordionRootProps, AccordionItemProps, AccordionTriggerProps, AccordionPanelProps } from './components/accordion/index.js';

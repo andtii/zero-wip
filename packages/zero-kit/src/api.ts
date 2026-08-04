@@ -269,7 +269,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     'rating-group': ['allowHalf', 'count', 'defaultValue', 'deselectable', 'invalid', 'itemLabel', 'name', 'readonly', 'required', 'value'],
     select: ['defaultValue', 'invalid', 'name', 'placeholder', 'placement', 'positionStrategy', 'required', 'value'],
     skeleton: ['defaultLoading', 'value'],
-    slider: ['defaultValue', 'invalid', 'max', 'min', 'name', 'step', 'value'],
+    slider: ['defaultValue', 'getValueText', 'invalid', 'marks', 'max', 'min', 'name', 'step', 'value'],
     spinner: ['label'],
     switch: ['defaultChecked', 'invalid', 'name', 'required', 'value'],
     tabs: ['activationMode', 'defaultValue', 'loop', 'value'],

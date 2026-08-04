@@ -1264,6 +1264,70 @@ export const slider: RecipeInput = {
                 invalid: { accentColor: 'var(--color-error)' },
             },
         },
+        // The composed range projection (#325). The native control above
+        // stays UA-drawn behind `accentColor`; the composed parts restate the
+        // same accent as real boxes. The fill is deepened toward
+        // `base-content` the way `progressFill` deepens daisy's bar — a raw
+        // role on the base-300 rail is exactly the #210/#228 bug class.
+        track: {
+            base: {
+                height: 'calc(var(--size-selector) * 2)',
+                marginBlock: 'calc(var(--size-selector) * 1.5)',
+                borderRadius: '9999px',
+                background: 'var(--color-base-300)',
+                cursor: 'pointer',
+            },
+            states: { disabled: { cursor: 'not-allowed' } },
+        },
+        range: {
+            base: {
+                height: '100%',
+                borderRadius: '9999px',
+                background: 'color-mix(in oklab, var(--slider-accent) 90%, var(--color-base-content))',
+            },
+            states: { disabled: {} },
+        },
+        thumb: {
+            base: {
+                boxSizing: 'border-box',
+                width: 'calc(var(--size-selector) * 5)',
+                height: 'calc(var(--size-selector) * 5)',
+                insetBlockStart: '50%',
+                translate: '0 -50%',
+                marginInlineStart: 'calc(var(--size-selector) * -2.5)',
+                borderRadius: '9999px',
+                background: 'color-mix(in oklab, var(--slider-accent) 90%, var(--color-base-content))',
+                cursor: 'pointer',
+                outline: 'none',
+                touchAction: 'none',
+            },
+            states: {
+                'focus-visible': { outline: '2px solid var(--slider-accent)', outlineOffset: '2px' },
+                pressed: {},
+                disabled: { cursor: 'not-allowed' },
+            },
+        },
+        mark: {
+            base: {
+                paddingBlockStart: 'calc(var(--size-selector) * 2 + var(--space-2xs))',
+                fontSize: 'var(--text-xs)',
+                lineHeight: '1',
+                whiteSpace: 'nowrap',
+                opacity: '0.6',
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlockStart: '0',
+                    insetInlineStart: '-1px',
+                    width: '2px',
+                    height: 'calc(var(--size-selector) * 2)',
+                    background: 'var(--color-base-content)',
+                },
+            },
+        },
         'value-text': {
             base: { fontSize: 'var(--text-xs)', opacity: '0.6' },
         },

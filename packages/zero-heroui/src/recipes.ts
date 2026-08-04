@@ -1236,6 +1236,73 @@ export const slider: RecipeInput = {
                 },
             },
         },
+        // The composed range projection (#325): the same rail and paper disc
+        // as the rebuilt control, as real parts. The thumb's edge is the
+        // switch's 75%-muted border — `--hero-line` on this rail is the ring
+        // nobody can see (#228).
+        track: {
+            base: {
+                height: 'var(--slider-track-size)',
+                marginBlock: 'calc((var(--slider-thumb-size) - var(--slider-track-size)) / 2 + var(--size-selector))',
+                borderRadius: '9999px',
+                background: 'var(--color-base-300)',
+                cursor: 'pointer',
+            },
+            states: { disabled: { cursor: 'not-allowed' } },
+        },
+        range: {
+            base: {
+                height: '100%',
+                borderRadius: '9999px',
+                background: 'var(--slider-accent)',
+            },
+            states: { disabled: {} },
+        },
+        thumb: {
+            base: {
+                boxSizing: 'border-box',
+                width: 'var(--slider-thumb-size)',
+                height: 'var(--slider-thumb-size)',
+                insetBlockStart: '50%',
+                translate: '0 -50%',
+                marginInlineStart: 'calc(var(--slider-thumb-size) / -2)',
+                borderRadius: '9999px',
+                border: 'var(--border) solid color-mix(in oklab, var(--hero-muted) 75%, transparent)',
+                background: 'var(--color-base-100)',
+                boxShadow: 'var(--shadow-sm)',
+                cursor: 'pointer',
+                outline: 'none',
+                touchAction: 'none',
+                transition: motion('box-shadow, scale'),
+            },
+            states: {
+                pressed: { scale: '0.94' },
+                'focus-visible': { boxShadow: '0 0 0 2px var(--hero-focus), var(--shadow-sm)' },
+                disabled: { cursor: 'not-allowed' },
+            },
+        },
+        mark: {
+            base: {
+                paddingBlockStart: 'calc(var(--slider-track-size) + var(--space-2xs))',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                lineHeight: '1',
+                whiteSpace: 'nowrap',
+                color: 'var(--hero-muted)',
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlockStart: '0',
+                    insetInlineStart: '-1px',
+                    width: '2px',
+                    height: 'var(--slider-track-size)',
+                    background: 'var(--hero-muted)',
+                },
+            },
+        },
         'value-text': {
             base: { fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', color: 'var(--hero-muted)' },
         },

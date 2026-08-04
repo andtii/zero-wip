@@ -1599,6 +1599,67 @@
         transition: box-shadow var(--duration-fast) var(--ease-standard);
     }
 
+    [data-scope="slider"][data-part="track"] {
+        height: 0.125rem;
+        margin-block: 1.1875rem;
+        background: var(--carbon-line);
+        cursor: pointer;
+    }
+
+    [data-scope="slider"][data-part="track"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="slider"][data-part="range"] {
+        height: 100%;
+        background: var(--carbon-interactive);
+    }
+
+    [data-scope="slider"][data-part="thumb"] {
+        width: 0.875rem;
+        height: 0.875rem;
+        inset-block-start: 50%;
+        translate: 0 -50%;
+        margin-inline-start: -0.4375rem;
+        border-radius: var(--radius-selector);
+        background: var(--color-base-content);
+        cursor: pointer;
+        outline: none;
+        touch-action: none;
+        transition: box-shadow var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="slider"][data-part="thumb"][data-focus-visible] {
+        box-shadow: inset 0 0 0 2px var(--carbon-focus), inset 0 0 0 4px var(--color-base-100);
+    }
+
+    [data-scope="slider"][data-part="thumb"][data-pressed] {
+        box-shadow: inset 0 0 0 2px var(--carbon-focus), inset 0 0 0 4px var(--color-base-100);
+    }
+
+    [data-scope="slider"][data-part="thumb"][data-disabled] {
+        cursor: not-allowed;
+    }
+
+    [data-scope="slider"][data-part="mark"] {
+        padding-block-start: calc(0.125rem + var(--space-2xs));
+        font-size: var(--text-xs);
+        letter-spacing: var(--tracking-wide);
+        line-height: 1;
+        white-space: nowrap;
+        color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
+    }
+
+    [data-scope="slider"][data-part="mark"]::before {
+        content: "";
+        position: absolute;
+        inset-block-start: 0;
+        inset-inline-start: -1px;
+        width: 2px;
+        height: 0.125rem;
+        background: var(--carbon-line);
+    }
+
     [data-scope="slider"][data-part="value-text"] {
         font-size: var(--text-xs);
         letter-spacing: var(--tracking-wide);

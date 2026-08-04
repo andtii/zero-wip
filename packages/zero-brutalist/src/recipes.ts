@@ -1204,6 +1204,73 @@ export const slider: RecipeInput = {
                 'forced-colors': { base: { appearance: 'auto' } },
             },
         },
+        // The composed range projection (#325): the same two inked slabs as
+        // the rebuilt control — channel and handle — as real parts.
+        track: {
+            base: {
+                boxSizing: 'border-box',
+                height: 'calc(var(--slider-track-size) + var(--border) * 2)',
+                marginBlock: 'calc((var(--slider-thumb-size) - var(--slider-track-size)) / 2)',
+                ...inked,
+                boxShadow: 'var(--shadow-xs)',
+                cursor: 'pointer',
+            },
+            states: {
+                // The whole instrument lies flat when disabled — same as the
+                // native control's collapse.
+                disabled: { cursor: 'not-allowed', boxShadow: 'none' },
+            },
+        },
+        range: {
+            base: {
+                height: '100%',
+                background: 'var(--slider-accent)',
+            },
+            states: { disabled: {} },
+        },
+        thumb: {
+            base: {
+                boxSizing: 'border-box',
+                width: 'var(--slider-thumb-size)',
+                height: 'var(--slider-thumb-size)',
+                insetBlockStart: '50%',
+                translate: '0 -50%',
+                marginInlineStart: 'calc(var(--slider-thumb-size) / -2)',
+                ...inked,
+                boxShadow: 'var(--shadow-xs)',
+                cursor: 'pointer',
+                outline: 'none',
+                touchAction: 'none',
+            },
+            states: {
+                // The stamp — the handle drops its shadow and shoves itself
+                // into where the shadow was, exactly as button does.
+                pressed: { boxShadow: 'none' },
+                disabled: { cursor: 'not-allowed', boxShadow: 'none' },
+                ...focusRing,
+            },
+        },
+        mark: {
+            base: {
+                paddingBlockStart: 'calc(var(--slider-track-size) + var(--border) * 2 + var(--space-2xs))',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                lineHeight: '1',
+                whiteSpace: 'nowrap',
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlockStart: '0',
+                    insetInlineStart: '-1px',
+                    width: '2px',
+                    height: 'calc(var(--slider-track-size) + var(--border) * 2)',
+                    background: 'var(--color-base-content)',
+                },
+            },
+        },
         'value-text': { base: { ...label, fontSize: 'var(--text-xs)' } },
     },
     variants: {

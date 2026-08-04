@@ -173,10 +173,24 @@ component renders; the root is called out separately where it carries props.
   `indeterminate`.
 - RadioGroup: Root(model=value)/Label/Item/ItemControl/ItemIndicator/
   ItemLabel/HiddenInput; orientation.
-- Slider: Root(model=number)/Label/Control/ValueText on a native
-  <input type=range> (single thumb). The anatomy also declares track/range/
-  thumb parts — the projection for platforms without a native range widget;
-  the web never renders them, so rules against them are inert here.
+- Slider: Root(model=number|number[], min, max, step, name, invalid, marks,
+  getValueText)/Label/Control/Track/Range/Thumb/Mark/ValueText/HiddenInput.
+  Two projections over one anatomy. Scalar model: render Slider.Control — a
+  native <input type=range>, single thumb, platform keyboard/forms/a11y.
+  Range model (number[]): compose the real parts — Slider.Track wrapping
+  Slider.Range and one Slider.Thumb(label, index?) per value, in order.
+  Each thumb is an APG role=slider tab stop: arrows/PageUp/PageDown step
+  (RTL-aware), Home/End go to its ALLOWED bounds — thumbs cannot cross, so
+  each clamps at its neighbor and announces the clamp as aria-valuemin/max;
+  aria-valuetext comes from getValueText(value, index). Track presses move
+  the nearest thumb and start a drag; range spans lowest→highest (min→value
+  when single); `marks` renders positioned `mark` tick parts (with label
+  text) inside the track; a range model posts one hidden input per value
+  under the shared `name`. Zero positions structurally (absolute + logical
+  inset-inline-start percents — RTL mirrors for free) and paints nothing:
+  recipes center the thumb with a negative margin-inline-start of half its
+  width and own every color. --slider-percent still tracks the (highest)
+  value's fraction.
 - Progress: Root/Label/Track/Range/ValueText; `value: number | null`
   (null = indeterminate).
 - Field: Root/Label/Description/Error — wires ids and disabled/invalid/

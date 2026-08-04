@@ -1468,6 +1468,81 @@ export const slider: RecipeInput = {
                 'forced-colors': { base: { appearance: 'auto' } },
             },
         },
+        // The composed range projection (#325): the same channel and the same
+        // paper disc as the native control, as real parts. Zero positions
+        // (absolute + logical inline-start percents); this only paints.
+        track: {
+            base: {
+                height: 'var(--slider-track-size)',
+                // Reserve the thumb's overhang so the row's box matches the
+                // native control's.
+                marginBlock: 'calc((var(--slider-thumb-size) - var(--slider-track-size)) / 2)',
+                borderRadius: '9999px',
+                background: 'var(--color-base-200)',
+                boxShadow: 'inset 0 0 0 var(--border) var(--color-base-300)',
+                cursor: 'pointer',
+            },
+            states: { disabled: { cursor: 'not-allowed' } },
+        },
+        range: {
+            base: {
+                height: '100%',
+                borderRadius: '9999px',
+                background: 'var(--slider-accent)',
+            },
+            states: { disabled: {} },
+        },
+        // The switch's paper disc, verbatim — including the 55%-ink BORDER
+        // edge rather than a hairline shadow: `base-300` on this track is
+        // 1.15:1, and forced colours strips shadows outright (#228's lesson,
+        // applied where it was learned).
+        thumb: {
+            base: {
+                boxSizing: 'border-box',
+                width: 'var(--slider-thumb-size)',
+                height: 'var(--slider-thumb-size)',
+                insetBlockStart: '50%',
+                translate: '0 -50%',
+                marginInlineStart: 'calc(var(--slider-thumb-size) / -2)',
+                borderRadius: '9999px',
+                border: 'var(--border) solid color-mix(in oklch, var(--color-base-content) 55%, transparent)',
+                background: 'var(--color-base-100)',
+                cursor: 'pointer',
+                outline: 'none',
+                touchAction: 'none',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                // The same instantaneous ink film the native thumb takes.
+                pressed: { background: 'color-mix(in oklch, var(--color-base-content) 6%, var(--color-base-100))' },
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
+                disabled: { cursor: 'not-allowed' },
+            },
+        },
+        // A tick through the channel, with the mark's label as meta-text
+        // hanging under it.
+        mark: {
+            base: {
+                paddingBlockStart: 'calc(var(--slider-track-size) + var(--space-2xs))',
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+                lineHeight: 'var(--leading-none)',
+                whiteSpace: 'nowrap',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlockStart: '0',
+                    insetInlineStart: '-1px',
+                    width: '2px',
+                    height: 'var(--slider-track-size)',
+                    background: 'var(--color-base-300)',
+                },
+            },
+        },
         'value-text': {
             base: {
                 fontSize: 'var(--text-xs)',

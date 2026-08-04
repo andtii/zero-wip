@@ -1423,6 +1423,68 @@ export const slider: RecipeInput = {
                 'forced-colors': { base: { appearance: 'auto' } },
             },
         },
+        // The composed range projection (#325): Carbon's hairline rail and
+        // square handle as real parts, same inks as the rebuilt control.
+        track: {
+            base: {
+                height: '0.125rem',
+                marginBlock: '1.1875rem',
+                background: 'var(--carbon-line)',
+                cursor: 'pointer',
+            },
+            states: { disabled: { cursor: 'not-allowed' } },
+        },
+        range: {
+            base: {
+                height: '100%',
+                background: 'var(--carbon-interactive)',
+            },
+            states: { disabled: {} },
+        },
+        thumb: {
+            base: {
+                width: '0.875rem',
+                height: '0.875rem',
+                insetBlockStart: '50%',
+                translate: '0 -50%',
+                marginInlineStart: '-0.4375rem',
+                borderRadius: 'var(--radius-selector)',
+                background: 'var(--color-base-content)',
+                cursor: 'pointer',
+                outline: 'none',
+                touchAction: 'none',
+                transition: 'box-shadow var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                'focus-visible': { boxShadow: thumbRing },
+                // A drag has no one-shot — the ring doubling as the held
+                // feedback is the whole press treatment, as on the control.
+                pressed: { boxShadow: thumbRing },
+                disabled: { cursor: 'not-allowed' },
+            },
+        },
+        mark: {
+            base: {
+                paddingBlockStart: 'calc(0.125rem + var(--space-2xs))',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: '1',
+                whiteSpace: 'nowrap',
+                color: 'color-mix(in oklab, var(--color-base-content) 65%, transparent)',
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlockStart: '0',
+                    insetInlineStart: '-1px',
+                    width: '2px',
+                    height: '0.125rem',
+                    background: 'var(--carbon-line)',
+                },
+            },
+        },
         'value-text': { base: { ...fieldLabel } },
     },
     variants: {
