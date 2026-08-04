@@ -34,6 +34,7 @@ import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import { designSystem as materialDS } from '@sigx/zero-material';
 import { designSystem as brutalistDS } from '@sigx/zero-brutalist';
 import { designSystem as herouiDS } from '@sigx/zero-heroui';
+import { designSystem as carbonDS } from '@sigx/zero-carbon';
 
 // Paths resolve from the repo root (vitest's cwd), matching briefs.test.ts —
 // `import.meta.url` is rewritten by the test server and doesn't hit disk.
@@ -69,6 +70,8 @@ const SYSTEMS = [
     ['daisyui', daisyDS],
     ['material', materialDS],
     ['brutalist', brutalistDS],
+    ['heroui', herouiDS],
+    ['carbon', carbonDS],
 ] as const;
 
 // ── manifest.schema.json ─────────────────────────────────────────────────
@@ -151,7 +154,7 @@ describe('manifest.schema.json', () => {
  */
 describe('report.schema.json', () => {
     const reportManifest = { components: manifest.components as ManifestComponent[] };
-    const reports = [...SYSTEMS, ['heroui', herouiDS] as const].map(
+    const reports = SYSTEMS.map(
         ([name, ds]) =>
             [name, buildReport(compileDesignSystem(ds as DesignSystemInput, reportManifest), ds as DesignSystemInput, reportManifest)] as const,
     );

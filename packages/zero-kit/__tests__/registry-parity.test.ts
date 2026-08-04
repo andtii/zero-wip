@@ -22,6 +22,8 @@ import * as basic from '@sigx/zero-basic';
 import * as daisy from '@sigx/zero-daisyui';
 import * as material from '@sigx/zero-material';
 import * as brutalist from '@sigx/zero-brutalist';
+import * as heroui from '@sigx/zero-heroui';
+import * as carbon from '@sigx/zero-carbon';
 
 const manifest = {
     components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
@@ -37,6 +39,8 @@ const SYSTEMS: ReadonlyArray<readonly [string, CompiledDesignSystem, () => void]
     ['daisyui', compileDesignSystem(daisy.designSystem, manifest), daisy.installThemes],
     ['material', compileDesignSystem(material.designSystem, manifest), material.installThemes],
     ['brutalist', compileDesignSystem(brutalist.designSystem, manifest), brutalist.installThemes],
+    ['heroui', compileDesignSystem(heroui.designSystem, manifest), heroui.installThemes],
+    ['carbon', compileDesignSystem(carbon.designSystem, manifest), carbon.installThemes],
 ];
 
 for (const [, , installThemes] of SYSTEMS) installThemes();
