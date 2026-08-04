@@ -4,6 +4,37 @@
 
 ### Added
 
+- **Contract v1: @scope-bounded axis rules, a versioned self-validating DS
+  manifest, versioned vocabulary-enforced fragments** (#317). The kit's half
+  of the coordinated contract break:
+
+  - Non-carrier axis rules are emitted inside an `@scope` donut —
+    `@scope ([carrier][attrs]) to ([carrier]) { [part] { … } }` — instead of
+    an unbounded descendant selector. Nested same-scope instances (card in
+    card) now resolve each part's axis to the NEAREST carrier by CSS scoping
+    proximity rather than source order; unscoped rules count as infinitely
+    far, so axis refinements keep beating the flat base rules they used to
+    outrank by specificity. Carrier rules stay flat.
+  - The design-system `dist/manifest.json` is a versioned artifact: a new
+    `schemas/ds-manifest.schema.json` (distinct from the zero ANATOMY
+    manifest's `manifest.schema.json` — the two share a basename and nothing
+    else), a `$schema`/`manifestVersion: 1`/`zeroVersion` envelope,
+    `DS_MANIFEST_VERSION` and the `DesignSystemManifest` type exported from
+    the package root, and `writeArtifacts` self-validates against the schema
+    before writing — a shape break fails the build that produces the
+    manifest, not the app that reads it. (`ajv` is a runtime dependency now.)
+  - `ManifestFragment` requires `version` (`FRAGMENT_VERSION = 1`);
+    `mergeManifests` hard-errors on a missing or unknown one, and now holds
+    every fragment part to the shared vocabularies — flags, governed states
+    (synonyms fail with the member to use), placements, `hiddenIn ⊆ states`,
+    and a dangling/self/cyclic-free part tree — so the "no synonyms" rule
+    finally binds on the ecosystem surface.
+  - Kit-side parity copies of `FLAG_VOCABULARY`, `STATE_VOCABULARY`,
+    `STATE_NAMES`, `STATE_SYNONYMS` and `PLACEMENT_VOCABULARY`
+    (contract-parity-tested against zero's); `RESERVED_AXES` is now derived
+    from the flag list on this side too. `ManifestPart` mirrors `parent` and
+    `placements`.
+
 - **`@sigx/zero-kit/build` — the standard build as one function** (#318).
   `runStandardBuild({ designSystem, manifest, fragments?, outDir, logger? })`
   runs merge → validate → compile → `buildReport` → `writeArtifacts` with

@@ -286,14 +286,35 @@ Publishing is handled by `scripts/publish.js` in topological order.
 
 - Every rendered part carries `data-scope="<component>"` and
   `data-part="<part>"` (kebab-case).
+- Parts declare their **tree**: `parent` on a `PartSpec` names the same-scope
+  part it renders inside (the containing part, not necessarily the immediate
+  element — a menu item inside a group is still inside the popup). Top-level
+  parts omit it; pseudo parts never declare it. `expectAnatomy` asserts the
+  rendered DOM matches; the contrast audit derives its ancestor chains from
+  it; the recipe compiler bounds axis rules with it.
 - `data-state` holds exactly one value from a closed, per-part set
-  (`open|closed`, `checked|unchecked|indeterminate`, `active|inactive`).
+  (`open|closed`, `checked|unchecked|indeterminate`, `active|inactive`, …) —
+  and every value must be a member of the governed `STATE_VOCABULARY` in
+  `contract/data-attrs.ts` (families + a synonym table: `expanded` is a
+  rejected spelling of `open`). A new state value is a contract change there
+  first.
 - Boolean flags are presence-only (`data-disabled=""`), never `="false"`.
   Shared flag vocabulary: `data-disabled`, `data-highlighted`, `data-selected`,
   `data-invalid`, `data-required`, `data-readonly`, `data-placeholder`,
   `data-focus-visible`, `data-pressed`. Never invent synonyms.
+- `data-placement` is declared contract data, not a free attribute: a part
+  that can carry it lists its subset of `PLACEMENT_VOCABULARY` as
+  `placements` in its anatomy (the anchored-position popups, toast's
+  viewport/root). `expectAnatomy` checks it per part like `data-state`.
+- `mergeManifests` enforces all of the above (flags, states with synonym
+  hints, placements, `hiddenIn ⊆ states`, and the part tree) on ecosystem
+  manifest fragments — which also carry a required `version`
+  (`FRAGMENT_VERSION`).
 - Contract variant props pass through as `data-color` / `data-size` /
-  `data-variant`. Zero attaches **no styling** to any of these.
+  `data-variant`. Zero attaches **no styling** to any of these. Every
+  component carries the axis surface (`WithVariantAxes`); for the
+  fragment-rooted scopes (dialog, menu, popover, tooltip) the props live on
+  the Trigger, which renders the carrier part.
 - A part the runtime hides with the `hidden` attribute in some state declares
   it: `hiddenIn: ['error']` on `avatar.image`. It is a styling fact — a rule
   for a hidden state can never paint, so identical CSS across it and a visible

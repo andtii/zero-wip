@@ -4,6 +4,47 @@
 
 ### Added
 
+- **Contract v1: the part tree, governed states, declared placements, and
+  axes on all 31** (#317). One coordinated contract break carrying every
+  shape change at once:
+
+  - `PartSpec.parent` declares which same-scope part each part renders
+    inside — the anatomy's part TREE, across all 31 anatomies. It names the
+    containing part rather than the immediate element (a menu item inside a
+    group is still inside the popup); top-level parts omit it, pseudo parts
+    never declare it. `expectAnatomy` now asserts the rendered DOM matches
+    the tree, and tooling derives real ancestor chains from it instead of
+    hand-maintaining nesting tables.
+  - `data-state` values are governed the way flags always were:
+    `STATE_VOCABULARY` (grouped families, membership checked against the
+    union) plus a `STATE_SYNONYMS` table so a rejected spelling fails with
+    the member to use (`expanded` → "use `open`").
+  - `data-placement` is declared contract data, not a blanket-exempt
+    attribute: `PLACEMENT_VOCABULARY` closes the value set (and
+    `behaviors/position.ts` derives its `Placement` type from it), and a
+    part that can carry it declares its subset as `PartSpec.placements` —
+    the six anchored-position popups take the full twelve, toast's
+    viewport/root the six edge slots. `expectAnatomy` checks it per part
+    like `data-state`; the old exemption is gone.
+  - Every component now carries the variant-axis surface: accordion,
+    collapsible and field gained `WithVariantAxes` on their Root; dialog,
+    menu, popover and tooltip carry the props on their **Trigger** (their
+    Root renders a fragment, and the trigger is the carrier part axis
+    selectors anchor on); toast routes `toast({ color })` through the shared
+    `variantAttrs` (an explicit prop on a composed root wins) — which makes
+    the four design systems' already-emitted `toast.color` recipes reachable
+    for the first time. Per-skin wiring of the remaining color/size recipes
+    is tracked in #321.
+  - `registerTheme` warns (never throws — design systems register at module
+    init on the server) when a theme name is re-registered with different
+    content, and merges last-write-wins: the SSR-bleed guard. `clearThemes()`
+    now also resets the browser controller singleton's explicit theme to
+    follow-the-system — theme names are DS-specific, so after a
+    design-system swap the name it held belonged to a stylesheet that left.
+  - Alert renders its `data-state` through the shared `stateAttr` helper.
+  - The manifest's `attributeSpec` gains `stateVocabulary`, `stateSynonyms`
+    and `placementVocabulary`; parts gain `parent` and `placements`.
+
 - **`Skeleton` and `Spinner` — closing RFC 0002 §8's content-tier list**
   (#314). §8 named ten; `rating` shipped, `input`/`textarea` landed in #310,
   `card`/`alert`/`badge`/`divider` in #311, and two are deliberately out —
