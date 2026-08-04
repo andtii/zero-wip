@@ -27,7 +27,8 @@ import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled } from '../../contract/props.js';
+import { variantAttrs } from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
 import { popoverAnatomy } from './anatomy.js';
 
 const SCOPE = popoverAnatomy.scope;
@@ -107,6 +108,7 @@ const PopoverRoot = component<PopoverRootProps>(({ props, slots, emit }) => {
 export type PopoverTriggerProps =
     & WithDisabled
     & WithClass
+    & WithVariantAxes<'popover'>
     & WithAsChild
     & Define.Slot<'default', PartProps>;
 
@@ -122,6 +124,7 @@ const PopoverTrigger = component<PopoverTriggerProps>(({ props, slots, signal })
     const bag = (): PartProps => ({
         'data-scope': SCOPE,
         'data-part': 'trigger',
+        ...variantAttrs(props),
         'data-state': stateAttr(popover.state.value, 'open', 'closed'),
         'data-disabled': dataAttr(props.disabled),
         'data-focus-visible': dataAttr(focus.visible),

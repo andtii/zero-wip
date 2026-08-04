@@ -32,6 +32,26 @@ describe('Popover', () => {
         expect(popup.getAttribute('role')).toBe('dialog');
     });
 
+    it('passes the variant axes through on the trigger (the carrier part)', () => {
+        mountWithAxes();
+        const trigger = container.querySelector<HTMLElement>('[data-scope="popover"][data-part="trigger"]')!;
+        expect(trigger.getAttribute('data-color')).toBe('primary');
+        expect(trigger.getAttribute('data-size')).toBe('sm');
+    });
+
+    function mountWithAxes() {
+        render(
+            <Popover.Root>
+                <Popover.Trigger color="primary" size="sm">Filters</Popover.Trigger>
+                <Popover.Popup>
+                    <Popover.Title>Filters</Popover.Title>
+                    <Popover.Close>Done</Popover.Close>
+                </Popover.Popup>
+            </Popover.Root>,
+            container,
+        );
+    }
+
     it('trigger toggles, close closes, aria wiring holds', () => {
         const state = signal({ open: false });
         mount(state);

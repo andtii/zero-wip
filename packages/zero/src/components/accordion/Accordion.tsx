@@ -19,7 +19,8 @@ import { createControllableState, type ControllableState } from '../../behaviors
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
-import type { WithClass, WithDisabled } from '../../contract/props.js';
+import { variantAttrs } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
 import { accordionAnatomy } from './anatomy.js';
 
 const SCOPE = accordionAnatomy.scope;
@@ -59,6 +60,7 @@ export type AccordionRootProps =
     & Define.Prop<'multiple', boolean, false>
     & Define.Prop<'collapsible', boolean, false>
     & WithDisabled
+    & WithVariantAxes<'accordion'>
     & WithClass
     & Define.Slot<'default'>;
 
@@ -86,7 +88,7 @@ const AccordionRoot = component<AccordionRootProps>(({ props, slots, emit }) => 
     defineProvide(useAccordionContext, () => ctx);
 
     return () => (
-        <div data-scope={SCOPE} data-part="root" class={props.class}>
+        <div data-scope={SCOPE} data-part="root" {...variantAttrs(props)} class={props.class}>
             {slots.default?.()}
         </div>
     );

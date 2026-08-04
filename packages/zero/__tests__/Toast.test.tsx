@@ -132,6 +132,26 @@ describe('Toast (component)', () => {
         expect(viewport.getAttribute('role')).toBe('region');
     });
 
+    it('routes colour through variantAttrs — an explicit root prop wins over the queue toast colour', async () => {
+        const t = createToaster({ duration: Infinity });
+        render(
+            <Toast.Viewport toaster={t}>
+                {(td: ToastData) => (
+                    <Toast.Root toast={td} key={td.id} color="warning" size="lg">
+                        <Toast.Title>{td.title}</Toast.Title>
+                    </Toast.Root>
+                )}
+            </Toast.Viewport>,
+            container,
+        );
+        t.create({ title: 'Careful', color: 'success' });
+        await settle();
+        const root = container.querySelector<HTMLElement>('[data-part="root"]')!;
+        expect(root.getAttribute('data-color')).toBe('warning');
+        expect(root.getAttribute('data-size')).toBe('lg');
+        expectAnatomy(container, toastAnatomy);
+    });
+
     it('enters closed and flips to open a frame later', async () => {
         const t = mount();
         t.create({ title: 'Hi' });
