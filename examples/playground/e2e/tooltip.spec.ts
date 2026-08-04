@@ -44,10 +44,11 @@ test('hover opens after the intent delay and closes on pointer leave', async ({ 
     const hoveredAt = Date.now();
     await t.hover();
     await expect(popup(page)).toHaveAttribute('data-state', 'open');
-    // The open cannot land before the 600 ms intent delay; observing it
-    // earlier would mean the delay is gone. (Only a lower bound — an upper
-    // bound would race the runner.)
-    expect(Date.now() - hoveredAt).toBeGreaterThanOrEqual(300);
+    // The open cannot land before the 600 ms intent delay: the timer is
+    // armed at pointerenter, which happens AFTER hoveredAt was taken, so
+    // the observed elapsed time is strictly >= the full delay. (Only a
+    // lower bound — an upper bound would race the runner.)
+    expect(Date.now() - hoveredAt).toBeGreaterThanOrEqual(600);
 
     await page.mouse.move(0, 0);
     await expect(popup(page)).toHaveAttribute('data-state', 'closed');
