@@ -38,6 +38,14 @@ import type { Badge as ZBadge } from '@sigx/zero/badge';
 import type { Divider as ZDivider } from '@sigx/zero/divider';
 import type { Skeleton as ZSkeleton } from '@sigx/zero/skeleton';
 import type { Spinner as ZSpinner } from '@sigx/zero/spinner';
+import type { Kbd as ZKbd } from '@sigx/zero/kbd';
+import type { Status as ZStatus } from '@sigx/zero/status';
+import type { Indicator as ZIndicator } from '@sigx/zero/indicator';
+import type { Stats as ZStats } from '@sigx/zero/stats';
+import type { Timeline as ZTimeline } from '@sigx/zero/timeline';
+import type { Chat as ZChat } from '@sigx/zero/chat';
+import type { RadialProgress as ZRadialProgress } from '@sigx/zero/radial-progress';
+import type { Join as ZJoin } from '@sigx/zero/join';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -267,3 +275,59 @@ type SpinnerProps = {
 };
 type SpinnerAdapted = Adapted<typeof ZSpinner, ZeroAxisProp, SpinnerProps>;
 export declare const Spinner: SpinnerAdapted & { Root: SpinnerAdapted };
+
+/** kbd — no vendor route; the wired surface keeps zero's names. */
+type KbdProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type KbdAdapted = Adapted<typeof ZKbd, ZeroAxisProp, KbdProps>;
+export declare const Kbd: KbdAdapted & { Root: KbdAdapted };
+
+/** status — no vendor route; the wired surface keeps zero's names. */
+type StatusProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type StatusAdapted = Adapted<typeof ZStatus, ZeroAxisProp, StatusProps>;
+export declare const Status: StatusAdapted & { Root: StatusAdapted };
+
+/** indicator — no vendor route; the wired surface keeps zero's names. */
+type IndicatorProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type IndicatorAdapted = Adapted<typeof ZIndicator, ZeroAxisProp, IndicatorProps>;
+export declare const Indicator: IndicatorAdapted & AdaptedStatics<typeof ZIndicator> & { Root: IndicatorAdapted };
+
+/** stats — no vendor route; the wired surface keeps zero's names. */
+type StatsProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type StatsAdapted = Adapted<typeof ZStats, ZeroAxisProp, StatsProps>;
+export declare const Stats: StatsAdapted & AdaptedStatics<typeof ZStats> & { Root: StatsAdapted };
+
+/** timeline — no vendor route; the wired surface keeps zero's names. */
+type TimelineProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type TimelineAdapted = Adapted<typeof ZTimeline, ZeroAxisProp, TimelineProps>;
+export declare const Timeline: TimelineAdapted & AdaptedStatics<typeof ZTimeline> & { Root: TimelineAdapted };
+
+/** chat — no vendor route; the wired surface keeps zero's names. */
+type ChatProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type ChatAdapted = Adapted<typeof ZChat, ZeroAxisProp, ChatProps>;
+export declare const Chat: ChatAdapted & AdaptedStatics<typeof ZChat> & { Root: ChatAdapted };
+
+/** radial-progress — no vendor route; the wired surface keeps zero's names. */
+type RadialProgressProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type RadialProgressAdapted = Adapted<typeof ZRadialProgress, ZeroAxisProp, RadialProgressProps>;
+export declare const RadialProgress: RadialProgressAdapted & AdaptedStatics<typeof ZRadialProgress> & { Root: RadialProgressAdapted };
+
+/** join — no vendor route; the wired surface keeps zero's names. */
+type JoinProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type JoinAdapted = Adapted<typeof ZJoin, ZeroAxisProp, JoinProps>;
+export declare const Join: JoinAdapted & AdaptedStatics<typeof ZJoin> & { Root: JoinAdapted };

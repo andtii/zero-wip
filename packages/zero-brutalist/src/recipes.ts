@@ -2934,9 +2934,653 @@ export const spinner: RecipeInput = {
     keyframes: { 'zero-brutalist-spin': 'to { transform: rotate(360deg); }' },
 };
 
+// ── The content-tier sweep (#334) ─────────────────────────────────────────
+/**
+ * Kbd — the keycap as a stamped block: the full 2px frame and a hard offset
+ * shadow, so the key looks like the movable type this identity is set in.
+ */
+export const kbd: RecipeInput = {
+    component: 'kbd',
+    tokens: { '--kbd-fill': 'var(--color-base-100)', '--kbd-ink': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: '1.75em',
+                padding: '0 var(--space-sm)',
+                background: 'var(--kbd-fill)',
+                color: 'var(--kbd-ink)',
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                borderRadius: '0',
+                boxShadow: 'var(--shadow-xs)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-bold)',
+                lineHeight: 'var(--leading-normal)',
+                whiteSpace: 'nowrap',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--kbd-fill': `var(--color-${c})`,
+            '--kbd-ink': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-xs)', minInlineSize: '1.5em' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-xs)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-sm)', padding: '0 var(--space-md)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-2xs) var(--space-lg)' } } },
+        },
+    },
+};
+
+/**
+ * Status — a square, because nothing in this identity is round. The frame is
+ * always `base-content` (the `inked` grammar) and colour fills the inside,
+ * which keeps the mark ≥3:1 on paper whatever role it wears — and keeps a
+ * visible box under `forced-colors`, where the fill drops and the frame
+ * stays.
+ */
+export const status: RecipeInput = {
+    component: 'status',
+    tokens: {
+        '--status-fill': 'var(--color-base-content)',
+        '--status-size': 'calc(var(--size-selector) * 2.5)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-block',
+                inlineSize: 'var(--status-size)',
+                blockSize: 'var(--status-size)',
+                boxSizing: 'border-box',
+                verticalAlign: 'middle',
+                background: 'var(--status-fill)',
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                borderRadius: '0',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--status-fill': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--status-size': 'calc(var(--size-selector) * 1.5)' } } },
+            sm: { root: { base: { '--status-size': 'calc(var(--size-selector) * 2)' } } },
+            md: {},
+            lg: { root: { base: { '--status-size': 'calc(var(--size-selector) * 3)' } } },
+            xl: { root: { base: { '--status-size': 'calc(var(--size-selector) * 3.5)' } } },
+        },
+    },
+};
+
+/**
+ * Indicator — pure position; the item's content brings its own paint.
+ * Colour accents bare-text items, size moves their type scale.
+ */
+export const indicator: RecipeInput = {
+    component: 'indicator',
+    parts: {
+        root: {
+            base: {
+                position: 'relative',
+                display: 'inline-flex',
+                verticalAlign: 'middle',
+                maxWidth: 'max-content',
+            },
+        },
+        item: {
+            base: {
+                position: 'absolute',
+                zIndex: '1',
+                whiteSpace: 'nowrap',
+            },
+            selectors: {
+                // Logical insets place the slot; `translate` centres the item
+                // on it. A transform has no logical spelling, so the inline
+                // half is flipped by hand under RTL below — the exact blind
+                // spot the physical-direction lint cannot see (e2e/rtl.spec).
+                '&[data-placement="top-start"]': { insetBlockStart: '0', insetInlineStart: '0', translate: '-50% -50%' },
+                '&[data-placement="top"]': { insetBlockStart: '0', insetInlineStart: '50%', translate: '-50% -50%' },
+                '&[data-placement="top-end"]': { insetBlockStart: '0', insetInlineEnd: '0', translate: '50% -50%' },
+                '&[data-placement="start"]': { insetBlockStart: '50%', insetInlineStart: '0', translate: '-50% -50%' },
+                '&[data-placement="end"]': { insetBlockStart: '50%', insetInlineEnd: '0', translate: '50% -50%' },
+                '&[data-placement="bottom-start"]': { insetBlockEnd: '0', insetInlineStart: '0', translate: '-50% 50%' },
+                '&[data-placement="bottom"]': { insetBlockEnd: '0', insetInlineStart: '50%', translate: '-50% 50%' },
+                '&[data-placement="bottom-end"]': { insetBlockEnd: '0', insetInlineEnd: '0', translate: '50% 50%' },
+                [`&[data-placement="top-start"]${rtl}`]: { translate: '50% -50%' },
+                [`&[data-placement="top"]${rtl}`]: { translate: '50% -50%' },
+                [`&[data-placement="top-end"]${rtl}`]: { translate: '-50% -50%' },
+                [`&[data-placement="start"]${rtl}`]: { translate: '50% -50%' },
+                [`&[data-placement="end"]${rtl}`]: { translate: '-50% -50%' },
+                [`&[data-placement="bottom-start"]${rtl}`]: { translate: '50% 50%' },
+                [`&[data-placement="bottom"]${rtl}`]: { translate: '50% 50%' },
+                [`&[data-placement="bottom-end"]${rtl}`]: { translate: '-50% 50%' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { item: { base: {
+            color: `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { item: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { item: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { item: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { item: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
+/** Stats — a slab: the full frame, slab joins, the value at shout scale. */
+export const stats: RecipeInput = {
+    component: 'stats',
+    tokens: { '--stats-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                boxShadow: 'var(--shadow-sm)',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        item: {
+            base: {
+                display: 'grid',
+                gridTemplateColumns: '1fr auto',
+                columnGap: 'var(--space-md)',
+                alignContent: 'center',
+                flex: '1 1 0%',
+                padding: 'var(--space-lg) var(--space-xl)',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"] + &': {
+                    borderInlineStart: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                },
+                '&[data-orientation="vertical"] + &': {
+                    borderBlockStart: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                },
+            },
+        },
+        title: {
+            base: {
+                gridColumn: '1',
+                ...label,
+                fontSize: 'var(--text-xs)',
+            },
+        },
+        value: {
+            base: {
+                gridColumn: '1',
+                fontSize: 'var(--text-3xl)',
+                fontWeight: 'var(--weight-bold)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--stats-accent)',
+            },
+        },
+        desc: {
+            base: {
+                gridColumn: '1',
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        figure: {
+            base: {
+                gridColumn: '2',
+                gridRow: '1 / span 3',
+                alignSelf: 'center',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--stats-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { value: { base: { fontSize: 'var(--text-lg)' } } },
+            sm: { value: { base: { fontSize: 'var(--text-xl)' } } },
+            md: {},
+            lg: { value: { base: { fontSize: 'var(--text-3xl)' } } },
+            xl: { value: { base: { fontSize: 'var(--text-3xl)' } } },
+        },
+    },
+};
+
+/** Timeline — square markers on a slab axis; the content is a stamped box. */
+export const timeline: RecipeInput = {
+    component: 'timeline',
+    tokens: { '--timeline-accent': 'var(--color-base-content)', '--timeline-marker-size': 'calc(var(--size-selector) * 3)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'row' },
+            },
+        },
+        /**
+         * One item is a 3×2 grid around the axis. Vertical: columns are
+         * [start-content | axis | end-content], the connector drops below the
+         * marker. Horizontal: transposed. Grid tracks follow the inline
+         * direction, so the whole layout mirrors under RTL with no
+         * corrections.
+         */
+        item: {
+            base: {
+                display: 'grid',
+                position: 'relative',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': {
+                    gridTemplateColumns: '1fr auto 1fr',
+                    gridTemplateRows: 'auto 1fr',
+                },
+                '&[data-orientation="horizontal"]': {
+                    gridTemplateRows: '1fr auto 1fr',
+                    gridTemplateColumns: 'auto 1fr',
+                    flex: '1 1 0%',
+                },
+            },
+        },
+        marker: {
+            base: {
+                inlineSize: 'var(--timeline-marker-size)',
+                blockSize: 'var(--timeline-marker-size)',
+                boxSizing: 'border-box',
+                borderRadius: '0',
+                background: 'var(--timeline-accent)',
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0',
+            },
+            selectors: {
+                // The axis cell, both orientations. `place-self` centres the
+                // dot on the line in the cross axis.
+                '[data-scope="timeline"][data-part="item"][data-orientation="vertical"] > &': {
+                    gridColumn: '2',
+                    gridRow: '1',
+                    placeSelf: 'center',
+                },
+                '[data-scope="timeline"][data-part="item"][data-orientation="horizontal"] > &': {
+                    gridRow: '2',
+                    gridColumn: '1',
+                    placeSelf: 'center',
+                },
+            },
+        },
+        connector: {
+            base: {
+                background: 'var(--color-base-content)',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': {
+                    gridColumn: '2',
+                    gridRow: '2',
+                    justifySelf: 'center',
+                    inlineSize: 'var(--border)',
+                    minBlockSize: 'var(--space-lg)',
+                    blockSize: '100%',
+                },
+                '&[data-orientation="horizontal"]': {
+                    gridRow: '2',
+                    gridColumn: '2',
+                    alignSelf: 'center',
+                    blockSize: 'var(--border)',
+                    minInlineSize: 'var(--space-lg)',
+                    inlineSize: '100%',
+                },
+            },
+        },
+        content: {
+            base: {
+                margin: 'var(--space-2xs) var(--space-md)',
+                padding: 'var(--space-xs) var(--space-md)',
+                fontSize: 'var(--text-sm)',
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+            },
+            selectors: {
+                // side × axis, composed on the one element that carries both.
+                '&[data-orientation="vertical"][data-placement="start"]': {
+                    gridColumn: '1',
+                    gridRow: '1',
+                    justifySelf: 'end',
+                    textAlign: 'end',
+                },
+                '&[data-orientation="vertical"][data-placement="end"]': {
+                    gridColumn: '3',
+                    gridRow: '1',
+                    justifySelf: 'start',
+                },
+                '&[data-orientation="horizontal"][data-placement="start"]': {
+                    gridRow: '1',
+                    gridColumn: '1',
+                    alignSelf: 'end',
+                },
+                '&[data-orientation="horizontal"][data-placement="end"]': {
+                    gridRow: '3',
+                    gridColumn: '1',
+                    alignSelf: 'start',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { marker: { base: {
+            '--timeline-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 2)' } }, content: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 2.5)' } }, content: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 3.5)' } }, content: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 4)' } }, content: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
+/** Chat — stamped speech blocks: full frame, no rounding anywhere. */
+export const chat: RecipeInput = {
+    component: 'chat',
+    tokens: { '--chat-fill': 'var(--color-base-100)', '--chat-ink': 'var(--color-base-content)' },
+    parts: {
+        /**
+         * The row is a two-column grid: the avatar column hugs one side, the
+         * text column takes the rest. Which side is which is the row's
+         * `data-placement` — logical, so the whole transcript mirrors under
+         * RTL with no per-part rules. Header, bubble and footer each force
+         * their own row by claiming the same column, so absent parts simply
+         * yield their row.
+         */
+        root: {
+            base: {
+                display: 'grid',
+                columnGap: 'var(--space-sm)',
+                rowGap: 'var(--space-2xs)',
+                paddingBlock: 'var(--space-2xs)',
+            },
+            selectors: {
+                '&[data-placement="start"]': {
+                    gridTemplateColumns: 'auto minmax(0, 1fr)',
+                    justifyItems: 'start',
+                },
+                '&[data-placement="end"]': {
+                    gridTemplateColumns: 'minmax(0, 1fr) auto',
+                    justifyItems: 'end',
+                },
+            },
+        },
+        avatar: {
+            base: {
+                gridRow: '1 / span 3',
+                alignSelf: 'end',
+                display: 'flex',
+                alignItems: 'center',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '1' },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': { gridColumn: '2' },
+            },
+        },
+        header: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '2' },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': { gridColumn: '1' },
+            },
+        },
+        bubble: {
+            base: {
+                maxInlineSize: '90%',
+                padding: 'var(--space-xs) var(--space-md)',
+                fontSize: 'var(--text-sm)',
+                background: 'var(--chat-fill)',
+                color: 'var(--chat-ink)',
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                borderRadius: '0',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': {
+                    gridColumn: '2',
+                },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': {
+                    gridColumn: '1',
+                },
+            },
+        },
+        footer: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '2' },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': { gridColumn: '1' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { bubble: { base: {
+            '--chat-fill': `var(--color-${c})`,
+            '--chat-ink': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { bubble: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-sm)' } } },
+            sm: { bubble: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-md)' } } },
+            md: {},
+            lg: { bubble: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-lg)' } } },
+            xl: { bubble: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-xl)' } } },
+        },
+    },
+};
+
+/** Radial — the gauge: thick arc, slab channel. */
+export const radialProgress: RecipeInput = {
+    component: 'radial-progress',
+    tokens: {
+        '--radial-size': 'calc(var(--size-selector) * 16)',
+        '--radial-thickness': 'calc(var(--size-selector) * 1.5)',
+        '--radial-ink': 'var(--color-base-content)',
+        '--radial-track': 'var(--color-base-200)',
+    },
+    parts: {
+        root: {
+            base: {
+                position: 'relative',
+                display: 'inline-grid',
+                placeItems: 'center',
+                inlineSize: 'var(--radial-size)',
+                blockSize: 'var(--radial-size)',
+                borderRadius: '50%',
+            },
+            states: {
+                loading: {},
+                // Complete is semantic, not an accent: it goes success
+                // whatever the colour variant — linear progress's rule.
+                complete: { '--radial-ink': 'var(--color-success)' },
+                indeterminate: {},
+            },
+            selectors: {
+                // The channel: a full annulus in the track colour.
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '0',
+                    borderRadius: '50%',
+                    background: 'var(--radial-track)',
+                    mask: 'radial-gradient(closest-side, transparent calc(100% - var(--radial-thickness)), #000 calc(100% - var(--radial-thickness) + 0.5px))',
+                },
+                /**
+                 * The arc: a background-COLOUR ink under annulus ∩ sweep
+                 * masks, not a conic-gradient image — the contrast audit's
+                 * indicator matrix reads colour layers and deliberately not
+                 * box-painting gradients, so this is what keeps the ring
+                 * measurable. The sweep angle is the runtime's
+                 * `--progress-percent`; the fallback is indeterminate's
+                 * resting arc.
+                 */
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '0',
+                    borderRadius: '50%',
+                    background: 'var(--radial-ink)',
+                    mask: 'radial-gradient(closest-side, transparent calc(100% - var(--radial-thickness)), #000 calc(100% - var(--radial-thickness) + 0.5px)), conic-gradient(#000 var(--progress-percent, 30%), transparent 0)',
+                    maskComposite: 'intersect',
+                },
+                '&[data-state="indeterminate"]::after': {
+                    // A loop: literal duration, so reduced motion STOPS it
+                    // rather than collapsing it to a strobe.
+                    animation: 'zero-brutalist-radial-spin 1.2s linear infinite',
+                },
+            },
+            at: {
+                'reduced-motion': {
+                    selectors: {
+                        // The resting 30% arc still reads as "in progress".
+                        '&[data-state="indeterminate"]::after': { animation: 'none' },
+                    },
+                },
+                // Backgrounds (and masks) drop under forced colors and in
+                // print; a plain ring keeps the shape of the thing.
+                'forced-colors': {
+                    base: { border: 'calc(var(--border) * 2) solid CanvasText' },
+                },
+                print: {
+                    base: { border: 'calc(var(--border) * 2) solid var(--radial-ink)' },
+                },
+            },
+        },
+        label: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        'value-text': {
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-bold)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--color-base-content)',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--radial-ink': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 10)', '--radial-thickness': 'calc(var(--size-selector) * 1.5)' } } },
+            sm: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 13)', '--radial-thickness': 'calc(var(--size-selector) * 2)' } } },
+            md: {},
+            lg: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 20)', '--radial-thickness': 'calc(var(--size-selector) * 2.5)' } } },
+            xl: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 24)', '--radial-thickness': 'calc(var(--size-selector) * 3)' } } },
+        },
+    },
+    keyframes: { 'zero-brutalist-radial-spin': 'to { transform: rotate(360deg); }' },
+};
+
+/**
+ * Join — inner corners squared, seams folded to one slab stroke; the joined
+ * controls keep their own chrome. Colour/size wire as on indicator: the
+ * wrapper has no paint of its own.
+ */
+export const join: RecipeInput = {
+    component: 'join',
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'stretch',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        /**
+         * The collapse itself: inner corners squared, one shared seam. All
+         * logical (border-*-radius longhands, margin-inline/block), so the
+         * group mirrors under RTL untouched. `:focus-within` and
+         * `:focus-visible` raise the segment so a ring is not clipped by the
+         * seam overlap.
+         */
+        item: {
+            base: {
+                position: 'relative',
+            },
+            selectors: {
+                // Each corner rule lands on the item AND its direct child:
+                // asChild puts the item attributes on the control itself, but
+                // in wrapper mode the control is the child, and a wrapper
+                // cannot collapse a radius it does not carry.
+                '&[data-orientation="horizontal"]:not(:first-child), &[data-orientation="horizontal"]:not(:first-child) > *': {
+                    borderStartStartRadius: '0',
+                    borderEndStartRadius: '0',
+                },
+                '&[data-orientation="horizontal"]:not(:first-child)': {
+                    marginInlineStart: 'calc(calc(var(--border) * 2) * -1)',
+                },
+                '&[data-orientation="horizontal"]:not(:last-child), &[data-orientation="horizontal"]:not(:last-child) > *': {
+                    borderStartEndRadius: '0',
+                    borderEndEndRadius: '0',
+                },
+                '&[data-orientation="vertical"]:not(:first-child), &[data-orientation="vertical"]:not(:first-child) > *': {
+                    borderStartStartRadius: '0',
+                    borderStartEndRadius: '0',
+                },
+                '&[data-orientation="vertical"]:not(:first-child)': {
+                    marginBlockStart: 'calc(calc(var(--border) * 2) * -1)',
+                },
+                '&[data-orientation="vertical"]:not(:last-child), &[data-orientation="vertical"]:not(:last-child) > *': {
+                    borderEndStartRadius: '0',
+                    borderEndEndRadius: '0',
+                },
+                '&:focus-within': { zIndex: '1' },
+                '&:focus-visible': { zIndex: '1' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { item: { base: {
+            color: `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { item: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { item: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { item: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { item: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
+    kbd, status, indicator, stats, timeline, chat, radialProgress, join,
 ];

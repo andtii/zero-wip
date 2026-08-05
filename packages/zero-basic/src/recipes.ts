@@ -3941,9 +3941,675 @@ export const spinner: RecipeInput = {
     keyframes: { 'zero-basic-spin': 'to { transform: rotate(360deg); }' },
 };
 
+// ── The content-tier sweep (#334) ─────────────────────────────────────────
+/**
+ * Kbd — a keycap drawn the way Monograph draws everything: hairlines, not
+ * shadows. The front edge of the key is the one place the hairline doubles,
+ * which is what reads as "cap" rather than "chip". Mono type because a
+ * keycap is a literal — `⌘` and `K` are quotations of the keyboard, and the
+ * badge's text grammar would make them labels.
+ */
+export const kbd: RecipeInput = {
+    component: 'kbd',
+    tokens: { '--kbd-ink': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: '1.75em',
+                padding: '0.0625rem 0.375rem',
+                background: 'var(--color-base-100)',
+                color: 'var(--kbd-ink)',
+                border: hairline,
+                borderBlockEndWidth: 'calc(var(--border) * 2)',
+                borderRadius: 'var(--radius-field)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-normal)',
+                whiteSpace: 'nowrap',
+            },
+        },
+    },
+    variants: {
+        // Colour accents the INK only — the cap stays paper, because a filled
+        // keycap would read as a badge with the wrong font.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--kbd-ink': softInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 0.25rem', minInlineSize: '1.5em' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)', padding: '0.03125rem 0.3125rem' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-sm)', padding: '0.125rem 0.4375rem' } } },
+            xl: { root: { base: { fontSize: 'var(--text-md)', padding: '0.1875rem 0.5rem' } } },
+        },
+    },
+};
+
+/**
+ * Status — a filled dot in the role's ink. Default ink is `base-content`
+ * rather than a role: an unqualified dot means "present", and the strongest
+ * ink is the one that holds the indicator matrix's 3:1 floor in both themes
+ * by construction. A border in the same ink is the `forced-colors` and
+ * `print` survival plan — backgrounds drop there, borders do not.
+ */
+export const status: RecipeInput = {
+    component: 'status',
+    tokens: {
+        '--status-ink': 'var(--color-base-content)',
+        '--status-size': 'calc(var(--size-selector) * 2.5)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-block',
+                inlineSize: 'var(--status-size)',
+                blockSize: 'var(--status-size)',
+                boxSizing: 'border-box',
+                verticalAlign: 'middle',
+                background: 'var(--status-ink)',
+                border: 'calc(var(--status-size) / 2) solid var(--status-ink)',
+                borderRadius: '50%',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--status-ink': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--status-size': 'calc(var(--size-selector) * 1.5)' } } },
+            sm: { root: { base: { '--status-size': 'calc(var(--size-selector) * 2)' } } },
+            md: {},
+            lg: { root: { base: { '--status-size': 'calc(var(--size-selector) * 3)' } } },
+            xl: { root: { base: { '--status-size': 'calc(var(--size-selector) * 3.5)' } } },
+        },
+    },
+};
+
+/**
+ * Indicator — pure position, no paint: the item's content (a badge, a dot)
+ * brings its own. Colour accents bare-text items in the role's ink; size
+ * moves the type scale a bare-text item renders at.
+ */
+export const indicator: RecipeInput = {
+    component: 'indicator',
+    parts: {
+        root: {
+            base: {
+                position: 'relative',
+                display: 'inline-flex',
+                verticalAlign: 'middle',
+                maxWidth: 'max-content',
+            },
+        },
+        item: {
+            base: {
+                position: 'absolute',
+                zIndex: '1',
+                whiteSpace: 'nowrap',
+            },
+            selectors: {
+                // Logical insets place the slot; `translate` centres the item
+                // on it. A transform has no logical spelling, so the inline
+                // half is flipped by hand under RTL below — the exact blind
+                // spot the physical-direction lint cannot see (e2e/rtl.spec).
+                '&[data-placement="top-start"]': { insetBlockStart: '0', insetInlineStart: '0', translate: '-50% -50%' },
+                '&[data-placement="top"]': { insetBlockStart: '0', insetInlineStart: '50%', translate: '-50% -50%' },
+                '&[data-placement="top-end"]': { insetBlockStart: '0', insetInlineEnd: '0', translate: '50% -50%' },
+                '&[data-placement="start"]': { insetBlockStart: '50%', insetInlineStart: '0', translate: '-50% -50%' },
+                '&[data-placement="end"]': { insetBlockStart: '50%', insetInlineEnd: '0', translate: '50% -50%' },
+                '&[data-placement="bottom-start"]': { insetBlockEnd: '0', insetInlineStart: '0', translate: '-50% 50%' },
+                '&[data-placement="bottom"]': { insetBlockEnd: '0', insetInlineStart: '50%', translate: '-50% 50%' },
+                '&[data-placement="bottom-end"]': { insetBlockEnd: '0', insetInlineEnd: '0', translate: '50% 50%' },
+                [`&[data-placement="top-start"]${rtl}`]: { translate: '50% -50%' },
+                [`&[data-placement="top"]${rtl}`]: { translate: '50% -50%' },
+                [`&[data-placement="top-end"]${rtl}`]: { translate: '-50% -50%' },
+                [`&[data-placement="start"]${rtl}`]: { translate: '50% -50%' },
+                [`&[data-placement="end"]${rtl}`]: { translate: '-50% -50%' },
+                [`&[data-placement="bottom-start"]${rtl}`]: { translate: '50% 50%' },
+                [`&[data-placement="bottom"]${rtl}`]: { translate: '50% 50%' },
+                [`&[data-placement="bottom-end"]${rtl}`]: { translate: '-50% 50%' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { item: { base: {
+            color: softInk(c),
+        } } }])),
+        size: {
+            xs: { item: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { item: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { item: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { item: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
+/**
+ * Stats — a ledger row: hairline frame, hairline separators between items,
+ * the value in display scale. Colour accents the VALUE ink only — the title
+ * and description stay meta-grey whatever the stat's role.
+ */
+export const stats: RecipeInput = {
+    component: 'stats',
+    tokens: { '--stats-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                border: hairline,
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        item: {
+            base: {
+                display: 'grid',
+                gridTemplateColumns: '1fr auto',
+                columnGap: 'var(--space-md)',
+                alignContent: 'center',
+                flex: '1 1 0%',
+                padding: 'var(--space-lg) var(--space-xl)',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"] + &': {
+                    borderInlineStart: 'var(--border) solid var(--color-base-300)',
+                },
+                '&[data-orientation="vertical"] + &': {
+                    borderBlockStart: 'var(--border) solid var(--color-base-300)',
+                },
+            },
+        },
+        title: {
+            base: {
+                gridColumn: '1',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-medium)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        value: {
+            base: {
+                gridColumn: '1',
+                fontSize: 'var(--text-2xl)',
+                fontWeight: 'var(--weight-semibold)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--stats-accent)',
+            },
+        },
+        desc: {
+            base: {
+                gridColumn: '1',
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        figure: {
+            base: {
+                gridColumn: '2',
+                gridRow: '1 / span 3',
+                alignSelf: 'center',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--stats-accent': softInk(c),
+        } } }])),
+        size: {
+            xs: { value: { base: { fontSize: 'var(--text-lg)' } } },
+            sm: { value: { base: { fontSize: 'var(--text-xl)' } } },
+            md: {},
+            lg: { value: { base: { fontSize: 'var(--text-3xl)' } } },
+            xl: { value: { base: { fontSize: 'var(--text-3xl)' } } },
+        },
+    },
+};
+
+/**
+ * Timeline — the axis drawn in hairlines, the marker a filled dot ringed by
+ * paper so it reads seated ON the line rather than beside it. Colour rebinds
+ * the marker/connector accent; the content stays ink-on-paper.
+ */
+export const timeline: RecipeInput = {
+    component: 'timeline',
+    tokens: { '--timeline-accent': 'var(--color-base-content)', '--timeline-marker-size': 'calc(var(--size-selector) * 3)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'row' },
+            },
+        },
+        /**
+         * One item is a 3×2 grid around the axis. Vertical: columns are
+         * [start-content | axis | end-content], the connector drops below the
+         * marker. Horizontal: transposed. Grid tracks follow the inline
+         * direction, so the whole layout mirrors under RTL with no
+         * corrections.
+         */
+        item: {
+            base: {
+                display: 'grid',
+                position: 'relative',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': {
+                    gridTemplateColumns: '1fr auto 1fr',
+                    gridTemplateRows: 'auto 1fr',
+                },
+                '&[data-orientation="horizontal"]': {
+                    gridTemplateRows: '1fr auto 1fr',
+                    gridTemplateColumns: 'auto 1fr',
+                    flex: '1 1 0%',
+                },
+            },
+        },
+        marker: {
+            base: {
+                inlineSize: 'var(--timeline-marker-size)',
+                blockSize: 'var(--timeline-marker-size)',
+                boxSizing: 'border-box',
+                borderRadius: '50%',
+                background: 'var(--timeline-accent)',
+                border: 'calc(var(--timeline-marker-size) / 2) solid var(--timeline-accent)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0',
+            },
+            selectors: {
+                // The axis cell, both orientations. `place-self` centres the
+                // dot on the line in the cross axis.
+                '[data-scope="timeline"][data-part="item"][data-orientation="vertical"] > &': {
+                    gridColumn: '2',
+                    gridRow: '1',
+                    placeSelf: 'center',
+                },
+                '[data-scope="timeline"][data-part="item"][data-orientation="horizontal"] > &': {
+                    gridRow: '2',
+                    gridColumn: '1',
+                    placeSelf: 'center',
+                },
+            },
+        },
+        connector: {
+            base: {
+                background: 'var(--color-base-300)',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': {
+                    gridColumn: '2',
+                    gridRow: '2',
+                    justifySelf: 'center',
+                    inlineSize: 'var(--border)',
+                    minBlockSize: 'var(--space-lg)',
+                    blockSize: '100%',
+                },
+                '&[data-orientation="horizontal"]': {
+                    gridRow: '2',
+                    gridColumn: '2',
+                    alignSelf: 'center',
+                    blockSize: 'var(--border)',
+                    minInlineSize: 'var(--space-lg)',
+                    inlineSize: '100%',
+                },
+            },
+        },
+        content: {
+            base: {
+                padding: 'var(--space-xs) var(--space-lg)',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+            },
+            selectors: {
+                // side × axis, composed on the one element that carries both.
+                '&[data-orientation="vertical"][data-placement="start"]': {
+                    gridColumn: '1',
+                    gridRow: '1',
+                    justifySelf: 'end',
+                    textAlign: 'end',
+                },
+                '&[data-orientation="vertical"][data-placement="end"]': {
+                    gridColumn: '3',
+                    gridRow: '1',
+                    justifySelf: 'start',
+                },
+                '&[data-orientation="horizontal"][data-placement="start"]': {
+                    gridRow: '1',
+                    gridColumn: '1',
+                    alignSelf: 'end',
+                },
+                '&[data-orientation="horizontal"][data-placement="end"]': {
+                    gridRow: '3',
+                    gridColumn: '1',
+                    alignSelf: 'start',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { marker: { base: {
+            '--timeline-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 2)' } }, content: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 2.5)' } }, content: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 3.5)' } }, content: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 4)' } }, content: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
+/**
+ * Chat — the bubble as quiet paper: base-200 fill, no border, the corner
+ * nearest the avatar squared to seat the bubble against its row. Colour
+ * refills the bubble with the role pair — the one content-tier place a
+ * solid role fill is the vernacular (every messenger tints "your" side).
+ */
+export const chat: RecipeInput = {
+    component: 'chat',
+    tokens: { '--chat-fill': 'var(--color-base-200)', '--chat-ink': 'var(--color-base-content)' },
+    parts: {
+        /**
+         * The row is a two-column grid: the avatar column hugs one side, the
+         * text column takes the rest. Which side is which is the row's
+         * `data-placement` — logical, so the whole transcript mirrors under
+         * RTL with no per-part rules. Header, bubble and footer each force
+         * their own row by claiming the same column, so absent parts simply
+         * yield their row.
+         */
+        root: {
+            base: {
+                display: 'grid',
+                columnGap: 'var(--space-sm)',
+                rowGap: 'var(--space-2xs)',
+                paddingBlock: 'var(--space-2xs)',
+            },
+            selectors: {
+                '&[data-placement="start"]': {
+                    gridTemplateColumns: 'auto minmax(0, 1fr)',
+                    justifyItems: 'start',
+                },
+                '&[data-placement="end"]': {
+                    gridTemplateColumns: 'minmax(0, 1fr) auto',
+                    justifyItems: 'end',
+                },
+            },
+        },
+        avatar: {
+            base: {
+                gridRow: '1 / span 3',
+                alignSelf: 'end',
+                display: 'flex',
+                alignItems: 'center',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '1' },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': { gridColumn: '2' },
+            },
+        },
+        header: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '2' },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': { gridColumn: '1' },
+            },
+        },
+        bubble: {
+            base: {
+                maxInlineSize: '90%',
+                padding: 'var(--space-xs) var(--space-lg)',
+                fontSize: 'var(--text-sm)',
+                background: 'var(--chat-fill)',
+                color: 'var(--chat-ink)',
+                borderRadius: 'var(--radius-box)',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': {
+                    gridColumn: '2',
+                    borderEndStartRadius: 'var(--radius-selector)',
+                },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': {
+                    gridColumn: '1',
+                    borderEndEndRadius: 'var(--radius-selector)',
+                },
+            },
+        },
+        footer: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '2' },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': { gridColumn: '1' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { bubble: { base: {
+            '--chat-fill': `var(--color-${c})`,
+            '--chat-ink': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { bubble: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-sm)' } } },
+            sm: { bubble: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-md)' } } },
+            md: {},
+            lg: { bubble: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-lg)' } } },
+            xl: { bubble: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-xl)' } } },
+        },
+    },
+};
+
+/**
+ * RadialProgress — the ring drawn as ink under masks (see the ::after
+ * comment), the channel a base-200 annulus with no hairline: at ring
+ * thickness a border would read as a second ring.
+ */
+export const radialProgress: RecipeInput = {
+    component: 'radial-progress',
+    tokens: {
+        '--radial-size': 'calc(var(--size-selector) * 16)',
+        '--radial-thickness': 'calc(var(--size-selector) * 1.5)',
+        '--radial-ink': 'var(--color-primary)',
+        '--radial-track': 'var(--color-base-200)',
+    },
+    parts: {
+        root: {
+            base: {
+                position: 'relative',
+                display: 'inline-grid',
+                placeItems: 'center',
+                inlineSize: 'var(--radial-size)',
+                blockSize: 'var(--radial-size)',
+                borderRadius: '50%',
+            },
+            states: {
+                loading: {},
+                // Complete is semantic, not an accent: it goes success
+                // whatever the colour variant — linear progress's rule.
+                complete: { '--radial-ink': 'var(--color-success)' },
+                indeterminate: {},
+            },
+            selectors: {
+                // The channel: a full annulus in the track colour.
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '0',
+                    borderRadius: '50%',
+                    background: 'var(--radial-track)',
+                    mask: 'radial-gradient(closest-side, transparent calc(100% - var(--radial-thickness)), #000 calc(100% - var(--radial-thickness) + 0.5px))',
+                },
+                /**
+                 * The arc: a background-COLOUR ink under annulus ∩ sweep
+                 * masks, not a conic-gradient image — the contrast audit's
+                 * indicator matrix reads colour layers and deliberately not
+                 * box-painting gradients, so this is what keeps the ring
+                 * measurable. The sweep angle is the runtime's
+                 * `--progress-percent`; the fallback is indeterminate's
+                 * resting arc.
+                 */
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '0',
+                    borderRadius: '50%',
+                    background: 'var(--radial-ink)',
+                    mask: 'radial-gradient(closest-side, transparent calc(100% - var(--radial-thickness)), #000 calc(100% - var(--radial-thickness) + 0.5px)), conic-gradient(#000 var(--progress-percent, 30%), transparent 0)',
+                    maskComposite: 'intersect',
+                },
+                '&[data-state="indeterminate"]::after': {
+                    // A loop: literal duration, so reduced motion STOPS it
+                    // rather than collapsing it to a strobe.
+                    animation: 'zero-basic-radial-spin 1.2s linear infinite',
+                },
+            },
+            at: {
+                'reduced-motion': {
+                    selectors: {
+                        // The resting 30% arc still reads as "in progress".
+                        '&[data-state="indeterminate"]::after': { animation: 'none' },
+                    },
+                },
+                // Backgrounds (and masks) drop under forced colors and in
+                // print; a plain ring keeps the shape of the thing.
+                'forced-colors': {
+                    base: { border: 'calc(var(--border) * 2) solid CanvasText' },
+                },
+                print: {
+                    base: { border: 'calc(var(--border) * 2) solid var(--radial-ink)' },
+                },
+            },
+        },
+        label: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        'value-text': {
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-semibold)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--color-base-content)',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--radial-ink': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 10)', '--radial-thickness': 'calc(var(--size-selector) * 1)' } } },
+            sm: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 13)', '--radial-thickness': 'calc(var(--size-selector) * 1.25)' } } },
+            md: {},
+            lg: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 20)', '--radial-thickness': 'calc(var(--size-selector) * 2)' } } },
+            xl: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 24)', '--radial-thickness': 'calc(var(--size-selector) * 2.5)' } } },
+        },
+    },
+    keyframes: { 'zero-basic-radial-spin': 'to { transform: rotate(360deg); }' },
+};
+
+/**
+ * Join — the radius collapse and nothing else: the joined controls keep
+ * their own chrome, this recipe only squares the inner corners and folds
+ * the doubled seam border into one hairline. Colour accents a bare-text
+ * segment's ink; size moves its type scale — the indicator's wiring, for
+ * the same reason: a composition wrapper has no paint of its own.
+ */
+export const join: RecipeInput = {
+    component: 'join',
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'stretch',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        /**
+         * The collapse itself: inner corners squared, one shared seam. All
+         * logical (border-*-radius longhands, margin-inline/block), so the
+         * group mirrors under RTL untouched. `:focus-within` and
+         * `:focus-visible` raise the segment so a ring is not clipped by the
+         * seam overlap.
+         */
+        item: {
+            base: {
+                position: 'relative',
+            },
+            selectors: {
+                // Each corner rule lands on the item AND its direct child:
+                // asChild puts the item attributes on the control itself, but
+                // in wrapper mode the control is the child, and a wrapper
+                // cannot collapse a radius it does not carry.
+                '&[data-orientation="horizontal"]:not(:first-child), &[data-orientation="horizontal"]:not(:first-child) > *': {
+                    borderStartStartRadius: '0',
+                    borderEndStartRadius: '0',
+                },
+                '&[data-orientation="horizontal"]:not(:first-child)': {
+                    marginInlineStart: 'calc(var(--border) * -1)',
+                },
+                '&[data-orientation="horizontal"]:not(:last-child), &[data-orientation="horizontal"]:not(:last-child) > *': {
+                    borderStartEndRadius: '0',
+                    borderEndEndRadius: '0',
+                },
+                '&[data-orientation="vertical"]:not(:first-child), &[data-orientation="vertical"]:not(:first-child) > *': {
+                    borderStartStartRadius: '0',
+                    borderStartEndRadius: '0',
+                },
+                '&[data-orientation="vertical"]:not(:first-child)': {
+                    marginBlockStart: 'calc(var(--border) * -1)',
+                },
+                '&[data-orientation="vertical"]:not(:last-child), &[data-orientation="vertical"]:not(:last-child) > *': {
+                    borderEndStartRadius: '0',
+                    borderEndEndRadius: '0',
+                },
+                '&:focus-within': { zIndex: '1' },
+                '&:focus-visible': { zIndex: '1' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { item: { base: {
+            color: softInk(c),
+        } } }])),
+        size: {
+            xs: { item: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { item: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { item: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { item: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
+    kbd, status, indicator, stats, timeline, chat, radialProgress, join,
 ];

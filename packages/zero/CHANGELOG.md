@@ -4,6 +4,66 @@
 
 ### Added
 
+- **The content-tier sweep** (#334): the cheap 60% of the coverage gap
+  against `@sigx/daisyui` — components that are anatomy plus recipes with
+  little or no behavior, each shipped with recipes in all six design
+  systems:
+
+  - **Kbd**: one part on a semantic `<kbd>` — the element is the meaning, so
+    there is no `asChild`. No states; `size` is the axis that matters and
+    `color` rides the uniform carrier surface.
+  - **Status**: an empty presence dot the design system paints, with NO
+    states on purpose — online/busy/degraded are colours of one resting
+    render (the `color` axis), not a machine lifecycle. `aria-hidden`
+    without a `label`; `role="img"` with one (`role="status"` is a live
+    region and was rejected for a static mark). Joins the contrast audit's
+    indicator matrix beside Spinner: pure paint answers the 3:1 non-text
+    floor.
+  - **Indicator**: `Root`/`Item(placement)` — anchors a floating item to a
+    corner or edge of whatever `Root` wraps. `Item` stamps `data-placement`
+    from a declared eight-slot subset, all spelled LOGICALLY — which is what
+    added the bare `start`/`end` pair to `PLACEMENT_VOCABULARY`: `left`
+    names a physical side of the glass (where a flipped popup really
+    landed), `start` names the reading edge, and an indicator anchors to
+    the reading direction. Recipes position with `inset-inline-*`, so RTL
+    mirrors for free.
+  - **Stats**: `Root(orientation)`/`Item`/`Title`/`Value`/`Desc`/`Figure` —
+    Card's cousin, a pure styling container for figures with labels. Both
+    root and item carry `data-orientation`, because the between-item
+    divider is directional CSS on the item and a sibling selector cannot
+    see the root (the toggle-group precedent). Every band below `Item` is
+    optional.
+  - **Timeline**: `Root(orientation, default vertical)`/`Item`/`Marker`/
+    `Connector`/`Content(placement)` on a real `<ul>`/`<li>` list. Flatter
+    than daisy's start/middle/end triple: one marker (a paint part — the
+    contrast audit's indicator matrix grades it inside its `root > item`
+    chain), one connector (the segment toward the next item, `aria-hidden`
+    like the marker), and one content box that declares its SIDE of the
+    axis as `data-placement="start|end"` — the logical pair, so alternating
+    layouts are per-item markup and RTL mirrors free.
+  - **Chat**: `Root(placement start|end)`/`Avatar`/`Header`/`Bubble`/
+    `Footer` — one message row, pure content. `start` (the reading edge) is
+    the other party, `end` is you; logical, so a transcript mirrors under
+    RTL without touching the rows. The colour axis rides the row and every
+    skin wires it to the bubble's fill through the part tree.
+  - **RadialProgress**: circular progress as its own scope —
+    `Root(value|null, min, max)`/`Label`/`ValueText`. A radial has no
+    track/range geometry (the ring is one painted layer on the root), so it
+    does not reuse progress's anatomy; what it DOES share is the value
+    model verbatim, including the same `--progress-percent` custom
+    property, `role="progressbar"` semantics and the
+    `loading|complete|indeterminate` states. Recipes paint the arc as a
+    background-colour ink under conic-gradient masks — measurable by the
+    contrast audit's indicator matrix, where the root is opted in beside
+    Spinner — and stop the indeterminate loop under reduced motion.
+  - **Join**: `Root(orientation)`/`Item(asChild)` — pure radius-collapsing
+    composition: two attribute carriers, every visual fact the design
+    system's (corner rules on first/last, seam margins between). No
+    `role="group"`, considered and cut — a join is VISUAL grouping, and a
+    consumer who means toolbar/group writes the role. `asChild` is the
+    honest joint: a wrapper cannot collapse the radius of the control
+    inside it, so the control itself carries the item attributes.
+
 - **The sugar tier** (#333) — the one-liner DX the old `@sigx/daisyui`
   library had and zero's compound anatomy made verbose:
 

@@ -2990,9 +2990,606 @@ export const spinner: RecipeInput = {
     keyframes: { 'zero-heroui-spin': 'to { transform: rotate(360deg); }' },
 };
 
+// ── The content-tier sweep (#334) ─────────────────────────────────────────
+/**
+ * HeroUI kbd: the soft base-200 chip inside the same hairline every bordered
+ * surface here wears. No colour axis — `roles: {}` is this design system's
+ * whole thesis — so the cap has exactly one costume.
+ */
+export const kbd: RecipeInput = {
+    component: 'kbd',
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: '1.75em',
+                padding: '0.0625rem 0.4375rem',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-selector)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-normal)',
+                whiteSpace: 'nowrap',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-sm)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-2xs) var(--space-lg)' } } },
+        },
+    },
+};
+
+/**
+ * Status — the dot in HeroUI's primary fill. One costume (`roles: {}`),
+ * three sizes; border in the same ink so the mark survives `forced-colors`.
+ */
+export const status: RecipeInput = {
+    component: 'status',
+    tokens: {
+        '--status-ink': 'var(--hero-primary)',
+        '--status-size': 'calc(var(--size-selector) * 2.5)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-block',
+                inlineSize: 'var(--status-size)',
+                blockSize: 'var(--status-size)',
+                boxSizing: 'border-box',
+                verticalAlign: 'middle',
+                background: 'var(--status-ink)',
+                border: 'calc(var(--status-size) / 2) solid var(--status-ink)',
+                borderRadius: '50%',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--status-size': 'calc(var(--size-selector) * 2)' } } },
+            md: {},
+            lg: { root: { base: { '--status-size': 'calc(var(--size-selector) * 3)' } } },
+        },
+    },
+};
+
+/**
+ * Indicator — pure position; the item's content brings its own paint. Size
+ * moves the type scale a bare-text item renders at.
+ */
+export const indicator: RecipeInput = {
+    component: 'indicator',
+    parts: {
+        root: {
+            base: {
+                position: 'relative',
+                display: 'inline-flex',
+                verticalAlign: 'middle',
+                maxWidth: 'max-content',
+            },
+        },
+        item: {
+            base: {
+                position: 'absolute',
+                zIndex: '1',
+                whiteSpace: 'nowrap',
+            },
+            selectors: {
+                // Logical insets place the slot; `translate` centres the item
+                // on it. A transform has no logical spelling, so the inline
+                // half is flipped by hand under RTL below — the exact blind
+                // spot the physical-direction lint cannot see (e2e/rtl.spec).
+                '&[data-placement="top-start"]': { insetBlockStart: '0', insetInlineStart: '0', translate: '-50% -50%' },
+                '&[data-placement="top"]': { insetBlockStart: '0', insetInlineStart: '50%', translate: '-50% -50%' },
+                '&[data-placement="top-end"]': { insetBlockStart: '0', insetInlineEnd: '0', translate: '50% -50%' },
+                '&[data-placement="start"]': { insetBlockStart: '50%', insetInlineStart: '0', translate: '-50% -50%' },
+                '&[data-placement="end"]': { insetBlockStart: '50%', insetInlineEnd: '0', translate: '50% -50%' },
+                '&[data-placement="bottom-start"]': { insetBlockEnd: '0', insetInlineStart: '0', translate: '-50% 50%' },
+                '&[data-placement="bottom"]': { insetBlockEnd: '0', insetInlineStart: '50%', translate: '-50% 50%' },
+                '&[data-placement="bottom-end"]': { insetBlockEnd: '0', insetInlineEnd: '0', translate: '50% 50%' },
+                [`&[data-placement="top-start"]${rtl}`]: { translate: '50% -50%' },
+                [`&[data-placement="top"]${rtl}`]: { translate: '50% -50%' },
+                [`&[data-placement="top-end"]${rtl}`]: { translate: '-50% -50%' },
+                [`&[data-placement="start"]${rtl}`]: { translate: '50% -50%' },
+                [`&[data-placement="end"]${rtl}`]: { translate: '-50% -50%' },
+                [`&[data-placement="bottom-start"]${rtl}`]: { translate: '50% 50%' },
+                [`&[data-placement="bottom"]${rtl}`]: { translate: '50% 50%' },
+                [`&[data-placement="bottom-end"]${rtl}`]: { translate: '-50% 50%' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { item: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { item: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
+/** HeroUI stats: the hairline card grammar, one costume. */
+export const stats: RecipeInput = {
+    component: 'stats',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        item: {
+            base: {
+                display: 'grid',
+                gridTemplateColumns: '1fr auto',
+                columnGap: 'var(--space-md)',
+                alignContent: 'center',
+                flex: '1 1 0%',
+                padding: 'var(--space-lg) var(--space-xl)',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"] + &': {
+                    borderInlineStart: 'var(--border) solid var(--hero-line)',
+                },
+                '&[data-orientation="vertical"] + &': {
+                    borderBlockStart: 'var(--border) solid var(--hero-line)',
+                },
+            },
+        },
+        title: {
+            base: {
+                gridColumn: '1',
+                fontSize: 'var(--text-xs)',
+                color: 'var(--hero-muted)',
+            },
+        },
+        value: {
+            base: {
+                gridColumn: '1',
+                fontSize: 'var(--text-2xl)',
+                fontWeight: 'var(--weight-semibold)',
+                fontVariantNumeric: 'tabular-nums',
+            },
+        },
+        desc: {
+            base: {
+                gridColumn: '1',
+                fontSize: 'var(--text-xs)',
+                color: 'var(--hero-muted)',
+            },
+        },
+        figure: {
+            base: {
+                gridColumn: '2',
+                gridRow: '1 / span 3',
+                alignSelf: 'center',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { value: { base: { fontSize: 'var(--text-xl)' } } },
+            md: {},
+            lg: { value: { base: { fontSize: 'var(--text-3xl)' } } },
+        },
+    },
+};
+
+/** HeroUI timeline: hairline axis, primary dot, quiet content. */
+export const timeline: RecipeInput = {
+    component: 'timeline',
+    tokens: { '--timeline-marker-size': 'calc(var(--size-selector) * 3)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'row' },
+            },
+        },
+        /**
+         * One item is a 3×2 grid around the axis. Vertical: columns are
+         * [start-content | axis | end-content], the connector drops below the
+         * marker. Horizontal: transposed. Grid tracks follow the inline
+         * direction, so the whole layout mirrors under RTL with no
+         * corrections.
+         */
+        item: {
+            base: {
+                display: 'grid',
+                position: 'relative',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': {
+                    gridTemplateColumns: '1fr auto 1fr',
+                    gridTemplateRows: 'auto 1fr',
+                },
+                '&[data-orientation="horizontal"]': {
+                    gridTemplateRows: '1fr auto 1fr',
+                    gridTemplateColumns: 'auto 1fr',
+                    flex: '1 1 0%',
+                },
+            },
+        },
+        marker: {
+            base: {
+                inlineSize: 'var(--timeline-marker-size)',
+                blockSize: 'var(--timeline-marker-size)',
+                boxSizing: 'border-box',
+                borderRadius: '50%',
+                background: 'var(--hero-primary)',
+                border: 'calc(var(--timeline-marker-size) / 2) solid var(--hero-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0',
+            },
+            selectors: {
+                // The axis cell, both orientations. `place-self` centres the
+                // dot on the line in the cross axis.
+                '[data-scope="timeline"][data-part="item"][data-orientation="vertical"] > &': {
+                    gridColumn: '2',
+                    gridRow: '1',
+                    placeSelf: 'center',
+                },
+                '[data-scope="timeline"][data-part="item"][data-orientation="horizontal"] > &': {
+                    gridRow: '2',
+                    gridColumn: '1',
+                    placeSelf: 'center',
+                },
+            },
+        },
+        connector: {
+            base: {
+                background: 'var(--hero-line)',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': {
+                    gridColumn: '2',
+                    gridRow: '2',
+                    justifySelf: 'center',
+                    inlineSize: 'var(--border)',
+                    minBlockSize: 'var(--space-lg)',
+                    blockSize: '100%',
+                },
+                '&[data-orientation="horizontal"]': {
+                    gridRow: '2',
+                    gridColumn: '2',
+                    alignSelf: 'center',
+                    blockSize: 'var(--border)',
+                    minInlineSize: 'var(--space-lg)',
+                    inlineSize: '100%',
+                },
+            },
+        },
+        content: {
+            base: {
+                margin: 'var(--space-2xs) var(--space-md)',
+                padding: 'var(--space-xs) var(--space-md)',
+                fontSize: 'var(--text-sm)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+            },
+            selectors: {
+                // side × axis, composed on the one element that carries both.
+                '&[data-orientation="vertical"][data-placement="start"]': {
+                    gridColumn: '1',
+                    gridRow: '1',
+                    justifySelf: 'end',
+                    textAlign: 'end',
+                },
+                '&[data-orientation="vertical"][data-placement="end"]': {
+                    gridColumn: '3',
+                    gridRow: '1',
+                    justifySelf: 'start',
+                },
+                '&[data-orientation="horizontal"][data-placement="start"]': {
+                    gridRow: '1',
+                    gridColumn: '1',
+                    alignSelf: 'end',
+                },
+                '&[data-orientation="horizontal"][data-placement="end"]': {
+                    gridRow: '3',
+                    gridColumn: '1',
+                    alignSelf: 'start',
+                },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 2.5)' } }, content: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 3.5)' } }, content: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
+/** HeroUI chat: soft base-200 bubbles inside the hairline grammar. */
+export const chat: RecipeInput = {
+    component: 'chat',
+    parts: {
+        /**
+         * The row is a two-column grid: the avatar column hugs one side, the
+         * text column takes the rest. Which side is which is the row's
+         * `data-placement` — logical, so the whole transcript mirrors under
+         * RTL with no per-part rules. Header, bubble and footer each force
+         * their own row by claiming the same column, so absent parts simply
+         * yield their row.
+         */
+        root: {
+            base: {
+                display: 'grid',
+                columnGap: 'var(--space-sm)',
+                rowGap: 'var(--space-2xs)',
+                paddingBlock: 'var(--space-2xs)',
+            },
+            selectors: {
+                '&[data-placement="start"]': {
+                    gridTemplateColumns: 'auto minmax(0, 1fr)',
+                    justifyItems: 'start',
+                },
+                '&[data-placement="end"]': {
+                    gridTemplateColumns: 'minmax(0, 1fr) auto',
+                    justifyItems: 'end',
+                },
+            },
+        },
+        avatar: {
+            base: {
+                gridRow: '1 / span 3',
+                alignSelf: 'end',
+                display: 'flex',
+                alignItems: 'center',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '1' },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': { gridColumn: '2' },
+            },
+        },
+        header: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'var(--hero-muted)',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '2' },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': { gridColumn: '1' },
+            },
+        },
+        bubble: {
+            base: {
+                maxInlineSize: '90%',
+                padding: 'var(--space-xs) var(--space-lg)',
+                fontSize: 'var(--text-sm)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                borderRadius: 'var(--radius-box)',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': {
+                    gridColumn: '2',
+                    borderEndStartRadius: 'var(--radius-selector)',
+                },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': {
+                    gridColumn: '1',
+                    borderEndEndRadius: 'var(--radius-selector)',
+                },
+            },
+        },
+        footer: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'var(--hero-muted)',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '2' },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': { gridColumn: '1' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { bubble: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-md)' } } },
+            md: {},
+            lg: { bubble: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-lg)' } } },
+        },
+    },
+};
+
+/**
+ * HeroUI radial: primary arc in the one costume. Complete drops the channel
+ * — a full ring needs no track — which is also what keeps the three states
+ * distinct for the legibility guard in a design system with no success role.
+ */
+export const radialProgress: RecipeInput = {
+    component: 'radial-progress',
+    tokens: {
+        '--radial-size': 'calc(var(--size-selector) * 16)',
+        '--radial-thickness': 'calc(var(--size-selector) * 1.5)',
+        '--radial-ink': 'var(--hero-primary)',
+        '--radial-track': 'var(--color-base-200)',
+    },
+    parts: {
+        root: {
+            base: {
+                position: 'relative',
+                display: 'inline-grid',
+                placeItems: 'center',
+                inlineSize: 'var(--radial-size)',
+                blockSize: 'var(--radial-size)',
+                borderRadius: '50%',
+            },
+            states: {
+                loading: {},
+                complete: { '--radial-track': 'transparent' },
+                indeterminate: {},
+            },
+            selectors: {
+                // The channel: a full annulus in the track colour.
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '0',
+                    borderRadius: '50%',
+                    background: 'var(--radial-track)',
+                    mask: 'radial-gradient(closest-side, transparent calc(100% - var(--radial-thickness)), #000 calc(100% - var(--radial-thickness) + 0.5px))',
+                },
+                /**
+                 * The arc: a background-COLOUR ink under annulus ∩ sweep
+                 * masks, not a conic-gradient image — the contrast audit's
+                 * indicator matrix reads colour layers and deliberately not
+                 * box-painting gradients, so this is what keeps the ring
+                 * measurable. The sweep angle is the runtime's
+                 * `--progress-percent`; the fallback is indeterminate's
+                 * resting arc.
+                 */
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '0',
+                    borderRadius: '50%',
+                    background: 'var(--radial-ink)',
+                    mask: 'radial-gradient(closest-side, transparent calc(100% - var(--radial-thickness)), #000 calc(100% - var(--radial-thickness) + 0.5px)), conic-gradient(#000 var(--progress-percent, 30%), transparent 0)',
+                    maskComposite: 'intersect',
+                },
+                '&[data-state="indeterminate"]::after': {
+                    // A loop: literal duration, so reduced motion STOPS it
+                    // rather than collapsing it to a strobe.
+                    animation: 'zero-heroui-radial-spin 1.2s linear infinite',
+                },
+            },
+            at: {
+                'reduced-motion': {
+                    selectors: {
+                        // The resting 30% arc still reads as "in progress".
+                        '&[data-state="indeterminate"]::after': { animation: 'none' },
+                    },
+                },
+                // Backgrounds (and masks) drop under forced colors and in
+                // print; a plain ring keeps the shape of the thing.
+                'forced-colors': {
+                    base: { border: 'calc(var(--border) * 2) solid CanvasText' },
+                },
+                print: {
+                    base: { border: 'calc(var(--border) * 2) solid var(--radial-ink)' },
+                },
+            },
+        },
+        label: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'var(--hero-muted)',
+            },
+        },
+        'value-text': {
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-semibold)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--color-base-content)',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 13)', '--radial-thickness': 'calc(var(--size-selector) * 1.25)' } } },
+            md: {},
+            lg: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 20)', '--radial-thickness': 'calc(var(--size-selector) * 2)' } } },
+        },
+    },
+    keyframes: { 'zero-heroui-radial-spin': 'to { transform: rotate(360deg); }' },
+};
+
+/**
+ * Join — inner corners squared, seams folded to one border; the joined
+ * controls keep their own chrome. Colour/size wire as on indicator: the
+ * wrapper has no paint of its own.
+ */
+export const join: RecipeInput = {
+    component: 'join',
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'stretch',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        /**
+         * The collapse itself: inner corners squared, one shared seam. All
+         * logical (border-*-radius longhands, margin-inline/block), so the
+         * group mirrors under RTL untouched. `:focus-within` and
+         * `:focus-visible` raise the segment so a ring is not clipped by the
+         * seam overlap.
+         */
+        item: {
+            base: {
+                position: 'relative',
+            },
+            selectors: {
+                // Each corner rule lands on the item AND its direct child:
+                // asChild puts the item attributes on the control itself, but
+                // in wrapper mode the control is the child, and a wrapper
+                // cannot collapse a radius it does not carry.
+                '&[data-orientation="horizontal"]:not(:first-child), &[data-orientation="horizontal"]:not(:first-child) > *': {
+                    borderStartStartRadius: '0',
+                    borderEndStartRadius: '0',
+                },
+                '&[data-orientation="horizontal"]:not(:first-child)': {
+                    marginInlineStart: 'calc(var(--border) * -1)',
+                },
+                '&[data-orientation="horizontal"]:not(:last-child), &[data-orientation="horizontal"]:not(:last-child) > *': {
+                    borderStartEndRadius: '0',
+                    borderEndEndRadius: '0',
+                },
+                '&[data-orientation="vertical"]:not(:first-child), &[data-orientation="vertical"]:not(:first-child) > *': {
+                    borderStartStartRadius: '0',
+                    borderStartEndRadius: '0',
+                },
+                '&[data-orientation="vertical"]:not(:first-child)': {
+                    marginBlockStart: 'calc(var(--border) * -1)',
+                },
+                '&[data-orientation="vertical"]:not(:last-child), &[data-orientation="vertical"]:not(:last-child) > *': {
+                    borderEndStartRadius: '0',
+                    borderEndEndRadius: '0',
+                },
+                '&:focus-within': { zIndex: '1' },
+                '&:focus-visible': { zIndex: '1' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { item: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { item: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
+    kbd, status, indicator, stats, timeline, chat, radialProgress, join,
 ];

@@ -54,11 +54,11 @@ describe('defineAnatomy', () => {
 describe('anatomy registry', () => {
     it('contains every component', () => {
         expect(Object.keys(anatomies).sort()).toEqual([
-            'accordion', 'alert', 'avatar', 'badge', 'button', 'card', 'checkbox', 'collapsible', 'combobox', 'dialog',
-            'divider', 'field', 'input', 'menu',
-            'native-select', 'number-input', 'popover',
-            'progress', 'radio-group', 'rating-group', 'select', 'skeleton', 'slider', 'spinner', 'switch', 'tabs',
-            'textarea', 'toast', 'toggle', 'toggle-group', 'tooltip',
+            'accordion', 'alert', 'avatar', 'badge', 'button', 'card', 'chat', 'checkbox', 'collapsible',
+            'combobox', 'dialog', 'divider', 'field', 'indicator', 'input', 'join', 'kbd', 'menu',
+            'native-select', 'number-input', 'popover', 'progress', 'radial-progress', 'radio-group',
+            'rating-group', 'select', 'skeleton', 'slider', 'spinner', 'stats', 'status', 'switch', 'tabs',
+            'textarea', 'timeline', 'toast', 'toggle', 'toggle-group', 'tooltip',
             'tree-view',
         ]);
     });
@@ -186,11 +186,12 @@ describe('anatomy registry', () => {
             }
         }
         // Every part the runtime stamps `data-placement` on, and no other:
-        // the six anchored-position popups plus toast's viewport/root pair.
+        // the six anchored-position popups, toast's viewport/root pair, and
+        // the content-tier parts that anchor along an axis (#334).
         // The DOM half is asserted by expectAnatomy in each component's tests.
         expect(declared.sort()).toEqual([
-            'combobox.popup', 'menu.popup', 'menu.sub-popup', 'popover.popup',
-            'select.popup', 'toast.root', 'toast.viewport', 'tooltip.popup',
+            'chat.root', 'combobox.popup', 'indicator.item', 'menu.popup', 'menu.sub-popup',
+            'popover.popup', 'select.popup', 'timeline.content', 'toast.root', 'toast.viewport', 'tooltip.popup',
         ]);
     });
 });

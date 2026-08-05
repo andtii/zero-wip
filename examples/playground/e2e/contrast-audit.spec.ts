@@ -624,6 +624,30 @@ const INDICATORS: IndicatorSpec[] = [
      * every design system draw a worse skeleton.
      */
     { scope: 'spinner', part: 'root', ancestors: [] },
+    /**
+     * Status is spinner's static sibling (#334): an empty element whose whole
+     * job is paint, opted in by hand for the same reason — an invisible
+     * presence dot is a real bug, and WCAG 1.4.11's non-text floor is this
+     * matrix's 3:1. Empty chain: a status dot stands on the app surface.
+     */
+    { scope: 'status', part: 'root', ancestors: [] },
+    /**
+     * Timeline's marker (#334): the dot on the axis. Named after what it is
+     * rather than after its job, so `PAINT_ONLY_PART` cannot select it —
+     * opted in by hand like the rating star. Measured inside its real
+     * root > item chain; no glyph, because the recipes draw the dot as
+     * geometry and zero renders the part empty.
+     */
+    { scope: 'timeline', part: 'marker', ancestors: ['root', 'item'] },
+    /**
+     * RadialProgress's ring (#334): painted ON the root as a background-colour
+     * ink under conic/annulus masks — background-colour rather than a
+     * gradient image precisely so this matrix can read it (a gradient
+     * painting a box is deliberately not measured; see `imageInks`). Empty
+     * chain, like spinner: the ring stands on the app surface. The states
+     * ride along from `combosFor`, so complete's success ink is measured too.
+     */
+    { scope: 'radial-progress', part: 'root', ancestors: [] },
 ];
 
 const partOf = (scope: string, name: string): ManifestPart => {

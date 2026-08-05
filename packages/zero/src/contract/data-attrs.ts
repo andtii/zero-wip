@@ -113,15 +113,27 @@ export const STATE_SYNONYMS: Record<string, string> = {
 
 /**
  * The closed `data-placement` vocabulary — side, optionally refined by an
- * alignment. Written by the anchored-position behavior on floating parts and
- * by Toast on its viewport and roots; a part that can carry the attribute
- * declares which subset in its anatomy (`PartSpec.placements`).
+ * alignment, plus the two bare LOGICAL inline sides. Written by the
+ * anchored-position behavior on floating parts, by Toast on its viewport and
+ * roots, and by the content-tier parts that anchor along an axis (an
+ * indicator's middle-row slots, a chat row, a timeline side); a part that can
+ * carry the attribute declares which subset in its anatomy
+ * (`PartSpec.placements`).
+ *
+ * `start`/`end` (#334) are not shorthand for `left`/`right`: `left` names a
+ * physical side of the glass — where a floating popup really landed after
+ * flipping — while `start` names the reading edge, which is `left` in LTR
+ * and `right` in RTL. A chat row from the other party sits at the reading
+ * start in BOTH directions, so spelling it physically would be wrong in one
+ * of them; recipes style these with logical properties
+ * (`inset-inline-start`, `margin-inline-*`) and need no `:dir()` correction.
  */
 export const PLACEMENT_VOCABULARY = [
     'top', 'top-start', 'top-end',
     'bottom', 'bottom-start', 'bottom-end',
     'left', 'left-start', 'left-end',
     'right', 'right-start', 'right-end',
+    'start', 'end',
 ] as const;
 
 export type PlacementName = typeof PLACEMENT_VOCABULARY[number];

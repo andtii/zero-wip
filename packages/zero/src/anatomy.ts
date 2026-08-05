@@ -40,6 +40,14 @@ import { badgeAnatomy } from './components/badge/anatomy.js';
 import { dividerAnatomy } from './components/divider/anatomy.js';
 import { skeletonAnatomy } from './components/skeleton/anatomy.js';
 import { spinnerAnatomy } from './components/spinner/anatomy.js';
+import { kbdAnatomy } from './components/kbd/anatomy.js';
+import { statusAnatomy } from './components/status/anatomy.js';
+import { indicatorAnatomy } from './components/indicator/anatomy.js';
+import { statsAnatomy } from './components/stats/anatomy.js';
+import { timelineAnatomy } from './components/timeline/anatomy.js';
+import { chatAnatomy } from './components/chat/anatomy.js';
+import { radialProgressAnatomy } from './components/radial-progress/anatomy.js';
+import { joinAnatomy } from './components/join/anatomy.js';
 
 export {
     buttonAnatomy,
@@ -48,6 +56,8 @@ export {
     avatarAnatomy, toastAnatomy, comboboxAnatomy, toggleAnatomy, toggleGroupAnatomy, numberInputAnatomy,
     ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy, nativeSelectAnatomy,
     cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy, skeletonAnatomy, spinnerAnatomy,
+    kbdAnatomy, statusAnatomy, indicatorAnatomy, statsAnatomy, timelineAnatomy, chatAnatomy,
+    radialProgressAnatomy, joinAnatomy,
 };
 
 export const anatomies = {
@@ -83,6 +93,14 @@ export const anatomies = {
     divider: dividerAnatomy,
     skeleton: skeletonAnatomy,
     spinner: spinnerAnatomy,
+    kbd: kbdAnatomy,
+    status: statusAnatomy,
+    indicator: indicatorAnatomy,
+    stats: statsAnatomy,
+    timeline: timelineAnatomy,
+    chat: chatAnatomy,
+    'radial-progress': radialProgressAnatomy,
+    join: joinAnatomy,
 } as const satisfies Record<string, Anatomy>;
 
 /**

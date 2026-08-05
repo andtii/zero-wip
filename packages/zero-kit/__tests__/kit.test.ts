@@ -323,11 +323,12 @@ describe('the shipped design systems', () => {
         expect(result.errors).toEqual([]);
         const compiled = compileDesignSystem(ds, manifest);
         expect(Object.keys(compiled.componentCss).sort()).toEqual([
-            'accordion', 'alert', 'avatar', 'badge', 'button', 'card', 'checkbox', 'collapsible', 'combobox', 'dialog',
-            'divider', 'field', 'input', 'menu', 'native-select',
-            'number-input', 'popover', 'progress', 'radio-group', 'rating-group', 'select', 'skeleton', 'slider',
-            'spinner', 'switch', 'tabs',
-            'textarea', 'toast', 'toggle', 'toggle-group', 'tooltip', 'tree-view',
+            'accordion', 'alert', 'avatar', 'badge', 'button', 'card', 'chat', 'checkbox', 'collapsible',
+            'combobox', 'dialog', 'divider', 'field', 'indicator', 'input', 'join', 'kbd', 'menu',
+            'native-select', 'number-input', 'popover', 'progress', 'radial-progress', 'radio-group',
+            'rating-group', 'select', 'skeleton', 'slider',
+            'spinner', 'stats', 'status', 'switch', 'tabs',
+            'textarea', 'timeline', 'toast', 'toggle', 'toggle-group', 'tooltip', 'tree-view',
         ]);
         expect(compiled.indexCss).toContain('@layer zero.tokens');
         expect(compiled.themes.map((t) => t.name)).toEqual([...themeNames]);

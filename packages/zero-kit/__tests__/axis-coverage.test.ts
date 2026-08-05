@@ -195,6 +195,30 @@ const NO_VARIANT: Record<string, string> = {
     tooltip: 'Ant Design Tooltip varies by `color`, not a chrome variant; '
         + 'HeroUI colours it through its fused variant, undeclared for '
         + 'tooltip in the shipped skins.',
+
+    // ── The content-tier sweep (#334). ──
+    kbd: 'no surveyed system varies a keycap — daisyUI\'s kbd carries only a '
+        + 'size ramp, and HeroUI\'s Kbd styles through `keys`, not a style axis.',
+    status: 'no surveyed system varies a presence dot — daisyUI\'s status has '
+        + 'colour and size only, and the colour axis IS this component\'s '
+        + 'whole vocabulary.',
+    indicator: 'no surveyed system varies a positioning wrapper — daisyUI\'s '
+        + 'indicator has placement classes only; the chrome belongs to the '
+        + 'item\'s content (a badge, a dot), never to the anchor.',
+    stats: 'no surveyed system varies a stat group — daisyUI\'s stats has '
+        + 'orientation and an optional shadow, not a style axis.',
+    timeline: 'daisyUI\'s timeline styles through snap/compact modifiers and '
+        + 'a boxed content class, not a fill variant; Ant Design\'s Timeline '
+        + 'has mode (side) and pending, no style axis.',
+    chat: 'daisyUI\'s chat bubble varies by COLOUR only (chat-bubble-primary, '
+        + '…) — wired here as the color axis on the row — and by side, which '
+        + 'is data-placement, not a chrome variant.',
+    'radial-progress': 'daisyUI\'s radial-progress varies by colour, size and '
+        + 'thickness — the first is the color axis, the others metrics; no '
+        + 'surveyed system gives the ring a chrome variant.',
+    join: 'no surveyed system varies a radius-collapsing group — daisyUI\'s '
+        + 'join has orientation only; the chrome belongs to the joined '
+        + 'controls.',
 };
 
 /**

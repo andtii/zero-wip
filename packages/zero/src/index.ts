@@ -220,3 +220,44 @@ export type { SkeletonRootProps } from './components/skeleton/index.js';
 
 export { Spinner, spinnerAnatomy } from './components/spinner/index.js';
 export type { SpinnerRootProps } from './components/spinner/index.js';
+
+export { Kbd, kbdAnatomy } from './components/kbd/index.js';
+export type { KbdRootProps } from './components/kbd/index.js';
+
+export { Status, statusAnatomy } from './components/status/index.js';
+export type { StatusRootProps } from './components/status/index.js';
+
+export { Indicator, indicatorAnatomy } from './components/indicator/index.js';
+export type {
+    IndicatorRootProps,
+    IndicatorItemProps,
+    IndicatorPlacement,
+} from './components/indicator/index.js';
+
+export { Stats, statsAnatomy, useStatsContext } from './components/stats/index.js';
+export type { StatsRootProps, StatsPartProps } from './components/stats/index.js';
+
+export { Timeline, timelineAnatomy, useTimelineContext } from './components/timeline/index.js';
+export type {
+    TimelineRootProps,
+    TimelinePartProps,
+    TimelineContentProps,
+    TimelinePlacement,
+} from './components/timeline/index.js';
+
+export { Chat, chatAnatomy } from './components/chat/index.js';
+export type { ChatRootProps, ChatPartProps, ChatPlacement } from './components/chat/index.js';
+
+export {
+    RadialProgress,
+    radialProgressAnatomy,
+    useRadialProgressContext,
+} from './components/radial-progress/index.js';
+export type {
+    RadialProgressRootProps,
+    RadialProgressLabelProps,
+    RadialProgressValueTextProps,
+} from './components/radial-progress/index.js';
+
+export { Join, joinAnatomy, useJoinContext } from './components/join/index.js';
+export type { JoinRootProps, JoinItemProps } from './components/join/index.js';

@@ -92,7 +92,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-32 components ship today. Every part each renders is listed below, in
+40 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -219,6 +219,16 @@ component renders; the root is called out separately where it carries props.
   value's fraction.
 - Progress: Root/Label/Track/Range/ValueText; `value: number | null`
   (null = indeterminate).
+- RadialProgress: Root/Label/ValueText — circular progress as its OWN scope
+  (a radial has no track/range geometry: the ring is one painted layer on
+  the root, so reusing progress's anatomy would ship dead parts, and a
+  data-mod is a styling hook, not a structural switch). Shares linear
+  progress's value model verbatim: value number|null (null=indeterminate),
+  min/max, role=progressbar + aria value trio, states
+  loading|complete|indeterminate, and the SAME runtime-published
+  --progress-percent — recipes paint the arc from it via conic-gradient
+  masks over a background-color ink, and stop the indeterminate loop under
+  reduced motion. ValueText defaults to the rounded percent.
 - Field: Root/Label/Description/Error — wires ids and disabled/invalid/
   required down to the control it wraps.
 - Input: Root(model=string)/Label/Control/Input, a single-line text field.
@@ -238,6 +248,49 @@ component renders; the root is called out separately where it carries props.
 - Badge: Root only — the carrier IS the text-bearing part, which is why it is
   the one scope that can wire its own `variant` vocabulary against the
   contrast audit's one-element probe. asChild.
+- Kbd: Root only, on a semantic <kbd> — the element is the meaning, so there
+  is no asChild to swap it away. No states; size is the axis that matters.
+- Status: Root only — an empty presence dot the design system paints. NO
+  states on purpose: online/busy/degraded are colours of one resting render
+  (the `color` axis), not a machine lifecycle. Without `label` it is
+  aria-hidden (the visible text beside it carries the meaning); with `label`
+  it announces as role="img" — not role="status", which is a live region.
+- Indicator: Root/Item(placement) — anchors the item to a corner/edge of
+  whatever Root wraps (badge on a button, dot on an avatar). Item stamps
+  data-placement from a declared eight-slot subset: top-start|top|top-end|
+  start|end|bottom-start|bottom|bottom-end — all LOGICAL (start/end are the
+  reading-direction inline sides, added to the placement vocabulary for it;
+  no left/right), so recipes position with inset-inline-* and RTL mirrors
+  free. No ARIA of its own: meaning belongs to the item's content.
+- Stats: Root(orientation)/Item/Title/Value/Desc/Figure — Card's cousin: a
+  styling container for figures with labels, no state, no ids, no ARIA.
+  BOTH root and item carry data-orientation (the between-item divider is
+  directional CSS on the item, and a sibling selector cannot see the root —
+  the toggle-group precedent). Every band below Item is optional.
+- Timeline: Root(orientation, default VERTICAL — a feed grows downward)/
+  Item/Marker/Connector/Content(placement start|end). A real <ul>/<li> list
+  so AT announces and walks it. Marker (the dot/icon on the axis — a paint
+  part, graded by the contrast audit's indicator matrix) and Connector (the
+  line toward the next item) are aria-hidden decoration; Content declares
+  which SIDE of the axis it sits on as data-placement from the logical
+  start|end pair, so alternating layouts are per-item markup and RTL
+  mirrors free. Content and connector also carry data-orientation — a
+  recipe composes side × axis on the element that has both.
+- Chat: Root(placement start|end, default START — the reading edge is the
+  other party in every messenger; your own rows opt into end)/Avatar/Header/
+  Bubble/Footer. One message row, pure content: no state, no ids, no ARIA —
+  a transcript needing log semantics is a role="log" container the consumer
+  writes around the rows. Avatar is a SLOT (zero's Avatar, an <img>,
+  initials). The colour axis rides the row and recipes wire it to the
+  BUBBLE's fill; placement is logical, so RTL mirrors free.
+- Join: Root(orientation)/Item(asChild) — visual grouping that collapses
+  the radii of adjacent children (segmented search field, button strip).
+  Pure CSS composition: two attribute carriers, no state, no ARIA (a join
+  is a visual group; a consumer who means toolbar/group writes the role).
+  Both root and item carry data-orientation (the collapse is item + item
+  directional CSS). asChild is the honest joint: a wrapper cannot collapse
+  the radius of the control inside it, so put the item attributes ON the
+  control.
 - Divider: Root only, role=separator, orientation. Non-focusable;
   aria-orientation emitted only for `vertical`.
 - Skeleton: Root only(model=loading, default TRUE), data-state loading|loaded,
@@ -354,9 +407,10 @@ named model bound as `model:<stateName>` in JSX (sigx
 value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
-Avatar, Badge, Button, Card, Checkbox, Collapsible, Combobox, Dialog, Divider,
-Field, Input, Menu, NativeSelect, NumberInput, Popover, Progress, RadioGroup,
-RatingGroup, Select, Skeleton, Slider, Spinner, Switch, Tabs, Textarea, Toast,
+Avatar, Badge, Button, Card, Chat, Checkbox, Collapsible, Combobox, Dialog,
+Divider, Field, Indicator, Input, Join, Kbd, Menu, NativeSelect, NumberInput,
+Popover, Progress, RadialProgress, RadioGroup, RatingGroup, Select, Skeleton,
+Slider, Spinner, Stats, Status, Switch, Tabs, Textarea, Timeline, Toast,
 Toggle, ToggleGroup, Tooltip and TreeView;
 that is every component. Where the Root renders a fragment (a
 dialog/menu/popover/tooltip) the props live on the Trigger, which renders the

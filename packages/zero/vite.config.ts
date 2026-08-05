@@ -43,7 +43,15 @@ export default defineLibConfig({
         'components/badge/index': 'src/components/badge/index.ts',
         'components/divider/index': 'src/components/divider/index.ts',
         'components/skeleton/index': 'src/components/skeleton/index.ts',
-        'components/spinner/index': 'src/components/spinner/index.ts'
+        'components/spinner/index': 'src/components/spinner/index.ts',
+        'components/kbd/index': 'src/components/kbd/index.ts',
+        'components/status/index': 'src/components/status/index.ts',
+        'components/indicator/index': 'src/components/indicator/index.ts',
+        'components/stats/index': 'src/components/stats/index.ts',
+        'components/timeline/index': 'src/components/timeline/index.ts',
+        'components/chat/index': 'src/components/chat/index.ts',
+        'components/radial-progress/index': 'src/components/radial-progress/index.ts',
+        'components/join/index': 'src/components/join/index.ts'
     },
     external: ['sigx', 'sigx/jsx-runtime', 'sigx/jsx-dev-runtime'],
     jsx: true

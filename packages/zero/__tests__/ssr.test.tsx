@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Card, Collapsible, Combobox, Dialog, Divider, Input, NativeSelect, NumberInput, RatingGroup, Select, Skeleton, Spinner, Switch, Tabs, Textarea, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Card, Chat, Collapsible, Combobox, Dialog, Divider, Indicator, Input, Join, Kbd, NativeSelect, NumberInput, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Switch, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -96,9 +96,45 @@ function page() {
                 <Alert.Close />
             </Alert.Root>
             <Badge color="success">Active</Badge>
+            <Kbd size="sm">⌘</Kbd>
+            <Status color="success" label="All systems go" />
+            <Indicator.Root>
+                <Indicator.Item><Badge color="error">9</Badge></Indicator.Item>
+                <button type="button">Inbox</button>
+            </Indicator.Root>
+            <Stats.Root>
+                <Stats.Item>
+                    <Stats.Title>Revenue</Stats.Title>
+                    <Stats.Value>$12,930</Stats.Value>
+                    <Stats.Desc>+8%</Stats.Desc>
+                </Stats.Item>
+            </Stats.Root>
+            <Chat.Root placement="end" color="primary">
+                <Chat.Header>Me</Chat.Header>
+                <Chat.Bubble>Agreed.</Chat.Bubble>
+            </Chat.Root>
+            <Timeline.Root>
+                <Timeline.Item>
+                    <Timeline.Marker />
+                    <Timeline.Content placement="start">v1.0</Timeline.Content>
+                    <Timeline.Connector />
+                </Timeline.Item>
+                <Timeline.Item>
+                    <Timeline.Marker />
+                    <Timeline.Content>v2.0</Timeline.Content>
+                </Timeline.Item>
+            </Timeline.Root>
+            <Join.Root>
+                <Join.Item><button type="button">One</button></Join.Item>
+                <Join.Item><button type="button">Two</button></Join.Item>
+            </Join.Root>
             <Divider />
             <Skeleton.Root>Article title</Skeleton.Root>
             <Spinner label="Loading results" />
+            <RadialProgress.Root value={62}>
+                <RadialProgress.Label>Upload</RadialProgress.Label>
+                <RadialProgress.ValueText />
+            </RadialProgress.Root>
             <RatingGroup.Root name="stars" defaultValue={2.5} allowHalf>
                 <RatingGroup.Label>Stars</RatingGroup.Label>
                 <RatingGroup.Control>

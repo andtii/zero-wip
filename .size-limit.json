@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "27 kB",
+        "limit": "28 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -240,6 +240,86 @@
     {
         "name": "@sigx/zero/spinner",
         "path": "packages/zero/dist/components/spinner/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/kbd",
+        "path": "packages/zero/dist/components/kbd/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/status",
+        "path": "packages/zero/dist/components/status/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/indicator",
+        "path": "packages/zero/dist/components/indicator/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/stats",
+        "path": "packages/zero/dist/components/stats/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/timeline",
+        "path": "packages/zero/dist/components/timeline/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/chat",
+        "path": "packages/zero/dist/components/chat/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/radial-progress",
+        "path": "packages/zero/dist/components/radial-progress/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/join",
+        "path": "packages/zero/dist/components/join/index.js",
         "limit": "2 kB",
         "ignore": [
             "sigx",

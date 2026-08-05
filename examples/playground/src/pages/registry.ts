@@ -36,6 +36,14 @@ import { treeViewPage } from './tree-view';
 import { avatarPage } from './avatar';
 import { cardPage, alertPage, badgePage, dividerPage } from './content-tier';
 import { skeletonPage, spinnerPage } from './loading';
+import { kbdPage } from './kbd';
+import { statusPage } from './status';
+import { indicatorPage } from './indicator';
+import { statsPage } from './stats';
+import { timelinePage } from './timeline';
+import { chatPage } from './chat';
+import { radialProgressPage } from './radial-progress';
+import { joinPage } from './join';
 import { progressPage } from './progress';
 import { sizeRampPage } from './size-ramp';
 import { extensibleRolesPage } from './extensible-roles';
@@ -73,6 +81,7 @@ export const pages: PageEntry[] = [
     buttonPage,
     togglePage,
     toggleGroupPage,
+    joinPage,
     fieldPage,
     inputPage,
     textareaPage,
@@ -101,7 +110,14 @@ export const pages: PageEntry[] = [
     dividerPage,
     skeletonPage,
     spinnerPage,
+    kbdPage,
+    statusPage,
+    indicatorPage,
+    statsPage,
+    timelinePage,
+    chatPage,
     progressPage,
+    radialProgressPage,
     sizeRampPage,
     extensibleRolesPage,
     extensibleAxesPage,
