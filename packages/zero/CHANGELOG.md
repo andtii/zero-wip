@@ -44,6 +44,14 @@
     contrast matrix — proven red-first by painting it paper-on-paper and
     watching the audit fail at 1:1 before reverting.
 
+  - **The loading-button pattern**, documented (README "Patterns") and
+    demoed rather than shipped as API: Button stays behavior-free — compose
+    `disabled` with `mods={{ loading: true }}` and let a design system that
+    declares the `loading` modifier draw the spinner off
+    `[data-mod-loading]` in pure CSS. Pass the mod only when the active
+    vocabulary declares it; the composition degrades to a plain disabled
+    button under a design system that doesn't.
+
 - **Component-surface completions** (#325). The peer-parity gaps every
   comparable library (Radix/Ark/Zag) covers, closed in one wave:
 

@@ -102,6 +102,36 @@ theme-carried candidate for that glyph's ink is white on one side or the other
 under a light one, over a fill that did not print). A design system may
 override it; it never has to declare it.
 
+## Patterns
+
+Compositions the pieces above are designed to express — no component grows a
+prop for what a composition already says.
+
+**The loading button.** Button stays behavior-free: there is no `loading`
+prop, because "busy" is a *styling* state the design system draws and a
+*semantics* the app owns. Compose it:
+
+```tsx
+<Button.Root
+    disabled={saving()}
+    mods={saving() ? { loading: true } : undefined}
+    onClick={save}
+>
+    Save
+</Button.Root>
+```
+
+`mods` renders the presence-only `data-mod-loading` attribute; a design
+system that declares the `loading` modifier draws the spinner (and hides or
+dims the label) in pure CSS off `[data-mod-loading]` — a recipe-drawn mark,
+the same way checkbox ticks work. Under a design system that does *not*
+declare it, the attribute would match no rule, so pass the mod only when the
+active vocabulary declares it (the manifest's `tokens.modifiers`) and the
+composition degrades to a plain disabled button — the accessible truth
+(`disabled` while the request is in flight) never depended on the paint.
+Announce long operations to AT with your own live region or a
+`Spinner label="Saving…"` beside the button when the design draws nothing.
+
 ## Typed vocabulary (opt-in)
 
 The variant-axis props (`color`, `size`, `variant`, `axes`, `mods`) are open unions
