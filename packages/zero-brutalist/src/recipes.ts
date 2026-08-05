@@ -2934,9 +2934,54 @@ export const spinner: RecipeInput = {
     keyframes: { 'zero-brutalist-spin': 'to { transform: rotate(360deg); }' },
 };
 
+// ── The content-tier sweep (#334) ─────────────────────────────────────────
+/**
+ * Kbd — the keycap as a stamped block: the full 2px frame and a hard offset
+ * shadow, so the key looks like the movable type this identity is set in.
+ */
+export const kbd: RecipeInput = {
+    component: 'kbd',
+    tokens: { '--kbd-fill': 'var(--color-base-100)', '--kbd-ink': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: '1.75em',
+                padding: '0 var(--space-sm)',
+                background: 'var(--kbd-fill)',
+                color: 'var(--kbd-ink)',
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                borderRadius: '0',
+                boxShadow: 'var(--shadow-xs)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-bold)',
+                lineHeight: 'var(--leading-normal)',
+                whiteSpace: 'nowrap',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--kbd-fill': `var(--color-${c})`,
+            '--kbd-ink': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-xs)', minInlineSize: '1.5em' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-xs)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-sm)', padding: '0 var(--space-md)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-2xs) var(--space-lg)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
+    kbd,
 ];

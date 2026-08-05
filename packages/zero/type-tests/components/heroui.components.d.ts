@@ -38,6 +38,7 @@ import type { Badge as ZBadge } from '@sigx/zero/badge';
 import type { Divider as ZDivider } from '@sigx/zero/divider';
 import type { Skeleton as ZSkeleton } from '@sigx/zero/skeleton';
 import type { Spinner as ZSpinner } from '@sigx/zero/spinner';
+import type { Kbd as ZKbd } from '@sigx/zero/kbd';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -267,3 +268,10 @@ type SpinnerProps = {
 };
 type SpinnerAdapted = Adapted<typeof ZSpinner, ZeroAxisProp, SpinnerProps>;
 export declare const Spinner: SpinnerAdapted & { Root: SpinnerAdapted };
+
+/** kbd — no vendor route; the wired surface keeps zero's names. */
+type KbdProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type KbdAdapted = Adapted<typeof ZKbd, ZeroAxisProp, KbdProps>;
+export declare const Kbd: KbdAdapted & { Root: KbdAdapted };

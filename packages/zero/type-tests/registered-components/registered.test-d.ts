@@ -30,6 +30,7 @@ import { Dialog } from '@sigx/zero/dialog';
 import { Divider } from '@sigx/zero/divider';
 import { Field } from '@sigx/zero/field';
 import { Input } from '@sigx/zero/input';
+import { Kbd } from '@sigx/zero/kbd';
 import { Menu } from '@sigx/zero/menu';
 import { NativeSelect } from '@sigx/zero/native-select';
 import { NumberInput } from '@sigx/zero/number-input';
@@ -108,6 +109,7 @@ export type _alert = MustBeTrue<CheckColorSize<PropsOf<typeof Alert.Root>>>;
 export type _divider = MustBeTrue<CheckColorSize<PropsOf<typeof Divider.Root>>>;
 export type _skeleton = MustBeTrue<CheckColorSize<PropsOf<typeof Skeleton.Root>>>;
 export type _spinner = MustBeTrue<CheckColorSize<PropsOf<typeof Spinner.Root>>>;
+export type _kbd = MustBeTrue<CheckColorSize<PropsOf<typeof Kbd.Root>>>;
 
 /* ── the three scopes basic wires a variant vocabulary for ── */
 type ButtonProps = PropsOf<typeof Button.Root>;

@@ -3941,9 +3941,57 @@ export const spinner: RecipeInput = {
     keyframes: { 'zero-basic-spin': 'to { transform: rotate(360deg); }' },
 };
 
+// ── The content-tier sweep (#334) ─────────────────────────────────────────
+/**
+ * Kbd — a keycap drawn the way Monograph draws everything: hairlines, not
+ * shadows. The front edge of the key is the one place the hairline doubles,
+ * which is what reads as "cap" rather than "chip". Mono type because a
+ * keycap is a literal — `⌘` and `K` are quotations of the keyboard, and the
+ * badge's text grammar would make them labels.
+ */
+export const kbd: RecipeInput = {
+    component: 'kbd',
+    tokens: { '--kbd-ink': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: '1.75em',
+                padding: '0.0625rem 0.375rem',
+                background: 'var(--color-base-100)',
+                color: 'var(--kbd-ink)',
+                border: hairline,
+                borderBlockEndWidth: 'calc(var(--border) * 2)',
+                borderRadius: 'var(--radius-field)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-normal)',
+                whiteSpace: 'nowrap',
+            },
+        },
+    },
+    variants: {
+        // Colour accents the INK only — the cap stays paper, because a filled
+        // keycap would read as a badge with the wrong font.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--kbd-ink': softInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 0.25rem', minInlineSize: '1.5em' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)', padding: '0.03125rem 0.3125rem' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-sm)', padding: '0.125rem 0.4375rem' } } },
+            xl: { root: { base: { fontSize: 'var(--text-md)', padding: '0.1875rem 0.5rem' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
+    kbd,
 ];

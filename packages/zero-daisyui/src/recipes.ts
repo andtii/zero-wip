@@ -3447,9 +3447,52 @@ export const spinner: RecipeInput = {
     keyframes: { 'zero-daisyui-spin': 'to { transform: rotate(360deg); }' },
 };
 
+// ── The content-tier sweep (#334) ─────────────────────────────────────────
+/** daisy kbd: the raised base-200 cap with the doubled bottom edge. */
+export const kbd: RecipeInput = {
+    component: 'kbd',
+    tokens: { '--kbd-fill': 'var(--color-base-200)', '--kbd-ink': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: '1.75em',
+                padding: '0.0625rem 0.4375rem',
+                background: 'var(--kbd-fill)',
+                color: 'var(--kbd-ink)',
+                border: 'var(--border) solid var(--color-base-300)',
+                borderBlockEndWidth: 'calc(var(--border) * 2)',
+                borderRadius: 'var(--radius-field)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-normal)',
+                whiteSpace: 'nowrap',
+            },
+        },
+    },
+    variants: {
+        // The badge pairing: the cap takes the role's fill, the ink its
+        // validated `-content` partner.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--kbd-fill': `var(--color-${c})`,
+            '--kbd-ink': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-xs)', minInlineSize: '1.5em' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-sm)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-2xs) var(--space-md)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-xs) var(--space-lg)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
+    kbd,
 ];

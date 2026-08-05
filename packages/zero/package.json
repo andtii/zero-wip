@@ -163,6 +163,10 @@
         "./spinner": {
             "types": "./dist/components/spinner/index.d.ts",
             "import": "./dist/components/spinner/index.js"
+        },
+        "./kbd": {
+            "types": "./dist/components/kbd/index.d.ts",
+            "import": "./dist/components/kbd/index.js"
         }
     },
     "files": [

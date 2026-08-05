@@ -40,6 +40,7 @@ import { badgeAnatomy } from './components/badge/anatomy.js';
 import { dividerAnatomy } from './components/divider/anatomy.js';
 import { skeletonAnatomy } from './components/skeleton/anatomy.js';
 import { spinnerAnatomy } from './components/spinner/anatomy.js';
+import { kbdAnatomy } from './components/kbd/anatomy.js';
 
 export {
     buttonAnatomy,
@@ -48,6 +49,7 @@ export {
     avatarAnatomy, toastAnatomy, comboboxAnatomy, toggleAnatomy, toggleGroupAnatomy, numberInputAnatomy,
     ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy, nativeSelectAnatomy,
     cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy, skeletonAnatomy, spinnerAnatomy,
+    kbdAnatomy,
 };
 
 export const anatomies = {
@@ -83,6 +85,7 @@ export const anatomies = {
     divider: dividerAnatomy,
     skeleton: skeletonAnatomy,
     spinner: spinnerAnatomy,
+    kbd: kbdAnatomy,
 } as const satisfies Record<string, Anatomy>;
 
 /**

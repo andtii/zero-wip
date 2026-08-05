@@ -195,6 +195,10 @@ const NO_VARIANT: Record<string, string> = {
     tooltip: 'Ant Design Tooltip varies by `color`, not a chrome variant; '
         + 'HeroUI colours it through its fused variant, undeclared for '
         + 'tooltip in the shipped skins.',
+
+    // ── The content-tier sweep (#334). ──
+    kbd: 'no surveyed system varies a keycap — daisyUI\'s kbd carries only a '
+        + 'size ramp, and HeroUI\'s Kbd styles through `keys`, not a style axis.',
 };
 
 /**

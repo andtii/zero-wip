@@ -220,3 +220,6 @@ export type { SkeletonRootProps } from './components/skeleton/index.js';
 
 export { Spinner, spinnerAnatomy } from './components/spinner/index.js';
 export type { SpinnerRootProps } from './components/spinner/index.js';
+
+export { Kbd, kbdAnatomy } from './components/kbd/index.js';
+export type { KbdRootProps } from './components/kbd/index.js';

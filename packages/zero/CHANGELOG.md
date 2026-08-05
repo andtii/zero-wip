@@ -4,6 +4,15 @@
 
 ### Added
 
+- **The content-tier sweep** (#334): the cheap 60% of the coverage gap
+  against `@sigx/daisyui` — components that are anatomy plus recipes with
+  little or no behavior, each shipped with recipes in all six design
+  systems:
+
+  - **Kbd**: one part on a semantic `<kbd>` — the element is the meaning, so
+    there is no `asChild`. No states; `size` is the axis that matters and
+    `color` rides the uniform carrier surface.
+
 - **The sugar tier** (#333) — the one-liner DX the old `@sigx/daisyui`
   library had and zero's compound anatomy made verbose:
 

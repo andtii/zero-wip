@@ -36,6 +36,7 @@ import { treeViewPage } from './tree-view';
 import { avatarPage } from './avatar';
 import { cardPage, alertPage, badgePage, dividerPage } from './content-tier';
 import { skeletonPage, spinnerPage } from './loading';
+import { kbdPage } from './kbd';
 import { progressPage } from './progress';
 import { sizeRampPage } from './size-ramp';
 import { extensibleRolesPage } from './extensible-roles';
@@ -101,6 +102,7 @@ export const pages: PageEntry[] = [
     dividerPage,
     skeletonPage,
     spinnerPage,
+    kbdPage,
     progressPage,
     sizeRampPage,
     extensibleRolesPage,
