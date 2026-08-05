@@ -40,6 +40,79 @@ const focusRing: Record<string, NonNullable<PartStyles['base']>> = {
     },
 };
 
+/**
+ * How far each role survives in the button's INK — the colour a transparent or
+ * tinted fill draws its label, border and focus ring with.
+ *
+ * A raw role token is a FILL colour: it is contrast-validated against its own
+ * `-content` pair and against nothing else. Used as ink on a base surface it
+ * has no floor at all, and daisy's palettes prove it — `neutral` is a dark grey
+ * in all three dark themes (1.12–1.22:1 on `base-100`, 1.11–1.18 on its own
+ * `-soft`) and `accent` a pale teal in light and nord (1.63–1.83). That is
+ * #210: the `outline`, `soft` and `ghost` cells rendered as empty boxes.
+ *
+ * The mix partner is `--color-base-content`, NOT the role's own `-content`.
+ * `ratingFill` (below) deepens toward `-content` and its comment says why that
+ * cannot generalise: "deepening toward `-content` helps a light theme and hurts
+ * a dark one" — because `-content` is the pole opposite the ROLE, which in a
+ * dark theme means darker, straight into a dark `base-100`. `base-content` is
+ * by construction the pole opposite the SURFACE, so the same percentage lightens
+ * on dark themes and darkens on light ones. One number per role then holds
+ * across all five themes.
+ *
+ * Per role, and each the gentlest 5% step that clears 3:1 — the same rule
+ * `progressFill` and `RATING_DEEPEN` follow. Measured through Chromium's own
+ * canvas (the technique `contrast-audit.spec.ts` uses, so gamut mapping matches
+ * what is painted): 5 themes × 8 roles × {base-100, base-200, base-300, the
+ * role's `-soft`, and `-soft` under the hover `brightness(.95)`} = 200 cells,
+ * all ≥3:1, worst 3.10 (nord `secondary` on `base-300`).
+ *
+ * One 5% step gentler puts five of the eight under the floor — `primary` 2.98,
+ * `secondary` 2.87, `accent` 2.96, `neutral` 2.87, `success` 2.97 — and leaves
+ * the other three sitting on it with nothing to spare (`info` 3.00, `error`
+ * 3.03, `warning` 3.04). Every one of those worst cells is nord on `base-300`
+ * except `neutral`'s, which is dim's own `-soft` under the hover brightness.
+ *
+ * `primary` keeps 95% because raw already sat at 2.98 — a nudge, not a repaint.
+ * `neutral` keeps 40% because a role whose fill is a near-surface grey has
+ * nowhere else to go.
+ *
+ * `error` USED to keep 95% for the same reason as `primary` (raw sat at 3.03),
+ * and no longer can: correcting the palette to daisyUI 5.7.8's own values
+ * (#231) moved light's `error` from `oklch(63.72% 0.237 25.33)` to
+ * `oklch(71% 0.194 13.428)` — lighter and less saturated — which took the raw
+ * ink to 2.75:1 on its own `soft` fill. 85% is the gentlest step that clears,
+ * at 3.31:1, which puts it in the same band as every other role here
+ * (3.25–3.85). 90% reaches only 3.01, sitting on the floor with nothing to
+ * spare.
+ *
+ * Verified again on the compiled output rather than the tokens: the emitted
+ * CSS rendered in all five themes, 4 variants × 8 roles, gives 160 label cells
+ * and 40 `outline` borders with none under 3:1, worst 3.23 (nord / `soft` /
+ * `primary`). Before: 35 labels and 11 borders under, worst 1.11.
+ *
+ * This is the ad-hoc `color-mix` #126 describes: the contract has no name for
+ * "this role's muted ink", so every design system invents one. When #126 lands,
+ * this map is what it replaces — which is also why it is named for the JOB
+ * rather than for the button: the four error-text sites below read the same
+ * definition, and a second hand-tuned copy of it is precisely what #126 exists
+ * to stop.
+ */
+/**
+ * Keyed on the DECLARED roles, so a typo here is a build error rather than a
+ * silent fall through to the default — and optional, so the `?? 55` below is a
+ * real branch the type system can see rather than dead code. It stays optional
+ * because `roleInk` is also reachable for a role this map has no opinion on.
+ */
+const ROLE_INK_KEEP: { [K in keyof typeof roles]?: number } = {
+    primary: 95, secondary: 70, accent: 55, neutral: 40,
+    info: 70, success: 55, warning: 45, error: 85,
+};
+
+const roleInk = (role: string): string =>
+    `color-mix(in oklab, var(--color-${role}) `
+    + `${ROLE_INK_KEEP[role as keyof typeof roles] ?? 55}%, var(--color-base-content))`;
+
 // daisy "tabs-box" flavor: a rounded container, lifted active tab.
 /**
  * Enter/exit presence for a top-layer popup.
@@ -193,9 +266,38 @@ export const tabs: RecipeInput = {
     },
 };
 
+/**
+ * The disclosure size ramp collapsible and accordion share (#321): the same
+ * trigger/panel geometry, so the same steps — padding plus type, daisy's
+ * "size moves the box" rule, never ink. `md` is the un-attributed render.
+ */
+const disclosureSizes: Record<string, Record<string, PartStyles>> = {
+    xs: {
+        trigger: { base: { padding: 'var(--space-md) var(--space-lg)', fontSize: 'var(--text-sm)' } },
+        panel: { base: { padding: '0 var(--space-lg) var(--space-md)', fontSize: 'var(--text-sm)' } },
+    },
+    sm: {
+        trigger: { base: { padding: 'var(--space-lg) var(--space-xl)', fontSize: 'var(--text-sm)' } },
+        panel: { base: { padding: '0 var(--space-xl) var(--space-lg)', fontSize: 'var(--text-sm)' } },
+    },
+    md: {},
+    lg: {
+        trigger: { base: { padding: 'var(--space-2xl) var(--space-2xl)', fontSize: 'var(--text-lg)' } },
+        panel: { base: { padding: '0 var(--space-2xl) var(--space-2xl)', fontSize: 'var(--text-md)' } },
+    },
+    xl: {
+        trigger: { base: { padding: 'var(--space-2xl) var(--space-2xl)', fontSize: 'var(--text-xl)' } },
+        panel: { base: { padding: '0 var(--space-2xl) var(--space-2xl)', fontSize: 'var(--text-lg)' } },
+    },
+};
+
 // daisy "collapse collapse-arrow" flavor.
 export const collapsible: RecipeInput = {
     component: 'collapsible',
+    // The accent is the open heading's INK, so the default is base-content —
+    // the un-attributed render stays exactly daisy's neutral collapse and a
+    // role only arrives through `data-color`.
+    tokens: { '--collapsible-accent': 'var(--color-base-content)' },
     parts: {
         root: withPresence(disclosurePresence, {
             base: {
@@ -217,7 +319,10 @@ export const collapsible: RecipeInput = {
                 fontWeight: 'var(--weight-semibold)',
             },
             states: {
-                open: {},
+                // With the default accent this is a no-op ink (base-content on
+                // base-content) — the rule exists so `data-color` has a state
+                // to land on.
+                open: { color: 'var(--collapsible-accent)' },
                 closed: {},
                 hover: { background: 'var(--color-base-200)' },
                 disabled: { opacity: 'var(--disabled-opacity)' },
@@ -244,6 +349,15 @@ export const collapsible: RecipeInput = {
             base: { padding: '0 var(--space-2xl) var(--space-xl)', fontSize: 'var(--text-md)' },
             states: { open: {}, closed: {} },
         },
+    },
+    variants: {
+        // The open heading's ink per role, through `roleInk` — a raw role
+        // token is a fill colour, not an ink (#210), and the mix is the map
+        // measured against all five daisy themes.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--collapsible-accent': roleInk(c),
+        } } }])),
+        size: disclosureSizes,
     },
 };
 
@@ -390,6 +504,19 @@ export const switchRecipe: RecipeInput = {
 // 2. checkbox — the three clip-paths, the fallback helper, then the recipe
 // --------------------------------------------------------------------------
 
+/**
+ * daisy's field ramp — one height per size step, in `--size-field` units.
+ *
+ * Named once because three components step on it: `select`'s trigger reads it
+ * through `btn`, and `combobox`/`number-input` had no height at all and sized
+ * implicitly off their input's padding — 48px next to 31px on the same page
+ * (#219). A ramp restated in three recipes is a ramp free to drift, which is
+ * exactly what happened.
+ */
+const FIELD_STEPS = { xs: 8, sm: 10, md: 12, lg: 14, xl: 16 } as const;
+const fieldHeight = (step: keyof typeof FIELD_STEPS): string =>
+    `calc(var(--size-field) * ${FIELD_STEPS[step]})`;
+
 // daisy "modal" flavor (+ "btn" trigger/close).
 const btn: NonNullable<PartStyles['base']> = {
     appearance: 'none',
@@ -408,6 +535,41 @@ const btn: NonNullable<PartStyles['base']> = {
     boxShadow: 'var(--shadow-xs)',
     cursor: 'pointer',
     transition: 'background var(--duration-normal) var(--ease-standard)',
+};
+
+/**
+ * The axes for the four btn-wearing overlay triggers (#321). Dialog, popover,
+ * tooltip and menu carry their axis attributes on the TRIGGER — the anatomy's
+ * carrier part — and their popups are top-layer siblings the compiled
+ * `@scope` donut can never reach, so the axes style the btn itself.
+ *
+ * Colour is daisy's own `btn-{color}`: solid role fill, `-content` ink. The
+ * hover/open states restate the fill under the solid button's brightness dip
+ * — necessary, not decorative: the variant's flat base rule lands after the
+ * part's state rules at equal specificity, so without the restatement the
+ * neutral `base-300` hover would lose and the button would freeze.
+ */
+const btnColors = (): Record<string, Record<string, PartStyles>> =>
+    Object.fromEntries(ROLES.map((c) => [c, { trigger: {
+        base: {
+            background: `var(--color-${c})`,
+            color: `var(--color-${c}-content)`,
+            borderColor: 'transparent',
+        },
+        states: {
+            hover: { background: `var(--color-${c})`, filter: 'brightness(0.92)' },
+            open: { background: `var(--color-${c})`, filter: 'brightness(0.92)' },
+        },
+    } }]));
+
+/** The btn size ramp — select's trigger steps, off the shared field ramp. */
+const btnSizes: Record<string, Record<string, PartStyles>> = {
+    xs: { trigger: { base: { height: fieldHeight('xs'), paddingInline: 'calc(var(--size-field) * 2)', fontSize: 'var(--text-xs)' } } },
+    sm: { trigger: { base: { height: fieldHeight('sm'), paddingInline: 'calc(var(--size-field) * 3)', fontSize: 'var(--text-sm)' } } },
+    // `md` is the un-attributed render — `btn` already IS the middle step.
+    md: {},
+    lg: { trigger: { base: { height: fieldHeight('lg'), paddingInline: 'calc(var(--size-field) * 5)', fontSize: 'var(--text-md)' } } },
+    xl: { trigger: { base: { height: fieldHeight('xl'), paddingInline: 'calc(var(--size-field) * 6)', fontSize: 'var(--text-lg)' } } },
 };
 
 export const dialog: RecipeInput = {
@@ -487,6 +649,9 @@ export const dialog: RecipeInput = {
             },
         },
     },
+    // Trigger-carried axes — see `btnColors` for why the popup is out of
+    // reach and the trigger is the whole story here.
+    variants: { color: btnColors(), size: btnSizes },
 };
 
 // daisy "dropdown-content"/card look for floating panels.
@@ -527,6 +692,8 @@ export const popover: RecipeInput = {
             },
         },
     },
+    // Trigger-carried axes — same wiring as dialog, same reason.
+    variants: { color: btnColors(), size: btnSizes },
 };
 
 export const tooltip: RecipeInput = {
@@ -560,6 +727,9 @@ export const tooltip: RecipeInput = {
             states: { open: {}, closed: {} },
         }),
     },
+    // Trigger-carried axes — same wiring as dialog, same reason. The bubble
+    // stays daisy's neutral tooltip whatever the trigger's colour.
+    variants: { color: btnColors(), size: btnSizes },
 };
 
 // daisy "menu in a dropdown" look.
@@ -703,89 +873,22 @@ export const menu: RecipeInput = {
             },
         },
     },
+    // Trigger-carried axes — same wiring as dialog, same reason. The dropdown
+    // and its items are top-layer siblings the donut cannot reach.
+    variants: { color: btnColors(), size: btnSizes },
 };
-
-/**
- * How far each role survives in the button's INK — the colour a transparent or
- * tinted fill draws its label, border and focus ring with.
- *
- * A raw role token is a FILL colour: it is contrast-validated against its own
- * `-content` pair and against nothing else. Used as ink on a base surface it
- * has no floor at all, and daisy's palettes prove it — `neutral` is a dark grey
- * in all three dark themes (1.12–1.22:1 on `base-100`, 1.11–1.18 on its own
- * `-soft`) and `accent` a pale teal in light and nord (1.63–1.83). That is
- * #210: the `outline`, `soft` and `ghost` cells rendered as empty boxes.
- *
- * The mix partner is `--color-base-content`, NOT the role's own `-content`.
- * `ratingFill` above deepens toward `-content` and its comment says why that
- * cannot generalise: "deepening toward `-content` helps a light theme and hurts
- * a dark one" — because `-content` is the pole opposite the ROLE, which in a
- * dark theme means darker, straight into a dark `base-100`. `base-content` is
- * by construction the pole opposite the SURFACE, so the same percentage lightens
- * on dark themes and darkens on light ones. One number per role then holds
- * across all five themes.
- *
- * Per role, and each the gentlest 5% step that clears 3:1 — the same rule
- * `progressFill` and `RATING_DEEPEN` follow. Measured through Chromium's own
- * canvas (the technique `contrast-audit.spec.ts` uses, so gamut mapping matches
- * what is painted): 5 themes × 8 roles × {base-100, base-200, base-300, the
- * role's `-soft`, and `-soft` under the hover `brightness(.95)`} = 200 cells,
- * all ≥3:1, worst 3.10 (nord `secondary` on `base-300`).
- *
- * One 5% step gentler puts five of the eight under the floor — `primary` 2.98,
- * `secondary` 2.87, `accent` 2.96, `neutral` 2.87, `success` 2.97 — and leaves
- * the other three sitting on it with nothing to spare (`info` 3.00, `error`
- * 3.03, `warning` 3.04). Every one of those worst cells is nord on `base-300`
- * except `neutral`'s, which is dim's own `-soft` under the hover brightness.
- *
- * `primary` keeps 95% because raw already sat at 2.98 — a nudge, not a repaint.
- * `neutral` keeps 40% because a role whose fill is a near-surface grey has
- * nowhere else to go.
- *
- * `error` USED to keep 95% for the same reason as `primary` (raw sat at 3.03),
- * and no longer can: correcting the palette to daisyUI 5.7.8's own values
- * (#231) moved light's `error` from `oklch(63.72% 0.237 25.33)` to
- * `oklch(71% 0.194 13.428)` — lighter and less saturated — which took the raw
- * ink to 2.75:1 on its own `soft` fill. 85% is the gentlest step that clears,
- * at 3.31:1, which puts it in the same band as every other role here
- * (3.25–3.85). 90% reaches only 3.01, sitting on the floor with nothing to
- * spare.
- *
- * Verified again on the compiled output rather than the tokens: the emitted
- * CSS rendered in all five themes, 4 variants × 8 roles, gives 160 label cells
- * and 40 `outline` borders with none under 3:1, worst 3.23 (nord / `soft` /
- * `primary`). Before: 35 labels and 11 borders under, worst 1.11.
- *
- * This is the ad-hoc `color-mix` #126 describes: the contract has no name for
- * "this role's muted ink", so every design system invents one. When #126 lands,
- * this map is what it replaces — which is also why it is named for the JOB
- * rather than for the button: the four error-text sites below read the same
- * definition, and a second hand-tuned copy of it is precisely what #126 exists
- * to stop.
- */
-/**
- * Keyed on the DECLARED roles, so a typo here is a build error rather than a
- * silent fall through to the default — and optional, so the `?? 55` below is a
- * real branch the type system can see rather than dead code. It stays optional
- * because `roleInk` is also reachable for a role this map has no opinion on.
- */
-const ROLE_INK_KEEP: { [K in keyof typeof roles]?: number } = {
-    primary: 95, secondary: 70, accent: 55, neutral: 40,
-    info: 70, success: 55, warning: 45, error: 85,
-};
-
-const roleInk = (role: string): string =>
-    `color-mix(in oklab, var(--color-${role}) `
-    + `${ROLE_INK_KEEP[role as keyof typeof roles] ?? 55}%, var(--color-base-content))`;
 
 export const field: RecipeInput = {
     component: 'field',
+    // The label's accent ink — base-content by default, so the un-attributed
+    // field is unchanged and a role only arrives through `data-color`.
+    tokens: { '--field-accent': 'var(--color-base-content)' },
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' },
         },
         label: {
-            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)' },
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-semibold)', color: 'var(--field-accent)' },
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
             selectors: {
                 '&[data-required]::after': { content: '" *"', color: roleInk('error') },
@@ -796,6 +899,31 @@ export const field: RecipeInput = {
         },
         error: {
             base: { margin: '0', fontSize: 'var(--text-xs)', color: roleInk('error'), fontWeight: 'var(--weight-medium)' },
+        },
+    },
+    variants: {
+        // Colour accents the LABEL only, through `roleInk` (#210): the
+        // description keeps its muting and the error message stays error
+        // whatever the field's role.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--field-accent': roleInk(c),
+        } } }])),
+        size: {
+            xs: { label: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { label: { base: { fontSize: 'var(--text-xs)' } } },
+            // `md` is the un-attributed render — the base already IS the
+            // middle step.
+            md: {},
+            lg: {
+                label: { base: { fontSize: 'var(--text-md)' } },
+                description: { base: { fontSize: 'var(--text-sm)' } },
+                error: { base: { fontSize: 'var(--text-sm)' } },
+            },
+            xl: {
+                label: { base: { fontSize: 'var(--text-lg)' } },
+                description: { base: { fontSize: 'var(--text-md)' } },
+                error: { base: { fontSize: 'var(--text-md)' } },
+            },
         },
     },
 };
@@ -1351,6 +1479,9 @@ export const slider: RecipeInput = {
 
 export const accordion: RecipeInput = {
     component: 'accordion',
+    // Same accent grammar as collapsible: the open heading's ink, defaulting
+    // to base-content so the un-attributed render is unchanged.
+    tokens: { '--accordion-accent': 'var(--color-base-content)' },
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' },
@@ -1377,7 +1508,9 @@ export const accordion: RecipeInput = {
             },
             states: {
                 hover: { background: 'var(--color-base-200)' },
-                open: {},
+                // No-op with the default accent — the state `data-color`'s
+                // ink lands on, exactly as collapsible does it.
+                open: { color: 'var(--accordion-accent)' },
                 closed: {},
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
@@ -1402,20 +1535,15 @@ export const accordion: RecipeInput = {
             states: { open: {}, closed: {} },
         },
     },
+    variants: {
+        // The open heading's ink per role — `roleInk`, since it is ink on a
+        // base surface (#210).
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--accordion-accent': roleInk(c),
+        } } }])),
+        size: disclosureSizes,
+    },
 };
-
-/**
- * daisy's field ramp — one height per size step, in `--size-field` units.
- *
- * Named once because three components step on it: `select`'s trigger reads it
- * through `btn`, and `combobox`/`number-input` had no height at all and sized
- * implicitly off their input's padding — 48px next to 31px on the same page
- * (#219). A ramp restated in three recipes is a ramp free to drift, which is
- * exactly what happened.
- */
-const FIELD_STEPS = { xs: 8, sm: 10, md: 12, lg: 14, xl: 16 } as const;
-const fieldHeight = (step: keyof typeof FIELD_STEPS): string =>
-    `calc(var(--size-field) * ${FIELD_STEPS[step]})`;
 
 /**
  * The metrics every form control shares: the `md` height off the ramp above,
@@ -1878,6 +2006,23 @@ export const toast: RecipeInput = {
                 },
             },
         ])),
+        // Size moves the alert's box — padding and type — never its role
+        // tint. The description meta-text steps only at the wide end.
+        size: {
+            xs: { root: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--text-sm)' } } },
+            // `md` is the un-attributed render — the base already IS the
+            // middle step.
+            md: {},
+            lg: {
+                root: { base: { padding: 'var(--space-lg) var(--space-xl)', fontSize: 'var(--text-md)' } },
+                description: { base: { fontSize: 'var(--text-sm)' } },
+            },
+            xl: {
+                root: { base: { padding: 'var(--space-xl) var(--space-2xl)', fontSize: 'var(--text-lg)' } },
+                description: { base: { fontSize: 'var(--text-md)' } },
+            },
+        },
     },
 };
 

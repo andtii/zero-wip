@@ -38,67 +38,55 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** collapsible — no axis wired by material; every axis errors under this register module. */
+            /** collapsible — color, size wired. */
             'collapsible': {
-                /** Accepts `color` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** accordion — no axis wired by material; every axis errors under this register module. */
+            /** accordion — color, size wired. */
             'accordion': {
-                /** Accepts `color` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** dialog — no axis wired by material; every axis errors under this register module. */
+            /** dialog — color, size wired. */
             'dialog': {
-                /** Accepts `color` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** popover — no axis wired by material; every axis errors under this register module. */
+            /** popover — color, size wired. */
             'popover': {
-                /** Accepts `color` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** tooltip — no axis wired by material; every axis errors under this register module. */
+            /** tooltip — color, size wired. */
             'tooltip': {
-                /** Accepts `color` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** menu — no axis wired by material; every axis errors under this register module. */
+            /** menu — color, size wired. */
             'menu': {
-                /** Accepts `color` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -140,12 +128,10 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** field — no axis wired by material; every axis errors under this register module. */
+            /** field — color, size wired. */
             'field': {
-                /** Accepts `color` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                color: never;
-                /** Accepts `size` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                size: never;
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -178,11 +164,10 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** toast — color wired. */
+            /** toast — color, size wired. */
             'toast': {
                 color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
-                /** Accepts `size` at runtime, but no material recipe wires it — the attribute would match nothing. */
-                size: never;
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
                 /** Accepts `variant` at runtime, but no material recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;

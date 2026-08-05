@@ -74,6 +74,31 @@
         line-height: var(--leading-normal);
     }
 
+    @scope ([data-scope="collapsible"][data-part="root"][data-size="sm"]) to ([data-scope="collapsible"][data-part="root"]) {
+        [data-scope="collapsible"][data-part="trigger"] {
+            min-height: 2rem;
+            padding: 0 var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="collapsible"][data-part="root"][data-size="lg"]) to ([data-scope="collapsible"][data-part="root"]) {
+        [data-scope="collapsible"][data-part="trigger"] {
+            min-height: 3rem;
+        }
+    }
+
+    @scope ([data-scope="collapsible"][data-part="root"][data-size="xl"]) to ([data-scope="collapsible"][data-part="root"]) {
+        [data-scope="collapsible"][data-part="trigger"] {
+            min-height: 4rem;
+        }
+    }
+
+    @scope ([data-scope="collapsible"][data-part="root"][data-size="2xl"]) to ([data-scope="collapsible"][data-part="root"]) {
+        [data-scope="collapsible"][data-part="trigger"] {
+            min-height: 5rem;
+        }
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="collapsible"][data-part="root"]::details-content {
             transition: none;

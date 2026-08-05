@@ -220,6 +220,16 @@
         background: var(--hero-line);
     }
 
+    [data-scope="menu"][data-part="trigger"][data-size="sm"] {
+        padding: var(--space-xs) var(--space-md);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-size="lg"] {
+        padding: var(--space-md) var(--space-xl);
+        font-size: var(--text-md);
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="menu"][data-part="popup"] {
             transition: none;

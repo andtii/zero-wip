@@ -79,6 +79,31 @@
         line-height: var(--leading-normal);
     }
 
+    @scope ([data-scope="accordion"][data-part="root"][data-size="sm"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            min-height: 2rem;
+            padding: 0 var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="lg"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            min-height: 3rem;
+        }
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="xl"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            min-height: 4rem;
+        }
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="2xl"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            min-height: 5rem;
+        }
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="accordion"][data-part="item"]::details-content {
             transition: none;

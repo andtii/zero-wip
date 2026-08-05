@@ -258,6 +258,20 @@ const disclosurePanel: PartStyles = {
 };
 
 /**
+ * The disclosure size ramp (#321) — the accordion heading continues Carbon's
+ * control heights exactly as tabs does (#258): 32 → 40 → 48 → 64 → 80, with
+ * the heading's resting 40px as the un-attributed `md`. Heights, not type:
+ * Carbon's size axis moves the control's box.
+ */
+const disclosureSizes: Record<string, Record<string, PartStyles>> = {
+    sm: { trigger: { base: { minHeight: '2rem', padding: '0 var(--space-sm)' } } },
+    md: {},
+    lg: { trigger: { base: { minHeight: '3rem' } } },
+    xl: { trigger: { base: { minHeight: '4rem' } } },
+    '2xl': { trigger: { base: { minHeight: '5rem' } } },
+};
+
+/**
  * The menu surface: square, one step up the layer ramp (Carbon's $layer-01 —
  * flyouts never sit on the page background), a faint shadow as the secondary
  * depth cue — no hairline.
@@ -420,6 +434,7 @@ export const collapsible: RecipeInput = {
         trigger: disclosureTrigger,
         panel: disclosurePanel,
     },
+    variants: { size: disclosureSizes },
 };
 
 // ── Switch ────────────────────────────────────────────────────────────────
@@ -523,6 +538,25 @@ export const switchRecipe: RecipeInput = {
 };
 
 // ── Dialog ────────────────────────────────────────────────────────────────
+/**
+ * The size axis for the four ghost overlay triggers (#321). Dialog, popover,
+ * tooltip and menu carry `data-size` on the TRIGGER — the anatomy's carrier
+ * part; their popups are top-layer siblings the compiled `@scope` donut can
+ * never reach, so size means the control itself. The ramp is the Button's
+ * verbatim, including its anchor: `ghostTrigger` rests at Carbon's 48px
+ * `lg`, exactly as the button does, so `lg` is the empty entry and `md`
+ * SHRINKS the un-attributed render — and, past `lg`, the tall steps top-align
+ * their label the way Carbon's expressive buttons do. (There is no colour
+ * axis to wire: `roles: {}`, and `kind` stays Button-only by #183.)
+ */
+const overlayTriggerSizes: Record<string, Record<string, PartStyles>> = {
+    sm: { trigger: { base: { minHeight: '2rem' } } },
+    md: { trigger: { base: { minHeight: '2.5rem' } } },
+    lg: {},
+    xl: { trigger: { base: { minHeight: '4rem', alignItems: 'flex-start', paddingTop: 'var(--space-md)' } } },
+    '2xl': { trigger: { base: { minHeight: '5rem', alignItems: 'flex-start', paddingTop: 'var(--space-md)' } } },
+};
+
 export const dialog: RecipeInput = {
     component: 'dialog',
     parts: {
@@ -667,6 +701,8 @@ export const dialog: RecipeInput = {
             };
         })(),
     },
+    // Trigger-carried size — see `overlayTriggerSizes`.
+    variants: { size: overlayTriggerSizes },
 };
 
 // ── Popover ───────────────────────────────────────────────────────────────
@@ -702,6 +738,8 @@ export const popover: RecipeInput = {
         },
         close: ghostIconButton('2rem'),
     },
+    // Trigger-carried size — see `overlayTriggerSizes`.
+    variants: { size: overlayTriggerSizes },
 };
 
 // ── Tooltip ───────────────────────────────────────────────────────────────
@@ -737,6 +775,8 @@ export const tooltip: RecipeInput = {
             states: { open: {}, closed: {} },
         }),
     },
+    // Trigger-carried size — see `overlayTriggerSizes`.
+    variants: { size: overlayTriggerSizes },
 };
 
 // ── Menu ──────────────────────────────────────────────────────────────────
@@ -847,6 +887,8 @@ export const menu: RecipeInput = {
     // only to name the part, and deliberately leaves its ring to whatever the
     // app draws around that content.
     skipStates: { 'context-trigger': ['focus-visible'] },
+    // Trigger-carried size — see `overlayTriggerSizes`.
+    variants: { size: overlayTriggerSizes },
 };
 
 // ── Field ─────────────────────────────────────────────────────────────────
@@ -888,6 +930,32 @@ export const field: RecipeInput = {
                 fontSize: 'var(--text-xs)',
                 letterSpacing: 'var(--tracking-wide)',
                 color: 'var(--carbon-danger)',
+            },
+        },
+    },
+    variants: {
+        // A field wrapper has no control height to ramp, so size moves what
+        // it does own: label-01's 12px is Carbon's fixed caption at the
+        // resting steps (`sm` only tightens the stack), and the wide steps
+        // scale the three text parts together — the `expressive` move.
+        size: {
+            sm: { root: { base: { gap: 'var(--space-xs)' } } },
+            // `md` is the un-attributed render.
+            md: {},
+            lg: {
+                label: { base: { fontSize: 'var(--text-sm)' } },
+                description: { base: { fontSize: 'var(--text-sm)' } },
+                error: { base: { fontSize: 'var(--text-sm)' } },
+            },
+            xl: {
+                label: { base: { fontSize: 'var(--text-md)' } },
+                description: { base: { fontSize: 'var(--text-md)' } },
+                error: { base: { fontSize: 'var(--text-md)' } },
+            },
+            '2xl': {
+                label: { base: { fontSize: 'var(--text-lg)' } },
+                description: { base: { fontSize: 'var(--text-lg)' } },
+                error: { base: { fontSize: 'var(--text-lg)' } },
             },
         },
     },
@@ -1531,6 +1599,7 @@ export const accordion: RecipeInput = {
         trigger: disclosureTrigger,
         panel: disclosurePanel,
     },
+    variants: { size: disclosureSizes },
 };
 
 // ── Select ────────────────────────────────────────────────────────────────
@@ -2084,6 +2153,29 @@ export const toast: RecipeInput = {
             },
             selectors: {
                 '&[data-pressed]:not([data-disabled])': { background: layerActive },
+            },
+        },
+    },
+    variants: {
+        // Size moves the notification's box and type — never the accent bar
+        // or the kind. (There is no colour axis: `roles: {}`; the accent is
+        // keyed off the runtime's own `role` attribute above.)
+        size: {
+            sm: {
+                root: { base: { padding: 'var(--space-sm)', fontSize: 'var(--text-xs)' } },
+                description: { base: { fontSize: 'var(--text-xs)' } },
+            },
+            // `md` is the un-attributed render — the base already IS the
+            // middle step.
+            md: {},
+            lg: { root: { base: { padding: 'var(--space-lg)', fontSize: 'var(--text-md)' } } },
+            xl: {
+                root: { base: { padding: 'var(--space-xl)', fontSize: 'var(--text-md)' } },
+                description: { base: { fontSize: 'var(--text-md)' } },
+            },
+            '2xl': {
+                root: { base: { padding: 'var(--space-2xl)', fontSize: 'var(--text-lg)' } },
+                description: { base: { fontSize: 'var(--text-md)' } },
             },
         },
     },

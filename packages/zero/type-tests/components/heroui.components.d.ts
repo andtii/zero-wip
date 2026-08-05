@@ -48,7 +48,9 @@ type TabsAdapted = Adapted<typeof ZTabs, ZeroAxisProp, TabsProps>;
 export declare const Tabs: TabsAdapted & AdaptedStatics<typeof ZTabs> & { Root: TabsAdapted };
 
 /** collapsible — no vendor route; the wired surface keeps zero's names. */
-type CollapsibleProps = Record<never, never>;
+type CollapsibleProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
 type CollapsibleAdapted = Adapted<typeof ZCollapsible, ZeroAxisProp, CollapsibleProps>;
 export declare const Collapsible: CollapsibleAdapted & AdaptedStatics<typeof ZCollapsible> & { Root: CollapsibleAdapted };
 
@@ -60,27 +62,37 @@ type SwitchAdapted = Adapted<typeof ZSwitch, ZeroAxisProp, SwitchProps>;
 export declare const Switch: SwitchAdapted & AdaptedStatics<typeof ZSwitch> & { Root: SwitchAdapted };
 
 /** dialog — no vendor route; the wired surface keeps zero's names. */
-type DialogProps = Record<never, never>;
+type DialogProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
 type DialogAdapted = Adapted<typeof ZDialog, ZeroAxisProp, DialogProps>;
 export declare const Dialog: DialogAdapted & AdaptedStatics<typeof ZDialog> & { Root: DialogAdapted };
 
 /** popover — no vendor route; the wired surface keeps zero's names. */
-type PopoverProps = Record<never, never>;
+type PopoverProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
 type PopoverAdapted = Adapted<typeof ZPopover, ZeroAxisProp, PopoverProps>;
 export declare const Popover: PopoverAdapted & AdaptedStatics<typeof ZPopover> & { Root: PopoverAdapted };
 
 /** tooltip — no vendor route; the wired surface keeps zero's names. */
-type TooltipProps = Record<never, never>;
+type TooltipProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
 type TooltipAdapted = Adapted<typeof ZTooltip, ZeroAxisProp, TooltipProps>;
 export declare const Tooltip: TooltipAdapted & AdaptedStatics<typeof ZTooltip> & { Root: TooltipAdapted };
 
 /** menu — no vendor route; the wired surface keeps zero's names. */
-type MenuProps = Record<never, never>;
+type MenuProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
 type MenuAdapted = Adapted<typeof ZMenu, ZeroAxisProp, MenuProps>;
 export declare const Menu: MenuAdapted & AdaptedStatics<typeof ZMenu> & { Root: MenuAdapted };
 
 /** field — no vendor route; the wired surface keeps zero's names. */
-type FieldProps = Record<never, never>;
+type FieldProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
 type FieldAdapted = Adapted<typeof ZField, ZeroAxisProp, FieldProps>;
 export declare const Field: FieldAdapted & AdaptedStatics<typeof ZField> & { Root: FieldAdapted };
 
@@ -113,7 +125,9 @@ type SliderAdapted = Adapted<typeof ZSlider, ZeroAxisProp, SliderProps>;
 export declare const Slider: SliderAdapted & AdaptedStatics<typeof ZSlider> & { Root: SliderAdapted };
 
 /** accordion — no vendor route; the wired surface keeps zero's names. */
-type AccordionProps = Record<never, never>;
+type AccordionProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
 type AccordionAdapted = Adapted<typeof ZAccordion, ZeroAxisProp, AccordionProps>;
 export declare const Accordion: AccordionAdapted & AdaptedStatics<typeof ZAccordion> & { Root: AccordionAdapted };
 
@@ -142,7 +156,9 @@ type AvatarAdapted = Adapted<typeof ZAvatar, ZeroAxisProp, AvatarProps>;
 export declare const Avatar: AvatarAdapted & AdaptedStatics<typeof ZAvatar> & { Root: AvatarAdapted };
 
 /** toast — no vendor route; the wired surface keeps zero's names. */
-type ToastProps = Record<never, never>;
+type ToastProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
 type ToastAdapted = Adapted<typeof ZToast, ZeroAxisProp, ToastProps>;
 export declare const Toast: ToastAdapted & AdaptedStatics<typeof ZToast> & { Root: ToastAdapted };
 

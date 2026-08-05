@@ -618,15 +618,27 @@ describe('variants', () => {
             .toContainEqual(expect.stringContaining("not on this design system's declared size ramp"));
     });
 
-    it('errors on variants for a component with no root part', () => {
+    it('errors on variants that style an unreachable part of a rootless component', () => {
         // dialog/popover/tooltip/menu render no root element, so the carrier
-        // falls back to `trigger` and the descendant selectors never match —
-        // the rules compile to dead CSS.
+        // falls back to `trigger` and the popup is a top-layer SIBLING — a
+        // variant rule for it compiles to a donut rooted where the part never
+        // sits, i.e. dead CSS.
         expect(check({
             component: 'dialog',
             parts: { trigger: { states: { 'focus-visible': { outline: '1px solid' } } } },
             variants: { color: { primary: { popup: { base: { borderColor: 'var(--color-primary)' } } } } },
         }).errors).toContainEqual(expect.stringContaining('no "root" part'));
+    });
+
+    it('accepts variants that stay on a rootless component\'s carrier part', () => {
+        // The attribute sits on the trigger itself, so a trigger rule is a
+        // flat selector — the #321 wiring shape for the trigger-carried
+        // overlay scopes.
+        expect(check({
+            component: 'dialog',
+            parts: { trigger: { states: { 'focus-visible': { outline: '1px solid' } } } },
+            variants: { color: { primary: { trigger: { base: { color: 'var(--color-primary)' } } } } },
+        }).errors).toEqual([]);
     });
 });
 

@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **The rootless-variant validation now checks reachability, not existence**
+  (#321). A component with no `root` part (dialog/popover/tooltip/menu) used
+  to hard-error on ANY `variants`/`modifiers`/`compoundVariants`; it now
+  errors only when a rule styles a part that never renders under the carrier
+  (the popup and its descendants — those donuts are dead CSS). Rules on the
+  carrier part itself — the trigger the axis attributes actually sit on —
+  are flat selectors and are accepted, which is what lets a design system
+  wire `color`/`size` for the trigger-carried Contract v1 scopes at all.
+
 ### Added
 
 - **Contract v1: @scope-bounded axis rules, a versioned self-validating DS

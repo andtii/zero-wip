@@ -150,6 +150,42 @@
         outline-offset: 2px;
     }
 
+    [data-scope="toast"][data-part="root"][data-size="sm"] {
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    [data-scope="toast"][data-part="root"][data-size="lg"] {
+        padding: var(--space-lg) var(--space-xl);
+    }
+
+    @scope ([data-scope="toast"][data-part="root"][data-size="sm"]) to ([data-scope="toast"][data-part="root"]) {
+        [data-scope="toast"][data-part="title"] {
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="toast"][data-part="description"] {
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="toast"][data-part="action"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="toast"][data-part="root"][data-size="lg"]) to ([data-scope="toast"][data-part="root"]) {
+        [data-scope="toast"][data-part="title"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="toast"][data-part="description"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="toast"][data-part="action"] {
+            font-size: var(--text-md);
+        }
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="toast"][data-part="root"] {
             transition: none;

@@ -320,6 +320,31 @@
         line-height: var(--leading-normal);
     }
 
+    @scope ([data-scope="collapsible"][data-part="root"][data-size="sm"]) to ([data-scope="collapsible"][data-part="root"]) {
+        [data-scope="collapsible"][data-part="trigger"] {
+            min-height: 2rem;
+            padding: 0 var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="collapsible"][data-part="root"][data-size="lg"]) to ([data-scope="collapsible"][data-part="root"]) {
+        [data-scope="collapsible"][data-part="trigger"] {
+            min-height: 3rem;
+        }
+    }
+
+    @scope ([data-scope="collapsible"][data-part="root"][data-size="xl"]) to ([data-scope="collapsible"][data-part="root"]) {
+        [data-scope="collapsible"][data-part="trigger"] {
+            min-height: 4rem;
+        }
+    }
+
+    @scope ([data-scope="collapsible"][data-part="root"][data-size="2xl"]) to ([data-scope="collapsible"][data-part="root"]) {
+        [data-scope="collapsible"][data-part="trigger"] {
+            min-height: 5rem;
+        }
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="collapsible"][data-part="root"]::details-content {
             transition: none;
@@ -612,6 +637,26 @@
         background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
     }
 
+    [data-scope="dialog"][data-part="trigger"][data-size="sm"] {
+        min-height: 2rem;
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-size="md"] {
+        min-height: 2.5rem;
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-size="xl"] {
+        min-height: 4rem;
+        align-items: flex-start;
+        padding-top: var(--space-md);
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-size="2xl"] {
+        min-height: 5rem;
+        align-items: flex-start;
+        padding-top: var(--space-md);
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="dialog"][data-part="popup"] {
             transition: none;
@@ -744,6 +789,26 @@
         background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
     }
 
+    [data-scope="popover"][data-part="trigger"][data-size="sm"] {
+        min-height: 2rem;
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-size="md"] {
+        min-height: 2.5rem;
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-size="xl"] {
+        min-height: 4rem;
+        align-items: flex-start;
+        padding-top: var(--space-md);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-size="2xl"] {
+        min-height: 5rem;
+        align-items: flex-start;
+        padding-top: var(--space-md);
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="popover"][data-part="popup"] {
             transition: none;
@@ -820,6 +885,26 @@
     [data-scope="tooltip"][data-part="popup"][data-state="open"] {
         opacity: 1;
         transform: none;
+    }
+
+    [data-scope="tooltip"][data-part="trigger"][data-size="sm"] {
+        min-height: 2rem;
+    }
+
+    [data-scope="tooltip"][data-part="trigger"][data-size="md"] {
+        min-height: 2.5rem;
+    }
+
+    [data-scope="tooltip"][data-part="trigger"][data-size="xl"] {
+        min-height: 4rem;
+        align-items: flex-start;
+        padding-top: var(--space-md);
+    }
+
+    [data-scope="tooltip"][data-part="trigger"][data-size="2xl"] {
+        min-height: 5rem;
+        align-items: flex-start;
+        padding-top: var(--space-md);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1069,6 +1154,26 @@
         background: var(--carbon-line);
     }
 
+    [data-scope="menu"][data-part="trigger"][data-size="sm"] {
+        min-height: 2rem;
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-size="md"] {
+        min-height: 2.5rem;
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-size="xl"] {
+        min-height: 4rem;
+        align-items: flex-start;
+        padding-top: var(--space-md);
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-size="2xl"] {
+        min-height: 5rem;
+        align-items: flex-start;
+        padding-top: var(--space-md);
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="menu"][data-part="popup"] {
             transition: none;
@@ -1136,6 +1241,52 @@
         font-size: var(--text-xs);
         letter-spacing: var(--tracking-wide);
         color: var(--carbon-danger);
+    }
+
+    [data-scope="field"][data-part="root"][data-size="sm"] {
+        gap: var(--space-xs);
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="lg"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-sm);
+        }
+
+        [data-scope="field"][data-part="description"] {
+            font-size: var(--text-sm);
+        }
+
+        [data-scope="field"][data-part="error"] {
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="xl"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="field"][data-part="description"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="field"][data-part="error"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="2xl"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-lg);
+        }
+
+        [data-scope="field"][data-part="description"] {
+            font-size: var(--text-lg);
+        }
+
+        [data-scope="field"][data-part="error"] {
+            font-size: var(--text-lg);
+        }
     }
 }
 
@@ -1779,6 +1930,31 @@
         line-height: var(--leading-normal);
     }
 
+    @scope ([data-scope="accordion"][data-part="root"][data-size="sm"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            min-height: 2rem;
+            padding: 0 var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="lg"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            min-height: 3rem;
+        }
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="xl"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            min-height: 4rem;
+        }
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="2xl"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            min-height: 5rem;
+        }
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="accordion"][data-part="item"]::details-content {
             transition: none;
@@ -2319,6 +2495,44 @@
 
     [data-scope="toast"][data-part="close"][data-pressed]:not([data-disabled]) {
         background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
+    }
+
+    [data-scope="toast"][data-part="root"][data-size="sm"] {
+        padding: var(--space-sm);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="toast"][data-part="root"][data-size="lg"] {
+        padding: var(--space-lg);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="toast"][data-part="root"][data-size="xl"] {
+        padding: var(--space-xl);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="toast"][data-part="root"][data-size="2xl"] {
+        padding: var(--space-2xl);
+        font-size: var(--text-lg);
+    }
+
+    @scope ([data-scope="toast"][data-part="root"][data-size="sm"]) to ([data-scope="toast"][data-part="root"]) {
+        [data-scope="toast"][data-part="description"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="toast"][data-part="root"][data-size="xl"]) to ([data-scope="toast"][data-part="root"]) {
+        [data-scope="toast"][data-part="description"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="toast"][data-part="root"][data-size="2xl"]) to ([data-scope="toast"][data-part="root"]) {
+        [data-scope="toast"][data-part="description"] {
+            font-size: var(--text-md);
+        }
     }
 
     @media (forced-colors: active) {

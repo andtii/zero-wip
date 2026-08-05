@@ -35,4 +35,50 @@
         letter-spacing: var(--tracking-wide);
         color: var(--carbon-danger);
     }
+
+    [data-scope="field"][data-part="root"][data-size="sm"] {
+        gap: var(--space-xs);
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="lg"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-sm);
+        }
+
+        [data-scope="field"][data-part="description"] {
+            font-size: var(--text-sm);
+        }
+
+        [data-scope="field"][data-part="error"] {
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="xl"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="field"][data-part="description"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="field"][data-part="error"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="2xl"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-lg);
+        }
+
+        [data-scope="field"][data-part="description"] {
+            font-size: var(--text-lg);
+        }
+
+        [data-scope="field"][data-part="error"] {
+            font-size: var(--text-lg);
+        }
+    }
 }

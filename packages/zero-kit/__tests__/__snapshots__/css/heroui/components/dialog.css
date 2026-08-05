@@ -167,6 +167,16 @@
         transform: scale(0.97);
     }
 
+    [data-scope="dialog"][data-part="trigger"][data-size="sm"] {
+        padding: var(--space-xs) var(--space-md);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-size="lg"] {
+        padding: var(--space-md) var(--space-xl);
+        font-size: var(--text-md);
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="dialog"][data-part="popup"] {
             transition: none;

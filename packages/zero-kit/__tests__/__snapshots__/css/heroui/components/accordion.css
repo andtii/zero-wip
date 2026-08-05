@@ -1,5 +1,10 @@
 @layer zero.recipes {
     [data-scope="accordion"][data-part="root"] {
+        --disclosure-text: var(--text-md);
+        --disclosure-panel-text: var(--text-sm);
+    }
+
+    [data-scope="accordion"][data-part="root"] {
         display: flex;
         flex-direction: column;
         color: var(--color-base-content);
@@ -36,7 +41,7 @@
         padding: var(--space-md) var(--space-xs);
         border-radius: var(--radius-field);
         font-family: var(--font-sans);
-        font-size: var(--text-md);
+        font-size: var(--disclosure-text);
         font-weight: var(--weight-medium);
         color: var(--color-base-content);
         cursor: pointer;
@@ -80,8 +85,18 @@
     [data-scope="accordion"][data-part="panel"] {
         padding: 0 var(--space-xs) var(--space-md);
         font-family: var(--font-sans);
-        font-size: var(--text-sm);
+        font-size: var(--disclosure-panel-text);
         color: var(--hero-muted);
+    }
+
+    [data-scope="accordion"][data-part="root"][data-size="sm"] {
+        --disclosure-text: var(--text-sm);
+        --disclosure-panel-text: var(--text-xs);
+    }
+
+    [data-scope="accordion"][data-part="root"][data-size="lg"] {
+        --disclosure-text: var(--text-lg);
+        --disclosure-panel-text: var(--text-md);
     }
 
     @media (prefers-reduced-motion: reduce) {

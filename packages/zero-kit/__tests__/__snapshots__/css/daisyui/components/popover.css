@@ -92,6 +92,158 @@
         outline-offset: 2px;
     }
 
+    [data-scope="popover"][data-part="trigger"][data-color="primary"] {
+        background: var(--color-primary);
+        color: var(--color-primary-content);
+        border-color: transparent;
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="primary"]:hover:not([data-disabled]) {
+        background: var(--color-primary);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="primary"][data-state="open"] {
+        background: var(--color-primary);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="secondary"] {
+        background: var(--color-secondary);
+        color: var(--color-secondary-content);
+        border-color: transparent;
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="secondary"]:hover:not([data-disabled]) {
+        background: var(--color-secondary);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="secondary"][data-state="open"] {
+        background: var(--color-secondary);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="accent"] {
+        background: var(--color-accent);
+        color: var(--color-accent-content);
+        border-color: transparent;
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="accent"]:hover:not([data-disabled]) {
+        background: var(--color-accent);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="accent"][data-state="open"] {
+        background: var(--color-accent);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="neutral"] {
+        background: var(--color-neutral);
+        color: var(--color-neutral-content);
+        border-color: transparent;
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="neutral"]:hover:not([data-disabled]) {
+        background: var(--color-neutral);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="neutral"][data-state="open"] {
+        background: var(--color-neutral);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="info"] {
+        background: var(--color-info);
+        color: var(--color-info-content);
+        border-color: transparent;
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="info"]:hover:not([data-disabled]) {
+        background: var(--color-info);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="info"][data-state="open"] {
+        background: var(--color-info);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="success"] {
+        background: var(--color-success);
+        color: var(--color-success-content);
+        border-color: transparent;
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="success"]:hover:not([data-disabled]) {
+        background: var(--color-success);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="success"][data-state="open"] {
+        background: var(--color-success);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="warning"] {
+        background: var(--color-warning);
+        color: var(--color-warning-content);
+        border-color: transparent;
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="warning"]:hover:not([data-disabled]) {
+        background: var(--color-warning);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="warning"][data-state="open"] {
+        background: var(--color-warning);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="error"] {
+        background: var(--color-error);
+        color: var(--color-error-content);
+        border-color: transparent;
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="error"]:hover:not([data-disabled]) {
+        background: var(--color-error);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="error"][data-state="open"] {
+        background: var(--color-error);
+        filter: brightness(0.92);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-size="xs"] {
+        height: calc(var(--size-field) * 8);
+        padding-inline: calc(var(--size-field) * 2);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-size="sm"] {
+        height: calc(var(--size-field) * 10);
+        padding-inline: calc(var(--size-field) * 3);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-size="lg"] {
+        height: calc(var(--size-field) * 14);
+        padding-inline: calc(var(--size-field) * 5);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-size="xl"] {
+        height: calc(var(--size-field) * 16);
+        padding-inline: calc(var(--size-field) * 6);
+        font-size: var(--text-lg);
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="popover"][data-part="popup"] {
             transition: none;

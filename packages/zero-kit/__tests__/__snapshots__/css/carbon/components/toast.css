@@ -170,6 +170,44 @@
         background: color-mix(in oklab, var(--color-base-content) 15%, transparent);
     }
 
+    [data-scope="toast"][data-part="root"][data-size="sm"] {
+        padding: var(--space-sm);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="toast"][data-part="root"][data-size="lg"] {
+        padding: var(--space-lg);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="toast"][data-part="root"][data-size="xl"] {
+        padding: var(--space-xl);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="toast"][data-part="root"][data-size="2xl"] {
+        padding: var(--space-2xl);
+        font-size: var(--text-lg);
+    }
+
+    @scope ([data-scope="toast"][data-part="root"][data-size="sm"]) to ([data-scope="toast"][data-part="root"]) {
+        [data-scope="toast"][data-part="description"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="toast"][data-part="root"][data-size="xl"]) to ([data-scope="toast"][data-part="root"]) {
+        [data-scope="toast"][data-part="description"] {
+            font-size: var(--text-md);
+        }
+    }
+
+    @scope ([data-scope="toast"][data-part="root"][data-size="2xl"]) to ([data-scope="toast"][data-part="root"]) {
+        [data-scope="toast"][data-part="description"] {
+            font-size: var(--text-md);
+        }
+    }
+
     @media (forced-colors: active) {
         [data-scope="toast"][data-part="root"] {
             border-inline-start-color: CanvasText;

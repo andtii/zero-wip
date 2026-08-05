@@ -31,12 +31,11 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** collapsible — no axis wired by heroui; every axis errors under this register module. */
+            /** collapsible — size wired. */
             'collapsible': {
                 /** Accepts `color` at runtime, but heroui declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                /** Accepts `size` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
-                size: never;
+                size: 'sm' | 'md' | 'lg';
                 /** Accepts `variant` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -52,56 +51,51 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** dialog — no axis wired by heroui; every axis errors under this register module. */
+            /** dialog — size wired. */
             'dialog': {
                 /** Accepts `color` at runtime, but heroui declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                /** Accepts `size` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
-                size: never;
+                size: 'sm' | 'md' | 'lg';
                 /** Accepts `variant` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** popover — no axis wired by heroui; every axis errors under this register module. */
+            /** popover — size wired. */
             'popover': {
                 /** Accepts `color` at runtime, but heroui declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                /** Accepts `size` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
-                size: never;
+                size: 'sm' | 'md' | 'lg';
                 /** Accepts `variant` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** tooltip — no axis wired by heroui; every axis errors under this register module. */
+            /** tooltip — size wired. */
             'tooltip': {
                 /** Accepts `color` at runtime, but heroui declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                /** Accepts `size` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
-                size: never;
+                size: 'sm' | 'md' | 'lg';
                 /** Accepts `variant` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** menu — no axis wired by heroui; every axis errors under this register module. */
+            /** menu — size wired. */
             'menu': {
                 /** Accepts `color` at runtime, but heroui declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                /** Accepts `size` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
-                size: never;
+                size: 'sm' | 'md' | 'lg';
                 /** Accepts `variant` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** field — no axis wired by heroui; every axis errors under this register module. */
+            /** field — size wired. */
             'field': {
                 /** Accepts `color` at runtime, but heroui declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                /** Accepts `size` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
-                size: never;
+                size: 'sm' | 'md' | 'lg';
                 /** Accepts `variant` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -147,12 +141,11 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** accordion — no axis wired by heroui; every axis errors under this register module. */
+            /** accordion — size wired. */
             'accordion': {
                 /** Accepts `color` at runtime, but heroui declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                /** Accepts `size` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
-                size: never;
+                size: 'sm' | 'md' | 'lg';
                 /** Accepts `variant` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
@@ -187,12 +180,11 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
-            /** toast — no axis wired by heroui; every axis errors under this register module. */
+            /** toast — size wired. */
             'toast': {
                 /** Accepts `color` at runtime, but heroui declares no color axis at all — the attribute would match nothing. */
                 color: never;
-                /** Accepts `size` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
-                size: never;
+                size: 'sm' | 'md' | 'lg';
                 /** Accepts `variant` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;

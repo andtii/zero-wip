@@ -490,6 +490,11 @@
 
 @layer zero.recipes {
     [data-scope="collapsible"][data-part="root"] {
+        --disclosure-accent: var(--color-accent);
+        --disclosure-on-accent: var(--color-accent-content);
+    }
+
+    [data-scope="collapsible"][data-part="root"] {
         interpolate-size: allow-keywords;
         border: var(--border) solid var(--color-base-content);
         border-radius: 0;
@@ -523,8 +528,8 @@
     }
 
     [data-scope="collapsible"][data-part="trigger"][data-state="open"] {
-        background: var(--color-accent);
-        color: var(--color-accent-content);
+        background: var(--disclosure-accent);
+        color: var(--disclosure-on-accent);
     }
 
     [data-scope="collapsible"][data-part="trigger"]:hover:not([data-disabled]) {
@@ -546,6 +551,90 @@
         line-height: var(--leading-normal);
     }
 
+    [data-scope="collapsible"][data-part="root"][data-color="primary"] {
+        --disclosure-accent: var(--color-primary);
+        --disclosure-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="collapsible"][data-part="root"][data-color="secondary"] {
+        --disclosure-accent: var(--color-secondary);
+        --disclosure-on-accent: var(--color-secondary-content);
+    }
+
+    [data-scope="collapsible"][data-part="root"][data-color="accent"] {
+        --disclosure-accent: var(--color-accent);
+        --disclosure-on-accent: var(--color-accent-content);
+    }
+
+    [data-scope="collapsible"][data-part="root"][data-color="neutral"] {
+        --disclosure-accent: var(--color-neutral);
+        --disclosure-on-accent: var(--color-neutral-content);
+    }
+
+    [data-scope="collapsible"][data-part="root"][data-color="info"] {
+        --disclosure-accent: var(--color-info);
+        --disclosure-on-accent: var(--color-info-content);
+    }
+
+    [data-scope="collapsible"][data-part="root"][data-color="success"] {
+        --disclosure-accent: var(--color-success);
+        --disclosure-on-accent: var(--color-success-content);
+    }
+
+    [data-scope="collapsible"][data-part="root"][data-color="warning"] {
+        --disclosure-accent: var(--color-warning);
+        --disclosure-on-accent: var(--color-warning-content);
+    }
+
+    [data-scope="collapsible"][data-part="root"][data-color="error"] {
+        --disclosure-accent: var(--color-error);
+        --disclosure-on-accent: var(--color-error-content);
+    }
+
+    @scope ([data-scope="collapsible"][data-part="root"][data-size="xs"]) to ([data-scope="collapsible"][data-part="root"]) {
+        [data-scope="collapsible"][data-part="trigger"] {
+            padding: var(--space-xs);
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="collapsible"][data-part="panel"] {
+            padding: var(--space-xs);
+        }
+    }
+
+    @scope ([data-scope="collapsible"][data-part="root"][data-size="sm"]) to ([data-scope="collapsible"][data-part="root"]) {
+        [data-scope="collapsible"][data-part="trigger"] {
+            padding: var(--space-sm);
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="collapsible"][data-part="panel"] {
+            padding: var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="collapsible"][data-part="root"][data-size="lg"]) to ([data-scope="collapsible"][data-part="root"]) {
+        [data-scope="collapsible"][data-part="trigger"] {
+            padding: var(--space-lg);
+            font-size: var(--text-md);
+        }
+
+        [data-scope="collapsible"][data-part="panel"] {
+            padding: var(--space-lg);
+        }
+    }
+
+    @scope ([data-scope="collapsible"][data-part="root"][data-size="xl"]) to ([data-scope="collapsible"][data-part="root"]) {
+        [data-scope="collapsible"][data-part="trigger"] {
+            padding: var(--space-xl);
+            font-size: var(--text-lg);
+        }
+
+        [data-scope="collapsible"][data-part="panel"] {
+            padding: var(--space-xl);
+        }
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="collapsible"][data-part="root"]::details-content {
             transition: none;
@@ -554,6 +643,11 @@
 }
 
 @layer zero.recipes {
+    [data-scope="accordion"][data-part="root"] {
+        --disclosure-accent: var(--color-accent);
+        --disclosure-on-accent: var(--color-accent-content);
+    }
+
     [data-scope="accordion"][data-part="root"] {
         display: flex;
         flex-direction: column;
@@ -594,8 +688,8 @@
     }
 
     [data-scope="accordion"][data-part="trigger"][data-state="open"] {
-        background: var(--color-accent);
-        color: var(--color-accent-content);
+        background: var(--disclosure-accent);
+        color: var(--disclosure-on-accent);
     }
 
     [data-scope="accordion"][data-part="trigger"]:hover:not([data-disabled]) {
@@ -615,6 +709,90 @@
         padding: var(--space-md);
         border-top: var(--border) solid var(--color-base-content);
         line-height: var(--leading-normal);
+    }
+
+    [data-scope="accordion"][data-part="root"][data-color="primary"] {
+        --disclosure-accent: var(--color-primary);
+        --disclosure-on-accent: var(--color-primary-content);
+    }
+
+    [data-scope="accordion"][data-part="root"][data-color="secondary"] {
+        --disclosure-accent: var(--color-secondary);
+        --disclosure-on-accent: var(--color-secondary-content);
+    }
+
+    [data-scope="accordion"][data-part="root"][data-color="accent"] {
+        --disclosure-accent: var(--color-accent);
+        --disclosure-on-accent: var(--color-accent-content);
+    }
+
+    [data-scope="accordion"][data-part="root"][data-color="neutral"] {
+        --disclosure-accent: var(--color-neutral);
+        --disclosure-on-accent: var(--color-neutral-content);
+    }
+
+    [data-scope="accordion"][data-part="root"][data-color="info"] {
+        --disclosure-accent: var(--color-info);
+        --disclosure-on-accent: var(--color-info-content);
+    }
+
+    [data-scope="accordion"][data-part="root"][data-color="success"] {
+        --disclosure-accent: var(--color-success);
+        --disclosure-on-accent: var(--color-success-content);
+    }
+
+    [data-scope="accordion"][data-part="root"][data-color="warning"] {
+        --disclosure-accent: var(--color-warning);
+        --disclosure-on-accent: var(--color-warning-content);
+    }
+
+    [data-scope="accordion"][data-part="root"][data-color="error"] {
+        --disclosure-accent: var(--color-error);
+        --disclosure-on-accent: var(--color-error-content);
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="xs"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            padding: var(--space-xs);
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="accordion"][data-part="panel"] {
+            padding: var(--space-xs);
+        }
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="sm"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            padding: var(--space-sm);
+            font-size: var(--text-xs);
+        }
+
+        [data-scope="accordion"][data-part="panel"] {
+            padding: var(--space-sm);
+        }
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="lg"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            padding: var(--space-lg);
+            font-size: var(--text-md);
+        }
+
+        [data-scope="accordion"][data-part="panel"] {
+            padding: var(--space-lg);
+        }
+    }
+
+    @scope ([data-scope="accordion"][data-part="root"][data-size="xl"]) to ([data-scope="accordion"][data-part="root"]) {
+        [data-scope="accordion"][data-part="trigger"] {
+            padding: var(--space-xl);
+            font-size: var(--text-lg);
+        }
+
+        [data-scope="accordion"][data-part="panel"] {
+            padding: var(--space-xl);
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -758,6 +936,66 @@
         outline-offset: 3px;
     }
 
+    [data-scope="dialog"][data-part="trigger"][data-color="primary"] {
+        background: var(--color-primary);
+        color: var(--color-primary-content);
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-color="secondary"] {
+        background: var(--color-secondary);
+        color: var(--color-secondary-content);
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-color="accent"] {
+        background: var(--color-accent);
+        color: var(--color-accent-content);
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-color="neutral"] {
+        background: var(--color-neutral);
+        color: var(--color-neutral-content);
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-color="info"] {
+        background: var(--color-info);
+        color: var(--color-info-content);
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-color="success"] {
+        background: var(--color-success);
+        color: var(--color-success-content);
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-color="warning"] {
+        background: var(--color-warning);
+        color: var(--color-warning-content);
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-color="error"] {
+        background: var(--color-error);
+        color: var(--color-error-content);
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-size="xs"] {
+        padding: var(--space-2xs) var(--space-sm);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-size="sm"] {
+        padding: var(--space-xs) var(--space-md);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-size="lg"] {
+        padding: var(--space-md) var(--space-xl);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="dialog"][data-part="trigger"][data-size="xl"] {
+        padding: var(--space-lg) var(--space-2xl);
+        font-size: var(--text-md);
+    }
+
     @media (min-width: 640px) {
         [data-scope="dialog"][data-part="popup"] {
             width: calc(100% - var(--space-2xl));
@@ -863,6 +1101,66 @@
         outline-offset: 3px;
     }
 
+    [data-scope="popover"][data-part="trigger"][data-color="primary"] {
+        background: var(--color-primary);
+        color: var(--color-primary-content);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="secondary"] {
+        background: var(--color-secondary);
+        color: var(--color-secondary-content);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="accent"] {
+        background: var(--color-accent);
+        color: var(--color-accent-content);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="neutral"] {
+        background: var(--color-neutral);
+        color: var(--color-neutral-content);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="info"] {
+        background: var(--color-info);
+        color: var(--color-info-content);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="success"] {
+        background: var(--color-success);
+        color: var(--color-success-content);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="warning"] {
+        background: var(--color-warning);
+        color: var(--color-warning-content);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-color="error"] {
+        background: var(--color-error);
+        color: var(--color-error-content);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-size="xs"] {
+        padding: var(--space-2xs) var(--space-sm);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-size="sm"] {
+        padding: var(--space-xs) var(--space-md);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-size="lg"] {
+        padding: var(--space-md) var(--space-xl);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="popover"][data-part="trigger"][data-size="xl"] {
+        padding: var(--space-lg) var(--space-2xl);
+        font-size: var(--text-md);
+    }
+
     @media (prefers-reduced-motion: reduce) {
         [data-scope="popover"][data-part="popup"] {
             transition: none;
@@ -930,6 +1228,66 @@
     [data-scope="tooltip"][data-part="popup"][data-state="open"] {
         opacity: 1;
         transform: none;
+    }
+
+    [data-scope="tooltip"][data-part="trigger"][data-color="primary"] {
+        background: var(--color-primary);
+        color: var(--color-primary-content);
+    }
+
+    [data-scope="tooltip"][data-part="trigger"][data-color="secondary"] {
+        background: var(--color-secondary);
+        color: var(--color-secondary-content);
+    }
+
+    [data-scope="tooltip"][data-part="trigger"][data-color="accent"] {
+        background: var(--color-accent);
+        color: var(--color-accent-content);
+    }
+
+    [data-scope="tooltip"][data-part="trigger"][data-color="neutral"] {
+        background: var(--color-neutral);
+        color: var(--color-neutral-content);
+    }
+
+    [data-scope="tooltip"][data-part="trigger"][data-color="info"] {
+        background: var(--color-info);
+        color: var(--color-info-content);
+    }
+
+    [data-scope="tooltip"][data-part="trigger"][data-color="success"] {
+        background: var(--color-success);
+        color: var(--color-success-content);
+    }
+
+    [data-scope="tooltip"][data-part="trigger"][data-color="warning"] {
+        background: var(--color-warning);
+        color: var(--color-warning-content);
+    }
+
+    [data-scope="tooltip"][data-part="trigger"][data-color="error"] {
+        background: var(--color-error);
+        color: var(--color-error-content);
+    }
+
+    [data-scope="tooltip"][data-part="trigger"][data-size="xs"] {
+        padding: var(--space-2xs) var(--space-sm);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="tooltip"][data-part="trigger"][data-size="sm"] {
+        padding: var(--space-xs) var(--space-md);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="tooltip"][data-part="trigger"][data-size="lg"] {
+        padding: var(--space-md) var(--space-xl);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="tooltip"][data-part="trigger"][data-size="xl"] {
+        padding: var(--space-lg) var(--space-2xl);
+        font-size: var(--text-md);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1171,6 +1529,66 @@
         height: var(--border);
         margin: var(--space-2xs) 0;
         background: var(--color-base-content);
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-color="primary"] {
+        background: var(--color-primary);
+        color: var(--color-primary-content);
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-color="secondary"] {
+        background: var(--color-secondary);
+        color: var(--color-secondary-content);
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-color="accent"] {
+        background: var(--color-accent);
+        color: var(--color-accent-content);
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-color="neutral"] {
+        background: var(--color-neutral);
+        color: var(--color-neutral-content);
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-color="info"] {
+        background: var(--color-info);
+        color: var(--color-info-content);
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-color="success"] {
+        background: var(--color-success);
+        color: var(--color-success-content);
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-color="warning"] {
+        background: var(--color-warning);
+        color: var(--color-warning-content);
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-color="error"] {
+        background: var(--color-error);
+        color: var(--color-error-content);
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-size="xs"] {
+        padding: var(--space-2xs) var(--space-sm);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-size="sm"] {
+        padding: var(--space-xs) var(--space-md);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-size="lg"] {
+        padding: var(--space-md) var(--space-xl);
+        font-size: var(--text-sm);
+    }
+
+    [data-scope="menu"][data-part="trigger"][data-size="xl"] {
+        padding: var(--space-lg) var(--space-2xl);
+        font-size: var(--text-md);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -2046,6 +2464,152 @@
         font-size: var(--text-xs);
         color: var(--color-error);
     }
+
+    [data-scope="field"][data-part="root"][data-size="xs"] {
+        gap: var(--space-2xs);
+    }
+
+    [data-scope="field"][data-part="root"][data-size="sm"] {
+        gap: var(--space-2xs);
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-color="primary"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-primary);
+            color: var(--color-primary-content);
+        }
+
+        [data-scope="field"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-color="secondary"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-secondary);
+            color: var(--color-secondary-content);
+        }
+
+        [data-scope="field"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-color="accent"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-accent);
+            color: var(--color-accent-content);
+        }
+
+        [data-scope="field"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-color="neutral"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-neutral);
+            color: var(--color-neutral-content);
+        }
+
+        [data-scope="field"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-color="info"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-info);
+            color: var(--color-info-content);
+        }
+
+        [data-scope="field"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-color="success"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-success);
+            color: var(--color-success-content);
+        }
+
+        [data-scope="field"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-color="warning"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-warning);
+            color: var(--color-warning-content);
+        }
+
+        [data-scope="field"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-color="error"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            align-self: flex-start;
+            padding: 0 var(--space-xs);
+            background: var(--color-error);
+            color: var(--color-error-content);
+        }
+
+        [data-scope="field"][data-part="label"][data-required]::after {
+            color: inherit;
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="xs"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            letter-spacing: var(--tracking-normal);
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="lg"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-sm);
+        }
+
+        [data-scope="field"][data-part="description"] {
+            font-size: var(--text-sm);
+        }
+
+        [data-scope="field"][data-part="error"] {
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="field"][data-part="root"][data-size="xl"]) to ([data-scope="field"][data-part="root"]) {
+        [data-scope="field"][data-part="label"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="field"][data-part="description"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="field"][data-part="error"] {
+            font-size: var(--text-md);
+        }
+    }
 }
 
 @layer zero.recipes {
@@ -2760,6 +3324,51 @@
 
     [data-scope="toast"][data-part="root"][data-color="error"] {
         --toast-accent: var(--color-error);
+    }
+
+    [data-scope="toast"][data-part="root"][data-size="xs"] {
+        padding: var(--space-xs) var(--space-md);
+        font-size: var(--text-xs);
+    }
+
+    [data-scope="toast"][data-part="root"][data-size="sm"] {
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    [data-scope="toast"][data-part="root"][data-size="lg"] {
+        padding: var(--space-lg) var(--space-xl);
+        font-size: var(--text-md);
+    }
+
+    [data-scope="toast"][data-part="root"][data-size="xl"] {
+        padding: var(--space-xl) var(--space-2xl);
+        font-size: var(--text-lg);
+    }
+
+    @scope ([data-scope="toast"][data-part="root"][data-size="xs"]) to ([data-scope="toast"][data-part="root"]) {
+        [data-scope="toast"][data-part="title"] {
+            font-size: var(--text-xs);
+        }
+    }
+
+    @scope ([data-scope="toast"][data-part="root"][data-size="lg"]) to ([data-scope="toast"][data-part="root"]) {
+        [data-scope="toast"][data-part="title"] {
+            font-size: var(--text-md);
+        }
+
+        [data-scope="toast"][data-part="description"] {
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="toast"][data-part="root"][data-size="xl"]) to ([data-scope="toast"][data-part="root"]) {
+        [data-scope="toast"][data-part="title"] {
+            font-size: var(--text-lg);
+        }
+
+        [data-scope="toast"][data-part="description"] {
+            font-size: var(--text-md);
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {

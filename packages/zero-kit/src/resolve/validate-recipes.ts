@@ -909,16 +909,43 @@ export function validateRecipes(
             }
         }
 
-        // ── variants need a `root` part to hang the attribute on ──
-        const hasVariants = Object.keys(recipe.variants ?? {}).length > 0
-            || Object.keys(recipe.modifiers ?? {}).length > 0
-            || (recipe.compoundVariants?.length ?? 0) > 0;
-        if (hasVariants && !partsByName.has('root')) {
-            error(
-                `${where}.variants`,
-                `"${recipe.component}" has no "root" part, so the variant attribute falls back to "${component.parts[0]?.name}" — ` +
-                'the generated descendant selectors would not match and the rules are dead',
-            );
+        // ── variant rules must be reachable from the carrier part ──
+        //
+        // A component with no `root` part carries the axis attributes on its
+        // first declared part (dialog/popover/tooltip/menu: the trigger), and
+        // its OTHER parts are top-layer siblings of that carrier — so a
+        // variant rule for them compiles to an `@scope` donut rooted in an
+        // element the part never sits under, and the rule is dead. Rules on
+        // the carrier itself are flat and perfectly alive (#321 wires
+        // exactly those), as are rules for any part whose declared `parent`
+        // chain reaches the carrier.
+        if (!partsByName.has('root')) {
+            // Anatomies cannot be empty, so the fallback carrier always
+            // exists — same invariant `carrierPart` in contract.ts relies on.
+            const carrier = component.parts[0]!.name;
+            const reachesCarrier = (name: string): boolean => {
+                let cursor = partsByName.get(name);
+                while (cursor) {
+                    if (cursor.name === carrier) return true;
+                    cursor = cursor.parent === undefined ? undefined : partsByName.get(cursor.parent);
+                }
+                return false;
+            };
+            const styledParts = new Set<string>([
+                ...Object.values(recipe.variants ?? {}).flatMap((values) =>
+                    Object.values(values).flatMap((parts) => Object.keys(parts))),
+                ...Object.values(recipe.modifiers ?? {}).flatMap((parts) => Object.keys(parts)),
+                ...(recipe.compoundVariants ?? []).flatMap((c) => Object.keys(c.parts)),
+            ]);
+            const dead = [...styledParts].filter((part) => !reachesCarrier(part));
+            if (dead.length > 0) {
+                error(
+                    `${where}.variants`,
+                    `"${recipe.component}" has no "root" part, so the variant attribute sits on "${carrier}" — ` +
+                    `and ${dead.map((p) => `"${p}"`).join(', ')} never renders under it, so the generated ` +
+                    'descendant selectors would not match and the rules are dead',
+                );
+            }
         }
     }
 
