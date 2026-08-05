@@ -316,3 +316,6 @@ export type {
     CarouselIndicatorGroupProps,
     CarouselIndicatorProps,
 } from './components/carousel/index.js';
+
+export { Swap, swapAnatomy, useSwapContext } from './components/swap/index.js';
+export type { SwapRootProps, SwapFaceProps } from './components/swap/index.js';

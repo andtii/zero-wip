@@ -66,3 +66,4 @@ export { Steps } from '@sigx/zero/steps';
 export { Drawer } from '@sigx/zero/drawer';
 export { FileUpload } from '@sigx/zero/file-upload';
 export { Carousel } from '@sigx/zero/carousel';
+export { Swap } from '@sigx/zero/swap';

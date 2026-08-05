@@ -54,6 +54,7 @@ import type { Drawer as ZDrawer } from '@sigx/zero/drawer';
 import type { Table as ZTable } from '@sigx/zero/table';
 import type { FileUpload as ZFileUpload } from '@sigx/zero/file-upload';
 import type { Carousel as ZCarousel } from '@sigx/zero/carousel';
+import type { Swap as ZSwap } from '@sigx/zero/swap';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -396,3 +397,10 @@ type CarouselProps = {
 };
 type CarouselAdapted = Adapted<typeof ZCarousel, ZeroAxisProp, CarouselProps>;
 export declare const Carousel: CarouselAdapted & AdaptedStatics<typeof ZCarousel> & { Root: CarouselAdapted };
+
+/** swap — no vendor route; the wired surface keeps zero's names. */
+type SwapProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type SwapAdapted = Adapted<typeof ZSwap, ZeroAxisProp, SwapProps>;
+export declare const Swap: SwapAdapted & AdaptedStatics<typeof ZSwap> & { Root: SwapAdapted };

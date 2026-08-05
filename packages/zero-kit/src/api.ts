@@ -288,6 +288,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     stats: [],
     status: ['label'],
     steps: ['defaultStep', 'label', 'loop', 'value'],
+    swap: ['defaultOn', 'interactive', 'label', 'value'],
     switch: ['defaultChecked', 'invalid', 'name', 'required', 'value'],
     table: [],
     tabs: ['activationMode', 'defaultValue', 'loop', 'value'],

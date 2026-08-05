@@ -227,6 +227,10 @@
         "./carousel": {
             "types": "./dist/components/carousel/index.d.ts",
             "import": "./dist/components/carousel/index.js"
+        },
+        "./swap": {
+            "types": "./dist/components/swap/index.d.ts",
+            "import": "./dist/components/swap/index.js"
         }
     },
     "files": [

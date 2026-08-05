@@ -222,6 +222,9 @@ const NO_VARIANT: Record<string, string> = {
     'file-upload': 'daisyUI\'s file-input varies as ghost — the shared input '
         + 'vocabulary, whose answer input\'s own entry already records; Carbon\'s '
         + 'FileUploader and Ark/Zag\'s file-upload ship no variant axis at all.',
+    swap: 'daisyUI\'s swap varies as rotate | flip — transition styling this '
+        + 'package expresses per skin as its one look, not a fill vocabulary; '
+        + 'no other surveyed system ships a swap at all.',
     table: 'Radix Themes Table varies as surface | ghost — a chrome choice '
         + 'this sweep defers with sorting; daisyUI\'s table varies through '
         + 'zebra / pin modifiers and sizes, and Carbon\'s DataTable through '

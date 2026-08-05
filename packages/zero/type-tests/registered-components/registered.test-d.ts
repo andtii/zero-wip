@@ -55,6 +55,7 @@ import { Spinner } from '@sigx/zero/spinner';
 import { Stats } from '@sigx/zero/stats';
 import { Status } from '@sigx/zero/status';
 import { Steps } from '@sigx/zero/steps';
+import { Swap } from '@sigx/zero/swap';
 import { Switch } from '@sigx/zero/switch';
 import { Table } from '@sigx/zero/table';
 import { Tabs } from '@sigx/zero/tabs';
@@ -139,6 +140,7 @@ export type _steps = MustBeTrue<CheckColorSize<PropsOf<typeof Steps.Root>>>;
 export type _table = MustBeTrue<CheckColorSize<PropsOf<typeof Table.Root>>>;
 export type _fileUpload = MustBeTrue<CheckColorSize<PropsOf<typeof FileUpload.Root>>>;
 export type _carousel = MustBeTrue<CheckColorSize<PropsOf<typeof Carousel.Root>>>;
+export type _swap = MustBeTrue<CheckColorSize<PropsOf<typeof Swap.Root>>>;
 
 /* ── the three scopes basic wires a variant vocabulary for ── */
 type ButtonProps = PropsOf<typeof Button.Root>;

@@ -94,7 +94,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-48 components ship today. Every part each renders is listed below, in
+49 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -320,6 +320,15 @@ component renders; the root is called out separately where it carries props.
   trigger owns the field's control id). ItemName/ItemSize default to the
   file's name and human-readable size; ItemRemove is labelled
   "Remove <name>".
+- Swap: Root(model=boolean)/On/Off — two faces over one boolean. BOTH
+  faces stay rendered (the component exists for the CSS transition between
+  them; `hidden` computes display:none and would kill it) and the inactive
+  one is aria-hidden. All three parts ride data-state on|off. DISPLAY by
+  default (a span, no semantics — a theme icon following external state);
+  `interactive` renders a real <button aria-pressed> that toggles on click
+  (platform Enter/Space), labelled via `label`. No indeterminate face —
+  the model is a boolean, and rotate/flip looks are recipe styling, not
+  contract.
 - Table: Root/Table/Caption/Head/Body/Foot/Row/HeaderCell/Cell — semantic
   data table over the REAL table elements (caption/thead/tbody/tfoot/tr/th/
   td; the elements are the semantics, so no asChild anywhere). Root is the
@@ -504,7 +513,7 @@ Divider, Field, Indicator, Input, Join, Kbd, Menu, NativeSelect, NumberInput,
 Navbar, Pagination, Popover, Progress, RadialProgress, RadioGroup,
 RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,
 Switch, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,
-Table, FileUpload, Carousel and TreeView;
+Table, FileUpload, Carousel, Swap and TreeView;
 that is every component. Where the Root renders a fragment (a
 dialog/menu/popover/tooltip) the props live on the Trigger, which renders the
 carrier part the compiled axis selectors anchor on, and Toast routes the
