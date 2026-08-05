@@ -26,6 +26,7 @@ import type { CompiledDesignSystem, DesignSystemInput, ManifestComponent, Recipe
 import { anatomies } from '@sigx/zero/anatomy';
 import * as zero from '@sigx/zero';
 import { designSystem as herouiDS } from '@sigx/zero-heroui';
+import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { fragment as extFragment, recipes as extRecipes } from '@sigx/zero-ext-example/fragment';
 import * as carbonFixture from '../skills/design-system/conformance/carbon.js';
@@ -83,6 +84,22 @@ describe('components goldens', () => {
         const compiled = compileDesignSystem(herouiDS as DesignSystemInput, manifest);
         await expect(compileComponentsJs(compiled))
             .toMatchFileSnapshot('../__goldens__/components/heroui.components.js');
+    });
+
+    // daisyui (#332): the first api-declaring design system with the
+    // recommended colour axis — its golden is the one where `color`, an
+    // identity `variant` and six identity-named modifier booleans coexist
+    // on one surface.
+    it('daisyui components.d.ts matches its golden (compiled end to end by test:types)', async () => {
+        const compiled = compileDesignSystem(daisyDS as DesignSystemInput, manifest);
+        await expect(compileComponentsDts(compiled))
+            .toMatchFileSnapshot('../../zero/type-tests/components/daisyui.components.d.ts');
+    });
+
+    it('daisyui components.js matches its golden', async () => {
+        const compiled = compileDesignSystem(daisyDS as DesignSystemInput, manifest);
+        await expect(compileComponentsJs(compiled))
+            .toMatchFileSnapshot('../__goldens__/components/daisyui.components.js');
     });
 
     it('the carbon probe matches its golden (the values-remap compile gate)', async () => {

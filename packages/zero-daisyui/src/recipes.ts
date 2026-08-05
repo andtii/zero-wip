@@ -1791,6 +1791,37 @@ export const button: RecipeInput = {
                     states: { hover: { background: 'var(--btn-soft)' } },
                 },
             },
+            // daisy 5's `btn-dash` (#332): `outline` with the border drawn
+            // dashed — same ink, same hover tint, so it inherits outline's
+            // measured contrast margins unchanged.
+            dash: {
+                root: {
+                    base: {
+                        background: 'transparent',
+                        color: 'var(--btn-ink)',
+                        borderColor: 'var(--btn-ink)',
+                        borderStyle: 'dashed',
+                    },
+                    states: { hover: { background: 'var(--btn-soft)' } },
+                },
+            },
+            // daisy 5's `btn-link` (#332): the button box kept (metrics,
+            // focus ring, press feedback), painted as a link — role ink,
+            // underlined, no fill, no lift. The underline thickens on hover
+            // rather than the ink dimming: a brightness dip on bare ink would
+            // eat the ~3.1:1 margin `roleInk` clears on its worst themes.
+            link: {
+                root: {
+                    base: {
+                        background: 'transparent',
+                        color: 'var(--btn-ink)',
+                        textDecoration: 'underline',
+                        textUnderlineOffset: '2px',
+                        boxShadow: 'none',
+                    },
+                    states: { hover: { textDecorationThickness: '2px' } },
+                },
+            },
         },
         size: {
             xs: { root: { base: { padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } } },
@@ -1800,7 +1831,65 @@ export const button: RecipeInput = {
             xl: { root: { base: { padding: 'var(--space-lg) var(--space-2xl)', fontSize: 'var(--text-xl)' } } },
         },
     },
+    /**
+     * daisy's button modifiers (#332), each a documented daisy 5 `btn-*`
+     * class and a boolean prop on the old `@sigx/daisyui` Button. Emitted
+     * after the variant rules at equal specificity, so a modifier wins the
+     * declarations it restates — which is what `btn-square`'s zeroed inline
+     * padding relies on.
+     */
+    modifiers: {
+        // `btn-wide`: full width, capped at daisy's 16rem (w-full max-w-64).
+        wide: { root: { base: { inlineSize: '100%', maxInlineSize: '16rem' } } },
+        // `btn-block`: the full-width form action.
+        block: { root: { base: { inlineSize: '100%' } } },
+        // `btn-square` / `btn-circle`: a 1:1 icon chip. The inline padding
+        // goes to zero and `aspect-ratio` squares the box off the height the
+        // size axis already sets — so both track the ramp with no per-size
+        // metrics of their own.
+        square: { root: { base: { paddingInline: '0', aspectRatio: '1' } } },
+        circle: { root: { base: { paddingInline: '0', aspectRatio: '1', borderRadius: '9999px' } } },
+        // `btn-active`: "looks active" — the pressed rendering, held. Same
+        // sink and shadow-drop as the runtime's press feedback plus the
+        // solid hover's brightness dip, so a toggled-on button reads as the
+        // press it represents.
+        active: {
+            root: { base: { transform: 'translateY(1px)', boxShadow: 'none', filter: 'brightness(0.92)' } },
+        },
+        /**
+         * daisy's loading spinner, drawn by the recipe (#332): daisy marks
+         * the button with a `loading loading-spinner` span; zero changes no
+         * DOM, so the ring is a `::before` in `currentColor` with one
+         * transparent quadrant — it inherits whatever ink the variant chose,
+         * and the root's existing `gap` spaces it from the label. Literal
+         * duration + explicit reduced-motion `none`, like the spinner
+         * recipe: the kit collapses `--duration-*` under reduced motion, and
+         * an infinite loop at ~0s strobes rather than stops.
+         */
+        loading: {
+            root: {
+                base: { cursor: 'progress' },
+                selectors: {
+                    '&::before': {
+                        content: '""',
+                        boxSizing: 'border-box',
+                        inlineSize: '1em',
+                        blockSize: '1em',
+                        flex: 'none',
+                        borderRadius: '9999px',
+                        border: 'calc(var(--border) * 2) solid currentColor',
+                        borderBlockStartColor: 'transparent',
+                        animation: 'zero-daisyui-btn-spin 0.7s linear infinite',
+                    },
+                },
+                at: {
+                    'reduced-motion': { selectors: { '&::before': { animation: 'none' } } },
+                },
+            },
+        },
+    },
     defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },
+    keyframes: { 'zero-daisyui-btn-spin': 'to { transform: rotate(360deg) }' },
 };
 
 export const avatar: RecipeInput = {

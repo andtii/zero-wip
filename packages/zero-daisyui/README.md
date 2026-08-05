@@ -58,6 +58,44 @@ column are the same height. Only the select had it before.
 Swap with `@sigx/zero-basic` (or your own generated design system) — same
 components, different look, zero component-code changes.
 
+## The daisy-native surface, and migrating from `@sigx/daisyui`
+
+Button carries daisy 5's full style vocabulary — `variant` takes `solid`,
+`outline`, `soft`, `ghost`, `dash` (`btn-dash`) and `link` (`btn-link`),
+orthogonal to the eight-role `color` axis, exactly as daisy's own CSS composes
+`btn-outline` **with** `btn-primary` — plus the six documented `btn-*`
+modifiers as presence-only `data-mod-*`: `wide`, `block`, `square`, `circle`,
+`active`, and `loading`, whose spinner the recipe draws in `currentColor`
+(daisy renders it as a `loading loading-spinner` span; zero changes no DOM).
+daisy 4's `glass` is not carried: daisyUI 5 no longer documents it on any
+component, and the old library never exposed it either.
+
+The package declares an **api** (the `defineApi` layer, see
+`docs/architecture.md` §3.6), so beside `/register` it ships a generated
+`./components` module — the daisy-native, single-import, fully-typed surface:
+
+```tsx
+import { Button } from '@sigx/zero-daisyui/components';
+
+<Button wide loading variant="dash" color="primary">Save</Button>
+```
+
+Migrating from the old `@sigx/daisyui` package, prop by prop:
+
+| old `@sigx/daisyui` Button | `@sigx/zero-daisyui/components` Button |
+|---|---|
+| `variant="primary"` … `variant="error"` (the eight colours in the fused union) | `color="primary"` … `color="error"` |
+| `variant="ghost"` / `variant="link"` | `variant="ghost"` / `variant="link"` |
+| `variant="neutral"` | `color="neutral"` |
+| `outline` / `soft` / `dash` (booleans) | `variant="outline"` / `"soft"` / `"dash"` |
+| `wide`, `block`, `square`, `circle`, `active`, `loading` | same names, same booleans |
+| `size="xs"` … `size="xl"` | unchanged |
+| `loading` also disabling the button | pass `disabled` yourself — loading is paint, not behaviour |
+
+The old fused `ButtonVariant` union (colours + `ghost` + `link` in one prop)
+was a modeling artifact, not daisy's real shape — daisy's CSS composes a style
+class with a colour class, and so does this package.
+
 ## Writing direction
 
 Every direction-bearing rule is spelled logically, so the whole skin mirrors

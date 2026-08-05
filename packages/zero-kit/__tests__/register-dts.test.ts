@@ -210,6 +210,6 @@ describe('the generated shapes', () => {
     it('the manifest carries the axes map keyed by scope', () => {
         const compiled = compileDesignSystem(daisyDS as DesignSystemInput, manifest);
         expect(Object.keys(compiled.components)).toEqual(Object.keys(compiled.componentCss));
-        expect(compiled.components['button']!.variant).toEqual(['solid', 'outline', 'soft', 'ghost']);
+        expect(compiled.components['button']!.variant).toEqual(['solid', 'outline', 'soft', 'ghost', 'dash', 'link']);
     });
 });

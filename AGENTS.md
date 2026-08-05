@@ -253,7 +253,11 @@ that null reports a `TypeError` instead of "the popup was not showing".
   (readable defaults). Dogfoods zero-kit; reference pair for the AI skill.
 - `packages/zero-daisyui` → `@sigx/zero-daisyui` — daisyUI-flavored skin:
   daisy token values + recipes over zero anatomy. No Tailwind/daisyUI plugin
-  required. The proof that a design system is data.
+  required. The proof that a design system is data. Declares a daisy-native
+  api (#332) — the third api-declaring DS and the first to combine one with
+  the recommended colour axis: identity `variant` (incl. daisy 5's
+  `dash`/`link`) and the six `btn-*` modifiers as identity-named booleans on
+  the generated `./components` module.
 - `packages/zero-material` → `@sigx/zero-material` — Material-flavoured skin,
   and the acceptance test for extensible vocabularies: thirteen colour roles,
   a `level1`–`level5` elevation ramp, its own easings, its own breakpoints.

@@ -413,8 +413,9 @@ generated `./components` module
 
 Emission and consumption differ: `writeArtifacts` always writes the
 register artifact, and writes `components.*` only when an api is declared
-(today: zero-heroui and zero-carbon; the Ant fixture proves the per-scope
-override). But **a consumer picks one path per program** — the register path
+(today: zero-heroui, zero-carbon, and zero-daisyui — the first to combine
+an api with the recommended colour axis; the Ant fixture proves the
+per-scope override). But **a consumer picks one path per program** — the register path
 narrows zero's own prop names via augmentation; the components path
 delivers vendor names with the vocabulary untouched. `examples/typed-app`
 compiles the two (plus carbon's values remap) as three isolated programs
