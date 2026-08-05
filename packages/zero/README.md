@@ -50,6 +50,15 @@ their neighbors, `marks` renders ticks) while a scalar model keeps the native
 `<input type=range>`; Select and Combobox group options
 (`Group`/`GroupLabel`, the optgroup equivalent).
 
+Select and Combobox also take an `options` array
+(`{ value, label?, disabled?, group? }[]`) as one-liner sugar: with no slot
+children the Root renders the full default composition — items through the
+same anatomy, plus `Group`/`GroupLabel` per distinct `group` in
+first-appearance order, `label` defaulting to `value`. Precedence is total:
+explicit slot children win entirely, never merged. For Combobox it is
+rendering sugar only — filtering stays yours (bind `model:inputValue`, pass a
+narrowed array). Name an options-driven instance through a `Field`.
+
 Interaction state is published as data for the design system to style:
 `data-focus-visible`, and press feedback on every interactive part —
 `data-pressed` while the pointer/key is down (a press ends when the gesture

@@ -19,6 +19,26 @@
  * open and move the highlight, Home/End jump, typeahead works closed
  * (selects directly) and open (moves the highlight), Enter/Space select,
  * Escape closes. A hidden input carries the value for form posts.
+ *
+ * THE OPTIONS SUGAR (#333): with no children, an `options` array renders the
+ * full default composition — Trigger(Value, Indicator) + Popup(Item per
+ * option, Group/GroupLabel per distinct `group` in first-appearance order,
+ * label defaulting to value) — through the existing anatomy, so recipes,
+ * typeahead and the highlight see exactly what hand-written items produce.
+ *
+ * ```tsx
+ * <Field.Root>
+ *     <Field.Label>Fruit</Field.Label>
+ *     <Select.Root model={() => state.fruit} placeholder="Pick a fruit…"
+ *         options={[{ value: 'apple', label: 'Apple' }, { value: 'lime', group: 'Citrus' }]} />
+ * </Field.Root>
+ * ```
+ *
+ * Precedence: explicit slot children win ENTIRELY — when both are given the
+ * options array is ignored, never merged. A custom trigger therefore means
+ * hand-writing the popup too. The generated trigger carries no `aria-label`;
+ * name an options-driven Select through a `Field` (its label lands on the
+ * trigger via the field's control id) or write the trigger yourself.
  */
 import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
@@ -28,6 +48,7 @@ import { createListController, moveHighlight, optionText, type ListController, t
 import { createTypeahead } from '../../behaviors/typeahead.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { useFieldContext } from '../../behaviors/field.js';
+import { segmentOptions, type OptionInput } from '../../behaviors/options.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
@@ -104,6 +125,13 @@ export type SelectRootProps =
     & Define.Prop<'invalid', boolean, false>
     & Define.Prop<'placement', Placement, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
+    /**
+     * One-liner sugar: with no slot children, renders the default
+     * Trigger/Value/Indicator/Popup composition with an Item per entry
+     * (Group + GroupLabel per distinct `group`). Slot children win entirely
+     * when both are given — see the component doc.
+     */
+    & Define.Prop<'options', ReadonlyArray<OptionInput>, false>
     & WithDisabled
     & WithVariantAxes<'select'>
     & WithClass
@@ -213,6 +241,32 @@ const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal }) =
         },
     );
 
+    // The options expansion (#333): the default composition, built from the
+    // same compound parts a consumer would write — sugar over the anatomy,
+    // never a parallel render path.
+    const optionsContent = () => (
+        <>
+            <SelectTrigger>
+                <SelectValue />
+                <SelectIndicator />
+            </SelectTrigger>
+            <SelectPopup>
+                {segmentOptions(props.options ?? []).map((segment) => segment.group === undefined
+                    ? segment.options.map((o) => (
+                        <SelectItem value={o.value} disabled={o.disabled} key={o.value}>{o.label ?? o.value}</SelectItem>
+                    ))
+                    : (
+                        <SelectGroup key={`group:${segment.group}`}>
+                            <SelectGroupLabel>{segment.group}</SelectGroupLabel>
+                            {segment.options.map((o) => (
+                                <SelectItem value={o.value} disabled={o.disabled} key={o.value}>{o.label ?? o.value}</SelectItem>
+                            ))}
+                        </SelectGroup>
+                    ))}
+            </SelectPopup>
+        </>
+    );
+
     return () => (
         <div
             data-scope={SCOPE}
@@ -223,7 +277,8 @@ const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal }) =
             {...variantAttrs(props)}
             class={props.class}
         >
-            {slots.default?.()}
+            {/* Slot children win ENTIRELY over `options` — no merging. */}
+            {slots.default ? slots.default() : props.options ? optionsContent() : null}
             <input
                 type="hidden"
                 data-scope={SCOPE}

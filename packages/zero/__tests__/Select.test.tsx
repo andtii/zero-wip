@@ -275,6 +275,110 @@ describe('Select', () => {
         expect(trigger.getAttribute('aria-required')).toBe('true');
     });
 
+    describe('options prop (sugar tier, #333)', () => {
+        const OPTIONS = [
+            { value: 'apple' },
+            { value: 'banana', label: 'Banana' },
+            { value: 'cherry', label: 'Cherry', disabled: true },
+        ] as const;
+
+        it('with no children, renders the full default composition from options', () => {
+            const state = signal({ fruit: '' });
+            render(
+                <Select.Root model={[state, 'fruit']} name="fruit" placeholder="Pick a fruit…" options={OPTIONS} />,
+                container,
+            );
+            expectAnatomy(container, selectAnatomy);
+            for (const name of ['trigger', 'value', 'indicator', 'popup']) {
+                expect(container.querySelector(`[data-scope="select"][data-part="${name}"]`), `select/${name} must render`).toBeTruthy();
+            }
+            const items = container.querySelectorAll<HTMLElement>('[data-part="item"]');
+            expect(items.length).toBe(3);
+            // Label defaults to the value when omitted.
+            expect(items[0]!.textContent).toBe('apple');
+            expect(items[1]!.textContent).toBe('Banana');
+            // `disabled` flows onto the generated item.
+            expect(items[2]!.getAttribute('data-disabled')).toBe('');
+            expect(items[2]!.getAttribute('aria-disabled')).toBe('true');
+            // The hidden input still posts.
+            expect(container.querySelector<HTMLInputElement>('input[type="hidden"]')!.name).toBe('fruit');
+        });
+
+        it('groups render per distinct `group` in first-appearance order, ungrouped stay in place', async () => {
+            render(
+                <Select.Root
+                    options={[
+                        { value: 'lemon', group: 'Citrus' },
+                        { value: 'peach', group: 'Stone' },
+                        { value: 'salt' },
+                        { value: 'lime', group: 'Citrus' },
+                    ]}
+                />,
+                container,
+            );
+            await tick();
+            const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
+            const groups = popup.querySelectorAll<HTMLElement>('[data-part="group"]');
+            expect(groups.length).toBe(2);
+            const labels = [...popup.querySelectorAll<HTMLElement>('[data-part="group-label"]')].map((l) => l.textContent);
+            // First-appearance order: Citrus before Stone, and lime folds back
+            // into the Citrus group even though it was listed after peach.
+            expect(labels).toEqual(['Citrus', 'Stone']);
+            expect([...groups[0]!.querySelectorAll('[data-part="item"]')].map((i) => i.textContent)).toEqual(['lemon', 'lime']);
+            expect([...groups[1]!.querySelectorAll('[data-part="item"]')].map((i) => i.textContent)).toEqual(['peach']);
+            // The ungrouped option is a direct child of the popup, in
+            // document order between the two groups' first appearances.
+            const sequence = [...popup.querySelectorAll<HTMLElement>('[data-part="group"], :scope > [data-part="item"]')];
+            expect(sequence.map((el) => el.getAttribute('data-part'))).toEqual(['group', 'group', 'item']);
+            expect(groups[0]!.getAttribute('aria-labelledby')).toBeTruthy();
+            expectAnatomy(container, selectAnatomy);
+        });
+
+        it('explicit slot children win entirely — no merging', () => {
+            render(
+                <Select.Root options={OPTIONS} placeholder="Pick a fruit…">
+                    <Select.Trigger label="Fruit">
+                        <Select.Value />
+                    </Select.Trigger>
+                    <Select.Popup>
+                        <Select.Item value="mango">Mango</Select.Item>
+                    </Select.Popup>
+                </Select.Root>,
+                container,
+            );
+            const items = container.querySelectorAll<HTMLElement>('[data-part="item"]');
+            expect(items.length).toBe(1);
+            expect(items[0]!.textContent).toBe('Mango');
+        });
+
+        it('keyboard highlight, selection and closed typeahead work exactly as with hand-written items', () => {
+            const state = signal({ fruit: '' });
+            render(
+                <Select.Root model={[state, 'fruit']} options={OPTIONS} placeholder="Pick a fruit…" />,
+                container,
+            );
+            const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+            const key = (k: string) => trigger.dispatchEvent(new KeyboardEvent('keydown', { key: k, cancelable: true, bubbles: true }));
+
+            // Closed typeahead matches on the label (not the raw value).
+            key('B');
+            expect(state.fruit).toBe('banana');
+
+            // Open on the current value; the disabled cherry clamps the walk
+            // (APG listbox: no wrap) exactly as a hand-written disabled item.
+            key('ArrowDown');
+            const items = container.querySelectorAll<HTMLElement>('[data-part="item"]');
+            expect(items[1]!.getAttribute('data-highlighted')).toBe('');
+            key('ArrowDown');
+            expect(items[2]!.hasAttribute('data-highlighted')).toBe(false);
+            expect(items[1]!.getAttribute('data-highlighted')).toBe('');
+            key('ArrowUp');
+            expect(items[0]!.getAttribute('data-highlighted')).toBe('');
+            key('Enter');
+            expect(state.fruit).toBe('apple');
+        });
+    });
+
     it('scrolls the highlighted option into view as the highlight moves', async () => {
         const state = signal({ fruit: '' });
         mount(state);

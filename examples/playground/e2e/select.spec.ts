@@ -80,6 +80,25 @@ test('the variants row is manifest-driven: each wired select variant renders onc
     }
 });
 
+test('the options-driven instance renders groups and selects exactly like hand-written items', async ({ page }) => {
+    // The sugar tier (#333): `options` on Select.Root, named by the field it
+    // posts like every other instance on the page.
+    const parts = demoPosting(page, 'select', 'sugar-fruit');
+    await parts('trigger').click();
+    await expect(parts('popup')).toHaveAttribute('data-state', 'open');
+    // Two distinct `group` values → two Group parts, first-appearance order.
+    await expect(parts('group')).toHaveCount(2);
+    await expect(parts('group-label').nth(0)).toHaveText('Citrus');
+    await expect(parts('group-label').nth(1)).toHaveText('Stone fruit');
+    // A disabled entry flows onto the generated item.
+    await expect(parts('item').nth(4)).toHaveAttribute('data-disabled', '');
+
+    await parts('item').nth(2).click(); // Peach — index within this demo's own set
+    await expect(parts('popup')).toHaveAttribute('data-state', 'closed');
+    await expect(parts('value')).toHaveText('Peach');
+    await expect(parts('hidden-input')).toHaveValue('peach');
+});
+
 test('the listbox is labelled by the trigger', async ({ page }) => {
     const parts = demo(page);
     const triggerId = await parts('trigger').getAttribute('id');

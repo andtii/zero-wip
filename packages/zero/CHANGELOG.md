@@ -4,6 +4,25 @@
 
 ### Added
 
+- **The sugar tier** (#333) — the one-liner DX the old `@sigx/daisyui`
+  library had and zero's compound anatomy made verbose:
+
+  - **`options` on `Select.Root` and `Combobox.Root`**:
+    `options?: ReadonlyArray<{ value; label?; disabled?; group? }>`. With no
+    slot children the Root renders its full default composition through the
+    EXISTING anatomy — Select expands to `Trigger(Value, Indicator)` +
+    `Popup`, Combobox to `Control(Input, Trigger)` + `Popup`, each with an
+    `Item` per entry and a `Group`/`GroupLabel` per distinct `group` in
+    first-appearance order (later members fold back into their group);
+    `label` defaults to `value`. Precedence is total: explicit slot children
+    win entirely — never merged — so a custom trigger means hand-writing the
+    popup too. For Combobox this is rendering sugar only: filtering stays
+    the consumer's (bind `model:inputValue`, pass a narrowed array). The
+    generated trigger/input carry no `aria-label`; name an options-driven
+    instance through a `Field`. The grouping walk is shared
+    (`segmentOptions` in `@sigx/zero/behaviors`), so the components cannot
+    drift on its semantics.
+
 - **Component-surface completions** (#325). The peer-parity gaps every
   comparable library (Radix/Ark/Zag) covers, closed in one wave:
 

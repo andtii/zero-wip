@@ -172,6 +172,13 @@ component renders; the root is called out separately where it carries props.
   one is rendered (presence-tracked — an unlabelled group stays anonymous).
   Labels never register as options, so typeahead and the highlight walk
   straight through group boundaries.
+  OPTIONS SUGAR: Root takes `options` ({value, label?, disabled?, group?}[])
+  — with no slot children it renders the full default composition
+  (Trigger(Value, Indicator) + Popup with an Item per entry, Group/GroupLabel
+  per distinct `group` in first-appearance order, label defaulting to value)
+  through the SAME anatomy. Slot children win entirely when both are given —
+  never merged. The generated trigger has no aria-label: name an
+  options-driven Select through a Field.
 - Switch: Root(model=checked)/Control/Thumb/Label/HiddenInput, role=switch.
 - Checkbox: Root(model=checked)/Control/Indicator/Label/HiddenInput; supports
   `indeterminate`.
@@ -262,6 +269,11 @@ component renders; the root is called out separately where it carries props.
   The popup is popover="manual" + the dismiss layer (native auto light
   dismiss would close on a caret click). No data-placeholder on the input —
   use :placeholder-shown. Home/End stay with the text caret.
+  OPTIONS SUGAR: Root takes `options` (same shape as Select's) — with no
+  slot children it renders Control(Input, Trigger) + Popup(items/groups)
+  through the same anatomy. RENDERING only: filtering stays the consumer's —
+  bind model:inputValue and pass a narrowed array. Slot children win
+  entirely when both are given.
 - NumberInput: Root(model=number|null, min, max, step, allowWheel,
   clampOnBlur, format, parse, name)/Label/Control/Input/IncrementTrigger/
   DecrementTrigger/HiddenInput. APG spinbutton on a real text input
