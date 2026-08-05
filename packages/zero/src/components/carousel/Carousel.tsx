@@ -209,6 +209,10 @@ const CarouselViewport = component<CarouselViewportProps>(({ props, slots, onMou
         <div
             data-scope={SCOPE}
             data-part="viewport"
+            // A scrollable region must be reachable by keyboard (axe
+            // scrollable-region-focusable): focused, the platform's arrow
+            // keys scroll it — the swipe gesture's keyboard equivalent.
+            tabIndex={0}
             class={props.class}
             ref={(node: HTMLElement | null) => {
                 el = node;

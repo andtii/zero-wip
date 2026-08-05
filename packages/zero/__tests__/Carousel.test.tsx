@@ -62,6 +62,9 @@ describe('Carousel', () => {
         expect(root.getAttribute('role')).toBe('region');
         expect(root.getAttribute('aria-roledescription')).toBe('carousel');
         expect(root.getAttribute('aria-label')).toBe('Featured');
+        // A scrollable region must be keyboard-reachable — focused, the
+        // platform's arrow keys scroll it.
+        expect(part(container, 'viewport').getAttribute('tabindex')).toBe('0');
     });
 
     it('items are slides, labelled "n of m" from registration', () => {

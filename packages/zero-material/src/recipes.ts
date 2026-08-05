@@ -4824,6 +4824,12 @@ export const carousel: RecipeInput = {
                 overscrollBehaviorX: 'contain',
                 borderRadius: 'var(--radius-box)',
             },
+            selectors: {
+                // The viewport is a tab stop (scrollable-region-focusable) and
+                // owes the keyboard user a ring. Real :focus-visible — no
+                // runtime flag exists on this part.
+                '&:focus-visible': { outline: '3px solid var(--color-secondary)', outlineOffset: '2px' },
+            },
         },
         item: {
             base: {
@@ -4903,26 +4909,39 @@ export const carousel: RecipeInput = {
         indicator: {
             base: {
                 appearance: 'none',
-                inlineSize: 'var(--carousel-dot)',
-                blockSize: 'var(--carousel-dot)',
+                // The BUTTON keeps a >=24px hit area (WCAG 2.5.8 target
+                // size — the axe gate's floor); the visible dot is the
+                // ::before, sized by the ramp.
+                inlineSize: 'max(var(--carousel-dot), 1.5rem)',
+                blockSize: 'max(var(--carousel-dot), 1.5rem)',
                 padding: '0',
+                display: 'grid',
+                placeItems: 'center',
                 background: 'transparent',
-                border: 'calc(var(--border) * 2) solid color-mix(in oklch, var(--color-base-content) 70%, transparent)',
-                borderRadius: '9999px',
+                border: 'none',
                 cursor: 'pointer',
-                transition: 'inline-size var(--duration-fast) var(--ease-emphasized), background var(--duration-fast) var(--ease-standard)',
             },
             states: {
-                active: {
-                    inlineSize: 'calc(var(--carousel-dot) * 2.2)',
-                    background: 'var(--carousel-accent)',
-                    borderColor: 'var(--carousel-accent)',
-                },
+                active: {},
                 inactive: {},
                 ...focusRing,
             },
-            at: {
-                'reduced-motion': { base: { transition: 'none' } },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    inlineSize: 'var(--carousel-dot)',
+                    blockSize: 'var(--carousel-dot)',
+                    boxSizing: 'border-box',
+                    border: 'calc(var(--border) * 2) solid color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                    borderRadius: '9999px',
+                    background: 'transparent',
+                    transition: 'inline-size var(--duration-fast) var(--ease-emphasized), background var(--duration-fast) var(--ease-standard)',
+                },
+                '&[data-state="active"]::before': {
+                    background: 'var(--carousel-accent)',
+                    borderColor: 'var(--carousel-accent)',
+                    inlineSize: 'calc(var(--carousel-dot) * 2.2)',
+                },
             },
         },
     },

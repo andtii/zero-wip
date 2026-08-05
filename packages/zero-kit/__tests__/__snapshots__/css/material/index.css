@@ -9297,6 +9297,11 @@
         border-radius: var(--radius-box);
     }
 
+    [data-scope="carousel"][data-part="viewport"]:focus-visible {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
     [data-scope="carousel"][data-part="item"] {
         flex: 0 0 100%;
         min-width: 0;
@@ -9390,25 +9395,36 @@
 
     [data-scope="carousel"][data-part="indicator"] {
         appearance: none;
-        inline-size: var(--carousel-dot);
-        block-size: var(--carousel-dot);
+        inline-size: max(var(--carousel-dot), 1.5rem);
+        block-size: max(var(--carousel-dot), 1.5rem);
         padding: 0;
+        display: grid;
+        place-items: center;
         background: transparent;
-        border: calc(var(--border) * 2) solid color-mix(in oklch, var(--color-base-content) 70%, transparent);
-        border-radius: 9999px;
+        border: none;
         cursor: pointer;
-        transition: inline-size var(--duration-fast) var(--ease-emphasized), background var(--duration-fast) var(--ease-standard);
-    }
-
-    [data-scope="carousel"][data-part="indicator"][data-state="active"] {
-        inline-size: calc(var(--carousel-dot) * 2.2);
-        background: var(--carousel-accent);
-        border-color: var(--carousel-accent);
     }
 
     [data-scope="carousel"][data-part="indicator"][data-focus-visible] {
         outline: 3px solid var(--color-secondary);
         outline-offset: 2px;
+    }
+
+    [data-scope="carousel"][data-part="indicator"]::before {
+        content: "";
+        inline-size: var(--carousel-dot);
+        block-size: var(--carousel-dot);
+        box-sizing: border-box;
+        border: calc(var(--border) * 2) solid color-mix(in oklch, var(--color-base-content) 70%, transparent);
+        border-radius: 9999px;
+        background: transparent;
+        transition: inline-size var(--duration-fast) var(--ease-emphasized), background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="carousel"][data-part="indicator"][data-state="active"]::before {
+        background: var(--carousel-accent);
+        border-color: var(--carousel-accent);
+        inline-size: calc(var(--carousel-dot) * 2.2);
     }
 
     [data-scope="carousel"][data-part="root"][data-color="primary"] {
@@ -9465,12 +9481,6 @@
     [data-scope="carousel"][data-part="root"][data-size="xl"] {
         --carousel-dot: 0.875rem;
         --carousel-nav: 3.25rem;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        [data-scope="carousel"][data-part="indicator"] {
-            transition: none;
-        }
     }
 }
 

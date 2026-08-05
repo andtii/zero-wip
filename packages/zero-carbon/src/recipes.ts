@@ -4694,6 +4694,12 @@ export const carousel: RecipeInput = {
                 overscrollBehaviorX: 'contain',
                 background: 'var(--color-base-100)',
             },
+            selectors: {
+                // The viewport is a tab stop (scrollable-region-focusable) and
+                // owes the keyboard user a ring. Real :focus-visible — no
+                // runtime flag exists on this part.
+                '&:focus-visible': { outline: '2px solid var(--carbon-focus)', outlineOffset: '-2px' },
+            },
         },
         item: {
             base: {
@@ -4765,21 +4771,37 @@ export const carousel: RecipeInput = {
         indicator: {
             base: {
                 appearance: 'none',
-                inlineSize: 'var(--carousel-dot)',
-                blockSize: 'var(--carousel-dot)',
+                // The BUTTON keeps a >=24px hit area (WCAG 2.5.8 target
+                // size — the axe gate's floor); the visible dot is the
+                // ::before, sized by the ramp.
+                inlineSize: 'max(var(--carousel-dot), 1.5rem)',
+                blockSize: 'max(var(--carousel-dot), 1.5rem)',
                 padding: '0',
+                display: 'grid',
+                placeItems: 'center',
                 background: 'transparent',
-                border: 'calc(var(--border) * 2) solid var(--carbon-border-strong)',
-                borderRadius: '0',
+                border: 'none',
                 cursor: 'pointer',
             },
             states: {
-                active: {
+                active: {},
+                inactive: {},
+                ...focusRing,
+            },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    inlineSize: 'var(--carousel-dot)',
+                    blockSize: 'var(--carousel-dot)',
+                    boxSizing: 'border-box',
+                    border: 'calc(var(--border) * 2) solid var(--carbon-border-strong)',
+                    borderRadius: '0',
+                    background: 'transparent',
+                },
+                '&[data-state="active"]::before': {
                     background: 'var(--carbon-interactive)',
                     borderColor: 'var(--carbon-interactive)',
                 },
-                inactive: {},
-                ...focusRing,
             },
         },
     },

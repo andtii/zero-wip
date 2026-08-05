@@ -20,6 +20,11 @@
         background: var(--color-base-100);
     }
 
+    [data-scope="carousel"][data-part="viewport"]:focus-visible {
+        outline: var(--border) solid var(--color-primary);
+        outline-offset: 3px;
+    }
+
     [data-scope="carousel"][data-part="item"] {
         flex: 0 0 100%;
         min-width: 0;
@@ -124,22 +129,34 @@
 
     [data-scope="carousel"][data-part="indicator"] {
         appearance: none;
-        inline-size: var(--carousel-dot);
-        block-size: var(--carousel-dot);
+        inline-size: max(var(--carousel-dot), 1.5rem);
+        block-size: max(var(--carousel-dot), 1.5rem);
         padding: 0;
+        display: grid;
+        place-items: center;
         background: transparent;
-        border: var(--border) solid var(--color-base-content);
+        border: none;
         cursor: pointer;
-    }
-
-    [data-scope="carousel"][data-part="indicator"][data-state="active"] {
-        background: var(--carousel-accent);
-        border-color: var(--carousel-accent);
     }
 
     [data-scope="carousel"][data-part="indicator"][data-focus-visible] {
         outline: var(--border) solid var(--color-primary);
         outline-offset: 3px;
+    }
+
+    [data-scope="carousel"][data-part="indicator"]::before {
+        content: "";
+        inline-size: var(--carousel-dot);
+        block-size: var(--carousel-dot);
+        box-sizing: border-box;
+        border: var(--border) solid var(--color-base-content);
+        border-radius: 0;
+        background: transparent;
+    }
+
+    [data-scope="carousel"][data-part="indicator"][data-state="active"]::before {
+        background: var(--carousel-accent);
+        border-color: var(--carousel-accent);
     }
 
     [data-scope="carousel"][data-part="root"][data-color="primary"] {
