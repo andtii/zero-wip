@@ -45,6 +45,32 @@ const SelectDemos = component(() => {
                     <Select.Item value="banana">Banana</Select.Item>
                 </Select.Popup>
             </Select.Root>
+            <h2>Option groups</h2>
+            <p>
+                <small>
+                    The optgroup equivalent: <code>Select.Group</code> +{' '}
+                    <code>Select.GroupLabel</code> — <code>role="group"</code>{' '}
+                    named by its label inside the listbox.
+                </small>
+            </p>
+            <Select.Root name="grouped-fruit" placeholder="Pick a fruit…">
+                <Select.Trigger label="Fruit (grouped)">
+                    <Select.Value />
+                    <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popup>
+                    <Select.Group>
+                        <Select.GroupLabel>Citrus</Select.GroupLabel>
+                        <Select.Item value="lemon">Lemon</Select.Item>
+                        <Select.Item value="lime">Lime</Select.Item>
+                    </Select.Group>
+                    <Select.Group>
+                        <Select.GroupLabel>Stone fruit</Select.GroupLabel>
+                        <Select.Item value="peach">Peach</Select.Item>
+                        <Select.Item value="plum">Plum</Select.Item>
+                    </Select.Group>
+                </Select.Popup>
+            </Select.Root>
             {/*
               * The first scope other than button to wire a variant (#297).
               * zero-basic gives select its OWN three-value vocabulary through

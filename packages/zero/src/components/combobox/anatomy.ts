@@ -39,6 +39,17 @@ export const comboboxAnatomy = defineAnatomy('combobox', {
         placements: [...PLACEMENT_VOCABULARY],
         tokens: ['color', 'radius-box'],
     },
+    // The optgroup equivalent (#325) — see select's anatomy note; identical
+    // shape, and the consumer's filter simply renders or omits whole groups.
+    group: {
+        element: 'div',
+        parent: 'popup',
+    },
+    'group-label': {
+        element: 'div',
+        parent: 'group',
+        tokens: ['color', 'text'],
+    },
     item: {
         element: 'div',
         parent: 'popup',

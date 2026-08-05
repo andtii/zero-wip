@@ -76,6 +76,61 @@
         cursor: not-allowed;
     }
 
+    [data-scope="menu"][data-part="checkbox-item"] {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        padding: var(--space-md) var(--space-lg);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        border-radius: var(--radius-field);
+        cursor: pointer;
+        outline: none;
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="menu"][data-part="checkbox-item"][data-highlighted] {
+        background: var(--color-base-200);
+    }
+
+    [data-scope="menu"][data-part="checkbox-item"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="menu"][data-part="radio-item"] {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        padding: var(--space-md) var(--space-lg);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        border-radius: var(--radius-field);
+        cursor: pointer;
+        outline: none;
+        transition: background var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="menu"][data-part="radio-item"][data-highlighted] {
+        background: var(--color-base-200);
+    }
+
+    [data-scope="menu"][data-part="radio-item"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="menu"][data-part="item-indicator"] {
+        width: 1em;
+        flex-shrink: 0;
+        font-size: var(--text-xs);
+        line-height: 1;
+    }
+
+    [data-scope="menu"][data-part="item-indicator"][data-state="checked"]::after {
+        content: "\2713";
+    }
+
     [data-scope="menu"][data-part="sub-trigger"] {
         display: flex;
         align-items: center;

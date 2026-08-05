@@ -22,6 +22,37 @@ export const menuAnatomy = defineAnatomy('menu', {
         tokens: ['color', 'radius-selector', 'text'],
         asChild: true,
     },
+    // The stateful item pair (APG menuitemcheckbox / menuitemradio). Distinct
+    // parts rather than item variants because they carry a `data-state` the
+    // plain item is contractually without (item is flags-only), and a recipe
+    // keys the mark on it.
+    'checkbox-item': {
+        element: 'div',
+        parent: 'popup',
+        states: ['checked', 'unchecked'],
+        flags: ['disabled', 'highlighted', 'pressed', 'press-animating'],
+        tokens: ['color', 'radius-selector', 'text'],
+        asChild: true,
+    },
+    'radio-item': {
+        element: 'div',
+        parent: 'popup',
+        states: ['checked', 'unchecked'],
+        flags: ['disabled', 'highlighted', 'pressed', 'press-animating'],
+        tokens: ['color', 'radius-selector', 'text'],
+        asChild: true,
+    },
+    // The mark well inside a checkbox-item or radio-item, mirroring the item's
+    // state (the radio-group idiom: always rendered, the recipe draws the mark
+    // and hides it while unchecked). `parent` names the popup rather than one
+    // of the two items because a part declares exactly one containing part and
+    // both hosts sit inside the popup — the ancestor walk accepts either.
+    'item-indicator': {
+        element: 'span',
+        parent: 'popup',
+        states: ['checked', 'unchecked'],
+        tokens: ['color'],
+    },
     // A distinct part, not an item variant: it carries a data-state (item is
     // flags-only by contract), and recipes style [data-state="open"] to keep
     // it visually active after focus moves into the submenu.

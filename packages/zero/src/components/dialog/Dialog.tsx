@@ -37,6 +37,8 @@ interface DialogContext {
     state: ControllableState<boolean>;
     modal(): boolean;
     dismissible(): boolean;
+    /** `alertdialog` tightens the pattern: no backdrop dismiss, Cancel takes initial focus. */
+    role(): 'dialog' | 'alertdialog';
     ids: { popup: string; title: string; description: string };
     /** Title/Description report their presence so the popup's ARIA refs never dangle. */
     titlePresent(): boolean;
@@ -54,6 +56,7 @@ function makeInert(): DialogContext {
         },
         modal: () => true,
         dismissible: () => true,
+        role: () => 'dialog',
         ids: { popup: 'zx-dialog-inert', title: 'zx-dialog-inert-title', description: 'zx-dialog-inert-desc' },
         titlePresent: () => false,
         descriptionPresent: () => false,
@@ -72,6 +75,13 @@ export type DialogRootProps =
     & Define.Event<'openChange', boolean>
     & Define.Prop<'modal', boolean, false>
     & Define.Prop<'dismissible', boolean, false>
+    /**
+     * `alertdialog` is the APG alert-dialog preset on the same anatomy:
+     * the popup announces as `role="alertdialog"`, a backdrop click does NOT
+     * dismiss (Escape still does, under `dismissible`), and initial focus
+     * goes to the least-destructive action — mark it with `Dialog.Cancel`.
+     */
+    & Define.Prop<'role', 'dialog' | 'alertdialog', false>
     & Define.Slot<'default'>;
 
 const DialogRoot = component<DialogRootProps>(({ props, slots, emit, signal }) => {
@@ -90,6 +100,7 @@ const DialogRoot = component<DialogRootProps>(({ props, slots, emit, signal }) =
         state,
         modal: () => props.modal ?? true,
         dismissible: () => props.dismissible ?? true,
+        role: () => props.role ?? 'dialog',
         ids: {
             popup: `${baseId}-popup`,
             title: `${baseId}-title`,
@@ -204,6 +215,7 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
             data-scope={SCOPE}
             data-part="popup"
             data-state={stateAttr(dialog.state.value, 'open', 'closed')}
+            role={dialog.role() === 'alertdialog' ? 'alertdialog' : undefined}
             aria-labelledby={dialog.titlePresent() ? dialog.ids.title : undefined}
             aria-describedby={dialog.descriptionPresent() ? dialog.ids.description : undefined}
             class={props.class}
@@ -221,7 +233,11 @@ const DialogPopup = component<DialogPopupProps>(({ props, slots, onMounted }) =>
                 // but so does a click on the dialog's own padding. Geometry
                 // decides: only a pointer position outside the dialog's box
                 // can be the backdrop. Modal only — a non-modal dialog has
-                // no backdrop at all.
+                // no backdrop at all. An alertdialog never light-dismisses:
+                // the pattern exists to interrupt, so the answer has to be
+                // one of its actions (APG; Radix AlertDialog behaves the
+                // same). Escape stays live via `cancel` above.
+                if (dialog.role() === 'alertdialog') return;
                 if (!dialog.modal() || !dialog.dismissible()) return;
                 if (!el || e.target !== el) return;
                 // A keyboard-synthesized click carries no geometry.
@@ -338,6 +354,63 @@ const DialogClose = component<DialogCloseProps>(({ props, slots, signal }) => {
     };
 }, { name: 'Dialog.Close' });
 
+// ── Cancel ──
+
+export type DialogCancelProps =
+    & WithDisabled
+    & WithClass
+    & WithAsChild
+    & Define.Slot<'default', PartProps>;
+
+/**
+ * The least-destructive action. Behaviorally a close button; in
+ * `role="alertdialog"` mode it additionally carries `autofocus`, which is the
+ * platform seam for APG's initial-focus rule — `showModal()`'s focusing steps
+ * land on the first autofocus element inside the dialog, on every open.
+ */
+const DialogCancel = component<DialogCancelProps>(({ props, slots, signal }) => {
+    const dialog = useDialogContext();
+    let el: HTMLElement | null = null;
+    const focus = signal({ visible: false });
+    const press = createPressFeedback({
+        getElement: () => el,
+        isDisabled: () => !!props.disabled,
+    });
+
+    const bag = (): PartProps => ({
+        'data-scope': SCOPE,
+        'data-part': 'cancel',
+        'data-disabled': dataAttr(props.disabled),
+        'data-focus-visible': dataAttr(focus.visible),
+        autofocus: dialog.role() === 'alertdialog' ? true : undefined,
+        onClick: () => {
+            if (!props.disabled) dialog.state.value = false;
+        },
+        onFocus: () => { focus.visible = isFocusVisible(el); },
+        onBlur: (e: FocusEvent) => {
+            press.onBlur(e);
+            focus.visible = false;
+        },
+        onKeydown: press.onKeydown,
+        onKeyup: press.onKeyup,
+        onPointerdown: press.onPointerdown,
+        onPointerup: press.onPointerup,
+        onPointercancel: press.onPointercancel,
+        onPointerleave: press.onPointerleave,
+        ref: (node: HTMLElement | null) => { el = node; },
+    });
+
+    return () => {
+        const b = bag();
+        if (props.asChild) return renderAsChild(slots.default, b);
+        return (
+            <button type="button" class={props.class} {...b} disabled={props.disabled}>
+                {slots.default?.(b)}
+            </button>
+        );
+    };
+}, { name: 'Dialog.Cancel' });
+
 export const Dialog = compound(DialogRoot, {
     Root: DialogRoot,
     Trigger: DialogTrigger,
@@ -346,4 +419,5 @@ export const Dialog = compound(DialogRoot, {
     Description: DialogDescription,
     Footer: DialogFooter,
     Close: DialogClose,
+    Cancel: DialogCancel,
 });

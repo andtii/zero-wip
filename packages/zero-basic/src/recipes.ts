@@ -628,6 +628,9 @@ export const dialog: RecipeInput = {
             },
         },
         close: dismissAction,
+        // The least-destructive action of an alertdialog — the same quiet
+        // dismiss chrome; the destructive sibling is the app's own button.
+        cancel: dismissAction,
     },
 };
 
@@ -704,6 +707,33 @@ export const tooltip: RecipeInput = {
     },
 };
 
+/**
+ * The checkbox mark, drawn rather than typeset.
+ *
+ * A glyph is at the mercy of the reader's font: `✓` is a different weight in
+ * every family, and a half-star codepoint (`⯪`, U+2BEA) is missing from most of
+ * them outright — which is why zero's own default half is a full `★` and this
+ * file's rating group draws its halves instead of typesetting them. Monograph's
+ * marks are geometry — one six-point polygon per state, painted with the
+ * on-accent ink.
+ *
+ * THE TECHNIQUE (daisyUI's, generalised): all three polygons carry the SAME
+ * point count and the same topology — left cap, elbow-outer, right cap,
+ * elbow-inner — so `clip-path` interpolates between any two of them, and the
+ * mark animates without a transform. `HOME` is the degenerate form: every
+ * point collapsed onto the elbow's cross-section, which is zero-LENGTH but
+ * full-WEIGHT. So the stroke EXTENDS out of the corner at its final thickness
+ * instead of scaling up from a dot — the one growth Monograph's no-scale rule
+ * still allows, and the one that reads as a pen stroke.
+ *
+ * Coordinates are percentages of the indicator box, computed from a polyline
+ * (6,50) → (37,82) → (95,13) stroked at 19.7% with mitred joins, then fitted
+ * to 1–99%. `DASH` shares the topology so indeterminate ↔ checked morphs too.
+ */
+const CHECK_MARK = 'polygon(15.1% 41.3%, 1% 55%, 37.6% 92.8%, 99% 19.8%, 83.9% 7.2%, 36.6% 63.5%)';
+const CHECK_MARK_HOME = 'polygon(36.6% 63.5%, 37.6% 92.8%, 37.6% 92.8%, 37.6% 92.8%, 36.6% 63.5%, 36.6% 63.5%)';
+const DASH_MARK = 'polygon(8% 40.1%, 8% 59.9%, 37.6% 59.9%, 92% 59.9%, 92% 40.1%, 37.6% 40.1%)';
+
 export const menu: RecipeInput = {
     component: 'menu',
     parts: {
@@ -757,6 +787,91 @@ export const menu: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
             },
             selectors: { ...pressedInk },
+        },
+        // The stateful rows (APG menuitemcheckbox / menuitemradio) read as the
+        // plain item — the STATE lives on the mark well in front of the text
+        // (`item-indicator`), so the row itself declares checked/unchecked
+        // empty rather than repainting anything.
+        'checkbox-item': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-md)',
+                padding: 'var(--space-sm) var(--space-lg)',
+                // The marker rail — see `item`.
+                borderInlineStart: '2px solid transparent',
+                paddingInlineStart: 'calc(var(--space-lg) - 2px)',
+                fontSize: 'var(--text-sm)',
+                fontVariantNumeric: 'tabular-nums',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+                outline: 'none',
+            },
+            states: {
+                highlighted: {
+                    background: 'var(--color-primary-soft)',
+                    borderInlineStartColor: 'var(--color-primary)',
+                },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+            },
+            selectors: { ...pressedInk },
+        },
+        'radio-item': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-md)',
+                padding: 'var(--space-sm) var(--space-lg)',
+                // The marker rail — see `item`.
+                borderInlineStart: '2px solid transparent',
+                paddingInlineStart: 'calc(var(--space-lg) - 2px)',
+                fontSize: 'var(--text-sm)',
+                fontVariantNumeric: 'tabular-nums',
+                borderRadius: 'var(--radius-selector)',
+                cursor: 'pointer',
+                outline: 'none',
+            },
+            states: {
+                highlighted: {
+                    background: 'var(--color-primary-soft)',
+                    borderInlineStartColor: 'var(--color-primary)',
+                },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+            },
+            selectors: { ...pressedInk },
+        },
+        // The drawn tick — the checkbox's pen stroke at row scale, inked only
+        // while checked. Deepened the way the radio dot is (#211's lesson):
+        // this mark sits on the popup's paper, not on an accent fill, so the
+        // raw role would go illegible on dark paper.
+        'item-indicator': {
+            base: {
+                width: '0.85em',
+                height: '0.85em',
+                flexShrink: '0',
+                background: 'color-mix(in oklab, var(--color-primary) 70%, var(--color-primary-content))',
+                clipPath: CHECK_MARK,
+                opacity: '0',
+                transition: 'opacity var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                checked: { opacity: '1' },
+                unchecked: {},
+            },
+            // The same two fallbacks every drawn mark in this file carries —
+            // forced colours rewrites the fill to Canvas, print drops it.
+            at: {
+                'forced-colors': {
+                    base: { clipPath: 'none', background: 'transparent', color: 'CanvasText', lineHeight: 'var(--leading-none)' },
+                    selectors: { '&[data-state="checked"]::after': { content: '"\\2714"' } },
+                },
+                print: {
+                    base: { clipPath: 'none', background: 'transparent', color: 'var(--print-ink)', lineHeight: 'var(--leading-none)' },
+                    selectors: { '&[data-state="checked"]::after': { content: '"\\2714"' } },
+                },
+            },
         },
         // The item look, plus a chevron and an `open` state that keeps it
         // visually active after focus moves into the submenu.
@@ -870,33 +985,6 @@ export const field: RecipeInput = {
     },
     skipStates: { label: ['invalid', 'required'], error: ['invalid'] },
 };
-
-/**
- * The checkbox mark, drawn rather than typeset.
- *
- * A glyph is at the mercy of the reader's font: `✓` is a different weight in
- * every family, and a half-star codepoint (`⯪`, U+2BEA) is missing from most of
- * them outright — which is why zero's own default half is a full `★` and this
- * file's rating group draws its halves instead of typesetting them. Monograph's
- * marks are geometry — one six-point polygon per state, painted with the
- * on-accent ink.
- *
- * THE TECHNIQUE (daisyUI's, generalised): all three polygons carry the SAME
- * point count and the same topology — left cap, elbow-outer, right cap,
- * elbow-inner — so `clip-path` interpolates between any two of them, and the
- * mark animates without a transform. `HOME` is the degenerate form: every
- * point collapsed onto the elbow's cross-section, which is zero-LENGTH but
- * full-WEIGHT. So the stroke EXTENDS out of the corner at its final thickness
- * instead of scaling up from a dot — the one growth Monograph's no-scale rule
- * still allows, and the one that reads as a pen stroke.
- *
- * Coordinates are percentages of the indicator box, computed from a polyline
- * (6,50) → (37,82) → (95,13) stroked at 19.7% with mitred joins, then fitted
- * to 1–99%. `DASH` shares the topology so indeterminate ↔ checked morphs too.
- */
-const CHECK_MARK = 'polygon(15.1% 41.3%, 1% 55%, 37.6% 92.8%, 99% 19.8%, 83.9% 7.2%, 36.6% 63.5%)';
-const CHECK_MARK_HOME = 'polygon(36.6% 63.5%, 37.6% 92.8%, 37.6% 92.8%, 37.6% 92.8%, 36.6% 63.5%, 36.6% 63.5%)';
-const DASH_MARK = 'polygon(8% 40.1%, 8% 59.9%, 37.6% 59.9%, 92% 59.9%, 92% 40.1%, 37.6% 40.1%)';
 
 /**
  * Where a background-painted mark stops being visible, and what stands in.
@@ -1380,6 +1468,81 @@ export const slider: RecipeInput = {
                 'forced-colors': { base: { appearance: 'auto' } },
             },
         },
+        // The composed range projection (#325): the same channel and the same
+        // paper disc as the native control, as real parts. Zero positions
+        // (absolute + logical inline-start percents); this only paints.
+        track: {
+            base: {
+                height: 'var(--slider-track-size)',
+                // Reserve the thumb's overhang so the row's box matches the
+                // native control's.
+                marginBlock: 'calc((var(--slider-thumb-size) - var(--slider-track-size)) / 2)',
+                borderRadius: '9999px',
+                background: 'var(--color-base-200)',
+                boxShadow: 'inset 0 0 0 var(--border) var(--color-base-300)',
+                cursor: 'pointer',
+            },
+            states: { disabled: { cursor: 'not-allowed' } },
+        },
+        range: {
+            base: {
+                height: '100%',
+                borderRadius: '9999px',
+                background: 'var(--slider-accent)',
+            },
+            states: { disabled: {} },
+        },
+        // The switch's paper disc, verbatim — including the 55%-ink BORDER
+        // edge rather than a hairline shadow: `base-300` on this track is
+        // 1.15:1, and forced colours strips shadows outright (#228's lesson,
+        // applied where it was learned).
+        thumb: {
+            base: {
+                boxSizing: 'border-box',
+                width: 'var(--slider-thumb-size)',
+                height: 'var(--slider-thumb-size)',
+                insetBlockStart: '50%',
+                translate: '0 -50%',
+                marginInlineStart: 'calc(var(--slider-thumb-size) / -2)',
+                borderRadius: '9999px',
+                border: 'var(--border) solid color-mix(in oklch, var(--color-base-content) 55%, transparent)',
+                background: 'var(--color-base-100)',
+                cursor: 'pointer',
+                outline: 'none',
+                touchAction: 'none',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                // The same instantaneous ink film the native thumb takes.
+                pressed: { background: 'color-mix(in oklch, var(--color-base-content) 6%, var(--color-base-100))' },
+                'focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
+                disabled: { cursor: 'not-allowed' },
+            },
+        },
+        // A tick through the channel, with the mark's label as meta-text
+        // hanging under it.
+        mark: {
+            base: {
+                paddingBlockStart: 'calc(var(--slider-track-size) + var(--space-2xs))',
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+                lineHeight: 'var(--leading-none)',
+                whiteSpace: 'nowrap',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlockStart: '0',
+                    insetInlineStart: '-1px',
+                    width: '2px',
+                    height: 'var(--slider-track-size)',
+                    background: 'var(--color-base-300)',
+                },
+            },
+        },
         'value-text': {
             base: {
                 fontSize: 'var(--text-xs)',
@@ -1546,6 +1709,20 @@ export const select: RecipeInput = {
             },
             states: { open: {}, closed: {} },
         }),
+        // The optgroup equivalent (#325) — the menu's group grammar: the
+        // overline label, the group itself unstyled.
+        group: { base: {} },
+        'group-label': {
+            base: {
+                padding: 'var(--space-sm) var(--space-lg)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-medium)',
+                textTransform: 'uppercase',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklch, var(--color-base-content) 60%, transparent)',
+            },
+        },
         item: {
             base: {
                 display: 'flex',
@@ -2141,6 +2318,20 @@ export const combobox: RecipeInput = {
             },
             states: { open: {}, closed: {} },
         }),
+        // The optgroup equivalent (#325) — the menu's group grammar: the
+        // overline label, the group itself unstyled.
+        group: { base: {} },
+        'group-label': {
+            base: {
+                padding: 'var(--space-sm) var(--space-lg)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-medium)',
+                textTransform: 'uppercase',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklch, var(--color-base-content) 60%, transparent)',
+            },
+        },
         item: {
             base: {
                 display: 'flex',

@@ -216,3 +216,80 @@ describe('Dialog', () => {
         expect(state.open).toBe(false);
     });
 });
+
+describe('Dialog as alertdialog', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    function mountAlert(state: { open: boolean }, opts: { role?: 'dialog' | 'alertdialog' } = {}) {
+        render(
+            <Dialog.Root model={[state, 'open']} role={opts.role ?? 'alertdialog'}>
+                <Dialog.Trigger>Delete…</Dialog.Trigger>
+                <Dialog.Popup>
+                    <Dialog.Title>Delete file?</Dialog.Title>
+                    <Dialog.Description>This cannot be undone.</Dialog.Description>
+                    <Dialog.Footer>
+                        <Dialog.Cancel>Cancel</Dialog.Cancel>
+                        <Dialog.Close>Delete</Dialog.Close>
+                    </Dialog.Footer>
+                </Dialog.Popup>
+            </Dialog.Root>,
+            container,
+        );
+    }
+
+    it('renders role="alertdialog" on the popup, and a valid anatomy with the cancel part', () => {
+        mountAlert(signal({ open: true }));
+        expectAnatomy(container, dialogAnatomy);
+        const popup = container.querySelector<HTMLElement>('[data-part="popup"]')!;
+        expect(popup.getAttribute('role')).toBe('alertdialog');
+        expect(container.querySelector('button[data-part="cancel"]')).not.toBeNull();
+    });
+
+    it('the default role stays the native dialog (no role attribute)', () => {
+        const state = signal({ open: true });
+        mount(container, state);
+        expect(container.querySelector<HTMLElement>('[data-part="popup"]')!.hasAttribute('role')).toBe(false);
+    });
+
+    it('a backdrop click does NOT dismiss an alertdialog', () => {
+        const state = signal({ open: true });
+        mountAlert(state);
+        const popup = container.querySelector<HTMLDialogElement>('dialog')!;
+        popup.getBoundingClientRect = () =>
+            ({ left: 0, top: 0, right: 200, bottom: 100, width: 200, height: 100, x: 0, y: 0, toJSON: () => ({}) }) as DOMRect;
+        popup.dispatchEvent(new MouseEvent('click', { clientX: 300, clientY: 50, detail: 1, bubbles: true }));
+        expect(state.open).toBe(true);
+    });
+
+    it('Escape (native cancel) still closes an alertdialog unless dismissible={false}', () => {
+        const state = signal({ open: true });
+        mountAlert(state);
+        const popup = container.querySelector<HTMLDialogElement>('dialog')!;
+        popup.dispatchEvent(new Event('cancel', { cancelable: true }));
+        expect(state.open).toBe(false);
+    });
+
+    it('Cancel is the least-destructive action: it closes, and carries autofocus in alertdialog mode', () => {
+        const state = signal({ open: true });
+        mountAlert(state);
+        const cancel = container.querySelector<HTMLButtonElement>('[data-part="cancel"]')!;
+        // `showModal()`'s focusing steps land on the first autofocus element —
+        // the platform seam APG's "focus the least destructive action" rides.
+        expect(cancel.hasAttribute('autofocus')).toBe(true);
+        cancel.click();
+        expect(state.open).toBe(false);
+    });
+
+    it('Cancel in a plain dialog closes but claims no autofocus', () => {
+        const state = signal({ open: true });
+        mountAlert(state, { role: 'dialog' });
+        const cancel = container.querySelector<HTMLButtonElement>('[data-part="cancel"]')!;
+        expect(cancel.hasAttribute('autofocus')).toBe(false);
+        cancel.click();
+        expect(state.open).toBe(false);
+    });
+});

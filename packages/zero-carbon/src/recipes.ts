@@ -648,6 +648,24 @@ export const dialog: RecipeInput = {
                 },
             };
         })(),
+        // The alertdialog's least-destructive action: the footer shape of the
+        // ghost close, in flow — Carbon's secondary modal action.
+        cancel: (() => {
+            const shared = ghostIconButton('3rem');
+            return {
+                ...shared,
+                base: {
+                    ...shared.base,
+                    width: 'auto',
+                    height: 'auto',
+                    justifyContent: 'flex-start',
+                    padding: '0 var(--space-md)',
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 'var(--text-sm)',
+                    letterSpacing: 'var(--tracking-wide)',
+                },
+            };
+        })(),
     },
 };
 
@@ -740,6 +758,42 @@ export const menu: RecipeInput = {
             },
             selectors: {
                 '&[data-pressed]:not([data-disabled])': { background: layerActive },
+            },
+        },
+        // The stateful rows are the item, unchanged; the mark column in front
+        // carries the state as a tick in the row's own ink.
+        'checkbox-item': {
+            base: menuItem,
+            states: {
+                highlighted: { background: layerHover },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+            },
+        },
+        'radio-item': {
+            base: menuItem,
+            states: {
+                highlighted: { background: layerHover },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+            },
+        },
+        'item-indicator': {
+            base: {
+                width: '1em',
+                flexShrink: '0',
+                fontSize: 'var(--text-xs)',
+                lineHeight: '1',
+            },
+            states: { checked: {}, unchecked: {} },
+            selectors: {
+                '&[data-state="checked"]::after': { content: '"\\2713"' },
             },
         },
         // The item look, plus a chevron and an `open` state that keeps it
@@ -1369,6 +1423,74 @@ export const slider: RecipeInput = {
                 'forced-colors': { base: { appearance: 'auto' } },
             },
         },
+        // The composed range projection (#325): Carbon's hairline rail and
+        // square handle as real parts, same inks as the rebuilt control.
+        track: {
+            base: {
+                height: '0.125rem',
+                marginBlock: '1.1875rem',
+                // Progress's rail, not `--carbon-line`: the audited
+                // `rangeFill` pair is fill-on-base-300 (3.64:1 on g100);
+                // on the lighter line grey it drops to 2.11:1.
+                background: 'var(--color-base-300)',
+                cursor: 'pointer',
+            },
+            states: { disabled: { cursor: 'not-allowed' } },
+        },
+        range: {
+            base: {
+                height: '100%',
+                // `rangeFill`, not the raw interactive blue: on the g100 rail
+                // the raw token is 1.71:1 — the same fill-vs-track failure
+                // progress already deepened its way out of (#228).
+                background: rangeFill,
+            },
+            states: { disabled: {} },
+        },
+        thumb: {
+            base: {
+                width: '0.875rem',
+                height: '0.875rem',
+                insetBlockStart: '50%',
+                translate: '0 -50%',
+                marginInlineStart: '-0.4375rem',
+                borderRadius: 'var(--radius-selector)',
+                background: 'var(--color-base-content)',
+                cursor: 'pointer',
+                outline: 'none',
+                touchAction: 'none',
+                transition: 'box-shadow var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                'focus-visible': { boxShadow: thumbRing },
+                // A drag has no one-shot — the ring doubling as the held
+                // feedback is the whole press treatment, as on the control.
+                pressed: { boxShadow: thumbRing },
+                disabled: { cursor: 'not-allowed' },
+            },
+        },
+        mark: {
+            base: {
+                paddingBlockStart: 'calc(0.125rem + var(--space-2xs))',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: '1',
+                whiteSpace: 'nowrap',
+                color: 'color-mix(in oklab, var(--color-base-content) 65%, transparent)',
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlockStart: '0',
+                    insetInlineStart: '-1px',
+                    width: '2px',
+                    height: '0.125rem',
+                    background: 'var(--carbon-line)',
+                },
+            },
+        },
         'value-text': { base: { ...fieldLabel } },
     },
     variants: {
@@ -1502,6 +1624,17 @@ export const select: RecipeInput = {
             at: {
                 'starting-style': { states: { open: { opacity: '0', transform: 'translateY(-0.25rem)' } } },
                 'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+            },
+        },
+        // The optgroup equivalent (#325) — the menu's group grammar.
+        group: { base: {} },
+        'group-label': {
+            base: {
+                padding: 'var(--space-xs) var(--space-md)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
             },
         },
         item: {
@@ -2058,6 +2191,17 @@ export const combobox: RecipeInput = {
             at: {
                 'starting-style': { states: { open: { opacity: '0', transform: 'translateY(-2px)' } } },
                 'reduced-motion': { base: { transition: 'none' }, states: { open: { transform: 'none' } } },
+            },
+        },
+        // The optgroup equivalent (#325) — the menu's group grammar.
+        group: { base: {} },
+        'group-label': {
+            base: {
+                padding: 'var(--space-xs) var(--space-md)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
             },
         },
         item: {

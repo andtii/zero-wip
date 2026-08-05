@@ -31,6 +31,7 @@ export type {
     DialogDescriptionProps,
     DialogFooterProps,
     DialogCloseProps,
+    DialogCancelProps,
 } from './components/dialog/index.js';
 
 export { Popover, popoverAnatomy, usePopoverContext } from './components/popover/index.js';
@@ -45,13 +46,16 @@ export type {
 export { Tooltip, tooltipAnatomy, useTooltipContext } from './components/tooltip/index.js';
 export type { TooltipRootProps, TooltipTriggerProps, TooltipPopupProps } from './components/tooltip/index.js';
 
-export { Menu, menuAnatomy, useMenuContext } from './components/menu/index.js';
+export { Menu, menuAnatomy, useMenuContext, useMenuRadioGroupContext } from './components/menu/index.js';
 export type {
     MenuRootProps,
     MenuTriggerProps,
     MenuContextTriggerProps,
     MenuPopupProps,
     MenuItemProps,
+    MenuCheckboxItemProps,
+    MenuRadioGroupProps,
+    MenuRadioItemProps,
     MenuGroupProps,
     MenuGroupLabelProps,
     MenuSeparatorProps,
@@ -76,18 +80,29 @@ export type {
 } from './components/progress/index.js';
 
 export { Slider, sliderAnatomy, useSliderContext } from './components/slider/index.js';
-export type { SliderRootProps, SliderLabelProps, SliderControlProps, SliderValueTextProps } from './components/slider/index.js';
+export type {
+    SliderRootProps,
+    SliderLabelProps,
+    SliderControlProps,
+    SliderTrackProps,
+    SliderRangeProps,
+    SliderThumbProps,
+    SliderValueTextProps,
+    SliderMark,
+} from './components/slider/index.js';
 
 export { Accordion, accordionAnatomy, useAccordionContext } from './components/accordion/index.js';
 export type { AccordionRootProps, AccordionItemProps, AccordionTriggerProps, AccordionPanelProps } from './components/accordion/index.js';
 
-export { Select, selectAnatomy, useSelectContext } from './components/select/index.js';
+export { Select, selectAnatomy, useSelectContext, useSelectGroupContext } from './components/select/index.js';
 export type {
     SelectRootProps,
     SelectTriggerProps,
     SelectValueProps,
     SelectIndicatorProps,
     SelectPopupProps,
+    SelectGroupProps,
+    SelectGroupLabelProps,
     SelectItemProps,
 } from './components/select/index.js';
 
@@ -150,13 +165,15 @@ export type {
     TreeViewBranchContentProps,
 } from './components/tree-view/index.js';
 
-export { Combobox, comboboxAnatomy, useComboboxContext } from './components/combobox/index.js';
+export { Combobox, comboboxAnatomy, useComboboxContext, useComboboxGroupContext } from './components/combobox/index.js';
 export type {
     ComboboxRootProps,
     ComboboxControlProps,
     ComboboxInputProps,
     ComboboxTriggerProps,
     ComboboxPopupProps,
+    ComboboxGroupProps,
+    ComboboxGroupLabelProps,
     ComboboxItemProps,
     ComboboxEmptyProps,
 } from './components/combobox/index.js';

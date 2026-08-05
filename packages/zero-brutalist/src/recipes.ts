@@ -419,6 +419,19 @@ export const dialog: RecipeInput = {
             },
             states: { hover: shift('1px'), disabled: {}, ...focusRing },
         },
+        // The alertdialog's least-destructive action — the same inked slab.
+        cancel: {
+            base: {
+                appearance: 'none',
+                ...inked,
+                ...label,
+                fontSize: 'var(--text-xs)',
+                padding: 'var(--space-sm) var(--space-lg)',
+                boxShadow: 'var(--shadow-xs)',
+                cursor: 'pointer',
+            },
+            states: { hover: shift('1px'), disabled: {}, ...focusRing },
+        },
     },
 };
 
@@ -482,6 +495,57 @@ export const menu: RecipeInput = {
                 highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
+            },
+        },
+        // The stateful rows are the item, unchanged; the mark column in front
+        // carries the state as a hard block glyph.
+        'checkbox-item': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                cursor: 'pointer',
+            },
+            states: {
+                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+                ...focusRing,
+            },
+        },
+        'radio-item': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                cursor: 'pointer',
+            },
+            states: {
+                highlighted: { background: 'var(--color-primary)', color: 'var(--color-primary-content)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+                ...focusRing,
+            },
+        },
+        // A reserved mark column; checked drops in a solid block — brutalism
+        // marks with a filled square, not a calligraphic tick. `currentColor`
+        // so the highlight inversion takes the mark with it.
+        'item-indicator': {
+            base: {
+                width: '0.6em',
+                height: '0.6em',
+                flexShrink: '0',
+                background: 'transparent',
+            },
+            states: {
+                checked: { background: 'currentColor' },
+                unchecked: {},
             },
         },
         // The item look plus a hard chevron; `open` inverts like highlight.
@@ -563,6 +627,11 @@ export const select: RecipeInput = {
         value: { base: { flex: '1', textAlign: 'start' } },
         indicator: { base: { transition: motion('transform') }, states: { open: { transform: 'rotate(180deg)' }, closed: {} } },
         popup: withPresence(popupPresence('translate(4px, 4px)'), { base: { ...slab, padding: 'var(--space-xs)', minWidth: '12rem' }, states: { open: {}, closed: {} } }),
+        // The optgroup equivalent (#325) — the menu's group grammar.
+        group: { base: { padding: 'var(--space-2xs) 0' } },
+        'group-label': {
+            base: { padding: 'var(--space-2xs) var(--space-sm)', ...label, fontSize: 'var(--text-xs)', opacity: '0.7' },
+        },
         item: {
             base: {
                 display: 'flex',
@@ -1140,6 +1209,73 @@ export const slider: RecipeInput = {
                 'forced-colors': { base: { appearance: 'auto' } },
             },
         },
+        // The composed range projection (#325): the same two inked slabs as
+        // the rebuilt control — channel and handle — as real parts.
+        track: {
+            base: {
+                boxSizing: 'border-box',
+                height: 'calc(var(--slider-track-size) + var(--border) * 2)',
+                marginBlock: 'calc((var(--slider-thumb-size) - var(--slider-track-size)) / 2)',
+                ...inked,
+                boxShadow: 'var(--shadow-xs)',
+                cursor: 'pointer',
+            },
+            states: {
+                // The whole instrument lies flat when disabled — same as the
+                // native control's collapse.
+                disabled: { cursor: 'not-allowed', boxShadow: 'none' },
+            },
+        },
+        range: {
+            base: {
+                height: '100%',
+                background: 'var(--slider-accent)',
+            },
+            states: { disabled: {} },
+        },
+        thumb: {
+            base: {
+                boxSizing: 'border-box',
+                width: 'var(--slider-thumb-size)',
+                height: 'var(--slider-thumb-size)',
+                insetBlockStart: '50%',
+                translate: '0 -50%',
+                marginInlineStart: 'calc(var(--slider-thumb-size) / -2)',
+                ...inked,
+                boxShadow: 'var(--shadow-xs)',
+                cursor: 'pointer',
+                outline: 'none',
+                touchAction: 'none',
+            },
+            states: {
+                // The stamp — the handle drops its shadow and shoves itself
+                // into where the shadow was, exactly as button does.
+                pressed: { boxShadow: 'none' },
+                disabled: { cursor: 'not-allowed', boxShadow: 'none' },
+                ...focusRing,
+            },
+        },
+        mark: {
+            base: {
+                paddingBlockStart: 'calc(var(--slider-track-size) + var(--border) * 2 + var(--space-2xs))',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                lineHeight: '1',
+                whiteSpace: 'nowrap',
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlockStart: '0',
+                    insetInlineStart: '-1px',
+                    width: '2px',
+                    height: 'calc(var(--slider-track-size) + var(--border) * 2)',
+                    background: 'var(--color-base-content)',
+                },
+            },
+        },
         'value-text': { base: { ...label, fontSize: 'var(--text-xs)' } },
     },
     variants: {
@@ -1496,6 +1632,11 @@ export const combobox: RecipeInput = {
             },
         },
         popup: withPresence(popupPresence('translate(4px, 4px)'), { base: { ...slab, padding: 'var(--space-xs)', minWidth: '12rem' }, states: { open: {}, closed: {} } }),
+        // The optgroup equivalent (#325) — the menu's group grammar.
+        group: { base: { padding: 'var(--space-2xs) 0' } },
+        'group-label': {
+            base: { padding: 'var(--space-2xs) var(--space-sm)', ...label, fontSize: 'var(--text-xs)', opacity: '0.7' },
+        },
         item: {
             base: {
                 display: 'flex',

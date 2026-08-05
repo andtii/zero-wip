@@ -4,6 +4,50 @@
 
 ### Added
 
+- **Component-surface completions** (#325). The peer-parity gaps every
+  comparable library (Radix/Ark/Zag) covers, closed in one wave:
+
+  - **Menu stateful items**: `Menu.CheckboxItem` (per-item boolean model,
+    `role="menuitemcheckbox"`, `aria-checked`, `data-state`
+    checked|unchecked) and `Menu.RadioGroup`/`Menu.RadioItem` (one string
+    model on the group, `role="menuitemradio"`). Both participate in the
+    existing roving/typeahead list, emit the root's `select` alongside their
+    own model events, and keep the menu OPEN on toggle by default — a
+    per-item `closeOnSelect` opts back into closing. Each auto-renders an
+    `item-indicator` part mirroring its checked state (the radio-group
+    idiom) for the design system's mark. `Menu.RadioGroup` renders the same
+    labelled `group` part `Menu.Group` does, so `Menu.GroupLabel` works
+    inside unchanged.
+  - **AlertDialog** as a preset, not a new scope: `Dialog.Root` takes
+    `role="alertdialog"` — the popup announces as `alertdialog`, a backdrop
+    click never dismisses (Escape stays live under `dismissible`), and
+    initial focus goes to the least-destructive action: the new
+    `Dialog.Cancel` part, a close button that carries `autofocus` in
+    alertdialog mode so `showModal()`'s own focusing steps implement APG's
+    initial-focus rule.
+  - **Slider range/multi-thumb**: `model` accepts `number | number[]`. A
+    scalar model keeps the native `<input type=range>` unchanged; an array
+    model composes the real `Slider.Track`/`Slider.Range`/`Slider.Thumb`
+    parts — one APG `role="slider"` tab stop per value (indexed by
+    registration order; `index` pins), keyboard per APG on the focused
+    thumb (RTL-aware; Home/End go to the thumb's ALLOWED bounds), thumbs
+    clamp at their neighbors and announce the clamp as
+    `aria-valuemin`/`aria-valuemax`, `aria-valuetext` from
+    `getValueText(value, index)`, per-thumb `label`. Track presses move the
+    nearest thumb and start a drag; `Slider.Range` spans lowest→highest; a
+    `marks` prop renders positioned `mark` tick parts; a range model posts
+    one hidden input per value under the shared `name`. Zero positions the
+    moving parts structurally (logical `inset-inline-start` percents — RTL
+    mirrors for free) and paints nothing.
+  - **Select and Combobox option groups**: `Group` + `GroupLabel` parts —
+    `role="group"` inside the listbox, named by its label through the same
+    presence-tracked `aria-labelledby` `Menu.Group` uses. Labels never
+    register as options, so typeahead and the highlight walk straight
+    through; flat usage is unchanged.
+
+  All new parts are declared in their anatomies (parent, closed states from
+  `STATE_VOCABULARY`, flags from `FLAG_VOCABULARY`) and styled by all six
+  in-repo design systems.
 - **Verification-depth fixes** (#326), found by the new playground-wide axe
   audit and overlay e2e specs:
 

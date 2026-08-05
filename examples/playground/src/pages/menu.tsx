@@ -72,6 +72,29 @@ const MenuDemos = component(() => () => (
                 <Menu.Item value="inspect">Inspect</Menu.Item>
             </Menu.Popup>
         </Menu.Root>
+
+        <h2>Selection items</h2>
+        <p>
+            APG <code>menuitemcheckbox</code> / <code>menuitemradio</code>:
+            toggling stays open by default (<code>closeOnSelect</code> on the
+            item opts back into closing); the mark is the design system's{' '}
+            <code>item-indicator</code>.
+        </p>
+        <Menu.Root onSelect={(v) => console.log('view select:', v)}>
+            <Menu.Trigger>View</Menu.Trigger>
+            <Menu.Popup>
+                <Menu.CheckboxItem value="statusbar" defaultChecked>Status bar</Menu.CheckboxItem>
+                <Menu.CheckboxItem value="minimap">Minimap</Menu.CheckboxItem>
+                <Menu.CheckboxItem value="breadcrumbs" disabled>Breadcrumbs</Menu.CheckboxItem>
+                <Menu.Separator />
+                <Menu.RadioGroup defaultValue="name" onValueChange={(v) => console.log('sort by:', v)}>
+                    <Menu.GroupLabel>Sort by</Menu.GroupLabel>
+                    <Menu.RadioItem value="name">Name</Menu.RadioItem>
+                    <Menu.RadioItem value="date">Date modified</Menu.RadioItem>
+                    <Menu.RadioItem value="size">Size</Menu.RadioItem>
+                </Menu.RadioGroup>
+            </Menu.Popup>
+        </Menu.Root>
     </>
 ), { name: 'MenuDemos' });
 

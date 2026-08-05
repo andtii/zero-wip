@@ -164,12 +164,74 @@
         animation: dialog-ripple var(--duration-slow) var(--ease-standard);
     }
 
+    [data-scope="dialog"][data-part="cancel"] {
+        position: relative;
+        overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: var(--color-primary);
+        border-radius: 624rem;
+        padding: var(--space-xs) var(--space-lg);
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        letter-spacing: var(--tracking-wide);
+        cursor: pointer;
+    }
+
+    [data-scope="dialog"][data-part="cancel"][data-focus-visible] {
+        outline: 3px solid var(--color-secondary);
+        outline-offset: 2px;
+    }
+
+    [data-scope="dialog"][data-part="cancel"]::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--color-primary);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="dialog"][data-part="cancel"]:hover:not([data-disabled])::before {
+        opacity: 0.08;
+    }
+
+    [data-scope="dialog"][data-part="cancel"][data-pressed]:not([data-disabled])::before {
+        opacity: 0.12;
+    }
+
+    [data-scope="dialog"][data-part="cancel"]::after {
+        content: "";
+        position: absolute;
+        left: var(--press-x, 50%);
+        top: var(--press-y, 50%);
+        width: calc(var(--press-r, 0px) * 2);
+        height: calc(var(--press-r, 0px) * 2);
+        border-radius: 50%;
+        background: var(--color-primary);
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    [data-scope="dialog"][data-part="cancel"][data-press-animating]::after {
+        animation: dialog-ripple var(--duration-slow) var(--ease-standard);
+    }
+
     @media (hover: none) {
         [data-scope="dialog"][data-part="trigger"]:hover:not([data-disabled])::before {
             opacity: 0;
         }
 
         [data-scope="dialog"][data-part="close"]:hover:not([data-disabled])::before {
+            opacity: 0;
+        }
+
+        [data-scope="dialog"][data-part="cancel"]:hover:not([data-disabled])::before {
             opacity: 0;
         }
     }
@@ -188,6 +250,14 @@
         }
 
         [data-scope="dialog"][data-part="close"]::after {
+            display: none;
+        }
+
+        [data-scope="dialog"][data-part="cancel"]::before {
+            display: none;
+        }
+
+        [data-scope="dialog"][data-part="cancel"]::after {
             display: none;
         }
     }

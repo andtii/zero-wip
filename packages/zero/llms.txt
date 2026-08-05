@@ -118,19 +118,35 @@ component renders; the root is called out separately where it carries props.
 - Collapsible: Root(model=open)/Trigger/Panel on native <details>.
 - Accordion: Root(model=string[])/Item/Trigger/Panel on native <details>;
   `multiple` and `collapsible`.
-- Dialog: Root(model=open, modal, dismissible — renders no element) then
-  Trigger/Popup/Title/Description/Footer/Close on native <dialog> + top layer
-  (no Portal). The backdrop is a `backdrop` part that renders no element on
-  the web — recipes style `parts.backdrop` and the compiler projects it onto
-  [data-scope="dialog"][data-part="popup"]::backdrop (states narrow the
-  popup: [data-state="open"]::backdrop).
+- Dialog: Root(model=open, modal, dismissible, role — renders no element)
+  then Trigger/Popup/Title/Description/Footer/Close/Cancel on native <dialog>
+  + top layer (no Portal). The backdrop is a `backdrop` part that renders no
+  element on the web — recipes style `parts.backdrop` and the compiler
+  projects it onto [data-scope="dialog"][data-part="popup"]::backdrop (states
+  narrow the popup: [data-state="open"]::backdrop).
+  role="alertdialog" is the APG alert-dialog preset on the same anatomy: the
+  popup announces as alertdialog, a backdrop click does NOT dismiss (Escape
+  still does, under `dismissible`), and initial focus goes to the
+  least-destructive action — mark it with Dialog.Cancel, which closes like
+  Close and carries `autofocus` in alertdialog mode so `showModal()`'s
+  focusing steps land on it.
 - Popover: Root(model=open, placement, offset, positionStrategy — renders no
   element) then Trigger/Popup/Title/Close, on the popover attribute + anchor
   positioning.
 - Tooltip: Root(model=open, openDelay, closeDelay, placement — renders no
   element) then Trigger/Popup.
 - Menu: Root(model=open, closeOnSelect, placement — renders no element) then
-  Trigger/Popup/Item(asChild)/Group/GroupLabel/Separator; `select` event.
+  Trigger/Popup/Item(asChild)/CheckboxItem/RadioGroup/RadioItem/Group/
+  GroupLabel/Separator; `select` event.
+  Stateful items (APG menuitemcheckbox/menuitemradio): CheckboxItem(value,
+  model=checked, closeOnSelect default FALSE — unlike plain items, toggling
+  keeps the menu open) and RadioGroup(model=value — renders the same labelled
+  `group` part Menu.Group does)/RadioItem(value, closeOnSelect default
+  FALSE). Both carry data-state checked|unchecked + aria-checked, emit the
+  root's `select` alongside their own model events, and auto-render an
+  `item-indicator` part mirroring the checked state — zero leaves it empty,
+  the design system draws the mark (recipes key on
+  [data-state="checked"]). asChild renders only the consumer's element.
   Context menu: ContextTrigger(asChild) wraps any surface — right-click /
   Android long-press opens the SAME popup at the pointer via a virtual
   anchor (deferred past the gesture: an auto popover opened mid-gesture
@@ -150,17 +166,35 @@ component renders; the root is called out separately where it carries props.
   Keyboard: ArrowRight/Enter/Space open + focus first item, ArrowLeft closes
   back (mirrored under RTL); Escape closes one level (native popover);
   hover opens without moving focus.
-- Select: Root(model=value)/Trigger/Value/Indicator/Popup/Item/ItemIndicator/
-  HiddenInput.
+- Select: Root(model=value)/Trigger/Value/Indicator/Popup/Group/GroupLabel/
+  Item/ItemIndicator/HiddenInput. Option groups are the optgroup equivalent:
+  Group renders role=group inside the listbox, named by its GroupLabel while
+  one is rendered (presence-tracked — an unlabelled group stays anonymous).
+  Labels never register as options, so typeahead and the highlight walk
+  straight through group boundaries.
 - Switch: Root(model=checked)/Control/Thumb/Label/HiddenInput, role=switch.
 - Checkbox: Root(model=checked)/Control/Indicator/Label/HiddenInput; supports
   `indeterminate`.
 - RadioGroup: Root(model=value)/Label/Item/ItemControl/ItemIndicator/
   ItemLabel/HiddenInput; orientation.
-- Slider: Root(model=number)/Label/Control/ValueText on a native
-  <input type=range> (single thumb). The anatomy also declares track/range/
-  thumb parts — the projection for platforms without a native range widget;
-  the web never renders them, so rules against them are inert here.
+- Slider: Root(model=number|number[], min, max, step, name, invalid, marks,
+  getValueText)/Label/Control/Track/Range/Thumb/Mark/ValueText/HiddenInput.
+  Two projections over one anatomy. Scalar model: render Slider.Control — a
+  native <input type=range>, single thumb, platform keyboard/forms/a11y.
+  Range model (number[]): compose the real parts — Slider.Track wrapping
+  Slider.Range and one Slider.Thumb(label, index?) per value, in order.
+  Each thumb is an APG role=slider tab stop: arrows/PageUp/PageDown step
+  (RTL-aware), Home/End go to its ALLOWED bounds — thumbs cannot cross, so
+  each clamps at its neighbor and announces the clamp as aria-valuemin/max;
+  aria-valuetext comes from getValueText(value, index). Track presses move
+  the nearest thumb and start a drag; range spans lowest→highest (min→value
+  when single); `marks` renders positioned `mark` tick parts (with label
+  text) inside the track; a range model posts one hidden input per value
+  under the shared `name`. Zero positions structurally (absolute + logical
+  inset-inline-start percents — RTL mirrors for free) and paints nothing:
+  recipes center the thumb with a negative margin-inline-start of half its
+  width and own every color. --slider-percent still tracks the (highest)
+  value's fraction.
 - Progress: Root/Label/Track/Range/ValueText; `value: number | null`
   (null = indeterminate).
 - Field: Root/Label/Description/Error — wires ids and disabled/invalid/
@@ -215,7 +249,10 @@ component renders; the root is called out separately where it carries props.
   never `@starting-style`/`allow-discrete` on toast parts, and gate any
   viewport `display` behind `&:popover-open`.
 - Combobox: Root(model=value, model:inputValue, model:open)/Control/Input/
-  Trigger/Popup/Item(asChild)/ItemIndicator/Empty/HiddenInput. APG editable
+  Trigger/Popup/Group/GroupLabel/Item(asChild)/ItemIndicator/Empty/
+  HiddenInput. Group/GroupLabel work exactly as Select's (role=group +
+  presence-tracked aria-labelledby); the consumer's filter renders or omits
+  whole groups. APG editable
   combobox: focus stays in the real <input> (role=combobox,
   aria-autocomplete=list, aria-activedescendant); Control is the field
   chrome wrapping input + trigger and mirrors open/invalid/focus-visible so

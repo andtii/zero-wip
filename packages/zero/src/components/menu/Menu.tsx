@@ -17,6 +17,23 @@
  * typeahead matches item text, Enter/Space activate, Escape closes (native
  * popover) and focus returns to the trigger.
  *
+ * Stateful items follow the APG menu-button pattern's checkbox/radio roles:
+ * ```tsx
+ * <Menu.CheckboxItem value="statusbar" model={() => state.statusbar}>
+ *     Status bar
+ * </Menu.CheckboxItem>
+ * <Menu.RadioGroup model={() => state.sortBy}>
+ *     <Menu.GroupLabel>Sort by</Menu.GroupLabel>
+ *     <Menu.RadioItem value="name">Name</Menu.RadioItem>
+ *     <Menu.RadioItem value="date">Date</Menu.RadioItem>
+ * </Menu.RadioGroup>
+ * ```
+ * Toggling either kind leaves the menu OPEN by default (`closeOnSelect` on
+ * the item opts back into closing); both emit the root's `select` alongside
+ * their own model events. Each renders an `item-indicator` part mirroring its
+ * checked state for the design system's mark (asChild items render only the
+ * consumer's element — bring your own mark there).
+ *
  * Submenus nest the same parts:
  * ```tsx
  * <Menu.Sub>
@@ -67,7 +84,13 @@ interface MenuContext {
     triggerPresent(): boolean;
     setTriggerPresent(present: boolean): void;
     keydown(e: KeyboardEvent, value: string): void;
-    select(value: string): void;
+    /**
+     * Emit `select` and close per the root's `closeOnSelect` — unless the
+     * activating item overrides the close decision (`closeOverride`): a
+     * checkbox/radio item stays open by default so the user can set several
+     * options in one visit (the Radix behavior).
+     */
+    select(value: string, closeOverride?: boolean): void;
     setAnchor(anchor: PositionAnchor | null): void;
     /**
      * Open anchored at client coordinates (a context menu). While already
@@ -154,9 +177,9 @@ const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal }) => {
             roving(e, value);
             if (!e.defaultPrevented) typeahead(e, value);
         },
-        select(value) {
+        select(value, closeOverride) {
             emit('select', value);
-            if (props.closeOnSelect ?? true) state.value = false;
+            if (closeOverride ?? (props.closeOnSelect ?? true)) state.value = false;
         },
         setAnchor: (a) => { anchor = a; },
         openAt(x, y) {
@@ -399,47 +422,57 @@ const MenuPopup = component<MenuPopupProps>(({ props, slots, onMounted }) => {
     );
 }, { name: 'Menu.Popup' });
 
-// ── Item ──
+// ── Item core ──
 
-export type MenuItemProps =
-    & Define.Prop<'value', string, true>
-    & Define.Prop<'textValue', string, false>
-    & WithDisabled
-    & WithClass
-    & WithAsChild
-    & Define.Slot<'default', PartProps>;
+/** The slice of the component setup context the item core needs. */
+interface ItemHooks {
+    signal<T extends object>(v: T): T;
+    onUnmounted(fn: () => void): void;
+}
 
-const MenuItem = component<MenuItemProps>(({ props, slots, signal, onUnmounted }) => {
+interface ItemCoreOpts {
+    value(): string;
+    textValue(): string | undefined;
+    disabled(): boolean;
+    activate(): void;
+}
+
+/**
+ * The shared item skeleton: registration in the enclosing menu's list (roving
+ * + typeahead), press feedback, highlight tracking, and the APG activation
+ * keys. Item, CheckboxItem and RadioItem differ only in role, checked
+ * semantics and what activation does — everything else must stay identical,
+ * so it lives here once.
+ */
+function useMenuItemCore({ signal, onUnmounted }: ItemHooks, opts: ItemCoreOpts) {
     const menu = useMenuContext();
     let el: HTMLElement | null = null;
     const focus = signal({ highlighted: false });
     const press = createPressFeedback({
         getElement: () => el,
-        isDisabled: () => !!props.disabled,
+        isDisabled: () => opts.disabled(),
     });
 
     const item: ListItem = {
-        id: `item-${props.value}`,
-        get value() { return props.value; },
-        disabled: () => !!props.disabled,
+        id: `item-${opts.value()}`,
+        get value() { return opts.value(); },
+        disabled: () => opts.disabled(),
         el: () => el,
-        textValue: () => props.textValue ?? el?.textContent?.trim() ?? props.value,
+        textValue: () => opts.textValue() ?? el?.textContent?.trim() ?? opts.value(),
     };
     const unregister = menu.list.register(item);
     onUnmounted(() => unregister());
 
-    const activate = () => {
-        if (!props.disabled) menu.select(props.value);
+    const activate = (): void => {
+        if (!opts.disabled()) opts.activate();
     };
 
-    const bag = (): PartProps => ({
-        'data-scope': SCOPE,
-        'data-part': 'item',
-        'data-disabled': dataAttr(props.disabled),
+    /** The behavior half of the part bag; the caller adds identity + ARIA. */
+    const handlers = (): Omit<PartProps, 'data-scope' | 'data-part'> => ({
+        'data-disabled': dataAttr(opts.disabled()),
         'data-highlighted': dataAttr(focus.highlighted),
-        role: 'menuitem',
         tabIndex: -1,
-        'aria-disabled': props.disabled ? 'true' : undefined,
+        'aria-disabled': opts.disabled() ? 'true' : undefined,
         onClick: () => activate(),
         onKeydown: (e: KeyboardEvent) => {
             press.onKeydown(e);
@@ -448,7 +481,7 @@ const MenuItem = component<MenuItemProps>(({ props, slots, signal, onUnmounted }
                 activate();
                 return;
             }
-            menu.keydown(e, props.value);
+            menu.keydown(e, opts.value());
         },
         onKeyup: press.onKeyup,
         onPointerenter: () => { el?.focus(); },
@@ -464,6 +497,34 @@ const MenuItem = component<MenuItemProps>(({ props, slots, signal, onUnmounted }
         ref: (node: HTMLElement | null) => { el = node; },
     });
 
+    return { menu, handlers };
+}
+
+// ── Item ──
+
+export type MenuItemProps =
+    & Define.Prop<'value', string, true>
+    & Define.Prop<'textValue', string, false>
+    & WithDisabled
+    & WithClass
+    & WithAsChild
+    & Define.Slot<'default', PartProps>;
+
+const MenuItem = component<MenuItemProps>(({ props, slots, signal, onUnmounted }) => {
+    const core = useMenuItemCore({ signal, onUnmounted }, {
+        value: () => props.value,
+        textValue: () => props.textValue,
+        disabled: () => !!props.disabled,
+        activate: () => core.menu.select(props.value),
+    });
+
+    const bag = (): PartProps => ({
+        ...core.handlers(),
+        'data-scope': SCOPE,
+        'data-part': 'item',
+        role: 'menuitem',
+    });
+
     return () => {
         const b = bag();
         if (props.asChild) return renderAsChild(slots.default, b);
@@ -474,6 +535,158 @@ const MenuItem = component<MenuItemProps>(({ props, slots, signal, onUnmounted }
         );
     };
 }, { name: 'Menu.Item' });
+
+// ── CheckboxItem ──
+
+export type MenuCheckboxItemProps =
+    & Define.Prop<'value', string, true>
+    & Define.Model<boolean>
+    & Define.Prop<'defaultChecked', boolean, false>
+    & Define.Event<'checkedChange', boolean>
+    /** Close the menu when this item toggles — default FALSE (unlike plain items). */
+    & Define.Prop<'closeOnSelect', boolean, false>
+    & Define.Prop<'textValue', string, false>
+    & WithDisabled
+    & WithClass
+    & WithAsChild
+    & Define.Slot<'default', PartProps>;
+
+/**
+ * APG `menuitemcheckbox` — a per-item boolean model. Activation toggles,
+ * emits the root's `select`, and leaves the menu OPEN by default so several
+ * options can be set in one visit; `closeOnSelect` opts back into closing.
+ */
+const MenuCheckboxItem = component<MenuCheckboxItemProps>(({ props, slots, emit, signal, onUnmounted }) => {
+    const checked = createControllableState<boolean>(
+        () => props.model,
+        props.defaultChecked ?? false,
+        (v) => emit('checkedChange', v),
+    );
+    const core = useMenuItemCore({ signal, onUnmounted }, {
+        value: () => props.value,
+        textValue: () => props.textValue,
+        disabled: () => !!props.disabled,
+        activate: () => {
+            checked.value = !checked.value;
+            core.menu.select(props.value, props.closeOnSelect ?? false);
+        },
+    });
+
+    const bag = (): PartProps => ({
+        ...core.handlers(),
+        'data-scope': SCOPE,
+        'data-part': 'checkbox-item',
+        'data-state': stateAttr(checked.value, 'checked', 'unchecked'),
+        role: 'menuitemcheckbox',
+        'aria-checked': checked.value ? 'true' : 'false',
+    });
+
+    return () => {
+        const b = bag();
+        if (props.asChild) return renderAsChild(slots.default, b);
+        return (
+            <div class={props.class} {...b}>
+                <span
+                    data-scope={SCOPE}
+                    data-part="item-indicator"
+                    data-state={stateAttr(checked.value, 'checked', 'unchecked')}
+                    aria-hidden="true"
+                />
+                {slots.default?.(b)}
+            </div>
+        );
+    };
+}, { name: 'Menu.CheckboxItem' });
+
+// ── RadioGroup / RadioItem ──
+
+interface MenuRadioGroupContext {
+    state: ControllableState<string>;
+}
+
+function makeInertRadioGroup(): MenuRadioGroupContext {
+    let value = '';
+    return {
+        state: {
+            get value() { return value; },
+            set value(v: string) { value = v; },
+        },
+    };
+}
+
+export const useMenuRadioGroupContext = defineInjectable<MenuRadioGroupContext>(() => makeInertRadioGroup());
+
+export type MenuRadioGroupProps =
+    & Define.Model<string>
+    & Define.Prop<'defaultValue', string, false>
+    & Define.Event<'valueChange', string>
+    & WithClass
+    & Define.Slot<'default'>;
+
+/**
+ * One string model over a set of `Menu.RadioItem`s. Renders the same labelled
+ * `group` part `Menu.Group` does (a radio set IS a group — `Menu.GroupLabel`
+ * works inside unchanged); the model context is the only addition.
+ */
+const MenuRadioGroup = component<MenuRadioGroupProps>(({ props, slots, emit }) => {
+    const state = createControllableState<string>(
+        () => props.model,
+        props.defaultValue ?? '',
+        (v) => emit('valueChange', v),
+    );
+    defineProvide(useMenuRadioGroupContext, () => ({ state }));
+    return () => <MenuGroup class={props.class}>{slots.default?.()}</MenuGroup>;
+}, { name: 'Menu.RadioGroup' });
+
+export type MenuRadioItemProps =
+    & Define.Prop<'value', string, true>
+    /** Close the menu when this item is chosen — default FALSE, like CheckboxItem. */
+    & Define.Prop<'closeOnSelect', boolean, false>
+    & Define.Prop<'textValue', string, false>
+    & WithDisabled
+    & WithClass
+    & WithAsChild
+    & Define.Slot<'default', PartProps>;
+
+/** APG `menuitemradio` — checked when the enclosing RadioGroup's model matches. */
+const MenuRadioItem = component<MenuRadioItemProps>(({ props, slots, signal, onUnmounted }) => {
+    const group = useMenuRadioGroupContext();
+    const isChecked = (): boolean => group.state.value === props.value;
+    const core = useMenuItemCore({ signal, onUnmounted }, {
+        value: () => props.value,
+        textValue: () => props.textValue,
+        disabled: () => !!props.disabled,
+        activate: () => {
+            group.state.value = props.value;
+            core.menu.select(props.value, props.closeOnSelect ?? false);
+        },
+    });
+
+    const bag = (): PartProps => ({
+        ...core.handlers(),
+        'data-scope': SCOPE,
+        'data-part': 'radio-item',
+        'data-state': stateAttr(isChecked(), 'checked', 'unchecked'),
+        role: 'menuitemradio',
+        'aria-checked': isChecked() ? 'true' : 'false',
+    });
+
+    return () => {
+        const b = bag();
+        if (props.asChild) return renderAsChild(slots.default, b);
+        return (
+            <div class={props.class} {...b}>
+                <span
+                    data-scope={SCOPE}
+                    data-part="item-indicator"
+                    data-state={stateAttr(isChecked(), 'checked', 'unchecked')}
+                    aria-hidden="true"
+                />
+                {slots.default?.(b)}
+            </div>
+        );
+    };
+}, { name: 'Menu.RadioItem' });
 
 // ── Sub ──
 
@@ -606,8 +819,8 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
             roving(e, value);
             if (!e.defaultPrevented) typeahead(e, value);
         },
-        select(value) {
-            parent.select(value);
+        select(value, closeOverride) {
+            parent.select(value, closeOverride);
         },
         setAnchor: () => {},
         // A context trigger inside a submenu would re-anchor the WRONG
@@ -915,6 +1128,9 @@ export const Menu = compound(MenuRoot, {
     ContextTrigger: MenuContextTrigger,
     Popup: MenuPopup,
     Item: MenuItem,
+    CheckboxItem: MenuCheckboxItem,
+    RadioGroup: MenuRadioGroup,
+    RadioItem: MenuRadioItem,
     Sub: MenuSub,
     SubTrigger: MenuSubTrigger,
     SubPopup: MenuSubPopup,

@@ -470,11 +470,83 @@ const SelectItem = component<SelectItemProps>(({ props, slots, onUnmounted }) =>
     };
 }, { name: 'Select.Item' });
 
+
+// ── Group / GroupLabel ──
+
+interface SelectGroupContext {
+    labelId: string;
+    labelPresent(): boolean;
+    setLabelPresent(present: boolean): void;
+}
+
+function makeInertGroup(): SelectGroupContext {
+    return {
+        labelId: 'zx-select-group-inert-label',
+        labelPresent: () => false,
+        setLabelPresent: () => {},
+    };
+}
+
+export const useSelectGroupContext = defineInjectable<SelectGroupContext>(() => makeInertGroup());
+
+export type SelectGroupProps = WithClass & Define.Slot<'default'>;
+
+/**
+ * The optgroup equivalent — `role="group"` inside the listbox, named by its
+ * `GroupLabel` while one is rendered (Menu.Group's presence-tracked shape:
+ * an unlabelled group stays anonymous rather than dangling a reference).
+ */
+const SelectGroup = component<SelectGroupProps>(({ props, slots, signal }) => {
+    const baseId = createId('zx-select-group');
+    // Written from GroupLabel one microtask after its setup — a write made
+    // during the render pass is invisible to the already-rendered group.
+    const present = signal({ label: false });
+    const ctx: SelectGroupContext = {
+        labelId: `${baseId}-label`,
+        labelPresent: () => present.label,
+        setLabelPresent: (p) => { present.label = p; },
+    };
+    defineProvide(useSelectGroupContext, () => ctx);
+    return () => (
+        <div
+            data-scope={SCOPE}
+            data-part="group"
+            role="group"
+            aria-labelledby={ctx.labelPresent() ? ctx.labelId : undefined}
+            class={props.class}
+        >
+            {slots.default?.()}
+        </div>
+    );
+}, { name: 'Select.Group' });
+
+export type SelectGroupLabelProps = WithClass & Define.Slot<'default'>;
+
+const SelectGroupLabel = component<SelectGroupLabelProps>(({ props, slots, onUnmounted }) => {
+    const group = useSelectGroupContext();
+    // Deferred past the render pass — see the note on `present` in Group.
+    let alive = true;
+    queueMicrotask(() => { if (alive) group.setLabelPresent(true); });
+    onUnmounted(() => {
+        alive = false;
+        group.setLabelPresent(false);
+    });
+    // No role: the label must stay in the accessibility tree for the group's
+    // aria-labelledby to compute a name from it.
+    return () => (
+        <div id={group.labelId} data-scope={SCOPE} data-part="group-label" class={props.class}>
+            {slots.default?.()}
+        </div>
+    );
+}, { name: 'Select.GroupLabel' });
+
 export const Select = compound(SelectRoot, {
     Root: SelectRoot,
     Trigger: SelectTrigger,
     Value: SelectValue,
     Indicator: SelectIndicator,
     Popup: SelectPopup,
+    Group: SelectGroup,
+    GroupLabel: SelectGroupLabel,
     Item: SelectItem,
 });

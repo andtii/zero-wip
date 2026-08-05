@@ -537,12 +537,13 @@ function installColorMath(): void {
 const PAINT_ONLY_PART = /^(?:.*-)?(?:indicator|thumb|range)$/;
 
 /**
- * Selected parts the web never renders. Slider's track/range/thumb are the
- * anatomy's projection for platforms without a native range widget; on the web
- * the design systems style the `<input type="range">` pseudo-elements instead
- * (see `Slider.tsx`). Measuring them would measure fiction.
+ * Selected parts the web never renders. Empty since #325 — slider's
+ * track/range/thumb used to be the Lynx-only projection, but the composed
+ * range slider renders them for real now, so they are measured like any
+ * other mark. Kept (with its guard below) for the next platform-divergent
+ * part.
  */
-const NOT_RENDERED_ON_WEB = new Set(['slider/range', 'slider/thumb']);
+const NOT_RENDERED_ON_WEB = new Set<string>([]);
 
 /**
  * The manifest declares parts, not nesting — so each indicator's real ancestor
@@ -582,6 +583,15 @@ const INDICATORS: IndicatorSpec[] = [
     { scope: 'radio-group', part: 'item-indicator', ancestors: ['root', 'item', 'item-control'] },
     { scope: 'switch', part: 'thumb', ancestors: ['root', 'control'] },
     { scope: 'progress', part: 'range', ancestors: ['root', 'track'] },
+    // The composed range slider's marks (#325) — real web parts now, painted
+    // on the rail exactly like progress's.
+    { scope: 'slider', part: 'range', ancestors: ['root', 'track'] },
+    { scope: 'slider', part: 'thumb', ancestors: ['root', 'track'] },
+    // Menu's checked mark (#325). No glyph: zero renders an empty span and
+    // the recipe draws the mark (geometry or its own ::after glyph). The
+    // chain pins the host row via checkbox-item; radio-item shares the same
+    // row grammar in all six design systems, so one host chain measures both.
+    { scope: 'menu', part: 'item-indicator', ancestors: ['popup=open', 'checkbox-item'] },
     { scope: 'select', part: 'indicator', ancestors: ['root', 'trigger'], glyph: '▾' },
     { scope: 'select', part: 'item-indicator', ancestors: ['root', 'popup=open', 'item'], glyph: '✓', only: 'selected' },
     { scope: 'combobox', part: 'item-indicator', ancestors: ['root', 'popup=open', 'item'], glyph: '✓', only: 'selected' },

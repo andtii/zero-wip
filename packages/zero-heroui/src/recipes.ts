@@ -510,6 +510,8 @@ export const dialog: RecipeInput = {
             base: { display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)', marginBlockStart: 'var(--space-xl)' },
         },
         close: dismissAction,
+        // The alertdialog's least-destructive action — the same quiet chrome.
+        cancel: dismissAction,
     },
 };
 
@@ -612,6 +614,66 @@ export const menu: RecipeInput = {
             },
             selectors: {
                 '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+        // The stateful rows are the item, unchanged; the mark column in front
+        // carries the state (HeroUI marks selected menu rows with a tick).
+        'checkbox-item': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                borderRadius: 'var(--radius-selector)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+                cursor: 'pointer',
+                outline: 'none',
+            },
+            states: {
+                highlighted: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+        'radio-item': {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                borderRadius: 'var(--radius-selector)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+                cursor: 'pointer',
+                outline: 'none',
+            },
+            states: {
+                highlighted: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                checked: {}, unchecked: {},
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+        // The reserved mark column; the tick appears while checked, in the
+        // row's own ink.
+        'item-indicator': {
+            base: {
+                width: '1em',
+                flexShrink: '0',
+                fontSize: 'var(--text-xs)',
+                lineHeight: '1',
+            },
+            states: { checked: {}, unchecked: {} },
+            selectors: {
+                '&[data-state="checked"]::after': { content: '"\\2713"' },
             },
         },
         // The item look, plus an `open` state that keeps it lit after focus
@@ -1174,6 +1236,73 @@ export const slider: RecipeInput = {
                 },
             },
         },
+        // The composed range projection (#325): the same rail and paper disc
+        // as the rebuilt control, as real parts. The thumb's edge is the
+        // switch's 75%-muted border — `--hero-line` on this rail is the ring
+        // nobody can see (#228).
+        track: {
+            base: {
+                height: 'var(--slider-track-size)',
+                marginBlock: 'calc((var(--slider-thumb-size) - var(--slider-track-size)) / 2 + var(--size-selector))',
+                borderRadius: '9999px',
+                background: 'var(--color-base-300)',
+                cursor: 'pointer',
+            },
+            states: { disabled: { cursor: 'not-allowed' } },
+        },
+        range: {
+            base: {
+                height: '100%',
+                borderRadius: '9999px',
+                background: 'var(--slider-accent)',
+            },
+            states: { disabled: {} },
+        },
+        thumb: {
+            base: {
+                boxSizing: 'border-box',
+                width: 'var(--slider-thumb-size)',
+                height: 'var(--slider-thumb-size)',
+                insetBlockStart: '50%',
+                translate: '0 -50%',
+                marginInlineStart: 'calc(var(--slider-thumb-size) / -2)',
+                borderRadius: '9999px',
+                border: 'var(--border) solid color-mix(in oklab, var(--hero-muted) 75%, transparent)',
+                background: 'var(--color-base-100)',
+                boxShadow: 'var(--shadow-sm)',
+                cursor: 'pointer',
+                outline: 'none',
+                touchAction: 'none',
+                transition: motion('box-shadow, scale'),
+            },
+            states: {
+                pressed: { scale: '0.94' },
+                'focus-visible': { boxShadow: '0 0 0 2px var(--hero-focus), var(--shadow-sm)' },
+                disabled: { cursor: 'not-allowed' },
+            },
+        },
+        mark: {
+            base: {
+                paddingBlockStart: 'calc(var(--slider-track-size) + var(--space-2xs))',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                lineHeight: '1',
+                whiteSpace: 'nowrap',
+                color: 'var(--hero-muted)',
+            },
+            states: { disabled: {} },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlockStart: '0',
+                    insetInlineStart: '-1px',
+                    width: '2px',
+                    height: 'var(--slider-track-size)',
+                    background: 'var(--hero-muted)',
+                },
+            },
+        },
         'value-text': {
             base: { fontFamily: 'var(--font-sans)', fontSize: 'var(--text-xs)', color: 'var(--hero-muted)' },
         },
@@ -1281,6 +1410,17 @@ export const select: RecipeInput = {
                 minWidth: '12rem',
             },
         }),
+        // The optgroup equivalent (#325) — the menu's group grammar.
+        group: { base: {} },
+        'group-label': {
+            base: {
+                padding: 'var(--space-xs) var(--space-sm)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                color: 'var(--hero-muted)',
+            },
+        },
         item: {
             base: {
                 display: 'flex',
@@ -1680,6 +1820,17 @@ export const combobox: RecipeInput = {
                 minWidth: '12rem',
             },
         }),
+        // The optgroup equivalent (#325) — the menu's group grammar.
+        group: { base: {} },
+        'group-label': {
+            base: {
+                padding: 'var(--space-xs) var(--space-sm)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-semibold)',
+                color: 'var(--hero-muted)',
+            },
+        },
         item: {
             base: {
                 display: 'flex',

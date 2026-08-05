@@ -126,14 +126,14 @@ describe('button affordance', () => {
         expect(names).toContain('tooltip.trigger');
         expect(names).toContain('button.root');
         expect(names).toContain('toggle-group.item');
-        expect(names.length).toBe(17);
+        expect(names.length).toBe(18);
     });
 
     // No allowlist. #213 shipped with three exemptions — heroui's dialog,
     // popover and menu triggers, the last `{ cursor: 'pointer' }` holdouts —
     // and #214 adopted `overlayTrigger` on all three, so there is nothing left
-    // to excuse. 17 parts × 6 design systems = 102 cells, all clean
-    // (`alert.close` is the seventeenth, from #311).
+    // to excuse. 18 parts × 6 design systems = 108 cells, all clean
+    // (`alert.close` from #311; `dialog.cancel` from #325).
     it.each(SYSTEMS.map((s) => s.name))('%s: no <button> part leaves its paint to the UA', (ds) => {
         const system = SYSTEMS.find((s) => s.name === ds)!;
         expect(findings(system).sort()).toEqual([]);
