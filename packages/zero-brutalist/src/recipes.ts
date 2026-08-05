@@ -2978,10 +2978,51 @@ export const kbd: RecipeInput = {
     },
 };
 
+/**
+ * Status — a square, because nothing in this identity is round. The frame is
+ * always `base-content` (the `inked` grammar) and colour fills the inside,
+ * which keeps the mark ≥3:1 on paper whatever role it wears — and keeps a
+ * visible box under `forced-colors`, where the fill drops and the frame
+ * stays.
+ */
+export const status: RecipeInput = {
+    component: 'status',
+    tokens: {
+        '--status-fill': 'var(--color-base-content)',
+        '--status-size': 'calc(var(--size-selector) * 2.5)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-block',
+                inlineSize: 'var(--status-size)',
+                blockSize: 'var(--status-size)',
+                boxSizing: 'border-box',
+                verticalAlign: 'middle',
+                background: 'var(--status-fill)',
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                borderRadius: '0',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--status-fill': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--status-size': 'calc(var(--size-selector) * 1.5)' } } },
+            sm: { root: { base: { '--status-size': 'calc(var(--size-selector) * 2)' } } },
+            md: {},
+            lg: { root: { base: { '--status-size': 'calc(var(--size-selector) * 3)' } } },
+            xl: { root: { base: { '--status-size': 'calc(var(--size-selector) * 3.5)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
-    kbd,
+    kbd, status,
 ];

@@ -3026,10 +3026,43 @@ export const kbd: RecipeInput = {
     },
 };
 
+/**
+ * Status — the dot in HeroUI's primary fill. One costume (`roles: {}`),
+ * three sizes; border in the same ink so the mark survives `forced-colors`.
+ */
+export const status: RecipeInput = {
+    component: 'status',
+    tokens: {
+        '--status-ink': 'var(--hero-primary)',
+        '--status-size': 'calc(var(--size-selector) * 2.5)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-block',
+                inlineSize: 'var(--status-size)',
+                blockSize: 'var(--status-size)',
+                boxSizing: 'border-box',
+                verticalAlign: 'middle',
+                background: 'var(--status-ink)',
+                border: 'calc(var(--status-size) / 2) solid var(--status-ink)',
+                borderRadius: '50%',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--status-size': 'calc(var(--size-selector) * 2)' } } },
+            md: {},
+            lg: { root: { base: { '--status-size': 'calc(var(--size-selector) * 3)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
-    kbd,
+    kbd, status,
 ];

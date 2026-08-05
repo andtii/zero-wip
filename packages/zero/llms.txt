@@ -92,7 +92,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-33 components ship today. Every part each renders is listed below, in
+34 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -240,6 +240,11 @@ component renders; the root is called out separately where it carries props.
   contrast audit's one-element probe. asChild.
 - Kbd: Root only, on a semantic <kbd> — the element is the meaning, so there
   is no asChild to swap it away. No states; size is the axis that matters.
+- Status: Root only — an empty presence dot the design system paints. NO
+  states on purpose: online/busy/degraded are colours of one resting render
+  (the `color` axis), not a machine lifecycle. Without `label` it is
+  aria-hidden (the visible text beside it carries the meaning); with `label`
+  it announces as role="img" — not role="status", which is a live region.
 - Divider: Root only, role=separator, orientation. Non-focusable;
   aria-orientation emitted only for `vertical`.
 - Skeleton: Root only(model=loading, default TRUE), data-state loading|loaded,
@@ -358,9 +363,8 @@ value, `model:inputValue` = text, `model:open` = open.
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
 Avatar, Badge, Button, Card, Checkbox, Collapsible, Combobox, Dialog, Divider,
 Field, Input, Kbd, Menu, NativeSelect, NumberInput, Popover, Progress,
-RadioGroup,
-RatingGroup, Select, Skeleton, Slider, Spinner, Switch, Tabs, Textarea, Toast,
-Toggle, ToggleGroup, Tooltip and TreeView;
+RadioGroup, RatingGroup, Select, Skeleton, Slider, Spinner, Status, Switch,
+Tabs, Textarea, Toast, Toggle, ToggleGroup, Tooltip and TreeView;
 that is every component. Where the Root renders a fragment (a
 dialog/menu/popover/tooltip) the props live on the Trigger, which renders the
 carrier part the compiled axis selectors anchor on, and Toast routes the

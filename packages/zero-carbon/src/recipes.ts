@@ -3395,10 +3395,46 @@ export const kbd: RecipeInput = {
     },
 };
 
+/**
+ * Status — Carbon's status indicators are filled circles in the alert
+ * palette; the default is the interactive blue. Border in the same ink for
+ * `forced-colors`, where the fill drops and the ring stays.
+ */
+export const status: RecipeInput = {
+    component: 'status',
+    tokens: {
+        '--status-ink': 'var(--carbon-interactive)',
+        '--status-size': 'calc(var(--size-selector) * 2.5)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-block',
+                inlineSize: 'var(--status-size)',
+                blockSize: 'var(--status-size)',
+                boxSizing: 'border-box',
+                verticalAlign: 'middle',
+                background: 'var(--status-ink)',
+                border: 'calc(var(--status-size) / 2) solid var(--status-ink)',
+                borderRadius: '50%',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--status-size': 'calc(var(--size-selector) * 2)' } } },
+            md: {},
+            lg: { root: { base: { '--status-size': 'calc(var(--size-selector) * 3)' } } },
+            xl: { root: { base: { '--status-size': 'calc(var(--size-selector) * 3.5)' } } },
+            '2xl': { root: { base: { '--status-size': 'calc(var(--size-selector) * 4)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
-    kbd,
+    kbd, status,
 ];

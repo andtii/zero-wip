@@ -624,6 +624,13 @@ const INDICATORS: IndicatorSpec[] = [
      * every design system draw a worse skeleton.
      */
     { scope: 'spinner', part: 'root', ancestors: [] },
+    /**
+     * Status is spinner's static sibling (#334): an empty element whose whole
+     * job is paint, opted in by hand for the same reason — an invisible
+     * presence dot is a real bug, and WCAG 1.4.11's non-text floor is this
+     * matrix's 3:1. Empty chain: a status dot stands on the app surface.
+     */
+    { scope: 'status', part: 'root', ancestors: [] },
 ];
 
 const partOf = (scope: string, name: string): ManifestPart => {

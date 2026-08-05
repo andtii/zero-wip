@@ -42,6 +42,7 @@ import { Select } from '@sigx/zero/select';
 import { Skeleton } from '@sigx/zero/skeleton';
 import { Slider } from '@sigx/zero/slider';
 import { Spinner } from '@sigx/zero/spinner';
+import { Status } from '@sigx/zero/status';
 import { Switch } from '@sigx/zero/switch';
 import { Tabs } from '@sigx/zero/tabs';
 import { Textarea } from '@sigx/zero/textarea';
@@ -110,6 +111,7 @@ export type _divider = MustBeTrue<CheckColorSize<PropsOf<typeof Divider.Root>>>;
 export type _skeleton = MustBeTrue<CheckColorSize<PropsOf<typeof Skeleton.Root>>>;
 export type _spinner = MustBeTrue<CheckColorSize<PropsOf<typeof Spinner.Root>>>;
 export type _kbd = MustBeTrue<CheckColorSize<PropsOf<typeof Kbd.Root>>>;
+export type _status = MustBeTrue<CheckColorSize<PropsOf<typeof Status.Root>>>;
 
 /* ── the three scopes basic wires a variant vocabulary for ── */
 type ButtonProps = PropsOf<typeof Button.Root>;

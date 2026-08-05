@@ -12,6 +12,13 @@
   - **Kbd**: one part on a semantic `<kbd>` — the element is the meaning, so
     there is no `asChild`. No states; `size` is the axis that matters and
     `color` rides the uniform carrier surface.
+  - **Status**: an empty presence dot the design system paints, with NO
+    states on purpose — online/busy/degraded are colours of one resting
+    render (the `color` axis), not a machine lifecycle. `aria-hidden`
+    without a `label`; `role="img"` with one (`role="status"` is a live
+    region and was rejected for a static mark). Joins the contrast audit's
+    indicator matrix beside Spinner: pure paint answers the 3:1 non-text
+    floor.
 
 - **The sugar tier** (#333) — the one-liner DX the old `@sigx/daisyui`
   library had and zero's compound anatomy made verbose:

@@ -39,6 +39,7 @@ import type { Divider as ZDivider } from '@sigx/zero/divider';
 import type { Skeleton as ZSkeleton } from '@sigx/zero/skeleton';
 import type { Spinner as ZSpinner } from '@sigx/zero/spinner';
 import type { Kbd as ZKbd } from '@sigx/zero/kbd';
+import type { Status as ZStatus } from '@sigx/zero/status';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -275,3 +276,10 @@ type KbdProps = {
 };
 type KbdAdapted = Adapted<typeof ZKbd, ZeroAxisProp, KbdProps>;
 export declare const Kbd: KbdAdapted & { Root: KbdAdapted };
+
+/** status — no vendor route; the wired surface keeps zero's names. */
+type StatusProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type StatusAdapted = Adapted<typeof ZStatus, ZeroAxisProp, StatusProps>;
+export declare const Status: StatusAdapted & { Root: StatusAdapted };

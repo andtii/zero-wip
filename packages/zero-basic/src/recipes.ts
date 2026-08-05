@@ -3988,10 +3988,51 @@ export const kbd: RecipeInput = {
     },
 };
 
+/**
+ * Status — a filled dot in the role's ink. Default ink is `base-content`
+ * rather than a role: an unqualified dot means "present", and the strongest
+ * ink is the one that holds the indicator matrix's 3:1 floor in both themes
+ * by construction. A border in the same ink is the `forced-colors` and
+ * `print` survival plan — backgrounds drop there, borders do not.
+ */
+export const status: RecipeInput = {
+    component: 'status',
+    tokens: {
+        '--status-ink': 'var(--color-base-content)',
+        '--status-size': 'calc(var(--size-selector) * 2.5)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-block',
+                inlineSize: 'var(--status-size)',
+                blockSize: 'var(--status-size)',
+                boxSizing: 'border-box',
+                verticalAlign: 'middle',
+                background: 'var(--status-ink)',
+                border: 'calc(var(--status-size) / 2) solid var(--status-ink)',
+                borderRadius: '50%',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--status-ink': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--status-size': 'calc(var(--size-selector) * 1.5)' } } },
+            sm: { root: { base: { '--status-size': 'calc(var(--size-selector) * 2)' } } },
+            md: {},
+            lg: { root: { base: { '--status-size': 'calc(var(--size-selector) * 3)' } } },
+            xl: { root: { base: { '--status-size': 'calc(var(--size-selector) * 3.5)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
-    kbd,
+    kbd, status,
 ];

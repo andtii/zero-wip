@@ -256,5 +256,15 @@
             "sigx/jsx-runtime",
             "sigx/jsx-dev-runtime"
         ]
+    },
+    {
+        "name": "@sigx/zero/status",
+        "path": "packages/zero/dist/components/status/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
     }
 ]

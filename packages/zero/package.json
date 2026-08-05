@@ -167,6 +167,10 @@
         "./kbd": {
             "types": "./dist/components/kbd/index.d.ts",
             "import": "./dist/components/kbd/index.js"
+        },
+        "./status": {
+            "types": "./dist/components/status/index.d.ts",
+            "import": "./dist/components/status/index.js"
         }
     },
     "files": [

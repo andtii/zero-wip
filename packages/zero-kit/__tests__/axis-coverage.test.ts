@@ -199,6 +199,9 @@ const NO_VARIANT: Record<string, string> = {
     // ── The content-tier sweep (#334). ──
     kbd: 'no surveyed system varies a keycap — daisyUI\'s kbd carries only a '
         + 'size ramp, and HeroUI\'s Kbd styles through `keys`, not a style axis.',
+    status: 'no surveyed system varies a presence dot — daisyUI\'s status has '
+        + 'colour and size only, and the colour axis IS this component\'s '
+        + 'whole vocabulary.',
 };
 
 /**

@@ -3446,10 +3446,49 @@ export const kbd: RecipeInput = {
     },
 };
 
+/**
+ * Material status: the badge dot from Material's own badge spec — a plain
+ * filled circle, default in the primary tone. Border in the same ink for
+ * `forced-colors`, where the background fill is dropped.
+ */
+export const status: RecipeInput = {
+    component: 'status',
+    tokens: {
+        '--status-ink': 'var(--color-primary)',
+        '--status-size': 'calc(var(--size-selector) * 2.5)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-block',
+                inlineSize: 'var(--status-size)',
+                blockSize: 'var(--status-size)',
+                boxSizing: 'border-box',
+                verticalAlign: 'middle',
+                background: 'var(--status-ink)',
+                border: 'calc(var(--status-size) / 2) solid var(--status-ink)',
+                borderRadius: '50%',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--status-ink': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--status-size': 'calc(var(--size-selector) * 1.5)' } } },
+            sm: { root: { base: { '--status-size': 'calc(var(--size-selector) * 2)' } } },
+            md: {},
+            lg: { root: { base: { '--status-size': 'calc(var(--size-selector) * 3)' } } },
+            xl: { root: { base: { '--status-size': 'calc(var(--size-selector) * 3.5)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
-    kbd,
+    kbd, status,
 ];

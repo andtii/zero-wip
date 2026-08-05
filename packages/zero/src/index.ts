@@ -223,3 +223,6 @@ export type { SpinnerRootProps } from './components/spinner/index.js';
 
 export { Kbd, kbdAnatomy } from './components/kbd/index.js';
 export type { KbdRootProps } from './components/kbd/index.js';
+
+export { Status, statusAnatomy } from './components/status/index.js';
+export type { StatusRootProps } from './components/status/index.js';
