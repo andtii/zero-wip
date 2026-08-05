@@ -6736,7 +6736,7 @@
     [data-scope="pagination"][data-part="root"] {
         --pg-accent: var(--color-base-content);
         --pg-accent-content: var(--color-base-100);
-        --pg-size: var(--size-field);
+        --pg-size: calc(var(--size-field) * 10);
         --pg-font: var(--text-sm);
     }
 
@@ -6922,20 +6922,20 @@
     }
 
     [data-scope="pagination"][data-part="root"][data-size="xs"] {
-        --pg-size: calc(var(--size-field) * 0.75);
+        --pg-size: calc(var(--size-field) * 7);
         --pg-font: var(--text-xs);
     }
 
     [data-scope="pagination"][data-part="root"][data-size="sm"] {
-        --pg-size: calc(var(--size-field) * 0.875);
+        --pg-size: calc(var(--size-field) * 9);
     }
 
     [data-scope="pagination"][data-part="root"][data-size="lg"] {
-        --pg-size: calc(var(--size-field) * 1.25);
+        --pg-size: calc(var(--size-field) * 12);
     }
 
     [data-scope="pagination"][data-part="root"][data-size="xl"] {
-        --pg-size: calc(var(--size-field) * 1.5);
+        --pg-size: calc(var(--size-field) * 14);
         --pg-font: var(--text-lg);
     }
 }
@@ -6944,7 +6944,7 @@
     [data-scope="steps"][data-part="root"] {
         --steps-accent: var(--color-base-content);
         --steps-accent-content: var(--color-base-100);
-        --steps-ind: calc(var(--size-selector) * 4);
+        --steps-ind: calc(var(--size-selector) * 7);
         --steps-font: var(--text-sm);
     }
 
@@ -7124,20 +7124,20 @@
     }
 
     [data-scope="steps"][data-part="root"][data-size="xs"] {
-        --steps-ind: calc(var(--size-selector) * 3);
+        --steps-ind: calc(var(--size-selector) * 5);
         --steps-font: var(--text-xs);
     }
 
     [data-scope="steps"][data-part="root"][data-size="sm"] {
-        --steps-ind: calc(var(--size-selector) * 3.5);
+        --steps-ind: calc(var(--size-selector) * 6);
     }
 
     [data-scope="steps"][data-part="root"][data-size="lg"] {
-        --steps-ind: calc(var(--size-selector) * 5);
+        --steps-ind: calc(var(--size-selector) * 8);
     }
 
     [data-scope="steps"][data-part="root"][data-size="xl"] {
-        --steps-ind: calc(var(--size-selector) * 6);
+        --steps-ind: calc(var(--size-selector) * 9);
         --steps-font: var(--text-md);
     }
 }

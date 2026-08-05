@@ -2,7 +2,7 @@
     [data-scope="pagination"][data-part="root"] {
         --pg-accent: var(--color-primary);
         --pg-accent-content: var(--color-primary-content);
-        --pg-size: var(--size-field);
+        --pg-size: calc(var(--size-field) * 10);
         --pg-font: var(--text-sm);
     }
 
@@ -187,20 +187,20 @@
     }
 
     [data-scope="pagination"][data-part="root"][data-size="xs"] {
-        --pg-size: calc(var(--size-field) * 0.75);
+        --pg-size: calc(var(--size-field) * 7);
         --pg-font: var(--text-xs);
     }
 
     [data-scope="pagination"][data-part="root"][data-size="sm"] {
-        --pg-size: calc(var(--size-field) * 0.875);
+        --pg-size: calc(var(--size-field) * 9);
     }
 
     [data-scope="pagination"][data-part="root"][data-size="lg"] {
-        --pg-size: calc(var(--size-field) * 1.25);
+        --pg-size: calc(var(--size-field) * 12);
     }
 
     [data-scope="pagination"][data-part="root"][data-size="xl"] {
-        --pg-size: calc(var(--size-field) * 1.5);
+        --pg-size: calc(var(--size-field) * 14);
         --pg-font: var(--text-lg);
     }
 }

@@ -17,7 +17,13 @@ const DrawerDemos = component(() => () => (
             <Drawer.Panel>
                 <Drawer.Title>Navigation</Drawer.Title>
                 <nav aria-label="Drawer demo">
-                    <a href="#/drawer">Dashboard</a>
+                    {/* Inline links in a sentence — a lone block anchor would
+                        fail the axe target-size floor (24px), and a drawer's
+                        nav is the consumer's own layout anyway. */}
+                    <p>
+                        Jump to the <a href="#/drawer">dashboard</a> or your{' '}
+                        <a href="#/drawer">settings</a>.
+                    </p>
                 </nav>
                 <Drawer.Close>Close drawer</Drawer.Close>
             </Drawer.Panel>

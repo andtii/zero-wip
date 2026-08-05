@@ -3719,7 +3719,7 @@ export const breadcrumbs: RecipeInput = {
 export const pagination: RecipeInput = {
     component: 'pagination',
     tokens: {
-        '--pg-size': 'var(--size-field)',
+        '--pg-size': 'calc(var(--size-field) * 10)',
         '--pg-font': 'var(--text-sm)',
     },
     parts: {
@@ -3821,9 +3821,9 @@ export const pagination: RecipeInput = {
     },
     variants: {
         size: {
-            sm: { root: { base: { '--pg-size': 'calc(var(--size-field) * 0.85)', '--pg-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--pg-size': 'calc(var(--size-field) * 9)', '--pg-font': 'var(--text-xs)' } } },
             md: {},
-            lg: { root: { base: { '--pg-size': 'calc(var(--size-field) * 1.2)', '--pg-font': 'var(--text-md)' } } },
+            lg: { root: { base: { '--pg-size': 'calc(var(--size-field) * 12)', '--pg-font': 'var(--text-md)' } } },
         },
     },
 };
@@ -3838,7 +3838,7 @@ export const steps: RecipeInput = {
     component: 'steps',
     tokens: {
 
-        '--steps-ind': 'calc(var(--size-selector) * 4)',
+        '--steps-ind': 'calc(var(--size-selector) * 7)',
         '--steps-font': 'var(--text-sm)',
     },
     parts: {
@@ -3960,9 +3960,9 @@ export const steps: RecipeInput = {
     variants: {
 
         size: {
-            sm: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 3.25)', '--steps-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 5.5)', '--steps-font': 'var(--text-xs)' } } },
             md: {},
-            lg: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 5)', '--steps-font': 'var(--text-md)' } } },
+            lg: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 8)', '--steps-font': 'var(--text-md)' } } },
         },
     },
 };

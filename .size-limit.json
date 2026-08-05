@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "28 kB",
+        "limit": "30 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -330,7 +330,7 @@
     {
         "name": "@sigx/zero/navbar",
         "path": "packages/zero/dist/components/navbar/index.js",
-        "limit": "1 kB",
+        "limit": "1.5 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -360,7 +360,7 @@
     {
         "name": "@sigx/zero/steps",
         "path": "packages/zero/dist/components/steps/index.js",
-        "limit": "3 kB",
+        "limit": "3.5 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

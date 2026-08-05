@@ -4763,7 +4763,7 @@
 
 @layer zero.recipes {
     [data-scope="pagination"][data-part="root"] {
-        --pg-size: var(--size-field);
+        --pg-size: calc(var(--size-field) * 10);
         --pg-font: var(--text-sm);
     }
 
@@ -4905,28 +4905,28 @@
     }
 
     [data-scope="pagination"][data-part="root"][data-size="sm"] {
-        --pg-size: calc(var(--size-field) * 0.8);
+        --pg-size: calc(var(--size-field) * 9);
         --pg-font: var(--text-xs);
     }
 
     [data-scope="pagination"][data-part="root"][data-size="lg"] {
-        --pg-size: calc(var(--size-field) * 1.2);
+        --pg-size: calc(var(--size-field) * 12);
     }
 
     [data-scope="pagination"][data-part="root"][data-size="xl"] {
-        --pg-size: calc(var(--size-field) * 1.4);
+        --pg-size: calc(var(--size-field) * 13);
         --pg-font: var(--text-md);
     }
 
     [data-scope="pagination"][data-part="root"][data-size="2xl"] {
-        --pg-size: calc(var(--size-field) * 1.6);
+        --pg-size: calc(var(--size-field) * 14);
         --pg-font: var(--text-md);
     }
 }
 
 @layer zero.recipes {
     [data-scope="steps"][data-part="root"] {
-        --steps-ind: calc(var(--size-selector) * 4);
+        --steps-ind: calc(var(--size-selector) * 7);
         --steps-font: var(--text-sm);
     }
 
@@ -5066,21 +5066,21 @@
     }
 
     [data-scope="steps"][data-part="root"][data-size="sm"] {
-        --steps-ind: calc(var(--size-selector) * 3);
+        --steps-ind: calc(var(--size-selector) * 5);
         --steps-font: var(--text-xs);
     }
 
     [data-scope="steps"][data-part="root"][data-size="lg"] {
-        --steps-ind: calc(var(--size-selector) * 4.5);
+        --steps-ind: calc(var(--size-selector) * 8);
     }
 
     [data-scope="steps"][data-part="root"][data-size="xl"] {
-        --steps-ind: calc(var(--size-selector) * 5);
+        --steps-ind: calc(var(--size-selector) * 8.5);
         --steps-font: var(--text-md);
     }
 
     [data-scope="steps"][data-part="root"][data-size="2xl"] {
-        --steps-ind: calc(var(--size-selector) * 6);
+        --steps-ind: calc(var(--size-selector) * 9);
         --steps-font: var(--text-md);
     }
 }

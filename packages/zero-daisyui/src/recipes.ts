@@ -4247,7 +4247,7 @@ export const pagination: RecipeInput = {
     tokens: {
         '--pg-accent': 'var(--color-primary)',
         '--pg-accent-content': 'var(--color-primary-content)',
-        '--pg-size': 'var(--size-field)',
+        '--pg-size': 'calc(var(--size-field) * 10)',
         '--pg-font': 'var(--text-sm)',
     },
     parts: {
@@ -4287,7 +4287,10 @@ export const pagination: RecipeInput = {
                 justifyContent: 'center',
                 minInlineSize: 'var(--pg-size)',
                 blockSize: 'var(--pg-size)',
-                color: 'color-mix(in oklch, var(--color-base-content) 50%, transparent)',
+                // 65%, not the house 50% wash: nord's base-content is light
+                // enough that 50% computes 2.74:1 on base-100 — the contrast
+                // audit's finding, fixed at source rather than allowlisted.
+                color: 'color-mix(in oklch, var(--color-base-content) 65%, transparent)',
                 fontSize: 'var(--pg-font)',
                 userSelect: 'none',
             },
@@ -4353,11 +4356,11 @@ export const pagination: RecipeInput = {
             '--pg-accent-content': `var(--color-${c}-content)`,
         } } }])),
         size: {
-            xs: { root: { base: { '--pg-size': 'calc(var(--size-field) * 0.75)', '--pg-font': 'var(--text-xs)' } } },
-            sm: { root: { base: { '--pg-size': 'calc(var(--size-field) * 0.875)' } } },
+            xs: { root: { base: { '--pg-size': 'calc(var(--size-field) * 7)', '--pg-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--pg-size': 'calc(var(--size-field) * 9)' } } },
             md: {},
-            lg: { root: { base: { '--pg-size': 'calc(var(--size-field) * 1.25)' } } },
-            xl: { root: { base: { '--pg-size': 'calc(var(--size-field) * 1.5)', '--pg-font': 'var(--text-lg)' } } },
+            lg: { root: { base: { '--pg-size': 'calc(var(--size-field) * 12)' } } },
+            xl: { root: { base: { '--pg-size': 'calc(var(--size-field) * 14)', '--pg-font': 'var(--text-lg)' } } },
         },
     },
 };
@@ -4374,7 +4377,7 @@ export const steps: RecipeInput = {
         '--steps-accent': 'var(--color-primary)',
         '--steps-accent-content': 'var(--color-primary-content)',
         '--steps-accent-ink': roleInk('primary'),
-        '--steps-ind': 'calc(var(--size-selector) * 4)',
+        '--steps-ind': 'calc(var(--size-selector) * 7)',
         '--steps-font': 'var(--text-sm)',
     },
     parts: {
@@ -4500,11 +4503,11 @@ export const steps: RecipeInput = {
             '--steps-accent-ink': roleInk(c),
         } } }])),
         size: {
-            xs: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 3)', '--steps-font': 'var(--text-xs)' } } },
-            sm: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 3.5)' } } },
+            xs: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 5)', '--steps-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 6)' } } },
             md: {},
-            lg: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 5)' } } },
-            xl: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 6)', '--steps-font': 'var(--text-md)' } } },
+            lg: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 8)' } } },
+            xl: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 9)', '--steps-font': 'var(--text-md)' } } },
         },
     },
 };

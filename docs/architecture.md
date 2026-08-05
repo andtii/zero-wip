@@ -136,7 +136,7 @@ would render it as an element.
 
 **The registry is typed closed.** `anatomies` in
 `packages/zero/src/anatomy.ts` is declared `as const satisfies
-Record<string, Anatomy>` — 40 components — so `ZeroScope` is a closed literal
+Record<string, Anatomy>` — 45 components — so `ZeroScope` is a closed literal
 union. That closure is load-bearing: the generated register artifact asserts
 its scope keys against it at compile time ([§3.5](#35-the-register-artifact)),
 which is what makes a typo'd or version-skewed scope a compile error instead
@@ -433,7 +433,7 @@ axis values are skipped *before* the guards (a narrowed bag has optional
 members); falsy mods are skipped (presence-only — `false` and `undefined`
 both mean absent).
 
-All **40 components** compose `WithVariantAxes<'<scope>'>` — the scope
+All **45 components** compose `WithVariantAxes<'<scope>'>` — the scope
 literal is constrained to `ZeroScope`, so a typo'd literal
 (`WithVariantAxes<'buton'>`) is a compile error rather than a silently
 *different* type taking the open fallback. Ecosystem components use
@@ -776,10 +776,10 @@ checking a fraction of what it claimed.)
 | Parity family (6) | `contract-parity`, `registry-parity`, `reserved-props-parity`, `schemas`, `llms-doc`, `type-test-paths` | Every deliberately duplicated surface (kit↔zero contract copies, manifest↔registry, api reserved props↔real Root props, schemas↔reality, llms.txt claims↔source, type-test paths↔package exports) is pinned from both sides. |
 | State legibility | `zero-kit/__tests__/state-legibility.test.ts` | Every declared state is visually distinct in every skin — read from **compiled CSS**, honoring `hiddenIn`. |
 | Axis coverage + value coverage | `axis-coverage.test.ts`, `axis-value-coverage.test.ts` | No component accepts an axis nothing wires (ledgered, [§3.8](#38-the-ledgers)); no declared axis step goes unhonored by the recipes that claim it. |
-| Type tests (6 isolated projects) | `packages/zero/type-tests/` — `open`, `augmented`, `generated`, `components`, `registered-components`, `ecosystem` | Each proves one narrowing regime in its own program (augmentation leaks program-wide, so isolation is the point): the unaugmented open fallback; a hand-written augmentation (a `.ts`, so `skipLibCheck` cannot skip it); the real emitted material golden; the emitted `components.d.ts` goldens with the vocabulary untouched, two design systems coexisting; **all 40 scopes' real prop surfaces** under the emitted zero-basic golden; and the ecosystem `Exclude`-gate round trip. |
+| Type tests (6 isolated projects) | `packages/zero/type-tests/` — `open`, `augmented`, `generated`, `components`, `registered-components`, `ecosystem` | Each proves one narrowing regime in its own program (augmentation leaks program-wide, so isolation is the point): the unaugmented open fallback; a hand-written augmentation (a `.ts`, so `skipLibCheck` cannot skip it); the real emitted material golden; the emitted `components.d.ts` goldens with the vocabulary untouched, two design systems coexisting; **all 45 scopes' real prop surfaces** under the emitted zero-basic golden; and the ecosystem `Exclude`-gate round trip. |
 | Register compile gate | `zero-kit/__tests__/register-dts-compile.test.ts` | Every skin's emitted `register.d.ts` compiles with `skipLibCheck: false` against a generated stub of `@sigx/zero`, so the artifact's self-assertions actually execute ([§3.5](#35-the-register-artifact)). |
 | Typed-app capstone | `examples/typed-app` (CI, after build) | The consumer side: three isolated programs against **emitted `dist/`** through real package exports — register narrowing, the no-register components surface, and carbon's values remap. |
-| Interaction e2e (19 specs) | `examples/playground/e2e/` — press-feedback, dialog, popover, tooltip, menu-submenu, context-menu, combobox, select, toast-presence, tabs, tree-view, slider, number-input, rating-group | Real-browser contracts (chromium/firefox/webkit, plus reduced-motion and forced-colors projects), under the **locator law** (`e2e/demo.ts`): a part is located through a named root, never page-wide selectors or cross-demo positional indexing. |
+| Interaction e2e (20 specs) | `examples/playground/e2e/` — press-feedback, dialog, drawer, popover, tooltip, menu-submenu, context-menu, combobox, select, toast-presence, tabs, tree-view, slider, number-input, rating-group | Real-browser contracts (chromium/firefox/webkit, plus reduced-motion and forced-colors projects), under the **locator law** (`e2e/demo.ts`): a part is located through a named root, never page-wide selectors or cross-demo positional indexing. |
 | Contrast audit | `e2e/contrast-audit.spec.ts` | Two matrices over every state combination × skin × theme: text legibility for text-bearing parts and indicator paint for parts whose job is paint, measured in their real ancestor chains (derived from the part tree); each skin's wired axis surface rides the text matrix; 3:1 hard floor, 2:1 for `disabled` measured pre-fade. |
 | DS smoke | `e2e/ds-smoke.spec.ts` | All six skins: `hidden` computes `display: none`, no undeclared axis/mod value renders, the runtime swap leaves one live stylesheet and re-seeds vocabulary + themes, boot logs no console error. |
 | Reduced motion / RTL | `e2e/reduced-motion.spec.ts`, `e2e/rtl.spec.ts` | The two loops (Skeleton, Spinner) assert `animation-name` running under chromium **and** `none` under reduced-motion — both directions, or a never-animating recipe passes; RTL measures rendered boxes across all six skins, complementing the physical-direction lint's `transform` blind spot ([§5](#5-the-compiler-and-css-architecture)). |
@@ -801,9 +801,9 @@ Honesty section. These are the edges the tree knows about today:
 - **The dual-controller theme desync** ([§6](#6-the-theme-model)) is known
   and deliberately unfixed; consumers that swap design systems at runtime
   carry the playground's capture/re-apply pattern.
-- **The component surface is finite.** Forty components, skewed to
-  primitives plus the content tier; there is no DatePicker, no Table, no
-  data grid. The ecosystem path ([§8](#8-ecosystem-components)) exists
+- **The component surface is finite.** Forty-five components, skewed to
+  primitives plus the content and navigation tiers; there is no DatePicker,
+  no Table, no data grid. The ecosystem path ([§8](#8-ecosystem-components)) exists
   precisely so those need not enter zero's own inventory to be first-class.
 - **Multi-target is aspirational.** The target SPI that would let one
   design-system source emit for non-web platforms (#97) never landed —

@@ -1,6 +1,6 @@
 @layer zero.recipes {
     [data-scope="steps"][data-part="root"] {
-        --steps-ind: calc(var(--size-selector) * 4);
+        --steps-ind: calc(var(--size-selector) * 7);
         --steps-font: var(--text-sm);
     }
 
@@ -138,12 +138,12 @@
     }
 
     [data-scope="steps"][data-part="root"][data-size="sm"] {
-        --steps-ind: calc(var(--size-selector) * 3.25);
+        --steps-ind: calc(var(--size-selector) * 5.5);
         --steps-font: var(--text-xs);
     }
 
     [data-scope="steps"][data-part="root"][data-size="lg"] {
-        --steps-ind: calc(var(--size-selector) * 5);
+        --steps-ind: calc(var(--size-selector) * 8);
         --steps-font: var(--text-md);
     }
 }

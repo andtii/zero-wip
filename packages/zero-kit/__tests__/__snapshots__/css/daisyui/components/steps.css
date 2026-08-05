@@ -3,7 +3,7 @@
         --steps-accent: var(--color-primary);
         --steps-accent-content: var(--color-primary-content);
         --steps-accent-ink: color-mix(in oklab, var(--color-primary) 95%, var(--color-base-content));
-        --steps-ind: calc(var(--size-selector) * 4);
+        --steps-ind: calc(var(--size-selector) * 7);
         --steps-font: var(--text-sm);
     }
 
@@ -189,20 +189,20 @@
     }
 
     [data-scope="steps"][data-part="root"][data-size="xs"] {
-        --steps-ind: calc(var(--size-selector) * 3);
+        --steps-ind: calc(var(--size-selector) * 5);
         --steps-font: var(--text-xs);
     }
 
     [data-scope="steps"][data-part="root"][data-size="sm"] {
-        --steps-ind: calc(var(--size-selector) * 3.5);
+        --steps-ind: calc(var(--size-selector) * 6);
     }
 
     [data-scope="steps"][data-part="root"][data-size="lg"] {
-        --steps-ind: calc(var(--size-selector) * 5);
+        --steps-ind: calc(var(--size-selector) * 8);
     }
 
     [data-scope="steps"][data-part="root"][data-size="xl"] {
-        --steps-ind: calc(var(--size-selector) * 6);
+        --steps-ind: calc(var(--size-selector) * 9);
         --steps-font: var(--text-md);
     }
 }

@@ -1,6 +1,6 @@
 @layer zero.recipes {
     [data-scope="pagination"][data-part="root"] {
-        --pg-size: var(--size-field);
+        --pg-size: calc(var(--size-field) * 10);
         --pg-font: var(--text-sm);
     }
 
@@ -142,21 +142,21 @@
     }
 
     [data-scope="pagination"][data-part="root"][data-size="sm"] {
-        --pg-size: calc(var(--size-field) * 0.8);
+        --pg-size: calc(var(--size-field) * 9);
         --pg-font: var(--text-xs);
     }
 
     [data-scope="pagination"][data-part="root"][data-size="lg"] {
-        --pg-size: calc(var(--size-field) * 1.2);
+        --pg-size: calc(var(--size-field) * 12);
     }
 
     [data-scope="pagination"][data-part="root"][data-size="xl"] {
-        --pg-size: calc(var(--size-field) * 1.4);
+        --pg-size: calc(var(--size-field) * 13);
         --pg-font: var(--text-md);
     }
 
     [data-scope="pagination"][data-part="root"][data-size="2xl"] {
-        --pg-size: calc(var(--size-field) * 1.6);
+        --pg-size: calc(var(--size-field) * 14);
         --pg-font: var(--text-md);
     }
 }
