@@ -226,3 +226,10 @@ export type { KbdRootProps } from './components/kbd/index.js';
 
 export { Status, statusAnatomy } from './components/status/index.js';
 export type { StatusRootProps } from './components/status/index.js';
+
+export { Indicator, indicatorAnatomy } from './components/indicator/index.js';
+export type {
+    IndicatorRootProps,
+    IndicatorItemProps,
+    IndicatorPlacement,
+} from './components/indicator/index.js';

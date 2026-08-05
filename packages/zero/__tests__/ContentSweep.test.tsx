@@ -9,7 +9,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import {
+    Indicator, indicatorAnatomy,
     Kbd, kbdAnatomy,
+    PLACEMENT_VOCABULARY,
     Status, statusAnatomy,
 } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
@@ -95,5 +97,55 @@ describe('Status', () => {
         expect(root.getAttribute('role')).toBe('img');
         expect(root.getAttribute('aria-label')).toBe('Service degraded');
         expect(root.hasAttribute('aria-hidden')).toBe(false);
+    });
+});
+
+describe('Indicator', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    it('renders a valid anatomy and stamps the default corner', () => {
+        render(
+            <Indicator.Root>
+                <Indicator.Item>3</Indicator.Item>
+                <button type="button">Inbox</button>
+            </Indicator.Root>,
+            container,
+        );
+        expectAnatomy(container, indicatorAnatomy);
+        const item = part(container, 'indicator', 'item');
+        // The daisy default, and the overwhelmingly common one: a count sits
+        // on the top reading-end corner of what it counts.
+        expect(item.getAttribute('data-placement')).toBe('top-end');
+        expect(item.textContent).toBe('3');
+    });
+
+    it('stamps the requested placement, spelled logically', () => {
+        render(
+            <Indicator.Root>
+                <Indicator.Item placement="bottom-start">!</Indicator.Item>
+                <span>avatar</span>
+            </Indicator.Root>,
+            container,
+        );
+        expect(part(container, 'indicator', 'item').getAttribute('data-placement')).toBe('bottom-start');
+        expectAnatomy(container, indicatorAnatomy);
+    });
+
+    it('declares the eight anchor slots, all from the governed vocabulary', () => {
+        // Four corners, two edge midpoints, and the two logical inline sides
+        // ('start'/'end' — the middle-row anchors, which is what put the bare
+        // logical pair into PLACEMENT_VOCABULARY). No 'left'/'right': an
+        // indicator anchors to the reading direction, not to the glass.
+        expect([...(indicatorAnatomy.parts.item.placements ?? [])].sort()).toEqual([
+            'bottom', 'bottom-end', 'bottom-start', 'end', 'start', 'top', 'top-end', 'top-start',
+        ]);
+        const vocabulary = new Set<string>(PLACEMENT_VOCABULARY);
+        for (const p of indicatorAnatomy.parts.item.placements ?? []) {
+            expect(vocabulary.has(p), `"${p}" must be in PLACEMENT_VOCABULARY`).toBe(true);
+        }
     });
 });

@@ -40,6 +40,7 @@ import type { Skeleton as ZSkeleton } from '@sigx/zero/skeleton';
 import type { Spinner as ZSpinner } from '@sigx/zero/spinner';
 import type { Kbd as ZKbd } from '@sigx/zero/kbd';
 import type { Status as ZStatus } from '@sigx/zero/status';
+import type { Indicator as ZIndicator } from '@sigx/zero/indicator';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -283,3 +284,10 @@ type StatusProps = {
 };
 type StatusAdapted = Adapted<typeof ZStatus, ZeroAxisProp, StatusProps>;
 export declare const Status: StatusAdapted & { Root: StatusAdapted };
+
+/** indicator — no vendor route; the wired surface keeps zero's names. */
+type IndicatorProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type IndicatorAdapted = Adapted<typeof ZIndicator, ZeroAxisProp, IndicatorProps>;
+export declare const Indicator: IndicatorAdapted & AdaptedStatics<typeof ZIndicator> & { Root: IndicatorAdapted };

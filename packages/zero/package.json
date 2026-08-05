@@ -171,6 +171,10 @@
         "./status": {
             "types": "./dist/components/status/index.d.ts",
             "import": "./dist/components/status/index.js"
+        },
+        "./indicator": {
+            "types": "./dist/components/indicator/index.d.ts",
+            "import": "./dist/components/indicator/index.js"
         }
     },
     "files": [

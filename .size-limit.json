@@ -266,5 +266,15 @@
             "sigx/jsx-runtime",
             "sigx/jsx-dev-runtime"
         ]
+    },
+    {
+        "name": "@sigx/zero/indicator",
+        "path": "packages/zero/dist/components/indicator/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
     }
 ]

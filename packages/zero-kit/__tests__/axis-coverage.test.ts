@@ -202,6 +202,9 @@ const NO_VARIANT: Record<string, string> = {
     status: 'no surveyed system varies a presence dot — daisyUI\'s status has '
         + 'colour and size only, and the colour axis IS this component\'s '
         + 'whole vocabulary.',
+    indicator: 'no surveyed system varies a positioning wrapper — daisyUI\'s '
+        + 'indicator has placement classes only; the chrome belongs to the '
+        + 'item\'s content (a badge, a dot), never to the anchor.',
 };
 
 /**

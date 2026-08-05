@@ -92,7 +92,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-34 components ship today. Every part each renders is listed below, in
+35 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -245,6 +245,13 @@ component renders; the root is called out separately where it carries props.
   (the `color` axis), not a machine lifecycle. Without `label` it is
   aria-hidden (the visible text beside it carries the meaning); with `label`
   it announces as role="img" — not role="status", which is a live region.
+- Indicator: Root/Item(placement) — anchors the item to a corner/edge of
+  whatever Root wraps (badge on a button, dot on an avatar). Item stamps
+  data-placement from a declared eight-slot subset: top-start|top|top-end|
+  start|end|bottom-start|bottom|bottom-end — all LOGICAL (start/end are the
+  reading-direction inline sides, added to the placement vocabulary for it;
+  no left/right), so recipes position with inset-inline-* and RTL mirrors
+  free. No ARIA of its own: meaning belongs to the item's content.
 - Divider: Root only, role=separator, orientation. Non-focusable;
   aria-orientation emitted only for `vertical`.
 - Skeleton: Root only(model=loading, default TRUE), data-state loading|loaded,
@@ -362,9 +369,9 @@ value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
 Avatar, Badge, Button, Card, Checkbox, Collapsible, Combobox, Dialog, Divider,
-Field, Input, Kbd, Menu, NativeSelect, NumberInput, Popover, Progress,
-RadioGroup, RatingGroup, Select, Skeleton, Slider, Spinner, Status, Switch,
-Tabs, Textarea, Toast, Toggle, ToggleGroup, Tooltip and TreeView;
+Field, Indicator, Input, Kbd, Menu, NativeSelect, NumberInput, Popover,
+Progress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spinner, Status,
+Switch, Tabs, Textarea, Toast, Toggle, ToggleGroup, Tooltip and TreeView;
 that is every component. Where the Root renders a fragment (a
 dialog/menu/popover/tooltip) the props live on the Trigger, which renders the
 carrier part the compiled axis selectors anchor on, and Toast routes the

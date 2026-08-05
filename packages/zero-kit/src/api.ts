@@ -262,6 +262,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     dialog: ['defaultOpen', 'dismissible', 'modal', 'role', 'value'],
     divider: ['orientation'],
     field: ['invalid', 'required'],
+    indicator: [],
     input: ['autocomplete', 'defaultValue', 'invalid', 'maxlength', 'name', 'readonly', 'required', 'type', 'value'],
     kbd: [],
     menu: ['closeOnSelect', 'offset', 'placement', 'positionStrategy', 'value'],

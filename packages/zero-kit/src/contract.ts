@@ -426,13 +426,16 @@ export const STATE_SYNONYMS: Record<string, string> = {
 /**
  * The closed `data-placement` vocabulary. Mirrors `PLACEMENT_VOCABULARY` in
  * `@sigx/zero/contract` (parity-tested); a part's declared `placements` must
- * be a subset.
+ * be a subset. The bare `start`/`end` pair (#334) is the LOGICAL inline
+ * sides — reading-direction-relative, unlike the physical `left`/`right` the
+ * anchored-position behavior reports — see the zero copy for the reasoning.
  */
 export const PLACEMENT_VOCABULARY = [
     'top', 'top-start', 'top-end',
     'bottom', 'bottom-start', 'bottom-end',
     'left', 'left-start', 'left-end',
     'right', 'right-start', 'right-end',
+    'start', 'end',
 ] as const;
 
 /**

@@ -3485,10 +3485,69 @@ export const status: RecipeInput = {
     },
 };
 
+/**
+ * Indicator — pure position; the item's content brings its own paint.
+ * Colour accents bare-text items, size moves their type scale.
+ */
+export const indicator: RecipeInput = {
+    component: 'indicator',
+    parts: {
+        root: {
+            base: {
+                position: 'relative',
+                display: 'inline-flex',
+                verticalAlign: 'middle',
+                maxWidth: 'max-content',
+            },
+        },
+        item: {
+            base: {
+                position: 'absolute',
+                zIndex: '1',
+                whiteSpace: 'nowrap',
+            },
+            selectors: {
+                // Logical insets place the slot; `translate` centres the item
+                // on it. A transform has no logical spelling, so the inline
+                // half is flipped by hand under RTL below — the exact blind
+                // spot the physical-direction lint cannot see (e2e/rtl.spec).
+                '&[data-placement="top-start"]': { insetBlockStart: '0', insetInlineStart: '0', translate: '-50% -50%' },
+                '&[data-placement="top"]': { insetBlockStart: '0', insetInlineStart: '50%', translate: '-50% -50%' },
+                '&[data-placement="top-end"]': { insetBlockStart: '0', insetInlineEnd: '0', translate: '50% -50%' },
+                '&[data-placement="start"]': { insetBlockStart: '50%', insetInlineStart: '0', translate: '-50% -50%' },
+                '&[data-placement="end"]': { insetBlockStart: '50%', insetInlineEnd: '0', translate: '50% -50%' },
+                '&[data-placement="bottom-start"]': { insetBlockEnd: '0', insetInlineStart: '0', translate: '-50% 50%' },
+                '&[data-placement="bottom"]': { insetBlockEnd: '0', insetInlineStart: '50%', translate: '-50% 50%' },
+                '&[data-placement="bottom-end"]': { insetBlockEnd: '0', insetInlineEnd: '0', translate: '50% 50%' },
+                [`&[data-placement="top-start"]${rtl}`]: { translate: '50% -50%' },
+                [`&[data-placement="top"]${rtl}`]: { translate: '50% -50%' },
+                [`&[data-placement="top-end"]${rtl}`]: { translate: '-50% -50%' },
+                [`&[data-placement="start"]${rtl}`]: { translate: '50% -50%' },
+                [`&[data-placement="end"]${rtl}`]: { translate: '-50% -50%' },
+                [`&[data-placement="bottom-start"]${rtl}`]: { translate: '50% 50%' },
+                [`&[data-placement="bottom"]${rtl}`]: { translate: '50% 50%' },
+                [`&[data-placement="bottom-end"]${rtl}`]: { translate: '-50% 50%' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { item: { base: {
+            color: `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { item: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { item: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { item: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { item: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
-    kbd, status,
+    kbd, status, indicator,
 ];

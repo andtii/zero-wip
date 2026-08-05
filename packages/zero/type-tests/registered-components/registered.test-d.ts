@@ -29,6 +29,7 @@ import { Combobox } from '@sigx/zero/combobox';
 import { Dialog } from '@sigx/zero/dialog';
 import { Divider } from '@sigx/zero/divider';
 import { Field } from '@sigx/zero/field';
+import { Indicator } from '@sigx/zero/indicator';
 import { Input } from '@sigx/zero/input';
 import { Kbd } from '@sigx/zero/kbd';
 import { Menu } from '@sigx/zero/menu';
@@ -112,6 +113,7 @@ export type _skeleton = MustBeTrue<CheckColorSize<PropsOf<typeof Skeleton.Root>>
 export type _spinner = MustBeTrue<CheckColorSize<PropsOf<typeof Spinner.Root>>>;
 export type _kbd = MustBeTrue<CheckColorSize<PropsOf<typeof Kbd.Root>>>;
 export type _status = MustBeTrue<CheckColorSize<PropsOf<typeof Status.Root>>>;
+export type _indicator = MustBeTrue<CheckColorSize<PropsOf<typeof Indicator.Root>>>;
 
 /* ── the three scopes basic wires a variant vocabulary for ── */
 type ButtonProps = PropsOf<typeof Button.Root>;

@@ -19,6 +19,14 @@
     region and was rejected for a static mark). Joins the contrast audit's
     indicator matrix beside Spinner: pure paint answers the 3:1 non-text
     floor.
+  - **Indicator**: `Root`/`Item(placement)` — anchors a floating item to a
+    corner or edge of whatever `Root` wraps. `Item` stamps `data-placement`
+    from a declared eight-slot subset, all spelled LOGICALLY — which is what
+    added the bare `start`/`end` pair to `PLACEMENT_VOCABULARY`: `left`
+    names a physical side of the glass (where a flipped popup really
+    landed), `start` names the reading edge, and an indicator anchors to
+    the reading direction. Recipes position with `inset-inline-*`, so RTL
+    mirrors for free.
 
 - **The sugar tier** (#333) — the one-liner DX the old `@sigx/daisyui`
   library had and zero's compound anatomy made verbose:
