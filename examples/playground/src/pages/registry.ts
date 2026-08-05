@@ -43,6 +43,7 @@ import { statsPage } from './stats';
 import { timelinePage } from './timeline';
 import { chatPage } from './chat';
 import { radialProgressPage } from './radial-progress';
+import { joinPage } from './join';
 import { progressPage } from './progress';
 import { sizeRampPage } from './size-ramp';
 import { extensibleRolesPage } from './extensible-roles';
@@ -80,6 +81,7 @@ export const pages: PageEntry[] = [
     buttonPage,
     togglePage,
     toggleGroupPage,
+    joinPage,
     fieldPage,
     inputPage,
     textareaPage,

@@ -265,6 +265,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     field: ['invalid', 'required'],
     indicator: [],
     input: ['autocomplete', 'defaultValue', 'invalid', 'maxlength', 'name', 'readonly', 'required', 'type', 'value'],
+    join: [],
     kbd: [],
     menu: ['closeOnSelect', 'offset', 'placement', 'positionStrategy', 'value'],
     'native-select': ['defaultValue', 'invalid', 'name', 'options', 'placeholder', 'required', 'value'],

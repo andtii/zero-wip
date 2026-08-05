@@ -216,6 +216,9 @@ const NO_VARIANT: Record<string, string> = {
     'radial-progress': 'daisyUI\'s radial-progress varies by colour, size and '
         + 'thickness — the first is the color axis, the others metrics; no '
         + 'surveyed system gives the ring a chrome variant.',
+    join: 'no surveyed system varies a radius-collapsing group — daisyUI\'s '
+        + 'join has orientation only; the chrome belongs to the joined '
+        + 'controls.',
 };
 
 /**

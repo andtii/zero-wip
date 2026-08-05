@@ -3517,10 +3517,79 @@ export const radialProgress: RecipeInput = {
     keyframes: { 'zero-heroui-radial-spin': 'to { transform: rotate(360deg); }' },
 };
 
+/**
+ * Join — inner corners squared, seams folded to one border; the joined
+ * controls keep their own chrome. Colour/size wire as on indicator: the
+ * wrapper has no paint of its own.
+ */
+export const join: RecipeInput = {
+    component: 'join',
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'stretch',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        /**
+         * The collapse itself: inner corners squared, one shared seam. All
+         * logical (border-*-radius longhands, margin-inline/block), so the
+         * group mirrors under RTL untouched. `:focus-within` and
+         * `:focus-visible` raise the segment so a ring is not clipped by the
+         * seam overlap.
+         */
+        item: {
+            base: {
+                position: 'relative',
+            },
+            selectors: {
+                // Each corner rule lands on the item AND its direct child:
+                // asChild puts the item attributes on the control itself, but
+                // in wrapper mode the control is the child, and a wrapper
+                // cannot collapse a radius it does not carry.
+                '&[data-orientation="horizontal"]:not(:first-child), &[data-orientation="horizontal"]:not(:first-child) > *': {
+                    borderStartStartRadius: '0',
+                    borderEndStartRadius: '0',
+                },
+                '&[data-orientation="horizontal"]:not(:first-child)': {
+                    marginInlineStart: 'calc(var(--border) * -1)',
+                },
+                '&[data-orientation="horizontal"]:not(:last-child), &[data-orientation="horizontal"]:not(:last-child) > *': {
+                    borderStartEndRadius: '0',
+                    borderEndEndRadius: '0',
+                },
+                '&[data-orientation="vertical"]:not(:first-child), &[data-orientation="vertical"]:not(:first-child) > *': {
+                    borderStartStartRadius: '0',
+                    borderStartEndRadius: '0',
+                },
+                '&[data-orientation="vertical"]:not(:first-child)': {
+                    marginBlockStart: 'calc(var(--border) * -1)',
+                },
+                '&[data-orientation="vertical"]:not(:last-child), &[data-orientation="vertical"]:not(:last-child) > *': {
+                    borderEndStartRadius: '0',
+                    borderEndEndRadius: '0',
+                },
+                '&:focus-within': { zIndex: '1' },
+                '&:focus-visible': { zIndex: '1' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { item: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { item: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
-    kbd, status, indicator, stats, timeline, chat, radialProgress,
+    kbd, status, indicator, stats, timeline, chat, radialProgress, join,
 ];

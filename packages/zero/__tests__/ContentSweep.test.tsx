@@ -8,9 +8,11 @@
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
+import type { PartProps } from '@sigx/zero';
 import {
     Chat, chatAnatomy,
     Indicator, indicatorAnatomy,
+    Join, joinAnatomy,
     RadialProgress, radialProgressAnatomy,
     Kbd, kbdAnatomy,
     PLACEMENT_VOCABULARY,
@@ -399,5 +401,75 @@ describe('RadialProgress', () => {
         const root = part(container, 'radial-progress', 'root');
         const label = part(container, 'radial-progress', 'label');
         expect(root.getAttribute('aria-labelledby')).toBe(label.id);
+    });
+});
+
+describe('Join', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    it('renders a valid anatomy; root and items carry the orientation', () => {
+        render(
+            <Join.Root>
+                <Join.Item><button type="button">One</button></Join.Item>
+                <Join.Item><button type="button">Two</button></Join.Item>
+                <Join.Item><button type="button">Three</button></Join.Item>
+            </Join.Root>,
+            container,
+        );
+        expectAnatomy(container, joinAnatomy);
+        expect(part(container, 'join', 'root').getAttribute('data-orientation')).toBe('horizontal');
+        const items = container.querySelectorAll<HTMLElement>('[data-scope="join"][data-part="item"]');
+        expect(items.length).toBe(3);
+        // The radius collapse is directional CSS on the item (`item + item`),
+        // so every item carries the orientation — stats' reasoning.
+        for (const item of items) {
+            expect(item.getAttribute('data-orientation')).toBe('horizontal');
+        }
+    });
+
+    it('stacks vertically when told to', () => {
+        render(
+            <Join.Root orientation="vertical">
+                <Join.Item><input /></Join.Item>
+                <Join.Item><button type="button">Go</button></Join.Item>
+            </Join.Root>,
+            container,
+        );
+        expect(part(container, 'join', 'root').getAttribute('data-orientation')).toBe('vertical');
+        expect(part(container, 'join', 'item').getAttribute('data-orientation')).toBe('vertical');
+        expectAnatomy(container, joinAnatomy);
+    });
+
+    it('asChild puts the item attributes ON the control — the honest joint', () => {
+        // A wrapper cannot collapse the radius of the control inside it; the
+        // recipes' corner rules only reach what carries the part attributes,
+        // so the control itself should carry them.
+        render(
+            <Join.Root>
+                <Join.Item asChild>
+                    {(p: PartProps) => <button type="button" {...p}>Save</button>}
+                </Join.Item>
+            </Join.Root>,
+            container,
+        );
+        const item = part(container, 'join', 'item');
+        expect(item.tagName).toBe('BUTTON');
+        expect(item.getAttribute('data-orientation')).toBe('horizontal');
+        expectAnatomy(container, joinAnatomy);
+    });
+
+    it('declares no states and no ARIA — grouping is the consumer\'s meaning', () => {
+        // role="group" was considered and cut: a join is VISUAL grouping (a
+        // segmented look), and a search field + button joined together is not
+        // a semantic group the reader needs announced. A consumer who means
+        // "toolbar" or "group" writes the role on the root.
+        expect(joinAnatomy.parts.root.states).toBeUndefined();
+        expect(joinAnatomy.parts.item.states).toBeUndefined();
+        render(<Join.Root><Join.Item><button type="button">A</button></Join.Item></Join.Root>, container);
+        expect(part(container, 'join', 'root').hasAttribute('role')).toBe(false);
     });
 });

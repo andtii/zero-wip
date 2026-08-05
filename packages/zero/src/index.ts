@@ -258,3 +258,6 @@ export type {
     RadialProgressLabelProps,
     RadialProgressValueTextProps,
 } from './components/radial-progress/index.js';
+
+export { Join, joinAnatomy, useJoinContext } from './components/join/index.js';
+export type { JoinRootProps, JoinItemProps } from './components/join/index.js';

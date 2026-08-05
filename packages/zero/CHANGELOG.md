@@ -56,6 +56,13 @@
     background-colour ink under conic-gradient masks — measurable by the
     contrast audit's indicator matrix, where the root is opted in beside
     Spinner — and stop the indeterminate loop under reduced motion.
+  - **Join**: `Root(orientation)`/`Item(asChild)` — pure radius-collapsing
+    composition: two attribute carriers, every visual fact the design
+    system's (corner rules on first/last, seam margins between). No
+    `role="group"`, considered and cut — a join is VISUAL grouping, and a
+    consumer who means toolbar/group writes the role. `asChild` is the
+    honest joint: a wrapper cannot collapse the radius of the control
+    inside it, so the control itself carries the item attributes.
 
 - **The sugar tier** (#333) — the one-liner DX the old `@sigx/daisyui`
   library had and zero's compound anatomy made verbose:

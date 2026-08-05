@@ -45,6 +45,7 @@ import type { Stats as ZStats } from '@sigx/zero/stats';
 import type { Timeline as ZTimeline } from '@sigx/zero/timeline';
 import type { Chat as ZChat } from '@sigx/zero/chat';
 import type { RadialProgress as ZRadialProgress } from '@sigx/zero/radial-progress';
+import type { Join as ZJoin } from '@sigx/zero/join';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -366,3 +367,11 @@ type RadialProgressProps = {
 };
 type RadialProgressAdapted = Adapted<typeof ZRadialProgress, ZeroAxisProp, RadialProgressProps>;
 export declare const RadialProgress: RadialProgressAdapted & AdaptedStatics<typeof ZRadialProgress> & { Root: RadialProgressAdapted };
+
+/** join — no vendor route; the wired surface keeps zero's names. */
+type JoinProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type JoinAdapted = Adapted<typeof ZJoin, ZeroAxisProp, JoinProps>;
+export declare const Join: JoinAdapted & AdaptedStatics<typeof ZJoin> & { Root: JoinAdapted };

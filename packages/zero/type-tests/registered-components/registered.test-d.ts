@@ -32,6 +32,7 @@ import { Divider } from '@sigx/zero/divider';
 import { Field } from '@sigx/zero/field';
 import { Indicator } from '@sigx/zero/indicator';
 import { Input } from '@sigx/zero/input';
+import { Join } from '@sigx/zero/join';
 import { Kbd } from '@sigx/zero/kbd';
 import { Menu } from '@sigx/zero/menu';
 import { NativeSelect } from '@sigx/zero/native-select';
@@ -122,6 +123,7 @@ export type _stats = MustBeTrue<CheckColorSize<PropsOf<typeof Stats.Root>>>;
 export type _timeline = MustBeTrue<CheckColorSize<PropsOf<typeof Timeline.Root>>>;
 export type _chat = MustBeTrue<CheckColorSize<PropsOf<typeof Chat.Root>>>;
 export type _radialProgress = MustBeTrue<CheckColorSize<PropsOf<typeof RadialProgress.Root>>>;
+export type _join = MustBeTrue<CheckColorSize<PropsOf<typeof Join.Root>>>;
 
 /* ── the three scopes basic wires a variant vocabulary for ── */
 type ButtonProps = PropsOf<typeof Button.Root>;

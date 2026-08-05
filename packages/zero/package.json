@@ -191,6 +191,10 @@
         "./radial-progress": {
             "types": "./dist/components/radial-progress/index.d.ts",
             "import": "./dist/components/radial-progress/index.js"
+        },
+        "./join": {
+            "types": "./dist/components/join/index.d.ts",
+            "import": "./dist/components/join/index.js"
         }
     },
     "files": [
