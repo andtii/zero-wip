@@ -48,3 +48,7 @@ export { Badge } from '@sigx/zero/badge';
 export { Divider } from '@sigx/zero/divider';
 export { Skeleton } from '@sigx/zero/skeleton';
 export { Spinner } from '@sigx/zero/spinner';
+export { Kbd } from '@sigx/zero/kbd';
+export { Status } from '@sigx/zero/status';
+export { Indicator } from '@sigx/zero/indicator';
+export { Stats } from '@sigx/zero/stats';

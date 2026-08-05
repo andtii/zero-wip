@@ -38,6 +38,10 @@ import type { Badge as ZBadge } from '@sigx/zero/badge';
 import type { Divider as ZDivider } from '@sigx/zero/divider';
 import type { Skeleton as ZSkeleton } from '@sigx/zero/skeleton';
 import type { Spinner as ZSpinner } from '@sigx/zero/spinner';
+import type { Kbd as ZKbd } from '@sigx/zero/kbd';
+import type { Status as ZStatus } from '@sigx/zero/status';
+import type { Indicator as ZIndicator } from '@sigx/zero/indicator';
+import type { Stats as ZStats } from '@sigx/zero/stats';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -303,3 +307,35 @@ type SpinnerProps = {
 };
 type SpinnerAdapted = Adapted<typeof ZSpinner, ZeroAxisProp, SpinnerProps>;
 export declare const Spinner: SpinnerAdapted & { Root: SpinnerAdapted };
+
+/** kbd — no vendor route; the wired surface keeps zero's names. */
+type KbdProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type KbdAdapted = Adapted<typeof ZKbd, ZeroAxisProp, KbdProps>;
+export declare const Kbd: KbdAdapted & { Root: KbdAdapted };
+
+/** status — no vendor route; the wired surface keeps zero's names. */
+type StatusProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type StatusAdapted = Adapted<typeof ZStatus, ZeroAxisProp, StatusProps>;
+export declare const Status: StatusAdapted & { Root: StatusAdapted };
+
+/** indicator — no vendor route; the wired surface keeps zero's names. */
+type IndicatorProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type IndicatorAdapted = Adapted<typeof ZIndicator, ZeroAxisProp, IndicatorProps>;
+export declare const Indicator: IndicatorAdapted & AdaptedStatics<typeof ZIndicator> & { Root: IndicatorAdapted };
+
+/** stats — no vendor route; the wired surface keeps zero's names. */
+type StatsProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type StatsAdapted = Adapted<typeof ZStats, ZeroAxisProp, StatsProps>;
+export declare const Stats: StatsAdapted & AdaptedStatics<typeof ZStats> & { Root: StatsAdapted };
