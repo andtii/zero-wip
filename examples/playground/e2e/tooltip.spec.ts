@@ -43,11 +43,19 @@ test('hover opens after the intent delay and closes on pointer leave', async ({ 
     const t = trigger(page);
     const hoveredAt = Date.now();
     await t.hover();
+    // Mid-delay probe: 250 ms into the 600 ms intent window the tooltip
+    // must still be closed. This is what actually catches a SHORTENED
+    // delay — the elapsed lower bound below cannot, because automation
+    // overhead before pointerenter pads it. A single read, not a polling
+    // expect: polling "closed" would succeed on the first sample and prove
+    // nothing more. The 350 ms of headroom before the timer fires keeps a
+    // contended runner from failing this wrongly.
+    await page.waitForTimeout(250);
+    expect(await popup(page).getAttribute('data-state')).toBe('closed');
     await expect(popup(page)).toHaveAttribute('data-state', 'open');
-    // The open cannot land before the 600 ms intent delay: the timer is
-    // armed at pointerenter, which happens AFTER hoveredAt was taken, so
-    // the observed elapsed time is strictly >= the full delay. (Only a
-    // lower bound — an upper bound would race the runner.)
+    // And the open cannot land before the full delay: the timer arms at
+    // pointerenter, after hoveredAt was taken, so elapsed >= 600 strictly.
+    // (Only a lower bound — an upper bound would race the runner.)
     expect(Date.now() - hoveredAt).toBeGreaterThanOrEqual(600);
 
     await page.mouse.move(0, 0);
