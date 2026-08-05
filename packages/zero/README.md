@@ -122,13 +122,14 @@ prop, because "busy" is a *styling* state the design system draws and a
 ```
 
 `mods` renders the presence-only `data-mod-loading` attribute; a design
-system that declares the `loading` modifier draws the spinner (and hides or
-dims the label) in pure CSS off `[data-mod-loading]` — a recipe-drawn mark,
-the same way checkbox ticks work. Under a design system that does *not*
-declare it, the attribute would match no rule, so pass the mod only when the
-active vocabulary declares it (the manifest's `tokens.modifiers`) and the
-composition degrades to a plain disabled button — the accessible truth
-(`disabled` while the request is in flight) never depended on the paint.
+system that declares the `loading` modifier — `@sigx/zero-daisyui` does —
+draws the spinner (and hides or dims the label) in pure CSS off
+`[data-mod-loading]`, a recipe-drawn mark the same way checkbox ticks work.
+Under a design system that does *not* declare it, the attribute would match
+no rule, so pass the mod only when the active vocabulary declares it (the
+manifest's `tokens.modifiers`) and the composition degrades to a plain
+disabled button — the accessible truth (`disabled` while the request is in
+flight) never depended on the paint.
 Announce long operations to AT with your own live region or a
 `Spinner label="Saving…"` beside the button when the design draws nothing.
 

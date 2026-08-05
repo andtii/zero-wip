@@ -41,6 +41,7 @@ export { RatingGroup } from '@sigx/zero/rating-group';
 export { TreeView } from '@sigx/zero/tree-view';
 export { Input } from '@sigx/zero/input';
 export { Textarea } from '@sigx/zero/textarea';
+export { NativeSelect } from '@sigx/zero/native-select';
 export { Card } from '@sigx/zero/card';
 export { Alert } from '@sigx/zero/alert';
 export { Badge } from '@sigx/zero/badge';
