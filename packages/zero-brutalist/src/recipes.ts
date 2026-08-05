@@ -4004,11 +4004,86 @@ export const steps: RecipeInput = {
     },
 };
 
+/**
+ * Drawer — a slab hinged on the page edge: full-weight rule on the inner
+ * edge only (the outer edge IS the viewport), no radius anywhere, faded in
+ * because nothing in this house glides. Base render is the inline mode;
+ * `:modal` is the top-layer edge sheet.
+ */
+export const drawer: RecipeInput = {
+    component: 'drawer',
+    parts: {
+        trigger: overlayTrigger,
+        panel: withPresence(popupPresence('none'), {
+            base: {
+                padding: 'var(--space-xl)',
+                ...inked,
+                border: 'var(--border) solid var(--color-base-content)',
+                inlineSize: 'min(20rem, 85vw)',
+            },
+            states: { open: {}, closed: {} },
+            selectors: {
+                '&:modal': {
+                    position: 'fixed',
+                    insetBlockStart: '0',
+                    insetBlockEnd: '0',
+                    blockSize: '100dvh',
+                    maxBlockSize: '100dvh',
+                    inlineSize: 'min(20rem, 85vw)',
+                    maxInlineSize: 'none',
+                    margin: '0',
+                    borderRadius: '0',
+                    border: 'none',
+                },
+                '&[data-placement="start"]:modal': {
+                    insetInlineStart: '0',
+                    insetInlineEnd: 'auto',
+                    borderInlineEnd: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                },
+                '&[data-placement="end"]:modal': {
+                    insetInlineStart: 'auto',
+                    insetInlineEnd: '0',
+                    borderInlineStart: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                },
+            },
+        }),
+        backdrop: {
+            base: { background: 'oklch(0% 0 0 / 0.55)' },
+            states: { open: {}, closed: {} },
+        },
+        title: {
+            base: {
+                margin: '0 0 var(--space-md)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-2xl)',
+                fontWeight: 'var(--weight-bold)',
+                letterSpacing: 'var(--tracking-tight)',
+                lineHeight: 'var(--leading-none)',
+                textTransform: 'uppercase',
+            },
+        },
+        close: {
+            base: {
+                appearance: 'none',
+                ...inked,
+                ...label,
+                fontSize: 'var(--text-xs)',
+                padding: 'var(--space-sm) var(--space-lg)',
+                boxShadow: 'var(--shadow-xs)',
+                cursor: 'pointer',
+            },
+            states: { hover: shift('1px'), disabled: {}, ...focusRing },
+        },
+    },
+    // Trigger-carried axes — see `overlayTriggerColors`.
+    variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs, pagination, steps,
+    navbar, breadcrumbs, pagination, steps, drawer,
 ];

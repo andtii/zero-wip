@@ -5031,11 +5031,86 @@ export const steps: RecipeInput = {
     },
 };
 
+/**
+ * Drawer — Dialog's machinery on an edge sheet: the same overlay costume
+ * (hairline + the one honest `lg` shadow), faded in rather than slid (a
+ * transform has no logical spelling; opacity needs no RTL correction). The
+ * base render is the INLINE mode — a bordered panel in flow — and `:modal`
+ * is the top-layer edge sheet, pinned with logical insets.
+ */
+export const drawer: RecipeInput = {
+    component: 'drawer',
+    parts: {
+        trigger: {
+            base: quietTrigger,
+            states: {
+                hover: { background: inkWash },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                open: { background: inkWash },
+                closed: {},
+                ...focusRing,
+            },
+            selectors: { ...pressedInk },
+        },
+        panel: withPresence(popupPresence('none'), {
+            base: {
+                padding: 'var(--space-xl)',
+                background: overlaySurface,
+                color: 'var(--color-base-content)',
+                border: hairline,
+                borderRadius: 'var(--radius-box)',
+                inlineSize: 'min(20rem, 85vw)',
+            },
+            states: { open: {}, closed: {} },
+            selectors: {
+                /**
+                 * The platform's own spelling of "this open is the modal
+                 * one": `:modal`. The base styles above are the INLINE
+                 * render (`show()` keeps the panel in flow); this block is
+                 * the top-layer edge sheet. Logical insets pin the edge, so
+                 * RTL mirrors free.
+                 */
+                '&:modal': {
+                    position: 'fixed',
+                    insetBlockStart: '0',
+                    insetBlockEnd: '0',
+                    blockSize: '100dvh',
+                    maxBlockSize: '100dvh',
+                    inlineSize: 'min(20rem, 85vw)',
+                    maxInlineSize: 'none',
+                    margin: '0',
+                    borderRadius: '0',
+                },
+                '&[data-placement="start"]:modal': { insetInlineStart: '0', insetInlineEnd: 'auto' },
+                '&[data-placement="end"]:modal': { insetInlineStart: 'auto', insetInlineEnd: '0' },
+            },
+        }),
+        backdrop: {
+            // The same tracing-stock dim as dialog's.
+            base: { background: 'color-mix(in oklch, var(--color-neutral) 40%, transparent)' },
+            states: { open: {}, closed: {} },
+        },
+        title: {
+            base: {
+                margin: '0 0 var(--space-md)',
+                fontSize: 'var(--text-lg)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-tight)',
+                fontVariantNumeric: 'tabular-nums',
+            },
+        },
+        close: dismissAction,
+    },
+    // Trigger-carried axes — see `quietTriggerColors` for why the panel is
+    // out of reach and the trigger is the whole colour story here.
+    variants: { color: quietTriggerColors(), size: quietTriggerSizes },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs, pagination, steps,
+    navbar, breadcrumbs, pagination, steps, drawer,
 ];

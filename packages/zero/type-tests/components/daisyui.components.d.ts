@@ -50,6 +50,7 @@ import type { Navbar as ZNavbar } from '@sigx/zero/navbar';
 import type { Breadcrumbs as ZBreadcrumbs } from '@sigx/zero/breadcrumbs';
 import type { Pagination as ZPagination } from '@sigx/zero/pagination';
 import type { Steps as ZSteps } from '@sigx/zero/steps';
+import type { Drawer as ZDrawer } from '@sigx/zero/drawer';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -411,3 +412,11 @@ type StepsProps = {
 };
 type StepsAdapted = Adapted<typeof ZSteps, ZeroAxisProp, StepsProps>;
 export declare const Steps: StepsAdapted & AdaptedStatics<typeof ZSteps> & { Root: StepsAdapted };
+
+/** drawer — no vendor route; the wired surface keeps zero's names. */
+type DrawerProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type DrawerAdapted = Adapted<typeof ZDrawer, ZeroAxisProp, DrawerProps>;
+export declare const Drawer: DrawerAdapted & AdaptedStatics<typeof ZDrawer> & { Root: DrawerAdapted };

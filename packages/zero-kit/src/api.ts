@@ -263,6 +263,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     combobox: ['defaultInputValue', 'defaultOpen', 'defaultValue', 'invalid', 'name', 'options', 'placeholder', 'placement', 'positionStrategy', 'readonly', 'required', 'value'],
     dialog: ['defaultOpen', 'dismissible', 'modal', 'role', 'value'],
     divider: ['orientation'],
+    drawer: ['defaultOpen', 'dismissible', 'label', 'modal', 'placement', 'value'],
     field: ['invalid', 'required'],
     indicator: [],
     input: ['autocomplete', 'defaultValue', 'invalid', 'maxlength', 'name', 'readonly', 'required', 'type', 'value'],

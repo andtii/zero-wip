@@ -3967,11 +3967,84 @@ export const steps: RecipeInput = {
     },
 };
 
+/**
+ * Drawer — HeroUI's Drawer: the base-100 sheet under the blurred scrim,
+ * faded in. Base render is the inline mode; `:modal` is the top-layer
+ * edge sheet. Size-only, carried by the trigger.
+ */
+export const drawer: RecipeInput = {
+    component: 'drawer',
+    parts: {
+        trigger: pressableOverlayTrigger,
+        panel: withPresence(popupPresence('none'), {
+            base: {
+                padding: 'var(--space-xl)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: 'var(--radius-box)',
+                boxShadow: 'var(--shadow-xl)',
+                inlineSize: 'min(20rem, 85vw)',
+            },
+            states: { open: {}, closed: {} },
+            selectors: {
+                /**
+                 * The platform's own spelling of "this open is the modal
+                 * one": `:modal`. The base styles above are the INLINE
+                 * render (`show()` keeps the panel in flow); this block is
+                 * the top-layer edge sheet. Logical insets pin the edge, so
+                 * RTL mirrors free.
+                 */
+                '&:modal': {
+                    position: 'fixed',
+                    insetBlockStart: '0',
+                    insetBlockEnd: '0',
+                    blockSize: '100dvh',
+                    maxBlockSize: '100dvh',
+                    inlineSize: 'min(20rem, 85vw)',
+                    maxInlineSize: 'none',
+                    margin: '0',
+                    borderRadius: '0',
+                },
+                '&[data-placement="start"]:modal': { insetInlineStart: '0', insetInlineEnd: 'auto' },
+                '&[data-placement="end"]:modal': { insetInlineStart: 'auto', insetInlineEnd: '0' },
+            },
+        }),
+        backdrop: {
+            base: {
+                background: 'var(--hero-scrim)',
+                backdropFilter: 'blur(2px)',
+                transition: 'opacity var(--duration-fast) var(--ease-standard), '
+                    + 'display var(--duration-fast) allow-discrete, '
+                    + 'overlay var(--duration-fast) allow-discrete',
+                opacity: '0',
+            },
+            states: { open: { opacity: '1' }, closed: {} },
+            at: {
+                'starting-style': { states: { open: { opacity: '0' } } },
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+        title: {
+            base: {
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-lg)',
+                fontWeight: 'var(--weight-semibold)',
+                color: 'var(--color-base-content)',
+                margin: '0 0 var(--space-md)',
+            },
+        },
+        close: dismissAction,
+    },
+    // Trigger-carried size — see `overlayTriggerSizes`.
+    variants: { size: overlayTriggerSizes },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs, pagination, steps,
+    navbar, breadcrumbs, pagination, steps, drawer,
 ];

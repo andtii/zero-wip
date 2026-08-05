@@ -211,6 +211,10 @@
         "./steps": {
             "types": "./dist/components/steps/index.d.ts",
             "import": "./dist/components/steps/index.js"
+        },
+        "./drawer": {
+            "types": "./dist/components/drawer/index.d.ts",
+            "import": "./dist/components/drawer/index.js"
         }
     },
     "files": [

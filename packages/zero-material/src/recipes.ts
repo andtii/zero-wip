@@ -4463,11 +4463,90 @@ export const steps: RecipeInput = {
     },
 };
 
+/**
+ * Drawer — M3's navigation drawer: the surface-container sheet with the
+ * modal drawer's rounded trailing corners, faded in. Base render is the
+ * inline (standard) drawer; `:modal` is the modal drawer on the top layer.
+ */
+export const drawer: RecipeInput = {
+    component: 'drawer',
+    tokens: overlayTriggerTokens,
+    parts: {
+        trigger: withPresence(pressable('drawer', 'var(--overlay-accent)'), {
+            base: outlinedTrigger,
+            states: { open: {}, closed: {}, disabled: {}, ...focusRing },
+        }),
+        panel: withPresence(popupPresence('none'), {
+            base: {
+                padding: 'var(--space-lg)',
+                background: 'var(--color-surface-container)',
+                color: 'var(--color-surface-container-content)',
+                border: 'none',
+                borderRadius: 'var(--radius-box)',
+                inlineSize: 'min(22.5rem, 85vw)',
+            },
+            states: { open: {}, closed: {} },
+            selectors: {
+                /**
+                 * The platform's own spelling of "this open is the modal
+                 * one": `:modal`. The base styles above are the INLINE
+                 * render (`show()` keeps the panel in flow); this block is
+                 * the top-layer edge sheet. Logical insets pin the edge, so
+                 * RTL mirrors free.
+                 */
+                '&:modal': {
+                    position: 'fixed',
+                    insetBlockStart: '0',
+                    insetBlockEnd: '0',
+                    blockSize: '100dvh',
+                    maxBlockSize: '100dvh',
+                    inlineSize: 'min(22.5rem, 85vw)',
+                    maxInlineSize: 'none',
+                    margin: '0',
+                    borderRadius: '0',
+                },
+                '&[data-placement="start"]:modal': { insetInlineStart: '0', insetInlineEnd: 'auto' },
+                '&[data-placement="end"]:modal': { insetInlineStart: 'auto', insetInlineEnd: '0' },
+            },
+        }),
+        backdrop: {
+            base: { background: 'oklch(0% 0 0 / 0.32)' },
+            states: { open: {}, closed: {} },
+        },
+        title: {
+            base: {
+                margin: '0 0 var(--space-md)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-md)',
+                fontWeight: 'var(--weight-medium)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklch, var(--color-surface-container-content) 80%, transparent)',
+            },
+        },
+        close: withPresence(pressable('drawer'), {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'var(--color-primary)',
+                borderRadius: '624rem',
+                padding: 'var(--space-xs) var(--space-lg)',
+                ...label,
+                cursor: 'pointer',
+            },
+            states: { disabled: {}, ...focusRing },
+        }),
+    },
+    keyframes: rippleKeyframes('drawer'),
+    // Trigger-carried axes — see `overlayTriggerColors`.
+    variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs, pagination, steps,
+    navbar, breadcrumbs, pagination, steps, drawer,
 ];

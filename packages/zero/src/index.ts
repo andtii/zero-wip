@@ -282,3 +282,13 @@ export type {
     StepsPartProps,
     StepsPhase,
 } from './components/steps/index.js';
+
+export { Drawer, drawerAnatomy, useDrawerContext } from './components/drawer/index.js';
+export type {
+    DrawerRootProps,
+    DrawerTriggerProps,
+    DrawerPanelProps,
+    DrawerTitleProps,
+    DrawerCloseProps,
+    DrawerPlacement,
+} from './components/drawer/index.js';

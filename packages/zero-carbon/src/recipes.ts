@@ -4360,11 +4360,100 @@ export const steps: RecipeInput = {
     },
 };
 
+/**
+ * Drawer — Carbon's side panel: the $layer-01 sheet with a single line on
+ * its inner edge, square of course, faded in. Base render is the inline
+ * mode; `:modal` is the top-layer edge sheet. Size-only, on the trigger.
+ */
+export const drawer: RecipeInput = {
+    component: 'drawer',
+    parts: {
+        trigger: ghostTrigger,
+        panel: withPresence(popupPresence('none'), {
+            base: {
+                padding: 'var(--space-lg)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--carbon-line)',
+                borderRadius: '0',
+                fontFamily: 'var(--font-sans)',
+                inlineSize: 'min(20rem, 85vw)',
+            },
+            states: { open: {}, closed: {} },
+            selectors: {
+                '&:modal': {
+                    position: 'fixed',
+                    insetBlockStart: '0',
+                    insetBlockEnd: '0',
+                    blockSize: '100dvh',
+                    maxBlockSize: '100dvh',
+                    inlineSize: 'min(20rem, 85vw)',
+                    maxInlineSize: 'none',
+                    margin: '0',
+                    borderRadius: '0',
+                    border: 'none',
+                    boxShadow: 'var(--shadow-xl)',
+                },
+                '&[data-placement="start"]:modal': {
+                    insetInlineStart: '0',
+                    insetInlineEnd: 'auto',
+                    borderInlineEnd: 'var(--border) solid var(--carbon-line)',
+                },
+                '&[data-placement="end"]:modal': {
+                    insetInlineStart: 'auto',
+                    insetInlineEnd: '0',
+                    borderInlineStart: 'var(--border) solid var(--carbon-line)',
+                },
+            },
+        }),
+        backdrop: {
+            base: {
+                background: 'oklch(0% 0 0 / 0.5)',
+                opacity: '0',
+                transition: 'opacity var(--duration-normal) var(--ease-standard), '
+                    + 'display var(--duration-normal) allow-discrete, '
+                    + 'overlay var(--duration-normal) allow-discrete',
+            },
+            states: { open: { opacity: '1' }, closed: {} },
+            at: {
+                'starting-style': { states: { open: { opacity: '0' } } },
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+        title: {
+            base: {
+                margin: '0 0 var(--space-md)',
+                fontSize: 'var(--text-xl)',
+                fontWeight: 'var(--weight-normal)',
+                lineHeight: 'var(--leading-tight)',
+            },
+        },
+        close: (() => {
+            const shared = ghostIconButton('3rem');
+            return {
+                ...shared,
+                base: {
+                    ...shared.base,
+                    width: 'auto',
+                    height: 'auto',
+                    justifyContent: 'flex-start',
+                    padding: 'var(--space-xs) var(--space-md)',
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 'var(--text-sm)',
+                    letterSpacing: 'var(--tracking-wide)',
+                },
+            };
+        })(),
+    },
+    // Trigger-carried size — see `overlayTriggerSizes`.
+    variants: { size: overlayTriggerSizes },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs, pagination, steps,
+    navbar, breadcrumbs, pagination, steps, drawer,
 ];

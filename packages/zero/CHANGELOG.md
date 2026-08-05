@@ -8,6 +8,24 @@
   and Steps — the behavior tier's navigation half, each shipped with
   recipes in all six design systems:
 
+  - **Drawer**: `Root(model=open, modal, dismissible, placement, label)`/
+    `Trigger`/`Panel`/`Title`/`Close` — the edge panel on the native
+    `<dialog>`, Dialog's machinery inherited deliberately (top layer,
+    scrim with the geometric backdrop test, Escape via `cancel` routed
+    through the model, native focus restore, the `::backdrop` pseudo part,
+    presence-tracked labelling — with the `label` prop as the `aria-label`
+    fallback, since a navigation drawer often has no visible heading).
+    What is Drawer's own is the EDGE: the panel stamps
+    `data-placement="start|end"` from the logical pair (an edge panel
+    anchors to the reading direction), recipes pin it with
+    `inset-inline-*` so RTL mirrors free, and modal-vs-inline needs no
+    attribute — `:modal` is the platform's own spelling of the split.
+    `modal={false}` is the INLINE mode: in flow via `show()`, no dismiss
+    trap, Escape through the dismissable behavior, focus restore covered
+    by zero since `show()` provides neither. Real-browser contract in
+    `e2e/drawer.spec.ts` (edges measured as boxes, scrim geometry, both
+    Escape paths, labelling).
+
   - **Navbar**: `Root`/`Start`/`Center`/`End` — the landmark header bar,
     pure composition (no states, no behavior). The root is a `<header>`
     (the banner landmark at document scope), deliberately NOT a `<nav>`:

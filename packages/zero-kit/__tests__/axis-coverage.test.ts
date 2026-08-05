@@ -238,6 +238,10 @@ const NO_VARIANT: Record<string, string> = {
         + 'Ant Design\'s Steps `type` (default | navigation | inline) changes '
         + 'the LAYOUT of the rail rather than its chrome, and daisyUI\'s steps '
         + 'vary by colour only, wired here as the color axis.',
+    drawer: 'no surveyed system varies a drawer\'s chrome — like dialog: '
+        + 'HeroUI\'s Drawer varies by placement/size/backdrop (all structural '
+        + 'or metric), Material\'s standard-vs-modal split is zero\'s modal '
+        + 'prop, and daisyUI\'s drawer has layout modifiers only.',
 };
 
 /**

@@ -31,7 +31,7 @@ Select · NativeSelect · Switch · Checkbox · RadioGroup · Slider · Progress
 Field · Avatar · Toast · Combobox · Toggle · ToggleGroup · NumberInput ·
 RatingGroup · TreeView · Input · Textarea · Card · Alert · Badge · Divider ·
 Skeleton · Spinner · Kbd · Status · Indicator · Stats · Timeline · Chat · RadialProgress · Join ·
-Navbar · Breadcrumbs · Pagination · Steps
+Navbar · Breadcrumbs · Pagination · Steps · Drawer
 
 All state is one two-way `model` prop (sigx `Define.Model`) — bind a signal
 property with `model={() => state.open}`, or leave it uncontrolled with

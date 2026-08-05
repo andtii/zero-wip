@@ -30,6 +30,7 @@ import { Collapsible } from '@sigx/zero/collapsible';
 import { Combobox } from '@sigx/zero/combobox';
 import { Dialog } from '@sigx/zero/dialog';
 import { Divider } from '@sigx/zero/divider';
+import { Drawer } from '@sigx/zero/drawer';
 import { Field } from '@sigx/zero/field';
 import { Indicator } from '@sigx/zero/indicator';
 import { Input } from '@sigx/zero/input';
@@ -188,11 +189,13 @@ type CheckPropless<P> = [
 ][number] extends true ? true : false;
 
 export type _dialogRoot = MustBeTrue<CheckPropless<PropsOf<typeof Dialog.Root>>>;
+export type _drawerRoot = MustBeTrue<CheckPropless<PropsOf<typeof Drawer.Root>>>;
 export type _menuRoot = MustBeTrue<CheckPropless<PropsOf<typeof Menu.Root>>>;
 export type _popoverRoot = MustBeTrue<CheckPropless<PropsOf<typeof Popover.Root>>>;
 export type _tooltipRoot = MustBeTrue<CheckPropless<PropsOf<typeof Tooltip.Root>>>;
 
 export type _dialogTrigger = MustBeTrue<CheckColorSize<PropsOf<typeof Dialog.Trigger>>>;
+export type _drawerTrigger = MustBeTrue<CheckColorSize<PropsOf<typeof Drawer.Trigger>>>;
 export type _menuTrigger = MustBeTrue<CheckColorSize<PropsOf<typeof Menu.Trigger>>>;
 export type _popoverTrigger = MustBeTrue<CheckColorSize<PropsOf<typeof Popover.Trigger>>>;
 export type _tooltipTrigger = MustBeTrue<CheckColorSize<PropsOf<typeof Tooltip.Trigger>>>;
