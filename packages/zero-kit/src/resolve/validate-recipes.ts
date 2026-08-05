@@ -920,14 +920,14 @@ export function validateRecipes(
         // exactly those), as are rules for any part whose declared `parent`
         // chain reaches the carrier.
         if (!partsByName.has('root')) {
-            const carrier = component.parts[0]?.name;
+            // Anatomies cannot be empty, so the fallback carrier always
+            // exists — same invariant `carrierPart` in contract.ts relies on.
+            const carrier = component.parts[0]!.name;
             const reachesCarrier = (name: string): boolean => {
-                let cursor = component.parts.find((p) => p.name === name);
+                let cursor = partsByName.get(name);
                 while (cursor) {
                     if (cursor.name === carrier) return true;
-                    cursor = cursor.parent === undefined
-                        ? undefined
-                        : component.parts.find((p) => p.name === cursor!.parent);
+                    cursor = cursor.parent === undefined ? undefined : partsByName.get(cursor.parent);
                 }
                 return false;
             };
