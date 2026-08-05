@@ -7,15 +7,22 @@
 // a routed vendor value renders the zero-spelled data-* attribute.
 import type { Adapted, AdaptedStatics } from '@sigx/zero/adapt';
 import type { Button as ZButton } from '@sigx/zero/button';
+import type { Table as ZTable } from '@sigx/zero/table';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
-/** button — kind ← variant (2 respelled); hasIconOnly ← mods.icon-only; isExpressive ← mods.expressive; useZebraStyles ← mods.zebra. Attributes stay zero-spelled. */
+/** button — kind ← variant (2 respelled); hasIconOnly ← mods.icon-only; isExpressive ← mods.expressive. Attributes stay zero-spelled. */
 type ButtonProps = {
     'kind'?: 'primary' | 'secondary' | 'tertiary' | 'ghost' | 'danger' | 'danger--tertiary' | 'danger--ghost';
     'hasIconOnly'?: boolean;
     'isExpressive'?: boolean;
+};
+type ButtonAdapted = Adapted<typeof ZButton, ZeroAxisProp | 'hasIconOnly' | 'isExpressive' | 'kind', ButtonProps>;
+export declare const Button: ButtonAdapted & { Root: ButtonAdapted };
+
+/** table — useZebraStyles ← mods.zebra. Attributes stay zero-spelled. */
+type TableProps = {
     'useZebraStyles'?: boolean;
 };
-type ButtonAdapted = Adapted<typeof ZButton, ZeroAxisProp | 'hasIconOnly' | 'isExpressive' | 'kind' | 'useZebraStyles', ButtonProps>;
-export declare const Button: ButtonAdapted & { Root: ButtonAdapted };
+type TableAdapted = Adapted<typeof ZTable, ZeroAxisProp | 'useZebraStyles', TableProps>;
+export declare const Table: TableAdapted & AdaptedStatics<typeof ZTable> & { Root: TableAdapted };

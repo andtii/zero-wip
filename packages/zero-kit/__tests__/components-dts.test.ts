@@ -51,8 +51,12 @@ const carbonProbe = (): DesignSystemInput => {
     const variantParts = Object.fromEntries(
         carbonFixture.vocabulary.variants.map((v) => [v, { root: { base: { color: 'var(--color-primary)' } } }]),
     );
-    const modifierParts = Object.fromEntries(
-        carbonFixture.vocabulary.modifiers.map((m) => [m, { root: { base: { padding: '0.5rem' } } }]),
+    // The fixture's vocabulary is the PACKAGE's whole declared set, but its
+    // members are scope facts: icon-only/expressive are button's, zebra the
+    // data table's. The probe mirrors the package's narrowing so its golden
+    // cannot claim `useZebraStyles` on Button (#340 review catch).
+    const buttonMods = Object.fromEntries(
+        (['icon-only', 'expressive'] as const).map((m) => [m, { root: { base: { padding: '0.5rem' } } }]),
     );
     return {
         name: 'carbon',
@@ -60,12 +64,20 @@ const carbonProbe = (): DesignSystemInput => {
             component: 'button',
             parts: { root: { base: { padding: '0' } } },
             variants: { variant: variantParts },
-            modifiers: modifierParts,
+            modifiers: buttonMods,
+        } as RecipeInput, {
+            component: 'table',
+            parts: { root: { base: { padding: '0' } } },
+            modifiers: { zebra: { root: { base: { background: 'var(--color-base-200)' } } } },
         } as RecipeInput],
         tokens: {
             roles: { primary: {} },
             variants: [...carbonFixture.vocabulary.variants],
             modifiers: [...carbonFixture.vocabulary.modifiers],
+            scopes: {
+                button: { modifiers: ['icon-only', 'expressive'] },
+                table: { modifiers: ['zebra'] },
+            },
             defaultLight: 'l',
             themes: { l: { colorScheme: 'light', colors } },
         } as DesignSystemInput['tokens'],
@@ -207,7 +219,7 @@ describe('the generated shapes', () => {
         // AdaptSpec props bag — the same-object guarantee the generated
         // components.js relies on.
         const spec: AdaptSpec = { props: api.props };
-        expect(Object.keys(spec.props).sort()).toEqual(['hasIconOnly', 'isExpressive', 'kind', 'useZebraStyles']);
+        expect(Object.keys(spec.props).sort()).toEqual(['hasIconOnly', 'isExpressive', 'kind']);
     });
 
     it('the d.ts respells the union and removes the mapped zero prop', () => {
