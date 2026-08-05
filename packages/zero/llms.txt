@@ -94,7 +94,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-50 components ship today. Every part each renders is listed below, in
+51 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -305,6 +305,18 @@ component renders; the root is called out separately where it carries props.
   roving tabindex), the active one carrying aria-current. item and
   indicator ride data-state active|inactive; the indicator is a paint part
   graded by the contrast audit's indicator matrix. Horizontal only.
+- Diff: Root(model=percent 0-100, default 50)/Before/After/Handle — a
+  before/after reveal whose divider HANDLE IS AN APG SLIDER: role=slider,
+  aria-valuenow 0-100, arrows/PageUp/PageDown/Home/End (RTL-aware — Arrow
+  Right increases in LTR, decreases in RTL, so the handle always moves the
+  way the key points), pointer drag with window listeners that survive
+  leaving the box. The panes are CONTENT and stay inert. The runtime
+  publishes --diff-percent on the root and positions the handle at the
+  logical inset-inline-start; recipes clip the after pane with a LOGICAL
+  inline-size (never a physical clip-path), so RTL mirrors free — the
+  physical result is measured in e2e/diff.spec.ts. Size pane content to
+  the ROOT, not the pane: the after pane clips by width. The handle is a
+  paint part graded by the contrast audit's indicator matrix.
 - FileUpload: Root(model=File[])/Label/Trigger/Input/Dropzone/ItemGroup/
   Item(file)/ItemName/ItemSize/ItemRemove. The INPUT IS THE CONTROL — a
   real <input type=file> holding name/accept/multiple/required and posting
@@ -523,7 +535,7 @@ Divider, Field, Indicator, Input, Join, Kbd, Menu, NativeSelect, NumberInput,
 Navbar, Pagination, Popover, Progress, RadialProgress, RadioGroup,
 RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,
 Switch, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,
-Table, FileUpload, Carousel, Swap, Countdown and TreeView;
+Table, FileUpload, Carousel, Swap, Countdown, Diff and TreeView;
 that is every component. Where the Root renders a fragment (a
 dialog/menu/popover/tooltip) the props live on the Trigger, which renders the
 carrier part the compiled axis selectors anchor on, and Toast routes the

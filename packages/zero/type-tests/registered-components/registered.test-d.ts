@@ -31,6 +31,7 @@ import { Collapsible } from '@sigx/zero/collapsible';
 import { Combobox } from '@sigx/zero/combobox';
 import { Countdown } from '@sigx/zero/countdown';
 import { Dialog } from '@sigx/zero/dialog';
+import { Diff } from '@sigx/zero/diff';
 import { Divider } from '@sigx/zero/divider';
 import { Drawer } from '@sigx/zero/drawer';
 import { Field } from '@sigx/zero/field';
@@ -143,6 +144,7 @@ export type _fileUpload = MustBeTrue<CheckColorSize<PropsOf<typeof FileUpload.Ro
 export type _carousel = MustBeTrue<CheckColorSize<PropsOf<typeof Carousel.Root>>>;
 export type _swap = MustBeTrue<CheckColorSize<PropsOf<typeof Swap.Root>>>;
 export type _countdown = MustBeTrue<CheckColorSize<PropsOf<typeof Countdown.Root>>>;
+export type _diff = MustBeTrue<CheckColorSize<PropsOf<typeof Diff.Root>>>;
 
 /* ── the three scopes basic wires a variant vocabulary for ── */
 type ButtonProps = PropsOf<typeof Button.Root>;

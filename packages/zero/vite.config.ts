@@ -61,7 +61,8 @@ export default defineLibConfig({
         'components/file-upload/index': 'src/components/file-upload/index.ts',
         'components/carousel/index': 'src/components/carousel/index.ts',
         'components/swap/index': 'src/components/swap/index.ts',
-        'components/countdown/index': 'src/components/countdown/index.ts'
+        'components/countdown/index': 'src/components/countdown/index.ts',
+        'components/diff/index': 'src/components/diff/index.ts'
     },
     external: ['sigx', 'sigx/jsx-runtime', 'sigx/jsx-dev-runtime'],
     jsx: true

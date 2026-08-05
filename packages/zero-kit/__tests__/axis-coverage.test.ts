@@ -222,6 +222,8 @@ const NO_VARIANT: Record<string, string> = {
     countdown: 'daisyUI\'s countdown is one class with no variant — its only '
         + 'knobs are text size and the --value custom property; no other '
         + 'surveyed system ships a countdown display.',
+    diff: 'daisyUI\'s diff has no variant — one resizer look; no other '
+        + 'surveyed system ships a comparison slider.',
     'file-upload': 'daisyUI\'s file-input varies as ghost — the shared input '
         + 'vocabulary, whose answer input\'s own entry already records; Carbon\'s '
         + 'FileUploader and Ark/Zag\'s file-upload ship no variant axis at all.',

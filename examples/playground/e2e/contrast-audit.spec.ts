@@ -643,6 +643,11 @@ const INDICATORS: IndicatorSpec[] = [
     // `indicator`, no text hint). Both of its states are measured — an
     // inactive dot a viewer cannot find is a pagination they cannot use.
     { scope: 'carousel', part: 'indicator', ancestors: ['root', 'indicator-group'] },
+    // Diff's divider handle: named `handle`, so the paint-only pattern does
+    // not select it — opted in by hand like rating-group's star. Its grab
+    // affordance (line + grip) must clear the non-text floor against the
+    // root's resting surface.
+    { scope: 'diff', part: 'handle', ancestors: ['root'] },
     /**
      * RadialProgress's ring (#334): painted ON the root as a background-colour
      * ink under conic/annulus masks — background-colour rather than a

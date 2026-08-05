@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "33 kB",
+        "limit": "32 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -361,6 +361,16 @@
         "name": "@sigx/zero/countdown",
         "path": "packages/zero/dist/components/countdown/index.js",
         "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/diff",
+        "path": "packages/zero/dist/components/diff/index.js",
+        "limit": "3 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

@@ -235,6 +235,10 @@
         "./countdown": {
             "types": "./dist/components/countdown/index.d.ts",
             "import": "./dist/components/countdown/index.js"
+        },
+        "./diff": {
+            "types": "./dist/components/diff/index.d.ts",
+            "import": "./dist/components/diff/index.js"
         }
     },
     "files": [

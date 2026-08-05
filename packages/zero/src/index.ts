@@ -322,3 +322,6 @@ export type { SwapRootProps, SwapFaceProps } from './components/swap/index.js';
 
 export { Countdown, countdownAnatomy } from './components/countdown/index.js';
 export type { CountdownRootProps, CountdownValueProps } from './components/countdown/index.js';
+
+export { Diff, diffAnatomy, useDiffContext } from './components/diff/index.js';
+export type { DiffRootProps, DiffPaneProps, DiffHandleProps } from './components/diff/index.js';

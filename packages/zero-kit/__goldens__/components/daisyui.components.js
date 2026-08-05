@@ -73,3 +73,4 @@ export { FileUpload } from '@sigx/zero/file-upload';
 export { Carousel } from '@sigx/zero/carousel';
 export { Swap } from '@sigx/zero/swap';
 export { Countdown } from '@sigx/zero/countdown';
+export { Diff } from '@sigx/zero/diff';

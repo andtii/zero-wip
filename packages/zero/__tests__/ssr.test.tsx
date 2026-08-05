@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Collapsible, Combobox, Countdown, Dialog, Divider, Drawer, FileUpload, Indicator, Input, Join, Kbd, NativeSelect, Navbar, NumberInput, Pagination, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, FileUpload, Indicator, Input, Join, Kbd, NativeSelect, Navbar, NumberInput, Pagination, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -163,6 +163,11 @@ function page() {
                     </Breadcrumbs.Item>
                 </Breadcrumbs.List>
             </Breadcrumbs.Root>
+            <Diff.Root defaultValue={40}>
+                <Diff.Before><span>before</span></Diff.Before>
+                <Diff.After><span>after</span></Diff.After>
+                <Diff.Handle />
+            </Diff.Root>
             <Countdown.Root label="Time remaining">
                 <Countdown.Value value={10} digits={2} />
                 :
