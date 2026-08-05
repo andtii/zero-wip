@@ -16,7 +16,7 @@
     }
 
     [data-scope="radial-progress"][data-part="root"][data-state="complete"] {
-        --radial-ink: var(--color-success);
+        --radial-ink: color-mix(in oklch, var(--color-success) 55%, var(--color-base-content));
     }
 
     [data-scope="radial-progress"][data-part="root"]::before {

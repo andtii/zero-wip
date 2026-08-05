@@ -3931,8 +3931,15 @@ export const radialProgress: RecipeInput = {
             states: {
                 loading: {},
                 // Complete is semantic, not an accent: it goes success
-                // whatever the colour variant — linear progress's rule.
-                complete: { '--radial-ink': 'var(--color-success)' },
+                // whatever the colour variant — linear progress's rule. But
+                // daisy's raw success is a light ink (1.96:1 on light's
+                // base-100, 1.77:1 on nord's — the indicator matrix caught
+                // both), and a recipe cannot scope a rule to one theme, so
+                // the fix is symmetric: deepening toward base-content keeps
+                // the green and lands on the readable side in BOTH schemes,
+                // because base-content flips with them. zero-basic's
+                // `softInk('warning')` is the same codified move.
+                complete: { '--radial-ink': 'color-mix(in oklch, var(--color-success) 55%, var(--color-base-content))' },
                 indeterminate: {},
             },
             selectors: {

@@ -1,6 +1,7 @@
 import { component } from 'sigx';
 import { Button, Input, Join } from '@sigx/zero';
 import { DemoRow } from '../demo/Section';
+import { pickRole } from '../design-systems';
 import type { PageEntry } from './registry';
 
 const JoinDemos = component(() => () => (
@@ -31,7 +32,7 @@ const JoinDemos = component(() => () => (
                         </Input.Control>
                     </Input.Root>
                 </Join.Item>
-                <Join.Item><Button color="primary">Go</Button></Join.Item>
+                <Join.Item><Button color={pickRole('primary')}>Go</Button></Join.Item>
             </Join.Root>
         </DemoRow>
         <p>Vertical, the stacked form:</p>
