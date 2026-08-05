@@ -92,7 +92,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-41 components ship today. Every part each renders is listed below, in
+42 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -299,6 +299,14 @@ component renders; the root is called out separately where it carries props.
   content too, so the consumer wraps the actual link set in its own
   labelled <nav> inside a section. start/end are the logical pair, so RTL
   mirrors free.
+- Breadcrumbs: Root(label)/List/Item/Link(current,asChild)/Separator — the
+  APG breadcrumb pattern: <nav aria-label="Breadcrumb"> around an <ol>
+  (order IS the meaning). The current page's link carries
+  aria-current="page" and data-state="active" (the activation pair —
+  data-current is not in the flag vocabulary and the synonym table rules
+  current → active); every other link is "inactive". The separator is
+  aria-hidden punctuation inside the item (default glyph /, replaceable
+  slot) so the <ol> keeps only <li> children.
 - Skeleton: Root only(model=loading, default TRUE), data-state loading|loaded,
   aria-busy while loading. Children stay in the DOM in BOTH states — the
   component exists to hold the layout its content will occupy, so the recipe
@@ -413,7 +421,7 @@ named model bound as `model:<stateName>` in JSX (sigx
 value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
-Avatar, Badge, Button, Card, Chat, Checkbox, Collapsible, Combobox, Dialog,
+Avatar, Badge, Breadcrumbs, Button, Card, Chat, Checkbox, Collapsible, Combobox, Dialog,
 Divider, Field, Indicator, Input, Join, Kbd, Menu, NativeSelect, NumberInput,
 Navbar, Popover, Progress, RadialProgress, RadioGroup, RatingGroup, Select,
 Skeleton, Slider, Spinner, Stats, Status, Switch, Tabs, Textarea, Timeline,

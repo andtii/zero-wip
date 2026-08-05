@@ -4107,11 +4107,86 @@ export const navbar: RecipeInput = {
     },
 };
 
+/**
+ * Breadcrumbs — Material's label-large trail: on-surface-variant links that
+ * rise to on-surface under the pointer, the current page in on-surface with
+ * medium weight. No underlines — Material separates interactivity by tone,
+ * not decoration. Colour rebinds the current page's ink.
+ */
+export const breadcrumbs: RecipeInput = {
+    component: 'breadcrumbs',
+    tokens: { '--bc-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        list: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+            },
+        },
+        link: {
+            base: {
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                textDecoration: 'none',
+                borderRadius: 'var(--radius-selector)',
+                transition: 'color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { color: 'var(--color-base-content)' },
+                active: {
+                    color: 'var(--bc-accent)',
+                    fontWeight: 'var(--weight-medium)',
+                },
+                inactive: {},
+                'focus-visible': {
+                    outline: '2px solid var(--color-primary)',
+                    outlineOffset: '2px',
+                },
+            },
+        },
+        separator: {
+            base: {
+                color: 'color-mix(in oklch, var(--color-base-content) 45%, transparent)',
+                userSelect: 'none',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--bc-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar,
+    navbar, breadcrumbs,
 ];

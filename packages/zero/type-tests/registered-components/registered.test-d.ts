@@ -21,6 +21,7 @@ import { Accordion } from '@sigx/zero/accordion';
 import { Alert } from '@sigx/zero/alert';
 import { Avatar } from '@sigx/zero/avatar';
 import { Badge } from '@sigx/zero/badge';
+import { Breadcrumbs } from '@sigx/zero/breadcrumbs';
 import { Button } from '@sigx/zero/button';
 import { Card } from '@sigx/zero/card';
 import { Chat } from '@sigx/zero/chat';
@@ -126,6 +127,7 @@ export type _chat = MustBeTrue<CheckColorSize<PropsOf<typeof Chat.Root>>>;
 export type _radialProgress = MustBeTrue<CheckColorSize<PropsOf<typeof RadialProgress.Root>>>;
 export type _join = MustBeTrue<CheckColorSize<PropsOf<typeof Join.Root>>>;
 export type _navbar = MustBeTrue<CheckColorSize<PropsOf<typeof Navbar.Root>>>;
+export type _breadcrumbs = MustBeTrue<CheckColorSize<PropsOf<typeof Breadcrumbs.Root>>>;
 
 /* ── the three scopes basic wires a variant vocabulary for ── */
 type ButtonProps = PropsOf<typeof Button.Root>;

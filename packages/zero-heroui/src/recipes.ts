@@ -3643,11 +3643,78 @@ export const navbar: RecipeInput = {
     },
 };
 
+/**
+ * Breadcrumbs — HeroUI's muted-foreground trail: quiet links that rise to
+ * full foreground on hover, the current crumb full foreground. Size-only.
+ */
+export const breadcrumbs: RecipeInput = {
+    component: 'breadcrumbs',
+    parts: {
+        root: {
+            base: {
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        list: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+            },
+        },
+        link: {
+            base: {
+                color: 'var(--hero-muted)',
+                textDecoration: 'none',
+                borderRadius: 'var(--radius-selector)',
+                transition: 'color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { color: 'var(--color-base-content)' },
+                active: {
+                    color: 'var(--color-base-content)',
+                    fontWeight: 'var(--weight-semibold)',
+                },
+                inactive: {},
+                'focus-visible': {
+                    outline: '2px solid var(--color-base-content)',
+                    outlineOffset: '2px',
+                },
+            },
+        },
+        separator: {
+            base: {
+                color: 'var(--hero-muted)',
+                userSelect: 'none',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar,
+    navbar, breadcrumbs,
 ];

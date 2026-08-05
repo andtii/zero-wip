@@ -45,6 +45,7 @@ import { chatPage } from './chat';
 import { radialProgressPage } from './radial-progress';
 import { joinPage } from './join';
 import { navbarPage } from './navbar';
+import { breadcrumbsPage } from './breadcrumbs';
 import { progressPage } from './progress';
 import { sizeRampPage } from './size-ramp';
 import { extensibleRolesPage } from './extensible-roles';
@@ -105,6 +106,7 @@ export const pages: PageEntry[] = [
     collapsiblePage,
     treeViewPage,
     navbarPage,
+    breadcrumbsPage,
     avatarPage,
     cardPage,
     alertPage,

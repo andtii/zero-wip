@@ -264,3 +264,10 @@ export type { JoinRootProps, JoinItemProps } from './components/join/index.js';
 
 export { Navbar, navbarAnatomy } from './components/navbar/index.js';
 export type { NavbarRootProps, NavbarSectionProps } from './components/navbar/index.js';
+
+export { Breadcrumbs, breadcrumbsAnatomy } from './components/breadcrumbs/index.js';
+export type {
+    BreadcrumbsRootProps,
+    BreadcrumbsPartProps,
+    BreadcrumbsLinkProps,
+} from './components/breadcrumbs/index.js';

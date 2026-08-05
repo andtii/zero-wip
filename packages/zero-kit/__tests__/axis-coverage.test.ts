@@ -225,6 +225,10 @@ const NO_VARIANT: Record<string, string> = {
         + 'one padded surface recoloured by the shared background utilities '
         + '(the color axis, wired here), and HeroUI\'s Navbar styles through '
         + 'isBlurred/isBordered booleans, not a chrome vocabulary.',
+    breadcrumbs: 'no surveyed system varies a breadcrumb trail — Ant Design\'s '
+        + 'Breadcrumb has separator and menu props only, HeroUI\'s underline '
+        + 'prop is a hover-decoration mode, and Carbon\'s noTrailingSlash is a '
+        + 'boolean, not a chrome vocabulary.',
 };
 
 /**

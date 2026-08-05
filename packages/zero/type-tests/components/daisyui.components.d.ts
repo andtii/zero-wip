@@ -47,6 +47,7 @@ import type { Chat as ZChat } from '@sigx/zero/chat';
 import type { RadialProgress as ZRadialProgress } from '@sigx/zero/radial-progress';
 import type { Join as ZJoin } from '@sigx/zero/join';
 import type { Navbar as ZNavbar } from '@sigx/zero/navbar';
+import type { Breadcrumbs as ZBreadcrumbs } from '@sigx/zero/breadcrumbs';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -384,3 +385,11 @@ type NavbarProps = {
 };
 type NavbarAdapted = Adapted<typeof ZNavbar, ZeroAxisProp, NavbarProps>;
 export declare const Navbar: NavbarAdapted & AdaptedStatics<typeof ZNavbar> & { Root: NavbarAdapted };
+
+/** breadcrumbs — no vendor route; the wired surface keeps zero's names. */
+type BreadcrumbsProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type BreadcrumbsAdapted = Adapted<typeof ZBreadcrumbs, ZeroAxisProp, BreadcrumbsProps>;
+export declare const Breadcrumbs: BreadcrumbsAdapted & AdaptedStatics<typeof ZBreadcrumbs> & { Root: BreadcrumbsAdapted };

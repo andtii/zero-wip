@@ -52,7 +52,8 @@ export default defineLibConfig({
         'components/chat/index': 'src/components/chat/index.ts',
         'components/radial-progress/index': 'src/components/radial-progress/index.ts',
         'components/join/index': 'src/components/join/index.ts',
-        'components/navbar/index': 'src/components/navbar/index.ts'
+        'components/navbar/index': 'src/components/navbar/index.ts',
+        'components/breadcrumbs/index': 'src/components/breadcrumbs/index.ts'
     },
     external: ['sigx', 'sigx/jsx-runtime', 'sigx/jsx-dev-runtime'],
     jsx: true

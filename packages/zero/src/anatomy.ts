@@ -49,6 +49,7 @@ import { chatAnatomy } from './components/chat/anatomy.js';
 import { radialProgressAnatomy } from './components/radial-progress/anatomy.js';
 import { joinAnatomy } from './components/join/anatomy.js';
 import { navbarAnatomy } from './components/navbar/anatomy.js';
+import { breadcrumbsAnatomy } from './components/breadcrumbs/anatomy.js';
 
 export {
     buttonAnatomy,
@@ -59,7 +60,7 @@ export {
     cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy, skeletonAnatomy, spinnerAnatomy,
     kbdAnatomy, statusAnatomy, indicatorAnatomy, statsAnatomy, timelineAnatomy, chatAnatomy,
     radialProgressAnatomy, joinAnatomy,
-    navbarAnatomy,
+    navbarAnatomy, breadcrumbsAnatomy,
 };
 
 export const anatomies = {
@@ -104,6 +105,7 @@ export const anatomies = {
     'radial-progress': radialProgressAnatomy,
     join: joinAnatomy,
     navbar: navbarAnatomy,
+    breadcrumbs: breadcrumbsAnatomy,
 } as const satisfies Record<string, Anatomy>;
 
 /**

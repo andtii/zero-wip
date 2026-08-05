@@ -15,6 +15,15 @@
     a navigation landmark would mislabel most of it — the consumer puts a
     labelled `<nav>` around exactly the link set, inside a section.
     `start`/`end` are the logical pair, so RTL mirrors free.
+  - **Breadcrumbs**: `Root(label)`/`List`/`Item`/`Link(current, asChild)`/
+    `Separator` — the APG breadcrumb pattern: a `<nav>` named "Breadcrumb"
+    around an `<ol>` (order is the meaning). The current page is a STATE,
+    not a new flag: `data-current` is not in `FLAG_VOCABULARY` and the
+    synonym table rules `current → active`, so the current link carries
+    `aria-current="page"` + `data-state="active"` and every other link
+    `"inactive"` — exactly tabs' shape. The separator is `aria-hidden`
+    punctuation inside the item (default `/`, replaceable slot), keeping
+    the `<ol>` to `<li>` children only.
 
 - **The content-tier sweep** (#334): the cheap 60% of the coverage gap
   against `@sigx/daisyui` — components that are anatomy plus recipes with

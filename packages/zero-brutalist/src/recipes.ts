@@ -3643,11 +3643,94 @@ export const navbar: RecipeInput = {
     },
 };
 
+/**
+ * Breadcrumbs — uppercase mono-weight wayfinding: every crumb underlined
+ * the honest way (it IS a link), the current page a solid ink block with
+ * no underline. Colour refills the current-page block with the role pair.
+ */
+export const breadcrumbs: RecipeInput = {
+    component: 'breadcrumbs',
+    tokens: {
+        '--bc-accent': 'var(--color-base-content)',
+        '--bc-accent-content': 'var(--color-base-100)',
+    },
+    parts: {
+        root: {
+            base: {
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+                fontWeight: 'var(--weight-bold)',
+                textTransform: 'uppercase',
+                letterSpacing: 'var(--tracking-wide)',
+            },
+        },
+        list: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+            },
+        },
+        link: {
+            base: {
+                color: 'var(--color-base-content)',
+                textDecoration: 'underline',
+                textDecorationThickness: 'calc(var(--border) * 2)',
+                textUnderlineOffset: '0.2em',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                active: {
+                    background: 'var(--bc-accent)',
+                    color: 'var(--bc-accent-content)',
+                    textDecoration: 'none',
+                    padding: '0 var(--space-2xs)',
+                },
+                inactive: {},
+                'focus-visible': {
+                    outline: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                    outlineOffset: '2px',
+                },
+            },
+        },
+        separator: {
+            base: {
+                color: 'var(--color-base-content)',
+                userSelect: 'none',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--bc-accent': `var(--color-${c})`,
+            '--bc-accent-content': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar,
+    navbar, breadcrumbs,
 ];

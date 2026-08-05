@@ -199,6 +199,10 @@
         "./navbar": {
             "types": "./dist/components/navbar/index.d.ts",
             "import": "./dist/components/navbar/index.js"
+        },
+        "./breadcrumbs": {
+            "types": "./dist/components/breadcrumbs/index.d.ts",
+            "import": "./dist/components/breadcrumbs/index.js"
         }
     },
     "files": [
