@@ -37,3 +37,6 @@ export type {
 
 export { useFieldContext, provideFieldContext } from './field.js';
 export type { FieldContext } from './field.js';
+
+export { segmentOptions } from './options.js';
+export type { OptionInput, OptionSegment } from './options.js';

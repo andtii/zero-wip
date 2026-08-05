@@ -4,6 +4,57 @@
 
 ### Added
 
+- **The sugar tier** (#333) — the one-liner DX the old `@sigx/daisyui`
+  library had and zero's compound anatomy made verbose:
+
+  - **`options` on `Select.Root` and `Combobox.Root`**:
+    `options?: ReadonlyArray<{ value; label?; disabled?; group? }>`. With no
+    slot children the Root renders its full default composition through the
+    EXISTING anatomy — Select expands to `Trigger(Value, Indicator)` +
+    `Popup`, Combobox to `Control(Input, Trigger)` + `Popup`, each with an
+    `Item` per entry and a `Group`/`GroupLabel` per distinct `group` in
+    first-appearance order (later members fold back into their group);
+    `label` defaults to `value`. Precedence is total: explicit slot children
+    win entirely — never merged — so a custom trigger means hand-writing the
+    popup too. For Combobox this is rendering sugar only: filtering stays
+    the consumer's (bind `model:inputValue`, pass a narrowed array). The
+    generated trigger/input carry no `aria-label`; name an options-driven
+    instance through a `Field`. The grouping walk is shared
+    (`segmentOptions` in `@sigx/zero/behaviors`), so the components cannot
+    drift on its semantics.
+
+  - **`NativeSelect`** (`@sigx/zero/native-select`, scope `native-select`):
+    a real `<select>` in zero anatomy — `root` (span wrapper, the axis
+    carrier) > `control` (the `<select>` itself) + `indicator` (the
+    recipe-drawn replacement chevron, `aria-hidden`). The platform owns the
+    popup, the keyboard and the a11y tree; recipes own the well
+    (`appearance: none`). Takes the same `options` array (`group` → a real
+    `<optgroup>`, first-appearance order; hand-written `<option>` children
+    win entirely), a string `model` (SSR posts through `selected` on the
+    generated options, since a `<select>`'s value attribute means nothing
+    before its options exist), and a `placeholder` rendered as the
+    conventional disabled empty option, driving a `data-placeholder` flag
+    while the value is empty. Without a placeholder, "nothing chosen" is not
+    representable — a `<select>` with no empty option always has a value, so
+    an empty model is coerced to the control's actual value on mount and the
+    model matches what the form would post. No `data-state` anywhere — the popup never
+    exists in this DOM — and no hidden input: the visible element IS the
+    form control and carries `name`. Field-context aware exactly like Input
+    (control id, flags, `aria-describedby`). All six design systems ship
+    recipes, each on its own field idiom (basic/daisyui/material/brutalist
+    wire `color` + `size`; heroui and carbon, declaring no colour roles,
+    wire their own size ramps only), and the chevron joins the indicator
+    contrast matrix — proven red-first by painting it paper-on-paper and
+    watching the audit fail at 1:1 before reverting.
+
+  - **The loading-button pattern**, documented (README "Patterns") and
+    demoed rather than shipped as API: Button stays behavior-free — compose
+    `disabled` with `mods={{ loading: true }}` and let a design system that
+    declares the `loading` modifier (`@sigx/zero-daisyui`'s recipe-drawn
+    ring, #332) draw the spinner off `[data-mod-loading]` in pure CSS. Pass
+    the mod only when the active vocabulary declares it; the composition
+    degrades to a plain disabled button under a design system that doesn't.
+
 - **Component-surface completions** (#325). The peer-parity gaps every
   comparable library (Radix/Ark/Zag) covers, closed in one wave:
 

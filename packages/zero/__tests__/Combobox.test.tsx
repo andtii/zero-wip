@@ -318,4 +318,95 @@ describe('Combobox', () => {
         await tick();
         expect(container.querySelector<HTMLElement>('[data-part="group"]')!.hasAttribute('aria-labelledby')).toBe(false);
     });
+
+    describe('options prop (sugar tier, #333)', () => {
+        it('with no children, renders the full default composition from options', () => {
+            const state = signal({ value: '' });
+            render(
+                <Combobox.Root
+                    model={[state, 'value']}
+                    name="fruit"
+                    placeholder="Search fruit…"
+                    options={[
+                        { value: 'apple' },
+                        { value: 'banana', label: 'Banana' },
+                        { value: 'cherry', label: 'Cherry', disabled: true },
+                    ]}
+                />,
+                container,
+            );
+            expectAnatomy(container, comboboxAnatomy);
+            for (const name of ['control', 'input', 'trigger', 'popup']) {
+                expect(container.querySelector(`[data-scope="combobox"][data-part="${name}"]`), `combobox/${name} must render`).toBeTruthy();
+            }
+            const items = container.querySelectorAll<HTMLElement>('[data-part="item"]');
+            expect(items.length).toBe(3);
+            expect(items[0]!.textContent).toBe('apple'); // label defaults to value
+            expect(items[2]!.getAttribute('data-disabled')).toBe('');
+            // The generated input inherits the root placeholder.
+            expect(container.querySelector<HTMLInputElement>('[data-part="input"]')!.placeholder).toBe('Search fruit…');
+        });
+
+        it('groups render per distinct `group` in first-appearance order', async () => {
+            render(
+                <Combobox.Root
+                    options={[
+                        { value: 'lemon', group: 'Citrus' },
+                        { value: 'peach', group: 'Stone' },
+                        { value: 'lime', group: 'Citrus' },
+                    ]}
+                />,
+                container,
+            );
+            await tick();
+            const groups = container.querySelectorAll<HTMLElement>('[data-part="group"]');
+            expect(groups.length).toBe(2);
+            const labels = [...container.querySelectorAll<HTMLElement>('[data-part="group-label"]')].map((l) => l.textContent);
+            expect(labels).toEqual(['Citrus', 'Stone']);
+            expect([...groups[0]!.querySelectorAll('[data-part="item"]')].map((i) => i.textContent)).toEqual(['lemon', 'lime']);
+            expectAnatomy(container, comboboxAnatomy);
+        });
+
+        it('explicit slot children win entirely — no merging', () => {
+            render(
+                <Combobox.Root options={[{ value: 'apple' }]}>
+                    <Combobox.Control><Combobox.Input /></Combobox.Control>
+                    <Combobox.Popup>
+                        <Combobox.Item value="mango">Mango</Combobox.Item>
+                    </Combobox.Popup>
+                </Combobox.Root>,
+                container,
+            );
+            const items = container.querySelectorAll<HTMLElement>('[data-part="item"]');
+            expect(items.length).toBe(1);
+            expect(items[0]!.textContent).toBe('Mango');
+        });
+
+        it('highlight and selection behave exactly as with hand-written items — filtering stays the consumer\'s', () => {
+            // `options` is rendering sugar only: to filter, bind
+            // `model:inputValue` and pass a narrowed array — the combobox law
+            // ("filtering is the consumer's") is unchanged.
+            const state = signal({ value: '' });
+            render(
+                <Combobox.Root
+                    model={[state, 'value']}
+                    options={[
+                        { value: 'apple', label: 'Apple' },
+                        { value: 'banana', label: 'Banana' },
+                    ]}
+                />,
+                container,
+            );
+            const input = container.querySelector<HTMLInputElement>('[data-part="input"]')!;
+            key(input, 'ArrowDown');
+            key(input, 'ArrowDown');
+            const items = container.querySelectorAll<HTMLElement>('[data-part="item"]');
+            expect(items[1]!.getAttribute('data-highlighted')).toBe('');
+            key(input, 'Enter');
+            expect(state.value).toBe('banana');
+            // Selecting fills the input with the item's LABEL, as it would
+            // for a hand-written item.
+            expect(input.value).toBe('Banana');
+        });
+    });
 });

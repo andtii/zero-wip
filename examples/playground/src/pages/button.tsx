@@ -1,4 +1,4 @@
-import { component } from 'sigx';
+import { component, signal } from 'sigx';
 import { Button } from '@sigx/zero';
 import { activeVocabulary } from '../design-systems';
 import { DemoRow, AxisLabel } from '../demo/Section';
@@ -16,6 +16,12 @@ const ButtonDemos = component(() => {
     // the rows against the newly active vocabulary.
     const axes = activeVocabulary;
     const swatchColors = () => axes().colors.slice(0, SWATCH_LIMIT);
+    const state = signal({ saving: false });
+
+    const save = () => {
+        state.saving = true;
+        setTimeout(() => { state.saving = false; }, 1500);
+    };
 
     return () => (
         <>
@@ -60,6 +66,29 @@ const ButtonDemos = component(() => {
                     ))}
                 </DemoRow>
             )}
+            <p>
+                <small>
+                    <strong>The loading-button pattern</strong> — Button stays
+                    behavior-free (no <code>loading</code> prop): compose{' '}
+                    <code>disabled</code> with{' '}
+                    <code>mods=&#123;&#123; loading: true &#125;&#125;</code>{' '}
+                    and let the recipe draw the spinner off{' '}
+                    <code>[data-mod-loading]</code>. The mod is passed only
+                    when the live design system declares it, so under one that
+                    doesn't this degrades to a plain disabled button — the
+                    accessible truth never depended on the paint.
+                </small>
+            </p>
+            <DemoRow>
+                <AxisLabel>pattern</AxisLabel>
+                <Button.Root
+                    disabled={state.saving}
+                    mods={state.saving && axes().modifiers.includes('loading') ? { loading: true } : undefined}
+                    onClick={save}
+                >
+                    {state.saving ? 'Saving…' : 'Save'}
+                </Button.Root>
+            </DemoRow>
         </>
     );
 }, { name: 'ButtonDemos' });

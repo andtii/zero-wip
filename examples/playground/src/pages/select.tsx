@@ -1,5 +1,5 @@
 import { component, signal } from 'sigx';
-import { Select } from '@sigx/zero';
+import { Field, Select } from '@sigx/zero';
 import { activeVocabulary } from '../design-systems';
 import type { PageEntry } from './registry';
 
@@ -45,6 +45,31 @@ const SelectDemos = component(() => {
                     <Select.Item value="banana">Banana</Select.Item>
                 </Select.Popup>
             </Select.Root>
+            <h2>Options array</h2>
+            <p>
+                <small>
+                    The one-liner (#333): <code>options</code> on{' '}
+                    <code>Select.Root</code> renders the default composition —
+                    items, and Group/GroupLabel per distinct{' '}
+                    <code>group</code> — through the same anatomy. Slot
+                    children win entirely when both are given. The Field names
+                    the generated trigger.
+                </small>
+            </p>
+            <Field.Root>
+                <Field.Label>Fruit (options-driven)</Field.Label>
+                <Select.Root
+                    name="sugar-fruit"
+                    placeholder="Pick a fruit…"
+                    options={[
+                        { value: 'lemon', label: 'Lemon', group: 'Citrus' },
+                        { value: 'lime', label: 'Lime', group: 'Citrus' },
+                        { value: 'peach', label: 'Peach', group: 'Stone fruit' },
+                        { value: 'banana', label: 'Banana' },
+                        { value: 'durian', label: 'Durian', disabled: true },
+                    ]}
+                />
+            </Field.Root>
             <h2>Option groups</h2>
             <p>
                 <small>

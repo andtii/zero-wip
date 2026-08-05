@@ -2644,6 +2644,74 @@ export const textarea: RecipeInput = {
     },
 };
 
+/**
+ * NativeSelect (#333) — the input's bordered field on the platform's own
+ * picker: `--hero-line` border, base-100 fill, the muted chevron select's
+ * trigger uses, and the three-step size ramp through a text custom property.
+ * No `color` axis — this design system declares none (`roles: {}`); the ring
+ * is always `--hero-focus` and the invalid border always `--hero-danger`.
+ */
+export const nativeSelect: RecipeInput = {
+    component: 'native-select',
+    tokens: { '--native-select-text': 'var(--text-sm)' },
+    parts: {
+        root: {
+            base: { position: 'relative', display: 'inline-flex', alignItems: 'center' },
+            states: { disabled: {}, invalid: {}, required: {}, placeholder: {} },
+        },
+        control: {
+            base: {
+                appearance: 'none',
+                width: '100%',
+                minWidth: '12rem',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-field)',
+                background: 'var(--color-base-100)',
+                padding: 'var(--space-sm) var(--space-md)',
+                // Room for the chevron the platform no longer draws.
+                paddingInlineEnd: 'calc(var(--space-md) + 1.25em)',
+                color: 'var(--color-base-content)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--native-select-text)',
+                cursor: 'pointer',
+                transition: motion('border-color'),
+            },
+            states: {
+                hover: { borderColor: 'var(--color-base-content)' },
+                invalid: { borderColor: 'var(--hero-danger)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                required: {},
+                placeholder: { color: 'var(--hero-muted)' },
+                ...focusRing,
+            },
+        },
+        indicator: {
+            base: {
+                position: 'absolute',
+                insetInlineEnd: 'var(--space-md)',
+                pointerEvents: 'none',
+                color: 'var(--hero-muted)',
+                fontSize: 'var(--native-select-text)',
+            },
+        },
+    },
+    // The visible ring lives on the <select> itself; the wrapper delegates.
+    skipStates: { root: ['focus-visible'] },
+    variants: {
+        size: {
+            sm: {
+                root: { base: { '--native-select-text': 'var(--text-xs)' } },
+                control: { base: { padding: 'var(--space-xs) var(--space-sm)', paddingInlineEnd: 'calc(var(--space-sm) + 1.25em)' } },
+            },
+            md: {},
+            lg: {
+                root: { base: { '--native-select-text': 'var(--text-md)' } },
+                control: { base: { padding: 'var(--space-md) var(--space-lg)', paddingInlineEnd: 'calc(var(--space-lg) + 1.25em)' } },
+            },
+        },
+    },
+};
+
 // ── Content tier (#311) ───────────────────────────────────────────────────
 /**
  * HeroUI's card: base-100 inside the hairline, `radius-box`, a soft shadow.
@@ -2925,6 +2993,6 @@ export const spinner: RecipeInput = {
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
+    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
 ];

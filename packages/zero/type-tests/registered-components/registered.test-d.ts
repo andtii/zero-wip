@@ -7,7 +7,7 @@
  * imported a component, so the hand-written scope literal inside each
  * `WithVariantAxes<'…'>` — the joint that actually binds a component to its
  * vocabulary entry — was unverified. This file is that verification, for
- * all 31 scopes: the axes the golden wires must narrow to its exact unions,
+ * all 32 scopes: the axes the golden wires must narrow to its exact unions,
  * the axes it leaves unwired must be `never`, and a scope with no axis
  * props must stay propless.
  *
@@ -31,6 +31,7 @@ import { Divider } from '@sigx/zero/divider';
 import { Field } from '@sigx/zero/field';
 import { Input } from '@sigx/zero/input';
 import { Menu } from '@sigx/zero/menu';
+import { NativeSelect } from '@sigx/zero/native-select';
 import { NumberInput } from '@sigx/zero/number-input';
 import { Popover } from '@sigx/zero/popover';
 import { Progress } from '@sigx/zero/progress';
@@ -100,6 +101,7 @@ export type _numberInput = MustBeTrue<CheckColorSize<PropsOf<typeof NumberInput.
 export type _ratingGroup = MustBeTrue<CheckColorSize<PropsOf<typeof RatingGroup.Root>>>;
 export type _treeView = MustBeTrue<CheckColorSize<PropsOf<typeof TreeView.Root>>>;
 export type _input = MustBeTrue<CheckColorSize<PropsOf<typeof Input.Root>>>;
+export type _nativeSelect = MustBeTrue<CheckColorSize<PropsOf<typeof NativeSelect.Root>>>;
 export type _textarea = MustBeTrue<CheckColorSize<PropsOf<typeof Textarea.Root>>>;
 export type _card = MustBeTrue<CheckColorSize<PropsOf<typeof Card.Root>>>;
 export type _alert = MustBeTrue<CheckColorSize<PropsOf<typeof Alert.Root>>>;

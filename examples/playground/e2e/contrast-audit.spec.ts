@@ -593,6 +593,12 @@ const INDICATORS: IndicatorSpec[] = [
     // row grammar in all six design systems, so one host chain measures both.
     { scope: 'menu', part: 'item-indicator', ancestors: ['popup=open', 'checkbox-item'] },
     { scope: 'select', part: 'indicator', ancestors: ['root', 'trigger'], glyph: '▾' },
+    // NativeSelect's replacement chevron (#333): `appearance: none` removes
+    // the platform arrow, so this mark is the ONLY affordance saying the
+    // field is a picker — an invisible one is a real bug. It overlays the
+    // control, but the chain is root>indicator: the anatomy's parent tree,
+    // where the control is a sibling, not an ancestor.
+    { scope: 'native-select', part: 'indicator', ancestors: ['root'], glyph: '▾' },
     { scope: 'select', part: 'item-indicator', ancestors: ['root', 'popup=open', 'item'], glyph: '✓', only: 'selected' },
     { scope: 'combobox', part: 'item-indicator', ancestors: ['root', 'popup=open', 'item'], glyph: '✓', only: 'selected' },
     {

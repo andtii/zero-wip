@@ -1,0 +1,82 @@
+@layer zero.recipes {
+    [data-scope="native-select"][data-part="root"] {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    [data-scope="native-select"][data-part="control"] {
+        appearance: none;
+        width: 100%;
+        min-width: 12rem;
+        background: var(--color-base-200);
+        border: none;
+        border-block-end: var(--border) solid var(--carbon-border-strong);
+        border-radius: var(--radius-field);
+        min-height: 2.5rem;
+        color: var(--color-base-content);
+        font: inherit;
+        font-family: var(--font-sans);
+        font-size: var(--text-sm);
+        padding: 0 var(--space-md);
+        padding-inline-end: calc(var(--space-md) + 1.25em);
+        cursor: pointer;
+        transition: background var(--duration-normal) var(--ease-standard);
+    }
+
+    [data-scope="native-select"][data-part="control"]:hover:not([data-disabled]) {
+        background: var(--carbon-field-hover);
+    }
+
+    [data-scope="native-select"][data-part="control"][data-invalid] {
+        outline: 2px solid var(--carbon-danger);
+        outline-offset: -2px;
+    }
+
+    [data-scope="native-select"][data-part="control"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        border-block-end-color: transparent;
+        cursor: not-allowed;
+    }
+
+    [data-scope="native-select"][data-part="control"][data-placeholder] {
+        color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+    }
+
+    [data-scope="native-select"][data-part="control"][data-focus-visible] {
+        outline: 2px solid var(--carbon-focus);
+        outline-offset: -2px;
+    }
+
+    [data-scope="native-select"][data-part="indicator"] {
+        position: absolute;
+        inset-inline-end: var(--space-md);
+        pointer-events: none;
+        display: inline-flex;
+        font-size: var(--text-sm);
+    }
+
+    @scope ([data-scope="native-select"][data-part="root"][data-size="sm"]) to ([data-scope="native-select"][data-part="root"]) {
+        [data-scope="native-select"][data-part="control"] {
+            min-height: 2rem;
+        }
+    }
+
+    @scope ([data-scope="native-select"][data-part="root"][data-size="lg"]) to ([data-scope="native-select"][data-part="root"]) {
+        [data-scope="native-select"][data-part="control"] {
+            min-height: 3rem;
+        }
+    }
+
+    @scope ([data-scope="native-select"][data-part="root"][data-size="xl"]) to ([data-scope="native-select"][data-part="root"]) {
+        [data-scope="native-select"][data-part="control"] {
+            min-height: 4rem;
+        }
+    }
+
+    @scope ([data-scope="native-select"][data-part="root"][data-size="2xl"]) to ([data-scope="native-select"][data-part="root"]) {
+        [data-scope="native-select"][data-part="control"] {
+            min-height: 5rem;
+        }
+    }
+}

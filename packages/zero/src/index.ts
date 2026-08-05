@@ -106,6 +106,9 @@ export type {
     SelectItemProps,
 } from './components/select/index.js';
 
+export { NativeSelect, nativeSelectAnatomy } from './components/native-select/index.js';
+export type { NativeSelectRootProps } from './components/native-select/index.js';
+
 export { Avatar, avatarAnatomy, useAvatarContext } from './components/avatar/index.js';
 export type { AvatarStatus, AvatarRootProps, AvatarImageProps, AvatarFallbackProps } from './components/avatar/index.js';
 

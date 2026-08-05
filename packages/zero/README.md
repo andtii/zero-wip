@@ -27,9 +27,9 @@ import '@sigx/zero-basic/css';         // ← the design system (swappable)
 ## Components
 
 Button · Tabs · Collapsible · Accordion · Dialog · Popover · Tooltip · Menu ·
-Select · Switch · Checkbox · RadioGroup · Slider · Progress · Field · Avatar ·
-Toast · Combobox · Toggle · ToggleGroup · NumberInput · RatingGroup ·
-TreeView · Input · Textarea · Card · Alert · Badge · Divider ·
+Select · NativeSelect · Switch · Checkbox · RadioGroup · Slider · Progress ·
+Field · Avatar · Toast · Combobox · Toggle · ToggleGroup · NumberInput ·
+RatingGroup · TreeView · Input · Textarea · Card · Alert · Badge · Divider ·
 Skeleton · Spinner
 
 All state is one two-way `model` prop (sigx `Define.Model`) — bind a signal
@@ -49,6 +49,21 @@ composed multi-thumb range (`Slider.Track`/`Range`/`Thumb`, thumbs clamp at
 their neighbors, `marks` renders ticks) while a scalar model keeps the native
 `<input type=range>`; Select and Combobox group options
 (`Group`/`GroupLabel`, the optgroup equivalent).
+
+Select and Combobox also take an `options` array
+(`{ value, label?, disabled?, group? }[]`) as one-liner sugar: with no slot
+children the Root renders the full default composition — items through the
+same anatomy, plus `Group`/`GroupLabel` per distinct `group` in
+first-appearance order, `label` defaulting to `value`. Precedence is total:
+explicit slot children win entirely, never merged. For Combobox it is
+rendering sugar only — filtering stays yours (bind `model:inputValue`, pass a
+narrowed array). Name an options-driven instance through a `Field`.
+`NativeSelect` takes the same array and renders a real `<select>` with real
+`<option>`/`<optgroup>` elements — the form-heavy-page workhorse the custom
+listbox is too heavy for. The platform owns the popup and the keyboard;
+recipes own the well (`appearance: none`) and draw the replacement chevron
+(`indicator`). Field-context aware exactly like Input; no hidden input — the
+visible element is the form control.
 
 Interaction state is published as data for the design system to style:
 `data-focus-visible`, and press feedback on every interactive part —
@@ -86,6 +101,37 @@ theme-carried candidate for that glyph's ink is white on one side or the other
 (`--color-base-content` and `CanvasText` under a dark theme, an on-accent ink
 under a light one, over a fill that did not print). A design system may
 override it; it never has to declare it.
+
+## Patterns
+
+Compositions the pieces above are designed to express — no component grows a
+prop for what a composition already says.
+
+**The loading button.** Button stays behavior-free: there is no `loading`
+prop, because "busy" is a *styling* state the design system draws and a
+*semantics* the app owns. Compose it:
+
+```tsx
+<Button.Root
+    disabled={saving()}
+    mods={saving() ? { loading: true } : undefined}
+    onClick={save}
+>
+    Save
+</Button.Root>
+```
+
+`mods` renders the presence-only `data-mod-loading` attribute; a design
+system that declares the `loading` modifier — `@sigx/zero-daisyui` does —
+draws the spinner (and hides or dims the label) in pure CSS off
+`[data-mod-loading]`, a recipe-drawn mark the same way checkbox ticks work.
+Under a design system that does *not* declare it, the attribute would match
+no rule, so pass the mod only when the active vocabulary declares it (the
+manifest's `tokens.modifiers`) and the composition degrades to a plain
+disabled button — the accessible truth (`disabled` while the request is in
+flight) never depended on the paint.
+Announce long operations to AT with your own live region or a
+`Spinner label="Saving…"` beside the button when the design draws nothing.
 
 ## Typed vocabulary (opt-in)
 

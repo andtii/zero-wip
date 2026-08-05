@@ -31,6 +31,7 @@ import type { RatingGroup as ZRatingGroup } from '@sigx/zero/rating-group';
 import type { TreeView as ZTreeView } from '@sigx/zero/tree-view';
 import type { Input as ZInput } from '@sigx/zero/input';
 import type { Textarea as ZTextarea } from '@sigx/zero/textarea';
+import type { NativeSelect as ZNativeSelect } from '@sigx/zero/native-select';
 import type { Card as ZCard } from '@sigx/zero/card';
 import type { Alert as ZAlert } from '@sigx/zero/alert';
 import type { Badge as ZBadge } from '@sigx/zero/badge';
@@ -246,6 +247,14 @@ type TextareaProps = {
 };
 type TextareaAdapted = Adapted<typeof ZTextarea, ZeroAxisProp, TextareaProps>;
 export declare const Textarea: TextareaAdapted & AdaptedStatics<typeof ZTextarea> & { Root: TextareaAdapted };
+
+/** native-select — no vendor route; the wired surface keeps zero's names. */
+type NativeSelectProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type NativeSelectAdapted = Adapted<typeof ZNativeSelect, ZeroAxisProp, NativeSelectProps>;
+export declare const NativeSelect: NativeSelectAdapted & AdaptedStatics<typeof ZNativeSelect> & { Root: NativeSelectAdapted };
 
 /** card — no vendor route; the wired surface keeps zero's names. */
 type CardProps = {

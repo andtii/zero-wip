@@ -27,6 +27,7 @@ export default defineLibConfig({
         'components/slider/index': 'src/components/slider/index.ts',
         'components/accordion/index': 'src/components/accordion/index.ts',
         'components/select/index': 'src/components/select/index.ts',
+        'components/native-select/index': 'src/components/native-select/index.ts',
         'components/avatar/index': 'src/components/avatar/index.ts',
         'components/toast/index': 'src/components/toast/index.ts',
         'components/combobox/index': 'src/components/combobox/index.ts',

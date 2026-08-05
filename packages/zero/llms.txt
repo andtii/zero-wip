@@ -92,7 +92,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-31 components ship today. Every part each renders is listed below, in
+32 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -172,6 +172,28 @@ component renders; the root is called out separately where it carries props.
   one is rendered (presence-tracked — an unlabelled group stays anonymous).
   Labels never register as options, so typeahead and the highlight walk
   straight through group boundaries.
+  OPTIONS SUGAR: Root takes `options` ({value, label?, disabled?, group?}[])
+  — with no slot children it renders the full default composition
+  (Trigger(Value, Indicator) + Popup with an Item per entry, Group/GroupLabel
+  per distinct `group` in first-appearance order, label defaulting to value)
+  through the SAME anatomy. Slot children win entirely when both are given —
+  never merged. The generated trigger has no aria-label: name an
+  options-driven Select through a Field.
+- NativeSelect: Root(model=value)/Control/Indicator — a real <select> in zero
+  anatomy, the form-heavy-page workhorse the custom listbox is too heavy for.
+  root is a span wrapper and the axis carrier; control is the <select> itself
+  (recipes set appearance:none and draw the well there — the platform owns
+  the popup, the keyboard and the a11y tree); indicator is the recipe-styled
+  replacement chevron (aria-hidden). `options` takes the same array as
+  Select's sugar and renders real <option>/<optgroup> elements (`group` →
+  optgroup per distinct value, first-appearance order; label defaults to
+  value); hand-written <option> slot children win entirely. `placeholder`
+  renders the conventional disabled empty option and drives a
+  data-placeholder flag while the value is empty. NO data-state anywhere
+  (open/closed never exists in this DOM) — flags only (disabled, invalid,
+  required, placeholder, focus-visible). No hidden-input: the visible
+  element IS the form control and carries `name`. Field-context aware
+  exactly like Input (adopts the control id, flags, aria-describedby).
 - Switch: Root(model=checked)/Control/Thumb/Label/HiddenInput, role=switch.
 - Checkbox: Root(model=checked)/Control/Indicator/Label/HiddenInput; supports
   `indeterminate`.
@@ -262,6 +284,11 @@ component renders; the root is called out separately where it carries props.
   The popup is popover="manual" + the dismiss layer (native auto light
   dismiss would close on a caret click). No data-placeholder on the input —
   use :placeholder-shown. Home/End stay with the text caret.
+  OPTIONS SUGAR: Root takes `options` (same shape as Select's) — with no
+  slot children it renders Control(Input, Trigger) + Popup(items/groups)
+  through the same anatomy. RENDERING only: filtering stays the consumer's —
+  bind model:inputValue and pass a narrowed array. Slot children win
+  entirely when both are given.
 - NumberInput: Root(model=number|null, min, max, step, allowWheel,
   clampOnBlur, format, parse, name)/Label/Control/Input/IncrementTrigger/
   DecrementTrigger/HiddenInput. APG spinbutton on a real text input
@@ -328,9 +355,9 @@ value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
 Avatar, Badge, Button, Card, Checkbox, Collapsible, Combobox, Dialog, Divider,
-Field, Input, Menu, NumberInput, Popover, Progress, RadioGroup, RatingGroup,
-Select, Skeleton, Slider, Spinner, Switch, Tabs, Textarea, Toast, Toggle,
-ToggleGroup, Tooltip and TreeView;
+Field, Input, Menu, NativeSelect, NumberInput, Popover, Progress, RadioGroup,
+RatingGroup, Select, Skeleton, Slider, Spinner, Switch, Tabs, Textarea, Toast,
+Toggle, ToggleGroup, Tooltip and TreeView;
 that is every component. Where the Root renders a fragment (a
 dialog/menu/popover/tooltip) the props live on the Trigger, which renders the
 carrier part the compiled axis selectors anchor on, and Toast routes the

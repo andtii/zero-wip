@@ -23,6 +23,7 @@ import { sliderAnatomy } from './components/slider/anatomy.js';
 import { accordionAnatomy } from './components/accordion/anatomy.js';
 import { buttonAnatomy } from './components/button/anatomy.js';
 import { selectAnatomy } from './components/select/anatomy.js';
+import { nativeSelectAnatomy } from './components/native-select/anatomy.js';
 import { avatarAnatomy } from './components/avatar/anatomy.js';
 import { toastAnatomy } from './components/toast/anatomy.js';
 import { comboboxAnatomy } from './components/combobox/anatomy.js';
@@ -45,7 +46,7 @@ export {
     tabsAnatomy, collapsibleAnatomy, switchAnatomy, dialogAnatomy, popoverAnatomy, tooltipAnatomy, menuAnatomy,
     fieldAnatomy, checkboxAnatomy, radioGroupAnatomy, progressAnatomy, sliderAnatomy, accordionAnatomy, selectAnatomy,
     avatarAnatomy, toastAnatomy, comboboxAnatomy, toggleAnatomy, toggleGroupAnatomy, numberInputAnatomy,
-    ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy,
+    ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy, nativeSelectAnatomy,
     cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy, skeletonAnatomy, spinnerAnatomy,
 };
 
@@ -65,6 +66,7 @@ export const anatomies = {
     slider: sliderAnatomy,
     accordion: accordionAnatomy,
     select: selectAnatomy,
+    'native-select': nativeSelectAnatomy,
     avatar: avatarAnatomy,
     toast: toastAnatomy,
     combobox: comboboxAnatomy,

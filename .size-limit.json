@@ -60,6 +60,16 @@
         ]
     },
     {
+        "name": "@sigx/zero/native-select",
+        "path": "packages/zero/dist/components/native-select/index.js",
+        "limit": "2.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
         "name": "@sigx/zero/anatomy (tooling entry)",
         "path": "packages/zero/dist/anatomy.js",
         "limit": "3 kB",

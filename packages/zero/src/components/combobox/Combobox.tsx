@@ -31,6 +31,16 @@
  * pruning the highlight when the highlighted item unmounts mid-typing, so
  * `aria-activedescendant` never dangles.
  *
+ * THE OPTIONS SUGAR (#333): with no children, an `options` array renders the
+ * default composition — Control(Input, Trigger) + Popup(Item per option,
+ * Group/GroupLabel per distinct `group` in first-appearance order, label
+ * defaulting to value) — through the existing anatomy. It is RENDERING sugar
+ * only: the filtering law above is unchanged, so to narrow the list bind
+ * `model:inputValue` and pass an already-filtered array. Precedence:
+ * explicit slot children win ENTIRELY when both are given — never merged.
+ * Name an options-driven Combobox through a `Field` (the field's label lands
+ * on the generated input via the control id).
+ *
  * Focus stays in the input; the highlighted option is conveyed via
  * `aria-activedescendant` + `data-highlighted`. ArrowDown/Up open and move,
  * Enter selects (fills the input with the item's text), Escape closes, Tab
@@ -46,6 +56,7 @@ import { createListController, moveHighlight, optionText, type HighlightStep, ty
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { createDismissable } from '../../behaviors/dismiss.js';
 import { useFieldContext } from '../../behaviors/field.js';
+import { segmentOptions, type OptionInput } from '../../behaviors/options.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
@@ -151,6 +162,14 @@ export type ComboboxRootProps =
     & Define.Prop<'readonly', boolean, false>
     & Define.Prop<'placement', Placement, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
+    /**
+     * One-liner sugar: with no slot children, renders the default
+     * Control/Input/Trigger/Popup composition with an Item per entry
+     * (Group + GroupLabel per distinct `group`). Rendering only — filtering
+     * stays the consumer's (pass a narrowed array). Slot children win
+     * entirely when both are given — see the component doc.
+     */
+    & Define.Prop<'options', ReadonlyArray<OptionInput>, false>
     & WithDisabled
     & WithVariantAxes<'combobox'>
     & WithClass
@@ -309,6 +328,32 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal 
         },
     );
 
+    // The options expansion (#333): the default composition, built from the
+    // same compound parts a consumer would write — sugar over the anatomy,
+    // never a parallel render path.
+    const optionsContent = () => (
+        <>
+            <ComboboxControl>
+                <ComboboxInput />
+                <ComboboxTrigger />
+            </ComboboxControl>
+            <ComboboxPopup>
+                {segmentOptions(props.options ?? []).map((segment) => segment.group === undefined
+                    ? segment.options.map((o) => (
+                        <ComboboxItem value={o.value} disabled={o.disabled} key={o.value}>{o.label ?? o.value}</ComboboxItem>
+                    ))
+                    : (
+                        <ComboboxGroup key={`group:${segment.group}`}>
+                            <ComboboxGroupLabel>{segment.group}</ComboboxGroupLabel>
+                            {segment.options.map((o) => (
+                                <ComboboxItem value={o.value} disabled={o.disabled} key={o.value}>{o.label ?? o.value}</ComboboxItem>
+                            ))}
+                        </ComboboxGroup>
+                    ))}
+            </ComboboxPopup>
+        </>
+    );
+
     return () => (
         <div
             data-scope={SCOPE}
@@ -319,7 +364,8 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal 
             {...variantAttrs(props)}
             class={props.class}
         >
-            {slots.default?.()}
+            {/* Slot children win ENTIRELY over `options` — no merging. */}
+            {slots.default ? slots.default() : props.options ? optionsContent() : null}
             <input
                 type="hidden"
                 data-scope={SCOPE}

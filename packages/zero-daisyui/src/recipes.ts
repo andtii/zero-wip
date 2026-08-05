@@ -3047,6 +3047,75 @@ export const textarea: RecipeInput = {
     },
 };
 
+/**
+ * NativeSelect (#333) — daisy "select" flavor on the platform's own picker:
+ * the `fieldControl` box (same metrics as every field, so mixed rows line
+ * up), `appearance: none`, and the recipe-drawn chevron at the inline end.
+ * No open state — the platform owns the popup — so colour surfaces on the
+ * focus ring, exactly like input's.
+ */
+export const nativeSelect: RecipeInput = {
+    component: 'native-select',
+    tokens: { '--native-select-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: { position: 'relative', display: 'inline-flex', alignItems: 'center' },
+            states: { disabled: {}, invalid: {}, required: {}, placeholder: {} },
+        },
+        control: {
+            base: {
+                appearance: 'none',
+                width: '100%',
+                minWidth: '12rem',
+                ...fieldControl,
+                color: 'var(--color-base-content)',
+                font: 'inherit',
+                fontSize: 'var(--text-sm)',
+                padding: 'var(--space-sm) var(--space-md)',
+                // Room for the chevron the platform no longer draws.
+                paddingInlineEnd: 'calc(var(--space-md) + 1.25em)',
+                cursor: 'pointer',
+                transition: 'border-color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { borderColor: 'var(--color-base-content)' },
+                invalid: { borderColor: 'var(--color-error)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                required: {},
+                // Same muting as the fields' placeholders (#264).
+                placeholder: { color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)' },
+                'focus-visible': { ...focusRing['focus-visible'], outline: '2px solid var(--native-select-accent)' },
+            },
+        },
+        indicator: {
+            base: {
+                position: 'absolute',
+                insetInlineEnd: 'var(--space-md)',
+                pointerEvents: 'none',
+                opacity: '0.6',
+                fontSize: 'var(--text-sm)',
+            },
+        },
+    },
+    // The visible ring lives on the <select> itself; the wrapper delegates.
+    skipStates: { root: ['focus-visible'] },
+    variants: {
+        // The ring carries the role — daisy's field chrome is neutral, so
+        // focus is the only place colour surfaces (input's exact move).
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--native-select-accent': `var(--color-${c})`,
+        } } }])),
+        // The shared field-height ramp, on the control itself.
+        size: {
+            xs: { control: { base: { height: fieldHeight('xs'), fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-xs)', paddingInlineEnd: 'calc(var(--space-xs) + 1.25em)' } } },
+            sm: { control: { base: { height: fieldHeight('sm'), fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-sm)', paddingInlineEnd: 'calc(var(--space-sm) + 1.25em)' } } },
+            md: {},
+            lg: { control: { base: { height: fieldHeight('lg'), fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-lg)', paddingInlineEnd: 'calc(var(--space-lg) + 1.25em)' } } },
+            xl: { control: { base: { height: fieldHeight('xl'), fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-xl)', paddingInlineEnd: 'calc(var(--space-xl) + 1.25em)' } } },
+        },
+    },
+};
+
 // ── Content tier (#311) ───────────────────────────────────────────────────
 /**
  * daisy "card" flavor: `bg-base-100` on a `rounded-box` with a real shadow —
@@ -3381,6 +3450,6 @@ export const spinner: RecipeInput = {
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
+    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
 ];
