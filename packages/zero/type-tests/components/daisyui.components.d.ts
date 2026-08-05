@@ -55,6 +55,7 @@ import type { Table as ZTable } from '@sigx/zero/table';
 import type { FileUpload as ZFileUpload } from '@sigx/zero/file-upload';
 import type { Carousel as ZCarousel } from '@sigx/zero/carousel';
 import type { Swap as ZSwap } from '@sigx/zero/swap';
+import type { Countdown as ZCountdown } from '@sigx/zero/countdown';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -458,3 +459,11 @@ type SwapProps = {
 };
 type SwapAdapted = Adapted<typeof ZSwap, ZeroAxisProp, SwapProps>;
 export declare const Swap: SwapAdapted & AdaptedStatics<typeof ZSwap> & { Root: SwapAdapted };
+
+/** countdown — no vendor route; the wired surface keeps zero's names. */
+type CountdownProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type CountdownAdapted = Adapted<typeof ZCountdown, ZeroAxisProp, CountdownProps>;
+export declare const Countdown: CountdownAdapted & AdaptedStatics<typeof ZCountdown> & { Root: CountdownAdapted };

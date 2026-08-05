@@ -319,3 +319,6 @@ export type {
 
 export { Swap, swapAnatomy, useSwapContext } from './components/swap/index.js';
 export type { SwapRootProps, SwapFaceProps } from './components/swap/index.js';
+
+export { Countdown, countdownAnatomy } from './components/countdown/index.js';
+export type { CountdownRootProps, CountdownValueProps } from './components/countdown/index.js';

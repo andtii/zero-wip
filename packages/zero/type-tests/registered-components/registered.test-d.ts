@@ -29,6 +29,7 @@ import { Chat } from '@sigx/zero/chat';
 import { Checkbox } from '@sigx/zero/checkbox';
 import { Collapsible } from '@sigx/zero/collapsible';
 import { Combobox } from '@sigx/zero/combobox';
+import { Countdown } from '@sigx/zero/countdown';
 import { Dialog } from '@sigx/zero/dialog';
 import { Divider } from '@sigx/zero/divider';
 import { Drawer } from '@sigx/zero/drawer';
@@ -141,6 +142,7 @@ export type _table = MustBeTrue<CheckColorSize<PropsOf<typeof Table.Root>>>;
 export type _fileUpload = MustBeTrue<CheckColorSize<PropsOf<typeof FileUpload.Root>>>;
 export type _carousel = MustBeTrue<CheckColorSize<PropsOf<typeof Carousel.Root>>>;
 export type _swap = MustBeTrue<CheckColorSize<PropsOf<typeof Swap.Root>>>;
+export type _countdown = MustBeTrue<CheckColorSize<PropsOf<typeof Countdown.Root>>>;
 
 /* ── the three scopes basic wires a variant vocabulary for ── */
 type ButtonProps = PropsOf<typeof Button.Root>;

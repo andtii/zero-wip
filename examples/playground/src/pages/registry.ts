@@ -45,6 +45,7 @@ import { indicatorPage } from './indicator';
 import { statsPage } from './stats';
 import { tablePage } from './table';
 import { carouselPage } from './carousel';
+import { countdownPage } from './countdown';
 import { timelinePage } from './timeline';
 import { chatPage } from './chat';
 import { radialProgressPage } from './radial-progress';
@@ -132,6 +133,7 @@ export const pages: PageEntry[] = [
     statsPage,
     tablePage,
     carouselPage,
+    countdownPage,
     timelinePage,
     chatPage,
     progressPage,

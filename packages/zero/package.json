@@ -231,6 +231,10 @@
         "./swap": {
             "types": "./dist/components/swap/index.d.ts",
             "import": "./dist/components/swap/index.js"
+        },
+        "./countdown": {
+            "types": "./dist/components/countdown/index.d.ts",
+            "import": "./dist/components/countdown/index.js"
         }
     },
     "files": [

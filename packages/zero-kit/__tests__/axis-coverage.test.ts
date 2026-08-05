@@ -219,6 +219,9 @@ const NO_VARIANT: Record<string, string> = {
     carousel: 'no surveyed system varies a scroll-snap gallery — daisyUI\'s '
         + 'carousel modifies snap alignment (start/center/end) and axis, both '
         + 'geometry; HeroUI and Carbon ship no carousel at all.',
+    countdown: 'daisyUI\'s countdown is one class with no variant — its only '
+        + 'knobs are text size and the --value custom property; no other '
+        + 'surveyed system ships a countdown display.',
     'file-upload': 'daisyUI\'s file-input varies as ghost — the shared input '
         + 'vocabulary, whose answer input\'s own entry already records; Carbon\'s '
         + 'FileUploader and Ark/Zag\'s file-upload ship no variant axis at all.',

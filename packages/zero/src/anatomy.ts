@@ -57,6 +57,7 @@ import { tableAnatomy } from './components/table/anatomy.js';
 import { fileUploadAnatomy } from './components/file-upload/anatomy.js';
 import { carouselAnatomy } from './components/carousel/anatomy.js';
 import { swapAnatomy } from './components/swap/anatomy.js';
+import { countdownAnatomy } from './components/countdown/anatomy.js';
 
 export {
     buttonAnatomy,
@@ -68,7 +69,7 @@ export {
     kbdAnatomy, statusAnatomy, indicatorAnatomy, statsAnatomy, timelineAnatomy, chatAnatomy,
     radialProgressAnatomy, joinAnatomy,
     navbarAnatomy, breadcrumbsAnatomy, paginationAnatomy, stepsAnatomy, drawerAnatomy,
-    tableAnatomy, fileUploadAnatomy, carouselAnatomy, swapAnatomy,
+    tableAnatomy, fileUploadAnatomy, carouselAnatomy, swapAnatomy, countdownAnatomy,
 };
 
 export const anatomies = {
@@ -121,6 +122,7 @@ export const anatomies = {
     'file-upload': fileUploadAnatomy,
     carousel: carouselAnatomy,
     swap: swapAnatomy,
+    countdown: countdownAnatomy,
 } as const satisfies Record<string, Anatomy>;
 
 /**
