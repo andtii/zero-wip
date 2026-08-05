@@ -91,7 +91,14 @@ const NativeSelectRoot = component<NativeSelectRootProps>(({ props, slots, emit,
         // where zero renders no `selected` at all).
         effect(() => {
             const value = state.value;
-            if (el && el.value !== value) el.value = value;
+            if (!el || el.value === value) return;
+            // An empty model with no placeholder option must NOT be written:
+            // no option has value "", so the write would blank the control,
+            // where the platform's own resting state is the first option —
+            // exactly what a raw <select> shows. The write resumes the
+            // moment a real value (or a placeholder to rest on) exists.
+            if (value === '' && props.placeholder === undefined) return;
+            el.value = value;
         });
     });
 
