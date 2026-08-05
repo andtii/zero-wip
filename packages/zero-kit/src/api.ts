@@ -1,5 +1,6 @@
 /**
- * The vendor-named component API declaration (issue #179, RFC 0003 §2).
+ * The vendor-named component API declaration (issue #179; docs/architecture.md,
+ * "The components artifact — vendor-named apis").
  *
  * A design system may declare, beside its tokens and recipes, how zero's axis
  * surfaces appear under the vendor's own prop names — Carbon's `kind`, Ant's
@@ -142,7 +143,8 @@ export function defineApi(first: object, second?: object): DesignSystemApi {
     return (second ?? first) as DesignSystemApi;
 }
 
-/** RFC 0003 §7.3 fidelity, derived mechanically from the declaration. */
+/** Conformance fidelity grade (docs/architecture.md, "The authoring
+ * surface"), derived mechanically from the declaration. */
 export type ConformanceGrade = 'exact' | 'renamed' | 'reshaped' | 'unsupported';
 
 /**

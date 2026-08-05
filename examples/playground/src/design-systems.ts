@@ -126,7 +126,8 @@ export interface AxisVocabulary {
     /**
      * What each SCOPE wires, which is not the same question as what the design
      * system declares. `tokens.variants` is the union; a scope can narrow it
-     * (`tokens.scopes`, RFC 0003 §4.1) and most scopes wire nothing at all —
+     * (`tokens.scopes` — docs/architecture.md, "Declared vocabulary") and
+     * most scopes wire nothing at all —
      * so a demo that picks from the union alone renders `data-variant` values
      * that match no rule for the component it is on. Keyed by scope; a scope
      * absent here wires nothing.

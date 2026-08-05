@@ -2,12 +2,13 @@
  * The REAL generated artifact, type-checked end to end: `material.register.d.ts`
  * in this directory is the golden emitted by `compileRegisterDts` for
  * `@sigx/zero-material` (kept current by `register-dts.test.ts`), and this
- * probe asserts the RFC 0002 phase-3 gate against it — `tertiary`
+ * probe asserts the register-generation gate against it — `tertiary`
  * autocompleted and accepted, `primry` rejected, `token('shadow', 'level3')`
  * narrowed by Material's elevation ramp, theme names closed on the authoring
  * surface. It also re-states the file's scope-validity assertion in a `.ts`,
  * which `skipLibCheck` cannot skip, and is the augmentation-binding check for
- * the emitted file (RFC 0002 §3.2): the augmentation targets `@sigx/zero`
+ * the emitted file (docs/architecture.md, "The register artifact"): the
+ * augmentation targets `@sigx/zero`
  * and must merge through the re-export.
  */
 import type {
@@ -69,7 +70,7 @@ const avatarSize: SizeScaleFor<'avatar'> = 'xl';
 const avatarTypo: ColorValueFor<'avatar'> = 'primry';
 
 // ── the still-unwired axis keeps the visible break. `variant` is deferred
-//    on purpose (RFC 0003 §1.1): only button wires it, because its
+//    on purpose (docs/architecture.md, "The ledgers"): only button wires it, because its
 //    vocabulary is convention rather than contract ──
 // @ts-expect-error — avatar accepts data-variant at runtime; nothing wires it
 const avatarVariant: VariantValueFor<'avatar'> = 'solid';

@@ -94,6 +94,6 @@ export type ZeroAnatomies = typeof anatomies;
  * Every component scope, as a closed literal union. A generated
  * `register.d.ts` asserts its `components` keys against this, so a typo'd or
  * version-skewed scope fails to compile instead of silently taking the open
- * fallback (RFC 0002 §3.1).
+ * fallback (see docs/architecture.md, "The register artifact").
  */
 export type ZeroScope = keyof ZeroAnatomies & string;

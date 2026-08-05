@@ -68,7 +68,7 @@
                     "items": { "$ref": "#/$defs/kebabToken" }
                 },
                 "scopes": {
-                    "description": "Per-scope restrictions of the vocabularies above (RFC 0003 §4.1 / #294) — scope → its own vocabulary subset. {} when none are declared.",
+                    "description": "Per-scope restrictions of the vocabularies above (#294; docs/architecture.md, \"Declared vocabulary\") — scope → its own vocabulary subset. {} when none are declared.",
                     "type": "object",
                     "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
                     "additionalProperties": { "type": "object" }

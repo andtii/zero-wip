@@ -265,7 +265,8 @@ describe('tokens.schema.json', () => {
 
     it('rejects an unknown key inside a scope vocabulary — `parts` included', () => {
         // The reserved key, at the JSON layer. `parts` is the per-PART
-        // restriction RFC 0003 §4.1 settled against; rejecting it by name here
+        // restriction the contract settled against (docs/architecture.md,
+        // "Declared vocabulary"); rejecting it by name here
         // and in the validator is what keeps adding it later additive.
         expect(validateTokens(asJson({
             ...basicDS.tokens,

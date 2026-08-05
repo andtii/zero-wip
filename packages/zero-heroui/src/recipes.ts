@@ -2,7 +2,7 @@
  * zero-heroui recipes — HeroUI v3's look over zero's anatomy.
  *
  * Two things here exist nowhere else in the repo, and are the reason the
- * package exists (RFC 0003 §8):
+ * package exists (docs/architecture.md, "Thesis and shape"):
  *
  *  1. **No `variants.color` anywhere.** There are no roles to key it on, so
  *     every component types `color: never`. Colour reaches the CSS through

@@ -1,5 +1,5 @@
 /**
- * Conformance fixture: **Ant Design** — Button (RFC 0003 §7.2, Tier 2).
+ * Conformance fixture: **Ant Design** — Button (conformance Tier 2 — docs/architecture.md §7).
  *
  * The mechanics this fixture exercises: **a renamed axis that shadows a
  * component prop, an exact custom axis, and modifiers under their own
@@ -16,7 +16,7 @@
 import type { RecipeInput, TokensInput } from '@sigx/zero-kit';
 import { defineApi } from '@sigx/zero-kit';
 
-/** §7.2 placement and the artifact column 8 of this system's rows points at. */
+/** Matrix placement and the artifact column 8 of this system's rows points at. */
 export const matrix = {
     system: 'Ant Design',
     tier: 2,

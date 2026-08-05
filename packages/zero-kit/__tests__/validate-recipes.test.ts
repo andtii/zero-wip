@@ -656,7 +656,7 @@ describe('the shipped design systems', () => {
     });
 });
 
-describe('declared axis vocabularies (RFC 0002 phase 1)', () => {
+describe('declared axis vocabularies (docs/architecture.md, "Declared vocabulary")', () => {
     const tabsVariant = (values: Record<string, string>): RecipeInput => ({
         component: 'tabs',
         parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },

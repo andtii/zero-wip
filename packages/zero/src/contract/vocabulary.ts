@@ -29,7 +29,8 @@ type Scoped<S extends string> =
  * The `[Scoped<S>] extends [never]` guard MUST come first. Testing the axis
  * result against `never` cannot separate case 1 from case 3 — both produce
  * `never` — so a guard-last formulation silently hands the open fallback to
- * exactly the components whose unwired axes should error (RFC 0002 §3).
+ * exactly the components whose unwired axes should error (see
+ * docs/architecture.md, "The register artifact").
  */
 type AxisOf<S extends string, A extends string, Fallback> =
     [Scoped<S>] extends [never]

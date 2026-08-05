@@ -1,7 +1,8 @@
 import { defineAnatomy } from '../../contract/anatomy.js';
 
-// Two web projections over one anatomy (see docs/rfcs/0001 for the original
-// platform-divergent case): a scalar model renders `control` — a native
+// Two web projections over one anatomy (a superset anatomy from the
+// multi-target RFC — docs/architecture.md §11 — whose original
+// platform-divergent case was Lynx): a scalar model renders `control` — a native
 // `<input type="range">`, thumb styled via its vendor pseudo-elements — and
 // none of `track`/`range`/`thumb`; a range model (`number[]`) composes the
 // real `track`/`range`/`thumb` parts (one thumb per value) and no `control`,

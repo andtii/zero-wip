@@ -69,6 +69,18 @@ heroui's `./components`, carbon's renamed props); `pnpm build`, then
   with `@sigx/lynx-zero`, so one design-system source can skin every sigx
   target.
 
+## Documentation
+
+- [`docs/architecture.md`](docs/architecture.md) — the design doc of the
+  current system: the anatomy contract, the variant-axis pipeline end to end,
+  the manifests, the compiler, the theme model, the authoring surface, and
+  the full verification-gate inventory. Descriptive, not aspirational — it
+  was written when the RFCs were deleted, and records their history.
+- [`docs/building-your-own-component.md`](docs/building-your-own-component.md)
+  — shipping a component zero doesn't, as a peer package.
+- [`docs/design-system-conformance.md`](docs/design-system-conformance.md) —
+  the conformance matrix (generated; never hand-edited).
+
 ## Development
 
 ```bash

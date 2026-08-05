@@ -1,5 +1,6 @@
 /**
- * The conformance matrix (RFC 0003 §7, issue #174) — rows RENDERED from the
+ * The conformance matrix (docs/architecture.md, "The authoring surface";
+ * issue #174) — rows RENDERED from the
  * artifacts that implement them, never asserted by hand.
  *
  * Three sources feed one table:
@@ -211,10 +212,11 @@ export function formatConformanceMatrix(
         '     conformance fixtures and the in-repo coverage reports. Do not edit',
         '     by hand: update a fixture or a design system, then refresh via',
         '     `pnpm test -- conformance` with `--update`. The snapshot test IS',
-        '     the row-fixture parity check (RFC 0003 §7.4) — a row and its',
+        '     the row-fixture parity check (docs/architecture.md §7) — a row and its',
         '     declaration are the same object, so they cannot drift apart. -->',
         '',
-        'The rules live in RFC 0003 §7 (frozen); this file is the data (living);',
+        'The rules live in docs/architecture.md §7 (the conformance program);',
+        'this file is the data (living, regenerated);',
         'the fixtures under `packages/zero-kit/skills/design-system/conformance/`',
         'and the design-system packages are the proof (executing). A row may',
         'claim `exact` or `renamed` only because the artifact in its last column',

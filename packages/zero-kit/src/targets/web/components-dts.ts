@@ -1,7 +1,8 @@
 /**
  * The components artifact — a generated `./components` module giving a design
  * system's consumers zero's components under the vendor's own prop names
- * (issue #179, RFC 0003 §2).
+ * (issue #179; docs/architecture.md, "The components artifact —
+ * vendor-named apis").
  *
  * Two halves, one derivation:
  *

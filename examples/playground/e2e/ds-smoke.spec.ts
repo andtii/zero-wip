@@ -282,7 +282,8 @@ const readAxes = (page: Page, vocabulary: Vocabulary): Promise<RenderedAxes> =>
              * `data-variant` is checked against the SCOPE's vocabulary, not the
              * design system's union — the one axis where the two differ.
              *
-             * A scope can narrow the union (`tokens.scopes`, RFC 0003 §4.1) and
+             * A scope can narrow the union (`tokens.scopes` —
+             * docs/architecture.md, "Declared vocabulary") and
              * most scopes wire nothing at all, so a value that is real
              * design-system-wide can still match no rule on the component
              * carrying it. That is #215's bug ("rendered buttons that matched

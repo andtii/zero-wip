@@ -1,6 +1,7 @@
 /**
  * `adapt` — the one generic runtime behind every vendor-named component
- * module (issue #179, RFC 0003 §2).
+ * module (issue #179; docs/architecture.md, "The components artifact —
+ * vendor-named apis").
  *
  * A design system that declares an `api` gets a generated
  * `dist/components.js` from the kit: pure data, one `adapt(Base, spec)` call

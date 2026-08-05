@@ -10,7 +10,8 @@
  * unstyled-but-accessible, which is the contract's baseline.
  *
  * Zero's own scope registry stays closed (`ZeroScope` is a literal union on
- * purpose — RFC 0002 §3.1). Merging does not reopen it: merged components
+ * purpose — docs/architecture.md, "The register artifact"). Merging does
+ * not reopen it: merged components
  * carry their `package` provenance, and every downstream consumer that must
  * distinguish zero-origin from ecosystem scopes (the register artifact's
  * compile gate, the api emitters' import specifiers) reads it from there.

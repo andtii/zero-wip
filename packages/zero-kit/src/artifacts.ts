@@ -7,9 +7,11 @@
  * dist/css/components/<scope>.css
  * dist/css/index.css
  * dist/manifest.json        (DS-level: versioned envelope, themes, declared tokens, per-component wired axes)
- * dist/register.d.ts        (GENERATED ZeroVocabulary augmentation — RFC 0002 §5)
+ * dist/register.d.ts        (GENERATED ZeroVocabulary augmentation —
+ *                            docs/architecture.md, "The register artifact")
  * dist/register.js          (empty module so the /register subpath resolves)
- * dist/report.json          (coverage report — RFC 0003 §7.4; only when given one)
+ * dist/report.json          (coverage report — docs/architecture.md,
+ *                            "The authoring surface"; only when given one)
  * dist/components.d.ts      (vendor-named component types — issue #179; only when the design system declares an `api`)
  * dist/components.js        (data-only adapt() wiring for the same — issue #179; only with an `api`)
  * ```

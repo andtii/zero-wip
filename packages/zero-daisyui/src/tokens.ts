@@ -177,7 +177,8 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
             },
             custom: fx('1'),
         },
-        // The N-theme proof (RFC 0002 §7 / #132): three more of daisyUI's own
+        // The N-theme proof (#132; docs/architecture.md, "The theme model"):
+        // three more of daisyUI's own
         // themes. `defaultLight`/`defaultDark` stay light/dark, so the `:root`
         // light-dark() emission is untouched and these live purely in their
         // own [data-theme] blocks. A `dim` theme is a THEME whose scheme is

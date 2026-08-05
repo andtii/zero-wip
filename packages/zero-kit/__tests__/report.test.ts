@@ -1,5 +1,6 @@
 /**
- * The coverage report (RFC 0003 §7.4, issue #173).
+ * The coverage report (issue #173; docs/architecture.md, "The authoring
+ * surface").
  *
  * The load-bearing test here is `the gate`: the report's `never` set is checked
  * against the *generated register artifact*, parsed back out of the emitted
@@ -191,7 +192,7 @@ describe('declared but unwired', () => {
     });
 });
 
-describe('the axis-agnostic divergence report (RFC 0003 §4)', () => {
+describe('the axis-agnostic divergence report', () => {
     it('generalises the colour-only warning to every axis a design system wires', () => {
         const material = reportFor(materialDS as DesignSystemInput);
         expect(Object.keys(material.divergence).sort()).toEqual(['color', 'size', 'variant']);
@@ -214,7 +215,7 @@ describe('the axis-agnostic divergence report (RFC 0003 §4)', () => {
         const variant = basic.divergence['variant']!;
         // `button` wires the whole vocabulary; `badge` and `select` wire the
         // subsets they declare for themselves (#311, #297). Three carriers,
-        // per RFC 0003 §9 phase 5 / #175 and its successors.
+        // per #175 and its successors (docs/architecture.md, "The ledgers").
         expect(Object.keys(variant.byComponent)).toEqual(['badge', 'button', 'select']);
         // Both narrowings ARE strict subsets, and that is the point:
         // `declared` is what keeps the report from crying wolf about them. A

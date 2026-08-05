@@ -1,6 +1,7 @@
 /**
  * The AUGMENTED contract — `./register.d.ts` augments `@sigx/zero` exactly
- * the way a generated `/register` module will (RFC 0002 §5), and every
+ * the way a generated `/register` module does (docs/architecture.md, "The
+ * register artifact"), and every
  * narrowing case class is asserted, positive and negative.
  *
  * The augmentation targets `@sigx/zero` while `ZeroVocabulary` is DECLARED in
@@ -67,7 +68,8 @@ const checkboxColor: ColorValueFor<'checkbox'> = 'success';
 //    or this would collapse into the checkbox case above ──
 export type _absentScopeFallsBack = MustBeTrue<Equal<ColorValueFor<'avatar'>, ColorValue>>;
 
-// ── the generated file's scope-validity assertion (RFC 0002 §3.1):
+// ── the generated file's scope-validity assertion (docs/architecture.md,
+//    "The register artifact"):
 //    every components key must be a real anatomy scope ──
 export type _scopesValid = MustBeTrue<
     keyof ZeroVocabulary['components'] extends ZeroScope ? true : false

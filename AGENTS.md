@@ -106,7 +106,7 @@ pnpm test -- -t "name of test"        # single test by name (vitest -t)
 pnpm test:watch
 pnpm test:coverage
 pnpm typecheck     # tsgo --noEmit against package sources (path-aliased)
-pnpm test:types    # compile-time type tests (zero's ZeroVocabulary seam), five isolated tsconfig projects under packages/zero/type-tests/
+pnpm test:types    # compile-time type tests (zero's ZeroVocabulary seam), six isolated tsconfig projects under packages/zero/type-tests/
 pnpm lint          # oxlint packages
 pnpm lint:fix
 pnpm verify:catalog  # catalog: usage check for @sigx core deps
@@ -381,6 +381,7 @@ PR, and the docs-site update is queued (as a docs-repo issue) before merge.
 | change a build / test / lint script | `AGENTS.md` "Build, Test, Lint", `package.json` |
 | change or add public API / behavior | the package's own `README.md`, and that same package's own `CHANGELOG.md` **if it keeps one** (never a repo-root one — there isn't one) — see below |
 | change the workflow / process itself | `AGENTS.md` here — and upstream to [`signalxjs/repo-template`](https://github.com/signalxjs/repo-template) |
+| change the architecture — a contract, a pipeline stage, a gate | `docs/architecture.md`, the design doc of the current system (there are no RFCs; the doc is descriptive and must keep matching the tree) |
 
 **Only `@sigx/zero` and `@sigx/zero-kit` keep a `CHANGELOG.md`.** The six
 design-system packages deliberately do not — nothing has been released yet, so

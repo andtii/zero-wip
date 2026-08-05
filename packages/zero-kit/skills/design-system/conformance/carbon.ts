@@ -1,5 +1,5 @@
 /**
- * Conformance fixture: **IBM Carbon** — Button (RFC 0003 §7.2, Tier 2).
+ * Conformance fixture: **IBM Carbon** — Button (conformance Tier 2 — docs/architecture.md §7).
  *
  * The mechanic this fixture exercises: **a renamed axis with respelled
  * values.** Carbon's `kind` is zero's `variant` under another name, and two of
@@ -13,7 +13,7 @@ import type { RecipeInput, TokensInput } from '@sigx/zero-kit';
 import { defineApi } from '@sigx/zero-kit';
 
 /**
- * §7.2 placement. Tier 2, proven by the shipped package: `zero-carbon`
+ * Matrix placement. Tier 2, proven by the shipped package: `zero-carbon`
  * graduated this fixture's api (#183), so column 8 points at the artifact
  * that renders it — the fixture remains the matrix's row source and the
  * vocabulary is pinned verbatim to the package by `conformance.test.ts`.

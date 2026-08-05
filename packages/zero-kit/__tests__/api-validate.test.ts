@@ -258,7 +258,7 @@ describe('validateApi — declaration shape', () => {
 });
 
 describe('grade derivation', () => {
-    it('derives the RFC 0003 §7.3 fidelity from the declaration alone', () => {
+    it('derives the conformance fidelity grade from the declaration alone', () => {
         expect(apiGrade(undefined)).toBe('unsupported');
         expect(apiGrade({})).toBe('exact');
         expect(apiGrade({ as: 'kind' })).toBe('renamed');

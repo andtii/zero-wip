@@ -336,7 +336,7 @@ declare module '@sigx/zero' {
 
 // Fails to compile if a scope above is not in zero's anatomy registry
 // (a typo or a version skew would otherwise silently take the open
-// fallback — RFC 0002 §3.1).
+// fallback — docs/architecture.md, "The register artifact").
 type _MustBeTrue<T extends true> = T;
 type _ScopesValid = _MustBeTrue<
     keyof import('@sigx/zero').ZeroVocabulary['components'] extends import('@sigx/zero').ZeroScope
