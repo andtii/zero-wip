@@ -148,6 +148,15 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
     sizes: ['sm', 'md', 'lg'],
     variants,
     modifiers,
+    /**
+     * Per-scope narrowing (#294): `isIconOnly`/`isPending` are BUTTON facts
+     * and `isStriped` a TABLE fact — without this, every scope would type
+     * all three (#340 review catch).
+     */
+    scopes: {
+        button: { modifiers: ['icon-only', 'pending'] },
+        table: { modifiers: ['striped'] },
+    },
     custom,
     system,
     systemDark,

@@ -140,6 +140,15 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
     sizes: ['sm', 'md', 'lg', 'xl', '2xl'],
     variants,
     modifiers,
+    /**
+     * Per-scope narrowing (#294): `hasIconOnly`/`isExpressive` are BUTTON
+     * facts and `useZebraStyles` a DataTable fact — without this, every
+     * scope would type all three (#340 review catch).
+     */
+    scopes: {
+        button: { modifiers: ['icon-only', 'expressive'] },
+        table: { modifiers: ['zebra'] },
+    },
     custom,
     system,
     systemDark,

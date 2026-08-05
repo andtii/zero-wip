@@ -39,6 +39,10 @@ interface ItemEntry {
 
 interface CarouselContext {
     state: ControllableState<number>;
+    /** The viewport's observer hooks — items call these from their own mount. */
+    observeEl(el: HTMLElement): void;
+    unobserveEl(el: HTMLElement): void;
+    setObserverHooks(observe: (el: HTMLElement) => void, unobserve: (el: HTMLElement) => void): void;
     count(): number;
     index(): number;
     /** Clamp and set; the watch scrolls the item into view. */
@@ -59,6 +63,9 @@ function makeInert(): CarouselContext {
             get value() { return value; },
             set value(v: number) { value = v; },
         },
+        observeEl: () => {},
+        unobserveEl: () => {},
+        setObserverHooks: () => {},
         count: () => 0,
         index: () => 0,
         goTo: () => {},
@@ -129,8 +136,17 @@ const CarouselRoot = component<CarouselRootProps>(({ props, slots, emit, signal,
         },
     );
 
+    let observeHook: ((el: HTMLElement) => void) | null = null;
+    let unobserveHook: ((el: HTMLElement) => void) | null = null;
+
     const ctx: CarouselContext = {
         state,
+        observeEl: (el) => observeHook?.(el),
+        unobserveEl: (el) => unobserveHook?.(el),
+        setObserverHooks(observe, unobserve) {
+            observeHook = observe;
+            unobserveHook = unobserve;
+        },
         count: () => reg.count,
         index: () => clamp(state.value),
         goTo(i) {
@@ -200,10 +216,18 @@ const CarouselViewport = component<CarouselViewportProps>(({ props, slots, onMou
             },
             { root: el, threshold: 0.6 },
         );
-        // Items mounted before the observer existed — observe them now.
+        // Items mounted before the observer existed — observe them now;
+        // items that mount LATER observe themselves through the hooks.
         for (const item of carousel.itemEls()) observer.observe(item);
+        carousel.setObserverHooks(
+            (target) => observer?.observe(target),
+            (target) => observer?.unobserve(target),
+        );
     });
-    onUnmounted(() => observer?.disconnect());
+    onUnmounted(() => {
+        carousel.setObserverHooks(() => {}, () => {});
+        observer?.disconnect();
+    });
 
     return () => (
         <div
@@ -230,12 +254,20 @@ export type CarouselItemProps =
     & WithClass
     & Define.Slot<'default'>;
 
-const CarouselItem = component<CarouselItemProps>(({ props, slots, onUnmounted }) => {
+const CarouselItem = component<CarouselItemProps>(({ props, slots, onMounted, onUnmounted }) => {
     const carousel = useCarouselContext();
     let el: HTMLElement | null = null;
     const entry: ItemEntry = { el: () => el };
     const unregister = carousel.registerItem(entry);
-    onUnmounted(() => unregister());
+    // Late-arriving items (rendered after the viewport mounted) must reach
+    // the observer too — the viewport publishes hooks for exactly this.
+    onMounted(() => {
+        if (el) carousel.observeEl(el);
+    });
+    onUnmounted(() => {
+        if (el) carousel.unobserveEl(el);
+        unregister();
+    });
 
     return () => {
         const i = carousel.itemIndex(entry);

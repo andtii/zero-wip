@@ -132,6 +132,19 @@ describe('Swap', () => {
         expect(changes).toEqual([]);
     });
 
+    it('a disabled display swap still stamps the styling fact', () => {
+        render(
+            <Swap.Root disabled>
+                <Swap.On>on</Swap.On>
+                <Swap.Off>off</Swap.Off>
+            </Swap.Root>,
+            container,
+        );
+        // No semantics to disable — but the recipe's fade must still key on
+        // something, and the flag is the contract's word for it.
+        expect(part(container, 'root').getAttribute('data-disabled')).toBe('');
+    });
+
     it('the model is boolean only — no indeterminate face in the anatomy', () => {
         expect(swapAnatomy.partNames()).toEqual(['root', 'on', 'off']);
         expect(swapAnatomy.parts.root.states).toEqual(['on', 'off']);

@@ -85,6 +85,10 @@ const SwapRoot = component<SwapRootProps>(({ props, slots, emit, signal }) => {
                     data-scope={SCOPE}
                     data-part="root"
                     data-state={swapState}
+                    // A display swap cannot be operated, but `disabled` is
+                    // still a styling fact — the faces fade like the button
+                    // form's would.
+                    data-disabled={dataAttr(props.disabled)}
                     {...variantAttrs(props)}
                     class={props.class}
                 >
