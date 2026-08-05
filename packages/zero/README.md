@@ -27,9 +27,9 @@ import '@sigx/zero-basic/css';         // ← the design system (swappable)
 ## Components
 
 Button · Tabs · Collapsible · Accordion · Dialog · Popover · Tooltip · Menu ·
-Select · Switch · Checkbox · RadioGroup · Slider · Progress · Field · Avatar ·
-Toast · Combobox · Toggle · ToggleGroup · NumberInput · RatingGroup ·
-TreeView · Input · Textarea · Card · Alert · Badge · Divider ·
+Select · NativeSelect · Switch · Checkbox · RadioGroup · Slider · Progress ·
+Field · Avatar · Toast · Combobox · Toggle · ToggleGroup · NumberInput ·
+RatingGroup · TreeView · Input · Textarea · Card · Alert · Badge · Divider ·
 Skeleton · Spinner
 
 All state is one two-way `model` prop (sigx `Define.Model`) — bind a signal
@@ -58,6 +58,12 @@ first-appearance order, `label` defaulting to `value`. Precedence is total:
 explicit slot children win entirely, never merged. For Combobox it is
 rendering sugar only — filtering stays yours (bind `model:inputValue`, pass a
 narrowed array). Name an options-driven instance through a `Field`.
+`NativeSelect` takes the same array and renders a real `<select>` with real
+`<option>`/`<optgroup>` elements — the form-heavy-page workhorse the custom
+listbox is too heavy for. The platform owns the popup and the keyboard;
+recipes own the well (`appearance: none`) and draw the replacement chevron
+(`indicator`). Field-context aware exactly like Input; no hidden input — the
+visible element is the form control.
 
 Interaction state is published as data for the design system to style:
 `data-focus-visible`, and press feedback on every interactive part —

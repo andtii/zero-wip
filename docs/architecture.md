@@ -44,7 +44,7 @@ The package map, and what each package is *for*:
 
 | Package | Role |
 |---|---|
-| `@sigx/zero` | The runtime foundation: anatomy contract, headless behaviors, 31 compound components, theme engine. Peer-depends on `sigx` only. |
+| `@sigx/zero` | The runtime foundation: anatomy contract, headless behaviors, 32 compound components, theme engine. Peer-depends on `sigx` only. |
 | `@sigx/zero-kit` | The Node-only authoring kit: `defineTokens` / `defineRecipe` / `defineDesignSystem` / `defineApi`, the tokens+recipes → CSS compiler, validation, artifact emission, the `sigx` CLI plugin, the generation skill, and the JSON schemas. Never a runtime dependency. |
 | `@sigx/zero-basic`, `@sigx/zero-daisyui` | Shipping design systems — the neutral starter and the daisyUI-flavoured proof that a design system is data. |
 | `@sigx/zero-material` | Private acceptance test: **extensible vocabularies** (13 colour roles, a `level1`–`level5` elevation ramp, its own easings and breakpoints). |
@@ -136,7 +136,7 @@ would render it as an element.
 
 **The registry is typed closed.** `anatomies` in
 `packages/zero/src/anatomy.ts` is declared `as const satisfies
-Record<string, Anatomy>` — 31 components — so `ZeroScope` is a closed literal
+Record<string, Anatomy>` — 32 components — so `ZeroScope` is a closed literal
 union. That closure is load-bearing: the generated register artifact asserts
 its scope keys against it at compile time ([§3.5](#35-the-register-artifact)),
 which is what makes a typo'd or version-skewed scope a compile error instead
@@ -433,7 +433,7 @@ axis values are skipped *before* the guards (a narrowed bag has optional
 members); falsy mods are skipped (presence-only — `false` and `undefined`
 both mean absent).
 
-All **31 components** compose `WithVariantAxes<'<scope>'>` — the scope
+All **32 components** compose `WithVariantAxes<'<scope>'>` — the scope
 literal is constrained to `ZeroScope`, so a typo'd literal
 (`WithVariantAxes<'buton'>`) is a compile error rather than a silently
 *different* type taking the open fallback. Ecosystem components use
@@ -776,7 +776,7 @@ checking a fraction of what it claimed.)
 | Parity family (6) | `contract-parity`, `registry-parity`, `reserved-props-parity`, `schemas`, `llms-doc`, `type-test-paths` | Every deliberately duplicated surface (kit↔zero contract copies, manifest↔registry, api reserved props↔real Root props, schemas↔reality, llms.txt claims↔source, type-test paths↔package exports) is pinned from both sides. |
 | State legibility | `zero-kit/__tests__/state-legibility.test.ts` | Every declared state is visually distinct in every skin — read from **compiled CSS**, honoring `hiddenIn`. |
 | Axis coverage + value coverage | `axis-coverage.test.ts`, `axis-value-coverage.test.ts` | No component accepts an axis nothing wires (ledgered, [§3.8](#38-the-ledgers)); no declared axis step goes unhonored by the recipes that claim it. |
-| Type tests (6 isolated projects) | `packages/zero/type-tests/` — `open`, `augmented`, `generated`, `components`, `registered-components`, `ecosystem` | Each proves one narrowing regime in its own program (augmentation leaks program-wide, so isolation is the point): the unaugmented open fallback; a hand-written augmentation (a `.ts`, so `skipLibCheck` cannot skip it); the real emitted material golden; the emitted `components.d.ts` goldens with the vocabulary untouched, two design systems coexisting; **all 31 scopes' real prop surfaces** under the emitted zero-basic golden; and the ecosystem `Exclude`-gate round trip. |
+| Type tests (6 isolated projects) | `packages/zero/type-tests/` — `open`, `augmented`, `generated`, `components`, `registered-components`, `ecosystem` | Each proves one narrowing regime in its own program (augmentation leaks program-wide, so isolation is the point): the unaugmented open fallback; a hand-written augmentation (a `.ts`, so `skipLibCheck` cannot skip it); the real emitted material golden; the emitted `components.d.ts` goldens with the vocabulary untouched, two design systems coexisting; **all 32 scopes' real prop surfaces** under the emitted zero-basic golden; and the ecosystem `Exclude`-gate round trip. |
 | Register compile gate | `zero-kit/__tests__/register-dts-compile.test.ts` | Every skin's emitted `register.d.ts` compiles with `skipLibCheck: false` against a generated stub of `@sigx/zero`, so the artifact's self-assertions actually execute ([§3.5](#35-the-register-artifact)). |
 | Typed-app capstone | `examples/typed-app` (CI, after build) | The consumer side: three isolated programs against **emitted `dist/`** through real package exports — register narrowing, the no-register components surface, and carbon's values remap. |
 | Interaction e2e (19 specs) | `examples/playground/e2e/` — press-feedback, dialog, popover, tooltip, menu-submenu, context-menu, combobox, select, toast-presence, tabs, tree-view, slider, number-input, rating-group | Real-browser contracts (chromium/firefox/webkit, plus reduced-motion and forced-colors projects), under the **locator law** (`e2e/demo.ts`): a part is located through a named root, never page-wide selectors or cross-demo positional indexing. |

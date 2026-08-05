@@ -3007,6 +3007,72 @@ export const textarea: RecipeInput = {
     },
 };
 
+/**
+ * NativeSelect (#333) — the outlined field again, on the platform's own
+ * picker: neutral outline, the role surfacing only in the focus ring
+ * (input's exact move), `appearance: none` and a recipe-drawn trailing
+ * chevron at the same 0.7 film as select's.
+ */
+export const nativeSelect: RecipeInput = {
+    component: 'native-select',
+    tokens: { '--native-select-accent': 'var(--color-secondary)' },
+    parts: {
+        root: {
+            base: { position: 'relative', display: 'inline-flex', alignItems: 'center' },
+            states: { disabled: {}, invalid: {}, required: {}, placeholder: {} },
+        },
+        control: {
+            base: {
+                appearance: 'none',
+                width: '100%',
+                minWidth: '12rem',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--color-outline)',
+                borderRadius: 'var(--radius-field)',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-md)',
+                padding: 'var(--space-sm) var(--space-md)',
+                // Room for the chevron the platform no longer draws.
+                paddingInlineEnd: 'calc(var(--space-md) + 1.25em)',
+                cursor: 'pointer',
+                transition: motion('border-color'),
+            },
+            states: {
+                invalid: { borderColor: 'var(--color-error)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                required: {},
+                placeholder: { color: 'var(--color-outline)' },
+                'focus-visible': { ...focusRing['focus-visible'], outline: '3px solid var(--native-select-accent)' },
+            },
+        },
+        indicator: {
+            base: {
+                position: 'absolute',
+                insetInlineEnd: 'var(--space-md)',
+                pointerEvents: 'none',
+                opacity: '0.7',
+                fontSize: 'var(--text-md)',
+            },
+        },
+    },
+    // The visible ring lives on the <select> itself; the wrapper delegates.
+    skipStates: { root: ['focus-visible'] },
+    variants: {
+        // The ring carries the role — the outline stays neutral.
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--native-select-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { control: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-2xs) var(--space-xs)', paddingInlineEnd: 'calc(var(--space-xs) + 1.25em)' } } },
+            sm: { control: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-xs) var(--space-sm)', paddingInlineEnd: 'calc(var(--space-sm) + 1.25em)' } } },
+            md: {},
+            lg: { control: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-lg)', paddingInlineEnd: 'calc(var(--space-lg) + 1.25em)' } } },
+            xl: { control: { base: { fontSize: 'var(--text-xl)', padding: 'var(--space-lg) var(--space-xl)', paddingInlineEnd: 'calc(var(--space-xl) + 1.25em)' } } },
+        },
+    },
+};
+
 // ── Content tier (#311) ───────────────────────────────────────────────────
 /**
  * Material's elevated card: a tonal surface container rather than base-100,
@@ -3336,6 +3402,6 @@ export const spinner: RecipeInput = {
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
+    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
 ];

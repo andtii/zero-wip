@@ -2992,6 +2992,70 @@ export const textarea: RecipeInput = {
     },
 };
 
+/**
+ * NativeSelect (#333) — Carbon's own `select`, which IS a native picker in
+ * the design system this skin mirrors: the `field-01` well with the single
+ * strong border under it, the inset focus ring and invalid outline on the
+ * box, the five field heights on `minHeight`, and a recipe-drawn chevron.
+ * No `color` axis: this design system declares no colour roles.
+ */
+export const nativeSelect: RecipeInput = {
+    component: 'native-select',
+    parts: {
+        root: {
+            base: { position: 'relative', display: 'inline-flex', alignItems: 'center' },
+            states: { disabled: {}, invalid: {}, required: {}, placeholder: {} },
+        },
+        control: {
+            base: {
+                appearance: 'none',
+                width: '100%',
+                minWidth: '12rem',
+                ...field01,
+                minHeight: '2.5rem',
+                color: 'var(--color-base-content)',
+                font: 'inherit',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-sm)',
+                padding: '0 var(--space-md)',
+                // Room for the chevron the platform no longer draws.
+                paddingInlineEnd: 'calc(var(--space-md) + 1.25em)',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                ...fieldHover,
+                invalid: { outline: '2px solid var(--carbon-danger)', outlineOffset: '-2px' },
+                disabled: { opacity: 'var(--disabled-opacity)', borderBlockEndColor: 'transparent', cursor: 'not-allowed' },
+                required: {},
+                placeholder: { color: 'color-mix(in oklab, var(--color-base-content) 50%, transparent)' },
+                ...focusRing,
+            },
+        },
+        indicator: {
+            base: {
+                position: 'absolute',
+                insetInlineEnd: 'var(--space-md)',
+                pointerEvents: 'none',
+                display: 'inline-flex',
+                fontSize: 'var(--text-sm)',
+            },
+        },
+    },
+    // The visible ring lives on the <select> itself; the wrapper delegates.
+    skipStates: { root: ['focus-visible'] },
+    variants: {
+        /** Carbon's five field heights: 32 / 40 / 48 / 64 / 80. */
+        size: {
+            sm: { control: { base: { minHeight: '2rem' } } },
+            md: {},
+            lg: { control: { base: { minHeight: '3rem' } } },
+            xl: { control: { base: { minHeight: '4rem' } } },
+            '2xl': { control: { base: { minHeight: '5rem' } } },
+        },
+    },
+};
+
 // ── Content tier (#311) ───────────────────────────────────────────────────
 /**
  * Carbon's tile: a layer surface, square corners, no shadow — depth here is
@@ -3296,6 +3360,6 @@ export const spinner: RecipeInput = {
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
+    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
 ];

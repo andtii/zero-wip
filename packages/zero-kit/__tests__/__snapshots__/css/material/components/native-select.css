@@ -1,0 +1,121 @@
+@layer zero.recipes {
+    [data-scope="native-select"][data-part="root"] {
+        --native-select-accent: var(--color-secondary);
+    }
+
+    [data-scope="native-select"][data-part="root"] {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    [data-scope="native-select"][data-part="control"] {
+        appearance: none;
+        width: 100%;
+        min-width: 12rem;
+        background: transparent;
+        color: var(--color-base-content);
+        border: var(--border) solid var(--color-outline);
+        border-radius: var(--radius-field);
+        font-family: var(--font-sans);
+        font-size: var(--text-md);
+        padding: var(--space-sm) var(--space-md);
+        padding-inline-end: calc(var(--space-md) + 1.25em);
+        cursor: pointer;
+        transition: border-color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="native-select"][data-part="control"][data-invalid] {
+        border-color: var(--color-error);
+    }
+
+    [data-scope="native-select"][data-part="control"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="native-select"][data-part="control"][data-placeholder] {
+        color: var(--color-outline);
+    }
+
+    [data-scope="native-select"][data-part="control"][data-focus-visible] {
+        outline: 3px solid var(--native-select-accent);
+        outline-offset: 2px;
+    }
+
+    [data-scope="native-select"][data-part="indicator"] {
+        position: absolute;
+        inset-inline-end: var(--space-md);
+        pointer-events: none;
+        opacity: 0.7;
+        font-size: var(--text-md);
+    }
+
+    [data-scope="native-select"][data-part="root"][data-color="primary"] {
+        --native-select-accent: var(--color-primary);
+    }
+
+    [data-scope="native-select"][data-part="root"][data-color="secondary"] {
+        --native-select-accent: var(--color-secondary);
+    }
+
+    [data-scope="native-select"][data-part="root"][data-color="tertiary"] {
+        --native-select-accent: var(--color-tertiary);
+    }
+
+    [data-scope="native-select"][data-part="root"][data-color="error"] {
+        --native-select-accent: var(--color-error);
+    }
+
+    [data-scope="native-select"][data-part="root"][data-color="neutral"] {
+        --native-select-accent: var(--color-neutral);
+    }
+
+    [data-scope="native-select"][data-part="root"][data-color="info"] {
+        --native-select-accent: var(--color-info);
+    }
+
+    [data-scope="native-select"][data-part="root"][data-color="success"] {
+        --native-select-accent: var(--color-success);
+    }
+
+    [data-scope="native-select"][data-part="root"][data-color="warning"] {
+        --native-select-accent: var(--color-warning);
+    }
+
+    [data-scope="native-select"][data-part="root"][data-color="accent"] {
+        --native-select-accent: var(--color-accent);
+    }
+
+    @scope ([data-scope="native-select"][data-part="root"][data-size="xs"]) to ([data-scope="native-select"][data-part="root"]) {
+        [data-scope="native-select"][data-part="control"] {
+            font-size: var(--text-sm);
+            padding: var(--space-2xs) var(--space-xs);
+            padding-inline-end: calc(var(--space-xs) + 1.25em);
+        }
+    }
+
+    @scope ([data-scope="native-select"][data-part="root"][data-size="sm"]) to ([data-scope="native-select"][data-part="root"]) {
+        [data-scope="native-select"][data-part="control"] {
+            font-size: var(--text-sm);
+            padding: var(--space-xs) var(--space-sm);
+            padding-inline-end: calc(var(--space-sm) + 1.25em);
+        }
+    }
+
+    @scope ([data-scope="native-select"][data-part="root"][data-size="lg"]) to ([data-scope="native-select"][data-part="root"]) {
+        [data-scope="native-select"][data-part="control"] {
+            font-size: var(--text-lg);
+            padding: var(--space-md) var(--space-lg);
+            padding-inline-end: calc(var(--space-lg) + 1.25em);
+        }
+    }
+
+    @scope ([data-scope="native-select"][data-part="root"][data-size="xl"]) to ([data-scope="native-select"][data-part="root"]) {
+        [data-scope="native-select"][data-part="control"] {
+            font-size: var(--text-xl);
+            padding: var(--space-lg) var(--space-xl);
+            padding-inline-end: calc(var(--space-xl) + 1.25em);
+        }
+    }
+}

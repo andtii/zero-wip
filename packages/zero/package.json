@@ -92,6 +92,10 @@
             "types": "./dist/components/select/index.d.ts",
             "import": "./dist/components/select/index.js"
         },
+        "./native-select": {
+            "types": "./dist/components/native-select/index.d.ts",
+            "import": "./dist/components/native-select/index.js"
+        },
         "./button": {
             "types": "./dist/components/button/index.d.ts",
             "import": "./dist/components/button/index.js"

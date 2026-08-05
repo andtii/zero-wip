@@ -324,7 +324,7 @@ describe('the shipped design systems', () => {
         const compiled = compileDesignSystem(ds, manifest);
         expect(Object.keys(compiled.componentCss).sort()).toEqual([
             'accordion', 'alert', 'avatar', 'badge', 'button', 'card', 'checkbox', 'collapsible', 'combobox', 'dialog',
-            'divider', 'field', 'input', 'menu',
+            'divider', 'field', 'input', 'menu', 'native-select',
             'number-input', 'popover', 'progress', 'radio-group', 'rating-group', 'select', 'skeleton', 'slider',
             'spinner', 'switch', 'tabs',
             'textarea', 'toast', 'toggle', 'toggle-group', 'tooltip', 'tree-view',

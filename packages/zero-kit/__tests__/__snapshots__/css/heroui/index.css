@@ -3329,6 +3329,86 @@
 }
 
 @layer zero.recipes {
+    [data-scope="native-select"][data-part="root"] {
+        --native-select-text: var(--text-sm);
+    }
+
+    [data-scope="native-select"][data-part="root"] {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    [data-scope="native-select"][data-part="control"] {
+        appearance: none;
+        width: 100%;
+        min-width: 12rem;
+        border: var(--border) solid var(--hero-line);
+        border-radius: var(--radius-field);
+        background: var(--color-base-100);
+        padding: var(--space-sm) var(--space-md);
+        padding-inline-end: calc(var(--space-md) + 1.25em);
+        color: var(--color-base-content);
+        font-family: var(--font-sans);
+        font-size: var(--native-select-text);
+        cursor: pointer;
+        transition: border-color var(--duration-fast) var(--ease-standard);
+    }
+
+    [data-scope="native-select"][data-part="control"]:hover:not([data-disabled]) {
+        border-color: var(--color-base-content);
+    }
+
+    [data-scope="native-select"][data-part="control"][data-invalid] {
+        border-color: var(--hero-danger);
+    }
+
+    [data-scope="native-select"][data-part="control"][data-disabled] {
+        opacity: var(--disabled-opacity);
+        cursor: not-allowed;
+    }
+
+    [data-scope="native-select"][data-part="control"][data-placeholder] {
+        color: var(--hero-muted);
+    }
+
+    [data-scope="native-select"][data-part="control"][data-focus-visible] {
+        outline: 2px solid var(--hero-focus);
+        outline-offset: 2px;
+    }
+
+    [data-scope="native-select"][data-part="indicator"] {
+        position: absolute;
+        inset-inline-end: var(--space-md);
+        pointer-events: none;
+        color: var(--hero-muted);
+        font-size: var(--native-select-text);
+    }
+
+    [data-scope="native-select"][data-part="root"][data-size="sm"] {
+        --native-select-text: var(--text-xs);
+    }
+
+    [data-scope="native-select"][data-part="root"][data-size="lg"] {
+        --native-select-text: var(--text-md);
+    }
+
+    @scope ([data-scope="native-select"][data-part="root"][data-size="sm"]) to ([data-scope="native-select"][data-part="root"]) {
+        [data-scope="native-select"][data-part="control"] {
+            padding: var(--space-xs) var(--space-sm);
+            padding-inline-end: calc(var(--space-sm) + 1.25em);
+        }
+    }
+
+    @scope ([data-scope="native-select"][data-part="root"][data-size="lg"]) to ([data-scope="native-select"][data-part="root"]) {
+        [data-scope="native-select"][data-part="control"] {
+            padding: var(--space-md) var(--space-lg);
+            padding-inline-end: calc(var(--space-lg) + 1.25em);
+        }
+    }
+}
+
+@layer zero.recipes {
     [data-scope="card"][data-part="root"] {
         --card-pad: var(--space-lg);
     }

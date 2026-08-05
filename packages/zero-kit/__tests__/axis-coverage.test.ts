@@ -125,6 +125,15 @@ const NO_VARIANT: Record<string, string> = {
     // sibling inherit the same answer rather than a new one.
     input: 'Radix Themes TextField varies as classic | surface | soft.',
     textarea: 'Radix Themes TextArea varies as classic | surface | soft.',
+    // The custom Select wires a variant (zero-basic's outline | soft | ghost,
+    // #297); its native sibling deliberately does not: the surveyed vendors
+    // style the native picker as ONE field (Carbon's select is field-01 like
+    // every input; daisyUI's select-bordered|ghost is the shared input
+    // vocabulary, not a select-specific one), so a vocabulary here would be
+    // input's again — and input's own entry already records that answer.
+    'native-select': 'daisyUI select varies as bordered | ghost — the shared '
+        + 'input vocabulary, not a select-specific one; Carbon\'s native select '
+        + 'is the same field-01 as every text input.',
 
     // ── The rest of bucket A: a variant exists, spelled differently again. ──
     avatar: 'Radix Themes Avatar varies as solid | soft.',

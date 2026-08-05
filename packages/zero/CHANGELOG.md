@@ -23,6 +23,27 @@
     (`segmentOptions` in `@sigx/zero/behaviors`), so the components cannot
     drift on its semantics.
 
+  - **`NativeSelect`** (`@sigx/zero/native-select`, scope `native-select`):
+    a real `<select>` in zero anatomy — `root` (span wrapper, the axis
+    carrier) > `control` (the `<select>` itself) + `indicator` (the
+    recipe-drawn replacement chevron, `aria-hidden`). The platform owns the
+    popup, the keyboard and the a11y tree; recipes own the well
+    (`appearance: none`). Takes the same `options` array (`group` → a real
+    `<optgroup>`, first-appearance order; hand-written `<option>` children
+    win entirely), a string `model` (SSR posts through `selected` on the
+    generated options, since a `<select>`'s value attribute means nothing
+    before its options exist), and a `placeholder` rendered as the
+    conventional disabled empty option, driving a `data-placeholder` flag
+    while the value is empty. No `data-state` anywhere — the popup never
+    exists in this DOM — and no hidden input: the visible element IS the
+    form control and carries `name`. Field-context aware exactly like Input
+    (control id, flags, `aria-describedby`). All six design systems ship
+    recipes, each on its own field idiom (basic/daisyui/material/brutalist
+    wire `color` + `size`; heroui and carbon, declaring no colour roles,
+    wire their own size ramps only), and the chevron joins the indicator
+    contrast matrix — proven red-first by painting it paper-on-paper and
+    watching the audit fail at 1:1 before reverting.
+
 - **Component-surface completions** (#325). The peer-parity gaps every
   comparable library (Radix/Ark/Zag) covers, closed in one wave:
 

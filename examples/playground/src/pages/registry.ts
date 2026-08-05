@@ -19,6 +19,7 @@ import { checkboxPage } from './checkbox';
 import { switchPage } from './switch';
 import { radioGroupPage } from './radio-group';
 import { selectPage } from './select';
+import { nativeSelectPage } from './native-select';
 import { comboboxPage } from './combobox';
 import { numberInputPage } from './number-input';
 import { sliderPage } from './slider';
@@ -79,6 +80,7 @@ export const pages: PageEntry[] = [
     switchPage,
     radioGroupPage,
     selectPage,
+    nativeSelectPage,
     comboboxPage,
     numberInputPage,
     sliderPage,
