@@ -276,8 +276,11 @@ const MenuContextTrigger = component<MenuContextTriggerProps>(({ props, slots, s
         'data-state': stateAttr(menu.state.value, 'open', 'closed'),
         'data-disabled': dataAttr(props.disabled),
         'data-focus-visible': dataAttr(focus.visible),
+        // aria-haspopup and aria-controls are ARIA *globals*, valid on this
+        // role-less wrapper (`generic`) — but aria-expanded is not: it is a
+        // widget state, and stating it on `generic` is invalid ARIA (axe:
+        // critical, #326). The open/closed fact stays on `data-state`.
         'aria-haspopup': 'menu',
-        'aria-expanded': menu.state.value ? 'true' : 'false',
         'aria-controls': menu.ids.popup,
         ref: (node: HTMLElement | null) => { el = node; },
         onContextmenu: (e: MouseEvent) => {

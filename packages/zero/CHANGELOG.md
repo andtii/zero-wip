@@ -4,6 +4,20 @@
 
 ### Added
 
+- **Verification-depth fixes** (#326), found by the new playground-wide axe
+  audit and overlay e2e specs:
+
+  - `Select.Trigger` gains a `label` prop (`aria-label`) — `role="combobox"`
+    prohibits name-from-content, so a Select outside a Field had no way to
+    get an accessible name at all.
+  - `Menu.ContextTrigger` no longer states `aria-expanded`: it is a widget
+    state, invalid on the role-less surface (`generic`). The
+    `aria-haspopup`/`aria-controls` globals stay; open/closed stays on
+    `data-state`.
+  - TreeView typeahead matches a branch's *accessible* text — the default
+    `BranchIndicator` glyph (`›`) led `textContent`, so no branch with an
+    indicator was ever reachable by its visible label.
+
 - **Runtime a11y + consistency** (#319). The accessible-name and dismissal
   gaps found by the architecture review, closed in one pass:
 

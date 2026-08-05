@@ -84,6 +84,13 @@ jobs:
       - name: Playground typecheck
         run: pnpm --filter zero-playground typecheck
 
+      # The consumer-side capstone (#326): three isolated programs compiling
+      # against the EMITTED dist/ artifacts through package exports — which
+      # is why this must run after Build, and why it lives in this job
+      # rather than the source-aliased test matrix.
+      - name: Typed-app typecheck (emitted artifacts)
+        run: pnpm --filter zero-typed-app typecheck
+
       - name: Install Playwright browsers
         run: pnpm --filter zero-playground exec playwright install --with-deps chromium firefox webkit
 

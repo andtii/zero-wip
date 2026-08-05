@@ -174,6 +174,35 @@ describe('Select', () => {
         expect(container.querySelector('[data-scope="select"][data-part="popup"]')!.getAttribute('aria-labelledby')).toBe(trigger.id);
     });
 
+    it('the trigger label prop names a bare select; without it there is no aria-label', () => {
+        // role="combobox" prohibits name-from-content: the value/placeholder
+        // text inside the trigger can never name it, so a Select outside a
+        // Field needs `label` or it is a nameless button to AT (#326).
+        render(
+            <Select.Root placeholder="Pick a fruit…">
+                <Select.Trigger label="Fruit">
+                    <Select.Value />
+                </Select.Trigger>
+            </Select.Root>,
+            container,
+        );
+        expect(container.querySelector('[data-part="trigger"]')!.getAttribute('aria-label')).toBe('Fruit');
+
+        const c2 = document.createElement('div');
+        document.body.appendChild(c2);
+        // No label prop: no aria-label — inside a Field it would OVERRIDE
+        // the field's visible label, so absence must stay absence.
+        render(
+            <Select.Root placeholder="Pick a fruit…">
+                <Select.Trigger>
+                    <Select.Value />
+                </Select.Trigger>
+            </Select.Root>,
+            c2,
+        );
+        expect(c2.querySelector('[data-part="trigger"]')!.hasAttribute('aria-label')).toBe(false);
+    });
+
     it('a bare select outside a field announces its own invalid/required props', () => {
         render(
             <Select.Root invalid required placeholder="Pick a fruit…">

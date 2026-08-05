@@ -18,7 +18,13 @@ const SelectDemos = component(() => {
               * say so rather than take whichever comes first.
               */}
             <Select.Root model={() => state.fruit} name="fruit" placeholder="Pick a fruit…">
-                <Select.Trigger>
+                {/*
+                  * `label` on every bare trigger below: role="combobox"
+                  * prohibits name-from-content, so without it (or a Field
+                  * wrapping the demo) each select is a nameless button to
+                  * AT — the axe audit hard-fails on exactly that (#326).
+                  */}
+                <Select.Trigger label="Fruit">
                     <Select.Value />
                     <Select.Indicator />
                 </Select.Trigger>
@@ -30,7 +36,7 @@ const SelectDemos = component(() => {
             </Select.Root>
             {' '}
             <Select.Root invalid placeholder="Pick a fruit…">
-                <Select.Trigger>
+                <Select.Trigger label="Fruit (invalid sample)">
                     <Select.Value />
                     <Select.Indicator />
                 </Select.Trigger>
@@ -65,7 +71,7 @@ const SelectDemos = component(() => {
             {(activeVocabulary().perScope['select']?.variants ?? []).map((v) => (
                 <>
                     <Select.Root variant={v} placeholder={`${v}…`}>
-                        <Select.Trigger>
+                        <Select.Trigger label={`Fruit (${v} variant)`}>
                             <Select.Value />
                             <Select.Indicator />
                         </Select.Trigger>

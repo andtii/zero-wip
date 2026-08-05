@@ -1,5 +1,5 @@
 import { component, signal } from 'sigx';
-import { Combobox } from '@sigx/zero';
+import { Combobox, Field } from '@sigx/zero';
 import { DemoRow } from '../demo/Section';
 import type { PageEntry } from './registry';
 
@@ -54,26 +54,39 @@ const ComboboxDemos = component(() => {
                 open and marks every part, invalid only flags. Both are stated
                 once on the root.
             </p>
+            {/*
+              * Each sample wrapped in its own Field: unlike the interactive
+              * demo above (whose placeholder doubles as a hint), these carry
+              * no placeholder, so without a Field.Label naming the input
+              * through the field's control id they are unlabelled text
+              * inputs — the axe audit hard-fails on exactly that (#326).
+              */}
             <DemoRow gap="1rem">
-                <Combobox.Root readonly defaultValue="sweden" defaultInputValue="Sweden">
-                    <Combobox.Control>
-                        <Combobox.Input />
-                        <Combobox.Trigger />
-                    </Combobox.Control>
-                    <Combobox.Popup>
-                        <Combobox.Item value="sweden">Sweden</Combobox.Item>
-                    </Combobox.Popup>
-                </Combobox.Root>
-                <Combobox.Root invalid defaultInputValue="Atlantis">
-                    <Combobox.Control>
-                        <Combobox.Input />
-                        <Combobox.Trigger />
-                    </Combobox.Control>
-                    <Combobox.Popup>
-                        <Combobox.Item value="sweden">Sweden</Combobox.Item>
-                        <Combobox.Item value="norway">Norway</Combobox.Item>
-                    </Combobox.Popup>
-                </Combobox.Root>
+                <Field.Root>
+                    <Field.Label>Readonly country</Field.Label>
+                    <Combobox.Root readonly defaultValue="sweden" defaultInputValue="Sweden">
+                        <Combobox.Control>
+                            <Combobox.Input />
+                            <Combobox.Trigger />
+                        </Combobox.Control>
+                        <Combobox.Popup>
+                            <Combobox.Item value="sweden">Sweden</Combobox.Item>
+                        </Combobox.Popup>
+                    </Combobox.Root>
+                </Field.Root>
+                <Field.Root>
+                    <Field.Label>Invalid country</Field.Label>
+                    <Combobox.Root invalid defaultInputValue="Atlantis">
+                        <Combobox.Control>
+                            <Combobox.Input />
+                            <Combobox.Trigger />
+                        </Combobox.Control>
+                        <Combobox.Popup>
+                            <Combobox.Item value="sweden">Sweden</Combobox.Item>
+                            <Combobox.Item value="norway">Norway</Combobox.Item>
+                        </Combobox.Popup>
+                    </Combobox.Root>
+                </Field.Root>
             </DemoRow>
         </>
     );

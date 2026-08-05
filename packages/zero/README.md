@@ -62,7 +62,11 @@ content is a glyph (`Alert.Close`, `Toast.Close`) default to
 names localize through `itemLabel={(index, count) => …}`. Controls that
 consume the Field context (Input, Textarea, Combobox, Select, RatingGroup,
 …) adopt its control id, so `Field.Label` names them — Select's trigger
-included, a button being a labelable element.
+included, a button being a labelable element. Outside a Field,
+`Select.Trigger` takes a `label` prop (`aria-label`): `role="combobox"`
+prohibits name-from-content, so the value text inside the trigger can never
+name it, and TreeView's typeahead matches the accessible text of a branch
+row (skipping `aria-hidden` decoration such as the default indicator glyph).
 
 `css/base.css` also declares `--print-ink`, the ink a print fallback draws
 with. Paper is not theme-aware — `print-color-adjust: economy` drops background
