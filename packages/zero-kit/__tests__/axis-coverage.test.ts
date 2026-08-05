@@ -205,6 +205,8 @@ const NO_VARIANT: Record<string, string> = {
     indicator: 'no surveyed system varies a positioning wrapper — daisyUI\'s '
         + 'indicator has placement classes only; the chrome belongs to the '
         + 'item\'s content (a badge, a dot), never to the anchor.',
+    stats: 'no surveyed system varies a stat group — daisyUI\'s stats has '
+        + 'orientation and an optional shadow, not a style axis.',
 };
 
 /**

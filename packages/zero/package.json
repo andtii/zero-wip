@@ -175,6 +175,10 @@
         "./indicator": {
             "types": "./dist/components/indicator/index.d.ts",
             "import": "./dist/components/indicator/index.js"
+        },
+        "./stats": {
+            "types": "./dist/components/stats/index.d.ts",
+            "import": "./dist/components/stats/index.js"
         }
     },
     "files": [

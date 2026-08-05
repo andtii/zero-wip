@@ -326,7 +326,7 @@ describe('the shipped design systems', () => {
             'accordion', 'alert', 'avatar', 'badge', 'button', 'card', 'checkbox', 'collapsible', 'combobox', 'dialog',
             'divider', 'field', 'indicator', 'input', 'kbd', 'menu', 'native-select',
             'number-input', 'popover', 'progress', 'radio-group', 'rating-group', 'select', 'skeleton', 'slider',
-            'spinner', 'status', 'switch', 'tabs',
+            'spinner', 'stats', 'status', 'switch', 'tabs',
             'textarea', 'toast', 'toggle', 'toggle-group', 'tooltip', 'tree-view',
         ]);
         expect(compiled.indexCss).toContain('@layer zero.tokens');

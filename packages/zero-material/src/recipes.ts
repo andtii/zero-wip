@@ -3544,10 +3544,90 @@ export const indicator: RecipeInput = {
     },
 };
 
+/** Material stats: a tonal container; the value in the display face. */
+export const stats: RecipeInput = {
+    component: 'stats',
+    tokens: { '--stats-accent': 'var(--color-surface-container-content)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                background: 'var(--color-surface-container)',
+                color: 'var(--color-surface-container-content)',
+                borderRadius: 'var(--radius-box)',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        item: {
+            base: {
+                display: 'grid',
+                gridTemplateColumns: '1fr auto',
+                columnGap: 'var(--space-md)',
+                alignContent: 'center',
+                flex: '1 1 0%',
+                padding: 'var(--space-lg) var(--space-xl)',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"] + &': {
+                    borderInlineStart: 'var(--border) solid var(--color-outline)',
+                },
+                '&[data-orientation="vertical"] + &': {
+                    borderBlockStart: 'var(--border) solid var(--color-outline)',
+                },
+            },
+        },
+        title: {
+            base: {
+                gridColumn: '1',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        value: {
+            base: {
+                gridColumn: '1',
+                fontSize: 'var(--text-2xl)',
+                fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--stats-accent)',
+            },
+        },
+        desc: {
+            base: {
+                gridColumn: '1',
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        figure: {
+            base: {
+                gridColumn: '2',
+                gridRow: '1 / span 3',
+                alignSelf: 'center',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--stats-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { value: { base: { fontSize: 'var(--text-lg)' } } },
+            sm: { value: { base: { fontSize: 'var(--text-xl)' } } },
+            md: {},
+            lg: { value: { base: { fontSize: 'var(--text-3xl)' } } },
+            xl: { value: { base: { fontSize: 'var(--text-3xl)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
-    kbd, status, indicator,
+    kbd, status, indicator, stats,
 ];

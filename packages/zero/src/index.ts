@@ -233,3 +233,6 @@ export type {
     IndicatorItemProps,
     IndicatorPlacement,
 } from './components/indicator/index.js';
+
+export { Stats, statsAnatomy, useStatsContext } from './components/stats/index.js';
+export type { StatsRootProps, StatsPartProps } from './components/stats/index.js';

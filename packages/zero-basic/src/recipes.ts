@@ -4089,10 +4089,94 @@ export const indicator: RecipeInput = {
     },
 };
 
+/**
+ * Stats — a ledger row: hairline frame, hairline separators between items,
+ * the value in display scale. Colour accents the VALUE ink only — the title
+ * and description stay meta-grey whatever the stat's role.
+ */
+export const stats: RecipeInput = {
+    component: 'stats',
+    tokens: { '--stats-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                border: hairline,
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        item: {
+            base: {
+                display: 'grid',
+                gridTemplateColumns: '1fr auto',
+                columnGap: 'var(--space-md)',
+                alignContent: 'center',
+                flex: '1 1 0%',
+                padding: 'var(--space-lg) var(--space-xl)',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"] + &': {
+                    borderInlineStart: 'var(--border) solid var(--color-base-300)',
+                },
+                '&[data-orientation="vertical"] + &': {
+                    borderBlockStart: 'var(--border) solid var(--color-base-300)',
+                },
+            },
+        },
+        title: {
+            base: {
+                gridColumn: '1',
+                fontSize: 'var(--text-xs)',
+                fontWeight: 'var(--weight-medium)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        value: {
+            base: {
+                gridColumn: '1',
+                fontSize: 'var(--text-2xl)',
+                fontWeight: 'var(--weight-semibold)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--stats-accent)',
+            },
+        },
+        desc: {
+            base: {
+                gridColumn: '1',
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        figure: {
+            base: {
+                gridColumn: '2',
+                gridRow: '1 / span 3',
+                alignSelf: 'center',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--stats-accent': softInk(c),
+        } } }])),
+        size: {
+            xs: { value: { base: { fontSize: 'var(--text-lg)' } } },
+            sm: { value: { base: { fontSize: 'var(--text-xl)' } } },
+            md: {},
+            lg: { value: { base: { fontSize: 'var(--text-3xl)' } } },
+            xl: { value: { base: { fontSize: 'var(--text-3xl)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
-    kbd, status, indicator,
+    kbd, status, indicator, stats,
 ];

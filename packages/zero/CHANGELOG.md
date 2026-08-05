@@ -27,6 +27,12 @@
     landed), `start` names the reading edge, and an indicator anchors to
     the reading direction. Recipes position with `inset-inline-*`, so RTL
     mirrors for free.
+  - **Stats**: `Root(orientation)`/`Item`/`Title`/`Value`/`Desc`/`Figure` —
+    Card's cousin, a pure styling container for figures with labels. Both
+    root and item carry `data-orientation`, because the between-item
+    divider is directional CSS on the item and a sibling selector cannot
+    see the root (the toggle-group precedent). Every band below `Item` is
+    optional.
 
 - **The sugar tier** (#333) — the one-liner DX the old `@sigx/daisyui`
   library had and zero's compound anatomy made verbose:

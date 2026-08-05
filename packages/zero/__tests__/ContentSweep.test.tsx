@@ -12,6 +12,7 @@ import {
     Indicator, indicatorAnatomy,
     Kbd, kbdAnatomy,
     PLACEMENT_VOCABULARY,
+    Stats, statsAnatomy,
     Status, statusAnatomy,
 } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
@@ -147,5 +148,65 @@ describe('Indicator', () => {
         for (const p of indicatorAnatomy.parts.item.placements ?? []) {
             expect(vocabulary.has(p), `"${p}" must be in PLACEMENT_VOCABULARY`).toBe(true);
         }
+    });
+});
+
+describe('Stats', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    function mount(orientation?: 'horizontal' | 'vertical') {
+        render(
+            <Stats.Root orientation={orientation}>
+                <Stats.Item>
+                    <Stats.Figure>↑</Stats.Figure>
+                    <Stats.Title>Total revenue</Stats.Title>
+                    <Stats.Value>$12,930</Stats.Value>
+                    <Stats.Desc>+8% month over month</Stats.Desc>
+                </Stats.Item>
+                <Stats.Item>
+                    <Stats.Title>Signups</Stats.Title>
+                    <Stats.Value>1,204</Stats.Value>
+                </Stats.Item>
+            </Stats.Root>,
+            container,
+        );
+    }
+
+    it('renders a valid anatomy with every band, horizontal by default', () => {
+        mount();
+        expectAnatomy(container, statsAnatomy);
+        for (const name of ['root', 'item', 'title', 'value', 'desc', 'figure']) {
+            expect(part(container, 'stats', name), `stats/${name} must render`).toBeTruthy();
+        }
+        expect(part(container, 'stats', 'root').getAttribute('data-orientation')).toBe('horizontal');
+        // Items carry the orientation too — the between-item divider is
+        // directional CSS, and a sibling selector cannot reach up to the root.
+        expect(part(container, 'stats', 'item').getAttribute('data-orientation')).toBe('horizontal');
+    });
+
+    it('propagates the vertical orientation to every item', () => {
+        mount('vertical');
+        for (const item of container.querySelectorAll('[data-scope="stats"][data-part="item"]')) {
+            expect(item.getAttribute('data-orientation')).toBe('vertical');
+        }
+        expectAnatomy(container, statsAnatomy);
+    });
+
+    it('every band below an item is optional', () => {
+        render(
+            <Stats.Root>
+                <Stats.Item>
+                    <Stats.Value>42</Stats.Value>
+                </Stats.Item>
+            </Stats.Root>,
+            container,
+        );
+        expectAnatomy(container, statsAnatomy);
+        expect(container.querySelector('[data-part="title"]')).toBeNull();
+        expect(container.querySelector('[data-part="figure"]')).toBeNull();
     });
 });

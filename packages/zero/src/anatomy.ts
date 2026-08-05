@@ -43,6 +43,7 @@ import { spinnerAnatomy } from './components/spinner/anatomy.js';
 import { kbdAnatomy } from './components/kbd/anatomy.js';
 import { statusAnatomy } from './components/status/anatomy.js';
 import { indicatorAnatomy } from './components/indicator/anatomy.js';
+import { statsAnatomy } from './components/stats/anatomy.js';
 
 export {
     buttonAnatomy,
@@ -51,7 +52,7 @@ export {
     avatarAnatomy, toastAnatomy, comboboxAnatomy, toggleAnatomy, toggleGroupAnatomy, numberInputAnatomy,
     ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy, nativeSelectAnatomy,
     cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy, skeletonAnatomy, spinnerAnatomy,
-    kbdAnatomy, statusAnatomy, indicatorAnatomy,
+    kbdAnatomy, statusAnatomy, indicatorAnatomy, statsAnatomy,
 };
 
 export const anatomies = {
@@ -90,6 +91,7 @@ export const anatomies = {
     kbd: kbdAnatomy,
     status: statusAnatomy,
     indicator: indicatorAnatomy,
+    stats: statsAnatomy,
 } as const satisfies Record<string, Anatomy>;
 
 /**
