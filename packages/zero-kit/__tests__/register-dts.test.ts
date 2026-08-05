@@ -1,5 +1,6 @@
 /**
- * The register artifact (RFC 0002 §5): per-design-system goldens plus the
+ * The register artifact (docs/architecture.md, "The register artifact"):
+ * per-design-system goldens plus the
  * shape rules that make the generated types safe.
  *
  * Material's golden is written into `packages/zero/type-tests/generated/`,

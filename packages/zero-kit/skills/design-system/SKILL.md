@@ -726,7 +726,7 @@ component's anatomy). No component code is ever written or changed.
      `[data-part="root"][data-content-variant="soft"] [data-part="popup"]` and
      reaches the popup, because zero has no portals. Don't look for a per-part
      restriction in `tokens.scopes`; there isn't one, and `parts` is rejected
-     by name to keep it that way (RFC 0003 §4.1).
+     by name to keep it that way (docs/architecture.md, "Declared vocabulary").
    - **`dist/register.d.ts` is generated, never authored.** `writeArtifacts`
      emits it (with `dist/register.js`) from the compiled system: it augments
      `@sigx/zero`'s `ZeroVocabulary`, so an app that adds
@@ -909,7 +909,8 @@ fraction of the size. They are the worked examples for the shapes the brief
 pack doesn't cover: a numeric size ramp (`sizes: ['1','2','3','4']`), a custom
 `tokens.axes` entry, a vendor-renamed axis, and camelCase modifier names
 restored at the API boundary. `docs/design-system-conformance.md` is the
-generated matrix they prove; RFC 0003 §7 is the reasoning.
+generated matrix they prove; docs/architecture.md §7 (the conformance
+program) is the reasoning.
 
 ### Briefs the pack does not cover
 

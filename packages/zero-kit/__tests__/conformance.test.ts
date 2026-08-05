@@ -1,5 +1,6 @@
 /**
- * The conformance fixtures are documentation that runs (RFC 0003 §7, issues
+ * The conformance fixtures are documentation that runs (docs/architecture.md,
+ * "The authoring surface"; issues
  * #174/#179) — the same rule the brief pack follows.
  *
  * Three layers, matching §7.4's honesty mechanisms:

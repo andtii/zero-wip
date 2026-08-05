@@ -202,7 +202,8 @@ export function pairOf(name: ZeroThemeNameOrCustom): string | undefined {
  * `defaultLight`/`defaultDark` when it is registered with the matching
  * scheme, else the first registered match. First-registered was correct by
  * construction with one theme per scheme and arbitrary with three — the
- * latent bug only a third theme exposes (RFC 0002 §7).
+ * latent bug only a third theme exposes (docs/architecture.md, "The theme
+ * model").
  */
 export function pickThemeFor(scheme: 'light' | 'dark'): string | undefined {
     const preferred = schemeDefaults[scheme];

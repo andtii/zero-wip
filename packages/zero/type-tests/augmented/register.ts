@@ -1,6 +1,7 @@
 /**
- * A hand-written stand-in for a generated `dist/register.d.ts` (RFC 0002 §5)
- * — the shape `zero-kit build` will emit in phase 3. Kept small but covering
+ * A hand-written stand-in for a generated `dist/register.d.ts`
+ * (docs/architecture.md, "The register artifact") — the shape the build
+ * emits. Kept small but covering
  * every case class: fully wired (button, plus presence-only modifiers),
  * partially wired (toggle: no variant), wired custom axes (tabs), and nothing
  * wired (checkbox).

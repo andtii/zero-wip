@@ -178,8 +178,8 @@
   and `selectors`.
 
 - **`tokens.scopes` has its first real caller** (#311). `#294` landed
-  per-scope axis vocabularies and RFC 0003 §4 said to revisit them "when the
-  content tier lands (card, alert, badge, chip)" — until now no design system
+  per-scope axis vocabularies and the expressiveness RFC said to revisit
+  them "when the content tier lands (card, alert, badge, chip)" — until now no design system
   declared one, so the mechanism shipped unexercised. `@sigx/zero-basic` now
   narrows `badge` to `solid | soft | outline` out of its design-system-wide
   `solid | outline | soft | ghost`. `ghost` is the value it drops, and the
@@ -225,7 +225,8 @@
   outside zero's registry, so it can never satisfy the union. The generated
   `register.d.ts` now excludes external scopes BY NAME
   (`Exclude<keyof ZeroVocabulary['components'], 'acme-stepper'> extends
-  ZeroScope`), keeping the typo/version-skew guard (RFC 0002 §3.1) at full
+  ZeroScope`), keeping the typo/version-skew guard (docs/architecture.md,
+  "The register artifact") at full
   strength for every zero-origin scope, and records each external scope's
   owning package in the emitted comment. A design system with no external
   scopes emits byte-identical output. Under api mode, the generated
@@ -233,8 +234,9 @@
   root export instead of the nonexistent `@sigx/zero/<scope>` subpath.
   Compiled provenance rides on `CompiledDesignSystem.externalScopes`.
 
-- **A vocabulary can belong to one scope: `tokens.scopes`** (#294, RFC 0003
-  §4.1). Per-scope axis vocabularies, the thing §4 deferred "until the content
+- **A vocabulary can belong to one scope: `tokens.scopes`** (#294;
+  docs/architecture.md, "Declared vocabulary"). Per-scope axis vocabularies,
+  the thing the expressiveness RFC deferred "until the content
   tier makes divergence real" — and the caller that arrived first was the
   fourteen unwired `variant` carriers, twelve of which have a variant in a real
   design system and not one of which spells it `solid | outline | soft | ghost`.
@@ -295,12 +297,14 @@
 
   `axis-coverage.test.ts` traded its axis-wide `DEFERRED_AXES = ['variant']`
   for `NO_VARIANT`, a per-carrier record whose value IS the reason — the shape
-  `KNOWN_UNSHARED` uses in `contract-parity.test.ts`. It discharges RFC 0003 §9 phase 5's gate ("wire it,
+  `KNOWN_UNSHARED` uses in `contract-parity.test.ts`. It discharges the
+  expressiveness RFC's phase-5 gate ("wire it,
   or record the divergence per component with its reason") and supersedes the
   note below: #175 leaving `variant` on `button` alone is now decided, not
   provisional.
 
-  The fourteen were surveyed one at a time against RFC 0003 §7.2's set, and the
+  The fourteen were surveyed one at a time against the conformance vendor
+  set (docs/architecture.md §7), and the
   result is more uniform than the issue guessed. **Twelve of the fourteen do
   carry a variant in a real design system. Not one of the twelve spells it
   `solid | outline | soft | ghost`** — Radix Themes varies checkbox, switch,
@@ -314,8 +318,10 @@
   So the blocker is §4, not effort — and one finding outgrows §4 as drafted:
   Radix's Select varies its Trigger as `classic | surface | soft | ghost` and
   its Content as `solid | soft`, two vocabularies inside one scope, which a
-  per-*scope* restriction map would not express either. Recorded in RFC 0003
-  §9.1, with §4 gaining the fourteen as its demonstrated caller.
+  per-*scope* restriction map would not express either. Recorded in the
+  expressiveness RFC, with the per-scope deferral gaining the fourteen as its
+  demonstrated caller (resolved by `tokens.scopes` — docs/architecture.md,
+  "Declared vocabulary").
 
   Nothing wires a new variant, so no recipe, manifest, golden or contrast cell
   moves. The ledger fails in both directions: a carrier arriving unrecorded, and
@@ -572,7 +578,8 @@
   indicator is drawn geometry, interpolating between states, with a glyph
   fallback under `forced-colors` and `print`.
 
-- **The conformance matrix, generated** (RFC 0003 §7, #174).
+- **The conformance matrix, generated** (#174; docs/architecture.md, "The
+  authoring surface").
   `conformanceRows` / `reportRows` / `formatConformanceMatrix` derive
   `docs/design-system-conformance.md` from the conformance fixtures and the
   in-repo coverage reports; the snapshot test in `conformance.test.ts` IS the
@@ -584,14 +591,15 @@
   joins as the zero-native Tier-1 row, pinned verbatim to
   `packages/zero-material`.
 
-- **The vendor-named component API declaration** (issue #179, RFC 0003 §2).
+- **The vendor-named component API declaration** (issue #179;
+  docs/architecture.md, "The components artifact — vendor-named apis").
   A design system may declare, beside `tokens` and `recipes`, how zero's axis
   surfaces appear under the vendor's own prop names —
   `api: defineApi({ variants, modifiers }, { variant: { as: 'kind' }, … })`.
   This release ships the declaration only: `defineApi` (with an optional
   vocabulary argument that narrows `values` keys and modifier names at the
   declaration), `validateApi` wired into `validateDesignSystem`, and
-  `apiGrade`/`modifierGrade` deriving the RFC 0003 §7.3 conformance grade
+  `apiGrade`/`modifierGrade` deriving the conformance grade
   (`exact | renamed | reshaped | unsupported`) mechanically from the
   declaration. The coverage report gains an optional `api` section (one row
   per vendor prop: where it routes, its grade, its respelled values), and
@@ -631,7 +639,8 @@
   an author silencing a warning should know they are also making a design claim.
 
 - **`sizes: []` is now legal and means "this design system has no size axis"**
-  (RFC 0003 §5, #164). It used to be a hard error, and an omitted ramp is
+  (#164; docs/architecture.md, "Declared vocabulary"). It used to be a hard
+  error, and an omitted ramp is
   silently replaced by the recommended `xs`–`xl`, so *every* compiled manifest
   advertised a size ramp — including for a design system that has none, which
   the docs site and the generation skill both read as fact. Absence and
@@ -643,7 +652,7 @@
 
 ### Removed
 
-- **BREAKING — `ThemeInput.components` is gone** (RFC 0003 §6.2, #160). It was
+- **BREAKING — `ThemeInput.components` is gone** (#160). It was
   documented as per-component theme overrides, but the emitter discarded the
   component key and wrote every value at theme scope. Worse, those values land
   in `@layer zero.tokens` while `recipe.tokens` declarations land in
@@ -665,7 +674,8 @@
 
 ### Added
 
-- **The coverage report** (RFC 0003 §7.4 / §4, RFC 0002 §8, #173):
+- **The coverage report** (#173; docs/architecture.md, "The authoring
+  surface"):
   `sigx zero:validate --report` prints what a design system *covers*, and
   `--report-json <path>` writes the machine-readable shape (`-` for stdout,
   which then carries nothing else — diagnostics go to stderr and pass/fail is
@@ -684,7 +694,7 @@
   declares thirteen roles and wires nine); per-part state and flag coverage,
   splitting what is styled unconditionally from what only a condition, variant,
   compound or modifier reaches, and what `skipStates` delegates deliberately;
-  the **axis-agnostic divergence report** promised by RFC 0003 §4 — per axis,
+  the **axis-agnostic divergence report** — per axis,
   the per-component value sets, flagging any component wiring a strict subset of
   its siblings, generalising the colour-only cross-component warning without
   adding an authoring surface; and the minimum WCAG contrast margin per theme.
@@ -701,7 +711,8 @@
   error, and `.required()` governs flag presence, not value presence. They
   collapse once signalxjs/terminal#102 lands (tracked as #177).
 
-- **Presence-only modifiers** (RFC 0003 §3, #166): `TokensInput.modifiers`
+- **Presence-only modifiers** (#166; docs/architecture.md, "Declared
+  vocabulary"): `TokensInput.modifiers`
   declares them, `RecipeInput.modifiers` (name → part → styles) wires them, and
   the compiler emits `[data-mod-<name>]` — valueless, because a modifier has no
   vocabulary; the names are the vocabulary. `compoundVariants[].match` accepts
@@ -727,7 +738,8 @@
   no value, and generated help text — none of which the old parser had. The
   command surface gains its first tests.
 
-- **The generated register artifact** (RFC 0002 phase 3, #131):
+- **The generated register artifact** (#131; docs/architecture.md, "The
+  register artifact"):
   `writeArtifacts` emits `dist/register.d.ts` + `dist/register.js` per design
   system — a generated (never authored) augmentation of `@sigx/zero`'s
   `ZeroVocabulary` carrying theme names, breakpoints, the emitted
@@ -758,7 +770,7 @@
   variant axis", so `variant` is never reported that way. Surfaced by the first
   design system with no colour axis; the four existing goldens are unchanged.
 
-- **Two unvalidated token-name paths** (RFC 0003 §6.3, #162). `recipe.tokens`
+- **Two unvalidated token-name paths** (#162). `recipe.tokens`
   keys were not checked at all: a key spelled without the leading `--` is
   passed through by `declBlock` as an ordinary declaration, so
   `tokens: { color: 'red' }` silently restyled every carrier element of the
@@ -770,8 +782,7 @@
   one silently winning; now an error naming both roles. A role declaring
   `soft: false` frees the derived name, and is not flagged.
 
-- **`compoundVariants` silently ignored `defaultVariants`** (RFC 0003 §6.1,
-  #158). The single-axis loop mirrors a defaulted value onto the attribute's
+- **`compoundVariants` silently ignored `defaultVariants`** (#158). The single-axis loop mirrors a defaulted value onto the attribute's
   absence (`:not([data-variant])`); the compound loop did not, so a compound
   matching `{ variant: 'solid', color: 'primary' }` under
   `defaultVariants: { variant: 'solid' }` never applied to
@@ -796,7 +807,8 @@
   keys). In-repo consumers updated; the zero package's own manifest is
   unaffected.
 
-- **Declared axis vocabularies** (RFC 0002 phase 1, #129): `TokensInput`
+- **Declared axis vocabularies** (#129; docs/architecture.md, "Declared
+  vocabulary"): `TokensInput`
   gains `variants` (the `variant` axis value set) and `axes` (custom axis
   name → value set). Both are validated like `sizes` (non-empty, kebab-case,
   no duplicates); axis names are additionally rejected against the named-prop
@@ -828,7 +840,8 @@
 
 ### Added
 
-- **Pseudo-part projection** (multi-target RFC docs/rfcs/0001, #98):
+- **Pseudo-part projection** (the multi-target RFC — docs/architecture.md
+  §11 — #98):
   `ManifestPart.pseudo` marks a part that renders no element of its own on
   the web (dialog's `backdrop`). `compileRecipeCss` attaches such a part's
   rules to the host part with the pseudo-element last —
@@ -836,8 +849,8 @@
   nested selectors, variants and compound variants. The manifest schema
   gains the matching optional `pseudo` object.
 
-- **`--text-fixed-<key>` aliases** (part of the multi-target RFC,
-  docs/rfcs/0001, #96): `compileTokensCss` derives a `--text-fixed-<key>:
+- **`--text-fixed-<key>` aliases** (part of the multi-target RFC —
+  docs/architecture.md §11 — #96): `compileTokensCss` derives a `--text-fixed-<key>:
   var(--text-<key>)` alias for every emitted `--text-<key>`, restating it in
   exactly the theme blocks that re-emit the underlying key (an alias
   substitutes its `var()` where declared — the same capture trap as

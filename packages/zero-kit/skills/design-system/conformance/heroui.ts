@@ -1,5 +1,5 @@
 /**
- * Conformance fixture: **HeroUI** — Button (RFC 0003 §7.2, Tier 1).
+ * Conformance fixture: **HeroUI** — Button (conformance Tier 1 — docs/architecture.md §7).
  *
  * The mechanics this fixture exercises: **an exact fused variant beside
  * renamed boolean modifiers** — and, uniquely, this fixture describes a
@@ -14,7 +14,7 @@
 import { defineApi } from '@sigx/zero-kit';
 
 /**
- * §7.2 placement. Tier 1: the system is buildable as a package, and IS built
+ * Matrix placement. Tier 1: the system is buildable as a package, and IS built
  * — column 8 points at `packages/zero-heroui`, which ships this api. No
  * fixture tokens/recipe here; the package is the executing artifact.
  */

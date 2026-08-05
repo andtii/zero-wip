@@ -1,6 +1,7 @@
 /**
  * `zero-heroui` is the acceptance test for NON-ORTHOGONAL axis surfaces and
- * presence-only modifiers (RFC 0003 §8) — the counterpart to what
+ * presence-only modifiers (docs/architecture.md, "Thesis and shape") — the
+ * counterpart to what
  * `zero-material` does for extensible vocabularies.
  *
  * The claim under test: the contract can express a design system that shares

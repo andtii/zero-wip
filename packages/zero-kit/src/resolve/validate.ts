@@ -474,7 +474,7 @@ export function validateDesignSystem<R extends RolesDecl>(
         checkAxisValues(`tokens.axes.${axis}`, values);
     }
 
-    // ── Per-scope axis vocabularies (RFC 0003 §4.1, #294) ──
+    // ── Per-scope axis vocabularies (#294; docs/architecture.md, "Declared vocabulary") ──
     // A scope entry NARROWS the vocabularies above for one component, which is
     // what makes the declarations above the UNION of every scope's vocabulary
     // rather than one vocabulary every scope shares. Everything here is a
@@ -516,10 +516,11 @@ export function validateDesignSystem<R extends RolesDecl>(
                     // restriction unit is the SCOPE: zero carries one attribute
                     // per axis on the scope's carrier part and cascades it to
                     // every part below, so two vocabularies on two parts are
-                    // two AXES, not one axis restricted twice (RFC 0003 §4.1).
+                    // two AXES, not one axis restricted twice
+                    // (docs/architecture.md, "Declared vocabulary").
                     // Rejecting the key rather than ignoring it is what keeps a
                     // per-part restriction additive if one is ever wanted.
-                    error(where, 'declares `parts` — the restriction unit is the scope, not the part. Two vocabularies inside one scope are two axes: declare the second one in `tokens.axes`. See RFC 0003 §4.1.');
+                    error(where, 'declares `parts` — the restriction unit is the scope, not the part. Two vocabularies inside one scope are two axes: declare the second one in `tokens.axes`. See docs/architecture.md, "Declared vocabulary".');
                     continue;
                 }
                 if (!Object.hasOwn(unions, key) && key !== 'axes') {

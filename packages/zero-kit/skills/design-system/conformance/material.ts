@@ -1,6 +1,6 @@
 /**
  * Conformance fixture: **Material 3** — the extensible-vocabulary Tier-1 row
- * (RFC 0003 §7.2).
+ * (docs/architecture.md §7, the conformance program).
  *
  * No `api` and no fixture recipe: `packages/zero-material` IS the executing
  * artifact, and a design system built on zero is zero-native — its documented
@@ -16,7 +16,7 @@
  * is pinned verbatim against the package by `conformance.test.ts`.
  */
 
-/** §7.2 placement and the artifact column 8 of this system's rows points at. */
+/** Matrix placement and the artifact column 8 of this system's rows points at. */
 export const matrix = {
     system: 'Material 3',
     tier: 1,

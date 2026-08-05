@@ -1,7 +1,8 @@
 /**
  * The register artifact — a generated `.d.ts` that augments `@sigx/zero`'s
  * empty `ZeroVocabulary` with the vocabulary this design system's compiled
- * CSS actually answers to (RFC 0002 §5).
+ * CSS actually answers to (see docs/architecture.md, "The register
+ * artifact").
  *
  * Web-target by construction: the augmented specifier (`@sigx/zero`) is
  * foundation-specific, so this lives beside `tokens-css.ts` and
@@ -17,7 +18,8 @@
 import { TOKEN_CATEGORIES, systemNodeAt } from '../../contract.js';
 import type { CompiledComponentAxes, CompiledDesignSystem } from '../../design-system.js';
 // The "declared out of existence" predicate is shared with the coverage report,
-// so the two artifacts name the same axes by construction (RFC 0003 §7.4).
+// so the two artifacts name the same axes by construction (see
+// docs/architecture.md, "Harvest").
 import { offeredFor, undeclaredAxes } from '../../design-system.js';
 
 const union = (values: readonly string[]): string =>
@@ -68,7 +70,8 @@ function componentEntry(
         ].join('\n');
     };
     // Empty axes MUST be Record<string, never>, not {} — `{}` is the top
-    // object type and would silently permit any bag (RFC 0002 §5). Axis keys
+    // object type and would silently permit any bag (docs/architecture.md,
+    // "The register artifact"). Axis keys
     // are quoted for the same reason scope keys are: they are kebab-case.
     const axesLine = custom.length > 0
         ? `                axes: { ${custom.map((a) => `'${a}': ${union(axes.axes[a]!)}`).join('; ')} };`
@@ -97,7 +100,8 @@ function componentEntry(
 /**
  * The compile gate: every scope this module augments must be in zero's
  * anatomy registry, or the module fails to typecheck — a typo or a version
- * skew would otherwise silently take the open fallback (RFC 0002 §3.1).
+ * skew would otherwise silently take the open fallback (see
+ * docs/architecture.md, "The register artifact").
  *
  * Ecosystem scopes merged from a manifest fragment are excluded BY NAME
  * rather than the gate being dropped: `ZeroScope` stays closed (their anatomy
@@ -115,7 +119,7 @@ function scopesValid(compiled: CompiledDesignSystem): string[] {
     return [
         '// Fails to compile if a scope above is not in zero\'s anatomy registry',
         '// (a typo or a version skew would otherwise silently take the open',
-        '// fallback — RFC 0002 §3.1).',
+        '// fallback — docs/architecture.md, "The register artifact").',
         ...(external.length > 0 ? [
             '// Ecosystem scopes are excluded from the gate by name — their anatomy',
             '// was merged from a manifest fragment, not zero\'s registry:',

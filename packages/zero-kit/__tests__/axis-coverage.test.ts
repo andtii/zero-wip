@@ -5,7 +5,8 @@
  * `variant` at runtime and renders them as `data-*`. If no design system wires
  * an axis, the attribute matches nothing — and under an opted-in `/register`
  * module the generated type is `never`, so the prop is offered and then
- * rejected. RFC 0002 §4.1 calls that the tier-2 failure; #103 removed it once.
+ * rejected — the accepts-but-unwired gap (docs/architecture.md, "The
+ * ledgers"); #103 removed it once.
  *
  * It came straight back. NumberInput (#136), RatingGroup (#142) and TreeView
  * (#144) all landed AFTER #103 merged, each carrying the axis props with
@@ -64,21 +65,23 @@ const designSystems = {
 
 /**
  * `variant` is wired on `button` alone, and that is now a DECISION rather than
- * a deferral (#175, discharging RFC 0003 §9 phase 5's gate: "wire it, or record
+ * a deferral (#175, discharging the expressiveness RFC's gate: "wire it, or record
  * the divergence per component with its reason").
  *
- * The twenty were surveyed one at a time against RFC 0003 §7.2's set — the
+ * The twenty were surveyed one at a time against the conformance program's
+ * vendor set (docs/architecture.md §7) — the
  * reasons below are the survey — and the result is more uniform than the issue
  * guessed. **Eighteen of the twenty do carry a variant in a real design
  * system. Not one of the eighteen spells it `solid | outline | soft | ghost`.**
  *
- * That is §1.1's thesis arriving at its consequence. The four convention design
+ * That is the convention-versus-contract thesis arriving at its consequence
+ * (docs/architecture.md, "Declared vocabulary"). The four convention design
  * systems declare a BUTTON's vocabulary and declare it design-system-wide, so
  * wiring these carriers means painting `ghost` onto a progress bar — a value
  * its own design language does not have.
  *
  * **That blocker is gone (#294).** `tokens.scopes` landed the per-scope
- * restriction map RFC 0003 §4 deferred, and `tokens.variants` is now the union
+ * restriction map the contract long deferred, and `tokens.variants` is now the union
  * of every scope's vocabulary rather than the button's — so the reasons below
  * no longer say "inexpressible", they say "not declared yet". Wiring any of
  * the fourteen is now a design system's decision, taken one skin at a time,
@@ -94,8 +97,8 @@ const designSystems = {
  *
  * `badge` is deliberately NOT here, and is the reason the ledger is no longer
  * the whole story: zero-basic wires its variant against a vocabulary badge
- * declares for itself (`tokens.scopes`, RFC 0003 §4.1 / #294 / #311). It is
- * the content tier's arrival that §4 said would trigger this, and it could go
+ * declares for itself (`tokens.scopes`, #294 / #311). It is the content
+ * tier's arrival the per-scope deferral always named as its trigger, and it could go
  * first because its carrier IS its text-bearing part — the one shape the
  * contrast audit's one-element probe can measure without #297's chains.
  *
@@ -135,7 +138,7 @@ const NO_VARIANT: Record<string, string> = {
         + 'take `toggle`, so the variant is the button\'s and follows it.',
 
     // ── The animated pair (#314). Both DO have a style axis somewhere, and
-    //    neither is a fill/chrome one — which is §7.2's point twice over. ──
+    //    neither is a fill/chrome one — the survey's point twice over. ──
     skeleton: 'Ant Design Skeleton varies as its `active` shimmer vs a static '
         + 'block, and Chakra spells the same split `isLoaded` — a MOTION axis, '
         + 'not a fill one, and zero already carries it as `data-state`.',
@@ -144,7 +147,8 @@ const NO_VARIANT: Record<string, string> = {
         + '`indeterminate` — a shape axis rather than a chrome one.',
 
     // ── Bucket B: no surveyed system varies these at all. The only two where
-    //    "no variant here" is the whole answer, and §4 would not change it. ──
+    //    "no variant here" is the whole answer, and no per-scope vocabulary
+    //    would change it. ──
     // ── The content tier (#311). Card and alert have a variant in a surveyed
     //    system and cannot wire it yet: their text sits BELOW a non-text
     //    carrier, which the contrast audit's `axis coverage` guard rejects
@@ -153,7 +157,7 @@ const NO_VARIANT: Record<string, string> = {
     alert: 'Radix Themes Callout varies as soft | surface | outline.',
     divider: 'Ant Design Divider varies as solid | dashed | dotted — a stroke '
         + 'style rather than a fill, which is the axis in a different sense '
-        + 'again and exactly §7.2\'s point.',
+        + 'again and exactly the survey\'s point.',
 
     'rating-group': 'no surveyed system varies a rating control — Ant Design\'s '
         + 'Rate has size and character, no style axis.',
@@ -278,7 +282,7 @@ describe('no component accepts an axis no design system wires', () => {
 
     // The exemption is "some design system wires it", NOT "is button". Naming
     // button would make the two assertions contradict each other the moment
-    // this decision is revisited: wire `select` under RFC 0003 §4, delete its
+    // this decision is revisited: wire `select` through `tokens.scopes`, delete its
     // NO_VARIANT entry as the second assertion demands, and a button-shaped
     // exemption would fail the first for a missing entry — leaving no legal
     // state, and a guard whose only escape is to record something false.
@@ -290,7 +294,7 @@ describe('no component accepts an axis no design system wires', () => {
         expect(
             unrecorded,
             'these carriers accept `variant` and wire nothing, with no reason recorded — '
-                + 'survey the carrier against RFC 0003 §7.2 and add it to NO_VARIANT, or wire it',
+                + 'survey the carrier against the conformance vendor set (docs/architecture.md §7) and add it to NO_VARIANT, or wire it',
         ).toEqual([]);
     });
 
@@ -303,7 +307,7 @@ describe('no component accepts an axis no design system wires', () => {
             wiredAfterAll,
             'these carriers now wire `variant`, so the reason recorded beside them is false — '
                 + 'delete the entry (and give the scope its own vocabulary in tokens.scopes '
-                + 'if the values are not the button\'s: RFC 0003 §4.1)',
+                + 'if the values are not the button\'s — docs/architecture.md, "Declared vocabulary")',
         ).toEqual([]);
     });
 

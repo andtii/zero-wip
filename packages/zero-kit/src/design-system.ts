@@ -220,7 +220,8 @@ function harvestAxes(recipe: RecipeInput): CompiledComponentAxes {
  * Target-neutral, and shared: `compileRegisterDts` picks the `never` doc
  * comment from it, and `buildReport` names the same axes. Two readers of one
  * predicate, so the report and the register artifact cannot disagree — which is
- * the gate RFC 0003 §7.4 puts on the report.
+ * the gate the conformance program (docs/architecture.md §7) puts on the
+ * report.
  */
 export function undeclaredAxes(compiled: CompiledDesignSystem, scope?: string): ReadonlySet<string> {
     const out = new Set<string>();

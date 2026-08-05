@@ -1,5 +1,5 @@
 /**
- * Conformance fixture: **Radix Themes** — Button (RFC 0003 §7.2, Tier 1).
+ * Conformance fixture: **Radix Themes** — Button (conformance Tier 1 — docs/architecture.md §7).
  *
  * The mechanics this fixture exercises: **an exact variant axis beside a
  * camelCase-renamed modifier.** Radix's `variant` vocabulary maps onto zero's
@@ -11,7 +11,7 @@
 import type { RecipeInput, TokensInput } from '@sigx/zero-kit';
 import { defineApi } from '@sigx/zero-kit';
 
-/** §7.2 placement and the artifact column 8 of this system's rows points at. */
+/** Matrix placement and the artifact column 8 of this system's rows points at. */
 export const matrix = {
     system: 'Radix Themes',
     tier: 1,

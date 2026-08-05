@@ -173,7 +173,7 @@ export interface ThemeInput<R extends RolesDecl = RolesDecl, T extends SystemTok
 }
 
 /**
- * One scope's own axis vocabularies — the per-scope restriction RFC 0003 §4.1
+ * One scope's own axis vocabularies — the per-scope restriction #294
  * settled (#294).
  *
  * Every list **narrows** the design-system-wide declaration for that axis; a
@@ -189,7 +189,8 @@ export interface ThemeInput<R extends RolesDecl = RolesDecl, T extends SystemTok
  * - An **absent** key means *unrestricted* — this scope offers the whole union.
  * - An **empty list** is a claim, not an omission: `variants: []` says this
  *   scope has no variant axis at all, the same grammar `sizes: []` uses at the
- *   design-system level (RFC 0003 §5). Absence means "I didn't say"; empty
+ *   design-system level (docs/architecture.md, "Declared vocabulary").
+ *   Absence means "I didn't say"; empty
  *   means "there isn't one".
  *
  * This is a *declaration*, not a wiring: what a scope's recipe actually paints
@@ -201,7 +202,8 @@ export interface ThemeInput<R extends RolesDecl = RolesDecl, T extends SystemTok
  * on the scope's carrier part and cascades it to every part below by descendant
  * selector, so two *different* vocabularies on two parts of one scope are not
  * one attribute with two restrictions — they are two axes. Declare the second
- * one in `axes`. See RFC 0003 §4.1; `parts` is reserved and rejected by name so
+ * one in `axes` (docs/architecture.md, "Declared vocabulary"); `parts` is
+ * reserved and rejected by name so
  * that a per-part restriction, if it is ever wanted, stays additive.
  */
 export interface ScopeVocabulary {
@@ -274,7 +276,8 @@ export interface TokensInput<R extends RolesDecl = RolesDecl, T extends SystemTo
      */
     axes?: Record<string, readonly string[]>;
     /**
-     * Per-scope axis vocabularies, keyed by component scope (RFC 0003 §4.1,
+     * Per-scope axis vocabularies, keyed by component scope (docs/architecture.md,
+     * "Declared vocabulary";
      * #294). Each entry narrows the design-system-wide declaration for one
      * scope — see `ScopeVocabulary` for the grammar, and for why the unit is
      * the scope rather than the part.

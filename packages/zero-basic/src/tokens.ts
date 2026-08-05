@@ -107,7 +107,8 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
     // Declared so a recipe typo is a build error, not a minted value.
     variants: ['solid', 'outline', 'soft', 'ghost'],
     /**
-     * Per-scope narrowing (RFC 0003 §4.1, #294) — and this is the repo's
+     * Per-scope narrowing (#294; docs/architecture.md, "Declared
+     * vocabulary") — and this is the repo's
      * first use of it, so it is worth saying what it buys.
      *
      * `scopes` narrows and never widens: badge offers three of the four
@@ -134,8 +135,9 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
          *
          * Radix Themes' Select reaches the same count by a different route
          * (`classic | surface | soft | ghost` on the Trigger); the spellings
-         * are its own vocabulary, and RFC 0003 §1.1's Claim A is that zero
-         * owes the visual states, not the prop names.
+         * are its own vocabulary, and zero's fidelity stance is that it
+         * owes the visual states, not the prop names (docs/architecture.md,
+         * "The components artifact — vendor-named apis").
          */
         select: { variants: ['outline', 'soft', 'ghost'] },
         // Restating the union is not redundancy — it is the explicit claim

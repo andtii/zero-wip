@@ -1908,7 +1908,8 @@ export const select: RecipeInput = {
         } } }])),
         /**
          * The first scope in this repo to wire a variant that is not the
-         * button's (#297, RFC 0003 §4.1). The vocabulary is declared in
+         * button's (#297; docs/architecture.md, "Declared vocabulary").
+         * The vocabulary is declared in
          * `tokens.ts` under `scopes.select` and is three of the four values
          * button offers — see there for why `solid` is not one of them.
          *
@@ -3622,7 +3623,8 @@ export const alert: RecipeInput = {
 
 /**
  * Badge — the one content-tier scope that wires its own `variant`, and the
- * repo's first caller of `tokens.scopes` (RFC 0003 §4.1, #294). zero-basic
+ * repo's first caller of `tokens.scopes` (#294; docs/architecture.md,
+ * "Declared vocabulary"). zero-basic
  * declares `solid | outline | soft | ghost` design-system-wide; badge narrows
  * to the first three in `tokens.ts`.
  *

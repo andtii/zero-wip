@@ -287,7 +287,8 @@ function main() {
 
     // The generated /register subpath must resolve from the published shape,
     // and its augmentation must bind against node_modules' @sigx/zero — the
-    // production direction of RFC 0002 §3.2 (the in-repo type tests cover the
+    // production direction of the augmentation-binding question
+    // (docs/architecture.md, "The register artifact"; the in-repo type tests cover the
     // src-paths direction). One @ts-expect-error proves the narrowing is
     // actually in force, not silently absent.
     writeFileSync(

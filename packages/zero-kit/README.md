@@ -102,7 +102,8 @@ whole union; an **empty list** is the claim "this scope has no such axis at
 all", the same grammar `sizes: []` uses design-system-wide. The unit is the
 scope rather than the part: zero puts one attribute per axis on the scope's
 carrier and cascades it to every part below, so two vocabularies inside one
-component are two **axes** — declare the second in `axes`. See RFC 0003 §4.1.
+component are two **axes** — declare the second in `axes`. See
+`docs/architecture.md`, "Declared vocabulary".
 
 The cascade to inner parts is emitted as an `@scope` donut
 (`@scope ([carrier][attr]) to ([carrier]) { [part] { … } }`) rather than an
@@ -221,7 +222,8 @@ and keeps the full literal narrowing without a `satisfies` reimplementation.
 ## The vendor-named component API
 
 A design system may declare, beside `tokens` and `recipes`, how zero's axis
-surfaces appear under the vendor's own prop names (issue #179, RFC 0003 §2):
+surfaces appear under the vendor's own prop names (issue #179;
+`docs/architecture.md`, "The components artifact — vendor-named apis"):
 
 ```ts
 import { defineApi } from '@sigx/zero-kit/define';
@@ -273,8 +275,9 @@ zero attributes. The DS manifest carries the per-component routing under
 `api` for tooling. `skills/design-system/conformance/` holds real vendor
 fixtures (Carbon, Ant, Radix Themes, HeroUI, Material 3) that validate,
 compile and grade in CI; `@sigx/zero-heroui` ships the first real adapter,
-and `docs/design-system-conformance.md` — the RFC 0003 §7 conformance
-matrix — is generated from the fixtures and the in-repo coverage reports
+and `docs/design-system-conformance.md` — the conformance matrix
+(`docs/architecture.md` §7) — is generated from the fixtures and the
+in-repo coverage reports
 (`conformanceRows` / `reportRows` / `formatConformanceMatrix`), so a matrix
 row and the artifact it cites are the same object.
 

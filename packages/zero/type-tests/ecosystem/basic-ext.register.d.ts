@@ -313,7 +313,7 @@ declare module '@sigx/zero' {
 
 // Fails to compile if a scope above is not in zero's anatomy registry
 // (a typo or a version skew would otherwise silently take the open
-// fallback — RFC 0002 §3.1).
+// fallback — docs/architecture.md, "The register artifact").
 // Ecosystem scopes are excluded from the gate by name — their anatomy
 // was merged from a manifest fragment, not zero's registry:
 //   ext-stepper — @sigx/zero-ext-example

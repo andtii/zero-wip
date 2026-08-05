@@ -22,7 +22,8 @@ import { systemNodeAt } from '../contract.js';
 
 /**
  * The vocabulary in force for ONE scope — the union, narrowed by that scope's
- * `tokens.scopes` entry (RFC 0003 §4.1, #294).
+ * `tokens.scopes` entry (#294; docs/architecture.md, "Declared
+ * vocabulary").
  *
  * Same field names and meanings as `TokenVocabulary`, so a check written
  * against one reads the same against the other. What differs is only how much

@@ -148,8 +148,9 @@
   - The manifest's `attributeSpec` gains `stateVocabulary`, `stateSynonyms`
     and `placementVocabulary`; parts gain `parent` and `placements`.
 
-- **`Skeleton` and `Spinner` — closing RFC 0002 §8's content-tier list**
-  (#314). §8 named ten; `rating` shipped, `input`/`textarea` landed in #310,
+- **`Skeleton` and `Spinner` — closing the typed-design-systems RFC's
+  content-tier list** (#314). The RFC (deleted; docs/architecture.md §11)
+  named ten; `rating` shipped, `input`/`textarea` landed in #310,
   `card`/`alert`/`badge`/`divider` in #311, and two are deliberately out —
   `steps` would remove `zero-ext-example`'s premise (#304) and `table` is
   markup and styling rather than behavior. These are the last two.
@@ -176,8 +177,8 @@
   `reduced-motion` — because a one-way check passes for a recipe that never
   animated at all.
 
-- **The content tier — `Card`, `Alert`, `Badge`, `Divider`** (#311). RFC 0002
-  §8 named the gap ("the content tier a design system is visually judged on is
+- **The content tier — `Card`, `Alert`, `Badge`, `Divider`** (#311). The
+  typed-design-systems RFC named the gap ("the content tier a design system is visually judged on is
   absent: card, alert, badge, skeleton, spinner, steps, divider, rating,
   table"), and this takes the four the next RFC then singled out. `steps` is
   deliberately left out — `zero-ext-example` ships `Stepper` precisely as a
@@ -280,7 +281,8 @@
   declaration against the DOM in both directions.
 
 - **`@sigx/zero/adapt` — the generic runtime behind vendor-named component
-  modules** (issue #179, RFC 0003 §2). `adapt(Base, spec)` returns a factory
+  modules** (issue #179; docs/architecture.md, "The components artifact —
+  vendor-named apis"). `adapt(Base, spec)` returns a factory
   whose setup delegates to the base component's with a renaming view over its
   props: vendor props (`kind`, `hasIconOnly`) route onto zero's variant
   surface (`variant`, `mods`, custom axes) at read time, values respell at
@@ -293,8 +295,8 @@
   compound's non-carrier statics. New subpath export, ~0.95 kB; nothing else
   in zero imports it.
 
-- **The `mods` prop — presence-only design-system modifiers** (RFC 0003 §3,
-  #166). An axis answers *which one* and always carries a value; a modifier
+- **The `mods` prop — presence-only design-system modifiers** (#166;
+  docs/architecture.md, "Declared vocabulary"). An axis answers *which one* and always carries a value; a modifier
   answers *is it on* and carries none. `<Button.Root mods={{ block: true }}>`
   renders `data-mod-block=""`, and `false` or an omitted key render nothing —
   the same presence-only shape the anatomy contract's own flags use. Added to
@@ -309,15 +311,16 @@
   fail that way — a collision there never matches, and `variantAttrs` throws.
   New exports: `WithMods`, `ModsFor`, `MOD_ATTR_PREFIX`.
 
-- **`ThemeSource.defaultLight` / `defaultDark`** (RFC 0002 phase 5, #132):
+- **`ThemeSource.defaultLight` / `defaultDark`** (#132; docs/architecture.md,
+  "The theme model"):
   the registry stores the source's declared scheme defaults (they flow
   structurally from the kit's `TokensInput`, so `installThemes()` calls need
   no change) and `pickThemeFor` prefers them over first-registered — the
   latent bug only a third theme exposes. `clearThemes` drops them with the
   themes. With one theme per scheme nothing changes.
 
-- **Theme, property, breakpoint and token-key narrowing** (RFC 0002 phase 3,
-  #131): `ZeroThemeName` (closed on the authoring surface — `setTheme`, the
+- **Theme, property, breakpoint and token-key narrowing** (#131;
+  docs/architecture.md, "The register artifact"): `ZeroThemeName` (closed on the authoring surface — `setTheme`, the
   `ThemeProvider`/`ThemeScope` `theme` props, `ThemeControllerOptions.initial`)
   and `ZeroThemeNameOrCustom` (the lookup surface — `getTheme`, `pairOf`, and
   `theme()`'s return, which can carry persisted or tenant-registered names);
@@ -328,7 +331,8 @@
   `token(category, key)` → `var(--<prefix>-<key>)`. All resolve to today's
   open types until a `/register` module is imported.
 
-- **The `ZeroVocabulary` augmentation seam** (RFC 0002 phase 2, #130):
+- **The `ZeroVocabulary` augmentation seam** (#130; docs/architecture.md,
+  "The register artifact"):
   `@sigx/zero` exports an empty `ZeroVocabulary` interface plus the scoped
   resolvers `ColorValueFor<S>` / `SizeScaleFor<S>` / `VariantValueFor<S>` /
   `AxesFor<S>`. The four variant-axis prop fragments become generic on the
@@ -543,7 +547,7 @@
 
 ## [0.1.0] - 2026-07-27
 
-### Changed (breaking — pre-release, multi-target RFC docs/rfcs/0001, #98)
+### Changed (breaking — pre-release, the multi-target RFC — docs/architecture.md §11 — #98)
 
 - **Slider: the styled part is `control`, not `input`** (`Slider.Control`
   replaces `Slider.Input`), and the anatomy grows the cross-platform superset
@@ -571,7 +575,7 @@
   `fontScale`) a materialized literal that scaling never touches. Recipes
   reference it for control chrome that must not grow with in-app text
   scaling. `css/base.css` ships fallback aliases for the recommended ramp.
-  Part of the multi-target RFC (docs/rfcs/0001, #96).
+  Part of the multi-target RFC (docs/architecture.md §11, #96).
 
 ### Changed (breaking — pre-release)
 

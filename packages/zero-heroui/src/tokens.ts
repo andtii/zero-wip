@@ -2,7 +2,8 @@
  * zero-heroui tokens — HeroUI v3's axis surface, expressed as declarations.
  *
  * This package exists to test one thing the other four design systems cannot:
- * an axis surface that is NOT orthogonal colour × treatment (RFC 0003 §8).
+ * an axis surface that is NOT orthogonal colour × treatment
+ * (docs/architecture.md, "Thesis and shape").
  * HeroUI v3 removed the `color` prop entirely and fused colour into `variant`
  * — `primary`, `danger` and `danger-soft` are variants, not colours — and it
  * removed `radius` too. So this design system declares:

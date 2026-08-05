@@ -66,7 +66,7 @@ export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promi
     // Emitted BEFORE the pass/fail decision, deliberately: a design system that
     // fails validation is exactly the one whose coverage is worth reading, and
     // that loop — generate, validate, see what is still uncovered, fix — is what
-    // the report exists for (RFC 0002 §8).
+    // the report exists for (docs/architecture.md, "The authoring surface").
     if (opts.report || opts.reportJson) {
         // `validateDesignSystem` compiles too, but discards the result behind
         // its own try/catch. Compiling again keeps that seam untouched and costs

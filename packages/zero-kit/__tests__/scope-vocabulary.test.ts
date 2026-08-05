@@ -1,5 +1,6 @@
 /**
- * Per-scope axis vocabularies — the contract half of #294 (RFC 0003 §4.1).
+ * Per-scope axis vocabularies — the contract half of #294
+ * (docs/architecture.md, "Declared vocabulary").
  *
  * The gate the issue set is one sentence: *a design system can give `select` a
  * vocabulary `button` does not have, and the manifest, `register.d.ts` and the

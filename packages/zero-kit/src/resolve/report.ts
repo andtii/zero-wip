@@ -1,6 +1,6 @@
 /**
  * The coverage report — what a design system *covers*, as opposed to what is
- * wrong with it (RFC 0003 §7.4, RFC 0002 §8).
+ * wrong with it (docs/architecture.md, "The authoring surface").
  *
  * `validateDesignSystem` answers "is this correct". It returns a flat list of
  * issues, which is what an author needs while fixing one. It never answers "how
@@ -161,7 +161,7 @@ export interface ThemeContrastReport {
 
 /**
  * One surface of the vendor-named component API (issue #179): the prop the
- * `./components` module exposes, where it routes, and the RFC 0003 §7.3
+ * `./components` module exposes, where it routes, and the conformance
  * fidelity grade — derived from the same declaration the emitter consumes, so
  * a conformance-matrix row generated from this report cannot claim a mapping
  * the artifact doesn't implement.
@@ -369,7 +369,7 @@ function partReport(
 }
 
 /**
- * The per-axis partition promised by RFC 0003 §4 — the cheap half of
+ * The axis-agnostic divergence partition — the cheap half of
  * per-component vocabularies, generalised from the colour-only warning.
  */
 function divergence(compiled: CompiledDesignSystem): Record<string, AxisDivergence> {
@@ -575,7 +575,8 @@ export function buildReport(
         // Asked PER SCOPE, so a scope that declared an axis out of existence
         // for itself reads `undeclared` rather than the weaker `unwired`
         // (#294). `compileRegisterDts` passes the same scope to the same
-        // predicate, which is the gate RFC 0003 §7.4 puts on this report.
+        // predicate, which is the gate the conformance program
+        // (docs/architecture.md §7) puts on this report.
         const undeclared = undeclaredAxes(compiled, scope);
         const axisReports = {} as Record<ContractAxis, AxisReport>;
         for (const axis of CONTRACT_AXES) {

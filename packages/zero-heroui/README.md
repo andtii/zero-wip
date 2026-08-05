@@ -2,7 +2,7 @@
 
 A HeroUI-flavoured design system for [SignalX Zero](https://npmjs.com/package/@sigx/zero),
 and **the acceptance test for non-orthogonal axis surfaces and presence-only
-modifiers** (RFC 0003 §8).
+modifiers** (see `docs/architecture.md`, "Thesis and shape").
 
 Private, like `@sigx/zero-material`: it proves the contract rather than shipping
 a licensed token set. Values are approximated from public documentation.
@@ -22,7 +22,7 @@ HeroUI v3 contradicts it on every axis at once:
 | colour | 8–13 roles, passed as `color` | **no colour axis at all** — `roles: {}` |
 | variant | `solid \| outline \| soft \| ghost` | `primary \| secondary \| tertiary \| outline \| ghost \| danger \| danger-soft` |
 | size | the recommended five (none declares its own) | **three, declared** — `sm \| md \| lg` |
-| booleans | none expressible before RFC 0003 §3 | `icon-only`, `pending` as `data-mod-*` |
+| booleans | none expressible before the `data-mod-*` namespace landed | `icon-only`, `pending` as `data-mod-*` |
 
 In v3 there is no `color` prop: colour is *fused into* `variant`, so `danger` is
 a variant and `danger-soft` is one member carrying a colour and a treatment

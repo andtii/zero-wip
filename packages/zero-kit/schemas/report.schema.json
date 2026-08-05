@@ -2,7 +2,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://signalxjs.github.io/zero/schemas/report.schema.json",
     "title": "SignalX Zero design-system coverage report",
-    "description": "What a design system COVERS, as opposed to what is wrong with it — emitted as dist/report.json by the zero build and by `sigx zero:validate --report-json` (RFC 0003 §7.4). Components styled against the anatomy manifest, the axes each component wires and which are typed `never` by its register artifact, declared-but-unwired values per axis and modifier, per-part state and flag coverage including deliberate `skipStates`, the axis-agnostic divergence partition (RFC 0003 §4) and the minimum contrast margin per theme. Machine-readable first: the conformance matrix generates its already-proven-in-repo rows from this file, so they cannot go stale by hand.",
+    "description": "What a design system COVERS, as opposed to what is wrong with it — emitted as dist/report.json by the zero build and by `sigx zero:validate --report-json` (docs/architecture.md, \"The authoring surface\"). Components styled against the anatomy manifest, the axes each component wires and which are typed `never` by its register artifact, declared-but-unwired values per axis and modifier, per-part state and flag coverage including deliberate `skipStates`, the axis-agnostic divergence partition and the minimum contrast margin per theme. Machine-readable first: the conformance matrix generates its already-proven-in-repo rows from this file, so they cannot go stale by hand.",
     "type": "object",
     "additionalProperties": false,
     "required": ["$schema", "reportVersion", "name", "coverage", "vocabulary", "unwired", "unclaimed", "components", "divergence", "themes"],
@@ -53,7 +53,7 @@
                     "uniqueItems": true
                 },
                 "scopes": {
-                    "description": "Per-scope restrictions of the vocabularies above (RFC 0003 §4.1) — scope → the part of each axis vocabulary that scope offers. `{}` when the design system declares none, which is what makes the lists above the whole vocabulary rather than a union of per-scope ones. An empty list under a scope is the claim \"this scope has no such axis\".",
+                    "description": "Per-scope restrictions of the vocabularies above (docs/architecture.md, \"Declared vocabulary\") — scope → the part of each axis vocabulary that scope offers. `{}` when the design system declares none, which is what makes the lists above the whole vocabulary rather than a union of per-scope ones. An empty list under a scope is the claim \"this scope has no such axis\".",
                     "type": "object",
                     "propertyNames": { "$ref": "#/$defs/kebabToken" },
                     "additionalProperties": {
@@ -84,7 +84,7 @@
             }
         },
         "unclaimed": {
-            "description": "Declared, but in NO scope's vocabulary — the union carries a value that belongs to nobody (RFC 0003 §4.1). `unwired` is about what the recipes paint; this is about what the declaration promises. Always empty while any styled scope is unrestricted for that axis: an unrestricted scope's vocabulary IS the union, so nothing can be unclaimed.",
+            "description": "Declared, but in NO scope's vocabulary — the union carries a value that belongs to nobody (docs/architecture.md, \"Declared vocabulary\"). `unwired` is about what the recipes paint; this is about what the declaration promises. Always empty while any styled scope is unrestricted for that axis: an unrestricted scope's vocabulary IS the union, so nothing can be unclaimed.",
             "type": "object",
             "additionalProperties": false,
             "required": ["color", "size", "variant", "axes", "modifiers"],
@@ -103,7 +103,7 @@
             "additionalProperties": { "$ref": "#/$defs/component" }
         },
         "divergence": {
-            "description": "The axis-agnostic partition (RFC 0003 §4): per axis, the per-component value sets, flagging any component wiring a strict subset of its siblings. Keyed by axis name, plus `mods` — modifier names are a value set like any other.",
+            "description": "The axis-agnostic partition: per axis, the per-component value sets, flagging any component wiring a strict subset of its siblings. Keyed by axis name, plus `mods` — modifier names are a value set like any other.",
             "type": "object",
             "propertyNames": { "$ref": "#/$defs/kebabToken" },
             "additionalProperties": { "$ref": "#/$defs/axisDivergence" }
@@ -130,7 +130,7 @@
     },
     "$defs": {
         "apiSurface": {
-            "description": "One surface of the vendor-named component API: the prop consumers write, where it routes on zero, and the RFC 0003 §7.3 fidelity grade.",
+            "description": "One surface of the vendor-named component API: the prop consumers write, where it routes on zero, and the conformance fidelity grade (docs/architecture.md, \"The authoring surface\").",
             "type": "object",
             "additionalProperties": false,
             "required": ["prop", "zero", "grade", "respelled"],

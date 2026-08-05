@@ -47,7 +47,8 @@ describe('theme registry', () => {
         expect(pickThemeFor('dark')).toBe('dark');
     });
 
-    // The RFC 0002 §7 latent bug: with one dark theme, first-registered was
+    // The pickThemeFor latent bug (docs/architecture.md, "The theme model"):
+    // with one dark theme, first-registered was
     // correct by construction; with three, it silently picked whichever was
     // declared first. The source's declared default must win regardless of
     // declaration order.
