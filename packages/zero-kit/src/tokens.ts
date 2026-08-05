@@ -174,7 +174,7 @@ export interface ThemeInput<R extends RolesDecl = RolesDecl, T extends SystemTok
 
 /**
  * One scope's own axis vocabularies — the per-scope restriction #294
- * settled (#294).
+ * settled (docs/architecture.md, "Declared vocabulary").
  *
  * Every list **narrows** the design-system-wide declaration for that axis; a
  * scope may never widen it. What changed when this landed is what the
