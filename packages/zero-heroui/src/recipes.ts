@@ -3828,11 +3828,150 @@ export const pagination: RecipeInput = {
     },
 };
 
+/**
+ * Steps — HeroUI's wizard rail without a colour axis: the inversion is the
+ * accent (current disc = full foreground on its content), the walked disc
+ * a soft foreground tint, everything else the muted base-200 disc. Pressed
+ * is the v3 inward scale. Size-only.
+ */
+export const steps: RecipeInput = {
+    component: 'steps',
+    tokens: {
+
+        '--steps-ind': 'calc(var(--size-selector) * 4)',
+        '--steps-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'stretch',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        /**
+         * The item is the clickable column (horizontal) or row (vertical);
+         * the separator bridges from ITS indicator toward the next item's,
+         * absolutely positioned past the button box — which is why it is
+         * pointer-events none: the bridge must not grow the hit area.
+         */
+        item: {
+            base: {
+                appearance: 'none',
+                position: 'relative',
+                display: 'flex',
+                flex: '1 1 0%',
+                background: 'transparent',
+                border: 'none',
+                padding: 'var(--space-xs)',
+                gap: 'var(--space-2xs)',
+                fontFamily: 'inherit',
+                fontSize: 'var(--steps-font)',
+                cursor: 'pointer',
+                textAlign: 'center',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'column', alignItems: 'center' },
+                '&[data-orientation="vertical"]': {
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    textAlign: 'start',
+                    columnGap: 'var(--space-sm)',
+                    paddingBlockEnd: 'var(--space-lg)',
+                },
+                ...pressScale,
+            },
+            states: {
+                active: { color: 'var(--color-base-content)', fontWeight: 'var(--weight-semibold)' },
+                complete: { color: 'var(--color-base-content)' },
+                inactive: { color: 'color-mix(in oklch, var(--color-base-content) 65%, transparent)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+        indicator: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                inlineSize: 'var(--steps-ind)',
+                blockSize: 'var(--steps-ind)',
+                borderRadius: '9999px',
+                fontSize: 'calc(var(--steps-ind) * 0.45)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-none)',
+                position: 'relative',
+                zIndex: '1',
+                flexShrink: '0',
+                transition: motion('background, color'),
+            },
+            states: {
+                active: { background: 'var(--color-base-content)', color: 'var(--color-base-100)' },
+                complete: { background: 'color-mix(in oklch, var(--color-base-content) 12%, var(--color-base-100))', color: 'var(--color-base-content)' },
+                inactive: { background: 'var(--color-base-200)', color: 'var(--hero-muted)' },
+            },
+        },
+        /**
+         * The bridge: from this item's indicator centre one full item-slot
+         * toward the next (equal flex slots make the far end the next
+         * indicator's centre). Logical insets only, so RTL mirrors free;
+         * behind the indicator's opaque disc (z-index 0 vs 1).
+         */
+        separator: {
+            base: {
+                position: 'absolute',
+                pointerEvents: 'none',
+                zIndex: '0',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': {
+                    insetBlockStart: 'calc(var(--space-xs) + var(--steps-ind) / 2)',
+                    insetInlineStart: '50%',
+                    inlineSize: '100%',
+                    blockSize: 'var(--border)',
+                },
+                '&[data-orientation="vertical"]': {
+                    insetInlineStart: 'calc(var(--space-xs) + (var(--steps-ind) - var(--border)) / 2)',
+                    insetBlockStart: 'calc(var(--space-xs) + var(--steps-ind))',
+                    insetBlockEnd: 'calc(var(--space-xs) * -1)',
+                    inlineSize: 'var(--border)',
+                },
+            },
+            states: {
+                complete: { background: 'var(--color-base-content)' },
+                inactive: { background: 'var(--color-base-300)' },
+            },
+        },
+        title: {
+            base: {
+                fontWeight: 'var(--weight-medium)',
+            },
+        },
+        description: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'var(--hero-muted)',
+                fontWeight: 'var(--weight-normal)',
+            },
+        },
+    },
+    variants: {
+
+        size: {
+            sm: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 3.25)', '--steps-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 5)', '--steps-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs, pagination,
+    navbar, breadcrumbs, pagination, steps,
 ];

@@ -36,6 +36,26 @@
     stop) and no `<ul>` (the windowed row is controls, not content —
     contrast Breadcrumbs, where the trail is content and order the
     meaning). All three interactive parts publish press feedback.
+  - **Steps**: `Root(model=step, defaultStep, loop, label, orientation)`/
+    `Item(value, asChild)`/`Indicator`/`Separator`/`Title`/`Description` —
+    the wizard step rail, promoted from the ecosystem `ext-stepper`
+    pattern into a first-class scope (`@sigx/zero-ext-example` REMAINS as
+    the ecosystem acceptance test with its own scope; the behavior — arrow
+    keys rove without selecting, one tab stop on the active step,
+    `complete` derived from DOM order — is the pattern verbatim). What the
+    promotion adds is the rail's paintable anatomy: the numbered
+    `indicator` disc mirroring its item's phase, the `separator` line
+    carrying only the walked pair (`complete` once its OWN item is
+    complete — an active item's separator is a line the walk has reached,
+    not crossed), and the `title`/`description` bands (stateless — style
+    them through the item's state). Orientation-aware roving.
+  - Promoting Steps surfaced a real ordering bug, fixed at the source:
+    `sortByDomOrder` (the shared list-registration order) trusted
+    `compareDocumentPosition` between elements that were created but not
+    yet CONNECTED, where the answer is implementation-defined — Steps'
+    indicator was the first reader to derive state in that window.
+    Disconnected elements now take the registration-order fallback exactly
+    like absent ones.
 
 - **The content-tier sweep** (#334): the cheap 60% of the coverage gap
   against `@sigx/daisyui` — components that are anatomy plus recipes with

@@ -284,6 +284,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     spinner: ['label'],
     stats: [],
     status: ['label'],
+    steps: ['defaultStep', 'label', 'loop', 'value'],
     switch: ['defaultChecked', 'invalid', 'name', 'required', 'value'],
     tabs: ['activationMode', 'defaultValue', 'loop', 'value'],
     textarea: ['autocomplete', 'defaultValue', 'invalid', 'maxlength', 'name', 'readonly', 'required', 'rows', 'value'],

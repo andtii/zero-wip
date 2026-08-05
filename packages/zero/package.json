@@ -207,6 +207,10 @@
         "./pagination": {
             "types": "./dist/components/pagination/index.d.ts",
             "import": "./dist/components/pagination/index.js"
+        },
+        "./steps": {
+            "types": "./dist/components/steps/index.d.ts",
+            "import": "./dist/components/steps/index.js"
         }
     },
     "files": [

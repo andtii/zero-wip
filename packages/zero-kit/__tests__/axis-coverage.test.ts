@@ -233,6 +233,11 @@ const NO_VARIANT: Record<string, string> = {
         + 'flat | bordered | light | faded — a real chrome vocabulary in two '
         + 'surveyed systems, spelled differently again; no shipped skin '
         + 'declares one for it yet.',
+    steps: 'no surveyed system varies a step rail — Carbon\'s '
+        + 'ProgressIndicator styles through vertical/spaceEqually booleans, '
+        + 'Ant Design\'s Steps `type` (default | navigation | inline) changes '
+        + 'the LAYOUT of the rail rather than its chrome, and daisyUI\'s steps '
+        + 'vary by colour only, wired here as the color axis.',
 };
 
 /**

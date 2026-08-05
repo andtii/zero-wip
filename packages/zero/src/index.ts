@@ -274,3 +274,11 @@ export type {
 
 export { Pagination, paginationAnatomy, paginationRow } from './components/pagination/index.js';
 export type { PaginationRootProps } from './components/pagination/index.js';
+
+export { Steps, stepsAnatomy, useStepsContext, useStepsItemContext } from './components/steps/index.js';
+export type {
+    StepsRootProps,
+    StepsItemProps,
+    StepsPartProps,
+    StepsPhase,
+} from './components/steps/index.js';

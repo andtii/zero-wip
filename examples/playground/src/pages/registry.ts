@@ -47,6 +47,7 @@ import { joinPage } from './join';
 import { navbarPage } from './navbar';
 import { breadcrumbsPage } from './breadcrumbs';
 import { paginationPage } from './pagination';
+import { stepsPage } from './steps';
 import { progressPage } from './progress';
 import { sizeRampPage } from './size-ramp';
 import { extensibleRolesPage } from './extensible-roles';
@@ -109,6 +110,7 @@ export const pages: PageEntry[] = [
     navbarPage,
     breadcrumbsPage,
     paginationPage,
+    stepsPage,
     avatarPage,
     cardPage,
     alertPage,

@@ -49,6 +49,7 @@ import type { Join as ZJoin } from '@sigx/zero/join';
 import type { Navbar as ZNavbar } from '@sigx/zero/navbar';
 import type { Breadcrumbs as ZBreadcrumbs } from '@sigx/zero/breadcrumbs';
 import type { Pagination as ZPagination } from '@sigx/zero/pagination';
+import type { Steps as ZSteps } from '@sigx/zero/steps';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -355,3 +356,10 @@ type PaginationProps = {
 };
 type PaginationAdapted = Adapted<typeof ZPagination, ZeroAxisProp, PaginationProps>;
 export declare const Pagination: PaginationAdapted & AdaptedStatics<typeof ZPagination> & { Root: PaginationAdapted };
+
+/** steps — no vendor route; the wired surface keeps zero's names. */
+type StepsProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type StepsAdapted = Adapted<typeof ZSteps, ZeroAxisProp, StepsProps>;
+export declare const Steps: StepsAdapted & AdaptedStatics<typeof ZSteps> & { Root: StepsAdapted };

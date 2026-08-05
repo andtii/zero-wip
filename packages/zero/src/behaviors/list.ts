@@ -31,16 +31,26 @@ export interface ListController {
  * DOM-order a registered collection: items with mounted elements sort by
  * document position, items without keep registration order at the end
  * (the SSR-safe fallback). Shared by the flat list and the tree.
+ *
+ * "Mounted" means CONNECTED, not merely created (#339): during the first
+ * render pass an item's element exists before the tree is attached, and
+ * `compareDocumentPosition` across two disconnected nodes is
+ * implementation-defined — an arbitrary order that read as real. Steps'
+ * indicator was the first reader to evaluate order in that window (an
+ * item-level derivation runs before the item's own element exists, so the
+ * `< 2` fallback always covered it; a CHILD of the item runs after) and it
+ * derived phases from the arbitrary answer. Disconnected elements now take
+ * the registration-order fallback exactly like absent ones.
  */
 export function sortByDomOrder<T extends ListItem>(registered: readonly T[]): T[] {
-    const withEl = registered.filter((i) => i.el());
+    const withEl = registered.filter((i) => i.el()?.isConnected);
     if (withEl.length < 2) return [...registered];
     const sorted = [...withEl].sort((a, b) => {
         const ae = a.el()!, be = b.el()!;
         if (ae === be) return 0;
         return ae.compareDocumentPosition(be) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
     });
-    const withoutEl = registered.filter((i) => !i.el());
+    const withoutEl = registered.filter((i) => !i.el()?.isConnected);
     return [...sorted, ...withoutEl];
 }
 

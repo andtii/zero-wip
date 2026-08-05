@@ -51,6 +51,7 @@ import { Slider } from '@sigx/zero/slider';
 import { Spinner } from '@sigx/zero/spinner';
 import { Stats } from '@sigx/zero/stats';
 import { Status } from '@sigx/zero/status';
+import { Steps } from '@sigx/zero/steps';
 import { Switch } from '@sigx/zero/switch';
 import { Tabs } from '@sigx/zero/tabs';
 import { Textarea } from '@sigx/zero/textarea';
@@ -130,6 +131,7 @@ export type _join = MustBeTrue<CheckColorSize<PropsOf<typeof Join.Root>>>;
 export type _navbar = MustBeTrue<CheckColorSize<PropsOf<typeof Navbar.Root>>>;
 export type _breadcrumbs = MustBeTrue<CheckColorSize<PropsOf<typeof Breadcrumbs.Root>>>;
 export type _pagination = MustBeTrue<CheckColorSize<PropsOf<typeof Pagination.Root>>>;
+export type _steps = MustBeTrue<CheckColorSize<PropsOf<typeof Steps.Root>>>;
 
 /* ── the three scopes basic wires a variant vocabulary for ── */
 type ButtonProps = PropsOf<typeof Button.Root>;

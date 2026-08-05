@@ -59,3 +59,4 @@ export { Join } from '@sigx/zero/join';
 export { Navbar } from '@sigx/zero/navbar';
 export { Breadcrumbs } from '@sigx/zero/breadcrumbs';
 export { Pagination } from '@sigx/zero/pagination';
+export { Steps } from '@sigx/zero/steps';
