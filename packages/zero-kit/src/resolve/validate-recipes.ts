@@ -22,12 +22,14 @@ const BARE_TIME = /(?:^|[\s,(])(-?(?:\d+\.?\d*|\.\d+)m?s)(?=[\s,)]|$)/;
 
 /** Properties whose values are prose or identifiers, not colors. */
 const NOT_COLOR_VALUED = new Set([
-    'content', 'font', 'fontFamily', 'gridTemplateAreas', 'counterReset', 'counterIncrement',
+    'content', 'font', 'font-family', 'grid-template-areas', 'counter-reset', 'counter-increment',
     // A mask's "colors" are alpha carriers — only the channel's opacity
     // paints, so `#000` in a mask gradient is geometry, not ink, and there is
     // nothing a role reference could retheme (#334: radial-progress's
-    // annulus/sweep masks are the first shipped case).
-    'mask', 'maskImage', 'webkitMask', 'webkitMaskImage',
+    // annulus/sweep masks are the first shipped case). Membership is tested
+    // on the kebab spelling (see the check site), so `maskImage`,
+    // `WebkitMaskImage` and `-webkit-mask-image` all land on the same entry.
+    'mask', 'mask-image', '-webkit-mask', '-webkit-mask-image',
 ]);
 
 /**
@@ -434,7 +436,7 @@ export function validateRecipes(
                 }
             }
 
-            if (!NOT_COLOR_VALUED.has(prop) && !value.includes('"') && !value.includes("'")) {
+            if (!NOT_COLOR_VALUED.has(kebabProp(prop)) && !value.includes('"') && !value.includes("'")) {
                 for (const literal of colorLiterals(value)) {
                     if (isScrim(literal)) continue;
                     warn(

@@ -143,6 +143,10 @@ describe('hardcoded values', () => {
         // geometry, and no role reference could retheme it.
         expect(check(tabsWith({ mask: 'conic-gradient(#000 30%, transparent 0)' })).warnings)
             .not.toContainEqual(expect.stringContaining('hardcodes the color'));
+        // The membership test runs on the kebab spelling, so the repo's
+        // `Webkit*` camel form lands on the same entry.
+        expect(check(tabsWith({ WebkitMaskImage: 'linear-gradient(#000, transparent)' })).warnings)
+            .not.toContainEqual(expect.stringContaining('hardcodes the color'));
         // …while the same literal on a painting property still warns.
         expect(check(tabsWith({ background: 'conic-gradient(#000 30%, transparent 0)' })).warnings)
             .toContainEqual(expect.stringContaining('hardcodes the color'));
