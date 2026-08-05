@@ -47,6 +47,8 @@ interface CarouselContext {
     index(): number;
     /** Clamp and set; the watch scrolls the item into view. */
     goTo(index: number): void;
+    /** Scroll one item into view directly — the viewport's initial sync. */
+    scrollToIndex(index: number, behavior: ScrollBehavior): void;
     registerItem(entry: ItemEntry): () => void;
     itemIndex(entry: ItemEntry): number;
     /** The observer's writes must not scroll back — see the watch. */
@@ -69,6 +71,7 @@ function makeInert(): CarouselContext {
         count: () => 0,
         index: () => 0,
         goTo: () => {},
+        scrollToIndex: () => {},
         registerItem: () => () => {},
         itemIndex: () => 0,
         observed: () => {},
@@ -111,12 +114,12 @@ const CarouselRoot = component<CarouselRootProps>(({ props, slots, emit, signal,
     const clamp = (i: number): number =>
         Math.min(Math.max(0, reg.count - 1), Math.max(0, Math.round(i)));
 
-    const scrollToItem = (i: number): void => {
+    const scrollToItem = (i: number, behavior?: ScrollBehavior): void => {
         const el = items[i]?.el();
         if (!el || typeof el.scrollIntoView !== 'function') return;
         el.scrollIntoView({
             // Smooth is the affordance; reduced motion collapses it to a jump.
-            behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+            behavior: behavior ?? (prefersReducedMotion() ? 'auto' : 'smooth'),
             // Logical center within the snap viewport; 'nearest' block keeps
             // a horizontal movement from scrolling the page vertically.
             inline: 'center',
@@ -153,6 +156,7 @@ const CarouselRoot = component<CarouselRootProps>(({ props, slots, emit, signal,
             const next = clamp(i);
             if (next !== state.value) state.value = next;
         },
+        scrollToIndex: (i, behavior) => scrollToItem(clamp(i), behavior),
         registerItem(entry) {
             items.push(entry);
             reg.count = items.length;
@@ -205,6 +209,11 @@ const CarouselViewport = component<CarouselViewportProps>(({ props, slots, onMou
     let observer: IntersectionObserver | null = null;
 
     onMounted(() => {
+        // The initial index may not be 0 (`defaultIndex`, a controlled
+        // model) — the resting scroll position must agree with it, and no
+        // watch fires for a value that never changed. An instant jump: the
+        // initial position is a fact, not an animation.
+        if (carousel.index() > 0) carousel.scrollToIndex(carousel.index(), 'auto');
         if (typeof IntersectionObserver === 'undefined') return;
         observer = new IntersectionObserver(
             (entries) => {

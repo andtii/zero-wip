@@ -135,6 +135,22 @@ describe('Carousel', () => {
         expect(calls[0]).toMatchObject({ block: 'nearest' });
     });
 
+    it('a non-zero initial index scrolls its slide into place on mount, instantly', () => {
+        const calls: unknown[] = [];
+        const original = HTMLElement.prototype.scrollIntoView;
+        HTMLElement.prototype.scrollIntoView = function (o: unknown) { calls.push(o); } as typeof original;
+        try {
+            render(sample({ defaultIndex: 2 }), container);
+        } finally {
+            HTMLElement.prototype.scrollIntoView = original;
+        }
+        // The resting scroll position must agree with the model — and the
+        // initial position is a fact, not an animation: behavior 'auto'.
+        expect(calls.length).toBe(1);
+        expect(calls[0]).toMatchObject({ behavior: 'auto' });
+        expect(parts(container, 'item')[2]!.getAttribute('data-state')).toBe('active');
+    });
+
     it('declares the activation family on item and indicator', () => {
         expect(carouselAnatomy.parts.item.states).toEqual(['active', 'inactive']);
         expect(carouselAnatomy.parts.indicator.states).toEqual(['active', 'inactive']);
