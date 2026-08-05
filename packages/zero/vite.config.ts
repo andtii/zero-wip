@@ -51,7 +51,8 @@ export default defineLibConfig({
         'components/timeline/index': 'src/components/timeline/index.ts',
         'components/chat/index': 'src/components/chat/index.ts',
         'components/radial-progress/index': 'src/components/radial-progress/index.ts',
-        'components/join/index': 'src/components/join/index.ts'
+        'components/join/index': 'src/components/join/index.ts',
+        'components/navbar/index': 'src/components/navbar/index.ts'
     },
     external: ['sigx', 'sigx/jsx-runtime', 'sigx/jsx-dev-runtime'],
     jsx: true

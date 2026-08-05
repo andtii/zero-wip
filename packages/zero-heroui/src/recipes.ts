@@ -3586,10 +3586,68 @@ export const join: RecipeInput = {
     },
 };
 
+/**
+ * Navbar — HeroUI's Navbar is a translucent, blurred bar over the page with
+ * a hairline under it. Size-only: this design system declares no colour
+ * axis (`roles: {}`), so the bar has exactly one surface.
+ */
+export const navbar: RecipeInput = {
+    component: 'navbar',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-md)',
+                minBlockSize: '4rem',
+                paddingInline: 'var(--space-lg)',
+                background: 'color-mix(in oklch, var(--color-base-100) 70%, transparent)',
+                backdropFilter: 'saturate(1.5) blur(10px)',
+                color: 'var(--color-base-content)',
+                borderBlockEnd: 'var(--border) solid var(--hero-line)',
+            },
+        },
+        start: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                flex: '1 1 0%',
+                justifyContent: 'flex-start',
+            },
+        },
+        center: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                justifyContent: 'center',
+            },
+        },
+        end: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                flex: '1 1 0%',
+                justifyContent: 'flex-end',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { minBlockSize: '3rem', fontSize: 'var(--text-sm)' } } },
+            md: {},
+            lg: { root: { base: { minBlockSize: '5rem' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
+    navbar,
 ];

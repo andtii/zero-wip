@@ -44,6 +44,7 @@ import { timelinePage } from './timeline';
 import { chatPage } from './chat';
 import { radialProgressPage } from './radial-progress';
 import { joinPage } from './join';
+import { navbarPage } from './navbar';
 import { progressPage } from './progress';
 import { sizeRampPage } from './size-ramp';
 import { extensibleRolesPage } from './extensible-roles';
@@ -103,6 +104,7 @@ export const pages: PageEntry[] = [
     accordionPage,
     collapsiblePage,
     treeViewPage,
+    navbarPage,
     avatarPage,
     cardPage,
     alertPage,

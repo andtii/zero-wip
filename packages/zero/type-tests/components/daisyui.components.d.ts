@@ -46,6 +46,7 @@ import type { Timeline as ZTimeline } from '@sigx/zero/timeline';
 import type { Chat as ZChat } from '@sigx/zero/chat';
 import type { RadialProgress as ZRadialProgress } from '@sigx/zero/radial-progress';
 import type { Join as ZJoin } from '@sigx/zero/join';
+import type { Navbar as ZNavbar } from '@sigx/zero/navbar';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -375,3 +376,11 @@ type JoinProps = {
 };
 type JoinAdapted = Adapted<typeof ZJoin, ZeroAxisProp, JoinProps>;
 export declare const Join: JoinAdapted & AdaptedStatics<typeof ZJoin> & { Root: JoinAdapted };
+
+/** navbar — no vendor route; the wired surface keeps zero's names. */
+type NavbarProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type NavbarAdapted = Adapted<typeof ZNavbar, ZeroAxisProp, NavbarProps>;
+export declare const Navbar: NavbarAdapted & AdaptedStatics<typeof ZNavbar> & { Root: NavbarAdapted };

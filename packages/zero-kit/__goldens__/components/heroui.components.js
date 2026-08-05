@@ -52,3 +52,4 @@ export { Timeline } from '@sigx/zero/timeline';
 export { Chat } from '@sigx/zero/chat';
 export { RadialProgress } from '@sigx/zero/radial-progress';
 export { Join } from '@sigx/zero/join';
+export { Navbar } from '@sigx/zero/navbar';

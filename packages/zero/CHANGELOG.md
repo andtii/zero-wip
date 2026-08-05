@@ -4,6 +4,18 @@
 
 ### Added
 
+- **The navigation tier** (#339): Drawer, Navbar, Breadcrumbs, Pagination
+  and Steps — the behavior tier's navigation half, each shipped with
+  recipes in all six design systems:
+
+  - **Navbar**: `Root`/`Start`/`Center`/`End` — the landmark header bar,
+    pure composition (no states, no behavior). The root is a `<header>`
+    (the banner landmark at document scope), deliberately NOT a `<nav>`:
+    a bar holds branding, search and actions too, so wrapping all of it in
+    a navigation landmark would mislabel most of it — the consumer puts a
+    labelled `<nav>` around exactly the link set, inside a section.
+    `start`/`end` are the logical pair, so RTL mirrors free.
+
 - **The content-tier sweep** (#334): the cheap 60% of the coverage gap
   against `@sigx/daisyui` — components that are anatomy plus recipes with
   little or no behavior, each shipped with recipes in all six design

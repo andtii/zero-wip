@@ -195,6 +195,10 @@
         "./join": {
             "types": "./dist/components/join/index.d.ts",
             "import": "./dist/components/join/index.js"
+        },
+        "./navbar": {
+            "types": "./dist/components/navbar/index.d.ts",
+            "import": "./dist/components/navbar/index.js"
         }
     },
     "files": [

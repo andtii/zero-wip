@@ -219,6 +219,12 @@ const NO_VARIANT: Record<string, string> = {
     join: 'no surveyed system varies a radius-collapsing group — daisyUI\'s '
         + 'join has orientation only; the chrome belongs to the joined '
         + 'controls.',
+
+    // ── The navigation tier (#339). ──
+    navbar: 'no surveyed system varies a header bar — daisyUI\'s navbar is '
+        + 'one padded surface recoloured by the shared background utilities '
+        + '(the color axis, wired here), and HeroUI\'s Navbar styles through '
+        + 'isBlurred/isBordered booleans, not a chrome vocabulary.',
 };
 
 /**

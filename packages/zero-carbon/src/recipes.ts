@@ -3965,10 +3965,70 @@ export const join: RecipeInput = {
     },
 };
 
+/**
+ * Navbar — Carbon's UI Shell header: a flat 3rem band on the shell surface
+ * with a single line under it, square everywhere. Size-only: this design
+ * system declares no colour axis.
+ */
+export const navbar: RecipeInput = {
+    component: 'navbar',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-md)',
+                minBlockSize: '3rem',
+                paddingInline: 'var(--space-md)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                borderBlockEnd: 'var(--border) solid var(--carbon-line)',
+                borderRadius: '0',
+            },
+        },
+        start: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                flex: '1 1 0%',
+                justifyContent: 'flex-start',
+            },
+        },
+        center: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                justifyContent: 'center',
+            },
+        },
+        end: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                flex: '1 1 0%',
+                justifyContent: 'flex-end',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { minBlockSize: '2.5rem', fontSize: 'var(--text-sm)' } } },
+            md: {},
+            lg: { root: { base: { minBlockSize: '3.5rem' } } },
+            xl: { root: { base: { minBlockSize: '4rem' } } },
+            '2xl': { root: { base: { minBlockSize: '5rem', fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
+    navbar,
 ];

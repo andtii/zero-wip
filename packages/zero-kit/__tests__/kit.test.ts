@@ -325,7 +325,7 @@ describe('the shipped design systems', () => {
         expect(Object.keys(compiled.componentCss).sort()).toEqual([
             'accordion', 'alert', 'avatar', 'badge', 'button', 'card', 'chat', 'checkbox', 'collapsible',
             'combobox', 'dialog', 'divider', 'field', 'indicator', 'input', 'join', 'kbd', 'menu',
-            'native-select', 'number-input', 'popover', 'progress', 'radial-progress', 'radio-group',
+            'native-select', 'navbar', 'number-input', 'popover', 'progress', 'radial-progress', 'radio-group',
             'rating-group', 'select', 'skeleton', 'slider',
             'spinner', 'stats', 'status', 'switch', 'tabs',
             'textarea', 'timeline', 'toast', 'toggle', 'toggle-group', 'tooltip', 'tree-view',

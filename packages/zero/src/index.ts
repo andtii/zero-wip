@@ -261,3 +261,6 @@ export type {
 
 export { Join, joinAnatomy, useJoinContext } from './components/join/index.js';
 export type { JoinRootProps, JoinItemProps } from './components/join/index.js';
+
+export { Navbar, navbarAnatomy } from './components/navbar/index.js';
+export type { NavbarRootProps, NavbarSectionProps } from './components/navbar/index.js';

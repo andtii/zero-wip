@@ -4097,10 +4097,74 @@ export const join: RecipeInput = {
     },
 };
 
+/**
+ * Navbar — daisy's navbar is a comfortable padded bar on base-100 with a
+ * generous min-height; start/end split the width and the centre hugs its
+ * content, which is daisy's own 50/50 layout translated to flex slack.
+ * Colour is the daisy `navbar bg-primary text-primary-content` move: refill
+ * the whole bar with the role pair.
+ */
+export const navbar: RecipeInput = {
+    component: 'navbar',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                minBlockSize: '4rem',
+                padding: 'var(--space-sm)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        start: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                flex: '1 1 0%',
+                justifyContent: 'flex-start',
+            },
+        },
+        center: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                justifyContent: 'center',
+            },
+        },
+        end: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                flex: '1 1 0%',
+                justifyContent: 'flex-end',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            background: `var(--color-${c})`,
+            color: `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { minBlockSize: '2.5rem', fontSize: 'var(--text-sm)' } } },
+            sm: { root: { base: { minBlockSize: '3rem', fontSize: 'var(--text-sm)' } } },
+            md: {},
+            lg: { root: { base: { minBlockSize: '5rem' } } },
+            xl: { root: { base: { minBlockSize: '6rem', fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
+    navbar,
 ];

@@ -3577,10 +3577,77 @@ export const join: RecipeInput = {
     },
 };
 
+/**
+ * Navbar — a slab of paper with the double-weight rule under it, the way
+ * every brutalist masthead is a heavy line over the content. Colour refills
+ * the bar with the role pair; the rule stays ink because the rule is the
+ * brand.
+ */
+export const navbar: RecipeInput = {
+    component: 'navbar',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-md)',
+                paddingBlock: 'var(--space-sm)',
+                paddingInline: 'var(--space-lg)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                borderBlockEnd: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                fontWeight: 'var(--weight-bold)',
+                textTransform: 'uppercase',
+                letterSpacing: 'var(--tracking-wide)',
+            },
+        },
+        start: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                flex: '1 1 0%',
+                justifyContent: 'flex-start',
+            },
+        },
+        center: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                justifyContent: 'center',
+            },
+        },
+        end: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                flex: '1 1 0%',
+                justifyContent: 'flex-end',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            background: `var(--color-${c})`,
+            color: `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { paddingBlock: 'var(--space-2xs)', fontSize: 'var(--text-sm)' } } },
+            sm: { root: { base: { paddingBlock: 'var(--space-xs)', fontSize: 'var(--text-sm)' } } },
+            md: {},
+            lg: { root: { base: { paddingBlock: 'var(--space-md)' } } },
+            xl: { root: { base: { paddingBlock: 'var(--space-lg)', fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
+    navbar,
 ];
