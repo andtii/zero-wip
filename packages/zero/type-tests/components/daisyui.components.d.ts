@@ -48,6 +48,7 @@ import type { RadialProgress as ZRadialProgress } from '@sigx/zero/radial-progre
 import type { Join as ZJoin } from '@sigx/zero/join';
 import type { Navbar as ZNavbar } from '@sigx/zero/navbar';
 import type { Breadcrumbs as ZBreadcrumbs } from '@sigx/zero/breadcrumbs';
+import type { Pagination as ZPagination } from '@sigx/zero/pagination';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -393,3 +394,11 @@ type BreadcrumbsProps = {
 };
 type BreadcrumbsAdapted = Adapted<typeof ZBreadcrumbs, ZeroAxisProp, BreadcrumbsProps>;
 export declare const Breadcrumbs: BreadcrumbsAdapted & AdaptedStatics<typeof ZBreadcrumbs> & { Root: BreadcrumbsAdapted };
+
+/** pagination — no vendor route; the wired surface keeps zero's names. */
+type PaginationProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type PaginationAdapted = Adapted<typeof ZPagination, ZeroAxisProp, PaginationProps>;
+export declare const Pagination: PaginationAdapted & AdaptedStatics<typeof ZPagination> & { Root: PaginationAdapted };

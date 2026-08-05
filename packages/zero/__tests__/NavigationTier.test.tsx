@@ -8,7 +8,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import type { PartProps } from '@sigx/zero';
-import { Breadcrumbs, breadcrumbsAnatomy, Navbar, navbarAnatomy } from '@sigx/zero';
+import { Breadcrumbs, breadcrumbsAnatomy, Navbar, navbarAnatomy, Pagination, paginationAnatomy } from '@sigx/zero';
+import { signal } from 'sigx';
 import { expectAnatomy } from './helpers';
 
 const selector = (scope: string, name: string) => `[data-scope="${scope}"][data-part="${name}"]`;
@@ -213,6 +214,109 @@ describe('Breadcrumbs', () => {
             container,
         );
         const root = part(container, 'breadcrumbs', 'root');
+        expect(root.getAttribute('data-color')).toBe('primary');
+        expect(root.getAttribute('data-size')).toBe('sm');
+    });
+});
+
+describe('Pagination', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    /** The rendered page row, as button texts with '…' for ellipses. */
+    const rowText = (c: HTMLElement): string[] =>
+        [...c.querySelectorAll<HTMLElement>(
+            `${selector('pagination', 'item')}, ${selector('pagination', 'ellipsis')}`,
+        )].map((el) => (el.getAttribute('data-part') === 'ellipsis' ? '…' : el.textContent!));
+
+    it('renders a labelled nav of page buttons with a valid anatomy', () => {
+        render(<Pagination.Root count={3} />, container);
+        expectAnatomy(container, paginationAnatomy);
+        const root = part(container, 'pagination', 'root');
+        expect(root.tagName).toBe('NAV');
+        expect(root.getAttribute('aria-label')).toBe('Pagination');
+        const items = [...container.querySelectorAll<HTMLElement>(selector('pagination', 'item'))];
+        expect(items.map((i) => i.textContent)).toEqual(['1', '2', '3']);
+        for (const item of items) expect(item.tagName).toBe('BUTTON');
+        // Ordinary buttons in a nav landmark — no roving tabindex. There is
+        // no APG pagination pattern; each page is a distinct, meaningful tab
+        // stop exactly like any other button row, and prev/next bracket them.
+        for (const item of items) expect(item.tabIndex).toBe(0);
+    });
+
+    it('windows the middle with ellipses: sibling and boundary counts', () => {
+        render(<Pagination.Root count={10} defaultPage={5} />, container);
+        expect(rowText(container)).toEqual(['1', '…', '4', '5', '6', '…', '10']);
+        expectAnatomy(container, paginationAnatomy);
+        // The ellipsis is punctuation, not a control.
+        const ellipsis = part(container, 'pagination', 'ellipsis');
+        expect(ellipsis.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('keeps a constant row width at the edges', () => {
+        render(<Pagination.Root count={10} defaultPage={1} />, container);
+        // Page 1 shows as many leading pages as page 5 shows around itself
+        // (seven entries in both rows), so the row does not jump width as
+        // the user walks it — the sibling block slides instead of shrinking.
+        expect(rowText(container)).toEqual(['1', '2', '3', '4', '5', '…', '10']);
+    });
+
+    it('marks the current page with aria-current="page" and the activation state', () => {
+        render(<Pagination.Root count={5} defaultPage={2} />, container);
+        const items = [...container.querySelectorAll<HTMLElement>(selector('pagination', 'item'))];
+        expect(items[1]!.getAttribute('aria-current')).toBe('page');
+        expect(items[1]!.getAttribute('data-state')).toBe('active');
+        for (const other of [items[0]!, ...items.slice(2)]) {
+            expect(other.hasAttribute('aria-current')).toBe(false);
+            expect(other.getAttribute('data-state')).toBe('inactive');
+        }
+    });
+
+    it('clicking a page moves the model; prev/next step it', () => {
+        const state = signal({ page: 1 });
+        render(<Pagination.Root count={5} model={[state, 'page']} />, container);
+        const items = [...container.querySelectorAll<HTMLElement>(selector('pagination', 'item'))];
+        items[2]!.click();
+        expect(state.page).toBe(3);
+        part(container, 'pagination', 'next-trigger').click();
+        expect(state.page).toBe(4);
+        part(container, 'pagination', 'prev-trigger').click();
+        expect(state.page).toBe(3);
+    });
+
+    it('disables prev at the first page and next at the last', () => {
+        const state = signal({ page: 1 });
+        render(<Pagination.Root count={3} model={[state, 'page']} />, container);
+        const prev = part(container, 'pagination', 'prev-trigger') as HTMLButtonElement;
+        const next = part(container, 'pagination', 'next-trigger') as HTMLButtonElement;
+        expect(prev.disabled).toBe(true);
+        expect(prev.getAttribute('data-disabled')).toBe('');
+        expect(next.disabled).toBe(false);
+        prev.click();
+        expect(state.page).toBe(1);
+
+        state.page = 3;
+        expect(next.disabled).toBe(true);
+        expect(next.getAttribute('data-disabled')).toBe('');
+        expect(prev.disabled).toBe(false);
+        next.click();
+        expect(state.page).toBe(3);
+        expectAnatomy(container, paginationAnatomy);
+    });
+
+    it('names the triggers for assistive tech, localizably', () => {
+        render(<Pagination.Root count={3} prevLabel="Föregående" nextLabel="Nästa" label="Sidor" />, container);
+        expect(part(container, 'pagination', 'root').getAttribute('aria-label')).toBe('Sidor');
+        expect(part(container, 'pagination', 'prev-trigger').getAttribute('aria-label')).toBe('Föregående');
+        expect(part(container, 'pagination', 'next-trigger').getAttribute('aria-label')).toBe('Nästa');
+    });
+
+    it('passes the variant axes through on the root', () => {
+        render(<Pagination.Root count={2} color="primary" size="sm" />, container);
+        const root = part(container, 'pagination', 'root');
         expect(root.getAttribute('data-color')).toBe('primary');
         expect(root.getAttribute('data-size')).toBe('sm');
     });

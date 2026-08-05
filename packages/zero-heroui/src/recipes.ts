@@ -3710,11 +3710,129 @@ export const breadcrumbs: RecipeInput = {
     },
 };
 
+/**
+ * Pagination — HeroUI's rounded cells: transparent at rest, base-200 under
+ * the pointer, the current page inverted to full foreground (this design
+ * system has no colour axis, so the inversion IS the accent). Pressed is
+ * the v3 inward scale. Size-only; glyphs flip under the rtl guard.
+ */
+export const pagination: RecipeInput = {
+    component: 'pagination',
+    tokens: {
+        '--pg-size': 'var(--size-field)',
+        '--pg-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: { base: { display: 'flex', alignItems: 'center', gap: 'var(--space-2xs)' } },
+        item: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                paddingInline: 'var(--space-2xs)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: 'var(--radius-field)',
+                fontSize: 'var(--pg-font)',
+                fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: motion('background, color, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                active: { background: 'var(--color-base-content)', color: 'var(--color-base-100)' },
+                inactive: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { ...pressScale },
+        },
+        ellipsis: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                color: 'var(--hero-muted)',
+                fontSize: 'var(--pg-font)',
+                userSelect: 'none',
+            },
+        },
+        'prev-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: 'var(--radius-field)',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: motion('background, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                ...pressScale,
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+        'next-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: 'var(--radius-field)',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: motion('background, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                ...pressScale,
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--pg-size': 'calc(var(--size-field) * 0.85)', '--pg-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--pg-size': 'calc(var(--size-field) * 1.2)', '--pg-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs,
+    navbar, breadcrumbs, pagination,
 ];

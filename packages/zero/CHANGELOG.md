@@ -24,6 +24,18 @@
     `"inactive"` — exactly tabs' shape. The separator is `aria-hidden`
     punctuation inside the item (default `/`, replaceable slot), keeping
     the `<ol>` to `<li>` children only.
+  - **Pagination**: `Root(model=page, count, siblingCount, boundaryCount,
+    label, prevLabel/nextLabel)` — options-driven: the row derives from
+    `count` and the model, so zero renders the page buttons, aria-hidden
+    ellipses and the `‹`/`›` triggers itself, with constant-width
+    windowing (the sibling block slides near the edges instead of
+    shrinking). The current item carries `aria-current="page"` +
+    `data-state="active"`; the triggers disable at the bounds. Ordinary
+    buttons in a labelled `<nav>` — deliberately no roving tabindex (there
+    is no APG pagination pattern; each page is its own meaningful tab
+    stop) and no `<ul>` (the windowed row is controls, not content —
+    contrast Breadcrumbs, where the trail is content and order the
+    meaning). All three interactive parts publish press feedback.
 
 - **The content-tier sweep** (#334): the cheap 60% of the coverage gap
   against `@sigx/daisyui` — components that are anatomy plus recipes with

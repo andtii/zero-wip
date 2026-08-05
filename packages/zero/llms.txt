@@ -30,7 +30,8 @@
   aria-activedescendant); collapsible/accordion trigger;
   switch/checkbox control and radio-group item-control (press anywhere in
   the label row lands on the control; Space via the hidden input);
-  slider control (`data-pressed` only — a drag has no one-shot).
+  slider control (`data-pressed` only — a drag has no one-shot);
+  pagination item and prev/next triggers.
 - Variant axes pass through as data-color / data-size / data-variant
   (values: color = any DS-declared role — recommended vocabulary
   primary|secondary|accent|neutral|info|success|warning|error,
@@ -92,7 +93,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-42 components ship today. Every part each renders is listed below, in
+43 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -307,6 +308,16 @@ component renders; the root is called out separately where it carries props.
   current → active); every other link is "inactive". The separator is
   aria-hidden punctuation inside the item (default glyph /, replaceable
   slot) so the <ol> keeps only <li> children.
+- Pagination: Root(model=page, count, siblingCount, boundaryCount, label,
+  prevLabel/nextLabel) — options-driven: the row derives from count + the
+  model, so zero renders item buttons, aria-hidden ellipses and the
+  prev/next triggers itself. Constant-width windowing (the sibling block
+  slides near the edges instead of shrinking). The current item carries
+  aria-current="page" + data-state="active". Ordinary buttons in the nav
+  landmark — deliberately no roving tabindex (no APG pagination pattern;
+  each page is its own meaningful tab stop). The triggers carry the ‹/›
+  glyph (Select.Indicator's convention), named by aria-label; recipes flip
+  the glyph under RTL (scaleX(-1) under the skin's rtl guard).
 - Skeleton: Root only(model=loading, default TRUE), data-state loading|loaded,
   aria-busy while loading. Children stay in the DOM in BOTH states — the
   component exists to hold the layout its content will occupy, so the recipe
@@ -423,9 +434,9 @@ value, `model:inputValue` = text, `model:open` = open.
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
 Avatar, Badge, Breadcrumbs, Button, Card, Chat, Checkbox, Collapsible, Combobox, Dialog,
 Divider, Field, Indicator, Input, Join, Kbd, Menu, NativeSelect, NumberInput,
-Navbar, Popover, Progress, RadialProgress, RadioGroup, RatingGroup, Select,
-Skeleton, Slider, Spinner, Stats, Status, Switch, Tabs, Textarea, Timeline,
-Toast, Toggle, ToggleGroup, Tooltip and TreeView;
+Navbar, Pagination, Popover, Progress, RadialProgress, RadioGroup,
+RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Switch, Tabs,
+Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip and TreeView;
 that is every component. Where the Root renders a fragment (a
 dialog/menu/popover/tooltip) the props live on the Trigger, which renders the
 carrier part the compiled axis selectors anchor on, and Toast routes the

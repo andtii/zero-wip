@@ -272,6 +272,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     'native-select': ['defaultValue', 'invalid', 'name', 'options', 'placeholder', 'required', 'value'],
     navbar: [],
     'number-input': ['allowWheel', 'clampOnBlur', 'defaultValue', 'format', 'invalid', 'max', 'min', 'name', 'parse', 'readonly', 'required', 'step', 'value'],
+    pagination: ['boundaryCount', 'count', 'defaultPage', 'label', 'nextLabel', 'prevLabel', 'siblingCount', 'value'],
     popover: ['defaultOpen', 'offset', 'placement', 'positionStrategy', 'value'],
     progress: ['max', 'min', 'value'],
     'radial-progress': ['max', 'min', 'value'],

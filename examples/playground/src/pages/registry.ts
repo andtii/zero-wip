@@ -46,6 +46,7 @@ import { radialProgressPage } from './radial-progress';
 import { joinPage } from './join';
 import { navbarPage } from './navbar';
 import { breadcrumbsPage } from './breadcrumbs';
+import { paginationPage } from './pagination';
 import { progressPage } from './progress';
 import { sizeRampPage } from './size-ramp';
 import { extensibleRolesPage } from './extensible-roles';
@@ -107,6 +108,7 @@ export const pages: PageEntry[] = [
     treeViewPage,
     navbarPage,
     breadcrumbsPage,
+    paginationPage,
     avatarPage,
     cardPage,
     alertPage,

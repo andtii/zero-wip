@@ -203,6 +203,10 @@
         "./breadcrumbs": {
             "types": "./dist/components/breadcrumbs/index.d.ts",
             "import": "./dist/components/breadcrumbs/index.js"
+        },
+        "./pagination": {
+            "types": "./dist/components/pagination/index.d.ts",
+            "import": "./dist/components/pagination/index.js"
         }
     },
     "files": [

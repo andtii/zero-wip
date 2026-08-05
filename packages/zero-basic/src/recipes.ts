@@ -4745,11 +4745,149 @@ export const breadcrumbs: RecipeInput = {
     },
 };
 
+/**
+ * Pagination — furniture in the house dialect: quiet hairline-framed cells,
+ * `inkWash` hover, `pressedInk` press, and the current page inverted into
+ * the accent pair (primary by default; the colour axis rebinds the pair).
+ * The `‹`/`›` glyphs are physical ink — flipped under the shared rtl guard,
+ * the tree-view chevron's move.
+ */
+export const pagination: RecipeInput = {
+    component: 'pagination',
+    tokens: {
+        '--pg-accent': 'var(--color-primary)',
+        '--pg-accent-content': 'var(--color-primary-content)',
+        '--pg-size': 'var(--size-field)',
+        '--pg-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-2xs)',
+            },
+        },
+        item: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                paddingInline: 'var(--space-2xs)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: hairline,
+                borderRadius: 'var(--radius-field)',
+                fontSize: 'var(--pg-font)',
+                fontVariantNumeric: 'tabular-nums',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: inkWash },
+                active: {
+                    background: 'var(--pg-accent)',
+                    color: 'var(--pg-accent-content)',
+                    borderColor: 'transparent',
+                },
+                inactive: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { ...pressedInk },
+        },
+        ellipsis: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)',
+                fontSize: 'var(--pg-font)',
+                userSelect: 'none',
+            },
+        },
+        'prev-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: hairline,
+                borderRadius: 'var(--radius-field)',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: inkWash },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                ...pressedInk,
+                // The glyph points at the reading start; `scale`, not a
+                // logical property, so the flip is by hand under the guard.
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+        'next-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: hairline,
+                borderRadius: 'var(--radius-field)',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: inkWash },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                ...pressedInk,
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--pg-accent': `var(--color-${c})`,
+            '--pg-accent-content': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--pg-size': 'calc(var(--size-field) * 0.75)', '--pg-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--pg-size': 'calc(var(--size-field) * 0.875)' } } },
+            md: {},
+            lg: { root: { base: { '--pg-size': 'calc(var(--size-field) * 1.25)' } } },
+            xl: { root: { base: { '--pg-size': 'calc(var(--size-field) * 1.5)', '--pg-font': 'var(--text-lg)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs,
+    navbar, breadcrumbs, pagination,
 ];

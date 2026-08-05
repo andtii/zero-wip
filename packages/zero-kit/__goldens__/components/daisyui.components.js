@@ -58,3 +58,4 @@ export { RadialProgress } from '@sigx/zero/radial-progress';
 export { Join } from '@sigx/zero/join';
 export { Navbar } from '@sigx/zero/navbar';
 export { Breadcrumbs } from '@sigx/zero/breadcrumbs';
+export { Pagination } from '@sigx/zero/pagination';

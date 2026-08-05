@@ -271,3 +271,6 @@ export type {
     BreadcrumbsPartProps,
     BreadcrumbsLinkProps,
 } from './components/breadcrumbs/index.js';
+
+export { Pagination, paginationAnatomy, paginationRow } from './components/pagination/index.js';
+export type { PaginationRootProps } from './components/pagination/index.js';

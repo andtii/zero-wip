@@ -39,6 +39,7 @@ import { Menu } from '@sigx/zero/menu';
 import { NativeSelect } from '@sigx/zero/native-select';
 import { Navbar } from '@sigx/zero/navbar';
 import { NumberInput } from '@sigx/zero/number-input';
+import { Pagination } from '@sigx/zero/pagination';
 import { Popover } from '@sigx/zero/popover';
 import { Progress } from '@sigx/zero/progress';
 import { RadialProgress } from '@sigx/zero/radial-progress';
@@ -128,6 +129,7 @@ export type _radialProgress = MustBeTrue<CheckColorSize<PropsOf<typeof RadialPro
 export type _join = MustBeTrue<CheckColorSize<PropsOf<typeof Join.Root>>>;
 export type _navbar = MustBeTrue<CheckColorSize<PropsOf<typeof Navbar.Root>>>;
 export type _breadcrumbs = MustBeTrue<CheckColorSize<PropsOf<typeof Breadcrumbs.Root>>>;
+export type _pagination = MustBeTrue<CheckColorSize<PropsOf<typeof Pagination.Root>>>;
 
 /* ── the three scopes basic wires a variant vocabulary for ── */
 type ButtonProps = PropsOf<typeof Button.Root>;

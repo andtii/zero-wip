@@ -648,6 +648,15 @@ const INDICATORS: IndicatorSpec[] = [
      * ride along from `combosFor`, so complete's success ink is measured too.
      */
     { scope: 'radial-progress', part: 'root', ancestors: [] },
+    /**
+     * Pagination's prev/next triggers (#339): the `‹`/`›` glyph is the only
+     * affordance for "there are more pages", so an invisible one is a real
+     * bug. Opted in by hand (their names match no PAINT_ONLY_PART pattern),
+     * measured in the root chain they really render in; `disabled` rides
+     * along from `combosFor` and answers to the 2:1 pre-fade floor.
+     */
+    { scope: 'pagination', part: 'prev-trigger', ancestors: ['root'], glyph: '‹' },
+    { scope: 'pagination', part: 'next-trigger', ancestors: ['root'], glyph: '›' },
 ];
 
 const partOf = (scope: string, name: string): ManifestPart => {

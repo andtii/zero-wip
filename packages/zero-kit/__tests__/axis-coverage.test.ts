@@ -229,6 +229,10 @@ const NO_VARIANT: Record<string, string> = {
         + 'Breadcrumb has separator and menu props only, HeroUI\'s underline '
         + 'prop is a hover-decoration mode, and Carbon\'s noTrailingSlash is a '
         + 'boolean, not a chrome vocabulary.',
+    pagination: 'MUI Pagination varies as text | outlined and HeroUI as '
+        + 'flat | bordered | light | faded — a real chrome vocabulary in two '
+        + 'surveyed systems, spelled differently again; no shipped skin '
+        + 'declares one for it yet.',
 };
 
 /**

@@ -4182,11 +4182,145 @@ export const breadcrumbs: RecipeInput = {
     },
 };
 
+/**
+ * Pagination — M3 icon-button circles: transparent cells with the 8%/12%
+ * state-layer washes, the current page a filled primary circle. The washes
+ * are the simple read of the state layer (the full `pressable` ripple is
+ * the button's gesture, not a page cell's). Glyphs flip under the rtl guard.
+ */
+export const pagination: RecipeInput = {
+    component: 'pagination',
+    tokens: {
+        '--pg-accent': 'var(--color-primary)',
+        '--pg-accent-content': 'var(--color-primary-content)',
+        '--pg-size': 'var(--size-field)',
+        '--pg-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: { base: { display: 'flex', alignItems: 'center', gap: 'var(--space-2xs)' } },
+        item: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                paddingInline: 'var(--space-2xs)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: '9999px',
+                fontSize: 'var(--pg-font)',
+                fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: motion('background, color'),
+            },
+            states: {
+                hover: { background: 'color-mix(in oklch, var(--color-base-content) 8%, transparent)' },
+                active: { background: 'var(--pg-accent)', color: 'var(--pg-accent-content)' },
+                inactive: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
+                },
+            },
+        },
+        ellipsis: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)',
+                fontSize: 'var(--pg-font)',
+                userSelect: 'none',
+            },
+        },
+        'prev-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: '9999px',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: 'color-mix(in oklch, var(--color-base-content) 8%, transparent)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
+                },
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+        'next-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: '9999px',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: 'color-mix(in oklch, var(--color-base-content) 8%, transparent)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
+                },
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--pg-accent': `var(--color-${c})`,
+            '--pg-accent-content': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--pg-size': 'calc(var(--size-field) * 0.75)', '--pg-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--pg-size': 'calc(var(--size-field) * 0.875)' } } },
+            md: {},
+            lg: { root: { base: { '--pg-size': 'calc(var(--size-field) * 1.25)' } } },
+            xl: { root: { base: { '--pg-size': 'calc(var(--size-field) * 1.5)', '--pg-font': 'var(--text-lg)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs,
+    navbar, breadcrumbs, pagination,
 ];

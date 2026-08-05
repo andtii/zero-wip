@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Breadcrumbs, Card, Chat, Collapsible, Combobox, Dialog, Divider, Indicator, Input, Join, Kbd, NativeSelect, Navbar, NumberInput, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Switch, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Breadcrumbs, Card, Chat, Collapsible, Combobox, Dialog, Divider, Indicator, Input, Join, Kbd, NativeSelect, Navbar, NumberInput, Pagination, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Switch, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -133,6 +133,7 @@ function page() {
                 <Navbar.Center><nav aria-label="Primary"><a href="/docs">Docs</a></nav></Navbar.Center>
                 <Navbar.End><button type="button">Sign in</button></Navbar.End>
             </Navbar.Root>
+            <Pagination.Root count={10} defaultPage={4} />
             <Breadcrumbs.Root>
                 <Breadcrumbs.List>
                     <Breadcrumbs.Item>

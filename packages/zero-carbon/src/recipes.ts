@@ -4093,11 +4093,136 @@ export const breadcrumbs: RecipeInput = {
     },
 };
 
+/**
+ * Pagination — Carbon's square page cells: transparent at rest, layer-hover,
+ * the current page marked the Carbon way — a 2px interactive rule on the
+ * block-start edge over a raised layer, plus weight (Carbon marks selection
+ * with rules, not fills). Size-only; glyphs flip under the rtl guard.
+ */
+export const pagination: RecipeInput = {
+    component: 'pagination',
+    tokens: {
+        '--pg-size': 'var(--size-field)',
+        '--pg-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: { base: { display: 'flex', alignItems: 'center', gap: '0' } },
+        item: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                paddingInline: 'var(--space-2xs)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: '0',
+                fontSize: 'var(--pg-font)',
+                fontVariantNumeric: 'tabular-nums',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: motion('background, color'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                active: {
+                    background: 'var(--color-base-200)',
+                    boxShadow: 'inset 0 2px 0 0 var(--color-base-content)',
+                    fontWeight: 'var(--weight-semibold)',
+                },
+                inactive: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+        ellipsis: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)',
+                fontSize: 'var(--pg-font)',
+                userSelect: 'none',
+            },
+        },
+        'prev-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: '0',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+        'next-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: '0',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--pg-size': 'calc(var(--size-field) * 0.8)', '--pg-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--pg-size': 'calc(var(--size-field) * 1.2)' } } },
+            xl: { root: { base: { '--pg-size': 'calc(var(--size-field) * 1.4)', '--pg-font': 'var(--text-md)' } } },
+            '2xl': { root: { base: { '--pg-size': 'calc(var(--size-field) * 1.6)', '--pg-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs,
+    navbar, breadcrumbs, pagination,
 ];

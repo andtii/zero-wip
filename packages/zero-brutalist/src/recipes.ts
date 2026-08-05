@@ -3726,11 +3726,143 @@ export const breadcrumbs: RecipeInput = {
     },
 };
 
+/**
+ * Pagination — stamped tiles: double-weight ink borders, the hard shadow,
+ * the current page refilled with the accent pair (ink by default). Pressed
+ * collapses the shadow and sinks the tile, the house gesture. Glyphs flip
+ * under the rtl guard.
+ */
+export const pagination: RecipeInput = {
+    component: 'pagination',
+    tokens: {
+        '--pg-accent': 'var(--color-base-content)',
+        '--pg-accent-content': 'var(--color-base-100)',
+        '--pg-size': 'var(--size-field)',
+        '--pg-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: { base: { display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' } },
+        item: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                paddingInline: 'var(--space-2xs)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                borderRadius: '0',
+                boxShadow: 'var(--shadow-sm)',
+                fontSize: 'var(--pg-font)',
+                fontWeight: 'var(--weight-bold)',
+                fontVariantNumeric: 'tabular-nums',
+                appearance: 'none',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                active: {
+                    background: 'var(--pg-accent)',
+                    color: 'var(--pg-accent-content)',
+                },
+                inactive: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { boxShadow: 'none', transform: 'translate(3px, 3px)' },
+            },
+        },
+        ellipsis: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                color: 'var(--color-base-content)',
+                fontSize: 'var(--pg-font)',
+                fontWeight: 'var(--weight-bold)',
+                userSelect: 'none',
+            },
+        },
+        'prev-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                borderRadius: '0',
+                boxShadow: 'var(--shadow-sm)',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { boxShadow: 'none', transform: 'translate(3px, 3px)' },
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+        'next-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                borderRadius: '0',
+                boxShadow: 'var(--shadow-sm)',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { boxShadow: 'none', transform: 'translate(3px, 3px)' },
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--pg-accent': `var(--color-${c})`,
+            '--pg-accent-content': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--pg-size': 'calc(var(--size-field) * 0.75)', '--pg-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--pg-size': 'calc(var(--size-field) * 0.875)' } } },
+            md: {},
+            lg: { root: { base: { '--pg-size': 'calc(var(--size-field) * 1.25)' } } },
+            xl: { root: { base: { '--pg-size': 'calc(var(--size-field) * 1.5)', '--pg-font': 'var(--text-lg)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
-    navbar, breadcrumbs,
+    navbar, breadcrumbs, pagination,
 ];
