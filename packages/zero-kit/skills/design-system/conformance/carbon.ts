@@ -40,6 +40,18 @@ export const vocabulary = {
         'danger-tertiary',
         'danger-ghost',
     ],
+    /**
+     * The PACKAGE's whole declared modifier set, not Button's: graduation
+     * (`conformance.test.ts`, "fixtures describing in-repo packages stay
+     * verbatim") pins this vocabulary byte-equal to `zero-carbon`'s tokens,
+     * and #340 added the DataTable's `zebra` (`useZebraStyles` at the prop
+     * boundary — sourced from
+     * react.carbondesignsystem.com/?path=/docs/components-datatable-basic,
+     * verified 2026-08-05) to that set. The matrix row and `source.url`
+     * above still grade BUTTON — `zebra` rides along because the fixture's
+     * vocabulary is the package's, and only `icon-only`/`expressive` are
+     * button facts.
+     */
     modifiers: ['icon-only', 'expressive', 'zebra'],
 } as const;
 
