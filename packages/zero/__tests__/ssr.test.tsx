@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Breadcrumbs, Card, Chat, Collapsible, Combobox, Dialog, Divider, Drawer, FileUpload, Indicator, Input, Join, Kbd, NativeSelect, Navbar, NumberInput, Pagination, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Steps, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Collapsible, Combobox, Dialog, Divider, Drawer, FileUpload, Indicator, Input, Join, Kbd, NativeSelect, Navbar, NumberInput, Pagination, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Steps, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -163,6 +163,18 @@ function page() {
                     </Breadcrumbs.Item>
                 </Breadcrumbs.List>
             </Breadcrumbs.Root>
+            <Carousel.Root label="Featured">
+                <Carousel.Viewport>
+                    <Carousel.Item>One</Carousel.Item>
+                    <Carousel.Item>Two</Carousel.Item>
+                </Carousel.Viewport>
+                <Carousel.PrevTrigger>Prev</Carousel.PrevTrigger>
+                <Carousel.NextTrigger>Next</Carousel.NextTrigger>
+                <Carousel.IndicatorGroup>
+                    <Carousel.Indicator index={0} />
+                    <Carousel.Indicator index={1} />
+                </Carousel.IndicatorGroup>
+            </Carousel.Root>
             <FileUpload.Root name="attachments" accept="image/*" multiple>
                 <FileUpload.Label>Attachments</FileUpload.Label>
                 <FileUpload.Dropzone>Drop files here</FileUpload.Dropzone>

@@ -4798,6 +4798,148 @@ export const fileUpload: RecipeInput = {
     },
 };
 
+/**
+ * Carousel — MD3: the viewport rides the shaped `radius-box` corner, nav
+ * triggers are tonal circles with the state layers, and the dots follow
+ * the hero-carousel spec's shape play: a muted ring resting, the accent
+ * pill when active (the dot stretches — shape signals state, not colour
+ * alone).
+ */
+export const carousel: RecipeInput = {
+    component: 'carousel',
+    tokens: {
+        '--carousel-accent': 'var(--color-primary)',
+        '--carousel-dot': '0.625rem',
+        '--carousel-nav': '2.25rem',
+    },
+    parts: {
+        root: {
+            base: { position: 'relative', display: 'grid', gap: 'var(--space-sm)' },
+        },
+        viewport: {
+            base: {
+                display: 'flex',
+                overflowX: 'auto',
+                scrollSnapType: 'x mandatory',
+                overscrollBehaviorX: 'contain',
+                borderRadius: 'var(--radius-box)',
+            },
+        },
+        item: {
+            base: {
+                flex: '0 0 100%',
+                minWidth: '0',
+                scrollSnapAlign: 'center',
+            },
+            states: { active: {}, inactive: {} },
+        },
+        'prev-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlockStart: 'calc(50% - var(--carousel-nav) / 2)',
+                insetInlineStart: 'var(--space-sm)',
+                inlineSize: 'var(--carousel-nav)',
+                blockSize: 'var(--carousel-nav)',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--color-surface-container-content)',
+                background: 'var(--color-surface-container)',
+                border: 'none',
+                borderRadius: '9999px',
+                boxShadow: 'var(--shadow-level1)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+                zIndex: '1',
+            },
+            states: {
+                hover: { background: 'color-mix(in oklch, var(--color-base-content) 8%, var(--color-surface-container))' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklch, var(--color-base-content) 12%, var(--color-surface-container))',
+                },
+            },
+        },
+        'next-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlockStart: 'calc(50% - var(--carousel-nav) / 2)',
+                insetInlineEnd: 'var(--space-sm)',
+                inlineSize: 'var(--carousel-nav)',
+                blockSize: 'var(--carousel-nav)',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--color-surface-container-content)',
+                background: 'var(--color-surface-container)',
+                border: 'none',
+                borderRadius: '9999px',
+                boxShadow: 'var(--shadow-level1)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+                zIndex: '1',
+            },
+            states: {
+                hover: { background: 'color-mix(in oklch, var(--color-base-content) 8%, var(--color-surface-container))' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklch, var(--color-base-content) 12%, var(--color-surface-container))',
+                },
+            },
+        },
+        'indicator-group': {
+            base: { display: 'flex', gap: 'var(--space-xs)', justifyContent: 'center', alignItems: 'center' },
+        },
+        indicator: {
+            base: {
+                appearance: 'none',
+                inlineSize: 'var(--carousel-dot)',
+                blockSize: 'var(--carousel-dot)',
+                padding: '0',
+                background: 'transparent',
+                border: 'calc(var(--border) * 2) solid color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                borderRadius: '9999px',
+                cursor: 'pointer',
+                transition: 'inline-size var(--duration-fast) var(--ease-emphasized), background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                active: {
+                    inlineSize: 'calc(var(--carousel-dot) * 2.2)',
+                    background: 'var(--carousel-accent)',
+                    borderColor: 'var(--carousel-accent)',
+                },
+                inactive: {},
+                ...focusRing,
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--carousel-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--carousel-dot': '0.375rem', '--carousel-nav': '1.75rem' } } },
+            sm: { root: { base: { '--carousel-dot': '0.5rem', '--carousel-nav': '2rem' } } },
+            md: {},
+            lg: { root: { base: { '--carousel-dot': '0.75rem', '--carousel-nav': '2.75rem' } } },
+            xl: { root: { base: { '--carousel-dot': '0.875rem', '--carousel-nav': '3.25rem' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
@@ -4807,4 +4949,5 @@ export const recipes: RecipeInput[] = [
     navbar, breadcrumbs, pagination, steps, drawer,
     table,
     fileUpload,
+    carousel,
 ];

@@ -24,6 +24,7 @@ import { Badge } from '@sigx/zero/badge';
 import { Breadcrumbs } from '@sigx/zero/breadcrumbs';
 import { Button } from '@sigx/zero/button';
 import { Card } from '@sigx/zero/card';
+import { Carousel } from '@sigx/zero/carousel';
 import { Chat } from '@sigx/zero/chat';
 import { Checkbox } from '@sigx/zero/checkbox';
 import { Collapsible } from '@sigx/zero/collapsible';
@@ -137,6 +138,7 @@ export type _pagination = MustBeTrue<CheckColorSize<PropsOf<typeof Pagination.Ro
 export type _steps = MustBeTrue<CheckColorSize<PropsOf<typeof Steps.Root>>>;
 export type _table = MustBeTrue<CheckColorSize<PropsOf<typeof Table.Root>>>;
 export type _fileUpload = MustBeTrue<CheckColorSize<PropsOf<typeof FileUpload.Root>>>;
+export type _carousel = MustBeTrue<CheckColorSize<PropsOf<typeof Carousel.Root>>>;
 
 /* ── the three scopes basic wires a variant vocabulary for ── */
 type ButtonProps = PropsOf<typeof Button.Root>;

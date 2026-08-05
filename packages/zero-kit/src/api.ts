@@ -257,6 +257,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     breadcrumbs: ['label'],
     button: ['onBlur', 'onClick', 'onFocus', 'onKeydown', 'type'],
     card: [],
+    carousel: ['defaultIndex', 'label', 'value'],
     chat: ['placement'],
     checkbox: ['defaultChecked', 'indeterminate', 'invalid', 'name', 'required', 'value'],
     collapsible: ['defaultOpen', 'value'],

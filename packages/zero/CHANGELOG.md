@@ -106,6 +106,18 @@
     is re-synced through `DataTransfer` best-effort. Field-context aware
     exactly like Input; `ItemRemove` announces "Remove <name>". Exposes
     `acceptsFile` and `formatBytes`.
+  - **Carousel**: a scroll-snap viewport whose MODEL IS THE ACTIVE INDEX —
+    `Root(label required)`/`Viewport`/`Item`/`PrevTrigger`/`NextTrigger`/
+    `IndicatorGroup`/`Indicator(index)`. The index is derived from real
+    scroll by an IntersectionObserver (created in `onMounted`, so SSR never
+    observes) and driven back by `scrollIntoView` on model set — smooth,
+    collapsing to a jump under `prefers-reduced-motion`. APG carousel
+    ARIA (labelled region, "slide" groups labelled "n of m"); prev/next
+    clamp and disable at the bounds (no wrap); the dots are labelled
+    buttons — not tabs, no roving tabindex — with `aria-current` on the
+    active one. The dot is a paint part graded by the contrast audit's
+    indicator matrix in both states. Real-scroll behavior is pinned by
+    `e2e/carousel.spec.ts`.
 
 - **The content-tier sweep** (#334): the cheap 60% of the coverage gap
   against `@sigx/daisyui` — components that are anatomy plus recipes with

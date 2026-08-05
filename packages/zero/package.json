@@ -223,6 +223,10 @@
         "./file-upload": {
             "types": "./dist/components/file-upload/index.d.ts",
             "import": "./dist/components/file-upload/index.js"
+        },
+        "./carousel": {
+            "types": "./dist/components/carousel/index.d.ts",
+            "import": "./dist/components/carousel/index.js"
         }
     },
     "files": [

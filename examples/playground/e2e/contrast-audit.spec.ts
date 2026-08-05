@@ -639,6 +639,10 @@ const INDICATORS: IndicatorSpec[] = [
      * geometry and zero renders the part empty.
      */
     { scope: 'timeline', part: 'marker', ancestors: ['root', 'item'] },
+    // The carousel dot: auto-selected by the paint-only pattern (named
+    // `indicator`, no text hint). Both of its states are measured — an
+    // inactive dot a viewer cannot find is a pagination they cannot use.
+    { scope: 'carousel', part: 'indicator', ancestors: ['root', 'indicator-group'] },
     /**
      * RadialProgress's ring (#334): painted ON the root as a background-colour
      * ink under conic/annulus masks — background-colour rather than a

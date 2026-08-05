@@ -53,6 +53,7 @@ import type { Steps as ZSteps } from '@sigx/zero/steps';
 import type { Drawer as ZDrawer } from '@sigx/zero/drawer';
 import type { Table as ZTable } from '@sigx/zero/table';
 import type { FileUpload as ZFileUpload } from '@sigx/zero/file-upload';
+import type { Carousel as ZCarousel } from '@sigx/zero/carousel';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -440,3 +441,11 @@ type FileUploadProps = {
 };
 type FileUploadAdapted = Adapted<typeof ZFileUpload, ZeroAxisProp, FileUploadProps>;
 export declare const FileUpload: FileUploadAdapted & AdaptedStatics<typeof ZFileUpload> & { Root: FileUploadAdapted };
+
+/** carousel — no vendor route; the wired surface keeps zero's names. */
+type CarouselProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type CarouselAdapted = Adapted<typeof ZCarousel, ZeroAxisProp, CarouselProps>;
+export declare const Carousel: CarouselAdapted & AdaptedStatics<typeof ZCarousel> & { Root: CarouselAdapted };

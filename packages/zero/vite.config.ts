@@ -58,7 +58,8 @@ export default defineLibConfig({
         'components/steps/index': 'src/components/steps/index.ts',
         'components/drawer/index': 'src/components/drawer/index.ts',
         'components/table/index': 'src/components/table/index.ts',
-        'components/file-upload/index': 'src/components/file-upload/index.ts'
+        'components/file-upload/index': 'src/components/file-upload/index.ts',
+        'components/carousel/index': 'src/components/carousel/index.ts'
     },
     external: ['sigx', 'sigx/jsx-runtime', 'sigx/jsx-dev-runtime'],
     jsx: true

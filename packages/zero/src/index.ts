@@ -306,3 +306,13 @@ export type {
     FileUploadItemTextProps,
     FileUploadItemRemoveProps,
 } from './components/file-upload/index.js';
+
+export { Carousel, carouselAnatomy, useCarouselContext } from './components/carousel/index.js';
+export type {
+    CarouselRootProps,
+    CarouselViewportProps,
+    CarouselItemProps,
+    CarouselTriggerProps,
+    CarouselIndicatorGroupProps,
+    CarouselIndicatorProps,
+} from './components/carousel/index.js';

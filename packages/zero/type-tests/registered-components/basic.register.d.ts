@@ -441,6 +441,15 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
+            /** carousel — color, size wired. */
+            'carousel': {
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+                /** Accepts `variant` at runtime, but no basic recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
         };
     }
 }
