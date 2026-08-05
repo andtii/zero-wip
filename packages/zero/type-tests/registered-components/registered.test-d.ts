@@ -48,6 +48,7 @@ import { Status } from '@sigx/zero/status';
 import { Switch } from '@sigx/zero/switch';
 import { Tabs } from '@sigx/zero/tabs';
 import { Textarea } from '@sigx/zero/textarea';
+import { Timeline } from '@sigx/zero/timeline';
 import { Toast } from '@sigx/zero/toast';
 import type { ToastOptions } from '@sigx/zero/toast';
 import { Toggle } from '@sigx/zero/toggle';
@@ -116,6 +117,7 @@ export type _kbd = MustBeTrue<CheckColorSize<PropsOf<typeof Kbd.Root>>>;
 export type _status = MustBeTrue<CheckColorSize<PropsOf<typeof Status.Root>>>;
 export type _indicator = MustBeTrue<CheckColorSize<PropsOf<typeof Indicator.Root>>>;
 export type _stats = MustBeTrue<CheckColorSize<PropsOf<typeof Stats.Root>>>;
+export type _timeline = MustBeTrue<CheckColorSize<PropsOf<typeof Timeline.Root>>>;
 
 /* ── the three scopes basic wires a variant vocabulary for ── */
 type ButtonProps = PropsOf<typeof Button.Root>;

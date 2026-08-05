@@ -48,3 +48,4 @@ export { Kbd } from '@sigx/zero/kbd';
 export { Status } from '@sigx/zero/status';
 export { Indicator } from '@sigx/zero/indicator';
 export { Stats } from '@sigx/zero/stats';
+export { Timeline } from '@sigx/zero/timeline';

@@ -207,6 +207,9 @@ const NO_VARIANT: Record<string, string> = {
         + 'item\'s content (a badge, a dot), never to the anchor.',
     stats: 'no surveyed system varies a stat group — daisyUI\'s stats has '
         + 'orientation and an optional shadow, not a style axis.',
+    timeline: 'daisyUI\'s timeline styles through snap/compact modifiers and '
+        + 'a boxed content class, not a fill variant; Ant Design\'s Timeline '
+        + 'has mode (side) and pending, no style axis.',
 };
 
 /**

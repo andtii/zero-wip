@@ -14,6 +14,7 @@ import {
     PLACEMENT_VOCABULARY,
     Stats, statsAnatomy,
     Status, statusAnatomy,
+    Timeline, timelineAnatomy,
 } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
@@ -208,5 +209,73 @@ describe('Stats', () => {
         expectAnatomy(container, statsAnatomy);
         expect(container.querySelector('[data-part="title"]')).toBeNull();
         expect(container.querySelector('[data-part="figure"]')).toBeNull();
+    });
+});
+
+describe('Timeline', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    function mount(orientation?: 'horizontal' | 'vertical') {
+        render(
+            <Timeline.Root orientation={orientation}>
+                <Timeline.Item>
+                    <Timeline.Marker />
+                    <Timeline.Content placement="start">v1.0 shipped</Timeline.Content>
+                    <Timeline.Connector />
+                </Timeline.Item>
+                <Timeline.Item>
+                    <Timeline.Marker>★</Timeline.Marker>
+                    <Timeline.Content>v2.0 shipped</Timeline.Content>
+                </Timeline.Item>
+            </Timeline.Root>,
+            container,
+        );
+    }
+
+    it('renders a semantic list with a valid anatomy, vertical by default', () => {
+        mount();
+        expectAnatomy(container, timelineAnatomy);
+        const root = part(container, 'timeline', 'root');
+        // A timeline is an ordered sequence of events: a real list, so
+        // assistive tech announces "list, 2 items" and can walk it.
+        expect(root.tagName).toBe('UL');
+        expect(part(container, 'timeline', 'item').tagName).toBe('LI');
+        // Vertical is the default — a feed of events grows downward; the
+        // horizontal process strip is the variant, unlike Divider.
+        expect(root.getAttribute('data-orientation')).toBe('vertical');
+        expect(part(container, 'timeline', 'item').getAttribute('data-orientation')).toBe('vertical');
+    });
+
+    it('content stamps its declared side, end by default', () => {
+        mount();
+        const contents = container.querySelectorAll<HTMLElement>('[data-scope="timeline"][data-part="content"]');
+        expect(contents[0]!.getAttribute('data-placement')).toBe('start');
+        expect(contents[1]!.getAttribute('data-placement')).toBe('end');
+        // Content needs BOTH the side and the axis: start means the inline
+        // side of a vertical timeline and the block side of a horizontal one,
+        // and a recipe can only compose the two on the same element.
+        expect(contents[0]!.getAttribute('data-orientation')).toBe('vertical');
+        expect([...(timelineAnatomy.parts.content.placements ?? [])].sort()).toEqual(['end', 'start']);
+    });
+
+    it('marker and connector are decoration — the content carries the event', () => {
+        mount();
+        // The marker may hold an icon glyph, but the reader gets the event
+        // from the content text; announcing "star" in between is noise.
+        expect(part(container, 'timeline', 'marker').getAttribute('aria-hidden')).toBe('true');
+        expect(part(container, 'timeline', 'connector').getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('propagates a horizontal orientation everywhere it is needed', () => {
+        mount('horizontal');
+        expect(part(container, 'timeline', 'root').getAttribute('data-orientation')).toBe('horizontal');
+        expect(part(container, 'timeline', 'item').getAttribute('data-orientation')).toBe('horizontal');
+        expect(part(container, 'timeline', 'connector').getAttribute('data-orientation')).toBe('horizontal');
+        expect(part(container, 'timeline', 'content').getAttribute('data-orientation')).toBe('horizontal');
+        expectAnatomy(container, timelineAnatomy);
     });
 });

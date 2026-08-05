@@ -3668,10 +3668,152 @@ export const stats: RecipeInput = {
     },
 };
 
+/** daisy timeline: the boxed content beside a dotted axis. */
+export const timeline: RecipeInput = {
+    component: 'timeline',
+    tokens: { '--timeline-accent': 'var(--color-base-content)', '--timeline-marker-size': 'calc(var(--size-selector) * 3)' },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                flexDirection: 'column',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'row' },
+            },
+        },
+        /**
+         * One item is a 3×2 grid around the axis. Vertical: columns are
+         * [start-content | axis | end-content], the connector drops below the
+         * marker. Horizontal: transposed. Grid tracks follow the inline
+         * direction, so the whole layout mirrors under RTL with no
+         * corrections.
+         */
+        item: {
+            base: {
+                display: 'grid',
+                position: 'relative',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': {
+                    gridTemplateColumns: '1fr auto 1fr',
+                    gridTemplateRows: 'auto 1fr',
+                },
+                '&[data-orientation="horizontal"]': {
+                    gridTemplateRows: '1fr auto 1fr',
+                    gridTemplateColumns: 'auto 1fr',
+                    flex: '1 1 0%',
+                },
+            },
+        },
+        marker: {
+            base: {
+                inlineSize: 'var(--timeline-marker-size)',
+                blockSize: 'var(--timeline-marker-size)',
+                boxSizing: 'border-box',
+                borderRadius: '9999px',
+                background: 'var(--timeline-accent)',
+                border: 'calc(var(--timeline-marker-size) / 2) solid var(--timeline-accent)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0',
+            },
+            selectors: {
+                // The axis cell, both orientations. `place-self` centres the
+                // dot on the line in the cross axis.
+                '[data-scope="timeline"][data-part="item"][data-orientation="vertical"] > &': {
+                    gridColumn: '2',
+                    gridRow: '1',
+                    placeSelf: 'center',
+                },
+                '[data-scope="timeline"][data-part="item"][data-orientation="horizontal"] > &': {
+                    gridRow: '2',
+                    gridColumn: '1',
+                    placeSelf: 'center',
+                },
+            },
+        },
+        connector: {
+            base: {
+                background: 'var(--color-base-300)',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': {
+                    gridColumn: '2',
+                    gridRow: '2',
+                    justifySelf: 'center',
+                    inlineSize: 'var(--border)',
+                    minBlockSize: 'var(--space-lg)',
+                    blockSize: '100%',
+                },
+                '&[data-orientation="horizontal"]': {
+                    gridRow: '2',
+                    gridColumn: '2',
+                    alignSelf: 'center',
+                    blockSize: 'var(--border)',
+                    minInlineSize: 'var(--space-lg)',
+                    inlineSize: '100%',
+                },
+            },
+        },
+        content: {
+            base: {
+                margin: 'var(--space-xs) var(--space-md)',
+                padding: 'var(--space-xs) var(--space-md)',
+                fontSize: 'var(--text-sm)',
+                border: 'var(--border) solid var(--color-base-200)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+            },
+            selectors: {
+                // side × axis, composed on the one element that carries both.
+                '&[data-orientation="vertical"][data-placement="start"]': {
+                    gridColumn: '1',
+                    gridRow: '1',
+                    justifySelf: 'end',
+                    textAlign: 'end',
+                },
+                '&[data-orientation="vertical"][data-placement="end"]': {
+                    gridColumn: '3',
+                    gridRow: '1',
+                    justifySelf: 'start',
+                },
+                '&[data-orientation="horizontal"][data-placement="start"]': {
+                    gridRow: '1',
+                    gridColumn: '1',
+                    alignSelf: 'end',
+                },
+                '&[data-orientation="horizontal"][data-placement="end"]': {
+                    gridRow: '3',
+                    gridColumn: '1',
+                    alignSelf: 'start',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { marker: { base: {
+            '--timeline-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 2)' } }, content: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 2.5)' } }, content: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 3.5)' } }, content: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { marker: { base: { '--timeline-marker-size': 'calc(var(--size-selector) * 4)' } }, content: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
-    kbd, status, indicator, stats,
+    kbd, status, indicator, stats, timeline,
 ];

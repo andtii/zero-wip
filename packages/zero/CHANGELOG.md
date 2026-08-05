@@ -33,6 +33,14 @@
     divider is directional CSS on the item and a sibling selector cannot
     see the root (the toggle-group precedent). Every band below `Item` is
     optional.
+  - **Timeline**: `Root(orientation, default vertical)`/`Item`/`Marker`/
+    `Connector`/`Content(placement)` on a real `<ul>`/`<li>` list. Flatter
+    than daisy's start/middle/end triple: one marker (a paint part — the
+    contrast audit's indicator matrix grades it inside its `root > item`
+    chain), one connector (the segment toward the next item, `aria-hidden`
+    like the marker), and one content box that declares its SIDE of the
+    axis as `data-placement="start|end"` — the logical pair, so alternating
+    layouts are per-item markup and RTL mirrors free.
 
 - **The sugar tier** (#333) — the one-liner DX the old `@sigx/daisyui`
   library had and zero's compound anatomy made verbose:

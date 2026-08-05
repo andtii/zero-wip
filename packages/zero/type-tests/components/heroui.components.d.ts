@@ -42,6 +42,7 @@ import type { Kbd as ZKbd } from '@sigx/zero/kbd';
 import type { Status as ZStatus } from '@sigx/zero/status';
 import type { Indicator as ZIndicator } from '@sigx/zero/indicator';
 import type { Stats as ZStats } from '@sigx/zero/stats';
+import type { Timeline as ZTimeline } from '@sigx/zero/timeline';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -299,3 +300,10 @@ type StatsProps = {
 };
 type StatsAdapted = Adapted<typeof ZStats, ZeroAxisProp, StatsProps>;
 export declare const Stats: StatsAdapted & AdaptedStatics<typeof ZStats> & { Root: StatsAdapted };
+
+/** timeline — no vendor route; the wired surface keeps zero's names. */
+type TimelineProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type TimelineAdapted = Adapted<typeof ZTimeline, ZeroAxisProp, TimelineProps>;
+export declare const Timeline: TimelineAdapted & AdaptedStatics<typeof ZTimeline> & { Root: TimelineAdapted };

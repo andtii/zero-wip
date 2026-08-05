@@ -179,6 +179,10 @@
         "./stats": {
             "types": "./dist/components/stats/index.d.ts",
             "import": "./dist/components/stats/index.js"
+        },
+        "./timeline": {
+            "types": "./dist/components/timeline/index.d.ts",
+            "import": "./dist/components/timeline/index.js"
         }
     },
     "files": [

@@ -92,7 +92,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-36 components ship today. Every part each renders is listed below, in
+37 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -257,6 +257,15 @@ component renders; the root is called out separately where it carries props.
   BOTH root and item carry data-orientation (the between-item divider is
   directional CSS on the item, and a sibling selector cannot see the root —
   the toggle-group precedent). Every band below Item is optional.
+- Timeline: Root(orientation, default VERTICAL — a feed grows downward)/
+  Item/Marker/Connector/Content(placement start|end). A real <ul>/<li> list
+  so AT announces and walks it. Marker (the dot/icon on the axis — a paint
+  part, graded by the contrast audit's indicator matrix) and Connector (the
+  line toward the next item) are aria-hidden decoration; Content declares
+  which SIDE of the axis it sits on as data-placement from the logical
+  start|end pair, so alternating layouts are per-item markup and RTL
+  mirrors free. Content and connector also carry data-orientation — a
+  recipe composes side × axis on the element that has both.
 - Divider: Root only, role=separator, orientation. Non-focusable;
   aria-orientation emitted only for `vertical`.
 - Skeleton: Root only(model=loading, default TRUE), data-state loading|loaded,
@@ -376,8 +385,8 @@ Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
 Avatar, Badge, Button, Card, Checkbox, Collapsible, Combobox, Dialog, Divider,
 Field, Indicator, Input, Kbd, Menu, NativeSelect, NumberInput, Popover,
 Progress, RadioGroup, RatingGroup, Select, Skeleton, Slider, Spinner, Stats,
-Status, Switch, Tabs, Textarea, Toast, Toggle, ToggleGroup, Tooltip and
-TreeView;
+Status, Switch, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup,
+Tooltip and TreeView;
 that is every component. Where the Root renders a fragment (a
 dialog/menu/popover/tooltip) the props live on the Trigger, which renders the
 carrier part the compiled axis selectors anchor on, and Toast routes the

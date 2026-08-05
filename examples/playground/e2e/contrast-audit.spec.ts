@@ -631,6 +631,14 @@ const INDICATORS: IndicatorSpec[] = [
      * matrix's 3:1. Empty chain: a status dot stands on the app surface.
      */
     { scope: 'status', part: 'root', ancestors: [] },
+    /**
+     * Timeline's marker (#334): the dot on the axis. Named after what it is
+     * rather than after its job, so `PAINT_ONLY_PART` cannot select it —
+     * opted in by hand like the rating star. Measured inside its real
+     * root > item chain; no glyph, because the recipes draw the dot as
+     * geometry and zero renders the part empty.
+     */
+    { scope: 'timeline', part: 'marker', ancestors: ['root', 'item'] },
 ];
 
 const partOf = (scope: string, name: string): ManifestPart => {

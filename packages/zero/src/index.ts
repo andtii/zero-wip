@@ -236,3 +236,11 @@ export type {
 
 export { Stats, statsAnatomy, useStatsContext } from './components/stats/index.js';
 export type { StatsRootProps, StatsPartProps } from './components/stats/index.js';
+
+export { Timeline, timelineAnatomy, useTimelineContext } from './components/timeline/index.js';
+export type {
+    TimelineRootProps,
+    TimelinePartProps,
+    TimelineContentProps,
+    TimelinePlacement,
+} from './components/timeline/index.js';

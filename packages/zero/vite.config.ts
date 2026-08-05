@@ -47,7 +47,8 @@ export default defineLibConfig({
         'components/kbd/index': 'src/components/kbd/index.ts',
         'components/status/index': 'src/components/status/index.ts',
         'components/indicator/index': 'src/components/indicator/index.ts',
-        'components/stats/index': 'src/components/stats/index.ts'
+        'components/stats/index': 'src/components/stats/index.ts',
+        'components/timeline/index': 'src/components/timeline/index.ts'
     },
     external: ['sigx', 'sigx/jsx-runtime', 'sigx/jsx-dev-runtime'],
     jsx: true

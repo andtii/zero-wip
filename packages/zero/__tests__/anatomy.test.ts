@@ -57,7 +57,8 @@ describe('anatomy registry', () => {
             'accordion', 'alert', 'avatar', 'badge', 'button', 'card', 'checkbox', 'collapsible', 'combobox', 'dialog',
             'divider', 'field', 'indicator', 'input', 'kbd', 'menu', 'native-select', 'number-input',
             'popover', 'progress', 'radio-group', 'rating-group', 'select', 'skeleton', 'slider', 'spinner',
-            'stats', 'status', 'switch', 'tabs', 'textarea', 'toast', 'toggle', 'toggle-group', 'tooltip',
+            'stats', 'status', 'switch', 'tabs', 'textarea', 'timeline', 'toast', 'toggle', 'toggle-group',
+            'tooltip',
             'tree-view',
         ]);
     });
@@ -190,7 +191,7 @@ describe('anatomy registry', () => {
         // The DOM half is asserted by expectAnatomy in each component's tests.
         expect(declared.sort()).toEqual([
             'combobox.popup', 'indicator.item', 'menu.popup', 'menu.sub-popup',
-            'popover.popup', 'select.popup', 'toast.root', 'toast.viewport', 'tooltip.popup',
+            'popover.popup', 'select.popup', 'timeline.content', 'toast.root', 'toast.viewport', 'tooltip.popup',
         ]);
     });
 });
