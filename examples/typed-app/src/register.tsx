@@ -65,9 +65,12 @@ export const App = component(() => () => (
             /* @ts-expect-error — basic wires no variant on tabs */
             variant="solid"
         />
+        {/* #321 wired color/size on the Contract v1 carriers, so `color` now
+          * compiles here — the axis that stays unusable is `variant`. */}
         <Collapsible.Root
-            /* @ts-expect-error — basic wires NO axis on collapsible */
             color="primary"
+            /* @ts-expect-error — basic wires no variant on collapsible */
+            variant="solid"
         />
     </>
 ), { name: 'TypedApp.Register' });
