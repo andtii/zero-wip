@@ -219,6 +219,29 @@ const NO_VARIANT: Record<string, string> = {
     join: 'no surveyed system varies a radius-collapsing group — daisyUI\'s '
         + 'join has orientation only; the chrome belongs to the joined '
         + 'controls.',
+
+    // ── The navigation tier (#339). ──
+    navbar: 'no surveyed system varies a header bar — daisyUI\'s navbar is '
+        + 'one padded surface recoloured by the shared background utilities '
+        + '(the color axis, wired here), and HeroUI\'s Navbar styles through '
+        + 'isBlurred/isBordered booleans, not a chrome vocabulary.',
+    breadcrumbs: 'no surveyed system varies a breadcrumb trail — Ant Design\'s '
+        + 'Breadcrumb has separator and menu props only, HeroUI\'s underline '
+        + 'prop is a hover-decoration mode, and Carbon\'s noTrailingSlash is a '
+        + 'boolean, not a chrome vocabulary.',
+    pagination: 'MUI Pagination varies as text | outlined and HeroUI as '
+        + 'flat | bordered | light | faded — a real chrome vocabulary in two '
+        + 'surveyed systems, spelled differently again; no shipped skin '
+        + 'declares one for it yet.',
+    steps: 'no surveyed system varies a step rail — Carbon\'s '
+        + 'ProgressIndicator styles through vertical/spaceEqually booleans, '
+        + 'Ant Design\'s Steps `type` (default | navigation | inline) changes '
+        + 'the LAYOUT of the rail rather than its chrome, and daisyUI\'s steps '
+        + 'vary by colour only, wired here as the color axis.',
+    drawer: 'no surveyed system varies a drawer\'s chrome — like dialog: '
+        + 'HeroUI\'s Drawer varies by placement/size/backdrop (all structural '
+        + 'or metric), Material\'s standard-vs-modal split is zero\'s modal '
+        + 'prop, and daisyUI\'s drawer has layout modifiers only.',
 };
 
 /**

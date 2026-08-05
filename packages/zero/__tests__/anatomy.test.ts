@@ -54,10 +54,10 @@ describe('defineAnatomy', () => {
 describe('anatomy registry', () => {
     it('contains every component', () => {
         expect(Object.keys(anatomies).sort()).toEqual([
-            'accordion', 'alert', 'avatar', 'badge', 'button', 'card', 'chat', 'checkbox', 'collapsible',
-            'combobox', 'dialog', 'divider', 'field', 'indicator', 'input', 'join', 'kbd', 'menu',
-            'native-select', 'number-input', 'popover', 'progress', 'radial-progress', 'radio-group',
-            'rating-group', 'select', 'skeleton', 'slider', 'spinner', 'stats', 'status', 'switch', 'tabs',
+            'accordion', 'alert', 'avatar', 'badge', 'breadcrumbs', 'button', 'card', 'chat', 'checkbox', 'collapsible',
+            'combobox', 'dialog', 'divider', 'drawer', 'field', 'indicator', 'input', 'join', 'kbd', 'menu',
+            'native-select', 'navbar', 'number-input', 'pagination', 'popover', 'progress', 'radial-progress', 'radio-group',
+            'rating-group', 'select', 'skeleton', 'slider', 'spinner', 'stats', 'status', 'steps', 'switch', 'tabs',
             'textarea', 'timeline', 'toast', 'toggle', 'toggle-group', 'tooltip',
             'tree-view',
         ]);
@@ -190,7 +190,7 @@ describe('anatomy registry', () => {
         // the content-tier parts that anchor along an axis (#334).
         // The DOM half is asserted by expectAnatomy in each component's tests.
         expect(declared.sort()).toEqual([
-            'chat.root', 'combobox.popup', 'indicator.item', 'menu.popup', 'menu.sub-popup',
+            'chat.root', 'combobox.popup', 'drawer.panel', 'indicator.item', 'menu.popup', 'menu.sub-popup',
             'popover.popup', 'select.popup', 'timeline.content', 'toast.root', 'toast.viewport', 'tooltip.popup',
         ]);
     });

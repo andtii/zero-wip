@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Card, Chat, Collapsible, Combobox, Dialog, Divider, Indicator, Input, Join, Kbd, NativeSelect, NumberInput, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Switch, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Breadcrumbs, Card, Chat, Collapsible, Combobox, Dialog, Divider, Drawer, Indicator, Input, Join, Kbd, NativeSelect, Navbar, NumberInput, Pagination, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Steps, Switch, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -128,6 +128,41 @@ function page() {
                 <Join.Item><button type="button">One</button></Join.Item>
                 <Join.Item><button type="button">Two</button></Join.Item>
             </Join.Root>
+            <Navbar.Root>
+                <Navbar.Start>Acme</Navbar.Start>
+                <Navbar.Center><nav aria-label="Primary"><a href="/docs">Docs</a></nav></Navbar.Center>
+                <Navbar.End><button type="button">Sign in</button></Navbar.End>
+            </Navbar.Root>
+            <Pagination.Root count={10} defaultPage={4} />
+            <Drawer.Root label="Site navigation">
+                <Drawer.Trigger>Menu</Drawer.Trigger>
+                <Drawer.Panel>
+                    <Drawer.Title>Navigation</Drawer.Title>
+                    <Drawer.Close>Close</Drawer.Close>
+                </Drawer.Panel>
+            </Drawer.Root>
+            <Steps.Root defaultStep="details" label="Checkout">
+                <Steps.Item value="cart">
+                    <Steps.Indicator>1</Steps.Indicator>
+                    <Steps.Title>Cart</Steps.Title>
+                    <Steps.Separator />
+                </Steps.Item>
+                <Steps.Item value="details">
+                    <Steps.Indicator>2</Steps.Indicator>
+                    <Steps.Title>Details</Steps.Title>
+                </Steps.Item>
+            </Steps.Root>
+            <Breadcrumbs.Root>
+                <Breadcrumbs.List>
+                    <Breadcrumbs.Item>
+                        <Breadcrumbs.Link href="/">Home</Breadcrumbs.Link>
+                        <Breadcrumbs.Separator />
+                    </Breadcrumbs.Item>
+                    <Breadcrumbs.Item>
+                        <Breadcrumbs.Link href="/docs" current>Docs</Breadcrumbs.Link>
+                    </Breadcrumbs.Item>
+                </Breadcrumbs.List>
+            </Breadcrumbs.Root>
             <Divider />
             <Skeleton.Root>Article title</Skeleton.Root>
             <Spinner label="Loading results" />

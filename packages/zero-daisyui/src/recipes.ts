@@ -4097,10 +4097,499 @@ export const join: RecipeInput = {
     },
 };
 
+/**
+ * Navbar — daisy's navbar is a comfortable padded bar on base-100 with a
+ * generous min-height; start/end split the width and the centre hugs its
+ * content, which is daisy's own 50/50 layout translated to flex slack.
+ * Colour is the daisy `navbar bg-primary text-primary-content` move: refill
+ * the whole bar with the role pair.
+ */
+export const navbar: RecipeInput = {
+    component: 'navbar',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                minBlockSize: '4rem',
+                padding: 'var(--space-sm)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        start: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                flex: '1 1 0%',
+                justifyContent: 'flex-start',
+            },
+        },
+        center: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                justifyContent: 'center',
+            },
+        },
+        end: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                flex: '1 1 0%',
+                justifyContent: 'flex-end',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            background: `var(--color-${c})`,
+            color: `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { minBlockSize: '2.5rem', fontSize: 'var(--text-sm)' } } },
+            sm: { root: { base: { minBlockSize: '3rem', fontSize: 'var(--text-sm)' } } },
+            md: {},
+            lg: { root: { base: { minBlockSize: '5rem' } } },
+            xl: { root: { base: { minBlockSize: '6rem', fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
+/**
+ * Breadcrumbs — daisy's breadcrumbs: a compact text-sm trail, links
+ * underlining on hover, the current crumb plain full ink. Colour rebinds
+ * the current crumb through `roleInk` (the readable-ink map daisy already
+ * carries for role text on paper).
+ */
+export const breadcrumbs: RecipeInput = {
+    component: 'breadcrumbs',
+    tokens: { '--bc-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        list: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                listStyle: 'none',
+                margin: '0',
+                padding: 'var(--space-xs) 0',
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+            },
+        },
+        link: {
+            base: {
+                color: 'color-mix(in oklch, var(--color-base-content) 75%, transparent)',
+                textDecoration: 'none',
+                borderRadius: 'var(--radius-selector)',
+                transition: 'color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { color: 'var(--color-base-content)', textDecoration: 'underline' },
+                active: {
+                    color: 'var(--bc-accent)',
+                    fontWeight: 'var(--weight-semibold)',
+                    textDecoration: 'none',
+                },
+                inactive: {},
+                'focus-visible': {
+                    outline: '2px solid var(--color-primary)',
+                    outlineOffset: '2px',
+                },
+            },
+        },
+        separator: {
+            base: {
+                color: 'color-mix(in oklch, var(--color-base-content) 40%, transparent)',
+                userSelect: 'none',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--bc-accent': roleInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
+/**
+ * Pagination — daisy's join-of-buttons made of standalone btn cells: the
+ * quiet base-200 fill, base-300 hover, the current page inverted into the
+ * accent pair (primary by default). Pressed is the daisy 1px sink. The
+ * `‹`/`›` glyphs flip under the shared rtl guard.
+ */
+export const pagination: RecipeInput = {
+    component: 'pagination',
+    tokens: {
+        '--pg-accent': 'var(--color-primary)',
+        '--pg-accent-content': 'var(--color-primary-content)',
+        '--pg-size': 'calc(var(--size-field) * 10)',
+        '--pg-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: { base: { display: 'flex', alignItems: 'center', gap: 'var(--space-2xs)' } },
+        item: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                paddingInline: 'var(--space-2xs)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: 'var(--radius-field)',
+                fontSize: 'var(--pg-font)',
+                fontWeight: 'var(--weight-semibold)',
+                fontVariantNumeric: 'tabular-nums',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                active: { background: 'var(--pg-accent)', color: 'var(--pg-accent-content)' },
+                inactive: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { '&[data-pressed]:not([data-disabled])': { transform: 'translateY(1px)' } },
+        },
+        ellipsis: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                // 65%, not the house 50% wash: nord's base-content is light
+                // enough that 50% computes 2.74:1 on base-100 — the contrast
+                // audit's finding, fixed at source rather than allowlisted.
+                color: 'color-mix(in oklch, var(--color-base-content) 65%, transparent)',
+                fontSize: 'var(--pg-font)',
+                userSelect: 'none',
+            },
+        },
+        'prev-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: 'var(--radius-field)',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { transform: 'translateY(1px)' },
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+        'next-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: 'var(--radius-field)',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { transform: 'translateY(1px)' },
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--pg-accent': `var(--color-${c})`,
+            '--pg-accent-content': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--pg-size': 'calc(var(--size-field) * 7)', '--pg-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--pg-size': 'calc(var(--size-field) * 9)' } } },
+            md: {},
+            lg: { root: { base: { '--pg-size': 'calc(var(--size-field) * 12)' } } },
+            xl: { root: { base: { '--pg-size': 'calc(var(--size-field) * 14)', '--pg-font': 'var(--text-lg)' } } },
+        },
+    },
+};
+
+/**
+ * Steps — daisy's steps translated to the richer rail: bold numbered discs
+ * on base-200, the walked disc and line refilled with the accent pair
+ * (primary by default; daisy colours completed steps, and `roleInk` keeps
+ * the accent readable as text ink). Pressed is the daisy 1px sink.
+ */
+export const steps: RecipeInput = {
+    component: 'steps',
+    tokens: {
+        '--steps-accent': 'var(--color-primary)',
+        '--steps-accent-content': 'var(--color-primary-content)',
+        '--steps-accent-ink': roleInk('primary'),
+        '--steps-ind': 'calc(var(--size-selector) * 7)',
+        '--steps-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'stretch',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        /**
+         * The item is the clickable column (horizontal) or row (vertical);
+         * the separator bridges from ITS indicator toward the next item's,
+         * absolutely positioned past the button box — which is why it is
+         * pointer-events none: the bridge must not grow the hit area.
+         */
+        item: {
+            base: {
+                appearance: 'none',
+                position: 'relative',
+                display: 'flex',
+                flex: '1 1 0%',
+                background: 'transparent',
+                border: 'none',
+                padding: 'var(--space-xs)',
+                gap: 'var(--space-2xs)',
+                fontFamily: 'inherit',
+                fontSize: 'var(--steps-font)',
+                cursor: 'pointer',
+                textAlign: 'center',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'column', alignItems: 'center' },
+                '&[data-orientation="vertical"]': {
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    textAlign: 'start',
+                    columnGap: 'var(--space-sm)',
+                    paddingBlockEnd: 'var(--space-lg)',
+                },
+                '&[data-pressed]:not([data-disabled])': { transform: 'translateY(1px)' },
+            },
+            states: {
+                active: { color: 'var(--steps-accent-ink)', fontWeight: 'var(--weight-semibold)' },
+                complete: { color: 'var(--color-base-content)' },
+                inactive: { color: 'color-mix(in oklch, var(--color-base-content) 65%, transparent)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+        indicator: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                inlineSize: 'var(--steps-ind)',
+                blockSize: 'var(--steps-ind)',
+                borderRadius: '9999px',
+                fontSize: 'calc(var(--steps-ind) * 0.45)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-none)',
+                position: 'relative',
+                zIndex: '1',
+                flexShrink: '0',
+                transition: 'background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                active: { background: 'var(--steps-accent)', color: 'var(--steps-accent-content)' },
+                complete: { background: 'color-mix(in oklch, var(--steps-accent) 20%, var(--color-base-100))', color: 'var(--steps-accent-ink)' },
+                inactive: { background: 'var(--color-base-200)', color: 'var(--color-base-content)' },
+            },
+        },
+        /**
+         * The bridge: from this item's indicator centre one full item-slot
+         * toward the next (equal flex slots make the far end the next
+         * indicator's centre). Logical insets only, so RTL mirrors free;
+         * behind the indicator's opaque disc (z-index 0 vs 1).
+         */
+        separator: {
+            base: {
+                position: 'absolute',
+                pointerEvents: 'none',
+                zIndex: '0',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': {
+                    insetBlockStart: 'calc(var(--space-xs) + var(--steps-ind) / 2)',
+                    insetInlineStart: '50%',
+                    inlineSize: '100%',
+                    blockSize: 'var(--border)',
+                },
+                '&[data-orientation="vertical"]': {
+                    insetInlineStart: 'calc(var(--space-xs) + (var(--steps-ind) - var(--border)) / 2)',
+                    insetBlockStart: 'calc(var(--space-xs) + var(--steps-ind))',
+                    insetBlockEnd: 'calc(var(--space-xs) * -1)',
+                    inlineSize: 'var(--border)',
+                },
+            },
+            states: {
+                complete: { background: 'var(--steps-accent)' },
+                inactive: { background: 'var(--color-base-300)' },
+            },
+        },
+        title: {
+            base: {
+                fontWeight: 'var(--weight-medium)',
+            },
+        },
+        description: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                fontWeight: 'var(--weight-normal)',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--steps-accent': `var(--color-${c})`,
+            '--steps-accent-content': `var(--color-${c}-content)`,
+            '--steps-accent-ink': roleInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 5)', '--steps-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 6)' } } },
+            md: {},
+            lg: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 8)' } } },
+            xl: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 9)', '--steps-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
+/**
+ * Drawer — daisy's drawer-side as a native <dialog> edge sheet: base-100
+ * paper, no border (daisy separates the drawer with the scrim), faded in.
+ * Base render is the inline mode; `:modal` is the top-layer edge sheet.
+ */
+export const drawer: RecipeInput = {
+    component: 'drawer',
+    parts: {
+        trigger: {
+            base: btn,
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                open: {},
+                closed: {},
+                ...focusRing,
+            },
+        },
+        panel: withPresence(popupPresence('none'), {
+            base: {
+                padding: 'var(--space-lg)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: 'var(--radius-box)',
+                boxShadow: 'var(--shadow-xl)',
+                inlineSize: 'min(20rem, 85vw)',
+            },
+            states: { open: {}, closed: {} },
+            selectors: {
+                /**
+                 * The platform's own spelling of "this open is the modal
+                 * one": `:modal`. The base styles above are the INLINE
+                 * render (`show()` keeps the panel in flow); this block is
+                 * the top-layer edge sheet. Logical insets pin the edge, so
+                 * RTL mirrors free.
+                 */
+                '&:modal': {
+                    position: 'fixed',
+                    insetBlockStart: '0',
+                    insetBlockEnd: '0',
+                    blockSize: '100dvh',
+                    maxBlockSize: '100dvh',
+                    inlineSize: 'min(20rem, 85vw)',
+                    maxInlineSize: 'none',
+                    margin: '0',
+                    borderRadius: '0',
+                },
+                '&[data-placement="start"]:modal': { insetInlineStart: '0', insetInlineEnd: 'auto' },
+                '&[data-placement="end"]:modal': { insetInlineStart: 'auto', insetInlineEnd: '0' },
+            },
+        }),
+        backdrop: {
+            base: { background: 'oklch(0% 0 0 / 0.4)' },
+            states: { open: {}, closed: {} },
+        },
+        title: {
+            base: { margin: '0 0 var(--space-md)', fontSize: 'var(--text-lg)', fontWeight: 'var(--weight-bold)' },
+        },
+        close: {
+            base: btn,
+            states: {
+                hover: { background: 'var(--color-base-300)' },
+                disabled: { opacity: 'var(--disabled-opacity)' },
+                ...focusRing,
+            },
+        },
+    },
+    // Trigger-carried axes — see `btnColors` for why the panel is out of
+    // reach and the trigger is the whole story here.
+    variants: { color: btnColors(), size: btnSizes },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
+    navbar, breadcrumbs, pagination, steps, drawer,
 ];

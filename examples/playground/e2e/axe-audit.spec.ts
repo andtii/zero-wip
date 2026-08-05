@@ -51,6 +51,10 @@ const OPENERS: Record<string, (page: Page) => Promise<void>> = {
         await page.getByRole('button', { name: 'Open dialog', exact: true }).click();
         await expect(page.locator('[data-scope="dialog"][data-part="popup"][data-state="open"]')).toBeVisible();
     },
+    drawer: async (page) => {
+        await page.getByRole('button', { name: 'Open drawer', exact: true }).click();
+        await expect(page.locator('[data-scope="drawer"][data-part="panel"][data-state="open"]')).toBeVisible();
+    },
     popover: async (page) => {
         await page.getByRole('button', { name: 'Filters', exact: true }).click();
         await expect(page.locator('[data-scope="popover"][data-part="popup"][data-state="open"]')).toBeVisible();

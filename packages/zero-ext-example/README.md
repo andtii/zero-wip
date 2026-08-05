@@ -27,4 +27,13 @@ merged scope compiles, that the generated `register.d.ts` takes the
 design system that never merges the fragment simply leaves the component
 unstyled-but-accessible.
 
+Zero has since **promoted the stepper pattern into a first-class `steps`
+scope** (#339) — richer anatomy (indicator/separator/title/description
+bands), orientation, recipes in every shipped skin. This package deliberately
+does NOT go away and does not adopt the `steps` scope: its job is to prove
+the ecosystem path with a scope zero does not own, and `ext-stepper` remains
+exactly that. Apps wanting a stepper should use `Steps` from `@sigx/zero`;
+packages wanting to see how an out-of-tree component is built should read
+this one.
+
 MIT © Andreas Ekdahl

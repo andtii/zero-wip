@@ -24,13 +24,15 @@
   pointer (touch's implicit capture) holds it until release, and a drag
   surface (slider) attaches no pointerleave at all: a window-level release
   listener ends the press wherever the pointer lets go.
-  Publishing parts: button root; tabs tab; dialog/popover trigger+close;
+  Publishing parts: button root; tabs tab; dialog/popover/drawer
+  trigger+close;
   menu trigger+item; select trigger+item and combobox trigger+item (items
   are pointer-only — keyboard selection lives on the trigger/input via
   aria-activedescendant); collapsible/accordion trigger;
   switch/checkbox control and radio-group item-control (press anywhere in
   the label row lands on the control; Space via the hidden input);
-  slider control (`data-pressed` only — a drag has no one-shot).
+  slider control (`data-pressed` only — a drag has no one-shot);
+  pagination item and prev/next triggers; steps item.
 - Variant axes pass through as data-color / data-size / data-variant
   (values: color = any DS-declared role — recommended vocabulary
   primary|secondary|accent|neutral|info|success|warning|error,
@@ -92,7 +94,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-40 components ship today. Every part each renders is listed below, in
+45 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -293,6 +295,58 @@ component renders; the root is called out separately where it carries props.
   control.
 - Divider: Root only, role=separator, orientation. Non-focusable;
   aria-orientation emitted only for `vertical`.
+- Navbar: Root/Start/Center/End — the landmark header bar, pure
+  composition (no states, no behavior). Root is a <header> (the banner
+  landmark at document scope), NOT a <nav>: the bar holds non-navigation
+  content too, so the consumer wraps the actual link set in its own
+  labelled <nav> inside a section. start/end are the logical pair, so RTL
+  mirrors free.
+- Breadcrumbs: Root(label)/List/Item/Link(current,asChild)/Separator — the
+  APG breadcrumb pattern: <nav aria-label="Breadcrumb"> around an <ol>
+  (order IS the meaning). The current page's link carries
+  aria-current="page" and data-state="active" (the activation pair —
+  data-current is not in the flag vocabulary and the synonym table rules
+  current → active); every other link is "inactive". The separator is
+  aria-hidden punctuation inside the item (default glyph /, replaceable
+  slot) so the <ol> keeps only <li> children.
+- Drawer: Root(model=open, modal, dismissible, placement start|end, label
+  — renders no element) then Trigger/Panel/Title/Close on native <dialog>
+  + top layer, Dialog's machinery inherited (backdrop = ::backdrop pseudo
+  part; presence-tracked aria-labelledby, with the label prop as the
+  aria-label fallback when no Title renders — a nav drawer often has no
+  visible heading). The panel stamps data-placement="start|end" from the
+  LOGICAL pair (an edge panel anchors to the reading direction); recipes
+  pin it with inset-inline-* so RTL mirrors free, and distinguish modal
+  from inline with the platform's own :modal pseudo-class. modal (default)
+  = showModal(): focus trap, Escape via cancel, scrim click dismisses by
+  Dialog's click geometry. modal={false} = INLINE: renders in flow via
+  show(), no dismiss trap (outside clicks are a non-event), Escape still
+  closes through the dismissable behavior, focus restore covered by zero
+  since show() provides neither.
+- Steps: Root(model=step value, defaultStep, loop, label, orientation)/
+  Item(value,asChild)/Indicator/Separator/Title/Description — the wizard
+  step rail, promoted from the ecosystem ext-stepper pattern (the
+  zero-ext-example package REMAINS as the ecosystem acceptance test).
+  role="group" + aria-label; arrow keys rove focus without changing the
+  step (orientation-aware), click/Space/Enter select, ONE tab stop on the
+  active step, aria-current="step". States are the active|complete|
+  inactive family: complete is position-derived (before the current step,
+  DOM order). The indicator mirrors its item's phase; the separator — the
+  line from its item toward the next, aria-hidden, inside the item like
+  timeline's connector — carries only complete|inactive (complete once
+  its OWN item is complete; an active item's separator is inactive: the
+  walk has reached it, not crossed it). Title/description carry no
+  states; style them through the item's state.
+- Pagination: Root(model=page, count, siblingCount, boundaryCount, label,
+  prevLabel/nextLabel) — options-driven: the row derives from count + the
+  model, so zero renders item buttons, aria-hidden ellipses and the
+  prev/next triggers itself. Constant-width windowing (the sibling block
+  slides near the edges instead of shrinking). The current item carries
+  aria-current="page" + data-state="active". Ordinary buttons in the nav
+  landmark — deliberately no roving tabindex (no APG pagination pattern;
+  each page is its own meaningful tab stop). The triggers carry the ‹/›
+  glyph (Select.Indicator's convention), named by aria-label; recipes flip
+  the glyph under RTL (scaleX(-1) under the skin's rtl guard).
 - Skeleton: Root only(model=loading, default TRUE), data-state loading|loaded,
   aria-busy while loading. Children stay in the DOM in BOTH states — the
   component exists to hold the layout its content will occupy, so the recipe
@@ -407,11 +461,12 @@ named model bound as `model:<stateName>` in JSX (sigx
 value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
-Avatar, Badge, Button, Card, Chat, Checkbox, Collapsible, Combobox, Dialog,
+Avatar, Badge, Breadcrumbs, Button, Drawer, Card, Chat, Checkbox, Collapsible, Combobox, Dialog,
 Divider, Field, Indicator, Input, Join, Kbd, Menu, NativeSelect, NumberInput,
-Popover, Progress, RadialProgress, RadioGroup, RatingGroup, Select, Skeleton,
-Slider, Spinner, Stats, Status, Switch, Tabs, Textarea, Timeline, Toast,
-Toggle, ToggleGroup, Tooltip and TreeView;
+Navbar, Pagination, Popover, Progress, RadialProgress, RadioGroup,
+RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,
+Switch, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip and
+TreeView;
 that is every component. Where the Root renders a fragment (a
 dialog/menu/popover/tooltip) the props live on the Trigger, which renders the
 carrier part the compiled axis selectors anchor on, and Toast routes the

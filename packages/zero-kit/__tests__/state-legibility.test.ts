@@ -355,6 +355,19 @@ const isTriggerPart = (name: string): boolean => name === 'trigger' || name.ends
 const isPopupPart = (name: string): boolean => name === 'popup' || name.endsWith('-popup');
 
 /**
+ * An overlay component — the revealed thing is not under the control, so
+ * assertion C's in-flow reasoning does not apply. Two honest signals, both
+ * needed: a part NAMED popup (the anchored floats — popover, menu, select),
+ * and a part whose ELEMENT is `dialog` (the top layer). The second exists
+ * because Drawer (#339) names its surface `panel` — the truthful name for an
+ * edge sheet — and a name-only rule would have classified it as an in-flow
+ * disclosure and demanded its trigger tell open from closed while the open
+ * drawer's scrim covers that trigger entirely.
+ */
+const isOverlayComponent = (c: { parts: ReadonlyArray<{ name: string; element: string }> }): boolean =>
+    c.parts.some((p) => isPopupPart(p.name) || p.element === 'dialog');
+
+/**
  * The groups that ARE this part: the element itself and any pseudo-element hung
  * off it. A recipe-authored `::after` is where zero-basic and zero-daisyui
  * legitimately draw their marks, so it counts as the part drawing them.
@@ -438,7 +451,7 @@ function indicatorFindings(c: Case): string[] {
  */
 function disclosureFindings(c: Case): string[] {
     // An overlay component: the revealed thing is not under the control.
-    if (c.component.parts.some((p) => isPopupPart(p.name))) return [];
+    if (isOverlayComponent(c.component)) return [];
     const indicators = c.component.parts.filter((p) => isIndicatorPart(p.name));
     const findings: string[] = [];
     for (const part of c.component.parts) {
@@ -501,7 +514,7 @@ describe('state legibility', () => {
         // are out, so a part rename or a new component shows up here as a
         // change in scope rather than as silence.
         const inFlow = manifest.components
-            .filter((c) => !c.parts.some((p) => isPopupPart(p.name)))
+            .filter((c) => !isOverlayComponent(c))
             .filter((c) => c.parts.some((p) => isTriggerPart(p.name) && p.states?.length))
             .map((c) => c.scope);
         expect(inFlow.sort()).toEqual(['accordion', 'collapsible', 'tree-view']);

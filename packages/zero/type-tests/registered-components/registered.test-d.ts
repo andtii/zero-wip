@@ -21,6 +21,7 @@ import { Accordion } from '@sigx/zero/accordion';
 import { Alert } from '@sigx/zero/alert';
 import { Avatar } from '@sigx/zero/avatar';
 import { Badge } from '@sigx/zero/badge';
+import { Breadcrumbs } from '@sigx/zero/breadcrumbs';
 import { Button } from '@sigx/zero/button';
 import { Card } from '@sigx/zero/card';
 import { Chat } from '@sigx/zero/chat';
@@ -29,6 +30,7 @@ import { Collapsible } from '@sigx/zero/collapsible';
 import { Combobox } from '@sigx/zero/combobox';
 import { Dialog } from '@sigx/zero/dialog';
 import { Divider } from '@sigx/zero/divider';
+import { Drawer } from '@sigx/zero/drawer';
 import { Field } from '@sigx/zero/field';
 import { Indicator } from '@sigx/zero/indicator';
 import { Input } from '@sigx/zero/input';
@@ -36,7 +38,9 @@ import { Join } from '@sigx/zero/join';
 import { Kbd } from '@sigx/zero/kbd';
 import { Menu } from '@sigx/zero/menu';
 import { NativeSelect } from '@sigx/zero/native-select';
+import { Navbar } from '@sigx/zero/navbar';
 import { NumberInput } from '@sigx/zero/number-input';
+import { Pagination } from '@sigx/zero/pagination';
 import { Popover } from '@sigx/zero/popover';
 import { Progress } from '@sigx/zero/progress';
 import { RadialProgress } from '@sigx/zero/radial-progress';
@@ -48,6 +52,7 @@ import { Slider } from '@sigx/zero/slider';
 import { Spinner } from '@sigx/zero/spinner';
 import { Stats } from '@sigx/zero/stats';
 import { Status } from '@sigx/zero/status';
+import { Steps } from '@sigx/zero/steps';
 import { Switch } from '@sigx/zero/switch';
 import { Tabs } from '@sigx/zero/tabs';
 import { Textarea } from '@sigx/zero/textarea';
@@ -124,6 +129,10 @@ export type _timeline = MustBeTrue<CheckColorSize<PropsOf<typeof Timeline.Root>>
 export type _chat = MustBeTrue<CheckColorSize<PropsOf<typeof Chat.Root>>>;
 export type _radialProgress = MustBeTrue<CheckColorSize<PropsOf<typeof RadialProgress.Root>>>;
 export type _join = MustBeTrue<CheckColorSize<PropsOf<typeof Join.Root>>>;
+export type _navbar = MustBeTrue<CheckColorSize<PropsOf<typeof Navbar.Root>>>;
+export type _breadcrumbs = MustBeTrue<CheckColorSize<PropsOf<typeof Breadcrumbs.Root>>>;
+export type _pagination = MustBeTrue<CheckColorSize<PropsOf<typeof Pagination.Root>>>;
+export type _steps = MustBeTrue<CheckColorSize<PropsOf<typeof Steps.Root>>>;
 
 /* ── the three scopes basic wires a variant vocabulary for ── */
 type ButtonProps = PropsOf<typeof Button.Root>;
@@ -180,11 +189,13 @@ type CheckPropless<P> = [
 ][number] extends true ? true : false;
 
 export type _dialogRoot = MustBeTrue<CheckPropless<PropsOf<typeof Dialog.Root>>>;
+export type _drawerRoot = MustBeTrue<CheckPropless<PropsOf<typeof Drawer.Root>>>;
 export type _menuRoot = MustBeTrue<CheckPropless<PropsOf<typeof Menu.Root>>>;
 export type _popoverRoot = MustBeTrue<CheckPropless<PropsOf<typeof Popover.Root>>>;
 export type _tooltipRoot = MustBeTrue<CheckPropless<PropsOf<typeof Tooltip.Root>>>;
 
 export type _dialogTrigger = MustBeTrue<CheckColorSize<PropsOf<typeof Dialog.Trigger>>>;
+export type _drawerTrigger = MustBeTrue<CheckColorSize<PropsOf<typeof Drawer.Trigger>>>;
 export type _menuTrigger = MustBeTrue<CheckColorSize<PropsOf<typeof Menu.Trigger>>>;
 export type _popoverTrigger = MustBeTrue<CheckColorSize<PropsOf<typeof Popover.Trigger>>>;
 export type _tooltipTrigger = MustBeTrue<CheckColorSize<PropsOf<typeof Tooltip.Trigger>>>;

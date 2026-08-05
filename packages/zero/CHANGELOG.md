@@ -4,6 +4,77 @@
 
 ### Added
 
+- **The navigation tier** (#339): Drawer, Navbar, Breadcrumbs, Pagination
+  and Steps — the behavior tier's navigation half, each shipped with
+  recipes in all six design systems:
+
+  - **Drawer**: `Root(model=open, modal, dismissible, placement, label)`/
+    `Trigger`/`Panel`/`Title`/`Close` — the edge panel on the native
+    `<dialog>`, Dialog's machinery inherited deliberately (top layer,
+    scrim with the geometric backdrop test, Escape via `cancel` routed
+    through the model, native focus restore, the `::backdrop` pseudo part,
+    presence-tracked labelling — with the `label` prop as the `aria-label`
+    fallback, since a navigation drawer often has no visible heading).
+    What is Drawer's own is the EDGE: the panel stamps
+    `data-placement="start|end"` from the logical pair (an edge panel
+    anchors to the reading direction), recipes pin it with
+    `inset-inline-*` so RTL mirrors free, and modal-vs-inline needs no
+    attribute — `:modal` is the platform's own spelling of the split.
+    `modal={false}` is the INLINE mode: in flow via `show()`, no dismiss
+    trap, Escape through the dismissable behavior, focus restore covered
+    by zero since `show()` provides neither. Real-browser contract in
+    `e2e/drawer.spec.ts` (edges measured as boxes, scrim geometry, both
+    Escape paths, labelling).
+
+  - **Navbar**: `Root`/`Start`/`Center`/`End` — the landmark header bar,
+    pure composition (no states, no behavior). The root is a `<header>`
+    (the banner landmark at document scope), deliberately NOT a `<nav>`:
+    a bar holds branding, search and actions too, so wrapping all of it in
+    a navigation landmark would mislabel most of it — the consumer puts a
+    labelled `<nav>` around exactly the link set, inside a section.
+    `start`/`end` are the logical pair, so RTL mirrors free.
+  - **Breadcrumbs**: `Root(label)`/`List`/`Item`/`Link(current, asChild)`/
+    `Separator` — the APG breadcrumb pattern: a `<nav>` named "Breadcrumb"
+    around an `<ol>` (order is the meaning). The current page is a STATE,
+    not a new flag: `data-current` is not in `FLAG_VOCABULARY` and the
+    synonym table rules `current → active`, so the current link carries
+    `aria-current="page"` + `data-state="active"` and every other link
+    `"inactive"` — exactly tabs' shape. The separator is `aria-hidden`
+    punctuation inside the item (default `/`, replaceable slot), keeping
+    the `<ol>` to `<li>` children only.
+  - **Pagination**: `Root(model=page, count, siblingCount, boundaryCount,
+    label, prevLabel/nextLabel)` — options-driven: the row derives from
+    `count` and the model, so zero renders the page buttons, aria-hidden
+    ellipses and the `‹`/`›` triggers itself, with constant-width
+    windowing (the sibling block slides near the edges instead of
+    shrinking). The current item carries `aria-current="page"` +
+    `data-state="active"`; the triggers disable at the bounds. Ordinary
+    buttons in a labelled `<nav>` — deliberately no roving tabindex (there
+    is no APG pagination pattern; each page is its own meaningful tab
+    stop) and no `<ul>` (the windowed row is controls, not content —
+    contrast Breadcrumbs, where the trail is content and order the
+    meaning). All three interactive parts publish press feedback.
+  - **Steps**: `Root(model=step, defaultStep, loop, label, orientation)`/
+    `Item(value, asChild)`/`Indicator`/`Separator`/`Title`/`Description` —
+    the wizard step rail, promoted from the ecosystem `ext-stepper`
+    pattern into a first-class scope (`@sigx/zero-ext-example` REMAINS as
+    the ecosystem acceptance test with its own scope; the behavior — arrow
+    keys rove without selecting, one tab stop on the active step,
+    `complete` derived from DOM order — is the pattern verbatim). What the
+    promotion adds is the rail's paintable anatomy: the numbered
+    `indicator` disc mirroring its item's phase, the `separator` line
+    carrying only the walked pair (`complete` once its OWN item is
+    complete — an active item's separator is a line the walk has reached,
+    not crossed), and the `title`/`description` bands (stateless — style
+    them through the item's state). Orientation-aware roving.
+  - Promoting Steps surfaced a real ordering bug, fixed at the source:
+    `sortByDomOrder` (the shared list-registration order) trusted
+    `compareDocumentPosition` between elements that were created but not
+    yet CONNECTED, where the answer is implementation-defined — Steps'
+    indicator was the first reader to derive state in that window.
+    Disconnected elements now take the registration-order fallback exactly
+    like absent ones.
+
 - **The content-tier sweep** (#334): the cheap 60% of the coverage gap
   against `@sigx/daisyui` — components that are anatomy plus recipes with
   little or no behavior, each shipped with recipes in all six design

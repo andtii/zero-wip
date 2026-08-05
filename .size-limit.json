@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "28 kB",
+        "limit": "30 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -321,6 +321,56 @@
         "name": "@sigx/zero/join",
         "path": "packages/zero/dist/components/join/index.js",
         "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/navbar",
+        "path": "packages/zero/dist/components/navbar/index.js",
+        "limit": "1.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/breadcrumbs",
+        "path": "packages/zero/dist/components/breadcrumbs/index.js",
+        "limit": "1.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/pagination",
+        "path": "packages/zero/dist/components/pagination/index.js",
+        "limit": "3 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/steps",
+        "path": "packages/zero/dist/components/steps/index.js",
+        "limit": "3.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/drawer",
+        "path": "packages/zero/dist/components/drawer/index.js",
+        "limit": "3.5 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

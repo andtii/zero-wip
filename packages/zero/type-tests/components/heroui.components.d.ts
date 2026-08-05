@@ -46,6 +46,11 @@ import type { Timeline as ZTimeline } from '@sigx/zero/timeline';
 import type { Chat as ZChat } from '@sigx/zero/chat';
 import type { RadialProgress as ZRadialProgress } from '@sigx/zero/radial-progress';
 import type { Join as ZJoin } from '@sigx/zero/join';
+import type { Navbar as ZNavbar } from '@sigx/zero/navbar';
+import type { Breadcrumbs as ZBreadcrumbs } from '@sigx/zero/breadcrumbs';
+import type { Pagination as ZPagination } from '@sigx/zero/pagination';
+import type { Steps as ZSteps } from '@sigx/zero/steps';
+import type { Drawer as ZDrawer } from '@sigx/zero/drawer';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -331,3 +336,38 @@ type JoinProps = {
 };
 type JoinAdapted = Adapted<typeof ZJoin, ZeroAxisProp, JoinProps>;
 export declare const Join: JoinAdapted & AdaptedStatics<typeof ZJoin> & { Root: JoinAdapted };
+
+/** navbar — no vendor route; the wired surface keeps zero's names. */
+type NavbarProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type NavbarAdapted = Adapted<typeof ZNavbar, ZeroAxisProp, NavbarProps>;
+export declare const Navbar: NavbarAdapted & AdaptedStatics<typeof ZNavbar> & { Root: NavbarAdapted };
+
+/** breadcrumbs — no vendor route; the wired surface keeps zero's names. */
+type BreadcrumbsProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type BreadcrumbsAdapted = Adapted<typeof ZBreadcrumbs, ZeroAxisProp, BreadcrumbsProps>;
+export declare const Breadcrumbs: BreadcrumbsAdapted & AdaptedStatics<typeof ZBreadcrumbs> & { Root: BreadcrumbsAdapted };
+
+/** pagination — no vendor route; the wired surface keeps zero's names. */
+type PaginationProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type PaginationAdapted = Adapted<typeof ZPagination, ZeroAxisProp, PaginationProps>;
+export declare const Pagination: PaginationAdapted & AdaptedStatics<typeof ZPagination> & { Root: PaginationAdapted };
+
+/** steps — no vendor route; the wired surface keeps zero's names. */
+type StepsProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type StepsAdapted = Adapted<typeof ZSteps, ZeroAxisProp, StepsProps>;
+export declare const Steps: StepsAdapted & AdaptedStatics<typeof ZSteps> & { Root: StepsAdapted };
+
+/** drawer — no vendor route; the wired surface keeps zero's names. */
+type DrawerProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type DrawerAdapted = Adapted<typeof ZDrawer, ZeroAxisProp, DrawerProps>;
+export declare const Drawer: DrawerAdapted & AdaptedStatics<typeof ZDrawer> & { Root: DrawerAdapted };

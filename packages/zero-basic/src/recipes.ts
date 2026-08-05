@@ -4606,10 +4606,511 @@ export const join: RecipeInput = {
     },
 };
 
+/**
+ * Navbar — the page's masthead drawn the Monograph way: paper with one
+ * hairline underlining it, no elevation. The three sections split the bar
+ * with flexbox (start and end take the slack, the centre stays centred),
+ * so a bar without a centre still puts its ends at the edges. Colour
+ * refills the whole bar with the role pair — the app-bar vernacular.
+ */
+export const navbar: RecipeInput = {
+    component: 'navbar',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-md)',
+                paddingBlock: 'var(--space-sm)',
+                paddingInline: 'var(--space-lg)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                borderBlockEnd: hairline,
+            },
+        },
+        start: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                flex: '1 1 0%',
+                justifyContent: 'flex-start',
+            },
+        },
+        center: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                justifyContent: 'center',
+            },
+        },
+        end: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                flex: '1 1 0%',
+                justifyContent: 'flex-end',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            background: `var(--color-${c})`,
+            color: `var(--color-${c}-content)`,
+            borderBlockEndColor: 'transparent',
+        } } }])),
+        size: {
+            xs: { root: { base: { paddingBlock: 'var(--space-2xs)', fontSize: 'var(--text-sm)' } } },
+            sm: { root: { base: { paddingBlock: 'var(--space-xs)', fontSize: 'var(--text-sm)' } } },
+            md: {},
+            lg: { root: { base: { paddingBlock: 'var(--space-md)' } } },
+            xl: { root: { base: { paddingBlock: 'var(--space-lg)', fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
+/**
+ * Breadcrumbs — the trail as quiet ink: links at 70% density, underlined
+ * only under the pointer, the current page in full ink and a touch of
+ * weight (it is where you ARE, so it does not dress as a destination).
+ * Colour rebinds the current page's ink through `softInk`, keeping the
+ * codified warning/neutral exceptions.
+ */
+export const breadcrumbs: RecipeInput = {
+    component: 'breadcrumbs',
+    tokens: { '--bc-accent': 'var(--color-base-content)' },
+    parts: {
+        root: {
+            base: {
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        list: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+            },
+        },
+        link: {
+            base: {
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                textDecoration: 'none',
+                borderRadius: 'var(--radius-selector)',
+                transition: 'color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { color: 'var(--color-base-content)', textDecoration: 'underline' },
+                active: {
+                    color: 'var(--bc-accent)',
+                    fontWeight: 'var(--weight-medium)',
+                    textDecoration: 'none',
+                },
+                inactive: {},
+                ...focusRing,
+            },
+        },
+        separator: {
+            base: {
+                color: 'color-mix(in oklch, var(--color-base-content) 45%, transparent)',
+                userSelect: 'none',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--bc-accent': softInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
+/**
+ * Pagination — furniture in the house dialect: quiet hairline-framed cells,
+ * `inkWash` hover, `pressedInk` press, and the current page inverted into
+ * the accent pair (primary by default; the colour axis rebinds the pair).
+ * The `‹`/`›` glyphs are physical ink — flipped under the shared rtl guard,
+ * the tree-view chevron's move.
+ */
+export const pagination: RecipeInput = {
+    component: 'pagination',
+    tokens: {
+        '--pg-accent': 'var(--color-primary)',
+        '--pg-accent-content': 'var(--color-primary-content)',
+        '--pg-size': 'calc(var(--size-field) * 10)',
+        '--pg-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-2xs)',
+            },
+        },
+        item: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                paddingInline: 'var(--space-2xs)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: hairline,
+                borderRadius: 'var(--radius-field)',
+                fontSize: 'var(--pg-font)',
+                fontVariantNumeric: 'tabular-nums',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: inkWash },
+                active: {
+                    background: 'var(--pg-accent)',
+                    color: 'var(--pg-accent-content)',
+                    borderColor: 'transparent',
+                },
+                inactive: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { ...pressedInk },
+        },
+        ellipsis: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)',
+                fontSize: 'var(--pg-font)',
+                userSelect: 'none',
+            },
+        },
+        'prev-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: hairline,
+                borderRadius: 'var(--radius-field)',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: inkWash },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                ...pressedInk,
+                // The glyph points at the reading start; `scale`, not a
+                // logical property, so the flip is by hand under the guard.
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+        'next-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: hairline,
+                borderRadius: 'var(--radius-field)',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: inkWash },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                ...pressedInk,
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--pg-accent': `var(--color-${c})`,
+            '--pg-accent-content': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--pg-size': 'calc(var(--size-field) * 7)', '--pg-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--pg-size': 'calc(var(--size-field) * 9)' } } },
+            md: {},
+            lg: { root: { base: { '--pg-size': 'calc(var(--size-field) * 12)' } } },
+            xl: { root: { base: { '--pg-size': 'calc(var(--size-field) * 14)', '--pg-font': 'var(--text-lg)' } } },
+        },
+    },
+};
+
+/**
+ * Steps — the wizard rail in hairline grammar: quiet numbered discs on the
+ * axis, the walked line in the accent, the current disc inverted into the
+ * accent pair. The separator bridges item centres with logical insets, so
+ * RTL mirrors free; `pressedInk` is the press, as everywhere.
+ */
+export const steps: RecipeInput = {
+    component: 'steps',
+    tokens: {
+        '--steps-accent': 'var(--color-primary)',
+        '--steps-accent-content': 'var(--color-primary-content)',
+        '--steps-accent-ink': softInk('primary'),
+        '--steps-ind': 'calc(var(--size-selector) * 7)',
+        '--steps-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'stretch',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        /**
+         * The item is the clickable column (horizontal) or row (vertical);
+         * the separator bridges from ITS indicator toward the next item's,
+         * absolutely positioned past the button box — which is why it is
+         * pointer-events none: the bridge must not grow the hit area.
+         */
+        item: {
+            base: {
+                appearance: 'none',
+                position: 'relative',
+                display: 'flex',
+                flex: '1 1 0%',
+                background: 'transparent',
+                border: 'none',
+                padding: 'var(--space-xs)',
+                gap: 'var(--space-2xs)',
+                fontFamily: 'inherit',
+                fontSize: 'var(--steps-font)',
+                cursor: 'pointer',
+                textAlign: 'center',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'column', alignItems: 'center' },
+                '&[data-orientation="vertical"]': {
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    textAlign: 'start',
+                    columnGap: 'var(--space-sm)',
+                    paddingBlockEnd: 'var(--space-lg)',
+                },
+                ...pressedInk,
+            },
+            states: {
+                active: { color: 'var(--steps-accent-ink)', fontWeight: 'var(--weight-semibold)' },
+                complete: { color: 'var(--color-base-content)' },
+                inactive: { color: 'color-mix(in oklch, var(--color-base-content) 65%, transparent)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+        indicator: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                inlineSize: 'var(--steps-ind)',
+                blockSize: 'var(--steps-ind)',
+                borderRadius: '9999px',
+                fontSize: 'calc(var(--steps-ind) * 0.45)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-none)',
+                position: 'relative',
+                zIndex: '1',
+                flexShrink: '0',
+                border: hairline,
+                transition: 'background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                active: { background: 'var(--steps-accent)', color: 'var(--steps-accent-content)', borderColor: 'transparent' },
+                complete: { background: 'color-mix(in oklch, var(--steps-accent) 15%, var(--color-base-100))', color: 'var(--steps-accent-ink)' },
+                inactive: { background: 'var(--color-base-200)', color: 'var(--color-base-content)' },
+            },
+        },
+        /**
+         * The bridge: from this item's indicator centre one full item-slot
+         * toward the next (equal flex slots make the far end the next
+         * indicator's centre). Logical insets only, so RTL mirrors free;
+         * behind the indicator's opaque disc (z-index 0 vs 1).
+         */
+        separator: {
+            base: {
+                position: 'absolute',
+                pointerEvents: 'none',
+                zIndex: '0',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': {
+                    insetBlockStart: 'calc(var(--space-xs) + var(--steps-ind) / 2)',
+                    insetInlineStart: '50%',
+                    inlineSize: '100%',
+                    blockSize: 'var(--border)',
+                },
+                '&[data-orientation="vertical"]': {
+                    insetInlineStart: 'calc(var(--space-xs) + (var(--steps-ind) - var(--border)) / 2)',
+                    insetBlockStart: 'calc(var(--space-xs) + var(--steps-ind))',
+                    insetBlockEnd: 'calc(var(--space-xs) * -1)',
+                    inlineSize: 'var(--border)',
+                },
+            },
+            states: {
+                complete: { background: 'var(--steps-accent)' },
+                inactive: { background: 'var(--color-base-300)' },
+            },
+        },
+        title: {
+            base: {
+                fontWeight: 'var(--weight-medium)',
+            },
+        },
+        description: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                fontWeight: 'var(--weight-normal)',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--steps-accent': `var(--color-${c})`,
+            '--steps-accent-content': `var(--color-${c}-content)`,
+            '--steps-accent-ink': softInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 5)', '--steps-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 6)' } } },
+            md: {},
+            lg: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 8)' } } },
+            xl: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 9)', '--steps-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
+/**
+ * Drawer — Dialog's machinery on an edge sheet: the same overlay costume
+ * (hairline + the one honest `lg` shadow), faded in rather than slid (a
+ * transform has no logical spelling; opacity needs no RTL correction). The
+ * base render is the INLINE mode — a bordered panel in flow — and `:modal`
+ * is the top-layer edge sheet, pinned with logical insets.
+ */
+export const drawer: RecipeInput = {
+    component: 'drawer',
+    parts: {
+        trigger: {
+            base: quietTrigger,
+            states: {
+                hover: { background: inkWash },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                open: { background: inkWash },
+                closed: {},
+                ...focusRing,
+            },
+            selectors: { ...pressedInk },
+        },
+        panel: withPresence(popupPresence('none'), {
+            base: {
+                padding: 'var(--space-xl)',
+                background: overlaySurface,
+                color: 'var(--color-base-content)',
+                border: hairline,
+                borderRadius: 'var(--radius-box)',
+                inlineSize: 'min(20rem, 85vw)',
+            },
+            states: { open: {}, closed: {} },
+            selectors: {
+                /**
+                 * The platform's own spelling of "this open is the modal
+                 * one": `:modal`. The base styles above are the INLINE
+                 * render (`show()` keeps the panel in flow); this block is
+                 * the top-layer edge sheet. Logical insets pin the edge, so
+                 * RTL mirrors free.
+                 */
+                '&:modal': {
+                    position: 'fixed',
+                    insetBlockStart: '0',
+                    insetBlockEnd: '0',
+                    blockSize: '100dvh',
+                    maxBlockSize: '100dvh',
+                    inlineSize: 'min(20rem, 85vw)',
+                    maxInlineSize: 'none',
+                    margin: '0',
+                    borderRadius: '0',
+                },
+                '&[data-placement="start"]:modal': { insetInlineStart: '0', insetInlineEnd: 'auto' },
+                '&[data-placement="end"]:modal': { insetInlineStart: 'auto', insetInlineEnd: '0' },
+            },
+        }),
+        backdrop: {
+            // The same tracing-stock dim as dialog's.
+            base: { background: 'color-mix(in oklch, var(--color-neutral) 40%, transparent)' },
+            states: { open: {}, closed: {} },
+        },
+        title: {
+            base: {
+                margin: '0 0 var(--space-md)',
+                fontSize: 'var(--text-lg)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-tight)',
+                fontVariantNumeric: 'tabular-nums',
+            },
+        },
+        close: dismissAction,
+    },
+    // Trigger-carried axes — see `quietTriggerColors` for why the panel is
+    // out of reach and the trigger is the whole colour story here.
+    variants: { color: quietTriggerColors(), size: quietTriggerSizes },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
+    navbar, breadcrumbs, pagination, steps, drawer,
 ];

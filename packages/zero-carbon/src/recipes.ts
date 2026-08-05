@@ -3965,10 +3965,495 @@ export const join: RecipeInput = {
     },
 };
 
+/**
+ * Navbar — Carbon's UI Shell header: a flat 3rem band on the shell surface
+ * with a single line under it, square everywhere. Size-only: this design
+ * system declares no colour axis.
+ */
+export const navbar: RecipeInput = {
+    component: 'navbar',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-md)',
+                minBlockSize: '3rem',
+                paddingInline: 'var(--space-md)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                borderBlockEnd: 'var(--border) solid var(--carbon-line)',
+                borderRadius: '0',
+            },
+        },
+        start: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                flex: '1 1 0%',
+                justifyContent: 'flex-start',
+            },
+        },
+        center: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                justifyContent: 'center',
+            },
+        },
+        end: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                flex: '1 1 0%',
+                justifyContent: 'flex-end',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { minBlockSize: '2.5rem', fontSize: 'var(--text-sm)' } } },
+            md: {},
+            lg: { root: { base: { minBlockSize: '3.5rem' } } },
+            xl: { root: { base: { minBlockSize: '4rem' } } },
+            '2xl': { root: { base: { minBlockSize: '5rem', fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
+/**
+ * Breadcrumbs — Carbon's breadcrumb: body-compact links in the secondary
+ * text ink, underline only on hover, the current page in full text ink
+ * with weight. Size-only; the focus ring is the shared `--carbon-focus`.
+ */
+export const breadcrumbs: RecipeInput = {
+    component: 'breadcrumbs',
+    parts: {
+        root: {
+            base: {
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        list: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+            },
+        },
+        link: {
+            base: {
+                color: 'color-mix(in oklch, var(--color-base-content) 75%, transparent)',
+                textDecoration: 'none',
+                transition: 'color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { color: 'var(--color-base-content)', textDecoration: 'underline' },
+                active: {
+                    color: 'var(--color-base-content)',
+                    fontWeight: 'var(--weight-semibold)',
+                },
+                inactive: {},
+                'focus-visible': {
+                    outline: '2px solid var(--carbon-focus)',
+                    outlineOffset: '1px',
+                },
+            },
+        },
+        separator: {
+            base: {
+                color: 'color-mix(in oklch, var(--color-base-content) 45%, transparent)',
+                userSelect: 'none',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-md)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-md)' } } },
+            '2xl': { root: { base: { fontSize: 'var(--text-lg)' } } },
+        },
+    },
+};
+
+/**
+ * Pagination — Carbon's square page cells: transparent at rest, layer-hover,
+ * the current page marked the Carbon way — a 2px interactive rule on the
+ * block-start edge over a raised layer, plus weight (Carbon marks selection
+ * with rules, not fills). Size-only; glyphs flip under the rtl guard.
+ */
+export const pagination: RecipeInput = {
+    component: 'pagination',
+    tokens: {
+        '--pg-size': 'calc(var(--size-field) * 10)',
+        '--pg-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: { base: { display: 'flex', alignItems: 'center', gap: '0' } },
+        item: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                paddingInline: 'var(--space-2xs)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: '0',
+                fontSize: 'var(--pg-font)',
+                fontVariantNumeric: 'tabular-nums',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: motion('background, color'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                active: {
+                    background: 'var(--color-base-200)',
+                    boxShadow: 'inset 0 2px 0 0 var(--color-base-content)',
+                    fontWeight: 'var(--weight-semibold)',
+                },
+                inactive: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+        },
+        ellipsis: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)',
+                fontSize: 'var(--pg-font)',
+                userSelect: 'none',
+            },
+        },
+        'prev-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: '0',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+        'next-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: '0',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: motion('background'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--pg-size': 'calc(var(--size-field) * 9)', '--pg-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--pg-size': 'calc(var(--size-field) * 12)' } } },
+            xl: { root: { base: { '--pg-size': 'calc(var(--size-field) * 13)', '--pg-font': 'var(--text-md)' } } },
+            '2xl': { root: { base: { '--pg-size': 'calc(var(--size-field) * 14)', '--pg-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
+/**
+ * Steps — Carbon's ProgressIndicator: the discs are the one circle Carbon
+ * allows itself (its step markers are SVG rings) — a border ring at rest,
+ * filled once walked, the current one filled AND double-ringed. Size-only;
+ * progress is marked with fill and weight, never colour.
+ */
+export const steps: RecipeInput = {
+    component: 'steps',
+    tokens: {
+
+        '--steps-ind': 'calc(var(--size-selector) * 7)',
+        '--steps-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'stretch',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        /**
+         * The item is the clickable column (horizontal) or row (vertical);
+         * the separator bridges from ITS indicator toward the next item's,
+         * absolutely positioned past the button box — which is why it is
+         * pointer-events none: the bridge must not grow the hit area.
+         */
+        item: {
+            base: {
+                appearance: 'none',
+                position: 'relative',
+                display: 'flex',
+                flex: '1 1 0%',
+                background: 'transparent',
+                border: 'none',
+                padding: 'var(--space-xs)',
+                gap: 'var(--space-2xs)',
+                fontFamily: 'inherit',
+                fontSize: 'var(--steps-font)',
+                cursor: 'pointer',
+                textAlign: 'center',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'column', alignItems: 'center' },
+                '&[data-orientation="vertical"]': {
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    textAlign: 'start',
+                    columnGap: 'var(--space-sm)',
+                    paddingBlockEnd: 'var(--space-lg)',
+                },
+                '&[data-pressed]:not([data-disabled])': { background: 'var(--color-base-300)' },
+            },
+            states: {
+                active: { color: 'var(--color-base-content)', fontWeight: 'var(--weight-semibold)' },
+                complete: { color: 'var(--color-base-content)' },
+                inactive: { color: 'color-mix(in oklch, var(--color-base-content) 65%, transparent)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+        indicator: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                inlineSize: 'var(--steps-ind)',
+                blockSize: 'var(--steps-ind)',
+                borderRadius: '9999px',
+                fontSize: 'calc(var(--steps-ind) * 0.45)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-none)',
+                position: 'relative',
+                zIndex: '1',
+                flexShrink: '0',
+                border: 'var(--border) solid var(--color-base-content)',
+                transition: motion('background, color'),
+            },
+            states: {
+                active: { background: 'var(--color-base-content)', color: 'var(--color-base-100)', boxShadow: '0 0 0 2px var(--color-base-100), 0 0 0 3px var(--color-base-content)' },
+                complete: { background: 'var(--color-base-content)', color: 'var(--color-base-100)' },
+                inactive: { background: 'transparent', color: 'var(--color-base-content)' },
+            },
+        },
+        /**
+         * The bridge: from this item's indicator centre one full item-slot
+         * toward the next (equal flex slots make the far end the next
+         * indicator's centre). Logical insets only, so RTL mirrors free;
+         * behind the indicator's opaque disc (z-index 0 vs 1).
+         */
+        separator: {
+            base: {
+                position: 'absolute',
+                pointerEvents: 'none',
+                zIndex: '0',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': {
+                    insetBlockStart: 'calc(var(--space-xs) + var(--steps-ind) / 2)',
+                    insetInlineStart: '50%',
+                    inlineSize: '100%',
+                    blockSize: 'var(--border)',
+                },
+                '&[data-orientation="vertical"]': {
+                    insetInlineStart: 'calc(var(--space-xs) + (var(--steps-ind) - var(--border)) / 2)',
+                    insetBlockStart: 'calc(var(--space-xs) + var(--steps-ind))',
+                    insetBlockEnd: 'calc(var(--space-xs) * -1)',
+                    inlineSize: 'var(--border)',
+                },
+            },
+            states: {
+                complete: { background: 'var(--color-base-content)' },
+                inactive: { background: 'var(--color-base-300)' },
+            },
+        },
+        title: {
+            base: {
+                fontWeight: 'var(--weight-medium)',
+            },
+        },
+        description: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                fontWeight: 'var(--weight-normal)',
+            },
+        },
+    },
+    variants: {
+
+        size: {
+            sm: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 5)', '--steps-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 8)' } } },
+            xl: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 8.5)', '--steps-font': 'var(--text-md)' } } },
+            '2xl': { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 9)', '--steps-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
+/**
+ * Drawer — Carbon's side panel: the $layer-01 sheet with a single line on
+ * its inner edge, square of course, faded in. Base render is the inline
+ * mode; `:modal` is the top-layer edge sheet. Size-only, on the trigger.
+ */
+export const drawer: RecipeInput = {
+    component: 'drawer',
+    parts: {
+        trigger: ghostTrigger,
+        panel: withPresence(popupPresence('none'), {
+            base: {
+                padding: 'var(--space-lg)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                border: 'var(--border) solid var(--carbon-line)',
+                borderRadius: '0',
+                fontFamily: 'var(--font-sans)',
+                inlineSize: 'min(20rem, 85vw)',
+            },
+            states: { open: {}, closed: {} },
+            selectors: {
+                '&:modal': {
+                    position: 'fixed',
+                    insetBlockStart: '0',
+                    insetBlockEnd: '0',
+                    blockSize: '100dvh',
+                    maxBlockSize: '100dvh',
+                    inlineSize: 'min(20rem, 85vw)',
+                    maxInlineSize: 'none',
+                    margin: '0',
+                    borderRadius: '0',
+                    border: 'none',
+                    boxShadow: 'var(--shadow-xl)',
+                },
+                '&[data-placement="start"]:modal': {
+                    insetInlineStart: '0',
+                    insetInlineEnd: 'auto',
+                    borderInlineEnd: 'var(--border) solid var(--carbon-line)',
+                },
+                '&[data-placement="end"]:modal': {
+                    insetInlineStart: 'auto',
+                    insetInlineEnd: '0',
+                    borderInlineStart: 'var(--border) solid var(--carbon-line)',
+                },
+            },
+        }),
+        backdrop: {
+            base: {
+                background: 'oklch(0% 0 0 / 0.5)',
+                opacity: '0',
+                transition: 'opacity var(--duration-normal) var(--ease-standard), '
+                    + 'display var(--duration-normal) allow-discrete, '
+                    + 'overlay var(--duration-normal) allow-discrete',
+            },
+            states: { open: { opacity: '1' }, closed: {} },
+            at: {
+                'starting-style': { states: { open: { opacity: '0' } } },
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+        title: {
+            base: {
+                margin: '0 0 var(--space-md)',
+                fontSize: 'var(--text-xl)',
+                fontWeight: 'var(--weight-normal)',
+                lineHeight: 'var(--leading-tight)',
+            },
+        },
+        close: (() => {
+            const shared = ghostIconButton('3rem');
+            return {
+                ...shared,
+                base: {
+                    ...shared.base,
+                    width: 'auto',
+                    height: 'auto',
+                    justifyContent: 'flex-start',
+                    padding: 'var(--space-xs) var(--space-md)',
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 'var(--text-sm)',
+                    letterSpacing: 'var(--tracking-wide)',
+                },
+            };
+        })(),
+    },
+    // Trigger-carried size — see `overlayTriggerSizes`.
+    variants: { size: overlayTriggerSizes },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
+    navbar, breadcrumbs, pagination, steps, drawer,
 ];

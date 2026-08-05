@@ -261,3 +261,34 @@ export type {
 
 export { Join, joinAnatomy, useJoinContext } from './components/join/index.js';
 export type { JoinRootProps, JoinItemProps } from './components/join/index.js';
+
+export { Navbar, navbarAnatomy } from './components/navbar/index.js';
+export type { NavbarRootProps, NavbarSectionProps } from './components/navbar/index.js';
+
+export { Breadcrumbs, breadcrumbsAnatomy } from './components/breadcrumbs/index.js';
+export type {
+    BreadcrumbsRootProps,
+    BreadcrumbsPartProps,
+    BreadcrumbsLinkProps,
+} from './components/breadcrumbs/index.js';
+
+export { Pagination, paginationAnatomy, paginationRow } from './components/pagination/index.js';
+export type { PaginationRootProps } from './components/pagination/index.js';
+
+export { Steps, stepsAnatomy, useStepsContext, useStepsItemContext } from './components/steps/index.js';
+export type {
+    StepsRootProps,
+    StepsItemProps,
+    StepsPartProps,
+    StepsPhase,
+} from './components/steps/index.js';
+
+export { Drawer, drawerAnatomy, useDrawerContext } from './components/drawer/index.js';
+export type {
+    DrawerRootProps,
+    DrawerTriggerProps,
+    DrawerPanelProps,
+    DrawerTitleProps,
+    DrawerCloseProps,
+    DrawerPlacement,
+} from './components/drawer/index.js';

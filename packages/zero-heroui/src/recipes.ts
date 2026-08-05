@@ -3586,10 +3586,465 @@ export const join: RecipeInput = {
     },
 };
 
+/**
+ * Navbar — HeroUI's Navbar is a translucent, blurred bar over the page with
+ * a hairline under it. Size-only: this design system declares no colour
+ * axis (`roles: {}`), so the bar has exactly one surface.
+ */
+export const navbar: RecipeInput = {
+    component: 'navbar',
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-md)',
+                minBlockSize: '4rem',
+                paddingInline: 'var(--space-lg)',
+                background: 'color-mix(in oklch, var(--color-base-100) 70%, transparent)',
+                backdropFilter: 'saturate(1.5) blur(10px)',
+                color: 'var(--color-base-content)',
+                borderBlockEnd: 'var(--border) solid var(--hero-line)',
+            },
+        },
+        start: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                flex: '1 1 0%',
+                justifyContent: 'flex-start',
+            },
+        },
+        center: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                justifyContent: 'center',
+            },
+        },
+        end: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                flex: '1 1 0%',
+                justifyContent: 'flex-end',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { minBlockSize: '3rem', fontSize: 'var(--text-sm)' } } },
+            md: {},
+            lg: { root: { base: { minBlockSize: '5rem' } } },
+        },
+    },
+};
+
+/**
+ * Breadcrumbs — HeroUI's muted-foreground trail: quiet links that rise to
+ * full foreground on hover, the current crumb full foreground. Size-only.
+ */
+export const breadcrumbs: RecipeInput = {
+    component: 'breadcrumbs',
+    parts: {
+        root: {
+            base: {
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        list: {
+            base: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+            },
+        },
+        link: {
+            base: {
+                color: 'var(--hero-muted)',
+                textDecoration: 'none',
+                borderRadius: 'var(--radius-selector)',
+                transition: 'color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { color: 'var(--color-base-content)' },
+                active: {
+                    color: 'var(--color-base-content)',
+                    fontWeight: 'var(--weight-semibold)',
+                },
+                inactive: {},
+                'focus-visible': {
+                    outline: '2px solid var(--color-base-content)',
+                    outlineOffset: '2px',
+                },
+            },
+        },
+        separator: {
+            base: {
+                color: 'var(--hero-muted)',
+                userSelect: 'none',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { fontSize: 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { fontSize: 'var(--text-md)' } } },
+        },
+    },
+};
+
+/**
+ * Pagination — HeroUI's rounded cells: transparent at rest, base-200 under
+ * the pointer, the current page inverted to full foreground (this design
+ * system has no colour axis, so the inversion IS the accent). Pressed is
+ * the v3 inward scale. Size-only; glyphs flip under the rtl guard.
+ */
+export const pagination: RecipeInput = {
+    component: 'pagination',
+    tokens: {
+        '--pg-size': 'calc(var(--size-field) * 10)',
+        '--pg-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: { base: { display: 'flex', alignItems: 'center', gap: 'var(--space-2xs)' } },
+        item: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                paddingInline: 'var(--space-2xs)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: 'var(--radius-field)',
+                fontSize: 'var(--pg-font)',
+                fontWeight: 'var(--weight-medium)',
+                fontVariantNumeric: 'tabular-nums',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: motion('background, color, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                active: { background: 'var(--color-base-content)', color: 'var(--color-base-100)' },
+                inactive: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { ...pressScale },
+        },
+        ellipsis: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                color: 'var(--hero-muted)',
+                fontSize: 'var(--pg-font)',
+                userSelect: 'none',
+            },
+        },
+        'prev-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: 'var(--radius-field)',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: motion('background, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                ...pressScale,
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+        'next-trigger': {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minInlineSize: 'var(--pg-size)',
+                blockSize: 'var(--pg-size)',
+                background: 'transparent',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: 'var(--radius-field)',
+                fontSize: 'calc(var(--pg-font) * 1.2)',
+                lineHeight: 'var(--leading-none)',
+                appearance: 'none',
+                cursor: 'pointer',
+                transition: motion('background, transform'),
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                ...pressScale,
+                [`&${rtl}`]: { scale: '-1 1' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--pg-size': 'calc(var(--size-field) * 9)', '--pg-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--pg-size': 'calc(var(--size-field) * 12)', '--pg-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
+/**
+ * Steps — HeroUI's wizard rail without a colour axis: the inversion is the
+ * accent (current disc = full foreground on its content), the walked disc
+ * a soft foreground tint, everything else the muted base-200 disc. Pressed
+ * is the v3 inward scale. Size-only.
+ */
+export const steps: RecipeInput = {
+    component: 'steps',
+    tokens: {
+
+        '--steps-ind': 'calc(var(--size-selector) * 7)',
+        '--steps-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'flex',
+                alignItems: 'stretch',
+            },
+            selectors: {
+                '&[data-orientation="vertical"]': { flexDirection: 'column' },
+            },
+        },
+        /**
+         * The item is the clickable column (horizontal) or row (vertical);
+         * the separator bridges from ITS indicator toward the next item's,
+         * absolutely positioned past the button box — which is why it is
+         * pointer-events none: the bridge must not grow the hit area.
+         */
+        item: {
+            base: {
+                appearance: 'none',
+                position: 'relative',
+                display: 'flex',
+                flex: '1 1 0%',
+                background: 'transparent',
+                border: 'none',
+                padding: 'var(--space-xs)',
+                gap: 'var(--space-2xs)',
+                fontFamily: 'inherit',
+                fontSize: 'var(--steps-font)',
+                cursor: 'pointer',
+                textAlign: 'center',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': { flexDirection: 'column', alignItems: 'center' },
+                '&[data-orientation="vertical"]': {
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    textAlign: 'start',
+                    columnGap: 'var(--space-sm)',
+                    paddingBlockEnd: 'var(--space-lg)',
+                },
+                ...pressScale,
+            },
+            states: {
+                active: { color: 'var(--color-base-content)', fontWeight: 'var(--weight-semibold)' },
+                complete: { color: 'var(--color-base-content)' },
+                inactive: { color: 'color-mix(in oklch, var(--color-base-content) 65%, transparent)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+        indicator: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                inlineSize: 'var(--steps-ind)',
+                blockSize: 'var(--steps-ind)',
+                borderRadius: '9999px',
+                fontSize: 'calc(var(--steps-ind) * 0.45)',
+                fontWeight: 'var(--weight-semibold)',
+                lineHeight: 'var(--leading-none)',
+                position: 'relative',
+                zIndex: '1',
+                flexShrink: '0',
+                transition: motion('background, color'),
+            },
+            states: {
+                active: { background: 'var(--color-base-content)', color: 'var(--color-base-100)' },
+                complete: { background: 'color-mix(in oklch, var(--color-base-content) 12%, var(--color-base-100))', color: 'var(--color-base-content)' },
+                inactive: { background: 'var(--color-base-200)', color: 'var(--hero-muted)' },
+            },
+        },
+        /**
+         * The bridge: from this item's indicator centre one full item-slot
+         * toward the next (equal flex slots make the far end the next
+         * indicator's centre). Logical insets only, so RTL mirrors free;
+         * behind the indicator's opaque disc (z-index 0 vs 1).
+         */
+        separator: {
+            base: {
+                position: 'absolute',
+                pointerEvents: 'none',
+                zIndex: '0',
+            },
+            selectors: {
+                '&[data-orientation="horizontal"]': {
+                    insetBlockStart: 'calc(var(--space-xs) + var(--steps-ind) / 2)',
+                    insetInlineStart: '50%',
+                    inlineSize: '100%',
+                    blockSize: 'var(--border)',
+                },
+                '&[data-orientation="vertical"]': {
+                    insetInlineStart: 'calc(var(--space-xs) + (var(--steps-ind) - var(--border)) / 2)',
+                    insetBlockStart: 'calc(var(--space-xs) + var(--steps-ind))',
+                    insetBlockEnd: 'calc(var(--space-xs) * -1)',
+                    inlineSize: 'var(--border)',
+                },
+            },
+            states: {
+                complete: { background: 'var(--color-base-content)' },
+                inactive: { background: 'var(--color-base-300)' },
+            },
+        },
+        title: {
+            base: {
+                fontWeight: 'var(--weight-medium)',
+            },
+        },
+        description: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'var(--hero-muted)',
+                fontWeight: 'var(--weight-normal)',
+            },
+        },
+    },
+    variants: {
+
+        size: {
+            sm: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 5.5)', '--steps-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 8)', '--steps-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
+/**
+ * Drawer — HeroUI's Drawer: the base-100 sheet under the blurred scrim,
+ * faded in. Base render is the inline mode; `:modal` is the top-layer
+ * edge sheet. Size-only, carried by the trigger.
+ */
+export const drawer: RecipeInput = {
+    component: 'drawer',
+    parts: {
+        trigger: pressableOverlayTrigger,
+        panel: withPresence(popupPresence('none'), {
+            base: {
+                padding: 'var(--space-xl)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                border: 'none',
+                borderRadius: 'var(--radius-box)',
+                boxShadow: 'var(--shadow-xl)',
+                inlineSize: 'min(20rem, 85vw)',
+            },
+            states: { open: {}, closed: {} },
+            selectors: {
+                /**
+                 * The platform's own spelling of "this open is the modal
+                 * one": `:modal`. The base styles above are the INLINE
+                 * render (`show()` keeps the panel in flow); this block is
+                 * the top-layer edge sheet. Logical insets pin the edge, so
+                 * RTL mirrors free.
+                 */
+                '&:modal': {
+                    position: 'fixed',
+                    insetBlockStart: '0',
+                    insetBlockEnd: '0',
+                    blockSize: '100dvh',
+                    maxBlockSize: '100dvh',
+                    inlineSize: 'min(20rem, 85vw)',
+                    maxInlineSize: 'none',
+                    margin: '0',
+                    borderRadius: '0',
+                },
+                '&[data-placement="start"]:modal': { insetInlineStart: '0', insetInlineEnd: 'auto' },
+                '&[data-placement="end"]:modal': { insetInlineStart: 'auto', insetInlineEnd: '0' },
+            },
+        }),
+        backdrop: {
+            base: {
+                background: 'var(--hero-scrim)',
+                backdropFilter: 'blur(2px)',
+                transition: 'opacity var(--duration-fast) var(--ease-standard), '
+                    + 'display var(--duration-fast) allow-discrete, '
+                    + 'overlay var(--duration-fast) allow-discrete',
+                opacity: '0',
+            },
+            states: { open: { opacity: '1' }, closed: {} },
+            at: {
+                'starting-style': { states: { open: { opacity: '0' } } },
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+        title: {
+            base: {
+                fontFamily: 'var(--font-sans)',
+                fontSize: 'var(--text-lg)',
+                fontWeight: 'var(--weight-semibold)',
+                color: 'var(--color-base-content)',
+                margin: '0 0 var(--space-md)',
+            },
+        },
+        close: dismissAction,
+    },
+    // Trigger-carried size — see `overlayTriggerSizes`.
+    variants: { size: overlayTriggerSizes },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
+    navbar, breadcrumbs, pagination, steps, drawer,
 ];

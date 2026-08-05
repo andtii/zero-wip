@@ -66,6 +66,31 @@ describe('createListController', () => {
         un();
         expect(list.items().map((i) => i.value)).toEqual(['b', 'c']);
     });
+
+    it('DISCONNECTED elements keep registration order — created is not mounted', () => {
+        // The #339 regression pin: during the first render pass an item's
+        // element exists before the tree is attached, and
+        // compareDocumentPosition across two disconnected nodes is
+        // implementation-defined. Steps' indicator was the first reader to
+        // evaluate order in that window and derived phases from the
+        // arbitrary answer. Detached elements must take the same
+        // registration-order fallback as absent ones.
+        const list = createListController();
+        const els = ['a', 'b', 'c'].map(() => document.createElement('button'));
+        ['a', 'b', 'c'].forEach((value, i) => {
+            const item = fakeItem(value);
+            item.el = () => els[i]!;
+            list.register(item);
+        });
+        expect(list.items().map((i) => i.value)).toEqual(['a', 'b', 'c']);
+
+        // Once attached — in REVERSE document order — DOM order wins.
+        const host = document.createElement('div');
+        document.body.appendChild(host);
+        host.append(els[2]!, els[1]!, els[0]!);
+        expect(list.items().map((i) => i.value)).toEqual(['c', 'b', 'a']);
+        host.remove();
+    });
 });
 
 describe('createRovingKeydown', () => {

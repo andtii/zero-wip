@@ -48,6 +48,11 @@ import { timelineAnatomy } from './components/timeline/anatomy.js';
 import { chatAnatomy } from './components/chat/anatomy.js';
 import { radialProgressAnatomy } from './components/radial-progress/anatomy.js';
 import { joinAnatomy } from './components/join/anatomy.js';
+import { navbarAnatomy } from './components/navbar/anatomy.js';
+import { breadcrumbsAnatomy } from './components/breadcrumbs/anatomy.js';
+import { paginationAnatomy } from './components/pagination/anatomy.js';
+import { stepsAnatomy } from './components/steps/anatomy.js';
+import { drawerAnatomy } from './components/drawer/anatomy.js';
 
 export {
     buttonAnatomy,
@@ -58,6 +63,7 @@ export {
     cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy, skeletonAnatomy, spinnerAnatomy,
     kbdAnatomy, statusAnatomy, indicatorAnatomy, statsAnatomy, timelineAnatomy, chatAnatomy,
     radialProgressAnatomy, joinAnatomy,
+    navbarAnatomy, breadcrumbsAnatomy, paginationAnatomy, stepsAnatomy, drawerAnatomy,
 };
 
 export const anatomies = {
@@ -101,6 +107,11 @@ export const anatomies = {
     chat: chatAnatomy,
     'radial-progress': radialProgressAnatomy,
     join: joinAnatomy,
+    navbar: navbarAnatomy,
+    breadcrumbs: breadcrumbsAnatomy,
+    pagination: paginationAnatomy,
+    steps: stepsAnatomy,
+    drawer: drawerAnatomy,
 } as const satisfies Record<string, Anatomy>;
 
 /**
