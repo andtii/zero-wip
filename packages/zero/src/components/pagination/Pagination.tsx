@@ -33,6 +33,10 @@ const range = (from: number, to: number): number[] => {
     return out;
 };
 
+/** Whole, at least `min` — consumer numbers are sanitized at every source. */
+const intAtLeast = (n: number, min: number): number =>
+    Math.max(min, Math.floor(Number.isFinite(n) ? n : min));
+
 /**
  * The constant-width window: boundary pages at both ends, `siblingCount`
  * pages around the current one, ellipses where the row elides — and when
@@ -111,21 +115,33 @@ const PaginationRoot = component<PaginationRootProps>(({ props, emit, signal }) 
         (v) => emit('pageChange', v),
     );
 
-    const count = (): number => Math.max(1, Math.floor(props.count));
-    const page = (): number => Math.min(Math.max(state.value, 1), count());
+    const count = (): number => intAtLeast(props.count, 1);
+    // A float or NaN from the consumer would render fractional page numbers
+    // and unstable keys — every number is clamped to a whole page in range.
+    const page = (): number => Math.min(intAtLeast(state.value, 1), count());
 
     const select = (value: number): void => {
         if (props.disabled) return;
-        const next = Math.min(Math.max(value, 1), count());
+        const next = Math.min(intAtLeast(value, 1), count());
         if (next !== state.value) state.value = next;
     };
 
     // Press feedback per rendered button. The row's buttons come and go as
     // the window slides, so the element map is keyed by the row slot and a
     // press bag is created lazily per key — each button keeps a stable
-    // feedback identity for as long as it exists.
+    // feedback identity for as long as it exists. A null ref (unmount)
+    // DELETES the key and its press instance: walking a large count must
+    // not grow the maps unbounded.
     const els = new Map<string, HTMLElement | null>();
     const presses = new Map<string, ReturnType<typeof createPressFeedback>>();
+    const track = (key: string, node: HTMLElement | null): void => {
+        if (node) {
+            els.set(key, node);
+        } else {
+            els.delete(key);
+            presses.delete(key);
+        }
+    };
     const focus = signal({ visibleKey: '' });
     const pressFor = (key: string, disabled: () => boolean) => {
         let press = presses.get(key);
@@ -172,7 +188,7 @@ const PaginationRoot = component<PaginationRootProps>(({ props, emit, signal }) 
                 disabled={disabled()}
                 onClick={() => select(n)}
                 onFocus={() => { focus.visibleKey = isFocusVisible(els.get(key) ?? null) ? key : ''; }}
-                ref={(node: HTMLElement | null) => { els.set(key, node); }}
+                ref={(node: HTMLElement | null) => { track(key, node); }}
                 {...pressBag(key, disabled)}
             >
                 {String(n)}
@@ -202,7 +218,7 @@ const PaginationRoot = component<PaginationRootProps>(({ props, emit, signal }) 
                 disabled={disabled()}
                 onClick={() => { if (!disabled()) select(page() + step); }}
                 onFocus={() => { focus.visibleKey = isFocusVisible(els.get(partName) ?? null) ? partName : ''; }}
-                ref={(node: HTMLElement | null) => { els.set(partName, node); }}
+                ref={(node: HTMLElement | null) => { track(partName, node); }}
                 {...pressBag(partName, disabled)}
             >
                 {/* Select.Indicator's convention: a default glyph the recipe
@@ -225,7 +241,7 @@ const PaginationRoot = component<PaginationRootProps>(({ props, emit, signal }) 
             class={props.class}
         >
             {stepper('prev-trigger')}
-            {paginationRow(page(), count(), props.siblingCount ?? 1, props.boundaryCount ?? 1)
+            {paginationRow(page(), count(), intAtLeast(props.siblingCount ?? 1, 0), intAtLeast(props.boundaryCount ?? 1, 0))
                 .map((entry) => (typeof entry === 'number' ? item(entry) : ellipsis()))}
             {stepper('next-trigger')}
         </nav>

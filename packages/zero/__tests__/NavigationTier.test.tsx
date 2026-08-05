@@ -182,10 +182,16 @@ describe('Breadcrumbs', () => {
         expectAnatomy(custom, breadcrumbsAnatomy);
     });
 
-    it('asChild hands the link contract to the consumer element', () => {
+    it('asChild hands the link contract to the consumer element — href included', () => {
         render(
             <Breadcrumbs.Root>
                 <Breadcrumbs.List>
+                    <Breadcrumbs.Item>
+                        <Breadcrumbs.Link href="/docs" asChild>
+                            {(p: PartProps) => <a {...p}>Docs</a>}
+                        </Breadcrumbs.Link>
+                        <Breadcrumbs.Separator />
+                    </Breadcrumbs.Item>
                     <Breadcrumbs.Item>
                         <Breadcrumbs.Link current asChild>
                             {(p: PartProps) => <span {...p}>Here</span>}
@@ -195,10 +201,16 @@ describe('Breadcrumbs', () => {
             </Breadcrumbs.Root>,
             container,
         );
-        const link = part(container, 'breadcrumbs', 'link');
-        expect(link.tagName).toBe('SPAN');
-        expect(link.getAttribute('aria-current')).toBe('page');
-        expect(link.getAttribute('data-state')).toBe('active');
+        const links = [...container.querySelectorAll<HTMLElement>(selector('breadcrumbs', 'link'))];
+        // The bag carries everything the built-in <a> would have, href
+        // included — a consumer's own anchor keeps the destination without
+        // restating it.
+        expect(links[0]!.tagName).toBe('A');
+        expect(links[0]!.getAttribute('href')).toBe('/docs');
+        const current = links[1]!;
+        expect(current.tagName).toBe('SPAN');
+        expect(current.getAttribute('aria-current')).toBe('page');
+        expect(current.getAttribute('data-state')).toBe('active');
         expectAnatomy(container, breadcrumbsAnatomy);
     });
 
@@ -305,6 +317,16 @@ describe('Pagination', () => {
         next.click();
         expect(state.page).toBe(3);
         expectAnatomy(container, paginationAnatomy);
+    });
+
+    it('clamps consumer numbers to whole pages in range', () => {
+        // A float or NaN would render fractional page labels and unstable
+        // keys (review finding, pinned): every number is floored and
+        // clamped at its source.
+        render(<Pagination.Root count={5.9} defaultPage={2.5} siblingCount={1.5} />, container);
+        const items = [...container.querySelectorAll<HTMLElement>(selector('pagination', 'item'))];
+        expect(items.map((i) => i.textContent)).toEqual(['1', '2', '3', '4', '5']);
+        expect(items[1]!.getAttribute('data-state')).toBe('active');
     });
 
     it('names the triggers for assistive tech, localizably', () => {

@@ -81,6 +81,10 @@ describe('Steps', () => {
         expect(separators.map((el) => el.getAttribute('data-state')))
             .toEqual(['complete', 'inactive']);
         for (const sep of separators) expect(sep.getAttribute('aria-hidden')).toBe('true');
+        // The indicator is NOT hidden: its number is information ("step 2"),
+        // and for an item rendered with only an indicator it is the button's
+        // entire accessible name (review finding, pinned).
+        for (const ind of indicators) expect(ind.hasAttribute('aria-hidden')).toBe(false);
     });
 
     it('selects on click and re-derives every phase', () => {

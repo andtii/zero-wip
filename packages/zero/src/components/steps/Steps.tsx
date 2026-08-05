@@ -253,11 +253,15 @@ const StepsItem = component<StepsItemProps>(({ props, slots, onUnmounted, signal
 
 export type StepsPartProps = WithClass & Define.Slot<'default'>;
 
+// NOT aria-hidden, unlike the separator: the indicator's content is the
+// step's number, which is information ("step 2"), and for an item rendered
+// with only an indicator it is the button's entire accessible name — hiding
+// it would leave that button nameless. A consumer whose indicator is purely
+// decorative wraps the decoration in its own aria-hidden element.
 const StepsIndicator = component<StepsPartProps>(({ props, slots }) => {
     const item = useStepsItemContext();
     return () => (
         <span
-            aria-hidden="true"
             data-scope={SCOPE}
             data-part="indicator"
             data-state={item.phase()}

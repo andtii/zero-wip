@@ -83,6 +83,10 @@ const BreadcrumbsLink = component<BreadcrumbsLinkProps>(({ props, slots }) => {
         'data-part': 'link',
         'data-state': stateAttr(props.current, 'active', 'inactive'),
         'aria-current': props.current ? 'page' : undefined,
+        // The bag carries everything the built-in <a> would have — an
+        // asChild consumer spreading onto their own anchor keeps the
+        // destination without restating it.
+        href: props.href,
     });
 
     return () => {
