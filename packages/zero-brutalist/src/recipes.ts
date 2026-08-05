@@ -4190,6 +4190,148 @@ export const table: RecipeInput = {
     },
 };
 
+/**
+ * FileUpload — brutalism does not whisper about drops: the dropzone is a
+ * thick dashed slab that slams to the accent (fill + `-content` ink) while
+ * a drag hovers, the trigger is an inked slab that shoves into its own
+ * shadow, and the items are bordered rows with mono metadata.
+ */
+export const fileUpload: RecipeInput = {
+    component: 'file-upload',
+    tokens: {
+        '--fu-accent': 'var(--color-base-content)',
+        '--fu-accent-ink': 'var(--color-base-100)',
+        '--fu-pad': 'var(--space-lg)',
+        '--fu-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: { display: 'grid', gap: 'var(--space-sm)', justifyItems: 'start' },
+        },
+        label: {
+            base: { ...label, fontSize: 'var(--text-xs)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        trigger: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                padding: 'var(--space-sm) var(--space-lg)',
+                ...label,
+                fontSize: 'var(--fu-font)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                border: 'var(--border) solid var(--color-base-content)',
+                boxShadow: 'var(--shadow-sm)',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: shift('1px'),
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed', boxShadow: 'none' },
+                invalid: { borderColor: 'var(--color-error)', color: 'var(--color-error)' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { ...shift('2px'), transition: 'none' },
+            },
+        },
+        dropzone: {
+            base: {
+                justifySelf: 'stretch',
+                padding: 'var(--fu-pad)',
+                textAlign: 'center',
+                ...label,
+                fontSize: 'var(--fu-font)',
+                color: 'var(--color-base-content)',
+                border: 'calc(var(--border) * 2) dashed var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                cursor: 'pointer',
+            },
+            states: {
+                highlighted: {
+                    borderStyle: 'solid',
+                    background: 'var(--fu-accent)',
+                    color: 'var(--fu-accent-ink)',
+                },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        'item-group': {
+            base: {
+                justifySelf: 'stretch',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+                display: 'grid',
+                gap: 'var(--space-xs)',
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-md)',
+                border: 'var(--border) solid var(--color-base-content)',
+                background: 'var(--color-base-100)',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        'item-name': {
+            base: {
+                flex: '1 1 auto',
+                minWidth: '0',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                fontSize: 'var(--fu-font)',
+            },
+        },
+        'item-size': {
+            base: {
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        'item-remove': {
+            base: {
+                appearance: 'none',
+                border: 'var(--border) solid var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                padding: 'var(--space-2xs) var(--space-xs)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--fu-accent': `var(--color-${c})`,
+            '--fu-accent-ink': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--fu-pad': 'var(--space-sm)', '--fu-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--fu-pad': 'var(--space-md)', '--fu-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--fu-pad': 'var(--space-xl)', '--fu-font': 'var(--text-md)' } } },
+            xl: { root: { base: { '--fu-pad': 'calc(var(--space-xl) * 1.25)', '--fu-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
@@ -4198,4 +4340,5 @@ export const recipes: RecipeInput[] = [
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
     table,
+    fileUpload,
 ];

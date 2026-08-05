@@ -219,6 +219,10 @@
         "./table": {
             "types": "./dist/components/table/index.d.ts",
             "import": "./dist/components/table/index.js"
+        },
+        "./file-upload": {
+            "types": "./dist/components/file-upload/index.d.ts",
+            "import": "./dist/components/file-upload/index.js"
         }
     },
     "files": [

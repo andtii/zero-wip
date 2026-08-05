@@ -57,7 +57,8 @@ export default defineLibConfig({
         'components/pagination/index': 'src/components/pagination/index.ts',
         'components/steps/index': 'src/components/steps/index.ts',
         'components/drawer/index': 'src/components/drawer/index.ts',
-        'components/table/index': 'src/components/table/index.ts'
+        'components/table/index': 'src/components/table/index.ts',
+        'components/file-upload/index': 'src/components/file-upload/index.ts'
     },
     external: ['sigx', 'sigx/jsx-runtime', 'sigx/jsx-dev-runtime'],
     jsx: true

@@ -328,6 +328,16 @@
         ]
     },
     {
+        "name": "@sigx/zero/file-upload",
+        "path": "packages/zero/dist/components/file-upload/index.js",
+        "limit": "4 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
         "name": "@sigx/zero/join",
         "path": "packages/zero/dist/components/join/index.js",
         "limit": "2 kB",

@@ -265,6 +265,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     divider: ['orientation'],
     drawer: ['defaultOpen', 'dismissible', 'label', 'modal', 'placement', 'value'],
     field: ['invalid', 'required'],
+    'file-upload': ['accept', 'invalid', 'multiple', 'name', 'required', 'value'],
     indicator: [],
     input: ['autocomplete', 'defaultValue', 'invalid', 'maxlength', 'name', 'readonly', 'required', 'type', 'value'],
     join: [],

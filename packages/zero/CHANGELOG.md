@@ -91,6 +91,21 @@
     (follow-up): `HeaderCell` renders the `<th>` that will carry
     `aria-sort`, so the anatomy is ready without dead parts. Write a
     `Caption` — it is the table's accessible name.
+  - **FileUpload**: a `File[]` model over a REAL `<input type="file">` —
+    `Root`/`Label`/`Trigger`/`Input`/`Dropzone`/`ItemGroup`/`Item(file)`/
+    `ItemName`/`ItemSize`/`ItemRemove`. The input IS the control (it holds
+    `name`/`accept`/`multiple`/`required` and posts natively), visually
+    hidden and out of the tab order; the TRIGGER is the one keyboard path
+    to the picker, and the DROPZONE is a pointer affordance only — never
+    focusable, no role, because APG defines no drop-target pattern and a
+    focusable dropzone would duplicate the trigger. Drag-over is the shared
+    `highlighted` FLAG (on dropzone and root), not a new state — the
+    vocabulary already had the word. `multiple` appends across selections
+    (dedupe by name+size+lastModified), single replaces, drops are filtered
+    by `accept` so both ingestion paths agree, and the input's own FileList
+    is re-synced through `DataTransfer` best-effort. Field-context aware
+    exactly like Input; `ItemRemove` announces "Remove <name>". Exposes
+    `acceptsFile` and `formatBytes`.
 
 - **The content-tier sweep** (#334): the cheap 60% of the coverage gap
   against `@sigx/daisyui` — components that are anatomy plus recipes with

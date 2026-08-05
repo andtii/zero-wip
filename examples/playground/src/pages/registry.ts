@@ -15,6 +15,7 @@ import { toggleGroupPage } from './toggle-group';
 import { fieldPage } from './field';
 import { inputPage } from './input';
 import { textareaPage } from './textarea';
+import { fileUploadPage } from './file-upload';
 import { checkboxPage } from './checkbox';
 import { switchPage } from './switch';
 import { radioGroupPage } from './radio-group';
@@ -91,6 +92,7 @@ export const pages: PageEntry[] = [
     fieldPage,
     inputPage,
     textareaPage,
+    fileUploadPage,
     checkboxPage,
     switchPage,
     radioGroupPage,

@@ -54,6 +54,7 @@ import { paginationAnatomy } from './components/pagination/anatomy.js';
 import { stepsAnatomy } from './components/steps/anatomy.js';
 import { drawerAnatomy } from './components/drawer/anatomy.js';
 import { tableAnatomy } from './components/table/anatomy.js';
+import { fileUploadAnatomy } from './components/file-upload/anatomy.js';
 
 export {
     buttonAnatomy,
@@ -65,7 +66,7 @@ export {
     kbdAnatomy, statusAnatomy, indicatorAnatomy, statsAnatomy, timelineAnatomy, chatAnatomy,
     radialProgressAnatomy, joinAnatomy,
     navbarAnatomy, breadcrumbsAnatomy, paginationAnatomy, stepsAnatomy, drawerAnatomy,
-    tableAnatomy,
+    tableAnatomy, fileUploadAnatomy,
 };
 
 export const anatomies = {
@@ -115,6 +116,7 @@ export const anatomies = {
     steps: stepsAnatomy,
     drawer: drawerAnatomy,
     table: tableAnatomy,
+    'file-upload': fileUploadAnatomy,
 } as const satisfies Record<string, Anatomy>;
 
 /**

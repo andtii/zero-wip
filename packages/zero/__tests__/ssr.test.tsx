@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Breadcrumbs, Card, Chat, Collapsible, Combobox, Dialog, Divider, Drawer, Indicator, Input, Join, Kbd, NativeSelect, Navbar, NumberInput, Pagination, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Steps, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Breadcrumbs, Card, Chat, Collapsible, Combobox, Dialog, Divider, Drawer, FileUpload, Indicator, Input, Join, Kbd, NativeSelect, Navbar, NumberInput, Pagination, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Steps, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -163,6 +163,12 @@ function page() {
                     </Breadcrumbs.Item>
                 </Breadcrumbs.List>
             </Breadcrumbs.Root>
+            <FileUpload.Root name="attachments" accept="image/*" multiple>
+                <FileUpload.Label>Attachments</FileUpload.Label>
+                <FileUpload.Dropzone>Drop files here</FileUpload.Dropzone>
+                <FileUpload.Trigger>Browse files</FileUpload.Trigger>
+                <FileUpload.ItemGroup>{() => null}</FileUpload.ItemGroup>
+            </FileUpload.Root>
             <Table.Root mods={{ zebra: true }}>
                 <Table.Caption>Quarterly revenue</Table.Caption>
                 <Table.Head>

@@ -216,6 +216,9 @@ const NO_VARIANT: Record<string, string> = {
     'radial-progress': 'daisyUI\'s radial-progress varies by colour, size and '
         + 'thickness — the first is the color axis, the others metrics; no '
         + 'surveyed system gives the ring a chrome variant.',
+    'file-upload': 'daisyUI\'s file-input varies as ghost — the shared input '
+        + 'vocabulary, whose answer input\'s own entry already records; Carbon\'s '
+        + 'FileUploader and Ark/Zag\'s file-upload ship no variant axis at all.',
     table: 'Radix Themes Table varies as surface | ghost — a chrome choice '
         + 'this sweep defers with sorting; daisyUI\'s table varies through '
         + 'zebra / pin modifiers and sizes, and Carbon\'s DataTable through '

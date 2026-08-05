@@ -32,6 +32,7 @@ import { Dialog } from '@sigx/zero/dialog';
 import { Divider } from '@sigx/zero/divider';
 import { Drawer } from '@sigx/zero/drawer';
 import { Field } from '@sigx/zero/field';
+import { FileUpload } from '@sigx/zero/file-upload';
 import { Indicator } from '@sigx/zero/indicator';
 import { Input } from '@sigx/zero/input';
 import { Join } from '@sigx/zero/join';
@@ -135,6 +136,7 @@ export type _breadcrumbs = MustBeTrue<CheckColorSize<PropsOf<typeof Breadcrumbs.
 export type _pagination = MustBeTrue<CheckColorSize<PropsOf<typeof Pagination.Root>>>;
 export type _steps = MustBeTrue<CheckColorSize<PropsOf<typeof Steps.Root>>>;
 export type _table = MustBeTrue<CheckColorSize<PropsOf<typeof Table.Root>>>;
+export type _fileUpload = MustBeTrue<CheckColorSize<PropsOf<typeof FileUpload.Root>>>;
 
 /* ── the three scopes basic wires a variant vocabulary for ── */
 type ButtonProps = PropsOf<typeof Button.Root>;

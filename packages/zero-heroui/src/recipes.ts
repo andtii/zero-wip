@@ -4130,6 +4130,110 @@ export const table: RecipeInput = {
     },
 };
 
+/**
+ * HeroUI file upload: a secondary-button trigger with the v3 press-scale,
+ * a soft dashed dropzone washing toward `--hero-primary` while a drag
+ * hovers, and rounded item rows. Size only — there is no colour axis.
+ */
+export const fileUpload: RecipeInput = {
+    component: 'file-upload',
+    tokens: {
+        '--fu-pad': 'var(--space-lg)',
+        '--fu-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: { display: 'grid', gap: 'var(--space-sm)', justifyItems: 'start' },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        trigger: {
+            base: { ...secondaryButton, fontSize: 'var(--fu-font)' },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                invalid: { borderColor: 'var(--hero-danger)' },
+                ...focusRing,
+            },
+            selectors: { ...pressScale },
+        },
+        dropzone: {
+            base: {
+                justifySelf: 'stretch',
+                padding: 'var(--fu-pad)',
+                textAlign: 'center',
+                fontSize: 'var(--fu-font)',
+                color: 'var(--hero-muted)',
+                border: 'var(--border) dashed var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                cursor: 'pointer',
+                transition: 'border-color var(--duration-fast) var(--ease-standard), '
+                    + 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                highlighted: {
+                    borderColor: 'var(--hero-primary)',
+                    background: 'color-mix(in oklch, var(--hero-primary) 8%, var(--color-base-100))',
+                    color: 'var(--color-base-content)',
+                },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        'item-group': {
+            base: {
+                justifySelf: 'stretch',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+                display: 'grid',
+                gap: 'var(--space-xs)',
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-md)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-field)',
+                background: 'var(--color-base-100)',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        'item-name': {
+            base: {
+                flex: '1 1 auto',
+                minWidth: '0',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                fontSize: 'var(--fu-font)',
+            },
+        },
+        'item-size': {
+            base: {
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--hero-muted)',
+            },
+        },
+        'item-remove': {
+            ...iconClose,
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--fu-pad': 'var(--space-md)', '--fu-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--fu-pad': 'var(--space-xl)', '--fu-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
@@ -4138,4 +4242,5 @@ export const recipes: RecipeInput[] = [
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
     table,
+    fileUpload,
 ];

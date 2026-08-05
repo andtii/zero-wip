@@ -4649,6 +4649,155 @@ export const table: RecipeInput = {
     },
 };
 
+/**
+ * FileUpload — MD3: an outlined-button trigger with the 8%/12% state
+ * layers, an outline-dashed dropzone that washes with the accent while a
+ * drag hovers, and list rows on the container surface.
+ */
+export const fileUpload: RecipeInput = {
+    component: 'file-upload',
+    tokens: {
+        '--fu-accent': 'var(--color-primary)',
+        '--fu-pad': 'var(--space-lg)',
+        '--fu-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: { display: 'grid', gap: 'var(--space-sm)', justifyItems: 'start' },
+        },
+        label: {
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                letterSpacing: 'var(--tracking-wide)',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        trigger: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                padding: 'var(--space-sm) var(--space-xl)',
+                fontSize: 'var(--fu-font)',
+                fontWeight: 'var(--weight-medium)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--fu-accent)',
+                background: 'transparent',
+                border: 'var(--border) solid var(--color-outline)',
+                borderRadius: 'var(--radius-field)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'color-mix(in oklch, var(--fu-accent) 8%, transparent)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                invalid: { borderColor: 'var(--color-error)', color: 'var(--color-error)' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklch, var(--fu-accent) 12%, transparent)',
+                },
+            },
+        },
+        dropzone: {
+            base: {
+                justifySelf: 'stretch',
+                padding: 'var(--fu-pad)',
+                textAlign: 'center',
+                fontSize: 'var(--fu-font)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                border: 'var(--border) dashed var(--color-outline)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-surface-container)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard), '
+                    + 'border-color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                highlighted: {
+                    borderColor: 'var(--fu-accent)',
+                    background: 'color-mix(in oklch, var(--fu-accent) 8%, var(--color-surface-container))',
+                    color: 'var(--color-base-content)',
+                },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        'item-group': {
+            base: {
+                justifySelf: 'stretch',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+                display: 'grid',
+                gap: 'var(--space-xs)',
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-md)',
+                borderRadius: 'var(--radius-field)',
+                background: 'var(--color-surface-container)',
+                color: 'var(--color-surface-container-content)',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        'item-name': {
+            base: {
+                flex: '1 1 auto',
+                minWidth: '0',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                fontSize: 'var(--fu-font)',
+            },
+        },
+        'item-size': {
+            base: {
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        'item-remove': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                borderRadius: '9999px',
+                padding: 'var(--space-2xs) var(--space-xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'color-mix(in oklch, var(--color-base-content) 8%, transparent)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--fu-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--fu-pad': 'var(--space-sm)', '--fu-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--fu-pad': 'var(--space-md)', '--fu-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--fu-pad': 'var(--space-xl)', '--fu-font': 'var(--text-md)' } } },
+            xl: { root: { base: { '--fu-pad': 'calc(var(--space-xl) * 1.25)', '--fu-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
@@ -4657,4 +4806,5 @@ export const recipes: RecipeInput[] = [
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
     table,
+    fileUpload,
 ];

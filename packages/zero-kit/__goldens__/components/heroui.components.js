@@ -64,3 +64,4 @@ export { Breadcrumbs } from '@sigx/zero/breadcrumbs';
 export { Pagination } from '@sigx/zero/pagination';
 export { Steps } from '@sigx/zero/steps';
 export { Drawer } from '@sigx/zero/drawer';
+export { FileUpload } from '@sigx/zero/file-upload';

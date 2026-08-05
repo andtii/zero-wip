@@ -94,7 +94,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-46 components ship today. Every part each renders is listed below, in
+47 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -293,6 +293,21 @@ component renders; the root is called out separately where it carries props.
   directional CSS). asChild is the honest joint: a wrapper cannot collapse
   the radius of the control inside it, so put the item attributes ON the
   control.
+- FileUpload: Root(model=File[])/Label/Trigger/Input/Dropzone/ItemGroup/
+  Item(file)/ItemName/ItemSize/ItemRemove. The INPUT IS THE CONTROL — a
+  real <input type=file> holding name/accept/multiple/required and posting
+  its FileList natively — visually hidden and out of the tab order; the
+  TRIGGER (a real <button>) is the one keyboard path to the picker. The
+  DROPZONE is a pointer affordance only: never focusable, no role (APG has
+  no drop-target pattern; a click forwards to the picker). Drag-over is
+  the shared data-highlighted FLAG (stamped on dropzone AND root), not a
+  new state. multiple appends across selections (dedupe name+size+
+  lastModified); single replaces; drops are filtered by accept so the two
+  ingestion paths agree; the input's own FileList is re-synced through
+  DataTransfer best-effort. Field-context aware exactly like Input (the
+  trigger owns the field's control id). ItemName/ItemSize default to the
+  file's name and human-readable size; ItemRemove is labelled
+  "Remove <name>".
 - Table: Root/Table/Caption/Head/Body/Foot/Row/HeaderCell/Cell — semantic
   data table over the REAL table elements (caption/thead/tbody/tfoot/tr/th/
   td; the elements are the semantics, so no asChild anywhere). Root is the
@@ -477,7 +492,7 @@ Divider, Field, Indicator, Input, Join, Kbd, Menu, NativeSelect, NumberInput,
 Navbar, Pagination, Popover, Progress, RadialProgress, RadioGroup,
 RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,
 Switch, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,
-Table and TreeView;
+Table, FileUpload and TreeView;
 that is every component. Where the Root renders a fragment (a
 dialog/menu/popover/tooltip) the props live on the Trigger, which renders the
 carrier part the compiled axis selectors anchor on, and Toast routes the

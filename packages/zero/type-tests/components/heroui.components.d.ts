@@ -52,6 +52,7 @@ import type { Pagination as ZPagination } from '@sigx/zero/pagination';
 import type { Steps as ZSteps } from '@sigx/zero/steps';
 import type { Drawer as ZDrawer } from '@sigx/zero/drawer';
 import type { Table as ZTable } from '@sigx/zero/table';
+import type { FileUpload as ZFileUpload } from '@sigx/zero/file-upload';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -380,3 +381,10 @@ type TableProps = {
 };
 type TableAdapted = Adapted<typeof ZTable, ZeroAxisProp | 'isStriped', TableProps>;
 export declare const Table: TableAdapted & AdaptedStatics<typeof ZTable> & { Root: TableAdapted };
+
+/** file-upload — no vendor route; the wired surface keeps zero's names. */
+type FileUploadProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type FileUploadAdapted = Adapted<typeof ZFileUpload, ZeroAxisProp, FileUploadProps>;
+export declare const FileUpload: FileUploadAdapted & AdaptedStatics<typeof ZFileUpload> & { Root: FileUploadAdapted };

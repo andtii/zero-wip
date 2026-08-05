@@ -5216,6 +5216,139 @@ export const table: RecipeInput = {
     },
 };
 
+/**
+ * FileUpload — Monograph's field family: a quiet trigger button, a hairline
+ * dashed dropzone that inks up (petrol, like every interactive signal)
+ * while a drag hovers — the shared `highlighted` flag — and a hairline item
+ * list with mono metadata. The colour axis rebinds the accent.
+ */
+export const fileUpload: RecipeInput = {
+    component: 'file-upload',
+    tokens: {
+        '--fu-accent': 'var(--color-primary)',
+        '--fu-pad': 'var(--space-lg)',
+        '--fu-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: { display: 'grid', gap: 'var(--space-sm)', justifyItems: 'start' },
+        },
+        label: {
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                color: 'var(--color-base-content)',
+            },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+            },
+        },
+        trigger: {
+            base: { ...quietTrigger, fontSize: 'var(--fu-font)' },
+            states: {
+                hover: { background: inkWash },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                invalid: { borderColor: 'var(--color-error)' },
+                ...focusRing,
+            },
+            selectors: { ...pressedInk },
+        },
+        dropzone: {
+            base: {
+                justifySelf: 'stretch',
+                padding: 'var(--fu-pad)',
+                textAlign: 'center',
+                fontSize: 'var(--fu-font)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                border: 'var(--border) dashed var(--color-base-300)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                cursor: 'pointer',
+                transition: 'border-color var(--duration-fast) var(--ease-standard), '
+                    + 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                // The shared `highlighted` flag: a drag is hovering and a
+                // drop will act. Border AND wash — colour alone is not a
+                // signal.
+                highlighted: {
+                    borderColor: 'var(--fu-accent)',
+                    background: 'color-mix(in oklch, var(--fu-accent) 6%, var(--color-base-100))',
+                    color: 'var(--color-base-content)',
+                },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        'item-group': {
+            base: {
+                justifySelf: 'stretch',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+                display: 'grid',
+                gap: 'var(--space-xs)',
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                border: hairline,
+                borderRadius: 'var(--radius-field)',
+                background: 'var(--color-base-100)',
+            },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+            },
+        },
+        'item-name': {
+            base: {
+                flex: '1 1 auto',
+                minWidth: '0',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                fontSize: 'var(--fu-font)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        'item-size': {
+            base: {
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        'item-remove': {
+            base: {
+                ...iconClose,
+                padding: 'var(--space-2xs) var(--space-xs)',
+            },
+            states: {
+                hover: { background: inkWash },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { ...pressedInk },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--fu-accent': softInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { '--fu-pad': 'var(--space-sm)', '--fu-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--fu-pad': 'var(--space-md)', '--fu-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--fu-pad': 'var(--space-xl)', '--fu-font': 'var(--text-md)' } } },
+            xl: { root: { base: { '--fu-pad': 'calc(var(--space-xl) * 1.25)', '--fu-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
@@ -5224,4 +5357,5 @@ export const recipes: RecipeInput[] = [
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
     table,
+    fileUpload,
 ];
