@@ -1429,7 +1429,10 @@ export const slider: RecipeInput = {
             base: {
                 height: '0.125rem',
                 marginBlock: '1.1875rem',
-                background: 'var(--carbon-line)',
+                // Progress's rail, not `--carbon-line`: the audited
+                // `rangeFill` pair is fill-on-base-300 (3.64:1 on g100);
+                // on the lighter line grey it drops to 2.11:1.
+                background: 'var(--color-base-300)',
                 cursor: 'pointer',
             },
             states: { disabled: { cursor: 'not-allowed' } },
@@ -1437,7 +1440,10 @@ export const slider: RecipeInput = {
         range: {
             base: {
                 height: '100%',
-                background: 'var(--carbon-interactive)',
+                // `rangeFill`, not the raw interactive blue: on the g100 rail
+                // the raw token is 1.71:1 — the same fill-vs-track failure
+                // progress already deepened its way out of (#228).
+                background: rangeFill,
             },
             states: { disabled: {} },
         },

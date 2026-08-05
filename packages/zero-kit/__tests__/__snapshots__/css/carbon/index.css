@@ -1602,7 +1602,7 @@
     [data-scope="slider"][data-part="track"] {
         height: 0.125rem;
         margin-block: 1.1875rem;
-        background: var(--carbon-line);
+        background: var(--color-base-300);
         cursor: pointer;
     }
 
@@ -1612,7 +1612,7 @@
 
     [data-scope="slider"][data-part="range"] {
         height: 100%;
-        background: var(--carbon-interactive);
+        background: color-mix(in oklab, var(--carbon-interactive) 85%, var(--color-base-content));
     }
 
     [data-scope="slider"][data-part="thumb"] {
