@@ -396,6 +396,17 @@ describe('RadialProgress', () => {
         expectAnatomy(container, radialProgressAnatomy);
     });
 
+    it('a degenerate range never leaks NaN into the percent property', () => {
+        // max === min has nothing left to fill: any present value reads as
+        // done, and the guard keeps NaN/Infinity out of --progress-percent
+        // and the value text.
+        mount(5, { min: 5, max: 5 });
+        const root = part(container, 'radial-progress', 'root');
+        expect(root.getAttribute('data-state')).toBe('complete');
+        expect(root.getAttribute('style')).toContain('--progress-percent: 100%');
+        expect(part(container, 'radial-progress', 'value-text').textContent).toBe('100%');
+    });
+
     it('the label names the progressbar', () => {
         mount(30);
         const root = part(container, 'radial-progress', 'root');

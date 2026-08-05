@@ -59,7 +59,13 @@ const ProgressRoot = component<ProgressRootProps>(({ props, slots }) => {
     const percent = (): number | null => {
         const v = value();
         if (v == null) return null;
-        return Math.min(100, Math.max(0, ((v - min()) / (max() - min())) * 100));
+        // A degenerate range (max <= min) has nothing left to fill: any
+        // present value reads as done, and the guard keeps NaN/Infinity out
+        // of `--progress-percent`. Mirrored in RadialProgress (#334) — the
+        // shared value model includes its edge cases.
+        const span = max() - min();
+        if (!(span > 0)) return 100;
+        return Math.min(100, Math.max(0, ((v - min()) / span) * 100));
     };
     const ctx: ProgressContext = {
         value,
