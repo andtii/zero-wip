@@ -14,6 +14,10 @@
             "types": "./dist/register.d.ts",
             "import": "./dist/register.js"
         },
+        "./components": {
+            "types": "./dist/components.d.ts",
+            "import": "./dist/components.js"
+        },
         "./css": "./dist/css/index.css",
         "./css/tokens": "./dist/css/tokens.css",
         "./css/*": "./dist/css/components/*.css",
