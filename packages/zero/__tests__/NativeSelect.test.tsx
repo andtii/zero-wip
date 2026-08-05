@@ -89,16 +89,18 @@ describe('NativeSelect', () => {
         expect(control(container).value).toBe('banana');
     });
 
-    it('an empty model with no placeholder rests on the first option, never a blanked control', async () => {
-        // Copilot review, #337: the mounted sync must not write '' into a
-        // select that has no empty option — the write would deselect
-        // everything, where the platform's own resting state (and the raw
-        // <select> this component wraps) shows the first option.
+    it('an empty model with no placeholder coerces to the first option — model and posted value are one truth', async () => {
+        // Copilot review, #337 (both rounds): writing '' into a select with
+        // no empty option would blank the control; NOT writing would leave
+        // the model claiming '' while the form posts the first option. A
+        // <select> without an empty option always has a value, so the model
+        // adopts the control's actual value instead of either lie.
         const state = signal({ pet: '' });
         render(<NativeSelect model={[state, 'pet']} options={OPTIONS} />, container);
         await new Promise((r) => setTimeout(r, 0));
         expect(control(container).value).toBe('apple');
         expect(control(container).selectedIndex).toBe(0);
+        expect(state.pet).toBe('apple');
     });
 
     it('placeholder renders a disabled empty option and sets data-placeholder while value is empty', () => {

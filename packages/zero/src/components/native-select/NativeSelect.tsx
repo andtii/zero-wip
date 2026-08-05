@@ -22,7 +22,11 @@
  * the same array shape and grouping walk as Select's and Combobox's sugar.
  * Slot children (hand-written `<option>`s) win entirely when both are given.
  * A `placeholder` renders as the conventional disabled empty option and
- * drives the `data-placeholder` flag while the value is empty.
+ * drives the `data-placeholder` flag while the value is empty. Without one,
+ * "nothing chosen" is not representable — a `<select>` with no empty option
+ * always has a value (the platform rests on, and posts, the first option) —
+ * so an empty model is coerced to the control's actual value on mount: the
+ * model and the posted value are one truth.
  *
  * Inside a `Field.Root` the control adopts the field's id, flags and
  * `aria-describedby`, exactly like Input — a `<select>` is labelable, so
@@ -92,12 +96,18 @@ const NativeSelectRoot = component<NativeSelectRootProps>(({ props, slots, emit,
         effect(() => {
             const value = state.value;
             if (!el || el.value === value) return;
-            // An empty model with no placeholder option must NOT be written:
-            // no option has value "", so the write would blank the control,
-            // where the platform's own resting state is the first option —
-            // exactly what a raw <select> shows. The write resumes the
-            // moment a real value (or a placeholder to rest on) exists.
-            if (value === '' && props.placeholder === undefined) return;
+            // An empty model with no placeholder option cannot be written:
+            // no option has value "", so the write would blank the control —
+            // and a <select> without an empty option ALWAYS has a value (the
+            // platform rests on the first option and would POST it). Writing
+            // nothing instead would leave the model claiming '' while the
+            // form submits 'first-option', so the model is coerced to the
+            // control's actual value: the model and the posted value stay
+            // one truth. Represent "nothing chosen yet" with `placeholder`.
+            if (value === '' && props.placeholder === undefined) {
+                if (el.value !== '') state.value = el.value;
+                return;
+            }
             el.value = value;
         });
     });

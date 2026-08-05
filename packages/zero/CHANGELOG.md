@@ -34,7 +34,10 @@
     generated options, since a `<select>`'s value attribute means nothing
     before its options exist), and a `placeholder` rendered as the
     conventional disabled empty option, driving a `data-placeholder` flag
-    while the value is empty. No `data-state` anywhere — the popup never
+    while the value is empty. Without a placeholder, "nothing chosen" is not
+    representable — a `<select>` with no empty option always has a value, so
+    an empty model is coerced to the control's actual value on mount and the
+    model matches what the form would post. No `data-state` anywhere — the popup never
     exists in this DOM — and no hidden input: the visible element IS the
     form control and carries `name`. Field-context aware exactly like Input
     (control id, flags, `aria-describedby`). All six design systems ship
