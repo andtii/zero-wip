@@ -17,7 +17,7 @@
  *     and this is what proves it.
  *   - **a three-step size ramp.** No other design system declares `sizes` at
  *     all; they all take the recommended five.
- *   - **two presence-only modifiers**, `isIconOnly` and `isPending` in HeroUI's
+ *   - **presence-only modifiers**, `isIconOnly` and `isPending` in HeroUI's
  *     own API.
  *
  * Values are approximated from public documentation. This package proves the
@@ -135,8 +135,8 @@ export const systemDark = {
  */
 export const variants = ['primary', 'secondary', 'tertiary', 'outline', 'ghost', 'danger', 'danger-soft'] as const;
 
-/** HeroUI's `isIconOnly` / `isPending`, as presence-only modifiers. */
-export const modifiers = ['icon-only', 'pending'] as const;
+/** HeroUI's `isIconOnly` / `isPending`, plus table's `isStriped` (#340). */
+export const modifiers = ['icon-only', 'pending', 'striped'] as const;
 
 export const tokens: TokensInput<typeof roles, typeof system> = {
     roles,

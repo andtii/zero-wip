@@ -27,6 +27,7 @@ const api = defineApi(
         modifiers: {
             'icon-only': { as: 'isIconOnly' },
             pending: { as: 'isPending' },
+            striped: { as: 'isStriped' },
         },
     },
 );

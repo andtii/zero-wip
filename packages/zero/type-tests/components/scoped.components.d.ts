@@ -14,7 +14,7 @@ type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 type ButtonProps = {
     'size'?: 'small' | 'medium';
     'buttonKind'?: 'primary' | 'secondary' | 'tertiary' | 'ghost' | 'danger' | 'danger-tertiary' | 'danger-ghost';
-    mods?: { 'expressive'?: boolean; 'icon-only'?: boolean };
+    mods?: { 'expressive'?: boolean; 'icon-only'?: boolean; 'zebra'?: boolean };
 };
 type ButtonAdapted = Adapted<typeof ZButton, ZeroAxisProp | 'buttonKind' | 'size', ButtonProps>;
 export declare const Button: ButtonAdapted & { Root: ButtonAdapted };

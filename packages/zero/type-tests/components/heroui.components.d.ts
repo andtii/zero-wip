@@ -51,6 +51,7 @@ import type { Breadcrumbs as ZBreadcrumbs } from '@sigx/zero/breadcrumbs';
 import type { Pagination as ZPagination } from '@sigx/zero/pagination';
 import type { Steps as ZSteps } from '@sigx/zero/steps';
 import type { Drawer as ZDrawer } from '@sigx/zero/drawer';
+import type { Table as ZTable } from '@sigx/zero/table';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -371,3 +372,11 @@ type DrawerProps = {
 };
 type DrawerAdapted = Adapted<typeof ZDrawer, ZeroAxisProp, DrawerProps>;
 export declare const Drawer: DrawerAdapted & AdaptedStatics<typeof ZDrawer> & { Root: DrawerAdapted };
+
+/** table — isStriped ← mods.striped. Attributes stay zero-spelled. */
+type TableProps = {
+    size?: 'sm' | 'md' | 'lg';
+    'isStriped'?: boolean;
+};
+type TableAdapted = Adapted<typeof ZTable, ZeroAxisProp | 'isStriped', TableProps>;
+export declare const Table: TableAdapted & AdaptedStatics<typeof ZTable> & { Root: TableAdapted };

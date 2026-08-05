@@ -4449,6 +4449,96 @@ export const drawer: RecipeInput = {
     variants: { size: overlayTriggerSizes },
 };
 
+/**
+ * Carbon data table: no outer chrome (the page layer is the chrome), a
+ * base-200 header band, hairline `--carbon-line` row rules, and the layer
+ * washes for interaction — selected rows on the 15% active layer. `zebra`
+ * is Carbon's `useZebraStyles` (the api maps it). Square everything.
+ */
+export const table: RecipeInput = {
+    component: 'table',
+    tokens: {
+        '--table-pad-block': 'var(--space-sm)',
+        '--table-pad-inline': 'var(--space-md)',
+        '--table-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                overflowX: 'auto',
+                background: 'var(--color-base-100)',
+            },
+        },
+        table: {
+            base: {
+                borderCollapse: 'collapse',
+                inlineSize: '100%',
+                fontSize: 'var(--table-font)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        caption: {
+            base: {
+                captionSide: 'top',
+                textAlign: 'start',
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        head: {
+            base: { background: 'var(--color-base-200)' },
+        },
+        body: {},
+        foot: {
+            base: {
+                background: 'var(--color-base-200)',
+                fontSize: 'var(--text-xs)',
+            },
+        },
+        row: {
+            base: { borderBlockEnd: 'var(--border) solid var(--carbon-line)' },
+            states: {
+                selected: { background: layerActive },
+            },
+        },
+        'header-cell': {
+            base: {
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                textAlign: 'start',
+                fontWeight: 'var(--weight-semibold)',
+                fontSize: 'var(--table-font)',
+            },
+        },
+        cell: {
+            base: {
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                textAlign: 'start',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--table-pad-block': 'calc(var(--space-xs) / 2)', '--table-pad-inline': 'var(--space-sm)', '--table-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--table-pad-block': 'var(--space-md)', '--table-pad-inline': 'var(--space-lg)', '--table-font': 'var(--text-sm)' } } },
+            xl: { root: { base: { '--table-pad-block': 'var(--space-md)', '--table-pad-inline': 'var(--space-lg)', '--table-font': 'var(--text-md)' } } },
+            '2xl': { root: { base: { '--table-pad-block': 'var(--space-lg)', '--table-pad-inline': 'var(--space-xl)', '--table-font': 'var(--text-md)' } } },
+        },
+    },
+    modifiers: {
+        zebra: {
+            row: {
+                selectors: {
+                    '[data-scope="table"][data-part="body"] > &:nth-child(even):not([data-selected])': {
+                        background: layerHover,
+                    },
+                },
+            },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
@@ -4456,4 +4546,5 @@ export const recipes: RecipeInput[] = [
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
+    table,
 ];

@@ -4079,6 +4079,117 @@ export const drawer: RecipeInput = {
     variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 
+/**
+ * Table — a brutalist grid: the thick border and hard shadow on the scroll
+ * box, mono uppercase headers over a heavy head rule, and a selected row
+ * that INVERTS into the accent (fill + its `-content` ink) rather than
+ * tinting. Zebra and hover shade with base-200; both yield to selection.
+ */
+export const table: RecipeInput = {
+    component: 'table',
+    tokens: {
+        '--table-accent': 'var(--color-base-content)',
+        '--table-accent-ink': 'var(--color-base-100)',
+        '--table-pad-block': 'var(--space-sm)',
+        '--table-pad-inline': 'var(--space-md)',
+        '--table-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                overflowX: 'auto',
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                boxShadow: 'var(--shadow-sm)',
+            },
+        },
+        table: {
+            base: {
+                borderCollapse: 'collapse',
+                inlineSize: '100%',
+                fontSize: 'var(--table-font)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        caption: {
+            base: {
+                captionSide: 'top',
+                textAlign: 'start',
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+            },
+        },
+        head: {
+            base: { borderBlockEnd: 'calc(var(--border) * 2) solid var(--color-base-content)' },
+        },
+        body: {},
+        foot: {
+            base: {
+                borderBlockStart: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                fontSize: 'var(--text-xs)',
+            },
+        },
+        row: {
+            base: { borderBlockEnd: 'var(--border) solid var(--color-base-content)' },
+            states: {
+                selected: {
+                    background: 'var(--table-accent)',
+                    color: 'var(--table-accent-ink)',
+                },
+            },
+        },
+        'header-cell': {
+            base: {
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                textAlign: 'start',
+                ...label,
+                fontSize: 'var(--text-xs)',
+            },
+        },
+        cell: {
+            base: {
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                textAlign: 'start',
+                fontVariantNumeric: 'tabular-nums',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--table-accent': `var(--color-${c})`,
+            '--table-accent-ink': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--table-pad-block': 'calc(var(--space-xs) / 2)', '--table-pad-inline': 'var(--space-xs)', '--table-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--table-pad-block': 'var(--space-xs)', '--table-pad-inline': 'var(--space-sm)', '--table-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--table-pad-block': 'var(--space-md)', '--table-pad-inline': 'var(--space-lg)', '--table-font': 'var(--text-md)' } } },
+            xl: { root: { base: { '--table-pad-block': 'var(--space-lg)', '--table-pad-inline': 'var(--space-xl)', '--table-font': 'var(--text-md)' } } },
+        },
+    },
+    modifiers: {
+        zebra: {
+            row: {
+                selectors: {
+                    '[data-scope="table"][data-part="body"] > &:nth-child(even):not([data-selected])': {
+                        background: 'var(--color-base-200)',
+                    },
+                },
+            },
+        },
+        hover: {
+            row: {
+                selectors: {
+                    '[data-scope="table"][data-part="body"] > &:hover:not([data-selected])': {
+                        background: 'var(--color-base-200)',
+                    },
+                },
+            },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
@@ -4086,4 +4197,5 @@ export const recipes: RecipeInput[] = [
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
+    table,
 ];

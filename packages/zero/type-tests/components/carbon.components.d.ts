@@ -10,11 +10,12 @@ import type { Button as ZButton } from '@sigx/zero/button';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
-/** button — kind ← variant (2 respelled); hasIconOnly ← mods.icon-only; isExpressive ← mods.expressive. Attributes stay zero-spelled. */
+/** button — kind ← variant (2 respelled); hasIconOnly ← mods.icon-only; isExpressive ← mods.expressive; useZebraStyles ← mods.zebra. Attributes stay zero-spelled. */
 type ButtonProps = {
     'kind'?: 'primary' | 'secondary' | 'tertiary' | 'ghost' | 'danger' | 'danger--tertiary' | 'danger--ghost';
     'hasIconOnly'?: boolean;
     'isExpressive'?: boolean;
+    'useZebraStyles'?: boolean;
 };
-type ButtonAdapted = Adapted<typeof ZButton, ZeroAxisProp | 'hasIconOnly' | 'isExpressive' | 'kind', ButtonProps>;
+type ButtonAdapted = Adapted<typeof ZButton, ZeroAxisProp | 'hasIconOnly' | 'isExpressive' | 'kind' | 'useZebraStyles', ButtonProps>;
 export declare const Button: ButtonAdapted & { Root: ButtonAdapted };

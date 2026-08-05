@@ -292,3 +292,5 @@ export type {
     DrawerCloseProps,
     DrawerPlacement,
 } from './components/drawer/index.js';
+export { Table, tableAnatomy } from './components/table/index.js';
+export type { TableRootProps, TablePartProps, TableRowProps, TableHeaderCellProps } from './components/table/index.js';

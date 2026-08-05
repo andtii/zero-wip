@@ -4040,6 +4040,96 @@ export const drawer: RecipeInput = {
     variants: { size: overlayTriggerSizes },
 };
 
+/**
+ * HeroUI table: a soft rounded box, base-200 header band, hairline rows.
+ * `striped` is HeroUI's own `isStriped` (the api maps it); selection is a
+ * primary-soft wash. No colour axis — there are no roles to key it on.
+ */
+export const table: RecipeInput = {
+    component: 'table',
+    tokens: {
+        '--table-pad-block': 'var(--space-sm)',
+        '--table-pad-inline': 'var(--space-md)',
+        '--table-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                overflowX: 'auto',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+            },
+        },
+        table: {
+            base: {
+                borderCollapse: 'collapse',
+                inlineSize: '100%',
+                fontSize: 'var(--table-font)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        caption: {
+            base: {
+                captionSide: 'top',
+                textAlign: 'start',
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                fontSize: 'var(--text-xs)',
+                color: 'var(--hero-muted)',
+            },
+        },
+        head: {
+            base: { background: 'var(--color-base-200)' },
+        },
+        body: {},
+        foot: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'var(--hero-muted)',
+            },
+        },
+        row: {
+            base: { borderBlockEnd: 'var(--border) solid var(--hero-line)' },
+            states: {
+                selected: { background: 'color-mix(in oklch, var(--hero-primary) 12%, transparent)' },
+            },
+        },
+        'header-cell': {
+            base: {
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                textAlign: 'start',
+                fontWeight: 'var(--weight-semibold)',
+                fontSize: 'var(--text-xs)',
+                color: 'var(--hero-muted)',
+            },
+        },
+        cell: {
+            base: {
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                textAlign: 'start',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--table-pad-block': 'var(--space-xs)', '--table-pad-inline': 'var(--space-sm)', '--table-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--table-pad-block': 'var(--space-md)', '--table-pad-inline': 'var(--space-lg)', '--table-font': 'var(--text-md)' } } },
+        },
+    },
+    modifiers: {
+        striped: {
+            row: {
+                selectors: {
+                    '[data-scope="table"][data-part="body"] > &:nth-child(even):not([data-selected])': {
+                        background: 'var(--color-base-200)',
+                    },
+                },
+            },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
@@ -4047,4 +4137,5 @@ export const recipes: RecipeInput[] = [
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
+    table,
 ];

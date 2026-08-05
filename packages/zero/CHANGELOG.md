@@ -74,6 +74,23 @@
     indicator was the first reader to derive state in that window.
     Disconnected elements now take the registration-order fallback exactly
     like absent ones.
+- **The behavior-tier data & misc sweep** (#340), each scope shipped with
+  recipes in all six design systems:
+
+  - **Table**: semantic data table over the REAL table elements —
+    `Root`/`Table`/`Caption`/`Head`/`Body`/`Foot`/`Row`/`HeaderCell`/`Cell`
+    rendering `div > table > caption/thead/tbody/tfoot/tr/th/td`. The root
+    is the SCROLL CONTAINER: a `<table>` cannot be its own overflow box, so
+    the wrapper is anatomy, carries the axes, and recipes give it
+    `overflow-x: auto`. No states (a table has no machine lifecycle); a row
+    can carry the shared `data-selected` flag (`selected` prop). Zebra
+    striping and hover-highlight are design-system MODS — per-instance
+    styling choices from each skin's own vocabulary (`zebra`/`hover` in
+    four skins, HeroUI's `isStriped`, Carbon's `useZebraStyles` through the
+    api's modifier rename), never anatomy. Sorting is deliberately out
+    (follow-up): `HeaderCell` renders the `<th>` that will carry
+    `aria-sort`, so the anatomy is ready without dead parts. Write a
+    `Caption` — it is the table's accessible name.
 
 - **The content-tier sweep** (#334): the cheap 60% of the coverage gap
   against `@sigx/daisyui` — components that are anatomy plus recipes with

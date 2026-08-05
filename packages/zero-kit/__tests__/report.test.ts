@@ -195,7 +195,8 @@ describe('declared but unwired', () => {
 describe('the axis-agnostic divergence report', () => {
     it('generalises the colour-only warning to every axis a design system wires', () => {
         const material = reportFor(materialDS as DesignSystemInput);
-        expect(Object.keys(material.divergence).sort()).toEqual(['color', 'size', 'variant']);
+        // 'mods' joined when table's zebra/hover landed (#340).
+        expect(Object.keys(material.divergence).sort()).toEqual(['color', 'mods', 'size', 'variant']);
 
         // The colour rule's own semantics, preserved: compared against the
         // union wired ANYWHERE, not against the declared vocabulary — so the
@@ -207,7 +208,7 @@ describe('the axis-agnostic divergence report', () => {
     it('covers modifiers, which are a value set like any other', () => {
         const heroui = reportFor(herouiDS as DesignSystemInput);
         expect(Object.keys(heroui.divergence).sort()).toEqual(['mods', 'size', 'variant']);
-        expect(heroui.divergence['mods']!.wiredAnywhere).toEqual(['icon-only', 'pending']);
+        expect(heroui.divergence['mods']!.wiredAnywhere).toEqual(['icon-only', 'pending', 'striped']);
     });
 
     it('lists only components that wire something — wiring nothing is `never`, not divergence', () => {

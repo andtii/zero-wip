@@ -134,7 +134,7 @@ describe('emitted selectors — the row claims, in CSS', () => {
 
 /** The grades the matrix claims for these rows — asserted independently. */
 const EXPECTED: Record<string, Record<string, ConformanceGrade>> = {
-    carbon: { variant: 'reshaped', 'mods.icon-only': 'reshaped', 'mods.expressive': 'reshaped' },
+    carbon: { variant: 'reshaped', 'mods.icon-only': 'reshaped', 'mods.expressive': 'reshaped', 'mods.zebra': 'reshaped' },
     ant: {
         variant: 'renamed',
         'axes.shape': 'exact',
@@ -148,7 +148,7 @@ const EXPECTED: Record<string, Record<string, ConformanceGrade>> = {
         'mods.high-contrast': 'reshaped',
         'mods.loading': 'reshaped',
     },
-    heroui: { variant: 'exact', 'mods.icon-only': 'reshaped', 'mods.pending': 'reshaped' },
+    heroui: { variant: 'exact', 'mods.icon-only': 'reshaped', 'mods.pending': 'reshaped', 'mods.striped': 'reshaped' },
     material: {},
 };
 

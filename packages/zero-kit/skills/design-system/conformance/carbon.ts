@@ -40,7 +40,7 @@ export const vocabulary = {
         'danger-tertiary',
         'danger-ghost',
     ],
-    modifiers: ['icon-only', 'expressive'],
+    modifiers: ['icon-only', 'expressive', 'zebra'],
 } as const;
 
 export const api = defineApi(vocabulary, {
@@ -54,6 +54,7 @@ export const api = defineApi(vocabulary, {
     modifiers: {
         'icon-only': { as: 'hasIconOnly' },
         expressive: { as: 'isExpressive' },
+        zebra: { as: 'useZebraStyles' },
     },
 });
 

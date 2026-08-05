@@ -301,6 +301,17 @@ export function pickVariant(...preferred: string[]): string | undefined {
 }
 
 /**
+ * Pick a modifier name from the active design system's declared set — the
+ * same rule as `pickRole`, asked of `data-mod-*`. Table's zebra striping is
+ * the motivating case: four skins call it `zebra`, HeroUI spells it
+ * `striped`, and a demo hardcoding either would render an undeclared
+ * `data-mod-*` on the others (ds-smoke's third invariant).
+ */
+export function pickMod(...preferred: string[]): string | undefined {
+    return pickDeclared(activeVocabulary().modifiers, preferred);
+}
+
+/**
  * The same choice, asked of one SCOPE rather than of the design system.
  *
  * `pickVariant` answers "does this design system have such a value", which was

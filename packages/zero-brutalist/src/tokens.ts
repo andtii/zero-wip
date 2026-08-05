@@ -103,6 +103,11 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
     // The `variant` axis vocabulary — what button's variants.variant keys on.
     // Declared so a recipe typo is a build error, not a minted value.
     variants: ['solid', 'outline', 'soft', 'ghost'],
+    /** Table's zebra striping and hover-highlight (#340) — presence-only, table-scoped. */
+    modifiers: ['zebra', 'hover'],
+    scopes: {
+        table: { modifiers: ['zebra', 'hover'] },
+    },
     system,
     systemDark,
     breakpoints: { sm: '640px', md: '900px', lg: '1200px' },

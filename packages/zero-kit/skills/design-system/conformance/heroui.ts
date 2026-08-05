@@ -32,7 +32,7 @@ export const source = {
 
 export const vocabulary = {
     variants: ['primary', 'secondary', 'tertiary', 'outline', 'ghost', 'danger', 'danger-soft'],
-    modifiers: ['icon-only', 'pending'],
+    modifiers: ['icon-only', 'pending', 'striped'],
 } as const;
 
 export const api = defineApi(vocabulary, {
@@ -40,5 +40,6 @@ export const api = defineApi(vocabulary, {
     modifiers: {
         'icon-only': { as: 'isIconOnly' },
         pending: { as: 'isPending' },
+        striped: { as: 'isStriped' },
     },
 });

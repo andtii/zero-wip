@@ -207,7 +207,7 @@ describe('the generated shapes', () => {
         // AdaptSpec props bag — the same-object guarantee the generated
         // components.js relies on.
         const spec: AdaptSpec = { props: api.props };
-        expect(Object.keys(spec.props).sort()).toEqual(['hasIconOnly', 'isExpressive', 'kind']);
+        expect(Object.keys(spec.props).sort()).toEqual(['hasIconOnly', 'isExpressive', 'kind', 'useZebraStyles']);
     });
 
     it('the d.ts respells the union and removes the mapped zero prop', () => {

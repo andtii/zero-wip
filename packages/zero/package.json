@@ -215,6 +215,10 @@
         "./drawer": {
             "types": "./dist/components/drawer/index.d.ts",
             "import": "./dist/components/drawer/index.js"
+        },
+        "./table": {
+            "types": "./dist/components/table/index.d.ts",
+            "import": "./dist/components/table/index.js"
         }
     },
     "files": [
