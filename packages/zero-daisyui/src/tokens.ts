@@ -111,12 +111,53 @@ const fx = (depth: '0' | '1'): Record<string, string> => ({
     'fx-noise': FX_NOISE,
 });
 
+/**
+ * The `variant` axis vocabulary — what button's variants.variant keys on.
+ * Declared so a recipe typo is a build error, not a minted value; exported
+ * `as const` so `defineApi` can narrow the api declaration against it.
+ *
+ * `dash` and `link` are daisyUI 5's `btn-dash` / `btn-link` (#332). daisy
+ * documents `dash` (with `outline` and `soft`) on badge and alert too, but
+ * this package wires `variant` on button only — the repo-wide decision
+ * (#175) — so the union below IS button's vocabulary, and the `scopes`
+ * entry makes that claim explicit.
+ */
+export const variants = ['solid', 'outline', 'soft', 'ghost', 'dash', 'link'] as const;
+
+/**
+ * daisyUI 5's button modifier set (#332), each a documented `btn-*` class:
+ * `btn-wide`, `btn-block`, `btn-square`, `btn-circle`, `btn-active`, and
+ * the loading spinner (daisy renders it as a `loading loading-spinner`
+ * span; here the recipe draws it, no DOM change). All six were boolean
+ * props on the old `@sigx/daisyui` Button — the api declaration routes
+ * them back to those names.
+ *
+ * `glass` is deliberately NOT here: daisyUI 5 no longer documents it on
+ * any component (a v4 relic whose v5 survival is a compatibility style
+ * with open breakage — saadeghi/daisyui#3316, #3501), and the old
+ * `@sigx/daisyui` Button never exposed it either.
+ */
+export const modifiers = ['wide', 'block', 'square', 'circle', 'active', 'loading'] as const;
+
 export const tokens: TokensInput<typeof roles, typeof system> = {
     roles,
     custom,
-    // The `variant` axis vocabulary — what button's variants.variant keys on.
-    // Declared so a recipe typo is a build error, not a minted value.
-    variants: ['solid', 'outline', 'soft', 'ghost'],
+    variants,
+    modifiers,
+    /**
+     * Per-scope vocabulary claims (#294). Button is the only scope wiring
+     * `variant` or any modifier in this package (#175), so there is nothing
+     * to narrow — but restating the union here is the explicit claim "yes,
+     * button carries all of it", the same grammar zero-basic's button entry
+     * uses. If a later scope adopts part of the axis (daisy's badge offers
+     * `dash` but not `link`), its narrower entry lands beside this one.
+     */
+    scopes: {
+        button: {
+            variants: [...variants],
+            modifiers: [...modifiers],
+        },
+    },
     system,
     defaultLight: 'light',
     defaultDark: 'dark',

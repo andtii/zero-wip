@@ -64,7 +64,13 @@ api-derived grades where a system declares one.
 | basic | `variant` | enumeration | solid, outline, soft, ghost | `variant` | exact | `packages/zero-basic` |
 | daisyui | `color` | enumeration | accent, error, info, neutral, primary, secondary, success, warning | `color` | exact | `packages/zero-daisyui` |
 | daisyui | `size` | enumeration | xs, sm, md, lg, xl | `size` | exact | `packages/zero-daisyui` |
-| daisyui | `variant` | enumeration | solid, outline, soft, ghost | `variant` | exact | `packages/zero-daisyui` |
+| daisyui | `variant` | enumeration | solid, outline, soft, ghost, dash, link | `variant` | exact | `packages/zero-daisyui` |
+| daisyui | `active` | presence-flag | boolean | `mods.active` | exact | `packages/zero-daisyui` |
+| daisyui | `block` | presence-flag | boolean | `mods.block` | exact | `packages/zero-daisyui` |
+| daisyui | `circle` | presence-flag | boolean | `mods.circle` | exact | `packages/zero-daisyui` |
+| daisyui | `loading` | presence-flag | boolean | `mods.loading` | exact | `packages/zero-daisyui` |
+| daisyui | `square` | presence-flag | boolean | `mods.square` | exact | `packages/zero-daisyui` |
+| daisyui | `wide` | presence-flag | boolean | `mods.wide` | exact | `packages/zero-daisyui` |
 | material | `color` | enumeration | accent, error, info, neutral, outline, primary, secondary, success, surface, surface-container, surface-container-high, tertiary, warning | `color` | exact | `packages/zero-material` |
 | material | `size` | enumeration | xs, sm, md, lg, xl | `size` | exact | `packages/zero-material` |
 | material | `variant` | enumeration | solid, outline, soft, ghost | `variant` | exact | `packages/zero-material` |

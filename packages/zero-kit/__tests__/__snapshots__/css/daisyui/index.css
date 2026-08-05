@@ -3231,6 +3231,29 @@
         background: var(--btn-soft);
     }
 
+    [data-scope="button"][data-part="root"][data-variant="dash"] {
+        background: transparent;
+        color: var(--btn-ink);
+        border-color: var(--btn-ink);
+        border-style: dashed;
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="dash"]:hover:not([data-disabled]) {
+        background: var(--btn-soft);
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="link"] {
+        background: transparent;
+        color: var(--btn-ink);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        box-shadow: none;
+    }
+
+    [data-scope="button"][data-part="root"][data-variant="link"]:hover:not([data-disabled]) {
+        text-decoration-thickness: 2px;
+    }
+
     [data-scope="button"][data-part="root"][data-size="xs"] {
         padding: var(--space-2xs) var(--space-xs);
         font-size: var(--text-xs);
@@ -3260,6 +3283,57 @@
         padding: var(--space-lg) var(--space-2xl);
         font-size: var(--text-xl);
     }
+
+    [data-scope="button"][data-part="root"][data-mod-wide] {
+        inline-size: 100%;
+        max-inline-size: 16rem;
+    }
+
+    [data-scope="button"][data-part="root"][data-mod-block] {
+        inline-size: 100%;
+    }
+
+    [data-scope="button"][data-part="root"][data-mod-square] {
+        padding-inline: 0;
+        aspect-ratio: 1;
+    }
+
+    [data-scope="button"][data-part="root"][data-mod-circle] {
+        padding-inline: 0;
+        aspect-ratio: 1;
+        border-radius: 9999px;
+    }
+
+    [data-scope="button"][data-part="root"][data-mod-active] {
+        transform: translateY(1px);
+        box-shadow: none;
+        filter: brightness(0.92);
+    }
+
+    [data-scope="button"][data-part="root"][data-mod-loading] {
+        cursor: progress;
+    }
+
+    [data-scope="button"][data-part="root"][data-mod-loading]::before {
+        content: "";
+        box-sizing: border-box;
+        inline-size: 1em;
+        block-size: 1em;
+        flex: none;
+        border-radius: 9999px;
+        border: calc(var(--border) * 2) solid currentColor;
+        border-block-start-color: transparent;
+        animation: zero-daisyui-btn-spin 0.7s linear infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        [data-scope="button"][data-part="root"][data-mod-loading]::before {
+            animation: none;
+        }
+    }
+}
+@keyframes zero-daisyui-btn-spin {
+    to { transform: rotate(360deg) }
 }
 
 @layer zero.recipes {
