@@ -23,6 +23,7 @@ import { Avatar } from '@sigx/zero/avatar';
 import { Badge } from '@sigx/zero/badge';
 import { Button } from '@sigx/zero/button';
 import { Card } from '@sigx/zero/card';
+import { Chat } from '@sigx/zero/chat';
 import { Checkbox } from '@sigx/zero/checkbox';
 import { Collapsible } from '@sigx/zero/collapsible';
 import { Combobox } from '@sigx/zero/combobox';
@@ -118,6 +119,7 @@ export type _status = MustBeTrue<CheckColorSize<PropsOf<typeof Status.Root>>>;
 export type _indicator = MustBeTrue<CheckColorSize<PropsOf<typeof Indicator.Root>>>;
 export type _stats = MustBeTrue<CheckColorSize<PropsOf<typeof Stats.Root>>>;
 export type _timeline = MustBeTrue<CheckColorSize<PropsOf<typeof Timeline.Root>>>;
+export type _chat = MustBeTrue<CheckColorSize<PropsOf<typeof Chat.Root>>>;
 
 /* ── the three scopes basic wires a variant vocabulary for ── */
 type ButtonProps = PropsOf<typeof Button.Root>;

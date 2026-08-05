@@ -183,6 +183,10 @@
         "./timeline": {
             "types": "./dist/components/timeline/index.d.ts",
             "import": "./dist/components/timeline/index.js"
+        },
+        "./chat": {
+            "types": "./dist/components/chat/index.d.ts",
+            "import": "./dist/components/chat/index.js"
         }
     },
     "files": [

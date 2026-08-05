@@ -244,3 +244,6 @@ export type {
     TimelineContentProps,
     TimelinePlacement,
 } from './components/timeline/index.js';
+
+export { Chat, chatAnatomy } from './components/chat/index.js';
+export type { ChatRootProps, ChatPartProps, ChatPlacement } from './components/chat/index.js';

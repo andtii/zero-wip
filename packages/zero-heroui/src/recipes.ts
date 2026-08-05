@@ -3321,10 +3321,102 @@ export const timeline: RecipeInput = {
     },
 };
 
+/** HeroUI chat: soft base-200 bubbles inside the hairline grammar. */
+export const chat: RecipeInput = {
+    component: 'chat',
+    parts: {
+        /**
+         * The row is a two-column grid: the avatar column hugs one side, the
+         * text column takes the rest. Which side is which is the row's
+         * `data-placement` — logical, so the whole transcript mirrors under
+         * RTL with no per-part rules. Header, bubble and footer each force
+         * their own row by claiming the same column, so absent parts simply
+         * yield their row.
+         */
+        root: {
+            base: {
+                display: 'grid',
+                columnGap: 'var(--space-sm)',
+                rowGap: 'var(--space-2xs)',
+                paddingBlock: 'var(--space-2xs)',
+            },
+            selectors: {
+                '&[data-placement="start"]': {
+                    gridTemplateColumns: 'auto minmax(0, 1fr)',
+                    justifyItems: 'start',
+                },
+                '&[data-placement="end"]': {
+                    gridTemplateColumns: 'minmax(0, 1fr) auto',
+                    justifyItems: 'end',
+                },
+            },
+        },
+        avatar: {
+            base: {
+                gridRow: '1 / span 3',
+                alignSelf: 'end',
+                display: 'flex',
+                alignItems: 'center',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '1' },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': { gridColumn: '2' },
+            },
+        },
+        header: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'var(--hero-muted)',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '2' },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': { gridColumn: '1' },
+            },
+        },
+        bubble: {
+            base: {
+                maxInlineSize: '90%',
+                padding: 'var(--space-xs) var(--space-lg)',
+                fontSize: 'var(--text-sm)',
+                background: 'var(--color-base-200)',
+                color: 'var(--color-base-content)',
+                borderRadius: 'var(--radius-box)',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': {
+                    gridColumn: '2',
+                    borderEndStartRadius: 'var(--radius-selector)',
+                },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': {
+                    gridColumn: '1',
+                    borderEndEndRadius: 'var(--radius-selector)',
+                },
+            },
+        },
+        footer: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'var(--hero-muted)',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '2' },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': { gridColumn: '1' },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { bubble: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-md)' } } },
+            md: {},
+            lg: { bubble: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-lg)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
-    kbd, status, indicator, stats, timeline,
+    kbd, status, indicator, stats, timeline, chat,
 ];

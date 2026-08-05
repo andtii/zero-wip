@@ -3765,10 +3765,109 @@ export const timeline: RecipeInput = {
     },
 };
 
+/** Material chat: tonal bubbles, the seated corner at selector radius. */
+export const chat: RecipeInput = {
+    component: 'chat',
+    tokens: { '--chat-fill': 'var(--color-surface-container)', '--chat-ink': 'var(--color-surface-container-content)' },
+    parts: {
+        /**
+         * The row is a two-column grid: the avatar column hugs one side, the
+         * text column takes the rest. Which side is which is the row's
+         * `data-placement` — logical, so the whole transcript mirrors under
+         * RTL with no per-part rules. Header, bubble and footer each force
+         * their own row by claiming the same column, so absent parts simply
+         * yield their row.
+         */
+        root: {
+            base: {
+                display: 'grid',
+                columnGap: 'var(--space-sm)',
+                rowGap: 'var(--space-2xs)',
+                paddingBlock: 'var(--space-2xs)',
+            },
+            selectors: {
+                '&[data-placement="start"]': {
+                    gridTemplateColumns: 'auto minmax(0, 1fr)',
+                    justifyItems: 'start',
+                },
+                '&[data-placement="end"]': {
+                    gridTemplateColumns: 'minmax(0, 1fr) auto',
+                    justifyItems: 'end',
+                },
+            },
+        },
+        avatar: {
+            base: {
+                gridRow: '1 / span 3',
+                alignSelf: 'end',
+                display: 'flex',
+                alignItems: 'center',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '1' },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': { gridColumn: '2' },
+            },
+        },
+        header: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '2' },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': { gridColumn: '1' },
+            },
+        },
+        bubble: {
+            base: {
+                maxInlineSize: '90%',
+                padding: 'var(--space-xs) var(--space-lg)',
+                fontSize: 'var(--text-sm)',
+                background: 'var(--chat-fill)',
+                color: 'var(--chat-ink)',
+                borderRadius: 'var(--radius-box)',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': {
+                    gridColumn: '2',
+                    borderEndStartRadius: 'var(--radius-selector)',
+                },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': {
+                    gridColumn: '1',
+                    borderEndEndRadius: 'var(--radius-selector)',
+                },
+            },
+        },
+        footer: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+            selectors: {
+                '[data-scope="chat"][data-part="root"][data-placement="start"] > &': { gridColumn: '2' },
+                '[data-scope="chat"][data-part="root"][data-placement="end"] > &': { gridColumn: '1' },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { bubble: { base: {
+            '--chat-fill': `var(--color-${c})`,
+            '--chat-ink': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { bubble: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-sm)' } } },
+            sm: { bubble: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-md)' } } },
+            md: {},
+            lg: { bubble: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-lg)' } } },
+            xl: { bubble: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-xl)' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
-    kbd, status, indicator, stats, timeline,
+    kbd, status, indicator, stats, timeline, chat,
 ];

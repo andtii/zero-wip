@@ -256,6 +256,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     badge: [],
     button: ['onBlur', 'onClick', 'onFocus', 'onKeydown', 'type'],
     card: [],
+    chat: ['placement'],
     checkbox: ['defaultChecked', 'indeterminate', 'invalid', 'name', 'required', 'value'],
     collapsible: ['defaultOpen', 'value'],
     combobox: ['defaultInputValue', 'defaultOpen', 'defaultValue', 'invalid', 'name', 'options', 'placeholder', 'placement', 'positionStrategy', 'readonly', 'required', 'value'],

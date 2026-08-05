@@ -45,6 +45,7 @@ import { statusAnatomy } from './components/status/anatomy.js';
 import { indicatorAnatomy } from './components/indicator/anatomy.js';
 import { statsAnatomy } from './components/stats/anatomy.js';
 import { timelineAnatomy } from './components/timeline/anatomy.js';
+import { chatAnatomy } from './components/chat/anatomy.js';
 
 export {
     buttonAnatomy,
@@ -53,7 +54,7 @@ export {
     avatarAnatomy, toastAnatomy, comboboxAnatomy, toggleAnatomy, toggleGroupAnatomy, numberInputAnatomy,
     ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy, nativeSelectAnatomy,
     cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy, skeletonAnatomy, spinnerAnatomy,
-    kbdAnatomy, statusAnatomy, indicatorAnatomy, statsAnatomy, timelineAnatomy,
+    kbdAnatomy, statusAnatomy, indicatorAnatomy, statsAnatomy, timelineAnatomy, chatAnatomy,
 };
 
 export const anatomies = {
@@ -94,6 +95,7 @@ export const anatomies = {
     indicator: indicatorAnatomy,
     stats: statsAnatomy,
     timeline: timelineAnatomy,
+    chat: chatAnatomy,
 } as const satisfies Record<string, Anatomy>;
 
 /**

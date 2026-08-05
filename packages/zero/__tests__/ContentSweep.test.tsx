@@ -9,6 +9,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import {
+    Chat, chatAnatomy,
     Indicator, indicatorAnatomy,
     Kbd, kbdAnatomy,
     PLACEMENT_VOCABULARY,
@@ -277,5 +278,51 @@ describe('Timeline', () => {
         expect(part(container, 'timeline', 'connector').getAttribute('data-orientation')).toBe('horizontal');
         expect(part(container, 'timeline', 'content').getAttribute('data-orientation')).toBe('horizontal');
         expectAnatomy(container, timelineAnatomy);
+    });
+});
+
+describe('Chat', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    it('renders a valid anatomy; a row is the other party by default', () => {
+        render(
+            <Chat.Root color="primary">
+                <Chat.Avatar><img src="/ada.png" alt="" /></Chat.Avatar>
+                <Chat.Header>Ada · 12:45</Chat.Header>
+                <Chat.Bubble>The contract is the anatomy.</Chat.Bubble>
+                <Chat.Footer>Delivered</Chat.Footer>
+            </Chat.Root>,
+            container,
+        );
+        expectAnatomy(container, chatAnatomy);
+        const root = part(container, 'chat', 'root');
+        // `start` — the reading edge — is where the OTHER party sits in every
+        // messenger; your own rows opt into `end`.
+        expect(root.getAttribute('data-placement')).toBe('start');
+        expect(root.getAttribute('data-color')).toBe('primary');
+        for (const name of ['avatar', 'header', 'bubble', 'footer']) {
+            expect(part(container, 'chat', name), `chat/${name} must render`).toBeTruthy();
+        }
+    });
+
+    it('an own message sits at the reading end', () => {
+        render(
+            <Chat.Root placement="end">
+                <Chat.Bubble>Agreed.</Chat.Bubble>
+            </Chat.Root>,
+            container,
+        );
+        expect(part(container, 'chat', 'root').getAttribute('data-placement')).toBe('end');
+        expectAnatomy(container, chatAnatomy);
+    });
+
+    it('declares exactly the logical pair — a chat row has no physical side', () => {
+        // A row from the other party sits at the reading start in BOTH
+        // directions; 'left' would be wrong in one of them.
+        expect([...(chatAnatomy.parts.root.placements ?? [])].sort()).toEqual(['end', 'start']);
     });
 });

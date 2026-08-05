@@ -210,6 +210,9 @@ const NO_VARIANT: Record<string, string> = {
     timeline: 'daisyUI\'s timeline styles through snap/compact modifiers and '
         + 'a boxed content class, not a fill variant; Ant Design\'s Timeline '
         + 'has mode (side) and pending, no style axis.',
+    chat: 'daisyUI\'s chat bubble varies by COLOUR only (chat-bubble-primary, '
+        + '…) — wired here as the color axis on the row — and by side, which '
+        + 'is data-placement, not a chrome variant.',
 };
 
 /**

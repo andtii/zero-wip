@@ -54,11 +54,11 @@ describe('defineAnatomy', () => {
 describe('anatomy registry', () => {
     it('contains every component', () => {
         expect(Object.keys(anatomies).sort()).toEqual([
-            'accordion', 'alert', 'avatar', 'badge', 'button', 'card', 'checkbox', 'collapsible', 'combobox', 'dialog',
-            'divider', 'field', 'indicator', 'input', 'kbd', 'menu', 'native-select', 'number-input',
-            'popover', 'progress', 'radio-group', 'rating-group', 'select', 'skeleton', 'slider', 'spinner',
-            'stats', 'status', 'switch', 'tabs', 'textarea', 'timeline', 'toast', 'toggle', 'toggle-group',
-            'tooltip',
+            'accordion', 'alert', 'avatar', 'badge', 'button', 'card', 'chat', 'checkbox', 'collapsible',
+            'combobox', 'dialog', 'divider', 'field', 'indicator', 'input', 'kbd', 'menu', 'native-select',
+            'number-input', 'popover', 'progress', 'radio-group', 'rating-group', 'select', 'skeleton',
+            'slider', 'spinner', 'stats', 'status', 'switch', 'tabs', 'textarea', 'timeline', 'toast',
+            'toggle', 'toggle-group', 'tooltip',
             'tree-view',
         ]);
     });
@@ -190,7 +190,7 @@ describe('anatomy registry', () => {
         // the content-tier parts that anchor along an axis (#334).
         // The DOM half is asserted by expectAnatomy in each component's tests.
         expect(declared.sort()).toEqual([
-            'combobox.popup', 'indicator.item', 'menu.popup', 'menu.sub-popup',
+            'chat.root', 'combobox.popup', 'indicator.item', 'menu.popup', 'menu.sub-popup',
             'popover.popup', 'select.popup', 'timeline.content', 'toast.root', 'toast.viewport', 'tooltip.popup',
         ]);
     });

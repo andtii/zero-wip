@@ -43,6 +43,7 @@ import type { Status as ZStatus } from '@sigx/zero/status';
 import type { Indicator as ZIndicator } from '@sigx/zero/indicator';
 import type { Stats as ZStats } from '@sigx/zero/stats';
 import type { Timeline as ZTimeline } from '@sigx/zero/timeline';
+import type { Chat as ZChat } from '@sigx/zero/chat';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -348,3 +349,11 @@ type TimelineProps = {
 };
 type TimelineAdapted = Adapted<typeof ZTimeline, ZeroAxisProp, TimelineProps>;
 export declare const Timeline: TimelineAdapted & AdaptedStatics<typeof ZTimeline> & { Root: TimelineAdapted };
+
+/** chat — no vendor route; the wired surface keeps zero's names. */
+type ChatProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type ChatAdapted = Adapted<typeof ZChat, ZeroAxisProp, ChatProps>;
+export declare const Chat: ChatAdapted & AdaptedStatics<typeof ZChat> & { Root: ChatAdapted };

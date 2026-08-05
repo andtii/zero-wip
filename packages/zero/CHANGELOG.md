@@ -41,6 +41,11 @@
     like the marker), and one content box that declares its SIDE of the
     axis as `data-placement="start|end"` — the logical pair, so alternating
     layouts are per-item markup and RTL mirrors free.
+  - **Chat**: `Root(placement start|end)`/`Avatar`/`Header`/`Bubble`/
+    `Footer` — one message row, pure content. `start` (the reading edge) is
+    the other party, `end` is you; logical, so a transcript mirrors under
+    RTL without touching the rows. The colour axis rides the row and every
+    skin wires it to the bubble's fill through the part tree.
 
 - **The sugar tier** (#333) — the one-liner DX the old `@sigx/daisyui`
   library had and zero's compound anatomy made verbose:
