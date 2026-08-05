@@ -213,6 +213,9 @@ const NO_VARIANT: Record<string, string> = {
     chat: 'daisyUI\'s chat bubble varies by COLOUR only (chat-bubble-primary, '
         + '…) — wired here as the color axis on the row — and by side, which '
         + 'is data-placement, not a chrome variant.',
+    'radial-progress': 'daisyUI\'s radial-progress varies by colour, size and '
+        + 'thickness — the first is the color axis, the others metrics; no '
+        + 'surveyed system gives the ring a chrome variant.',
 };
 
 /**

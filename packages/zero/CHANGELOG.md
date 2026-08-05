@@ -46,6 +46,16 @@
     the other party, `end` is you; logical, so a transcript mirrors under
     RTL without touching the rows. The colour axis rides the row and every
     skin wires it to the bubble's fill through the part tree.
+  - **RadialProgress**: circular progress as its own scope —
+    `Root(value|null, min, max)`/`Label`/`ValueText`. A radial has no
+    track/range geometry (the ring is one painted layer on the root), so it
+    does not reuse progress's anatomy; what it DOES share is the value
+    model verbatim, including the same `--progress-percent` custom
+    property, `role="progressbar"` semantics and the
+    `loading|complete|indeterminate` states. Recipes paint the arc as a
+    background-colour ink under conic-gradient masks — measurable by the
+    contrast audit's indicator matrix, where the root is opted in beside
+    Spinner — and stop the indeterminate loop under reduced motion.
 
 - **The sugar tier** (#333) — the one-liner DX the old `@sigx/daisyui`
   library had and zero's compound anatomy made verbose:

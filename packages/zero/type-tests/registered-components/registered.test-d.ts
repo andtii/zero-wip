@@ -38,6 +38,7 @@ import { NativeSelect } from '@sigx/zero/native-select';
 import { NumberInput } from '@sigx/zero/number-input';
 import { Popover } from '@sigx/zero/popover';
 import { Progress } from '@sigx/zero/progress';
+import { RadialProgress } from '@sigx/zero/radial-progress';
 import { RadioGroup } from '@sigx/zero/radio-group';
 import { RatingGroup } from '@sigx/zero/rating-group';
 import { Select } from '@sigx/zero/select';
@@ -120,6 +121,7 @@ export type _indicator = MustBeTrue<CheckColorSize<PropsOf<typeof Indicator.Root
 export type _stats = MustBeTrue<CheckColorSize<PropsOf<typeof Stats.Root>>>;
 export type _timeline = MustBeTrue<CheckColorSize<PropsOf<typeof Timeline.Root>>>;
 export type _chat = MustBeTrue<CheckColorSize<PropsOf<typeof Chat.Root>>>;
+export type _radialProgress = MustBeTrue<CheckColorSize<PropsOf<typeof RadialProgress.Root>>>;
 
 /* ── the three scopes basic wires a variant vocabulary for ── */
 type ButtonProps = PropsOf<typeof Button.Root>;

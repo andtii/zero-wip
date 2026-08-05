@@ -138,6 +138,16 @@ describe('hardcoded values', () => {
             .not.toContainEqual(expect.stringContaining('hardcodes the color'));
     });
 
+    it('does not mistake a mask stop for a color — only its alpha paints', () => {
+        // radial-progress's annulus/sweep masks (#334): `#000` there is
+        // geometry, and no role reference could retheme it.
+        expect(check(tabsWith({ mask: 'conic-gradient(#000 30%, transparent 0)' })).warnings)
+            .not.toContainEqual(expect.stringContaining('hardcodes the color'));
+        // …while the same literal on a painting property still warns.
+        expect(check(tabsWith({ background: 'conic-gradient(#000 30%, transparent 0)' })).warnings)
+            .toContainEqual(expect.stringContaining('hardcodes the color'));
+    });
+
     it('warns on a literal transition duration', () => {
         // Reduced motion only collapses var(--duration-*), so a literal opts
         // the rule out of the preference entirely.

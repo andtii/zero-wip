@@ -54,3 +54,4 @@ export { Indicator } from '@sigx/zero/indicator';
 export { Stats } from '@sigx/zero/stats';
 export { Timeline } from '@sigx/zero/timeline';
 export { Chat } from '@sigx/zero/chat';
+export { RadialProgress } from '@sigx/zero/radial-progress';

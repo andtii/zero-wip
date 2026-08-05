@@ -42,6 +42,7 @@ import { indicatorPage } from './indicator';
 import { statsPage } from './stats';
 import { timelinePage } from './timeline';
 import { chatPage } from './chat';
+import { radialProgressPage } from './radial-progress';
 import { progressPage } from './progress';
 import { sizeRampPage } from './size-ramp';
 import { extensibleRolesPage } from './extensible-roles';
@@ -114,6 +115,7 @@ export const pages: PageEntry[] = [
     timelinePage,
     chatPage,
     progressPage,
+    radialProgressPage,
     sizeRampPage,
     extensibleRolesPage,
     extensibleAxesPage,

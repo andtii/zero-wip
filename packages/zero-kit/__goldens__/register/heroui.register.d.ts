@@ -400,6 +400,16 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
+            /** radial-progress — size wired. */
+            'radial-progress': {
+                /** Accepts `color` at runtime, but heroui declares no color axis at all — the attribute would match nothing. */
+                color: never;
+                size: 'sm' | 'md' | 'lg';
+                /** Accepts `variant` at runtime, but no heroui recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
         };
     }
 }

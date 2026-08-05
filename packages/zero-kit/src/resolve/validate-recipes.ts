@@ -23,6 +23,11 @@ const BARE_TIME = /(?:^|[\s,(])(-?(?:\d+\.?\d*|\.\d+)m?s)(?=[\s,)]|$)/;
 /** Properties whose values are prose or identifiers, not colors. */
 const NOT_COLOR_VALUED = new Set([
     'content', 'font', 'fontFamily', 'gridTemplateAreas', 'counterReset', 'counterIncrement',
+    // A mask's "colors" are alpha carriers — only the channel's opacity
+    // paints, so `#000` in a mask gradient is geometry, not ink, and there is
+    // nothing a role reference could retheme (#334: radial-progress's
+    // annulus/sweep masks are the first shipped case).
+    'mask', 'maskImage', 'webkitMask', 'webkitMaskImage',
 ]);
 
 /**

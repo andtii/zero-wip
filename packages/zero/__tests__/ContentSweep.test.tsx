@@ -11,6 +11,7 @@ import { render } from '@sigx/runtime-dom';
 import {
     Chat, chatAnatomy,
     Indicator, indicatorAnatomy,
+    RadialProgress, radialProgressAnatomy,
     Kbd, kbdAnatomy,
     PLACEMENT_VOCABULARY,
     Stats, statsAnatomy,
@@ -324,5 +325,79 @@ describe('Chat', () => {
         // A row from the other party sits at the reading start in BOTH
         // directions; 'left' would be wrong in one of them.
         expect([...(chatAnatomy.parts.root.placements ?? [])].sort()).toEqual(['end', 'start']);
+    });
+});
+
+describe('RadialProgress', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+
+    function mount(value: number | null | undefined, extra: { min?: number; max?: number } = {}) {
+        render(
+            <RadialProgress.Root value={value} min={extra.min} max={extra.max}>
+                <RadialProgress.Label>Upload</RadialProgress.Label>
+                <RadialProgress.ValueText />
+            </RadialProgress.Root>,
+            container,
+        );
+    }
+
+    it('is its own scope — a radial has no track/range geometry', () => {
+        // The decision the issue asked for, pinned: linear progress paints a
+        // range INSIDE a track (two rendered boxes with real geometry); a
+        // radial is one painted ring on the root. Reusing progress's anatomy
+        // would ship two dead parts, and a `data-mod-radial` is a
+        // design-system styling hook, not a structural switch.
+        expect(radialProgressAnatomy.scope).toBe('radial-progress');
+        expect(radialProgressAnatomy.partNames()).toEqual(['root', 'label', 'value-text']);
+    });
+
+    it('shares the linear value model: progressbar semantics and the percent property', () => {
+        mount(62);
+        expectAnatomy(container, radialProgressAnatomy);
+        const root = part(container, 'radial-progress', 'root');
+        expect(root.getAttribute('role')).toBe('progressbar');
+        expect(root.getAttribute('aria-valuemin')).toBe('0');
+        expect(root.getAttribute('aria-valuemax')).toBe('100');
+        expect(root.getAttribute('aria-valuenow')).toBe('62');
+        expect(root.getAttribute('data-state')).toBe('loading');
+        // The SAME custom property linear progress publishes, on purpose —
+        // recipes paint the arc from it (conic-gradient masks), and tooling
+        // that reads one progress component reads both.
+        expect(root.getAttribute('style')).toContain('--progress-percent: 62%');
+        // The default value text is the rounded percent, like linear's.
+        expect(part(container, 'radial-progress', 'value-text').textContent).toBe('62%');
+    });
+
+    it('scales percent over a custom range, clamped', () => {
+        mount(150, { min: 100, max: 200 });
+        const root = part(container, 'radial-progress', 'root');
+        expect(root.getAttribute('aria-valuenow')).toBe('150');
+        expect(root.getAttribute('style')).toContain('--progress-percent: 50%');
+    });
+
+    it('null is indeterminate: no valuenow, no percent, the loop state', () => {
+        mount(null);
+        const root = part(container, 'radial-progress', 'root');
+        expect(root.getAttribute('data-state')).toBe('indeterminate');
+        expect(root.hasAttribute('aria-valuenow')).toBe(false);
+        expect(root.getAttribute('style') ?? '').not.toContain('--progress-percent');
+        expect(part(container, 'radial-progress', 'value-text').textContent).toBe('');
+    });
+
+    it('a full ring is complete', () => {
+        mount(100);
+        expect(part(container, 'radial-progress', 'root').getAttribute('data-state')).toBe('complete');
+        expectAnatomy(container, radialProgressAnatomy);
+    });
+
+    it('the label names the progressbar', () => {
+        mount(30);
+        const root = part(container, 'radial-progress', 'root');
+        const label = part(container, 'radial-progress', 'label');
+        expect(root.getAttribute('aria-labelledby')).toBe(label.id);
     });
 });

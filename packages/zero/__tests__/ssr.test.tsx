@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Card, Chat, Collapsible, Combobox, Dialog, Divider, Indicator, Input, Kbd, NativeSelect, NumberInput, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Switch, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Card, Chat, Collapsible, Combobox, Dialog, Divider, Indicator, Input, Kbd, NativeSelect, NumberInput, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Switch, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -127,6 +127,10 @@ function page() {
             <Divider />
             <Skeleton.Root>Article title</Skeleton.Root>
             <Spinner label="Loading results" />
+            <RadialProgress.Root value={62}>
+                <RadialProgress.Label>Upload</RadialProgress.Label>
+                <RadialProgress.ValueText />
+            </RadialProgress.Root>
             <RatingGroup.Root name="stars" defaultValue={2.5} allowHalf>
                 <RatingGroup.Label>Stars</RatingGroup.Label>
                 <RatingGroup.Control>

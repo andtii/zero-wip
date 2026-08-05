@@ -247,3 +247,14 @@ export type {
 
 export { Chat, chatAnatomy } from './components/chat/index.js';
 export type { ChatRootProps, ChatPartProps, ChatPlacement } from './components/chat/index.js';
+
+export {
+    RadialProgress,
+    radialProgressAnatomy,
+    useRadialProgressContext,
+} from './components/radial-progress/index.js';
+export type {
+    RadialProgressRootProps,
+    RadialProgressLabelProps,
+    RadialProgressValueTextProps,
+} from './components/radial-progress/index.js';

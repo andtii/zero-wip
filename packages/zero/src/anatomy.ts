@@ -46,6 +46,7 @@ import { indicatorAnatomy } from './components/indicator/anatomy.js';
 import { statsAnatomy } from './components/stats/anatomy.js';
 import { timelineAnatomy } from './components/timeline/anatomy.js';
 import { chatAnatomy } from './components/chat/anatomy.js';
+import { radialProgressAnatomy } from './components/radial-progress/anatomy.js';
 
 export {
     buttonAnatomy,
@@ -55,6 +56,7 @@ export {
     ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy, nativeSelectAnatomy,
     cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy, skeletonAnatomy, spinnerAnatomy,
     kbdAnatomy, statusAnatomy, indicatorAnatomy, statsAnatomy, timelineAnatomy, chatAnatomy,
+    radialProgressAnatomy,
 };
 
 export const anatomies = {
@@ -96,6 +98,7 @@ export const anatomies = {
     stats: statsAnatomy,
     timeline: timelineAnatomy,
     chat: chatAnatomy,
+    'radial-progress': radialProgressAnatomy,
 } as const satisfies Record<string, Anatomy>;
 
 /**

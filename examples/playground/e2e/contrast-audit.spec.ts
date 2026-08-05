@@ -639,6 +639,15 @@ const INDICATORS: IndicatorSpec[] = [
      * geometry and zero renders the part empty.
      */
     { scope: 'timeline', part: 'marker', ancestors: ['root', 'item'] },
+    /**
+     * RadialProgress's ring (#334): painted ON the root as a background-colour
+     * ink under conic/annulus masks — background-colour rather than a
+     * gradient image precisely so this matrix can read it (a gradient
+     * painting a box is deliberately not measured; see `imageInks`). Empty
+     * chain, like spinner: the ring stands on the app surface. The states
+     * ride along from `combosFor`, so complete's success ink is measured too.
+     */
+    { scope: 'radial-progress', part: 'root', ancestors: [] },
 ];
 
 const partOf = (scope: string, name: string): ManifestPart => {

@@ -3792,10 +3792,112 @@ export const chat: RecipeInput = {
     },
 };
 
+/** Carbon radial: interactive-blue arc; complete goes the toggle green. */
+export const radialProgress: RecipeInput = {
+    component: 'radial-progress',
+    tokens: {
+        '--radial-size': 'calc(var(--size-selector) * 16)',
+        '--radial-thickness': 'calc(var(--size-selector) * 1.5)',
+        '--radial-ink': 'var(--carbon-interactive)',
+        '--radial-track': 'var(--color-base-300)',
+    },
+    parts: {
+        root: {
+            base: {
+                position: 'relative',
+                display: 'inline-grid',
+                placeItems: 'center',
+                inlineSize: 'var(--radial-size)',
+                blockSize: 'var(--radial-size)',
+                borderRadius: '50%',
+            },
+            states: {
+                loading: {},
+                complete: { '--radial-ink': 'var(--carbon-toggle-on)' },
+                indeterminate: {},
+            },
+            selectors: {
+                // The channel: a full annulus in the track colour.
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '0',
+                    borderRadius: '50%',
+                    background: 'var(--radial-track)',
+                    mask: 'radial-gradient(closest-side, transparent calc(100% - var(--radial-thickness)), #000 calc(100% - var(--radial-thickness) + 0.5px))',
+                },
+                /**
+                 * The arc: a background-COLOUR ink under annulus ∩ sweep
+                 * masks, not a conic-gradient image — the contrast audit's
+                 * indicator matrix reads colour layers and deliberately not
+                 * box-painting gradients, so this is what keeps the ring
+                 * measurable. The sweep angle is the runtime's
+                 * `--progress-percent`; the fallback is indeterminate's
+                 * resting arc.
+                 */
+                '&::after': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '0',
+                    borderRadius: '50%',
+                    background: 'var(--radial-ink)',
+                    mask: 'radial-gradient(closest-side, transparent calc(100% - var(--radial-thickness)), #000 calc(100% - var(--radial-thickness) + 0.5px)), conic-gradient(#000 var(--progress-percent, 30%), transparent 0)',
+                    maskComposite: 'intersect',
+                },
+                '&[data-state="indeterminate"]::after': {
+                    // A loop: literal duration, so reduced motion STOPS it
+                    // rather than collapsing it to a strobe.
+                    animation: 'zero-carbon-radial-spin 1.2s linear infinite',
+                },
+            },
+            at: {
+                'reduced-motion': {
+                    selectors: {
+                        // The resting 30% arc still reads as "in progress".
+                        '&[data-state="indeterminate"]::after': { animation: 'none' },
+                    },
+                },
+                // Backgrounds (and masks) drop under forced colors and in
+                // print; a plain ring keeps the shape of the thing.
+                'forced-colors': {
+                    base: { border: 'calc(var(--border) * 2) solid CanvasText' },
+                },
+                print: {
+                    base: { border: 'calc(var(--border) * 2) solid var(--radial-ink)' },
+                },
+            },
+        },
+        label: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        'value-text': {
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-semibold)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--color-base-content)',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 13)', '--radial-thickness': 'calc(var(--size-selector) * 1.25)' } } },
+            md: {},
+            lg: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 20)', '--radial-thickness': 'calc(var(--size-selector) * 2)' } } },
+            xl: { root: { base: { '--radial-size': 'calc(var(--size-selector) * 24)', '--radial-thickness': 'calc(var(--size-selector) * 2.5)' } } },
+            '2xl': { root: { base: { '--radial-size': 'calc(var(--size-selector) * 28)', '--radial-thickness': 'calc(var(--size-selector) * 3)' } } },
+        },
+    },
+    keyframes: { 'zero-carbon-radial-spin': 'to { transform: rotate(360deg); }' },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
     toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
     card, alert, badge, divider, skeleton, spinner,
-    kbd, status, indicator, stats, timeline, chat,
+    kbd, status, indicator, stats, timeline, chat, radialProgress,
 ];

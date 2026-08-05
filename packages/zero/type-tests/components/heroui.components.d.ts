@@ -44,6 +44,7 @@ import type { Indicator as ZIndicator } from '@sigx/zero/indicator';
 import type { Stats as ZStats } from '@sigx/zero/stats';
 import type { Timeline as ZTimeline } from '@sigx/zero/timeline';
 import type { Chat as ZChat } from '@sigx/zero/chat';
+import type { RadialProgress as ZRadialProgress } from '@sigx/zero/radial-progress';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -315,3 +316,10 @@ type ChatProps = {
 };
 type ChatAdapted = Adapted<typeof ZChat, ZeroAxisProp, ChatProps>;
 export declare const Chat: ChatAdapted & AdaptedStatics<typeof ZChat> & { Root: ChatAdapted };
+
+/** radial-progress — no vendor route; the wired surface keeps zero's names. */
+type RadialProgressProps = {
+    size?: 'sm' | 'md' | 'lg';
+};
+type RadialProgressAdapted = Adapted<typeof ZRadialProgress, ZeroAxisProp, RadialProgressProps>;
+export declare const RadialProgress: RadialProgressAdapted & AdaptedStatics<typeof ZRadialProgress> & { Root: RadialProgressAdapted };

@@ -92,7 +92,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-38 components ship today. Every part each renders is listed below, in
+39 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -219,6 +219,16 @@ component renders; the root is called out separately where it carries props.
   value's fraction.
 - Progress: Root/Label/Track/Range/ValueText; `value: number | null`
   (null = indeterminate).
+- RadialProgress: Root/Label/ValueText — circular progress as its OWN scope
+  (a radial has no track/range geometry: the ring is one painted layer on
+  the root, so reusing progress's anatomy would ship dead parts, and a
+  data-mod is a styling hook, not a structural switch). Shares linear
+  progress's value model verbatim: value number|null (null=indeterminate),
+  min/max, role=progressbar + aria value trio, states
+  loading|complete|indeterminate, and the SAME runtime-published
+  --progress-percent — recipes paint the arc from it via conic-gradient
+  masks over a background-color ink, and stop the indeterminate loop under
+  reduced motion. ValueText defaults to the rounded percent.
 - Field: Root/Label/Description/Error — wires ids and disabled/invalid/
   required down to the control it wraps.
 - Input: Root(model=string)/Label/Control/Input, a single-line text field.
@@ -391,9 +401,9 @@ value, `model:inputValue` = text, `model:open` = open.
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
 Avatar, Badge, Button, Card, Chat, Checkbox, Collapsible, Combobox, Dialog,
 Divider, Field, Indicator, Input, Kbd, Menu, NativeSelect, NumberInput,
-Popover, Progress, RadioGroup, RatingGroup, Select, Skeleton, Slider,
-Spinner, Stats, Status, Switch, Tabs, Textarea, Timeline, Toast, Toggle,
-ToggleGroup, Tooltip and TreeView;
+Popover, Progress, RadialProgress, RadioGroup, RatingGroup, Select, Skeleton,
+Slider, Spinner, Stats, Status, Switch, Tabs, Textarea, Timeline, Toast,
+Toggle, ToggleGroup, Tooltip and TreeView;
 that is every component. Where the Root renders a fragment (a
 dialog/menu/popover/tooltip) the props live on the Trigger, which renders the
 carrier part the compiled axis selectors anchor on, and Toast routes the
