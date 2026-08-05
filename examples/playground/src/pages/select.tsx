@@ -54,7 +54,7 @@ const SelectDemos = component(() => {
                 </small>
             </p>
             <Select.Root name="grouped-fruit" placeholder="Pick a fruit…">
-                <Select.Trigger>
+                <Select.Trigger label="Fruit (grouped)">
                     <Select.Value />
                     <Select.Indicator />
                 </Select.Trigger>
