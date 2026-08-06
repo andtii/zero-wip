@@ -15,7 +15,7 @@
  *     `custom`.
  *   - **the seven-member `kind` vocabulary**, kebab-spelled.
  *   - **Carbon's five-step size ramp** (`sm`–`2xl`, the 32–80 px heights).
- *   - **two presence-only modifiers**, `hasIconOnly` and `isExpressive` in
+ *   - **presence-only modifiers**, `hasIconOnly` and `isExpressive` in
  *     Carbon's own API.
  *
  * Values are approximated from public documentation. This package proves the
@@ -60,8 +60,8 @@ export const variants = [
     'danger-ghost',
 ] as const;
 
-/** Carbon's `hasIconOnly` / `isExpressive`, as presence-only modifiers. */
-export const modifiers = ['icon-only', 'expressive'] as const;
+/** Carbon's `hasIconOnly` / `isExpressive`, plus the data table's `useZebraStyles` (#340). */
+export const modifiers = ['icon-only', 'expressive', 'zebra'] as const;
 
 export const system = {
     // Carbon is square. Every corner, everywhere.
@@ -140,6 +140,15 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
     sizes: ['sm', 'md', 'lg', 'xl', '2xl'],
     variants,
     modifiers,
+    /**
+     * Per-scope narrowing (#294): `hasIconOnly`/`isExpressive` are BUTTON
+     * facts and `useZebraStyles` a DataTable fact — without this, every
+     * scope would type all three (#340 review catch).
+     */
+    scopes: {
+        button: { modifiers: ['icon-only', 'expressive'] },
+        table: { modifiers: ['zebra'] },
+    },
     custom,
     system,
     systemDark,

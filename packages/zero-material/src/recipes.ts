@@ -4542,6 +4542,653 @@ export const drawer: RecipeInput = {
     variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 
+/**
+ * Table — an MD3 data table: outline hairlines on a container surface,
+ * medium tracked headers, state-layer washes. Selected rows carry the
+ * accent at the 12% layer, hover at 8%, zebra at 4% — the three MD3
+ * emphasis steps; the mods stand aside for a selected row.
+ */
+export const table: RecipeInput = {
+    component: 'table',
+    tokens: {
+        '--table-accent': 'var(--color-primary)',
+        '--table-pad-block': 'var(--space-sm)',
+        '--table-pad-inline': 'var(--space-md)',
+        '--table-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                overflowX: 'auto',
+                border: 'var(--border) solid var(--color-outline)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-surface-container)',
+                color: 'var(--color-surface-container-content)',
+            },
+        },
+        table: {
+            base: {
+                borderCollapse: 'collapse',
+                inlineSize: '100%',
+                fontSize: 'var(--table-font)',
+            },
+        },
+        caption: {
+            base: {
+                captionSide: 'top',
+                textAlign: 'start',
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        head: {},
+        body: {},
+        foot: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        row: {
+            base: { borderBlockEnd: 'var(--border) solid var(--color-outline)' },
+            states: {
+                selected: { background: 'color-mix(in oklch, var(--table-accent) 12%, transparent)' },
+            },
+        },
+        'header-cell': {
+            base: {
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                textAlign: 'start',
+                fontWeight: 'var(--weight-medium)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        cell: {
+            base: {
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                textAlign: 'start',
+                fontVariantNumeric: 'tabular-nums',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--table-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--table-pad-block': 'calc(var(--space-xs) / 2)', '--table-pad-inline': 'var(--space-xs)', '--table-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--table-pad-block': 'var(--space-xs)', '--table-pad-inline': 'var(--space-sm)', '--table-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--table-pad-block': 'var(--space-md)', '--table-pad-inline': 'var(--space-lg)', '--table-font': 'var(--text-md)' } } },
+            xl: { root: { base: { '--table-pad-block': 'var(--space-lg)', '--table-pad-inline': 'var(--space-xl)', '--table-font': 'var(--text-md)' } } },
+        },
+    },
+    modifiers: {
+        zebra: {
+            row: {
+                selectors: {
+                    '[data-scope="table"][data-part="body"] > &:nth-child(even):not([data-selected])': {
+                        background: 'color-mix(in oklch, var(--color-base-content) 4%, transparent)',
+                    },
+                },
+            },
+        },
+        hover: {
+            row: {
+                selectors: {
+                    '[data-scope="table"][data-part="body"] > &:hover:not([data-selected])': {
+                        background: 'color-mix(in oklch, var(--color-base-content) 8%, transparent)',
+                    },
+                },
+            },
+        },
+    },
+};
+
+/**
+ * FileUpload — MD3: an outlined-button trigger with the 8%/12% state
+ * layers, an outline-dashed dropzone that washes with the accent while a
+ * drag hovers, and list rows on the container surface.
+ */
+export const fileUpload: RecipeInput = {
+    component: 'file-upload',
+    tokens: {
+        '--fu-accent': 'var(--color-primary)',
+        '--fu-pad': 'var(--space-lg)',
+        '--fu-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: { display: 'grid', gap: 'var(--space-sm)', justifyItems: 'start' },
+        },
+        label: {
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                letterSpacing: 'var(--tracking-wide)',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        trigger: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                padding: 'var(--space-sm) var(--space-xl)',
+                fontSize: 'var(--fu-font)',
+                fontWeight: 'var(--weight-medium)',
+                letterSpacing: 'var(--tracking-wide)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--fu-accent)',
+                background: 'transparent',
+                border: 'var(--border) solid var(--color-outline)',
+                borderRadius: 'var(--radius-field)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'color-mix(in oklch, var(--fu-accent) 8%, transparent)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                invalid: { borderColor: 'var(--color-error)', color: 'var(--color-error)' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklch, var(--fu-accent) 12%, transparent)',
+                },
+            },
+        },
+        dropzone: {
+            base: {
+                justifySelf: 'stretch',
+                padding: 'var(--fu-pad)',
+                textAlign: 'center',
+                fontSize: 'var(--fu-font)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                border: 'var(--border) dashed var(--color-outline)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-surface-container)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard), '
+                    + 'border-color var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                highlighted: {
+                    borderColor: 'var(--fu-accent)',
+                    background: 'color-mix(in oklch, var(--fu-accent) 8%, var(--color-surface-container))',
+                    color: 'var(--color-base-content)',
+                },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        'item-group': {
+            base: {
+                justifySelf: 'stretch',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+                display: 'grid',
+                gap: 'var(--space-xs)',
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-md)',
+                borderRadius: 'var(--radius-field)',
+                background: 'var(--color-surface-container)',
+                color: 'var(--color-surface-container-content)',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        'item-name': {
+            base: {
+                flex: '1 1 auto',
+                minWidth: '0',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                fontSize: 'var(--fu-font)',
+            },
+        },
+        'item-size': {
+            base: {
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        'item-remove': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                borderRadius: '9999px',
+                padding: 'var(--space-2xs) var(--space-xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                hover: { background: 'color-mix(in oklch, var(--color-base-content) 8%, transparent)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--fu-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--fu-pad': 'var(--space-sm)', '--fu-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--fu-pad': 'var(--space-md)', '--fu-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--fu-pad': 'var(--space-xl)', '--fu-font': 'var(--text-md)' } } },
+            xl: { root: { base: { '--fu-pad': 'calc(var(--space-xl) * 1.25)', '--fu-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
+/**
+ * Carousel — MD3: the viewport rides the shaped `radius-box` corner, nav
+ * triggers are tonal circles with the state layers, and the dots follow
+ * the hero-carousel spec's shape play: a muted ring resting, the accent
+ * pill when active (the dot stretches — shape signals state, not colour
+ * alone).
+ */
+export const carousel: RecipeInput = {
+    component: 'carousel',
+    tokens: {
+        '--carousel-accent': 'var(--color-primary)',
+        '--carousel-dot': '0.625rem',
+        '--carousel-nav': '2.25rem',
+    },
+    parts: {
+        root: {
+            base: { position: 'relative', display: 'grid', gap: 'var(--space-sm)' },
+        },
+        viewport: {
+            base: {
+                display: 'flex',
+                overflowX: 'auto',
+                scrollSnapType: 'x mandatory',
+                overscrollBehaviorX: 'contain',
+                borderRadius: 'var(--radius-box)',
+            },
+            selectors: {
+                // The viewport is a tab stop (scrollable-region-focusable) and
+                // owes the keyboard user a ring. Real :focus-visible — no
+                // runtime flag exists on this part.
+                '&:focus-visible': { outline: '3px solid var(--color-secondary)', outlineOffset: '2px' },
+            },
+        },
+        item: {
+            base: {
+                flex: '0 0 100%',
+                minWidth: '0',
+                scrollSnapAlign: 'center',
+            },
+            states: { active: {}, inactive: {} },
+        },
+        'prev-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlockStart: 'calc(50% - var(--carousel-nav) / 2)',
+                insetInlineStart: 'var(--space-sm)',
+                inlineSize: 'var(--carousel-nav)',
+                blockSize: 'var(--carousel-nav)',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--color-surface-container-content)',
+                background: 'var(--color-surface-container)',
+                border: 'none',
+                borderRadius: '9999px',
+                boxShadow: 'var(--shadow-level1)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+                zIndex: '1',
+            },
+            states: {
+                hover: { background: 'color-mix(in oklch, var(--color-base-content) 8%, var(--color-surface-container))' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklch, var(--color-base-content) 12%, var(--color-surface-container))',
+                },
+            },
+        },
+        'next-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlockStart: 'calc(50% - var(--carousel-nav) / 2)',
+                insetInlineEnd: 'var(--space-sm)',
+                inlineSize: 'var(--carousel-nav)',
+                blockSize: 'var(--carousel-nav)',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--color-surface-container-content)',
+                background: 'var(--color-surface-container)',
+                border: 'none',
+                borderRadius: '9999px',
+                boxShadow: 'var(--shadow-level1)',
+                cursor: 'pointer',
+                transition: 'background var(--duration-fast) var(--ease-standard)',
+                zIndex: '1',
+            },
+            states: {
+                hover: { background: 'color-mix(in oklch, var(--color-base-content) 8%, var(--color-surface-container))' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklch, var(--color-base-content) 12%, var(--color-surface-container))',
+                },
+            },
+        },
+        'indicator-group': {
+            base: { display: 'flex', gap: 'var(--space-xs)', justifyContent: 'center', alignItems: 'center' },
+        },
+        indicator: {
+            base: {
+                appearance: 'none',
+                // The BUTTON keeps a >=24px hit area (WCAG 2.5.8 target
+                // size — the axe gate's floor); the visible dot is the
+                // ::before, sized by the ramp.
+                inlineSize: 'max(var(--carousel-dot), 1.5rem)',
+                blockSize: 'max(var(--carousel-dot), 1.5rem)',
+                padding: '0',
+                display: 'grid',
+                placeItems: 'center',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+            },
+            states: {
+                active: {},
+                inactive: {},
+                ...focusRing,
+            },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    inlineSize: 'var(--carousel-dot)',
+                    blockSize: 'var(--carousel-dot)',
+                    boxSizing: 'border-box',
+                    border: 'calc(var(--border) * 2) solid color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                    borderRadius: '9999px',
+                    background: 'transparent',
+                    transition: 'inline-size var(--duration-fast) var(--ease-emphasized), background var(--duration-fast) var(--ease-standard)',
+                },
+                '&[data-state="active"]::before': {
+                    background: 'var(--carousel-accent)',
+                    borderColor: 'var(--carousel-accent)',
+                    inlineSize: 'calc(var(--carousel-dot) * 2.2)',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--carousel-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--carousel-dot': '0.375rem', '--carousel-nav': '1.75rem' } } },
+            sm: { root: { base: { '--carousel-dot': '0.5rem', '--carousel-nav': '2rem' } } },
+            md: {},
+            lg: { root: { base: { '--carousel-dot': '0.75rem', '--carousel-nav': '2.75rem' } } },
+            xl: { root: { base: { '--carousel-dot': '0.875rem', '--carousel-nav': '3.25rem' } } },
+        },
+    },
+};
+
+/**
+ * Swap — MD3: the arriving face scales up from 80% under the emphasized
+ * easing while the leaving one fades — a contained state-layer gesture,
+ * not a spin. Reduced motion cuts.
+ */
+export const swap: RecipeInput = {
+    component: 'swap',
+    tokens: {
+        '--swap-ink': 'var(--color-base-content)',
+        '--swap-size': 'var(--text-xl)',
+    },
+    parts: {
+        root: {
+            base: {
+                position: 'relative',
+                display: 'inline-grid',
+                placeItems: 'center',
+                fontSize: 'var(--swap-size)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--swap-ink)',
+                userSelect: 'none',
+            },
+            states: {
+                on: {},
+                off: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                // Only the interactive form renders a <button>; the display
+                // form is a span and must not grow button chrome.
+                '&:is(button)': {
+                    appearance: 'none',
+                    border: 'none',
+                    background: 'transparent',
+                    padding: 'var(--space-2xs)',
+                    borderRadius: 'var(--radius-selector)',
+                    cursor: 'pointer',
+                    font: 'inherit',
+                    fontSize: 'var(--swap-size)',
+                    color: 'var(--swap-ink)',
+                },
+            },
+        },
+        on: {
+            base: {
+                gridArea: '1 / 1',
+                transition: 'transform var(--duration-normal) var(--ease-emphasized), opacity var(--duration-normal) var(--ease-standard)',
+            },
+            states: {
+                on: {},
+                off: { opacity: '0', transform: 'scale(0.8)' },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+        off: {
+            base: {
+                gridArea: '1 / 1',
+                transition: 'transform var(--duration-normal) var(--ease-emphasized), opacity var(--duration-normal) var(--ease-standard)',
+            },
+            states: {
+                off: {},
+                on: { opacity: '0', transform: 'scale(0.8)' },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--swap-ink': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--swap-size': 'var(--text-sm)' } } },
+            sm: { root: { base: { '--swap-size': 'var(--text-md)' } } },
+            md: {},
+            lg: { root: { base: { '--swap-size': 'var(--text-2xl)' } } },
+            xl: { root: { base: { '--swap-size': 'var(--text-3xl)' } } },
+        },
+    },
+};
+
+/**
+ * Countdown — display-only digits. The runtime replaces the `digits`
+ * element per tick (keyed), so the enter animation below plays once per
+ * change — an emphasized rise; a loop never exists, and reduced motion
+ * collapses the entry to a cut. The app owns time.
+ */
+export const countdown: RecipeInput = {
+    component: 'countdown',
+    tokens: {
+        '--countdown-ink': 'var(--color-base-content)',
+        '--countdown-font': 'var(--text-2xl)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'baseline',
+                gap: '0.1em',
+                fontSize: 'var(--countdown-font)',
+                fontWeight: 'var(--weight-semibold)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--countdown-ink)',
+            },
+        },
+        value: {
+            base: {
+                display: 'inline-block',
+                overflow: 'hidden',
+            },
+        },
+        digits: {
+            base: {
+                display: 'inline-block',
+                animation: 'zero-material-countdown-in 0.3s var(--ease-emphasized)',
+            },
+            at: {
+                'reduced-motion': { base: { animation: 'none' } },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--countdown-ink': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--countdown-font': 'var(--text-md)' } } },
+            sm: { root: { base: { '--countdown-font': 'var(--text-xl)' } } },
+            md: {},
+            lg: { root: { base: { '--countdown-font': 'var(--text-3xl)' } } },
+            xl: { root: { base: { '--countdown-font': 'var(--text-3xl)' } } },
+        },
+    },
+    keyframes: { 'zero-material-countdown-in': 'from { transform: translateY(0.5em); opacity: 0; }' },
+};
+
+/**
+ * Diff — MD3: the divider is the primary ink, the grip a filled primary
+ * circle on the level1 shadow; pressed deepens toward on-surface.
+ */
+export const diff: RecipeInput = {
+    component: 'diff',
+    tokens: {
+        '--diff-accent': 'var(--color-primary)',
+        '--diff-grip': '1.5rem',
+        '--diff-hit': '2rem',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'grid',
+                overflow: 'hidden',
+                background: 'var(--color-base-100)',
+                borderRadius: 'var(--radius-box)',
+            },
+        },
+        before: {
+            base: { gridArea: '1 / 1', minWidth: '0' },
+        },
+        after: {
+            base: {
+                gridArea: '1 / 1',
+                position: 'absolute',
+                insetBlock: '0',
+                insetInlineStart: '0',
+                // The reveal: a LOGICAL clip. inline-size mirrors under RTL
+                // where a physical clip-path inset would not.
+                inlineSize: 'var(--diff-percent)',
+                overflow: 'hidden',
+            },
+        },
+        handle: {
+            base: {
+                insetBlock: '0',
+                inlineSize: 'var(--diff-hit)',
+                // Center the hit box on the position — the slider-thumb
+                // move: a logical negative margin, never a transform.
+                marginInlineStart: 'calc(var(--diff-hit) / -2)',
+                display: 'grid',
+                placeItems: 'center',
+                cursor: 'ew-resize',
+                touchAction: 'none',
+                zIndex: '1',
+            },
+            states: {
+                ...focusRing,
+                pressed: { '--diff-accent': 'color-mix(in oklch, var(--color-primary) 85%, var(--color-base-content))' },
+            },
+            selectors: {
+                // The divider line, full height, centered in the hit box.
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlock: '0',
+                    insetInlineStart: 'calc(50% - var(--border))',
+                    inlineSize: 'calc(var(--border) * 2)',
+                    background: 'var(--diff-accent)',
+                },
+                // The grip — the paint the indicator matrix grades.
+                '&::after': {
+                    content: '""',
+                    inlineSize: 'var(--diff-grip)',
+                    blockSize: 'var(--diff-grip)',
+                    boxSizing: 'border-box',
+                    background: 'var(--diff-accent)',
+                    border: 'calc(var(--border) * 2) solid var(--diff-accent)',
+                    borderRadius: '9999px',
+                    zIndex: '1',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--diff-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--diff-grip': '1rem', '--diff-hit': '1.5rem' } } },
+            sm: { root: { base: { '--diff-grip': '1.25rem', '--diff-hit': '1.75rem' } } },
+            md: {},
+            lg: { root: { base: { '--diff-grip': '2rem', '--diff-hit': '2.5rem' } } },
+            xl: { root: { base: { '--diff-grip': '2.25rem', '--diff-hit': '2.75rem' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
@@ -4549,4 +5196,10 @@ export const recipes: RecipeInput[] = [
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
+    table,
+    fileUpload,
+    carousel,
+    swap,
+    countdown,
+    diff,
 ];

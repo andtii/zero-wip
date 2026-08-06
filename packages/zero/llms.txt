@@ -94,7 +94,7 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
-45 components ship today. Every part each renders is listed below, in
+51 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -293,6 +293,75 @@ component renders; the root is called out separately where it carries props.
   directional CSS). asChild is the honest joint: a wrapper cannot collapse
   the radius of the control inside it, so put the item attributes ON the
   control.
+- Carousel: Root(label REQUIRED — the root is a region, and a nameless
+  region is an axe violation)/Viewport/Item/PrevTrigger/NextTrigger/
+  IndicatorGroup/Indicator(index). A scroll-snap viewport whose MODEL IS
+  THE ACTIVE INDEX: derived from real scroll by an IntersectionObserver
+  (created only in onMounted — SSR never observes) and driven back by
+  scrollIntoView on model set, smooth unless prefers-reduced-motion asks
+  for a jump. APG carousel ARIA: region + aria-roledescription=carousel;
+  items are "slide" groups labelled "n of m". Prev/next CLAMP (no wrap)
+  and disable at their bounds; the dots are labelled BUTTONS (not tabs, no
+  roving tabindex), the active one carrying aria-current. item and
+  indicator ride data-state active|inactive; the indicator is a paint part
+  graded by the contrast audit's indicator matrix. Horizontal only.
+- Diff: Root(model=percent 0-100, default 50)/Before/After/Handle — a
+  before/after reveal whose divider HANDLE IS AN APG SLIDER: role=slider,
+  aria-valuenow 0-100, arrows/PageUp/PageDown/Home/End (RTL-aware — Arrow
+  Right increases in LTR, decreases in RTL, so the handle always moves the
+  way the key points), pointer drag with window listeners that survive
+  leaving the box. The panes are CONTENT and stay inert. The runtime
+  publishes --diff-percent on the root and positions the handle at the
+  logical inset-inline-start; recipes clip the after pane with a LOGICAL
+  inline-size (never a physical clip-path), so RTL mirrors free — the
+  physical result is measured in e2e/diff.spec.ts. Size pane content to
+  the ROOT, not the pane: the after pane clips by width. The handle is a
+  paint part graded by the contrast audit's indicator matrix.
+- FileUpload: Root(model=File[])/Label/Trigger/Input/Dropzone/ItemGroup/
+  Item(file)/ItemName/ItemSize/ItemRemove. The INPUT IS THE CONTROL — a
+  real <input type=file> holding name/accept/multiple/required and posting
+  its FileList natively — visually hidden and out of the tab order; the
+  TRIGGER (a real <button>) is the one keyboard path to the picker. The
+  DROPZONE is a pointer affordance only: never focusable, no role (APG has
+  no drop-target pattern; a click forwards to the picker). Drag-over is
+  the shared data-highlighted FLAG (stamped on dropzone AND root), not a
+  new state. multiple appends across selections (dedupe name+size+
+  lastModified); single replaces; drops are filtered by accept so the two
+  ingestion paths agree; the input's own FileList is re-synced through
+  DataTransfer best-effort. Field-context aware exactly like Input (the
+  trigger owns the field's control id). ItemName/ItemSize default to the
+  file's name and human-readable size; ItemRemove is labelled
+  "Remove <name>".
+- Countdown: Root(label -> role=timer)/Value(value, digits)/digits —
+  display-only numbers; the APP OWNS TIME. No internal timer, deliberately:
+  a timer is app logic (which clock, paused when, what at zero) and an SSR
+  hazard, so the component only renders the `value` it is given. Root
+  composes units (hours/minutes/seconds are separate Values, separators
+  are consumer text); each value publishes --countdown-value and renders
+  real digit text (AT reads "10:04" off the DOM), zero-padded to `digits`
+  and clamped at 0. The digits element is KEYED by its text, so each tick
+  replaces it and a recipe's enter animation (translate/fade) plays once —
+  collapsed to a cut under reduced motion. No states, no flags.
+- Swap: Root(model=boolean)/On/Off — two faces over one boolean. BOTH
+  faces stay rendered (the component exists for the CSS transition between
+  them; `hidden` computes display:none and would kill it) and the inactive
+  one is aria-hidden. All three parts ride data-state on|off. DISPLAY by
+  default (a span, no semantics — a theme icon following external state);
+  `interactive` renders a real <button aria-pressed> that toggles on click
+  (platform Enter/Space), labelled via `label`. No indeterminate face —
+  the model is a boolean, and rotate/flip looks are recipe styling, not
+  contract.
+- Table: Root/Table/Caption/Head/Body/Foot/Row/HeaderCell/Cell — semantic
+  data table over the REAL table elements (caption/thead/tbody/tfoot/tr/th/
+  td; the elements are the semantics, so no asChild anywhere). Root is the
+  SCROLL CONTAINER — a <table> cannot be its own overflow box, so the
+  wrapper div is anatomy, carries the axes, and recipes give it
+  overflow-x auto. No states; a row can carry the shared data-selected
+  flag (`selected` prop). Zebra striping and hover-highlight are design-
+  system mods (data-mod-* on the root) in the skins that offer them, never
+  anatomy. Sorting is deliberately out: header-cell renders the <th> that
+  will carry aria-sort later. Write a Caption — it is the table's
+  accessible name.
 - Divider: Root only, role=separator, orientation. Non-focusable;
   aria-orientation emitted only for `vertical`.
 - Navbar: Root/Start/Center/End — the landmark header bar, pure
@@ -465,8 +534,8 @@ Avatar, Badge, Breadcrumbs, Button, Drawer, Card, Chat, Checkbox, Collapsible, C
 Divider, Field, Indicator, Input, Join, Kbd, Menu, NativeSelect, NumberInput,
 Navbar, Pagination, Popover, Progress, RadialProgress, RadioGroup,
 RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,
-Switch, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip and
-TreeView;
+Switch, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,
+Table, FileUpload, Carousel, Swap, Countdown, Diff and TreeView;
 that is every component. Where the Root renders a fragment (a
 dialog/menu/popover/tooltip) the props live on the Trigger, which renders the
 carrier part the compiled axis selectors anchor on, and Toast routes the

@@ -215,6 +215,30 @@
         "./drawer": {
             "types": "./dist/components/drawer/index.d.ts",
             "import": "./dist/components/drawer/index.js"
+        },
+        "./table": {
+            "types": "./dist/components/table/index.d.ts",
+            "import": "./dist/components/table/index.js"
+        },
+        "./file-upload": {
+            "types": "./dist/components/file-upload/index.d.ts",
+            "import": "./dist/components/file-upload/index.js"
+        },
+        "./carousel": {
+            "types": "./dist/components/carousel/index.d.ts",
+            "import": "./dist/components/carousel/index.js"
+        },
+        "./swap": {
+            "types": "./dist/components/swap/index.d.ts",
+            "import": "./dist/components/swap/index.js"
+        },
+        "./countdown": {
+            "types": "./dist/components/countdown/index.d.ts",
+            "import": "./dist/components/countdown/index.js"
+        },
+        "./diff": {
+            "types": "./dist/components/diff/index.d.ts",
+            "import": "./dist/components/diff/index.js"
         }
     },
     "files": [

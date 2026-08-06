@@ -5106,6 +5106,629 @@ export const drawer: RecipeInput = {
     variants: { color: quietTriggerColors(), size: quietTriggerSizes },
 };
 
+/**
+ * Table — Monograph data: hairline row rules inside one bordered scroll box,
+ * mono meta headers, tabular numbers. The root is the overflow box the
+ * anatomy promises. Zebra and hover-highlight are the two declared mods —
+ * per-instance choices, so they ride `data-mod-*` — and both stand aside
+ * for a selected row (`:not([data-selected])`), which carries the accent.
+ */
+export const table: RecipeInput = {
+    component: 'table',
+    tokens: {
+        '--table-accent': 'var(--color-base-content)',
+        '--table-pad-block': 'var(--space-sm)',
+        '--table-pad-inline': 'var(--space-md)',
+        '--table-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                overflowX: 'auto',
+                border: hairline,
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+            },
+        },
+        table: {
+            base: {
+                borderCollapse: 'collapse',
+                inlineSize: '100%',
+                fontSize: 'var(--table-font)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        caption: {
+            base: {
+                captionSide: 'top',
+                textAlign: 'start',
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        head: {},
+        body: {},
+        foot: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        row: {
+            base: { borderBlockEnd: hairline },
+            states: {
+                selected: { background: 'color-mix(in oklch, var(--table-accent) 10%, transparent)' },
+            },
+        },
+        'header-cell': {
+            base: {
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                textAlign: 'start',
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 'var(--weight-medium)',
+                fontSize: 'var(--text-xs)',
+                letterSpacing: 'var(--tracking-wide)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        cell: {
+            base: {
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                textAlign: 'start',
+                fontVariantNumeric: 'tabular-nums',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--table-accent': softInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { '--table-pad-block': 'calc(var(--space-xs) / 2)', '--table-pad-inline': 'var(--space-xs)', '--table-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--table-pad-block': 'var(--space-xs)', '--table-pad-inline': 'var(--space-sm)', '--table-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--table-pad-block': 'var(--space-md)', '--table-pad-inline': 'var(--space-lg)', '--table-font': 'var(--text-md)' } } },
+            xl: { root: { base: { '--table-pad-block': 'var(--space-lg)', '--table-pad-inline': 'var(--space-xl)', '--table-font': 'var(--text-md)' } } },
+        },
+    },
+    modifiers: {
+        zebra: {
+            row: {
+                selectors: {
+                    '[data-scope="table"][data-part="body"] > &:nth-child(even):not([data-selected])': {
+                        background: inkWash,
+                    },
+                },
+            },
+        },
+        hover: {
+            row: {
+                selectors: {
+                    '[data-scope="table"][data-part="body"] > &:hover:not([data-selected])': {
+                        background: inkWash,
+                    },
+                },
+            },
+        },
+    },
+};
+
+/**
+ * FileUpload — Monograph's field family: a quiet trigger button, a hairline
+ * dashed dropzone that inks up (petrol, like every interactive signal)
+ * while a drag hovers — the shared `highlighted` flag — and a hairline item
+ * list with mono metadata. The colour axis rebinds the accent.
+ */
+export const fileUpload: RecipeInput = {
+    component: 'file-upload',
+    tokens: {
+        '--fu-accent': 'var(--color-primary)',
+        '--fu-pad': 'var(--space-lg)',
+        '--fu-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: { display: 'grid', gap: 'var(--space-sm)', justifyItems: 'start' },
+        },
+        label: {
+            base: {
+                fontSize: 'var(--text-sm)',
+                fontWeight: 'var(--weight-medium)',
+                color: 'var(--color-base-content)',
+            },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+            },
+        },
+        trigger: {
+            base: { ...quietTrigger, fontSize: 'var(--fu-font)' },
+            states: {
+                hover: { background: inkWash },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                invalid: { borderColor: 'var(--color-error)' },
+                ...focusRing,
+            },
+            selectors: { ...pressedInk },
+        },
+        dropzone: {
+            base: {
+                justifySelf: 'stretch',
+                padding: 'var(--fu-pad)',
+                textAlign: 'center',
+                fontSize: 'var(--fu-font)',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                border: 'var(--border) dashed var(--color-base-300)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                cursor: 'pointer',
+                transition: 'border-color var(--duration-fast) var(--ease-standard), '
+                    + 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                // The shared `highlighted` flag: a drag is hovering and a
+                // drop will act. Border AND wash — colour alone is not a
+                // signal.
+                highlighted: {
+                    borderColor: 'var(--fu-accent)',
+                    background: 'color-mix(in oklch, var(--fu-accent) 6%, var(--color-base-100))',
+                    color: 'var(--color-base-content)',
+                },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        'item-group': {
+            base: {
+                justifySelf: 'stretch',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+                display: 'grid',
+                gap: 'var(--space-xs)',
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-sm)',
+                border: hairline,
+                borderRadius: 'var(--radius-field)',
+                background: 'var(--color-base-100)',
+            },
+            states: {
+                disabled: { opacity: 'var(--disabled-opacity)' },
+            },
+        },
+        'item-name': {
+            base: {
+                flex: '1 1 auto',
+                minWidth: '0',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                fontSize: 'var(--fu-font)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        'item-size': {
+            base: {
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        'item-remove': {
+            base: {
+                ...iconClose,
+                padding: 'var(--space-2xs) var(--space-xs)',
+            },
+            states: {
+                hover: { background: inkWash },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { ...pressedInk },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--fu-accent': softInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { '--fu-pad': 'var(--space-sm)', '--fu-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--fu-pad': 'var(--space-md)', '--fu-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--fu-pad': 'var(--space-xl)', '--fu-font': 'var(--text-md)' } } },
+            xl: { root: { base: { '--fu-pad': 'calc(var(--space-xl) * 1.25)', '--fu-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
+/**
+ * Carousel — Monograph motion is the browser's own: the viewport is a
+ * scroll-snap container, the nav triggers are quiet bordered circles on
+ * the inline edges (logical insets, so RTL mirrors), and the dots are
+ * drawn geometry — a hollow ink ring resting, the accent filling it when
+ * active. The active/inactive pair is shape AND ink, never colour alone.
+ */
+export const carousel: RecipeInput = {
+    component: 'carousel',
+    tokens: {
+        '--carousel-accent': 'var(--color-primary)',
+        '--carousel-dot': '0.625rem',
+        '--carousel-nav': '2rem',
+    },
+    parts: {
+        root: {
+            base: { position: 'relative', display: 'grid', gap: 'var(--space-sm)' },
+        },
+        viewport: {
+            base: {
+                display: 'flex',
+                overflowX: 'auto',
+                scrollSnapType: 'x mandatory',
+                overscrollBehaviorX: 'contain',
+                borderRadius: 'var(--radius-box)',
+            },
+            selectors: {
+                // The viewport is a tab stop (scrollable-region-focusable) and
+                // owes the keyboard user a ring. Real :focus-visible — no
+                // runtime flag exists on this part.
+                '&:focus-visible': { outline: '2px solid var(--color-primary)', outlineOffset: '2px' },
+            },
+        },
+        item: {
+            base: {
+                flex: '0 0 100%',
+                minWidth: '0',
+                scrollSnapAlign: 'center',
+            },
+            states: { active: {}, inactive: {} },
+        },
+        'prev-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlockStart: 'calc(50% - var(--carousel-nav) / 2)',
+                insetInlineStart: 'var(--space-sm)',
+                inlineSize: 'var(--carousel-nav)',
+                blockSize: 'var(--carousel-nav)',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                border: hairline,
+                borderRadius: '9999px',
+                cursor: 'pointer',
+                zIndex: '1',
+            },
+            states: {
+                hover: { background: inkWash },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { ...pressedInk },
+        },
+        'next-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlockStart: 'calc(50% - var(--carousel-nav) / 2)',
+                insetInlineEnd: 'var(--space-sm)',
+                inlineSize: 'var(--carousel-nav)',
+                blockSize: 'var(--carousel-nav)',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                border: hairline,
+                borderRadius: '9999px',
+                cursor: 'pointer',
+                zIndex: '1',
+            },
+            states: {
+                hover: { background: inkWash },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { ...pressedInk },
+        },
+        'indicator-group': {
+            base: { display: 'flex', gap: 'var(--space-xs)', justifyContent: 'center' },
+        },
+        indicator: {
+            base: {
+                appearance: 'none',
+                // The BUTTON keeps a >=24px hit area (WCAG 2.5.8 target
+                // size — the axe gate's floor); the visible dot is the
+                // ::before, sized by the ramp.
+                inlineSize: 'max(var(--carousel-dot), 1.5rem)',
+                blockSize: 'max(var(--carousel-dot), 1.5rem)',
+                padding: '0',
+                display: 'grid',
+                placeItems: 'center',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+            },
+            states: {
+                active: {},
+                inactive: {},
+                ...focusRing,
+            },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    inlineSize: 'var(--carousel-dot)',
+                    blockSize: 'var(--carousel-dot)',
+                    boxSizing: 'border-box',
+                    border: 'calc(var(--border) * 2) solid color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                    borderRadius: '9999px',
+                    background: 'transparent',
+                },
+                '&[data-state="active"]::before': {
+                    background: 'var(--carousel-accent)',
+                    borderColor: 'var(--carousel-accent)',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--carousel-accent': softInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { '--carousel-dot': '0.375rem', '--carousel-nav': '1.5rem' } } },
+            sm: { root: { base: { '--carousel-dot': '0.5rem', '--carousel-nav': '1.75rem' } } },
+            md: {},
+            lg: { root: { base: { '--carousel-dot': '0.75rem', '--carousel-nav': '2.5rem' } } },
+            xl: { root: { base: { '--carousel-dot': '0.875rem', '--carousel-nav': '3rem' } } },
+        },
+    },
+};
+
+/**
+ * Swap — Monograph does not spin its glyphs: the two faces cross-fade,
+ * nothing translates or rotates, and reduced motion collapses even the
+ * fade to a cut. The interactive form is a quiet unbordered button.
+ */
+export const swap: RecipeInput = {
+    component: 'swap',
+    tokens: {
+        '--swap-ink': 'var(--color-base-content)',
+        '--swap-size': 'var(--text-xl)',
+    },
+    parts: {
+        root: {
+            base: {
+                position: 'relative',
+                display: 'inline-grid',
+                placeItems: 'center',
+                fontSize: 'var(--swap-size)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--swap-ink)',
+                userSelect: 'none',
+            },
+            states: {
+                on: {},
+                off: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                // Only the interactive form renders a <button>; the display
+                // form is a span and must not grow button chrome.
+                '&:is(button)': {
+                    appearance: 'none',
+                    border: 'none',
+                    background: 'transparent',
+                    padding: 'var(--space-2xs)',
+                    borderRadius: 'var(--radius-selector)',
+                    cursor: 'pointer',
+                    font: 'inherit',
+                    fontSize: 'var(--swap-size)',
+                    color: 'var(--swap-ink)',
+                },
+            },
+        },
+        on: {
+            base: {
+                gridArea: '1 / 1',
+                transition: 'opacity var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                on: {},
+                off: { opacity: '0' },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+        off: {
+            base: {
+                gridArea: '1 / 1',
+                transition: 'opacity var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                off: {},
+                on: { opacity: '0' },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--swap-ink': softInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { '--swap-size': 'var(--text-sm)' } } },
+            sm: { root: { base: { '--swap-size': 'var(--text-md)' } } },
+            md: {},
+            lg: { root: { base: { '--swap-size': 'var(--text-2xl)' } } },
+            xl: { root: { base: { '--swap-size': 'var(--text-3xl)' } } },
+        },
+    },
+};
+
+/**
+ * Countdown — display-only digits. The runtime replaces the `digits`
+ * element per tick (keyed), so the enter animation below plays once per
+ * change — a small rise, mono digits; a loop never exists, and reduced motion
+ * collapses the entry to a cut. The app owns time.
+ */
+export const countdown: RecipeInput = {
+    component: 'countdown',
+    tokens: {
+        '--countdown-ink': 'var(--color-base-content)',
+        '--countdown-font': 'var(--text-2xl)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'baseline',
+                gap: '0.1em',
+                fontSize: 'var(--countdown-font)',
+                fontWeight: 'var(--weight-semibold)',
+                fontVariantNumeric: 'tabular-nums',
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--countdown-ink)',
+            },
+        },
+        value: {
+            base: {
+                display: 'inline-block',
+                overflow: 'hidden',
+            },
+        },
+        digits: {
+            base: {
+                display: 'inline-block',
+                animation: 'zero-basic-countdown-in 0.3s var(--ease-standard)',
+            },
+            at: {
+                'reduced-motion': { base: { animation: 'none' } },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--countdown-ink': softInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { '--countdown-font': 'var(--text-md)' } } },
+            sm: { root: { base: { '--countdown-font': 'var(--text-xl)' } } },
+            md: {},
+            lg: { root: { base: { '--countdown-font': 'var(--text-3xl)' } } },
+            xl: { root: { base: { '--countdown-font': 'var(--text-3xl)' } } },
+        },
+    },
+    keyframes: { 'zero-basic-countdown-in': 'from { transform: translateY(0.45em); opacity: 0; }' },
+};
+
+/**
+ * Diff — a before/after reveal. The clip is a logical inline-size (the
+ * runtime publishes --diff-percent); the handle is Monograph's one
+ * interactive ink: a hairline divider with a petrol grip dot, pressed =
+ * denser ink, nothing moves.
+ */
+export const diff: RecipeInput = {
+    component: 'diff',
+    tokens: {
+        '--diff-accent': 'var(--color-primary)',
+        '--diff-grip': '1.5rem',
+        '--diff-hit': '2rem',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'grid',
+                overflow: 'hidden',
+                background: 'var(--color-base-100)',
+                borderRadius: 'var(--radius-box)',
+            },
+        },
+        before: {
+            base: { gridArea: '1 / 1', minWidth: '0' },
+        },
+        after: {
+            base: {
+                gridArea: '1 / 1',
+                position: 'absolute',
+                insetBlock: '0',
+                insetInlineStart: '0',
+                // The reveal: a LOGICAL clip. inline-size mirrors under RTL
+                // where a physical clip-path inset would not.
+                inlineSize: 'var(--diff-percent)',
+                overflow: 'hidden',
+            },
+        },
+        handle: {
+            base: {
+                insetBlock: '0',
+                inlineSize: 'var(--diff-hit)',
+                // Center the hit box on the position — the slider-thumb
+                // move: a logical negative margin, never a transform.
+                marginInlineStart: 'calc(var(--diff-hit) / -2)',
+                display: 'grid',
+                placeItems: 'center',
+                cursor: 'ew-resize',
+                touchAction: 'none',
+                zIndex: '1',
+            },
+            states: {
+                ...focusRing,
+                pressed: { '--diff-accent': 'color-mix(in oklch, var(--color-primary) 85%, var(--color-base-content))' },
+            },
+            selectors: {
+                // The divider line, full height, centered in the hit box.
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlock: '0',
+                    insetInlineStart: 'calc(50% - var(--border))',
+                    inlineSize: 'calc(var(--border) * 2)',
+                    background: 'var(--diff-accent)',
+                },
+                // The grip — the paint the indicator matrix grades.
+                '&::after': {
+                    content: '""',
+                    inlineSize: 'var(--diff-grip)',
+                    blockSize: 'var(--diff-grip)',
+                    boxSizing: 'border-box',
+                    background: 'var(--color-base-100)',
+                    border: 'calc(var(--border) * 2) solid var(--diff-accent)',
+                    borderRadius: '9999px',
+                    zIndex: '1',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--diff-accent': softInk(c),
+        } } }])),
+        size: {
+            xs: { root: { base: { '--diff-grip': '1rem', '--diff-hit': '1.5rem' } } },
+            sm: { root: { base: { '--diff-grip': '1.25rem', '--diff-hit': '1.75rem' } } },
+            md: {},
+            lg: { root: { base: { '--diff-grip': '2rem', '--diff-hit': '2.5rem' } } },
+            xl: { root: { base: { '--diff-grip': '2.25rem', '--diff-hit': '2.75rem' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
@@ -5113,4 +5736,10 @@ export const recipes: RecipeInput[] = [
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
+    table,
+    fileUpload,
+    carousel,
+    swap,
+    countdown,
+    diff,
 ];

@@ -4040,6 +4040,553 @@ export const drawer: RecipeInput = {
     variants: { size: overlayTriggerSizes },
 };
 
+/**
+ * HeroUI table: a soft rounded box, base-200 header band, hairline rows.
+ * `striped` is HeroUI's own `isStriped` (the api maps it); selection is a
+ * primary-soft wash. No colour axis — there are no roles to key it on.
+ */
+export const table: RecipeInput = {
+    component: 'table',
+    tokens: {
+        '--table-pad-block': 'var(--space-sm)',
+        '--table-pad-inline': 'var(--space-md)',
+        '--table-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                overflowX: 'auto',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+            },
+        },
+        table: {
+            base: {
+                borderCollapse: 'collapse',
+                inlineSize: '100%',
+                fontSize: 'var(--table-font)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        caption: {
+            base: {
+                captionSide: 'top',
+                textAlign: 'start',
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                fontSize: 'var(--text-xs)',
+                color: 'var(--hero-muted)',
+            },
+        },
+        head: {
+            base: { background: 'var(--color-base-200)' },
+        },
+        body: {},
+        foot: {
+            base: {
+                fontSize: 'var(--text-xs)',
+                color: 'var(--hero-muted)',
+            },
+        },
+        row: {
+            base: { borderBlockEnd: 'var(--border) solid var(--hero-line)' },
+            states: {
+                selected: { background: 'color-mix(in oklch, var(--hero-primary) 12%, transparent)' },
+            },
+        },
+        'header-cell': {
+            base: {
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                textAlign: 'start',
+                fontWeight: 'var(--weight-semibold)',
+                fontSize: 'var(--text-xs)',
+                color: 'var(--hero-muted)',
+            },
+        },
+        cell: {
+            base: {
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                textAlign: 'start',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--table-pad-block': 'var(--space-xs)', '--table-pad-inline': 'var(--space-sm)', '--table-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--table-pad-block': 'var(--space-md)', '--table-pad-inline': 'var(--space-lg)', '--table-font': 'var(--text-md)' } } },
+        },
+    },
+    modifiers: {
+        striped: {
+            row: {
+                selectors: {
+                    '[data-scope="table"][data-part="body"] > &:nth-child(even):not([data-selected])': {
+                        background: 'var(--color-base-200)',
+                    },
+                },
+            },
+        },
+    },
+};
+
+/**
+ * HeroUI file upload: a secondary-button trigger with the v3 press-scale,
+ * a soft dashed dropzone washing toward `--hero-primary` while a drag
+ * hovers, and rounded item rows. Size only — there is no colour axis.
+ */
+export const fileUpload: RecipeInput = {
+    component: 'file-upload',
+    tokens: {
+        '--fu-pad': 'var(--space-lg)',
+        '--fu-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: { display: 'grid', gap: 'var(--space-sm)', justifyItems: 'start' },
+        },
+        label: {
+            base: { fontSize: 'var(--text-sm)', fontWeight: 'var(--weight-medium)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        trigger: {
+            base: { ...secondaryButton, fontSize: 'var(--fu-font)' },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                invalid: { borderColor: 'var(--hero-danger)' },
+                ...focusRing,
+            },
+            selectors: { ...pressScale },
+        },
+        dropzone: {
+            base: {
+                justifySelf: 'stretch',
+                padding: 'var(--fu-pad)',
+                textAlign: 'center',
+                fontSize: 'var(--fu-font)',
+                color: 'var(--hero-muted)',
+                border: 'var(--border) dashed var(--hero-line)',
+                borderRadius: 'var(--radius-box)',
+                background: 'var(--color-base-100)',
+                cursor: 'pointer',
+                transition: 'border-color var(--duration-fast) var(--ease-standard), '
+                    + 'background var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                highlighted: {
+                    borderColor: 'var(--hero-primary)',
+                    background: 'color-mix(in oklch, var(--hero-primary) 8%, var(--color-base-100))',
+                    color: 'var(--color-base-content)',
+                },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        'item-group': {
+            base: {
+                justifySelf: 'stretch',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+                display: 'grid',
+                gap: 'var(--space-xs)',
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-md)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: 'var(--radius-field)',
+                background: 'var(--color-base-100)',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        'item-name': {
+            base: {
+                flex: '1 1 auto',
+                minWidth: '0',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                fontSize: 'var(--fu-font)',
+            },
+        },
+        'item-size': {
+            base: {
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--hero-muted)',
+            },
+        },
+        'item-remove': {
+            ...iconClose,
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--fu-pad': 'var(--space-md)', '--fu-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--fu-pad': 'var(--space-xl)', '--fu-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
+/**
+ * HeroUI carousel: soft rounded viewport, hairline circle nav triggers
+ * with the v3 press-scale, and primary dots — hollow line resting, filled
+ * `--hero-primary` active. Size only.
+ */
+export const carousel: RecipeInput = {
+    component: 'carousel',
+    tokens: {
+        '--carousel-dot': '0.625rem',
+        '--carousel-nav': '2rem',
+    },
+    parts: {
+        root: {
+            base: { position: 'relative', display: 'grid', gap: 'var(--space-sm)' },
+        },
+        viewport: {
+            base: {
+                display: 'flex',
+                overflowX: 'auto',
+                scrollSnapType: 'x mandatory',
+                overscrollBehaviorX: 'contain',
+                borderRadius: 'var(--radius-box)',
+            },
+            selectors: {
+                // The viewport is a tab stop (scrollable-region-focusable) and
+                // owes the keyboard user a ring. Real :focus-visible — no
+                // runtime flag exists on this part.
+                '&:focus-visible': { outline: '2px solid var(--hero-focus)', outlineOffset: '2px' },
+            },
+        },
+        item: {
+            base: {
+                flex: '0 0 100%',
+                minWidth: '0',
+                scrollSnapAlign: 'center',
+            },
+            states: { active: {}, inactive: {} },
+        },
+        'prev-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlockStart: 'calc(50% - var(--carousel-nav) / 2)',
+                insetInlineStart: 'var(--space-sm)',
+                inlineSize: 'var(--carousel-nav)',
+                blockSize: 'var(--carousel-nav)',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: '9999px',
+                cursor: 'pointer',
+                zIndex: '1',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { ...pressScale },
+        },
+        'next-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlockStart: 'calc(50% - var(--carousel-nav) / 2)',
+                insetInlineEnd: 'var(--space-sm)',
+                inlineSize: 'var(--carousel-nav)',
+                blockSize: 'var(--carousel-nav)',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                border: 'var(--border) solid var(--hero-line)',
+                borderRadius: '9999px',
+                cursor: 'pointer',
+                zIndex: '1',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: { ...pressScale },
+        },
+        'indicator-group': {
+            base: { display: 'flex', gap: 'var(--space-xs)', justifyContent: 'center' },
+        },
+        indicator: {
+            base: {
+                appearance: 'none',
+                // The BUTTON keeps a >=24px hit area (WCAG 2.5.8 target
+                // size — the axe gate's floor); the visible dot is the
+                // ::before, sized by the ramp.
+                inlineSize: 'max(var(--carousel-dot), 1.5rem)',
+                blockSize: 'max(var(--carousel-dot), 1.5rem)',
+                padding: '0',
+                display: 'grid',
+                placeItems: 'center',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+            },
+            states: {
+                active: {},
+                inactive: {},
+                ...focusRing,
+            },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    inlineSize: 'var(--carousel-dot)',
+                    blockSize: 'var(--carousel-dot)',
+                    boxSizing: 'border-box',
+                    border: 'calc(var(--border) * 2) solid color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+                    borderRadius: '9999px',
+                    background: 'transparent',
+                },
+                '&[data-state="active"]::before': {
+                    background: 'var(--hero-primary)',
+                    borderColor: 'var(--hero-primary)',
+                },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--carousel-dot': '0.5rem', '--carousel-nav': '1.75rem' } } },
+            md: {},
+            lg: { root: { base: { '--carousel-dot': '0.75rem', '--carousel-nav': '2.5rem' } } },
+        },
+    },
+};
+
+/**
+ * HeroUI swap: the v3 gesture vocabulary — the arriving face presses in
+ * from 97% scale while fading. Size only; ink stays `base-content`.
+ */
+export const swap: RecipeInput = {
+    component: 'swap',
+    tokens: {
+        '--swap-ink': 'var(--color-base-content)',
+        '--swap-size': 'var(--text-xl)',
+    },
+    parts: {
+        root: {
+            base: {
+                position: 'relative',
+                display: 'inline-grid',
+                placeItems: 'center',
+                fontSize: 'var(--swap-size)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--swap-ink)',
+                userSelect: 'none',
+            },
+            states: {
+                on: {},
+                off: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                // Only the interactive form renders a <button>; the display
+                // form is a span and must not grow button chrome.
+                '&:is(button)': {
+                    appearance: 'none',
+                    border: 'none',
+                    background: 'transparent',
+                    padding: 'var(--space-2xs)',
+                    borderRadius: 'var(--radius-selector)',
+                    cursor: 'pointer',
+                    font: 'inherit',
+                    fontSize: 'var(--swap-size)',
+                    color: 'var(--swap-ink)',
+                },
+            },
+        },
+        on: {
+            base: {
+                gridArea: '1 / 1',
+                transition: 'transform var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                on: {},
+                off: { opacity: '0', transform: 'scale(0.9)' },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+        off: {
+            base: {
+                gridArea: '1 / 1',
+                transition: 'transform var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                off: {},
+                on: { opacity: '0', transform: 'scale(0.9)' },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--swap-size': 'var(--text-md)' } } },
+            md: {},
+            lg: { root: { base: { '--swap-size': 'var(--text-2xl)' } } },
+        },
+    },
+};
+
+/**
+ * Countdown — display-only digits. The runtime replaces the `digits`
+ * element per tick (keyed), so the enter animation below plays once per
+ * change — a soft rise; a loop never exists, and reduced motion
+ * collapses the entry to a cut. The app owns time.
+ */
+export const countdown: RecipeInput = {
+    component: 'countdown',
+    tokens: {
+        '--countdown-ink': 'var(--color-base-content)',
+        '--countdown-font': 'var(--text-2xl)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'baseline',
+                gap: '0.1em',
+                fontSize: 'var(--countdown-font)',
+                fontWeight: 'var(--weight-semibold)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--countdown-ink)',
+            },
+        },
+        value: {
+            base: {
+                display: 'inline-block',
+                overflow: 'hidden',
+            },
+        },
+        digits: {
+            base: {
+                display: 'inline-block',
+                animation: 'zero-heroui-countdown-in 0.3s var(--ease-standard)',
+            },
+            at: {
+                'reduced-motion': { base: { animation: 'none' } },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--countdown-font': 'var(--text-xl)' } } },
+            md: {},
+            lg: { root: { base: { '--countdown-font': 'var(--text-3xl)' } } },
+        },
+    },
+    keyframes: { 'zero-heroui-countdown-in': 'from { transform: translateY(0.5em); opacity: 0; }' },
+};
+
+/**
+ * HeroUI diff: soft rounded box, hairline divider in --hero-primary with
+ * a filled grip; pressed presses the ink denser. Size only.
+ */
+export const diff: RecipeInput = {
+    component: 'diff',
+    tokens: {
+        '--diff-accent': 'var(--hero-primary)',
+        '--diff-grip': '1.5rem',
+        '--diff-hit': '2rem',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'grid',
+                overflow: 'hidden',
+                background: 'var(--color-base-100)',
+                borderRadius: 'var(--radius-box)',
+            },
+        },
+        before: {
+            base: { gridArea: '1 / 1', minWidth: '0' },
+        },
+        after: {
+            base: {
+                gridArea: '1 / 1',
+                position: 'absolute',
+                insetBlock: '0',
+                insetInlineStart: '0',
+                // The reveal: a LOGICAL clip. inline-size mirrors under RTL
+                // where a physical clip-path inset would not.
+                inlineSize: 'var(--diff-percent)',
+                overflow: 'hidden',
+            },
+        },
+        handle: {
+            base: {
+                insetBlock: '0',
+                inlineSize: 'var(--diff-hit)',
+                // Center the hit box on the position — the slider-thumb
+                // move: a logical negative margin, never a transform.
+                marginInlineStart: 'calc(var(--diff-hit) / -2)',
+                display: 'grid',
+                placeItems: 'center',
+                cursor: 'ew-resize',
+                touchAction: 'none',
+                zIndex: '1',
+            },
+            states: {
+                ...focusRing,
+                pressed: { '--diff-accent': 'color-mix(in oklch, var(--hero-primary) 85%, var(--color-base-content))' },
+            },
+            selectors: {
+                // The divider line, full height, centered in the hit box.
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlock: '0',
+                    insetInlineStart: 'calc(50% - var(--border))',
+                    inlineSize: 'calc(var(--border) * 2)',
+                    background: 'var(--diff-accent)',
+                },
+                // The grip — the paint the indicator matrix grades.
+                '&::after': {
+                    content: '""',
+                    inlineSize: 'var(--diff-grip)',
+                    blockSize: 'var(--diff-grip)',
+                    boxSizing: 'border-box',
+                    background: 'var(--diff-accent)',
+                    border: 'calc(var(--border) * 2) solid var(--diff-accent)',
+                    borderRadius: '9999px',
+                    zIndex: '1',
+                },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--diff-grip': '1.25rem', '--diff-hit': '1.75rem' } } },
+            md: {},
+            lg: { root: { base: { '--diff-grip': '2rem', '--diff-hit': '2.5rem' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
@@ -4047,4 +4594,10 @@ export const recipes: RecipeInput[] = [
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
+    table,
+    fileUpload,
+    carousel,
+    swap,
+    countdown,
+    diff,
 ];

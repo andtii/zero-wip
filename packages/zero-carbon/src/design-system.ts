@@ -34,6 +34,7 @@ const api = defineApi(
         modifiers: {
             'icon-only': { as: 'hasIconOnly' },
             expressive: { as: 'isExpressive' },
+            zebra: { as: 'useZebraStyles' },
         },
     },
 );

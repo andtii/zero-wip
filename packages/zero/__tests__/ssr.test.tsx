@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Breadcrumbs, Card, Chat, Collapsible, Combobox, Dialog, Divider, Drawer, Indicator, Input, Join, Kbd, NativeSelect, Navbar, NumberInput, Pagination, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Steps, Switch, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, FileUpload, Indicator, Input, Join, Kbd, NativeSelect, Navbar, NumberInput, Pagination, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -163,6 +163,53 @@ function page() {
                     </Breadcrumbs.Item>
                 </Breadcrumbs.List>
             </Breadcrumbs.Root>
+            <Diff.Root defaultValue={40}>
+                <Diff.Before><span>before</span></Diff.Before>
+                <Diff.After><span>after</span></Diff.After>
+                <Diff.Handle />
+            </Diff.Root>
+            <Countdown.Root label="Time remaining">
+                <Countdown.Value value={10} digits={2} />
+                :
+                <Countdown.Value value={4} digits={2} />
+            </Countdown.Root>
+            <Swap.Root interactive label="Toggle theme" defaultOn>
+                <Swap.On>On</Swap.On>
+                <Swap.Off>Off</Swap.Off>
+            </Swap.Root>
+            <Carousel.Root label="Featured">
+                <Carousel.Viewport>
+                    <Carousel.Item>One</Carousel.Item>
+                    <Carousel.Item>Two</Carousel.Item>
+                </Carousel.Viewport>
+                <Carousel.PrevTrigger>Prev</Carousel.PrevTrigger>
+                <Carousel.NextTrigger>Next</Carousel.NextTrigger>
+                <Carousel.IndicatorGroup>
+                    <Carousel.Indicator index={0} />
+                    <Carousel.Indicator index={1} />
+                </Carousel.IndicatorGroup>
+            </Carousel.Root>
+            <FileUpload.Root name="attachments" accept="image/*" multiple>
+                <FileUpload.Label>Attachments</FileUpload.Label>
+                <FileUpload.Dropzone>Drop files here</FileUpload.Dropzone>
+                <FileUpload.Trigger>Browse files</FileUpload.Trigger>
+                <FileUpload.ItemGroup>{() => null}</FileUpload.ItemGroup>
+            </FileUpload.Root>
+            <Table.Root mods={{ zebra: true }}>
+                <Table.Caption>Quarterly revenue</Table.Caption>
+                <Table.Head>
+                    <Table.Row>
+                        <Table.HeaderCell>Quarter</Table.HeaderCell>
+                        <Table.HeaderCell>Revenue</Table.HeaderCell>
+                    </Table.Row>
+                </Table.Head>
+                <Table.Body>
+                    <Table.Row selected>
+                        <Table.Cell>Q1</Table.Cell>
+                        <Table.Cell>$12,930</Table.Cell>
+                    </Table.Row>
+                </Table.Body>
+            </Table.Root>
             <Divider />
             <Skeleton.Root>Article title</Skeleton.Root>
             <Spinner label="Loading results" />

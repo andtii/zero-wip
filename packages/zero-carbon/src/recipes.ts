@@ -4449,6 +4449,592 @@ export const drawer: RecipeInput = {
     variants: { size: overlayTriggerSizes },
 };
 
+/**
+ * Carbon data table: no outer chrome (the page layer is the chrome), a
+ * base-200 header band, hairline `--carbon-line` row rules, and the layer
+ * washes for interaction — selected rows on the 15% active layer. `zebra`
+ * is Carbon's `useZebraStyles` (the api maps it). Square everything.
+ */
+export const table: RecipeInput = {
+    component: 'table',
+    tokens: {
+        '--table-pad-block': 'var(--space-sm)',
+        '--table-pad-inline': 'var(--space-md)',
+        '--table-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                overflowX: 'auto',
+                background: 'var(--color-base-100)',
+            },
+        },
+        table: {
+            base: {
+                borderCollapse: 'collapse',
+                inlineSize: '100%',
+                fontSize: 'var(--table-font)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        caption: {
+            base: {
+                captionSide: 'top',
+                textAlign: 'start',
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                fontSize: 'var(--text-xs)',
+                color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        head: {
+            base: { background: 'var(--color-base-200)' },
+        },
+        body: {},
+        foot: {
+            base: {
+                background: 'var(--color-base-200)',
+                fontSize: 'var(--text-xs)',
+            },
+        },
+        row: {
+            base: { borderBlockEnd: 'var(--border) solid var(--carbon-line)' },
+            states: {
+                selected: { background: layerActive },
+            },
+        },
+        'header-cell': {
+            base: {
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                textAlign: 'start',
+                fontWeight: 'var(--weight-semibold)',
+                fontSize: 'var(--table-font)',
+            },
+        },
+        cell: {
+            base: {
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                textAlign: 'start',
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--table-pad-block': 'calc(var(--space-xs) / 2)', '--table-pad-inline': 'var(--space-sm)', '--table-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--table-pad-block': 'var(--space-md)', '--table-pad-inline': 'var(--space-lg)', '--table-font': 'var(--text-sm)' } } },
+            xl: { root: { base: { '--table-pad-block': 'var(--space-md)', '--table-pad-inline': 'var(--space-lg)', '--table-font': 'var(--text-md)' } } },
+            '2xl': { root: { base: { '--table-pad-block': 'var(--space-lg)', '--table-pad-inline': 'var(--space-xl)', '--table-font': 'var(--text-md)' } } },
+        },
+    },
+    modifiers: {
+        zebra: {
+            row: {
+                selectors: {
+                    '[data-scope="table"][data-part="body"] > &:nth-child(even):not([data-selected])': {
+                        background: layerHover,
+                    },
+                },
+            },
+        },
+    },
+};
+
+/**
+ * Carbon file uploader: a tertiary-button trigger (interactive ink on a
+ * transparent fill), a dashed layer dropzone that fills toward the
+ * interactive blue under a hovering drag, and square item rows on the
+ * base-200 layer — Carbon's own uploader look. Square everything.
+ */
+export const fileUpload: RecipeInput = {
+    component: 'file-upload',
+    tokens: {
+        '--fu-pad': 'var(--space-lg)',
+        '--fu-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: { display: 'grid', gap: 'var(--space-sm)', justifyItems: 'start' },
+        },
+        label: {
+            base: { fontSize: 'var(--text-xs)', color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        trigger: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                padding: 'var(--space-sm) var(--space-lg)',
+                fontSize: 'var(--fu-font)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--carbon-interactive)',
+                background: 'transparent',
+                border: 'var(--border) solid var(--carbon-interactive)',
+                borderRadius: '0',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: { background: layerHover },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                invalid: { borderColor: 'var(--carbon-danger)', color: 'var(--carbon-danger)' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+            },
+        },
+        dropzone: {
+            base: {
+                justifySelf: 'stretch',
+                padding: 'var(--fu-pad)',
+                textAlign: 'center',
+                fontSize: 'var(--fu-font)',
+                color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
+                border: 'var(--border) dashed var(--carbon-border-strong)',
+                background: 'var(--color-base-100)',
+                cursor: 'pointer',
+            },
+            states: {
+                highlighted: {
+                    borderColor: 'var(--carbon-interactive)',
+                    borderStyle: 'solid',
+                    background: layerHover,
+                    color: 'var(--color-base-content)',
+                },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        'item-group': {
+            base: {
+                justifySelf: 'stretch',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+                display: 'grid',
+                gap: 'var(--space-2xs)',
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-md)',
+                background: 'var(--color-base-200)',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        'item-name': {
+            base: {
+                flex: '1 1 auto',
+                minWidth: '0',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                fontSize: 'var(--fu-font)',
+            },
+        },
+        'item-size': {
+            base: {
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'color-mix(in oklab, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        'item-remove': {
+            base: {
+                appearance: 'none',
+                border: 'none',
+                background: 'transparent',
+                color: 'inherit',
+                borderRadius: '0',
+                padding: 'var(--space-2xs) var(--space-xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: { background: layerHover },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--fu-pad': 'var(--space-md)', '--fu-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--fu-pad': 'var(--space-xl)', '--fu-font': 'var(--text-sm)' } } },
+            xl: { root: { base: { '--fu-pad': 'var(--space-xl)', '--fu-font': 'var(--text-md)' } } },
+            '2xl': { root: { base: { '--fu-pad': 'calc(var(--space-xl) * 1.25)', '--fu-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
+/**
+ * Carbon carousel: square everything — the nav triggers are ghost-square
+ * buttons with the layer washes, the dots square marks: a strong-border
+ * outline resting, the interactive blue filling the active one.
+ */
+export const carousel: RecipeInput = {
+    component: 'carousel',
+    tokens: {
+        '--carousel-dot': '0.625rem',
+        '--carousel-nav': '2rem',
+    },
+    parts: {
+        root: {
+            base: { position: 'relative', display: 'grid', gap: 'var(--space-sm)' },
+        },
+        viewport: {
+            base: {
+                display: 'flex',
+                overflowX: 'auto',
+                scrollSnapType: 'x mandatory',
+                overscrollBehaviorX: 'contain',
+                background: 'var(--color-base-100)',
+            },
+            selectors: {
+                // The viewport is a tab stop (scrollable-region-focusable) and
+                // owes the keyboard user a ring. Real :focus-visible — no
+                // runtime flag exists on this part.
+                '&:focus-visible': { outline: '2px solid var(--carbon-focus)', outlineOffset: '-2px' },
+            },
+        },
+        item: {
+            base: {
+                flex: '0 0 100%',
+                minWidth: '0',
+                scrollSnapAlign: 'center',
+            },
+            states: { active: {}, inactive: {} },
+        },
+        'prev-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlockStart: 'calc(50% - var(--carousel-nav) / 2)',
+                insetInlineStart: 'var(--space-sm)',
+                inlineSize: 'var(--carousel-nav)',
+                blockSize: 'var(--carousel-nav)',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--color-base-content)',
+                background: 'var(--color-base-200)',
+                border: 'var(--border) solid var(--carbon-border-strong)',
+                borderRadius: '0',
+                cursor: 'pointer',
+                zIndex: '1',
+            },
+            states: {
+                hover: { background: layerHover },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+            },
+        },
+        'next-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlockStart: 'calc(50% - var(--carousel-nav) / 2)',
+                insetInlineEnd: 'var(--space-sm)',
+                inlineSize: 'var(--carousel-nav)',
+                blockSize: 'var(--carousel-nav)',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 'var(--text-sm)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--color-base-content)',
+                background: 'var(--color-base-200)',
+                border: 'var(--border) solid var(--carbon-border-strong)',
+                borderRadius: '0',
+                cursor: 'pointer',
+                zIndex: '1',
+            },
+            states: {
+                hover: { background: layerHover },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { background: layerActive },
+            },
+        },
+        'indicator-group': {
+            base: { display: 'flex', gap: 'var(--space-xs)', justifyContent: 'center' },
+        },
+        indicator: {
+            base: {
+                appearance: 'none',
+                // The BUTTON keeps a >=24px hit area (WCAG 2.5.8 target
+                // size — the axe gate's floor); the visible dot is the
+                // ::before, sized by the ramp.
+                inlineSize: 'max(var(--carousel-dot), 1.5rem)',
+                blockSize: 'max(var(--carousel-dot), 1.5rem)',
+                padding: '0',
+                display: 'grid',
+                placeItems: 'center',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+            },
+            states: {
+                active: {},
+                inactive: {},
+                ...focusRing,
+            },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    inlineSize: 'var(--carousel-dot)',
+                    blockSize: 'var(--carousel-dot)',
+                    boxSizing: 'border-box',
+                    border: 'calc(var(--border) * 2) solid var(--carbon-border-strong)',
+                    borderRadius: '0',
+                    background: 'transparent',
+                },
+                '&[data-state="active"]::before': {
+                    background: 'var(--carbon-interactive)',
+                    borderColor: 'var(--carbon-interactive)',
+                },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--carousel-dot': '0.5rem', '--carousel-nav': '1.75rem' } } },
+            md: {},
+            lg: { root: { base: { '--carousel-dot': '0.75rem', '--carousel-nav': '2.25rem' } } },
+            xl: { root: { base: { '--carousel-dot': '0.875rem', '--carousel-nav': '2.5rem' } } },
+            '2xl': { root: { base: { '--carousel-dot': '1rem', '--carousel-nav': '3rem' } } },
+        },
+    },
+};
+
+/**
+ * Carbon swap: a fast productive fade, nothing more — motion in Carbon is
+ * utilitarian. Square focus, layer hover on the interactive form.
+ */
+export const swap: RecipeInput = {
+    component: 'swap',
+    tokens: {
+        '--swap-ink': 'var(--color-base-content)',
+        '--swap-size': 'var(--text-xl)',
+    },
+    parts: {
+        root: {
+            base: {
+                position: 'relative',
+                display: 'inline-grid',
+                placeItems: 'center',
+                fontSize: 'var(--swap-size)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--swap-ink)',
+                userSelect: 'none',
+            },
+            states: {
+                on: {},
+                off: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                // Only the interactive form renders a <button>; the display
+                // form is a span and must not grow button chrome.
+                '&:is(button)': {
+                    appearance: 'none',
+                    border: 'none',
+                    background: 'transparent',
+                    padding: 'var(--space-2xs)',
+                    borderRadius: 'var(--radius-selector)',
+                    cursor: 'pointer',
+                    font: 'inherit',
+                    fontSize: 'var(--swap-size)',
+                    color: 'var(--swap-ink)',
+                },
+            },
+        },
+        on: {
+            base: {
+                gridArea: '1 / 1',
+                transition: 'opacity var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                on: {},
+                off: { opacity: '0' },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+        off: {
+            base: {
+                gridArea: '1 / 1',
+                transition: 'opacity var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                off: {},
+                on: { opacity: '0' },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--swap-size': 'var(--text-md)' } } },
+            md: {},
+            lg: { root: { base: { '--swap-size': 'var(--text-2xl)' } } },
+            xl: { root: { base: { '--swap-size': 'var(--text-3xl)' } } },
+            '2xl': { root: { base: { '--swap-size': 'var(--text-3xl)' } } },
+        },
+    },
+};
+
+/**
+ * Countdown — display-only digits. The runtime replaces the `digits`
+ * element per tick (keyed), so the enter animation below plays once per
+ * change — fast and productive; a loop never exists, and reduced motion
+ * collapses the entry to a cut. The app owns time.
+ */
+export const countdown: RecipeInput = {
+    component: 'countdown',
+    tokens: {
+        '--countdown-ink': 'var(--color-base-content)',
+        '--countdown-font': 'var(--text-2xl)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'baseline',
+                gap: '0.1em',
+                fontSize: 'var(--countdown-font)',
+                fontWeight: 'var(--weight-semibold)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'var(--countdown-ink)',
+            },
+        },
+        value: {
+            base: {
+                display: 'inline-block',
+                overflow: 'hidden',
+            },
+        },
+        digits: {
+            base: {
+                display: 'inline-block',
+                animation: 'zero-carbon-countdown-in 0.24s var(--ease-standard)',
+            },
+            at: {
+                'reduced-motion': { base: { animation: 'none' } },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--countdown-font': 'var(--text-xl)' } } },
+            md: {},
+            lg: { root: { base: { '--countdown-font': 'var(--text-3xl)' } } },
+            xl: { root: { base: { '--countdown-font': 'var(--text-3xl)' } } },
+            '2xl': { root: { base: { '--countdown-font': 'var(--text-3xl)' } } },
+        },
+    },
+    keyframes: { 'zero-carbon-countdown-in': 'from { transform: translateY(0.5em); opacity: 0; }' },
+};
+
+/**
+ * Carbon diff: the interactive blue divider with a SQUARE grip — square
+ * everything — and the active layer when pressed. Size only.
+ */
+export const diff: RecipeInput = {
+    component: 'diff',
+    tokens: {
+        '--diff-accent': 'var(--carbon-interactive)',
+        '--diff-grip': '1.5rem',
+        '--diff-hit': '2rem',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'grid',
+                overflow: 'hidden',
+                background: 'var(--color-base-100)',
+            },
+        },
+        before: {
+            base: { gridArea: '1 / 1', minWidth: '0' },
+        },
+        after: {
+            base: {
+                gridArea: '1 / 1',
+                position: 'absolute',
+                insetBlock: '0',
+                insetInlineStart: '0',
+                // The reveal: a LOGICAL clip. inline-size mirrors under RTL
+                // where a physical clip-path inset would not.
+                inlineSize: 'var(--diff-percent)',
+                overflow: 'hidden',
+            },
+        },
+        handle: {
+            base: {
+                insetBlock: '0',
+                inlineSize: 'var(--diff-hit)',
+                // Center the hit box on the position — the slider-thumb
+                // move: a logical negative margin, never a transform.
+                marginInlineStart: 'calc(var(--diff-hit) / -2)',
+                display: 'grid',
+                placeItems: 'center',
+                cursor: 'ew-resize',
+                touchAction: 'none',
+                zIndex: '1',
+            },
+            states: {
+                ...focusRing,
+                pressed: { '--diff-accent': 'color-mix(in oklab, var(--carbon-interactive) 85%, var(--color-base-content))' },
+            },
+            selectors: {
+                // The divider line, full height, centered in the hit box.
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlock: '0',
+                    insetInlineStart: 'calc(50% - var(--border))',
+                    inlineSize: 'calc(var(--border) * 2)',
+                    background: 'var(--diff-accent)',
+                },
+                // The grip — the paint the indicator matrix grades.
+                '&::after': {
+                    content: '""',
+                    inlineSize: 'var(--diff-grip)',
+                    blockSize: 'var(--diff-grip)',
+                    boxSizing: 'border-box',
+                    background: 'var(--diff-accent)',
+                    border: 'calc(var(--border) * 2) solid var(--diff-accent)',
+                    borderRadius: '0',
+                    zIndex: '1',
+                },
+            },
+        },
+    },
+    variants: {
+        size: {
+            sm: { root: { base: { '--diff-grip': '1.25rem', '--diff-hit': '1.75rem' } } },
+            md: {},
+            lg: { root: { base: { '--diff-grip': '2rem', '--diff-hit': '2.5rem' } } },
+            xl: { root: { base: { '--diff-grip': '2.25rem', '--diff-hit': '2.75rem' } } },
+            '2xl': { root: { base: { '--diff-grip': '2.5rem', '--diff-hit': '3rem' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
@@ -4456,4 +5042,10 @@ export const recipes: RecipeInput[] = [
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
+    table,
+    fileUpload,
+    carousel,
+    swap,
+    countdown,
+    diff,
 ];

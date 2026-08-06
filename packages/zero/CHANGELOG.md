@@ -74,6 +74,50 @@
     indicator was the first reader to derive state in that window.
     Disconnected elements now take the registration-order fallback exactly
     like absent ones.
+- **The behavior-tier data & misc sweep** (#340), each scope shipped with
+  recipes in all six design systems:
+
+  - **Table**: semantic data table over the REAL table elements —
+    `Root`/`Table`/`Caption`/`Head`/`Body`/`Foot`/`Row`/`HeaderCell`/`Cell`
+    rendering `div > table > caption/thead/tbody/tfoot/tr/th/td`. The root
+    is the SCROLL CONTAINER: a `<table>` cannot be its own overflow box, so
+    the wrapper is anatomy, carries the axes, and recipes give it
+    `overflow-x: auto`. No states (a table has no machine lifecycle); a row
+    can carry the shared `data-selected` flag (`selected` prop). Zebra
+    striping and hover-highlight are design-system MODS — per-instance
+    styling choices from each skin's own vocabulary (`zebra`/`hover` in
+    four skins, HeroUI's `isStriped`, Carbon's `useZebraStyles` through the
+    api's modifier rename), never anatomy. Sorting is deliberately out
+    (follow-up): `HeaderCell` renders the `<th>` that will carry
+    `aria-sort`, so the anatomy is ready without dead parts. Write a
+    `Caption` — it is the table's accessible name.
+  - **FileUpload**: a `File[]` model over a REAL `<input type="file">` —
+    `Root`/`Label`/`Trigger`/`Input`/`Dropzone`/`ItemGroup`/`Item(file)`/
+    `ItemName`/`ItemSize`/`ItemRemove`. The input IS the control (it holds
+    `name`/`accept`/`multiple`/`required` and posts natively), visually
+    hidden and out of the tab order; the TRIGGER is the one keyboard path
+    to the picker, and the DROPZONE is a pointer affordance only — never
+    focusable, no role, because APG defines no drop-target pattern and a
+    focusable dropzone would duplicate the trigger. Drag-over is the shared
+    `highlighted` FLAG (on dropzone and root), not a new state — the
+    vocabulary already had the word. `multiple` appends across selections
+    (dedupe by name+size+lastModified), single replaces, drops are filtered
+    by `accept` so both ingestion paths agree, and the input's own FileList
+    is re-synced through `DataTransfer` best-effort. Field-context aware
+    exactly like Input; `ItemRemove` announces "Remove <name>". Exposes
+    `acceptsFile` and `formatBytes`.
+  - **Carousel**: a scroll-snap viewport whose MODEL IS THE ACTIVE INDEX —
+    `Root(label required)`/`Viewport`/`Item`/`PrevTrigger`/`NextTrigger`/
+    `IndicatorGroup`/`Indicator(index)`. The index is derived from real
+    scroll by an IntersectionObserver (created in `onMounted`, so SSR never
+    observes) and driven back by `scrollIntoView` on model set — smooth,
+    collapsing to a jump under `prefers-reduced-motion`. APG carousel
+    ARIA (labelled region, "slide" groups labelled "n of m"); prev/next
+    clamp and disable at the bounds (no wrap); the dots are labelled
+    buttons — not tabs, no roving tabindex — with `aria-current` on the
+    active one. The dot is a paint part graded by the contrast audit's
+    indicator matrix in both states. Real-scroll behavior is pinned by
+    `e2e/carousel.spec.ts`.
 
 - **The content-tier sweep** (#334): the cheap 60% of the coverage gap
   against `@sigx/daisyui` — components that are anatomy plus recipes with

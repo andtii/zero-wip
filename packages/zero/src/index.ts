@@ -292,3 +292,36 @@ export type {
     DrawerCloseProps,
     DrawerPlacement,
 } from './components/drawer/index.js';
+export { Table, tableAnatomy } from './components/table/index.js';
+export type { TableRootProps, TablePartProps, TableRowProps, TableHeaderCellProps } from './components/table/index.js';
+
+export { FileUpload, fileUploadAnatomy, acceptsFile, formatBytes, useFileUploadContext } from './components/file-upload/index.js';
+export type {
+    FileUploadRootProps,
+    FileUploadLabelProps,
+    FileUploadTriggerProps,
+    FileUploadDropzoneProps,
+    FileUploadItemGroupProps,
+    FileUploadItemProps,
+    FileUploadItemTextProps,
+    FileUploadItemRemoveProps,
+} from './components/file-upload/index.js';
+
+export { Carousel, carouselAnatomy, useCarouselContext } from './components/carousel/index.js';
+export type {
+    CarouselRootProps,
+    CarouselViewportProps,
+    CarouselItemProps,
+    CarouselTriggerProps,
+    CarouselIndicatorGroupProps,
+    CarouselIndicatorProps,
+} from './components/carousel/index.js';
+
+export { Swap, swapAnatomy, useSwapContext } from './components/swap/index.js';
+export type { SwapRootProps, SwapFaceProps } from './components/swap/index.js';
+
+export { Countdown, countdownAnatomy } from './components/countdown/index.js';
+export type { CountdownRootProps, CountdownValueProps } from './components/countdown/index.js';
+
+export { Diff, diffAnatomy, useDiffContext } from './components/diff/index.js';
+export type { DiffRootProps, DiffPaneProps, DiffHandleProps } from './components/diff/index.js';

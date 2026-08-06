@@ -425,6 +425,60 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
+            /** table — color, size, mods.hover, mods.zebra wired. */
+            'table': {
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+                /** Accepts `variant` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: { 'hover': boolean; 'zebra': boolean };
+            };
+            /** file-upload — color, size wired. */
+            'file-upload': {
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+                /** Accepts `variant` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
+            /** carousel — color, size wired. */
+            'carousel': {
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+                /** Accepts `variant` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
+            /** swap — color, size wired. */
+            'swap': {
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+                /** Accepts `variant` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
+            /** countdown — color, size wired. */
+            'countdown': {
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+                /** Accepts `variant` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
+            /** diff — color, size wired. */
+            'diff': {
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+                /** Accepts `variant` at runtime, but no brutalist recipe wires it — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
         };
     }
 }

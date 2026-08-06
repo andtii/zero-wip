@@ -7,6 +7,7 @@
 // a routed vendor value renders the zero-spelled data-* attribute.
 import type { Adapted, AdaptedStatics } from '@sigx/zero/adapt';
 import type { Button as ZButton } from '@sigx/zero/button';
+import type { Table as ZTable } from '@sigx/zero/table';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -18,3 +19,10 @@ type ButtonProps = {
 };
 type ButtonAdapted = Adapted<typeof ZButton, ZeroAxisProp | 'buttonKind' | 'size', ButtonProps>;
 export declare const Button: ButtonAdapted & { Root: ButtonAdapted };
+
+/** table — no vendor route; the wired surface keeps zero's names. */
+type TableProps = {
+    mods?: { 'zebra'?: boolean };
+};
+type TableAdapted = Adapted<typeof ZTable, ZeroAxisProp, TableProps>;
+export declare const Table: TableAdapted & AdaptedStatics<typeof ZTable> & { Root: TableAdapted };

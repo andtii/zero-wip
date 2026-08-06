@@ -1,6 +1,6 @@
 import type { DesignSystemInput } from '@sigx/zero-kit';
 import { defineApi } from '@sigx/zero-kit/define';
-import { modifiers, roles, system, tokens, variants } from './tokens.js';
+import { modifiers, roles, system, tableModifiers, tokens, variants } from './tokens.js';
 import { recipes } from './recipes.js';
 
 /**
@@ -26,7 +26,7 @@ import { recipes } from './recipes.js';
  * modifier names and any `values` keys against the declared vocabulary.
  */
 const api = defineApi(
-    { variants, modifiers },
+    { variants, modifiers: [...modifiers, ...tableModifiers] },
     {
         variant: {},
         modifiers: {
@@ -36,6 +36,8 @@ const api = defineApi(
             circle: {},
             active: {},
             loading: {},
+            zebra: {},
+            hover: {},
         },
     },
 );

@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "30 kB",
+        "limit": "34 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -311,6 +311,66 @@
         "name": "@sigx/zero/radial-progress",
         "path": "packages/zero/dist/components/radial-progress/index.js",
         "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/table",
+        "path": "packages/zero/dist/components/table/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/file-upload",
+        "path": "packages/zero/dist/components/file-upload/index.js",
+        "limit": "4 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/carousel",
+        "path": "packages/zero/dist/components/carousel/index.js",
+        "limit": "3.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/swap",
+        "path": "packages/zero/dist/components/swap/index.js",
+        "limit": "2.5 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/countdown",
+        "path": "packages/zero/dist/components/countdown/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime"
+        ]
+    },
+    {
+        "name": "@sigx/zero/diff",
+        "path": "packages/zero/dist/components/diff/index.js",
+        "limit": "3 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

@@ -139,24 +139,31 @@ export const variants = ['solid', 'outline', 'soft', 'ghost', 'dash', 'link'] as
  */
 export const modifiers = ['wide', 'block', 'square', 'circle', 'active', 'loading'] as const;
 
+/**
+ * daisyUI's table looks (#340): `table-zebra` and the row-level `hover`
+ * class, spelled as presence-only mods on the table root. Kept apart from
+ * the button set so `scopes` can hand each scope exactly its own names.
+ */
+export const tableModifiers = ['zebra', 'hover'] as const;
+
 export const tokens: TokensInput<typeof roles, typeof system> = {
     roles,
     custom,
     variants,
-    modifiers,
+    modifiers: [...modifiers, ...tableModifiers],
     /**
-     * Per-scope vocabulary claims (#294). Button is the only scope wiring
-     * `variant` or any modifier in this package (#175), so there is nothing
-     * to narrow — but restating the union here is the explicit claim "yes,
-     * button carries all of it", the same grammar zero-basic's button entry
-     * uses. If a later scope adopts part of the axis (daisy's badge offers
-     * `dash` but not `link`), its narrower entry lands beside this one.
+     * Per-scope vocabulary claims (#294). Button wires `variant` and the
+     * `btn-*` modifier set (#175); restating that union is the explicit
+     * claim "yes, button carries all of it", the same grammar zero-basic's
+     * button entry uses. Table (#340) narrows to its own two looks — the
+     * "later scope adopts part of the axis" case this block predicted.
      */
     scopes: {
         button: {
             variants: [...variants],
             modifiers: [...modifiers],
         },
+        table: { modifiers: [...tableModifiers] },
     },
     system,
     defaultLight: 'light',

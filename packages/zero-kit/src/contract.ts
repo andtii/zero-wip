@@ -281,7 +281,9 @@ export function contrastPairs(roles: Record<string, RoleDecl>): readonly (readon
  * tokens, but runtime-published interaction/measurement data recipes may
  * reference. `--press-*` come from the press-feedback behavior (press point
  * and farthest-corner radius, in px, on any part whose anatomy declares the
- * `pressed` flag); the percent pair is written by Progress and Slider.
+ * `pressed` flag); the percent trio is written by Progress, Slider and
+ * Diff, and `--countdown-value` by Countdown (the raw number, for recipes
+ * that want the property rather than the rendered digits).
  *
  * WEB-ONLY: these exist because the DOM runtime can write custom properties
  * that stylesheet rules then read. A target whose engine cannot resolve
@@ -295,6 +297,8 @@ export const RUNTIME_PROPERTIES = [
     '--press-r',
     '--progress-percent',
     '--slider-percent',
+    '--diff-percent',
+    '--countdown-value',
 ] as const;
 
 /**

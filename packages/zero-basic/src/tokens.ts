@@ -107,6 +107,13 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
     // Declared so a recipe typo is a build error, not a minted value.
     variants: ['solid', 'outline', 'soft', 'ghost'],
     /**
+     * Presence-only modifiers (#340): table's zebra striping and
+     * hover-highlight — per-instance styling choices, so they are design-
+     * system vocabulary rather than anatomy. `scopes.table` narrows them to
+     * the one scope that styles them.
+     */
+    modifiers: ['zebra', 'hover'],
+    /**
      * Per-scope narrowing (#294; docs/architecture.md, "Declared
      * vocabulary") — and this is the repo's
      * first use of it, so it is worth saying what it buys.
@@ -125,6 +132,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
      */
     scopes: {
         badge: { variants: ['solid', 'soft', 'outline'] },
+        table: { modifiers: ['zebra', 'hover'] },
         /**
          * A select is a FIELD, and a field filled with the role at full
          * strength stops reading as an input and starts reading as a button —

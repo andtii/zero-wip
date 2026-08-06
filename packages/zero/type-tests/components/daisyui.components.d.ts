@@ -51,6 +51,12 @@ import type { Breadcrumbs as ZBreadcrumbs } from '@sigx/zero/breadcrumbs';
 import type { Pagination as ZPagination } from '@sigx/zero/pagination';
 import type { Steps as ZSteps } from '@sigx/zero/steps';
 import type { Drawer as ZDrawer } from '@sigx/zero/drawer';
+import type { Table as ZTable } from '@sigx/zero/table';
+import type { FileUpload as ZFileUpload } from '@sigx/zero/file-upload';
+import type { Carousel as ZCarousel } from '@sigx/zero/carousel';
+import type { Swap as ZSwap } from '@sigx/zero/swap';
+import type { Countdown as ZCountdown } from '@sigx/zero/countdown';
+import type { Diff as ZDiff } from '@sigx/zero/diff';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
@@ -420,3 +426,53 @@ type DrawerProps = {
 };
 type DrawerAdapted = Adapted<typeof ZDrawer, ZeroAxisProp, DrawerProps>;
 export declare const Drawer: DrawerAdapted & AdaptedStatics<typeof ZDrawer> & { Root: DrawerAdapted };
+
+/** table — hover ← mods.hover; zebra ← mods.zebra. Attributes stay zero-spelled. */
+type TableProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    'hover'?: boolean;
+    'zebra'?: boolean;
+};
+type TableAdapted = Adapted<typeof ZTable, ZeroAxisProp | 'hover' | 'zebra', TableProps>;
+export declare const Table: TableAdapted & AdaptedStatics<typeof ZTable> & { Root: TableAdapted };
+
+/** file-upload — no vendor route; the wired surface keeps zero's names. */
+type FileUploadProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type FileUploadAdapted = Adapted<typeof ZFileUpload, ZeroAxisProp, FileUploadProps>;
+export declare const FileUpload: FileUploadAdapted & AdaptedStatics<typeof ZFileUpload> & { Root: FileUploadAdapted };
+
+/** carousel — no vendor route; the wired surface keeps zero's names. */
+type CarouselProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type CarouselAdapted = Adapted<typeof ZCarousel, ZeroAxisProp, CarouselProps>;
+export declare const Carousel: CarouselAdapted & AdaptedStatics<typeof ZCarousel> & { Root: CarouselAdapted };
+
+/** swap — no vendor route; the wired surface keeps zero's names. */
+type SwapProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type SwapAdapted = Adapted<typeof ZSwap, ZeroAxisProp, SwapProps>;
+export declare const Swap: SwapAdapted & AdaptedStatics<typeof ZSwap> & { Root: SwapAdapted };
+
+/** countdown — no vendor route; the wired surface keeps zero's names. */
+type CountdownProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type CountdownAdapted = Adapted<typeof ZCountdown, ZeroAxisProp, CountdownProps>;
+export declare const Countdown: CountdownAdapted & AdaptedStatics<typeof ZCountdown> & { Root: CountdownAdapted };
+
+/** diff — no vendor route; the wired surface keeps zero's names. */
+type DiffProps = {
+    color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+};
+type DiffAdapted = Adapted<typeof ZDiff, ZeroAxisProp, DiffProps>;
+export declare const Diff: DiffAdapted & AdaptedStatics<typeof ZDiff> & { Root: DiffAdapted };

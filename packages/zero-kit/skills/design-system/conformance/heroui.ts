@@ -32,7 +32,17 @@ export const source = {
 
 export const vocabulary = {
     variants: ['primary', 'secondary', 'tertiary', 'outline', 'ghost', 'danger', 'danger-soft'],
-    modifiers: ['icon-only', 'pending'],
+    /**
+     * The PACKAGE's whole declared modifier set, not Button's: graduation
+     * pins this vocabulary byte-equal to `zero-heroui`'s tokens
+     * (`conformance.test.ts`), and #340 added Table's `striped`
+     * (`isStriped` at the prop boundary — sourced from
+     * heroui.com/docs/components/table, verified 2026-08-05) to that set.
+     * The matrix row and `source.url` above still grade BUTTON —
+     * `striped` rides along because the fixture's vocabulary is the
+     * package's, and only `icon-only`/`pending` are button facts.
+     */
+    modifiers: ['icon-only', 'pending', 'striped'],
 } as const;
 
 export const api = defineApi(vocabulary, {
@@ -40,5 +50,6 @@ export const api = defineApi(vocabulary, {
     modifiers: {
         'icon-only': { as: 'isIconOnly' },
         pending: { as: 'isPending' },
+        striped: { as: 'isStriped' },
     },
 });

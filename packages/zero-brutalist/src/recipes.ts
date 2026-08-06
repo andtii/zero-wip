@@ -4079,6 +4079,642 @@ export const drawer: RecipeInput = {
     variants: { color: overlayTriggerColors(), size: overlayTriggerSizes },
 };
 
+/**
+ * Table — a brutalist grid: the thick border and hard shadow on the scroll
+ * box, mono uppercase headers over a heavy head rule, and a selected row
+ * that INVERTS into the accent (fill + its `-content` ink) rather than
+ * tinting. Zebra and hover shade with base-200; both yield to selection.
+ */
+export const table: RecipeInput = {
+    component: 'table',
+    tokens: {
+        '--table-accent': 'var(--color-base-content)',
+        '--table-accent-ink': 'var(--color-base-100)',
+        '--table-pad-block': 'var(--space-sm)',
+        '--table-pad-inline': 'var(--space-md)',
+        '--table-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: {
+                overflowX: 'auto',
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                boxShadow: 'var(--shadow-sm)',
+            },
+        },
+        table: {
+            base: {
+                borderCollapse: 'collapse',
+                inlineSize: '100%',
+                fontSize: 'var(--table-font)',
+                color: 'var(--color-base-content)',
+            },
+        },
+        caption: {
+            base: {
+                captionSide: 'top',
+                textAlign: 'start',
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+            },
+        },
+        head: {
+            base: { borderBlockEnd: 'calc(var(--border) * 2) solid var(--color-base-content)' },
+        },
+        body: {},
+        foot: {
+            base: {
+                borderBlockStart: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                fontSize: 'var(--text-xs)',
+            },
+        },
+        row: {
+            base: { borderBlockEnd: 'var(--border) solid var(--color-base-content)' },
+            states: {
+                selected: {
+                    background: 'var(--table-accent)',
+                    color: 'var(--table-accent-ink)',
+                },
+            },
+        },
+        'header-cell': {
+            base: {
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                textAlign: 'start',
+                ...label,
+                fontSize: 'var(--text-xs)',
+            },
+        },
+        cell: {
+            base: {
+                padding: 'var(--table-pad-block) var(--table-pad-inline)',
+                textAlign: 'start',
+                fontVariantNumeric: 'tabular-nums',
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--table-accent': `var(--color-${c})`,
+            '--table-accent-ink': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--table-pad-block': 'calc(var(--space-xs) / 2)', '--table-pad-inline': 'var(--space-xs)', '--table-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--table-pad-block': 'var(--space-xs)', '--table-pad-inline': 'var(--space-sm)', '--table-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--table-pad-block': 'var(--space-md)', '--table-pad-inline': 'var(--space-lg)', '--table-font': 'var(--text-md)' } } },
+            xl: { root: { base: { '--table-pad-block': 'var(--space-lg)', '--table-pad-inline': 'var(--space-xl)', '--table-font': 'var(--text-md)' } } },
+        },
+    },
+    modifiers: {
+        zebra: {
+            row: {
+                selectors: {
+                    '[data-scope="table"][data-part="body"] > &:nth-child(even):not([data-selected])': {
+                        background: 'var(--color-base-200)',
+                    },
+                },
+            },
+        },
+        hover: {
+            row: {
+                selectors: {
+                    '[data-scope="table"][data-part="body"] > &:hover:not([data-selected])': {
+                        background: 'var(--color-base-200)',
+                    },
+                },
+            },
+        },
+    },
+};
+
+/**
+ * FileUpload — brutalism does not whisper about drops: the dropzone is a
+ * thick dashed slab that slams to the accent (fill + `-content` ink) while
+ * a drag hovers, the trigger is an inked slab that shoves into its own
+ * shadow, and the items are bordered rows with mono metadata.
+ */
+export const fileUpload: RecipeInput = {
+    component: 'file-upload',
+    tokens: {
+        '--fu-accent': 'var(--color-base-content)',
+        '--fu-accent-ink': 'var(--color-base-100)',
+        '--fu-pad': 'var(--space-lg)',
+        '--fu-font': 'var(--text-sm)',
+    },
+    parts: {
+        root: {
+            base: { display: 'grid', gap: 'var(--space-sm)', justifyItems: 'start' },
+        },
+        label: {
+            base: { ...label, fontSize: 'var(--text-xs)' },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        trigger: {
+            base: {
+                appearance: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--space-xs)',
+                padding: 'var(--space-sm) var(--space-lg)',
+                ...label,
+                fontSize: 'var(--fu-font)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                border: 'var(--border) solid var(--color-base-content)',
+                boxShadow: 'var(--shadow-sm)',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: shift('1px'),
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed', boxShadow: 'none' },
+                invalid: { borderColor: 'var(--color-error)', color: 'var(--color-error)' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { ...shift('2px'), transition: 'none' },
+            },
+        },
+        dropzone: {
+            base: {
+                justifySelf: 'stretch',
+                padding: 'var(--fu-pad)',
+                textAlign: 'center',
+                ...label,
+                fontSize: 'var(--fu-font)',
+                color: 'var(--color-base-content)',
+                border: 'calc(var(--border) * 2) dashed var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                cursor: 'pointer',
+            },
+            states: {
+                highlighted: {
+                    borderStyle: 'solid',
+                    background: 'var(--fu-accent)',
+                    color: 'var(--fu-accent-ink)',
+                },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+            },
+        },
+        'item-group': {
+            base: {
+                justifySelf: 'stretch',
+                listStyle: 'none',
+                margin: '0',
+                padding: '0',
+                display: 'grid',
+                gap: 'var(--space-xs)',
+            },
+        },
+        item: {
+            base: {
+                display: 'flex',
+                alignItems: 'center',
+                gap: 'var(--space-sm)',
+                padding: 'var(--space-xs) var(--space-md)',
+                border: 'var(--border) solid var(--color-base-content)',
+                background: 'var(--color-base-100)',
+            },
+            states: { disabled: { opacity: 'var(--disabled-opacity)' } },
+        },
+        'item-name': {
+            base: {
+                flex: '1 1 auto',
+                minWidth: '0',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                fontSize: 'var(--fu-font)',
+            },
+        },
+        'item-size': {
+            base: {
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-xs)',
+                fontVariantNumeric: 'tabular-nums',
+                color: 'color-mix(in oklch, var(--color-base-content) 70%, transparent)',
+            },
+        },
+        'item-remove': {
+            base: {
+                appearance: 'none',
+                border: 'var(--border) solid var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                color: 'var(--color-base-content)',
+                padding: 'var(--space-2xs) var(--space-xs)',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-none)',
+                cursor: 'pointer',
+            },
+            states: {
+                hover: { background: 'var(--color-base-200)' },
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--fu-accent': `var(--color-${c})`,
+            '--fu-accent-ink': `var(--color-${c}-content)`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--fu-pad': 'var(--space-sm)', '--fu-font': 'var(--text-xs)' } } },
+            sm: { root: { base: { '--fu-pad': 'var(--space-md)', '--fu-font': 'var(--text-xs)' } } },
+            md: {},
+            lg: { root: { base: { '--fu-pad': 'var(--space-xl)', '--fu-font': 'var(--text-md)' } } },
+            xl: { root: { base: { '--fu-pad': 'calc(var(--space-xl) * 1.25)', '--fu-font': 'var(--text-md)' } } },
+        },
+    },
+};
+
+/**
+ * Carousel — the viewport is a bordered slab, the nav triggers are inked
+ * squares that shove into their own shadow, and the dots are square:
+ * hollow resting, slammed to the accent when active. Nothing rounds.
+ */
+export const carousel: RecipeInput = {
+    component: 'carousel',
+    tokens: {
+        '--carousel-accent': 'var(--color-base-content)',
+        '--carousel-dot': '0.625rem',
+        '--carousel-nav': '2rem',
+    },
+    parts: {
+        root: {
+            base: { position: 'relative', display: 'grid', gap: 'var(--space-sm)' },
+        },
+        viewport: {
+            base: {
+                display: 'flex',
+                overflowX: 'auto',
+                scrollSnapType: 'x mandatory',
+                overscrollBehaviorX: 'contain',
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+                background: 'var(--color-base-100)',
+            },
+            selectors: {
+                // The viewport is a tab stop (scrollable-region-focusable) and
+                // owes the keyboard user a ring. Real :focus-visible — no
+                // runtime flag exists on this part.
+                '&:focus-visible': { outline: 'var(--border) solid var(--color-primary)', outlineOffset: '3px' },
+            },
+        },
+        item: {
+            base: {
+                flex: '0 0 100%',
+                minWidth: '0',
+                scrollSnapAlign: 'center',
+            },
+            states: { active: {}, inactive: {} },
+        },
+        'prev-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlockStart: 'calc(50% - var(--carousel-nav) / 2)',
+                insetInlineStart: 'var(--space-sm)',
+                inlineSize: 'var(--carousel-nav)',
+                blockSize: 'var(--carousel-nav)',
+                display: 'grid',
+                placeItems: 'center',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                border: 'var(--border) solid var(--color-base-content)',
+                boxShadow: 'var(--shadow-xs)',
+                cursor: 'pointer',
+                zIndex: '1',
+            },
+            states: {
+                hover: shift('1px'),
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed', boxShadow: 'none' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { ...shift('2px'), transition: 'none' },
+            },
+        },
+        'next-trigger': {
+            base: {
+                appearance: 'none',
+                position: 'absolute',
+                insetBlockStart: 'calc(50% - var(--carousel-nav) / 2)',
+                insetInlineEnd: 'var(--space-sm)',
+                inlineSize: 'var(--carousel-nav)',
+                blockSize: 'var(--carousel-nav)',
+                display: 'grid',
+                placeItems: 'center',
+                ...label,
+                fontSize: 'var(--text-xs)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--color-base-content)',
+                background: 'var(--color-base-100)',
+                border: 'var(--border) solid var(--color-base-content)',
+                boxShadow: 'var(--shadow-xs)',
+                cursor: 'pointer',
+                zIndex: '1',
+            },
+            states: {
+                hover: shift('1px'),
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed', boxShadow: 'none' },
+                ...focusRing,
+            },
+            selectors: {
+                '&[data-pressed]:not([data-disabled])': { ...shift('2px'), transition: 'none' },
+            },
+        },
+        'indicator-group': {
+            base: { display: 'flex', gap: 'var(--space-xs)', justifyContent: 'center' },
+        },
+        indicator: {
+            base: {
+                appearance: 'none',
+                // The BUTTON keeps a >=24px hit area (WCAG 2.5.8 target
+                // size — the axe gate's floor); the visible dot is the
+                // ::before, sized by the ramp.
+                inlineSize: 'max(var(--carousel-dot), 1.5rem)',
+                blockSize: 'max(var(--carousel-dot), 1.5rem)',
+                padding: '0',
+                display: 'grid',
+                placeItems: 'center',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+            },
+            states: {
+                active: {},
+                inactive: {},
+                ...focusRing,
+            },
+            selectors: {
+                '&::before': {
+                    content: '""',
+                    inlineSize: 'var(--carousel-dot)',
+                    blockSize: 'var(--carousel-dot)',
+                    boxSizing: 'border-box',
+                    border: 'var(--border) solid var(--color-base-content)',
+                    borderRadius: '0',
+                    background: 'transparent',
+                },
+                '&[data-state="active"]::before': {
+                    background: 'var(--carousel-accent)',
+                    borderColor: 'var(--carousel-accent)',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--carousel-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--carousel-dot': '0.375rem', '--carousel-nav': '1.5rem' } } },
+            sm: { root: { base: { '--carousel-dot': '0.5rem', '--carousel-nav': '1.75rem' } } },
+            md: {},
+            lg: { root: { base: { '--carousel-dot': '0.75rem', '--carousel-nav': '2.5rem' } } },
+            xl: { root: { base: { '--carousel-dot': '0.875rem', '--carousel-nav': '3rem' } } },
+        },
+    },
+};
+
+/**
+ * Swap — no tween at all: `--ease-standard` is `steps(2, end)`, so even
+ * the declared transition lands as a hard cut. That IS the brief; the
+ * reduced-motion block just makes the cut explicit.
+ */
+export const swap: RecipeInput = {
+    component: 'swap',
+    tokens: {
+        '--swap-ink': 'var(--color-base-content)',
+        '--swap-size': 'var(--text-xl)',
+    },
+    parts: {
+        root: {
+            base: {
+                position: 'relative',
+                display: 'inline-grid',
+                placeItems: 'center',
+                fontSize: 'var(--swap-size)',
+                lineHeight: 'var(--leading-none)',
+                color: 'var(--swap-ink)',
+                userSelect: 'none',
+            },
+            states: {
+                on: {},
+                off: {},
+                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
+                ...focusRing,
+            },
+            selectors: {
+                // Only the interactive form renders a <button>; the display
+                // form is a span and must not grow button chrome.
+                '&:is(button)': {
+                    appearance: 'none',
+                    border: 'none',
+                    background: 'transparent',
+                    padding: 'var(--space-2xs)',
+                    borderRadius: 'var(--radius-selector)',
+                    cursor: 'pointer',
+                    font: 'inherit',
+                    fontSize: 'var(--swap-size)',
+                    color: 'var(--swap-ink)',
+                },
+            },
+        },
+        on: {
+            base: {
+                gridArea: '1 / 1',
+                transition: 'opacity var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                on: {},
+                off: { opacity: '0' },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+        off: {
+            base: {
+                gridArea: '1 / 1',
+                transition: 'opacity var(--duration-fast) var(--ease-standard)',
+            },
+            states: {
+                off: {},
+                on: { opacity: '0' },
+            },
+            at: {
+                'reduced-motion': { base: { transition: 'none' } },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--swap-ink': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--swap-size': 'var(--text-sm)' } } },
+            sm: { root: { base: { '--swap-size': 'var(--text-md)' } } },
+            md: {},
+            lg: { root: { base: { '--swap-size': 'var(--text-2xl)' } } },
+            xl: { root: { base: { '--swap-size': 'var(--text-3xl)' } } },
+        },
+    },
+};
+
+/**
+ * Countdown — display-only digits. The runtime replaces the `digits`
+ * element per tick (keyed), so the enter animation below plays once per
+ * change — and even that entry lands as a hard two-step cut; a loop never exists, and reduced motion
+ * collapses the entry to a cut. The app owns time.
+ */
+export const countdown: RecipeInput = {
+    component: 'countdown',
+    tokens: {
+        '--countdown-ink': 'var(--color-base-content)',
+        '--countdown-font': 'var(--text-2xl)',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'inline-flex',
+                alignItems: 'baseline',
+                gap: '0.1em',
+                fontSize: 'var(--countdown-font)',
+                fontWeight: 'var(--weight-semibold)',
+                fontVariantNumeric: 'tabular-nums',
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--countdown-ink)',
+            },
+        },
+        value: {
+            base: {
+                display: 'inline-block',
+                overflow: 'hidden',
+            },
+        },
+        digits: {
+            base: {
+                display: 'inline-block',
+                animation: 'zero-brutalist-countdown-in 0.2s steps(2, end)',
+            },
+            at: {
+                'reduced-motion': { base: { animation: 'none' } },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--countdown-ink': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--countdown-font': 'var(--text-md)' } } },
+            sm: { root: { base: { '--countdown-font': 'var(--text-xl)' } } },
+            md: {},
+            lg: { root: { base: { '--countdown-font': 'var(--text-3xl)' } } },
+            xl: { root: { base: { '--countdown-font': 'var(--text-3xl)' } } },
+        },
+    },
+    keyframes: { 'zero-brutalist-countdown-in': 'from { transform: translateY(0.5em); opacity: 0; }' },
+};
+
+/**
+ * Diff — a thick black divider and a SQUARE grip slab; pressed inverts
+ * to the accent. Nothing rounds, nothing fades.
+ */
+export const diff: RecipeInput = {
+    component: 'diff',
+    tokens: {
+        '--diff-accent': 'var(--color-base-content)',
+        '--diff-grip': '1.5rem',
+        '--diff-hit': '2rem',
+    },
+    parts: {
+        root: {
+            base: {
+                display: 'grid',
+                overflow: 'hidden',
+                background: 'var(--color-base-100)',
+                border: 'calc(var(--border) * 2) solid var(--color-base-content)',
+            },
+        },
+        before: {
+            base: { gridArea: '1 / 1', minWidth: '0' },
+        },
+        after: {
+            base: {
+                gridArea: '1 / 1',
+                position: 'absolute',
+                insetBlock: '0',
+                insetInlineStart: '0',
+                // The reveal: a LOGICAL clip. inline-size mirrors under RTL
+                // where a physical clip-path inset would not.
+                inlineSize: 'var(--diff-percent)',
+                overflow: 'hidden',
+            },
+        },
+        handle: {
+            base: {
+                insetBlock: '0',
+                inlineSize: 'var(--diff-hit)',
+                // Center the hit box on the position — the slider-thumb
+                // move: a logical negative margin, never a transform.
+                marginInlineStart: 'calc(var(--diff-hit) / -2)',
+                display: 'grid',
+                placeItems: 'center',
+                cursor: 'ew-resize',
+                touchAction: 'none',
+                zIndex: '1',
+            },
+            states: {
+                ...focusRing,
+                pressed: { '--diff-accent': 'var(--color-primary)' },
+            },
+            selectors: {
+                // The divider line, full height, centered in the hit box.
+                '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    insetBlock: '0',
+                    insetInlineStart: 'calc(50% - var(--border))',
+                    inlineSize: 'calc(var(--border) * 2)',
+                    background: 'var(--diff-accent)',
+                },
+                // The grip — the paint the indicator matrix grades.
+                '&::after': {
+                    content: '""',
+                    inlineSize: 'var(--diff-grip)',
+                    blockSize: 'var(--diff-grip)',
+                    boxSizing: 'border-box',
+                    background: 'var(--color-base-100)',
+                    border: 'calc(var(--border) * 2) solid var(--diff-accent)',
+                    borderRadius: '0',
+                    zIndex: '1',
+                },
+            },
+        },
+    },
+    variants: {
+        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
+            '--diff-accent': `var(--color-${c})`,
+        } } }])),
+        size: {
+            xs: { root: { base: { '--diff-grip': '1rem', '--diff-hit': '1.5rem' } } },
+            sm: { root: { base: { '--diff-grip': '1.25rem', '--diff-hit': '1.75rem' } } },
+            md: {},
+            lg: { root: { base: { '--diff-grip': '2rem', '--diff-hit': '2.5rem' } } },
+            xl: { root: { base: { '--diff-grip': '2.25rem', '--diff-hit': '2.75rem' } } },
+        },
+    },
+};
+
 export const recipes: RecipeInput[] = [
     button, tabs, collapsible, accordion, dialog, popover, tooltip, menu, select,
     switchRecipe, checkbox, radioGroup, field, slider, progress, avatar, toast, combobox,
@@ -4086,4 +4722,10 @@ export const recipes: RecipeInput[] = [
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,
+    table,
+    fileUpload,
+    carousel,
+    swap,
+    countdown,
+    diff,
 ];

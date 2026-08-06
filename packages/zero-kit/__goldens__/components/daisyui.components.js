@@ -4,6 +4,7 @@
 // written once and never generated (issue #179).
 import { adapt } from '@sigx/zero/adapt';
 import { Button as ZButton } from '@sigx/zero/button';
+import { Table as ZTable } from '@sigx/zero/table';
 
 export const Button = /* @__PURE__ */ adapt(ZButton, {
     props: {
@@ -14,6 +15,13 @@ export const Button = /* @__PURE__ */ adapt(ZButton, {
         'square': { modifier: 'square' },
         'variant': { axis: 'variant' },
         'wide': { modifier: 'wide' },
+    },
+});
+
+export const Table = /* @__PURE__ */ adapt(ZTable, {
+    props: {
+        'hover': { modifier: 'hover' },
+        'zebra': { modifier: 'zebra' },
     },
 });
 
@@ -61,3 +69,8 @@ export { Breadcrumbs } from '@sigx/zero/breadcrumbs';
 export { Pagination } from '@sigx/zero/pagination';
 export { Steps } from '@sigx/zero/steps';
 export { Drawer } from '@sigx/zero/drawer';
+export { FileUpload } from '@sigx/zero/file-upload';
+export { Carousel } from '@sigx/zero/carousel';
+export { Swap } from '@sigx/zero/swap';
+export { Countdown } from '@sigx/zero/countdown';
+export { Diff } from '@sigx/zero/diff';

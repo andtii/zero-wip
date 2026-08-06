@@ -12,9 +12,11 @@ import type { AnyComponentFactory } from 'sigx';
 import { buttonPage } from './button';
 import { togglePage } from './toggle';
 import { toggleGroupPage } from './toggle-group';
+import { swapPage } from './swap';
 import { fieldPage } from './field';
 import { inputPage } from './input';
 import { textareaPage } from './textarea';
+import { fileUploadPage } from './file-upload';
 import { checkboxPage } from './checkbox';
 import { switchPage } from './switch';
 import { radioGroupPage } from './radio-group';
@@ -41,6 +43,10 @@ import { kbdPage } from './kbd';
 import { statusPage } from './status';
 import { indicatorPage } from './indicator';
 import { statsPage } from './stats';
+import { tablePage } from './table';
+import { carouselPage } from './carousel';
+import { countdownPage } from './countdown';
+import { diffPage } from './diff';
 import { timelinePage } from './timeline';
 import { chatPage } from './chat';
 import { radialProgressPage } from './radial-progress';
@@ -86,10 +92,12 @@ export const pages: PageEntry[] = [
     buttonPage,
     togglePage,
     toggleGroupPage,
+    swapPage,
     joinPage,
     fieldPage,
     inputPage,
     textareaPage,
+    fileUploadPage,
     checkboxPage,
     switchPage,
     radioGroupPage,
@@ -124,6 +132,10 @@ export const pages: PageEntry[] = [
     statusPage,
     indicatorPage,
     statsPage,
+    tablePage,
+    carouselPage,
+    countdownPage,
+    diffPage,
     timelinePage,
     chatPage,
     progressPage,
