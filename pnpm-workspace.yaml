@@ -13,9 +13,9 @@ onlyBuiltDependencies:
 # minor. Consumed via `"catalog:"` in package.json (peerDeps + devDeps);
 # `pnpm pack` rewrites `catalog:` to the concrete range in the published manifest.
 catalog:
-  "@sigx/reactivity": ^0.13.0
-  "@sigx/runtime-core": ^0.13.0
-  "@sigx/runtime-dom": ^0.13.0
-  "@sigx/server-renderer": ^0.13.0
-  "@sigx/vite": ^0.13.0
-  sigx: ^0.13.0
+  "@sigx/reactivity": ^0.15.1
+  "@sigx/runtime-core": ^0.15.1
+  "@sigx/runtime-dom": ^0.15.1
+  "@sigx/server-renderer": ^0.15.1
+  "@sigx/vite": ^0.15.1
+  sigx: ^0.15.1
