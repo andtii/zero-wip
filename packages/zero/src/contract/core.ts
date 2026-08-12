@@ -1,5 +1,14 @@
-// The shared contract: anatomy machinery, data-attribute spec, token
-// vocabulary and common prop fragments.
+/**
+ * `@sigx/zero/contract/core` — the DOM-free contract surface.
+ *
+ * Everything `@sigx/zero/contract` exports EXCEPT the two deliberately
+ * DOM-typed modules: `props.ts` (the asChild `PartProps` bag types its events
+ * and ref with `lib.dom` shapes for web DX) and `as-child.ts` (whose
+ * signatures name `EventTarget`). A platform runtime without DOM types
+ * (`@sigx/lynx-zero`) imports the contract from here; the `portable`
+ * type-test project compiles this entry under `lib: ["es2022"]`, so the gate
+ * covers the real published entrypoint rather than source-relative paths.
+ */
 
 export type {
     SizeScale,
@@ -57,6 +66,8 @@ export {
 export type { Anatomy, AnatomyJSON, PartSpec, PartJSON, PartPseudo, TokenHint } from './anatomy.js';
 export { defineAnatomy } from './anatomy.js';
 
+export { variantAttrs, RESERVED_AXES, VARIANT_AXES, MOD_ATTR_PREFIX } from './variant-attrs.js';
+
 export {
     CLASS_GRAMMAR_VERSION,
     HOST_CLASS,
@@ -69,20 +80,3 @@ export {
     placementClass,
     themeClass,
 } from './class-names.js';
-
-export type {
-    WithClass,
-    WithDisabled,
-    WithColor,
-    WithSize,
-    WithVariant,
-    WithAxes,
-    WithMods,
-    WithVariantAxes,
-    WithVariantAxesOpen,
-    WithOrientation,
-    WithAsChild,
-    PartProps,
-} from './props.js';
-export { variantAttrs, RESERVED_AXES, VARIANT_AXES, MOD_ATTR_PREFIX } from './props.js';
-export { renderAsChild, synthesizesClickFrom } from './as-child.js';

@@ -18,6 +18,11 @@
 import { RECOMMENDED_ROLE_LIST, defaultSwatch } from '../contract/tokens.js';
 import type { ZeroThemeNameOrCustom } from '../contract/vocabulary.js';
 
+// `console` is host-provided everywhere zero runs (browsers, Node, Lynx's JS
+// runtimes) but typed only by lib.dom / @types/node — declared locally so
+// this module compiles without either (it is part of the `portable` gate).
+declare const console: { warn(message: string): void };
+
 export interface ThemeInfo {
     name: string;
     colorScheme: 'light' | 'dark';
@@ -168,7 +173,12 @@ export function registerThemes(source: ThemeSource): void {
  * request's design system into another's.
  */
 export function clearThemes(): void {
-    if (typeof document === 'undefined') {
+    // A cast property read rather than `typeof document === 'undefined'`:
+    // same runtime answer, but it names no lib.dom global, so this module
+    // stays compilable without DOM types (a non-browser client platform like
+    // Lynx has no document either — the throw below is about SSR, and a Lynx
+    // host swapping design systems would need its own registry-reset path).
+    if ((globalThis as { document?: unknown }).document === undefined) {
         throw new Error(
             '[zero] clearThemes() is browser-only — clearing the shared registry under SSR would race concurrent renders.',
         );
