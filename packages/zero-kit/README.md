@@ -205,6 +205,13 @@ It validates, prints every issue, refuses to emit from an invalid source
 (throws after printing), compiles, builds the coverage report and writes the
 artifacts. `sigx zero:build` calls the same function.
 
+`targets` selects the emit targets (default `['web']`, which is today's
+output exactly). The list is validated up front: unknown names fail, `web`
+is not optional (every other target emits beside it), and `'lynx'` — the
+class-grammar target for platforms without attribute selectors — currently
+fails with "not implemented yet" while its emitters land across the #348
+campaign.
+
 ## The authoring surface in a browser graph
 
 The kit's barrel is Node-only — a design-system package may never
