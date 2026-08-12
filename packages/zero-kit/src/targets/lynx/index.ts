@@ -1,8 +1,8 @@
 /**
  * The lynx emit target (#351): class-grammar selectors over the same anatomy
- * manifest, tokens baked to literals lynx's engine parses. The recipe emitter
- * and the `runStandardBuild` wiring land in the follow-up PR; until then the
- * pieces here are exercised directly by their tests.
+ * manifest, tokens and colors baked to literals lynx's engine parses, wired
+ * into `runStandardBuild` via `targets: ['web', 'lynx']` (emits under
+ * `dist/lynx/`, capability findings under `report.json`'s `lynx` key).
  */
 export {
     CLASS_GRAMMAR_VERSION,
@@ -26,3 +26,6 @@ export {
     runtimePropertyIn,
 } from './capabilities.js';
 export { compileLynxTokensCss } from './tokens-css.js';
+export { compileLynxRecipeCss } from './recipe-css.js';
+export type { CompiledLynxTarget, LynxTargetManifest } from './compile.js';
+export { compileDesignSystemLynx, writeLynxArtifacts } from './compile.js';

@@ -19,7 +19,9 @@ import { mergeManifests } from './manifest.js';
 import type { ValidationResult } from './resolve/validate.js';
 import { validateDesignSystem } from './resolve/validate.js';
 import { buildReport } from './resolve/report.js';
-import { writeArtifacts } from './artifacts.js';
+import { buildDsManifest, writeArtifacts } from './artifacts.js';
+import type { CompiledLynxTarget } from './targets/lynx/compile.js';
+import { compileDesignSystemLynx, writeLynxArtifacts } from './targets/lynx/compile.js';
 
 /** The logging surface the build reports through — `console` by default. */
 export interface StandardBuildLogger {
@@ -95,12 +97,6 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
         // instead of them.
         throw new Error('[zero-kit] the "web" target is not optional — pass targets: [\'web\', …]');
     }
-    if (targets.includes('lynx')) {
-        throw new Error(
-            '[zero-kit] the "lynx" target is not implemented yet — the emitters land in the #348 campaign; '
-            + 'until then build with the default targets',
-        );
-    }
     const manifest = fragments.length > 0
         ? mergeManifests(options.manifest, ...fragments)
         : options.manifest;
@@ -118,7 +114,27 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
     // needs the authoring input and the anatomy manifest, neither of which
     // survives into CompiledDesignSystem.
     const report = buildReport(compiled, ds, manifest, result);
+
+    // The lynx target compiles BEFORE the web artifacts are written: its
+    // capability findings belong in the same report.json, and a lynx reject
+    // (a recipe depending on a web-runtime mechanism) must fail the build
+    // before anything lands on disk — same all-or-nothing rule validation has.
+    let lynx: CompiledLynxTarget | undefined;
+    if (targets.includes('lynx')) {
+        lynx = compileDesignSystemLynx(ds, manifest);
+        report.lynx = { translated: lynx.report.translated, dropped: lynx.report.dropped };
+        if (lynx.report.dropped.length > 0) {
+            logger.warn(
+                `[${ds.name}] lynx target: ${lynx.report.dropped.length} declaration(s) dropped `
+                + `(see report.json under "lynx" for the list and per-entry guidance)`,
+            );
+        }
+    }
+
     const written = await writeArtifacts(compiled, outDir, report);
+    if (lynx) {
+        written.push(...await writeLynxArtifacts(compiled, lynx, buildDsManifest(compiled), outDir));
+    }
     logger.log(`[${ds.name}] built ${written.length} artifacts`);
     return { result, written };
 }

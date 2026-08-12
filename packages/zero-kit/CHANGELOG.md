@@ -26,12 +26,36 @@
     live — the one lynx-proven indirection), `--text-fixed-*`
     materialized as the ramp's literals. No `:root`, no `@layer`, no
     `@property`, no `@media`.
-  - Tests: capability-primitive units, lynx-safety structural gate over
-    the compiled output of zero-basic AND zero-daisyui (no attribute/
-    pseudo selectors, no at-rules, no unbaked color functions — verified
-    red on an injected `light-dark()`), a golden snapshot, and
-    class-grammar parity rows in `contract-parity.test.ts` over the whole
-    real vocabulary.
+  - `recipe-css.ts` — `compileLynxRecipeCss`: flat class compounds only
+    (`.zx-tabs__tab.zx-s-active`), machine states/flags from the manifest,
+    interaction states through the runtime-stamped flag classes (`hover`
+    drops with a report entry), anatomy pseudo parts as real part classes,
+    axis/modifier/compound rules per the push-down contract (never a
+    combinator, no `:not()` default twins), the two contract attribute
+    selectors (`&[data-orientation]`, `&[data-placement]`) translated,
+    other `selectors:` keys and all `at:` conditions dropped with report
+    entries, `flex: <n>` expanded long-form, literal color functions
+    baked, theme-var-dependent ones dropped (a recipe is theme-agnostic),
+    `var(--press-*)` and the raw `css` hatch rejected.
+  - `compile.ts` — `compileDesignSystemLynx` + `writeLynxArtifacts`:
+    `dist/lynx/{tokens.css, components/<scope>.css, index.css,
+    manifest.json}`, wired into `runStandardBuild` via
+    `targets: ['web', 'lynx']`; capability findings land in the shared
+    `report.json` under `lynx`, the lynx manifest carries the DS
+    manifest's content plus `{target, classGrammarVersion, capabilities}`.
+    `buildDsManifest` extracted from `writeArtifacts` so both targets
+    share one manifest derivation.
+  - The real skins do not compile for lynx YET — they spell web-runtime
+    references (`var(--slider-percent)`) in shared recipe sections, which
+    the target correctly rejects (pinned in `build-targets.test.ts`);
+    their migration into per-target recipe sections is the follow-up.
+  - Tests: capability-primitive units, per-verdict recipe emitter tests,
+    lynx-safety structural gate over the compiled output of zero-basic
+    AND zero-daisyui tokens (no attribute/pseudo selectors, no at-rules,
+    no unbaked color functions — verified red on an injected
+    `light-dark()`), a golden snapshot, a synthetic end-to-end
+    `runStandardBuild` case, and class-grammar parity rows in
+    `contract-parity.test.ts` over the whole real vocabulary.
 
 ### Changed
 
