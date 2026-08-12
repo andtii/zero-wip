@@ -2,7 +2,25 @@
 
 ## [Unreleased]
 
+### Added
+
+- **Multi-target build plumbing** (#348): `runStandardBuild` takes
+  `targets?: readonly ('web' | 'lynx')[]` (default `['web']` — existing
+  builds byte-identical). The list is validated up front: unknown names
+  fail, `web` is not optional, and `lynx` fails honestly with "not
+  implemented yet" until its emitters land. `BUILD_TARGETS`/`BuildTarget`
+  exported from `@sigx/zero-kit/build`.
+
 ### Changed
+
+- **Target-neutral emitter machinery extracted to `targets/shared.ts`**
+  (#348): declaration guards (`declBlock`, breakout/property patterns),
+  `findPart`, the emission sink with its tiered condition ordering
+  (`resolveCondition`, `TIER`, `renderBucket`, `compareChains`), and the
+  axis/keyframes token assertions moved out of the web emitter verbatim, so
+  the lynx emitter reuses the exact guards instead of re-deriving them.
+  `targets/web/recipe-css.ts` keeps only the web selector shapes; emitted
+  CSS is byte-identical (css-golden gate).
 
 - **The rootless-variant validation now checks reachability, not existence**
   (#321). A component with no `root` part (dialog/popover/tooltip/menu) used

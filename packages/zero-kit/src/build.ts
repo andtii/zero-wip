@@ -28,6 +28,15 @@ export interface StandardBuildLogger {
     error(message: string): void;
 }
 
+/**
+ * The emit targets a design-system build can produce. `web` is the CSS every
+ * DS has always shipped; `lynx` is the class-grammar target for platforms
+ * without attribute selectors (compiled into `dist/lynx/`, landing across the
+ * #348 campaign).
+ */
+export const BUILD_TARGETS = ['web', 'lynx'] as const;
+export type BuildTarget = typeof BUILD_TARGETS[number];
+
 export interface StandardBuildOptions {
     designSystem: DesignSystemInput;
     /**
@@ -46,6 +55,12 @@ export interface StandardBuildOptions {
     fragments?: readonly ManifestFragment[];
     /** Absolute output directory (the package's `dist`). */
     outDir: string;
+    /**
+     * Which targets to emit. Defaults to `['web']` — every existing build.mjs
+     * keeps producing exactly what it always has. A skin opts into the lynx
+     * target with `targets: ['web', 'lynx']` once the lynx emitters land.
+     */
+    targets?: readonly BuildTarget[];
     logger?: StandardBuildLogger;
 }
 
@@ -62,8 +77,30 @@ export interface StandardBuildResult {
  * what fails a build script and the CLI alike.
  */
 export async function runStandardBuild(options: StandardBuildOptions): Promise<StandardBuildResult> {
-    const { designSystem: ds, fragments = [], outDir } = options;
+    const { designSystem: ds, fragments = [], outDir, targets = ['web'] } = options;
     const logger = options.logger ?? console;
+
+    // Unknown names are misconfiguration, not future-proofing — fail before
+    // validating anything else so the message is unmissable.
+    for (const target of targets) {
+        if (!BUILD_TARGETS.includes(target)) {
+            throw new Error(
+                `[zero-kit] unknown build target "${target as string}" — known targets: ${BUILD_TARGETS.join(', ')}`,
+            );
+        }
+    }
+    if (!targets.includes('web')) {
+        // Every non-web target is emitted BESIDE the web artifacts (register
+        // d.ts, manifest and report all describe the one compiled DS), not
+        // instead of them.
+        throw new Error('[zero-kit] the "web" target is not optional — pass targets: [\'web\', …]');
+    }
+    if (targets.includes('lynx')) {
+        throw new Error(
+            '[zero-kit] the "lynx" target is not implemented yet — the emitters land in the #348 campaign; '
+            + 'until then build with the default targets',
+        );
+    }
     const manifest = fragments.length > 0
         ? mergeManifests(options.manifest, ...fragments)
         : options.manifest;
