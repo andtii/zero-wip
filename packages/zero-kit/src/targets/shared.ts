@@ -228,7 +228,7 @@ export function renderBucket(conditions: Condition[], rules: string[]): string {
 export function assertAxisToken(kind: 'axis' | 'value' | 'modifier', token: string, scope: string): string {
     if (!TOKEN_KEY_PATTERN.test(token)) {
         throw new Error(
-            `[zero-kit] recipe for "${scope}" uses ${kind} "${token}", which is not a kebab-case identifier — it would be written into a [data-…] selector`,
+            `[zero-kit] recipe for "${scope}" uses ${kind} "${token}", which is not a kebab-case identifier — it would be written into a selector fragment verbatim`,
         );
     }
     return token;
