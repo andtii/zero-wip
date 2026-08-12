@@ -15,9 +15,11 @@
  * compounds from the shared grammar — neither belongs here.
  */
 import type { ManifestComponent, ManifestPart } from '../contract.js';
-import { TOKEN_KEY_PATTERN } from '../contract.js';
+import { TOKEN_CATEGORIES, TOKEN_KEY_PATTERN, systemNodeAt, tokenProperty } from '../contract.js';
 import type { CssProps, RecipeContext } from '../recipes.js';
 import { BUILTIN_CONDITIONS } from '../recipes.js';
+import { generateTypeScale } from '../scale.js';
+import type { SystemTokens, ThemeSystem, TypographyDecl } from '../tokens.js';
 
 export const kebab = (prop: string): string =>
     prop.startsWith('--') ? prop : prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
@@ -244,6 +246,66 @@ export function assertAxisToken(kind: 'axis' | 'value' | 'modifier', token: stri
  */
 export const KEYFRAMES_NAME_PATTERN = /^-?[a-zA-Z_][a-zA-Z0-9_-]*$/;
 export const RESERVED_KEYFRAMES_NAMES = new Set(['none', 'inherit', 'initial', 'unset', 'revert', 'revert-layer', 'default']);
+
+/** Either token tier's shape — `SystemTokens` and `ThemeSystem` are structurally alike. */
+export type AnyTokenSystem = SystemTokens | ThemeSystem<SystemTokens>;
+
+/**
+ * Expand `typography.scale` into `typography.sizes` before the categories are
+ * read, so the generated ramp goes through exactly the same emission and
+ * override path as a hand-listed one. Explicit `sizes` win per key: a
+ * generated ramp with one hand-tuned display size is a normal thing to want.
+ */
+function expandScale(tier: AnyTokenSystem): AnyTokenSystem {
+    const typography = (tier as { typography?: TypographyDecl }).typography;
+    if (!typography?.scale) return tier;
+    const textCategory = TOKEN_CATEGORIES.find((c) => c.id === 'text')!;
+    const generated = generateTypeScale(typography.scale, textCategory.recommended);
+    return {
+        ...tier,
+        typography: { ...typography, sizes: { ...generated, ...typography.sizes } },
+    } as AnyTokenSystem;
+}
+
+/**
+ * Flatten the authoring shape into `--prop` → value for every token category,
+ * applying the resolution tiers in order (later wins):
+ *
+ *     system  →  systemDark (dark-scheme themes only)  →  theme.system
+ *
+ * Walking `TOKEN_CATEGORIES` rather than naming each category here is the
+ * point of the table: a new category is one entry plus a `base.css` fallback,
+ * not another branch in this function.
+ *
+ * Keys emit in declaration order — `recommended` is a hint, not an ordering.
+ * Only the base tier expands a `typography.scale`: `scale` is a DECLARATION —
+ * it mints `--text-*` keys — and declarations live in `system`; expanding it
+ * in an override would let a theme introduce keys behind the "override only
+ * declared keys" rule.
+ */
+export function resolveSystemTokens(...tiers: (AnyTokenSystem | undefined)[]): Record<string, string> {
+    const props: Record<string, string> = {};
+    for (const [index, raw] of tiers.entries()) {
+        if (!raw) continue;
+        const tier = index === 0 ? expandScale(raw) : raw;
+        for (const category of TOKEN_CATEGORIES) {
+            const node = systemNodeAt(tier, category.path);
+            if (node === undefined || node === null) continue;
+            if (category.shape === 'scalar') {
+                props[tokenProperty(category)] = String(node);
+                continue;
+            }
+            // A non-object here would spread into `--radius-0`-style nonsense;
+            // `validateDesignSystem` reports it, and emission skips it.
+            if (typeof node !== 'object') continue;
+            for (const [key, value] of Object.entries(node as Record<string, unknown>)) {
+                if (value === undefined || value === null) continue;
+                props[tokenProperty(category, key)] = String(value);
+            }
+        }
+    }
+    return props;
+}
 
 export function assertKeyframesName(name: string, scope: string): void {
     if (!KEYFRAMES_NAME_PATTERN.test(name)) {

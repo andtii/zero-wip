@@ -23,6 +23,8 @@ import process from 'node:process';
 import { describe, it, expect } from 'vitest';
 import * as zero from '@sigx/zero/contract';
 import * as kit from '../src/contract.js';
+import * as lynxGrammar from '../src/targets/lynx/class-names.js';
+import { anatomies } from '@sigx/zero/anatomy';
 
 /**
  * Constants that exist in both modules under the same name and must agree.
@@ -322,6 +324,50 @@ describe('kit ↔ zero contract parity', () => {
         // sense while the fixed surfaces actually live in that namespace.
         for (const surface of kit.BASE_SURFACE_TOKEN_LIST) {
             expect(surface.startsWith('base-')).toBe(true);
+        }
+    });
+});
+
+/**
+ * The class grammar is the newest deliberate duplication: zero's runtime
+ * composes class lists with `contract/class-names.ts`, the kit's lynx target
+ * emits selectors with `targets/lynx/class-names.ts`. Drift here is CSS that
+ * matches nothing — silently, since a class selector has nothing to compare
+ * against — so parity is asserted by value for the constants and by behavior
+ * over the ENTIRE real vocabulary for the functions.
+ */
+describe('class-grammar parity (zero contract vs targets/lynx)', () => {
+    it('constants agree', () => {
+        expect(lynxGrammar.CLASS_GRAMMAR_VERSION).toBe(zero.CLASS_GRAMMAR_VERSION);
+        expect(lynxGrammar.HOST_CLASS).toBe(zero.HOST_CLASS);
+    });
+
+    it('every part/state/flag/theme class agrees across the real vocabulary', () => {
+        for (const anatomy of Object.values(anatomies)) {
+            for (const part of Object.keys(anatomy.parts)) {
+                expect(lynxGrammar.partClass(anatomy.scope, part)).toBe(zero.partClass(anatomy.scope, part));
+            }
+        }
+        for (const state of zero.STATE_NAMES) {
+            expect(lynxGrammar.stateClass(state)).toBe(zero.stateClass(state));
+        }
+        for (const flag of zero.FLAG_VOCABULARY) {
+            expect(lynxGrammar.flagClass(flag)).toBe(zero.flagClass(flag));
+        }
+        for (const placement of zero.PLACEMENT_VOCABULARY) {
+            expect(lynxGrammar.placementClass(placement)).toBe(zero.placementClass(placement));
+        }
+        for (const [axis, value] of [['size', 'xs'], ['color', 'primary'], ['density', 'compact']] as const) {
+            expect(lynxGrammar.axisClass(axis, value)).toBe(zero.axisClass(axis, value));
+        }
+        for (const name of ['block', 'icon-only']) {
+            expect(lynxGrammar.modClass(name)).toBe(zero.modClass(name));
+        }
+        for (const orientation of ['horizontal', 'vertical']) {
+            expect(lynxGrammar.orientationClass(orientation)).toBe(zero.orientationClass(orientation));
+        }
+        for (const theme of ['light', 'daisy-dark']) {
+            expect(lynxGrammar.themeClass(theme)).toBe(zero.themeClass(theme));
         }
     });
 });

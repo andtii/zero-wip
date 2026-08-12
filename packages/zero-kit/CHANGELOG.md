@@ -4,6 +4,41 @@
 
 ### Added
 
+- **Lynx target: capability set + token emitter** (#351). `targets/lynx/`
+  gains the first half of the lynx emit target:
+
+  - `class-names.ts` — the kit's parity-tested mirror of zero's class
+    grammar (`zx-<scope>__<part>`, state/flag/axis/mod/orientation/
+    placement/theme families, the `zx-root` host).
+  - `capabilities.ts` — the capability set `RUNTIME_PROPERTIES`' doc
+    anticipated, as code: `bakeColor`/`bakeColorValue` (culori-baked
+    literals for `oklch()`, `light-dark()` — picked per theme scheme —
+    and `color-mix()` — evaluated in its declared space against the
+    theme's own colors; constant `calc()` alphas folded),
+    `bakeSoft` (the oklab soft-tint derivation, evaluated at compile
+    time), `runtimePropertyIn` (rejects `var(--press-*)` and friends —
+    the web-runtime mechanism with no lynx equivalent), and the
+    `LynxCapabilityReport` (translated/dropped findings for report.json).
+  - `tokens-css.ts` — `compileLynxTokensCss`: tokens on the `.zx-root`
+    host class plus one full-restatement `.zx-root.zx-theme-<name>` block
+    per theme (switching is a class swap), every color a hex literal,
+    non-color `var()` chains inlined to literals (color references stay
+    live — the one lynx-proven indirection), `--text-fixed-*`
+    materialized as the ramp's literals. No `:root`, no `@layer`, no
+    `@property`, no `@media`.
+  - Tests: capability-primitive units, lynx-safety structural gate over
+    the compiled output of zero-basic AND zero-daisyui (no attribute/
+    pseudo selectors, no at-rules, no unbaked color functions — verified
+    red on an injected `light-dark()`), a golden snapshot, and
+    class-grammar parity rows in `contract-parity.test.ts` over the whole
+    real vocabulary.
+
+### Changed
+
+- `resolveSystemTokens` (token-tier resolution) moved from the web token
+  emitter into `targets/shared.ts` — the lynx emitter walks the identical
+  tiers; web output byte-identical (css-golden gate).
+
 - **Multi-target build plumbing** (#348): `runStandardBuild` takes
   `targets?: readonly ('web' | 'lynx')[]` (default `['web']` — existing
   builds byte-identical). The list is validated up front: unknown names

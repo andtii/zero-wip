@@ -18,7 +18,6 @@
  * - Everything sits in `@layer zero.tokens` behind `:where()` so app CSS
  *   always wins without specificity fights.
  */
-import { generateTypeScale } from '../../scale.js';
 import {
     BASE_SURFACE_TOKEN_LIST,
     LAYER_ORDER_STATEMENT,
@@ -29,7 +28,8 @@ import {
     systemNodeAt,
     tokenProperty,
 } from '../../contract.js';
-import type { RolesDecl, SystemTokens, ThemeInput, ThemeSystem, TokensInput, TypographyDecl } from '../../tokens.js';
+import { resolveSystemTokens } from '../shared.js';
+import type { RolesDecl, SystemTokens, ThemeInput, TokensInput } from '../../tokens.js';
 
 const softVar = (role: string, mix: number): string =>
     `color-mix(in oklab, var(--color-${role}) ${Math.round(mix * 100)}%, var(--color-base-100))`;
@@ -37,71 +37,13 @@ const softVar = (role: string, mix: number): string =>
 /* eslint-disable @typescript-eslint/no-explicit-any -- `R` appears in both
    variance positions, so internal plumbing erases it. */
 type AnyTheme = ThemeInput<any, any>;
-/** Either tier's shape — `SystemTokens` and `ThemeSystem<T>` are structurally alike. */
-type AnySystem = SystemTokens | ThemeSystem<any>;
 const color = (theme: AnyTheme, token: string): string | undefined =>
     (theme.colors as Record<string, string>)[token];
 
 const customProp = (name: string): string => (name.startsWith('--') ? name : `--${name}`);
 
-/**
- * Flatten the authoring shape into `--prop` → value for every token category,
- * applying the resolution tiers in order (later wins):
- *
- *     system  →  systemDark (dark-scheme themes only)  →  theme.system
- *
- * Walking `TOKEN_CATEGORIES` rather than naming each category here is the
- * point of the table: a new category is one entry plus a `base.css` fallback,
- * not another branch in this function.
- *
- * Keys emit in declaration order — `recommended` is a hint, not an ordering.
- */
-/**
- * Expand `typography.scale` into `typography.sizes` before the categories are
- * read, so the generated ramp goes through exactly the same emission and
- * override path as a hand-listed one. Explicit `sizes` win per key: a
- * generated ramp with one hand-tuned display size is a normal thing to want.
- */
-function expandScale(tier: AnySystem): AnySystem {
-    const typography = (tier as { typography?: TypographyDecl }).typography;
-    if (!typography?.scale) return tier;
-    const textCategory = TOKEN_CATEGORIES.find((c) => c.id === 'text')!;
-    const generated = generateTypeScale(typography.scale, textCategory.recommended);
-    return {
-        ...tier,
-        typography: { ...typography, sizes: { ...generated, ...typography.sizes } },
-    } as AnySystem;
-}
-
-function resolveSystem(...tiers: (AnySystem | undefined)[]): Record<string, string> {
-    const props: Record<string, string> = {};
-    for (const [index, raw] of tiers.entries()) {
-        if (!raw) continue;
-        // Only the base tier expands a scale. `scale` is a DECLARATION — it
-        // mints `--text-*` keys — and declarations live in `system`;
-        // `ThemeSystem` has no `scale` field for exactly that reason. Expanding
-        // it in an override would let a theme introduce keys behind the
-        // "override only declared keys" rule. Validation reports it too, since
-        // `validate` runs against compiled JS where the type can't.
-        const tier = index === 0 ? expandScale(raw) : raw;
-        for (const category of TOKEN_CATEGORIES) {
-            const node = systemNodeAt(tier, category.path);
-            if (node === undefined || node === null) continue;
-            if (category.shape === 'scalar') {
-                props[tokenProperty(category)] = String(node);
-                continue;
-            }
-            // A non-object here would spread into `--radius-0`-style nonsense;
-            // `validateDesignSystem` reports it, and emission skips it.
-            if (typeof node !== 'object') continue;
-            for (const [key, value] of Object.entries(node as Record<string, unknown>)) {
-                if (value === undefined || value === null) continue;
-                props[tokenProperty(category, key)] = String(value);
-            }
-        }
-    }
-    return props;
-}
+// Token-tier resolution (`resolveSystemTokens`) lives in `../shared.ts` —
+// the lynx token emitter walks the identical tiers.
 
 /** `--prop: value;` lines, optionally restricted to a subset of properties. */
 function systemDecls(props: Record<string, string>, only?: ReadonlySet<string>): string[] {
@@ -282,7 +224,7 @@ function withTextFixedAliases(props: Record<string, string>): Record<string, str
  */
 function nonColorFor(input: TokensInput<any, any>, theme: AnyTheme): Record<string, string> {
     return withTextFixedAliases({
-        ...resolveSystem(
+        ...resolveSystemTokens(
             input.system,
             theme.colorScheme === 'dark' ? input.systemDark : undefined,
             theme.system,
