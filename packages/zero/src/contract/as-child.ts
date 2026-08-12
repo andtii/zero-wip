@@ -31,7 +31,12 @@ export function renderAsChild(slot: SlotAccessor, bag: PartProps): unknown {
  * role="button" anchor still needs Space supplied by the component.
  */
 export function synthesizesClickFrom(target: EventTarget | null, key: string): boolean {
-    const tag = target instanceof HTMLElement ? target.tagName : '';
+    // Duck-typed rather than `instanceof HTMLElement` — the one runtime DOM
+    // binding this module had. Cross-realm elements fail instanceof anyway,
+    // and on a platform without HTMLElement (Lynx) the read yields '' →
+    // false, which is correct: nothing there synthesizes clicks from keys.
+    const tagName = (target as { tagName?: unknown } | null)?.tagName;
+    const tag = typeof tagName === 'string' ? tagName : '';
     if (tag === 'BUTTON' || tag === 'INPUT' || tag === 'SUMMARY') return true;
     return tag === 'A' && key === 'Enter';
 }

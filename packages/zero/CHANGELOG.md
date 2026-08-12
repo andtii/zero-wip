@@ -4,6 +4,34 @@
 
 ### Added
 
+- **Lynx target groundwork** (#346): the contract now projects onto
+  platforms without attribute selectors.
+
+  - **Class grammar** (`contract/class-names.ts`, exported from
+    `@sigx/zero/contract`): `partClass('tabs', 'tab')` → `zx-tabs__tab`,
+    `zx-s-<state>`, `zx-f-<flag>`, `zx-a-<axis>-<value>`, `zx-m-<mod>`,
+    `zx-o-<orientation>`, `zx-p-<placement>`, `zx-theme-<name>`, `zx-root`
+    (the token host), stamped `CLASS_GRAMMAR_VERSION = 1`. Axis rules follow
+    the push-down rule: the runtime stamps axis/modifier classes on every
+    part from carrier context, so a non-web emitter never needs a
+    combinator (or the `:not()` default twins) for them.
+  - **`@sigx/zero/behaviors/core`** — the platform-neutral behavior subset
+    (controllable state, ids, field context, options, list controller). The
+    list controller's element type is now structurally open
+    (`ItemElement`, two members) in `list-core.ts`; `@sigx/zero/behaviors`
+    re-exports it pinned to `HTMLElement` — no web import site changes.
+  - **`@sigx/zero/theme/registry`** — the theme-metadata registry as its
+    own DOM-free subpath.
+  - **`expectAnatomyElements` + `ElementLike`** (`@sigx/zero/testing`):
+    the anatomy-oracle rules extracted over a three-member element shape;
+    `expectAnatomy(container, …)` is now the DOM wrapper over them, so a
+    non-DOM test renderer holds components to the identical contract.
+  - `synthesizesClickFrom` reads `tagName` duck-typed instead of
+    `instanceof HTMLElement` — the contract's one runtime DOM binding gone.
+  - New `portable` type-test project compiles the whole portable surface
+    under `lib: ["es2022"]` (no DOM lib), gating regressions here rather
+    than in a downstream platform's build.
+
 - **The navigation tier** (#339): Drawer, Navbar, Breadcrumbs, Pagination
   and Steps — the behavior tier's navigation half, each shipped with
   recipes in all six design systems:

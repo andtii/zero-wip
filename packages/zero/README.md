@@ -208,6 +208,35 @@ same behaviors, held to the same conformance assertion:
   declared part tree, and `hidden` exactly where `hiddenIn` says. It throws a
   plain `Error`, so it works under any test runner. A component rendering
   custom axes names them: `expectAnatomy(el, anatomy, { axes: ['emphasis'] })`.
+  The rules themselves are platform-neutral: `expectAnatomyElements`
+  runs them over an `ElementLike` (`getAttribute`/`getAttributeNames`/
+  `parent`), so a non-DOM test renderer wraps its nodes and holds components
+  to the identical contract.
+
+## Non-DOM platforms
+
+The contract is not web-shaped, and two subpath exports keep the layers a
+non-DOM runtime (`@sigx/lynx-zero`) builds on importable without `lib.dom`:
+
+- `@sigx/zero/behaviors/core` — the platform-neutral behavior subset:
+  controllable state, ids, field context, option segmentation, and the list
+  controller with its element type open (a runtime that never mounts DOM
+  elements registers `el: () => null` and gets the registration-order
+  fallback — depth-first render order, which is visual order there).
+- `@sigx/zero/theme/registry` — the theme-metadata registry alone, without
+  the browser controller/provider.
+- The **class grammar** (`@sigx/zero/contract`): on a platform whose style
+  engine cannot select on attributes, `data-*` still renders (tests,
+  tooling) but styling hooks are classes — `partClass('tabs', 'tab')` →
+  `zx-tabs__tab`, plus `zx-s-<state>`, `zx-f-<flag>`, `zx-a-<axis>-<value>`,
+  `zx-m-<mod>`, `zx-o-<orientation>`, `zx-p-<placement>`,
+  `zx-theme-<name>` and the `zx-root` token host. `CLASS_GRAMMAR_VERSION`
+  stamps compiled artifacts; `@sigx/zero-kit`'s non-web targets emit
+  selectors from a parity-tested mirror of the same grammar.
+
+The `portable` type-test project compiles this whole surface under
+`lib: ["es2022"]`, so a DOM type leaking into it fails this repo's CI, not a
+downstream platform's build.
 
 ## For tooling / AI
 

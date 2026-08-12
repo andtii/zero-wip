@@ -18,6 +18,10 @@
             "types": "./dist/theme/index.d.ts",
             "import": "./dist/theme/index.js"
         },
+        "./theme/registry": {
+            "types": "./dist/theme/registry.d.ts",
+            "import": "./dist/theme/registry.js"
+        },
         "./contract": {
             "types": "./dist/contract/index.d.ts",
             "import": "./dist/contract/index.js"
@@ -25,6 +29,10 @@
         "./behaviors": {
             "types": "./dist/behaviors/index.d.ts",
             "import": "./dist/behaviors/index.js"
+        },
+        "./behaviors/core": {
+            "types": "./dist/behaviors/core.d.ts",
+            "import": "./dist/behaviors/core.js"
         },
         "./adapt": {
             "types": "./dist/adapt/index.d.ts",

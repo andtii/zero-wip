@@ -57,6 +57,19 @@ export {
 export type { Anatomy, AnatomyJSON, PartSpec, PartJSON, PartPseudo, TokenHint } from './anatomy.js';
 export { defineAnatomy } from './anatomy.js';
 
+export {
+    CLASS_GRAMMAR_VERSION,
+    HOST_CLASS,
+    partClass,
+    stateClass,
+    flagClass,
+    axisClass,
+    modClass,
+    orientationClass,
+    placementClass,
+    themeClass,
+} from './class-names.js';
+
 export type {
     WithClass,
     WithDisabled,
