@@ -4,9 +4,12 @@
  * (or any non-DOM platform) consumes, so a DOM global or DOM type leaking
  * into one of their graphs fails this compile, not a downstream consumer.
  *
- * Modules with real export subpaths import through the paths map; modules
- * that are internal (exposed only through a barrel whose OTHER exports are
- * deliberately DOM-typed, like `contract/props.ts`) import relatively.
+ * Every import goes through a REAL export subpath (via the paths map that
+ * mirrors them), so the gate covers the entrypoints a consumer actually
+ * resolves — `@sigx/zero/contract/core` is the DOM-free contract surface,
+ * beside `behaviors/core`, `theme/registry` and `anatomy`. The one exception
+ * is `testing/expect-anatomy-core.js`: its public barrel (`./testing`) also
+ * exports the DOM wrapper, so the rules module is imported directly.
  */
 import {
     createControllableState,
@@ -32,10 +35,19 @@ import {
     placementClass,
     stateClass,
     themeClass,
-} from '../../src/contract/class-names.js';
-import { variantAttrs, MOD_ATTR_PREFIX, RESERVED_AXES, VARIANT_AXES } from '../../src/contract/variant-attrs.js';
-import { FLAG_VOCABULARY, PLACEMENT_VOCABULARY, STATE_NAMES, dataAttr, stateAttr } from '../../src/contract/data-attrs.js';
-import { TOKEN_CATEGORIES, resolveColorToken, tokenProperty } from '../../src/contract/tokens.js';
+    variantAttrs,
+    MOD_ATTR_PREFIX,
+    RESERVED_AXES,
+    VARIANT_AXES,
+    FLAG_VOCABULARY,
+    PLACEMENT_VOCABULARY,
+    STATE_NAMES,
+    dataAttr,
+    stateAttr,
+    TOKEN_CATEGORIES,
+    resolveColorToken,
+    tokenProperty,
+} from '@sigx/zero/contract/core';
 import { expectAnatomyElements, type ElementLike } from '../../src/testing/expect-anatomy-core.js';
 
 // ---- class grammar ---------------------------------------------------------

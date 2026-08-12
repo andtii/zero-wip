@@ -218,6 +218,11 @@ same behaviors, held to the same conformance assertion:
 The contract is not web-shaped, and two subpath exports keep the layers a
 non-DOM runtime (`@sigx/lynx-zero`) builds on importable without `lib.dom`:
 
+- `@sigx/zero/contract/core` — the DOM-free contract surface: everything
+  `./contract` exports except the deliberately DOM-typed asChild bag
+  (`props.ts`) and helpers (`as-child.ts`). This is the entry a platform
+  runtime imports the vocabularies, `variantAttrs` and the class grammar
+  from.
 - `@sigx/zero/behaviors/core` — the platform-neutral behavior subset:
   controllable state, ids, field context, option segmentation, and the list
   controller with its element type open (a runtime that never mounts DOM

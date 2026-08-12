@@ -8,6 +8,7 @@ export default defineLibConfig({
         'index': 'src/index.ts',
         'anatomy': 'src/anatomy.ts',
         'contract/index': 'src/contract/index.ts',
+        'contract/core': 'src/contract/core.ts',
         'behaviors/index': 'src/behaviors/index.ts',
         'behaviors/core': 'src/behaviors/core.ts',
         'adapt/index': 'src/adapt/index.ts',

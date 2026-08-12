@@ -15,6 +15,10 @@
     the push-down rule: the runtime stamps axis/modifier classes on every
     part from carrier context, so a non-web emitter never needs a
     combinator (or the `:not()` default twins) for them.
+  - **`@sigx/zero/contract/core`** — the DOM-free contract surface
+    (vocabularies, token contract, anatomy machinery, `variantAttrs`, the
+    class grammar) as a real export subpath, so the portable gate covers
+    the entrypoint consumers resolve.
   - **`@sigx/zero/behaviors/core`** — the platform-neutral behavior subset
     (controllable state, ids, field context, options, list controller). The
     list controller's element type is now structurally open

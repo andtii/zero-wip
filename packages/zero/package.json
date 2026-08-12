@@ -26,6 +26,10 @@
             "types": "./dist/contract/index.d.ts",
             "import": "./dist/contract/index.js"
         },
+        "./contract/core": {
+            "types": "./dist/contract/core.d.ts",
+            "import": "./dist/contract/core.js"
+        },
         "./behaviors": {
             "types": "./dist/behaviors/index.d.ts",
             "import": "./dist/behaviors/index.js"
