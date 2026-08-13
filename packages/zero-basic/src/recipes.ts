@@ -1516,8 +1516,9 @@ export const slider: RecipeInput = {
                 // rendering takes over and still honours the accent.
                 accentColor: 'var(--slider-accent)',
                 '--slider-thumb-ink': 'var(--color-base-100)',
-                '--slider-track':
-                    'linear-gradient(to right, var(--slider-accent) var(--slider-percent, 50%), var(--color-base-200) 0)',
+                // `--slider-track` lives in targets.web below: it reads the
+                // runtime-published `--slider-percent`, a web-only mechanism
+                // the lynx target hard-rejects in shared sections.
             },
             states: {
                 disabled: { cursor: 'not-allowed' },
@@ -1672,6 +1673,21 @@ export const slider: RecipeInput = {
         },
     },
     skipStates: { root: ['invalid', 'focus-visible'] },
+    targets: {
+        web: {
+            parts: {
+                control: {
+                    base: {
+                        // The filled track reads the runtime-published
+                        // `--slider-percent` — web-only (`RUNTIME_PROPERTIES`);
+                        // the lynx runtime paints its own track/range parts.
+                        '--slider-track':
+                            'linear-gradient(to right, var(--slider-accent) var(--slider-percent, 50%), var(--color-base-200) 0)',
+                    },
+                },
+            },
+        },
+    },
 };
 
 export const accordion: RecipeInput = {
@@ -5668,10 +5684,8 @@ export const diff: RecipeInput = {
                 position: 'absolute',
                 insetBlock: '0',
                 insetInlineStart: '0',
-                // The reveal: a LOGICAL clip. inline-size mirrors under RTL
-                // where a physical clip-path inset would not.
-                inlineSize: 'var(--diff-percent)',
-                overflow: 'hidden',
+                // The reveal itself lives in targets.web below: it reads the
+                // runtime-published `--diff-percent`, a web-only mechanism.
             },
         },
         handle: {
@@ -5725,6 +5739,23 @@ export const diff: RecipeInput = {
             md: {},
             lg: { root: { base: { '--diff-grip': '2rem', '--diff-hit': '2.5rem' } } },
             xl: { root: { base: { '--diff-grip': '2.25rem', '--diff-hit': '2.75rem' } } },
+        },
+    },
+    targets: {
+        web: {
+            parts: {
+                after: {
+                    base: {
+                        // The reveal: a LOGICAL clip reading the
+                        // runtime-published `--diff-percent`
+                        // (`RUNTIME_PROPERTIES`, web-only). inline-size
+                        // mirrors under RTL where a physical clip-path
+                        // inset would not.
+                        inlineSize: 'var(--diff-percent)',
+                        overflow: 'hidden',
+                    },
+                },
+            },
         },
     },
 };

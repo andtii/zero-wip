@@ -4,6 +4,32 @@
 
 ### Added
 
+- **Recipe per-target sections** (#355): `RecipeInput.targets?: { web?,
+  lynx? }`, each a `RecipeTargetOverride` (the styling surface — tokens/
+  parts/variants/modifiers/compoundVariants/keyframes/css/skipStates),
+  deep-merged over the shared recipe by `resolveRecipeForTarget` before
+  that target compiles. Absent `targets`, both views are the shared recipe
+  byte-identically (every existing web golden is the proof). Merge shapes:
+  props per declaration (override wins), parts/variants/modifiers per part
+  and per state/selector/condition, `compoundVariants` concatenate,
+  `keyframes` per name, `skipStates` union. The raw `css` hatch is
+  asymmetric by design: shared+web concatenate for the web view; only
+  `targets.lynx.css` (lynx-authored by construction) reaches the lynx view,
+  with a shared `css` recorded as dropped. The web compile, the validator
+  and the axis harvest all run on the web view; `recipe.schema.json` gains
+  the `targets` property. Keyframes bodies now get the same capability
+  checks as declarations on lynx (runtime refs reject; calc-over-var and
+  theme-var color functions drop the animation with a report entry).
+- **zero-basic and zero-daisyui compile the lynx target** (`targets:
+  ['web', 'lynx']` in both build.mjs; `./lynx/index.css`,
+  `./lynx/tokens.css` and `./lynx/manifest.json` exports on both
+  packages). Their web-runtime references (`--slider-percent`,
+  `--diff-percent`) moved into `targets.web` — web output byte-identical
+  (goldens untouched); the migrated declarations simply do not exist in
+  the lynx view. A whole-skin structural gate compiles both skins'
+  entire lynx stylesheets and asserts nothing the lynx engine cannot
+  parse appears and every selector is a flat class compound.
+
 - **Lynx target: capability set + token emitter** (#351). `targets/lynx/`
   gains the first half of the lynx emit target:
 

@@ -11,5 +11,6 @@ await runStandardBuild({
     designSystem,
     manifest: { components: Object.values(anatomies).map((a) => a.toJSON()) },
     // fileURLToPath (not .pathname): on Windows .pathname is `/C:/…`, which fs rejects.
+    targets: ['web', 'lynx'],
     outDir: fileURLToPath(new URL('./dist', import.meta.url)),
 });

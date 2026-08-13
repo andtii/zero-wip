@@ -38,7 +38,7 @@ import {
 } from '../contract.js';
 import type { RolesDecl } from '../tokens.js';
 import { validateApi } from '../api.js';
-import { BUILTIN_CONDITIONS } from '../recipes.js';
+import { BUILTIN_CONDITIONS, resolveRecipeForTarget } from '../recipes.js';
 import type { DesignSystemInput } from '../design-system.js';
 import { compileDesignSystem } from '../design-system.js';
 import { validateRecipes } from './validate-recipes.js';
@@ -786,7 +786,7 @@ export function validateDesignSystem<R extends RolesDecl>(
     // ── Recipe CONTENT: token references, literals, coverage ──
     // (Colour-variant role membership is checked in validateRecipes as an
     // error — a second, weaker copy of the rule here would double-report.)
-    for (const issue of validateRecipes(ds.recipes, manifest, vocabulary)) {
+    for (const issue of validateRecipes(ds.recipes.map((r) => resolveRecipeForTarget(r, 'web')), manifest, vocabulary)) {
         (issue.level === 'error' ? errors : warnings).push(issue);
     }
 

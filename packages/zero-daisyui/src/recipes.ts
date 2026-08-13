@@ -5144,10 +5144,8 @@ export const diff: RecipeInput = {
                 position: 'absolute',
                 insetBlock: '0',
                 insetInlineStart: '0',
-                // The reveal: a LOGICAL clip. inline-size mirrors under RTL
-                // where a physical clip-path inset would not.
-                inlineSize: 'var(--diff-percent)',
-                overflow: 'hidden',
+                // The reveal itself lives in targets.web below: it reads the
+                // runtime-published `--diff-percent`, a web-only mechanism.
             },
         },
         handle: {
@@ -5201,6 +5199,23 @@ export const diff: RecipeInput = {
             md: {},
             lg: { root: { base: { '--diff-grip': '2rem', '--diff-hit': '2.5rem' } } },
             xl: { root: { base: { '--diff-grip': '2.25rem', '--diff-hit': '2.75rem' } } },
+        },
+    },
+    targets: {
+        web: {
+            parts: {
+                after: {
+                    base: {
+                        // The reveal: a LOGICAL clip reading the
+                        // runtime-published `--diff-percent`
+                        // (`RUNTIME_PROPERTIES`, web-only). inline-size
+                        // mirrors under RTL where a physical clip-path
+                        // inset would not.
+                        inlineSize: 'var(--diff-percent)',
+                        overflow: 'hidden',
+                    },
+                },
+            },
         },
     },
 };
