@@ -106,7 +106,7 @@ describe('runStandardBuild targets', () => {
         }
         // The web layout is unchanged and the lynx files are in `written`.
         expect(existsSync(join(outDir, 'css', 'index.css'))).toBe(true);
-        expect(written.some((p) => p.endsWith('lynx/index.css'))).toBe(true);
+        expect(written.some((p) => p.endsWith(join('lynx', 'index.css')))).toBe(true);
         // The capability findings land in the shared report under `lynx`,
         // and the lynx manifest carries the DS manifest content + envelope.
         const report = JSON.parse(readFileSync(join(outDir, 'report.json'), 'utf8')) as {
