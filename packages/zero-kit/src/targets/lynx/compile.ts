@@ -26,6 +26,7 @@ import type { ValidateFunction } from 'ajv/dist/2020.js';
 import type { ZeroManifest } from '../../contract.js';
 import { TOKEN_KEY_PATTERN } from '../../contract.js';
 import type { CompiledDesignSystem, DesignSystemInput } from '../../design-system.js';
+import { resolveRecipeForTarget } from '../../recipes.js';
 import type { DesignSystemManifest } from '../../artifacts.js';
 import type { LynxCapabilityReport } from './capabilities.js';
 import { emptyReport } from './capabilities.js';
@@ -67,7 +68,17 @@ export function compileDesignSystemLynx(
                 `[zero-kit] design system "${ds.name}" has a recipe for unknown component "${recipe.component}" (known: ${known})`,
             );
         }
-        const css = compileLynxRecipeCss(recipe, component, report);
+        // The lynx view: shared sections + targets.lynx merged. A shared raw
+        // `css` block is web spelling by definition — the resolver already
+        // withholds it from this view; record the drop so the report says so.
+        if (recipe.css?.trim()) {
+            report.dropped.push({
+                where: `lynx recipe for "${recipe.component}"`,
+                what: 'css (raw stylesheet escape hatch)',
+                detail: 'shared raw CSS is web spelling and is not emitted on this target — move it into targets.web (or author a lynx counterpart in targets.lynx.css)',
+            });
+        }
+        const css = compileLynxRecipeCss(resolveRecipeForTarget(recipe, 'lynx'), component, report);
         if (css) componentCss[recipe.component] = css;
     }
 

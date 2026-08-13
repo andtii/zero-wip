@@ -10,6 +10,7 @@ import { deriveComponentApi, scopeApi } from './api.js';
 import type { CustomTokenDecl, RolesDecl, ScopeVocabulary, SystemTokens, TokensInput } from './tokens.js';
 import { compileTokensCss } from './targets/web/tokens-css.js';
 import type { RecipeInput } from './recipes.js';
+import { resolveRecipeForTarget } from './recipes.js';
 import { compileRecipeCss } from './targets/web/recipe-css.js';
 
 export interface DesignSystemInput<
@@ -311,10 +312,14 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
         if (componentCss[recipe.component]) {
             throw new Error(`[zero-kit] duplicate recipe for component "${recipe.component}"`);
         }
-        componentCss[recipe.component] = compileRecipeCss(recipe, component, {
+        // The web view of the recipe: shared sections + targets.web merged.
+        // Axes are harvested from the same view — what the web CSS matches is
+        // what the register artifact must type.
+        const resolved = resolveRecipeForTarget(recipe, 'web');
+        componentCss[recipe.component] = compileRecipeCss(resolved, component, {
             breakpoints: ds.tokens.breakpoints,
         });
-        components[recipe.component] = harvestAxes(recipe);
+        components[recipe.component] = harvestAxes(resolved);
     }
 
     // The declared side of each scope, resolved against the union and attached

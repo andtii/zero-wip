@@ -122,15 +122,24 @@ describe('runStandardBuild targets', () => {
         expect(lynxManifest.themes.length).toBeGreaterThan(0);
     });
 
-    it('rejects a shared-section web-runtime reference (zero-basic verbatim)', async () => {
-        // zero-basic's slider recipe still writes var(--slider-percent) in a
-        // shared section — the exact web-runtime dependency the capability
-        // set exists to catch. This pin flips to a green lynx build when the
-        // recipe-sections follow-up migrates it into targets.web.
-        await expect(runStandardBuild({
-            designSystem: basicDS, manifest, outDir: tempDir(),
+    it('compiles zero-basic for lynx end-to-end (runtime refs migrated to targets.web)', async () => {
+        // The #351 pin in reverse: zero-basic's web-runtime references
+        // (--slider-percent, --diff-percent) now live in targets.web, so the
+        // full skin compiles — and the report says what the lynx copy lost.
+        const outDir = tempDir();
+        await runStandardBuild({
+            designSystem: basicDS, manifest, outDir,
             targets: ['web', 'lynx'], logger: silent,
-        })).rejects.toThrow(/web-runtime-published property/);
+        });
+        const report = JSON.parse(readFileSync(join(outDir, 'report.json'), 'utf8')) as {
+            lynx: { dropped: { where: string; what: string }[] };
+        };
+        expect(report.lynx.dropped.length).toBeGreaterThan(0);
+        // The migrated declarations are gone from the lynx view entirely —
+        // neither emitted nor reported as dropped.
+        const sliderCss = readFileSync(join(outDir, 'lynx', 'components', 'slider.css'), 'utf8');
+        expect(sliderCss).not.toContain('--slider-percent');
+        expect(sliderCss).toContain('.zx-slider__control {');
     });
 
     it('pins the known-target list', () => {

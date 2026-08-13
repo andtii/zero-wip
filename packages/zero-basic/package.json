@@ -15,6 +15,9 @@
             "import": "./dist/register.js"
         },
         "./css": "./dist/css/index.css",
+        "./lynx/index.css": "./dist/lynx/index.css",
+        "./lynx/tokens.css": "./dist/lynx/tokens.css",
+        "./lynx/manifest.json": "./dist/lynx/manifest.json",
         "./css/tokens": "./dist/css/tokens.css",
         "./css/*": "./dist/css/components/*.css",
         "./manifest.json": "./dist/manifest.json",

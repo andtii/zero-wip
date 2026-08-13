@@ -6,7 +6,9 @@
 import { describe, expect, it } from 'vitest';
 import { anatomies } from '@sigx/zero/anatomy';
 import type { ManifestComponent } from '@sigx/zero-kit';
-import { compileLynxRecipeCss, emptyReport } from '../src/targets/lynx/index.js';
+import { compileDesignSystemLynx, compileLynxRecipeCss, emptyReport } from '../src/targets/lynx/index.js';
+import { designSystem as basicDS } from '@sigx/zero-basic';
+import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import type { RecipeInput } from '../src/recipes.js';
 
 const button = anatomies.button.toJSON() as ManifestComponent;
@@ -175,12 +177,16 @@ describe('compileLynxRecipeCss', () => {
         })).toThrow(/web-runtime-published property/);
     });
 
-    it('rejects the raw css escape hatch', () => {
-        expect(() => compile({
+    it('appends a lynx-authored css hatch verbatim (shared css never reaches this emitter)', () => {
+        // By contract the resolver withholds SHARED css from the lynx view
+        // (the compile records the drop); a css that arrives here came from
+        // targets.lynx.css and is lynx-authored by construction.
+        const { css } = compile({
             component: 'button',
             parts: {},
-            css: '[data-scope="button"] { color: red; }',
-        })).toThrow(/web spelling by definition/);
+            css: '.zx-button__root.zx-m-glow { border-color: #ff00ff; }',
+        });
+        expect(css).toContain('.zx-button__root.zx-m-glow { border-color: #ff00ff; }');
     });
 
     it('emits keyframes and errors on unknown parts/states like the web emitter', () => {
@@ -194,5 +200,30 @@ describe('compileLynxRecipeCss', () => {
             .toThrow(/unknown part "nope"/);
         expect(() => compile({ component: 'button', parts: { root: { states: { sideways: { color: 'red' } } } } }))
             .toThrow(/unknown state "sideways"/);
+    });
+});
+
+describe('whole-skin lynx output is structurally lynx-safe', () => {
+    // The compile-time analogue of the on-device css-engine probe, over the
+    // ENTIRE emitted stylesheet of both opted-in skins: nothing the lynx
+    // engine cannot parse may appear, and every selector is a flat class
+    // compound (the axis push-down contract has no combinators).
+    const FORBIDDEN = [
+        /@layer/, /@property/, /@starting-style/, /@media/, /@supports/, /@scope/,
+        /light-dark\(/, /oklch\(/, /oklab\(/, /color-mix\(/, /calc\(var\(/,
+        /:root/, /\[data-/, /::/, /:hover/, /:focus/, /:active/, /:not\(/,
+    ] as const;
+    it.each([
+        ['zero-basic', basicDS],
+        ['zero-daisyui', daisyDS],
+    ])('%s', (_name, ds) => {
+        const { indexCss } = compileDesignSystemLynx(ds as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
+        for (const pattern of FORBIDDEN) {
+            expect(indexCss, String(pattern)).not.toMatch(pattern);
+        }
+        for (const line of indexCss.split('\n')) {
+            if (!line.endsWith('{') || line.startsWith('@keyframes') || line.trim().endsWith('% {') || ['from {', 'to {'].includes(line.trim())) continue;
+            expect(line.trim(), line).toMatch(/^(\.[A-Za-z0-9_-]+)+ \{$/);
+        }
     });
 });

@@ -253,16 +253,47 @@ export function compileLynxRecipeCss(
         }
     }
 
-    if (recipe.css?.trim()) {
-        throw new Error(
-            `[zero-kit] lynx recipe for "${scope}": the raw css escape hatch is web spelling by definition — move it into the recipe's web target section`,
-        );
-    }
-
+    // By the time this emitter runs, `resolveRecipeForTarget('lynx')` has
+    // already withheld any SHARED `css` (web spelling by definition; the
+    // compile records the drop) — a `css` here came from `targets.lynx.css`
+    // and is lynx-authored by construction, so it appends verbatim.
     let css = rules.length > 0 ? `${rules.join('\n\n')}\n` : '';
+    if (recipe.css?.trim()) css += `${recipe.css.trim()}\n`;
     for (const [name, body] of Object.entries(recipe.keyframes ?? {})) {
         assertKeyframesName(name, scope);
-        css += `@keyframes ${name} {\n    ${body.trim()}\n}\n`;
+        // Keyframes bodies are raw strings, so they get the same capability
+        // checks the declaration path applies — a runtime-property reference
+        // rejects, an unproven calc-over-var drops the whole animation (the
+        // `animation-name` reference then resolves to nothing, which is a
+        // stopped animation, not broken paint), and a var-free color
+        // function bakes.
+        const where = `lynx recipe for "${scope}" keyframes "${name}"`;
+        const runtime = runtimePropertyIn(body);
+        if (runtime) {
+            throw new Error(
+                `[zero-kit] ${where}: references ${runtime}, a web-runtime-published property with no lynx equivalent — move the keyframes into the recipe's web target section`,
+            );
+        }
+        if (body.includes('calc(') && body.includes('var(')) {
+            report.dropped.push({
+                where,
+                what: `keyframes ${name}`,
+                detail: 'calc() over var() is unproven on lynx — the animation is dropped; supply a lynx replacement in the recipe target section',
+            });
+            continue;
+        }
+        const baked = hasUnsupportedColorFunction(body) && !body.includes('var(')
+            ? bakeColorValue(body, {}, 'light', where)
+            : body;
+        if (hasUnsupportedColorFunction(baked)) {
+            report.dropped.push({
+                where,
+                what: `keyframes ${name}`,
+                detail: 'a color function over theme variables cannot bake in theme-agnostic component CSS — the animation is dropped; supply a lynx replacement in the recipe target section',
+            });
+            continue;
+        }
+        css += `@keyframes ${name} {\n    ${baked.trim()}\n}\n`;
     }
     return css;
 }
