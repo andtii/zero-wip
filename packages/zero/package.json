@@ -1,7 +1,7 @@
 {
     "name": "@sigx/zero",
-    "version": "0.1.0",
-    "description": "SignalX Zero \u2014 unstyled, accessible component primitives with a machine-readable anatomy. The design-system-neutral foundation every sigx design system builds on.",
+    "version": "0.2.0-beta.1",
+    "description": "SignalX Zero — unstyled, accessible component primitives with a machine-readable anatomy. The design-system-neutral foundation every sigx design system builds on.",
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",

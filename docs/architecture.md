@@ -807,13 +807,26 @@ Honesty section. These are the edges the tree knows about today:
   sorting or virtualization). The ecosystem path
   ([§8](#8-ecosystem-components)) exists precisely so those need not enter
   zero's own inventory to be first-class.
-- **Multi-target is aspirational.** The target SPI that would let one
-  design-system source emit for non-web platforms (#97) never landed —
-  the multi-target RFC ([§11](#11-history--the-rfcs-and-where-they-went))
-  proposed it, its platform-neutral groundwork shipped
-  (`--text-fixed-*` aliases, web-only runtime properties, the anatomy
-  superset parts, the kit's core/emitter split), but zero-kit today ships
-  exactly one target: the web. Nothing in the tree emits for Lynx.
+- **Multi-target shipped its second target: lynx.** The multi-target RFC's
+  groundwork (`--text-fixed-*` aliases, web-only runtime properties, the
+  anatomy superset parts, the kit's core/emitter split) finally carried its
+  building (#347/#350/#354/#356): `runStandardBuild({ targets: ['web',
+  'lynx'] })` emits `dist/lynx/{tokens.css, components/<scope>.css,
+  index.css, manifest.json}` beside the web artifacts. The lynx projection
+  is class-grammar CSS (`zx-<scope>__<part>` compounds from
+  `@sigx/zero/contract`'s `class-names.ts`, mirrored parity-tested in the
+  kit) because lynx's engine has no attribute selectors, pseudo-classes or
+  pseudo-elements; axis rules follow the runtime push-down contract (no
+  combinators, no `:not()` default twins), colors bake to literals with
+  culori (no `oklch()`/`color-mix()`/`light-dark()` there), and every
+  declaration gets one of three capability verdicts — translate, drop with
+  a `report.json` entry, or reject (the web-only `RUNTIME_PROPERTIES`).
+  Recipes gained per-target sections (`RecipeInput.targets`, deep-merged by
+  `resolveRecipeForTarget`) for the web-runtime declarations and lynx
+  replacements; zero-basic and zero-daisyui compile both targets from one
+  source. What remains aspirational is the *published* third-party SPI
+  (#97's original shape) — targets are still in-tree modules under
+  `zero-kit/src/targets/`.
 - **Open contract directions, by issue:**
   [#280](https://github.com/signalxjs/zero/issues/280) (should overlay
   triggers show their overlay is open),
@@ -843,7 +856,7 @@ in their place (#330). The full texts remain reachable in the git history of
 
 | RFC | Proposed | Landed | Status |
 |---|---|---|---|
-| **0001 — Multi-target design systems** (#95, amendment #107; texts merged as #101, #108) | One authoring toolchain emitting per-target through a published SPI; Lynx as the pilot; a unified token contract | The platform-neutral groundwork only: the contract changes (#109 — `--text-fixed-*`, runtime properties declared web-only), the shared-anatomy changes (#110 — slider superset parts, dialog `backdrop`/`footer`), and the kit's split into a target-neutral core plus web emitters (#111) | **Partially implemented; the core proposal never landed.** The target SPI (#97) is open, no Lynx emitter exists, and `zero-heroui` was eventually created for the expressiveness RFC's reasons, not as the Lynx pilot |
+| **0001 — Multi-target design systems** (#95, amendment #107; texts merged as #101, #108) | One authoring toolchain emitting per-target through a published SPI; Lynx as the pilot; a unified token contract | The platform-neutral groundwork only: the contract changes (#109 — `--text-fixed-*`, runtime properties declared web-only), the shared-anatomy changes (#110 — slider superset parts, dialog `backdrop`/`footer`), and the kit's split into a target-neutral core plus web emitters (#111) | **Implemented in-tree (#347/#350/#354/#356, 2026-08).** The lynx target emits class-grammar CSS with culori-baked literals through the same `runStandardBuild`; recipes carry per-target sections; zero-basic and zero-daisyui compile both targets from one source. Only the *published third-party* SPI shape of #97 remains open — targets are in-tree modules |
 | **0002 — Typed design systems** (#127; revision #139 merged as #140) | Declared axis vocabularies, the `ZeroVocabulary` augmentation seam, the generated `register.d.ts`, per-category token typing, multi-theme | Phase by phase: declared vocabularies (#145), the seam and per-component narrowing (#150), the register artifact and `/register` subpaths (#151), wiring the then-unwired axes (#152, closing #103), daisyui multi-theme + `pickThemeFor` defaults (#153) | **Implemented**, then re-verified and hardened by the 2026-08 campaign (self-verifying artifacts, all-31 resolution — see below) |
 | **0003 — Contract expressiveness** (#156) | `data-mod-*` modifiers, `sizes: []`, compound/default correctness, the conformance program, `zero-heroui`, vendor-named apis, per-scope vocabularies | Correctness fixes (#159 compound×default cross product, #161 `ThemeInput.components` removal, #163 token-name validation, #165 `sizes: []`); modifiers (#167); the coverage report (#178); the generated conformance matrix + fixtures (#184, #186); `zero-heroui` (#170, #192) and the playground reading the live vocabulary (#172); the api surface (#180/#181/#182, issue #179) and `zero-carbon` (#185, #193, issue #183); the variant survey ledger (#169, #293, issue #175); per-scope vocabularies as `tokens.scopes` (#296, issue #294) | **Implemented** — including both questions the RFC left open (the restriction unit is the scope; the fourteen unwired carriers became a ledger of recorded decisions) |
 | **2026-08 campaign** (issues #316–#326, #321) | — (issues, not RFCs: the "the RFCs are archaeology now" work) | Real verification gates: all-31 type-test resolution, self-verifying register artifacts, 6/6 parity, CI ordering, the llms.txt pin (#320); compiler hygiene + `/define` + `/build` + per-scope api (#322); Contract v1: the part tree, `@scope` axis bounding, state/placement governance, axes on all 31, the versioned DS manifest (#323); runtime a11y consistency (#324); overlay e2e + axe + typed-app (#327); component completions (#328); skin axis wiring for the Contract v1 carriers (#329, closing #321) | **This is the tree §§2–9 describe** |
