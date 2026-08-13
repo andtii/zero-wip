@@ -30,7 +30,7 @@ import {
     STATE_SYNONYMS,
     PLACEMENT_VOCABULARY,
 } from '@sigx/zero/contract';
-import { buildReport, compileDesignSystem } from '@sigx/zero-kit';
+import { buildDsManifest, buildReport, compileDesignSystem } from '@sigx/zero-kit';
 import type { DesignSystemInput, ManifestComponent } from '@sigx/zero-kit';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
@@ -378,5 +378,58 @@ describe('recipe.schema.json', () => {
             component: 'tabs',
             parts: { root: { base: { padding: { top: 4 } } } },
         }))).toBe(false);
+    });
+});
+
+// ── lynx-manifest.schema.json ────────────────────────────────────────────
+
+/**
+ * The lynx target's manifest envelope (#351). Two claims: the schema accepts
+ * exactly what `writeLynxArtifacts` derives from a real DS manifest, and the
+ * schema's SHARED content stays a mechanical derivation of
+ * ds-manifest.schema.json — everything except `$id`/`title`/`description`,
+ * the `$schema` const and the three envelope fields must be byte-equal, so
+ * a ds-manifest schema change cannot silently strand the lynx copy.
+ */
+describe('lynx-manifest.schema.json', () => {
+    const validateLynxManifest = ajv.compile(loadSchema('lynx-manifest'));
+    const dsSchema = loadSchema('ds-manifest');
+    const lynxSchema = loadSchema('lynx-manifest');
+
+    it('is the ds-manifest schema plus the envelope, mechanically', () => {
+        const ENVELOPE = new Set(['target', 'classGrammarVersion', 'capabilities']);
+        const dsProps = dsSchema['properties'] as Record<string, unknown>;
+        const lynxProps = lynxSchema['properties'] as Record<string, unknown>;
+        for (const [name, value] of Object.entries(lynxProps)) {
+            if (ENVELOPE.has(name)) continue;
+            if (name === '$schema') {
+                expect((value as { const: string }).const)
+                    .toBe('https://signalxjs.github.io/zero/schemas/lynx-manifest.schema.json');
+                continue;
+            }
+            expect(value, `properties.${name}`).toEqual(dsProps[name]);
+        }
+        expect(lynxSchema['$defs']).toEqual(dsSchema['$defs']);
+        expect(lynxSchema['required']).toEqual([
+            ...(dsSchema['required'] as string[]),
+            'target', 'classGrammarVersion', 'capabilities',
+        ]);
+    });
+
+    it('accepts the manifest a real lynx build derives and rejects a broken envelope', () => {
+        const compiled = compileDesignSystem(basicDS as DesignSystemInput, { components: manifest.components as ManifestComponent[] });
+        const base = asJson(buildDsManifest(compiled)) as Record<string, unknown>;
+        const lynxManifest = {
+            ...base,
+            $schema: 'https://signalxjs.github.io/zero/schemas/lynx-manifest.schema.json',
+            target: 'lynx',
+            classGrammarVersion: 1,
+            capabilities: { translated: 1, dropped: 2 },
+        };
+        expectValid(validateLynxManifest, asJson(lynxManifest), 'basic lynx manifest');
+        expect(validateLynxManifest(asJson({ ...lynxManifest, classGrammarVersion: 2 }))).toBe(false);
+        expect(validateLynxManifest(asJson({ ...lynxManifest, target: 'web' }))).toBe(false);
+        const { capabilities: _dropped, ...withoutCaps } = lynxManifest;
+        expect(validateLynxManifest(asJson(withoutCaps))).toBe(false);
     });
 });

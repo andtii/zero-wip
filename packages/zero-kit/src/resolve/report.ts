@@ -181,6 +181,16 @@ export interface DesignSystemReport {
     $schema: string;
     reportVersion: 1;
     name: string;
+    /**
+     * The lynx target's capability findings — present only when the build
+     * ran with `targets: ['web', 'lynx']`. What the lynx emitters translated
+     * or dropped, so "what did the lynx copy lose" has one answer, in the
+     * same file that already answers "what did this design system ship".
+     */
+    lynx?: {
+        translated: { where: string; what: string; detail: string }[];
+        dropped: { where: string; what: string; detail: string }[];
+    };
     coverage: {
         componentsStyled: number;
         componentsTotal: number;

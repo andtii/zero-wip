@@ -93,6 +93,30 @@ function manifestValidator(): ValidateFunction {
 }
 
 /**
+ * The DS manifest for a compiled design system — extracted so the lynx
+ * artifacts can carry the identical content under their own envelope (one
+ * design system, one truth about its vocabulary; only delivery differs).
+ */
+export function buildDsManifest(compiled: CompiledDesignSystem): DesignSystemManifest {
+    return {
+        $schema: DS_MANIFEST_SCHEMA_URL,
+        manifestVersion: DS_MANIFEST_VERSION,
+        // Lockstep versioning: the kit's own version IS the zero contract
+        // version it emits for.
+        zeroVersion: (require('../package.json') as { version: string }).version,
+        name: compiled.name,
+        themes: compiled.themes,
+        tokens: compiled.tokens,
+        // Scope → wired axes (was a bare scope-name array; the scope names
+        // remain reachable as this record's keys).
+        components: compiled.components,
+        // Scope → the vendor-named API surface, for tooling and the
+        // conformance matrix's generated rows (issue #179).
+        ...(compiled.componentApi ? { api: compiled.componentApi } : {}),
+    };
+}
+
+/**
  * `report` is a parameter rather than something built here because
  * `buildReport` needs the authoring input and the anatomy manifest, neither of
  * which survives into `CompiledDesignSystem`. Optional, so a caller that wants
@@ -114,22 +138,7 @@ export async function writeArtifacts(
         written.push(path);
     };
 
-    const manifest: DesignSystemManifest = {
-        $schema: DS_MANIFEST_SCHEMA_URL,
-        manifestVersion: DS_MANIFEST_VERSION,
-        // Lockstep versioning: the kit's own version IS the zero contract
-        // version it emits for.
-        zeroVersion: (require('../package.json') as { version: string }).version,
-        name: compiled.name,
-        themes: compiled.themes,
-        tokens: compiled.tokens,
-        // Scope → wired axes (was a bare scope-name array; the scope names
-        // remain reachable as this record's keys).
-        components: compiled.components,
-        // Scope → the vendor-named API surface, for tooling and the
-        // conformance matrix's generated rows (issue #179).
-        ...(compiled.componentApi ? { api: compiled.componentApi } : {}),
-    };
+    const manifest = buildDsManifest(compiled);
     // Self-validation: a manifest the schema rejects fails the build that
     // PRODUCES it, not the app that reads it. JSON-roundtripped first so the
     // thing validated is byte-for-byte the thing written.
