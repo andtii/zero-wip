@@ -18,7 +18,11 @@
  * design system ship".
  */
 import { mkdir, writeFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { createRequire } from 'node:module';
+import { Ajv2020 } from 'ajv/dist/2020.js';
+import type { ValidateFunction } from 'ajv/dist/2020.js';
 import type { ZeroManifest } from '../../contract.js';
 import { TOKEN_KEY_PATTERN } from '../../contract.js';
 import type { CompiledDesignSystem, DesignSystemInput } from '../../design-system.js';
@@ -88,6 +92,27 @@ export function compileDesignSystemLynx(
 
 const LYNX_MANIFEST_SCHEMA_URL = 'https://signalxjs.github.io/zero/schemas/lynx-manifest.schema.json';
 
+const require = createRequire(import.meta.url);
+
+/**
+ * The schema, loaded from wherever this module runs — same two-location
+ * resolution as the DS manifest validator in `artifacts.ts` (`dist/schemas/`
+ * in the published package, `../schemas/` from source under test aliases).
+ */
+let validateLynxManifest: ValidateFunction | null = null;
+function lynxManifestValidator(): ValidateFunction {
+    if (validateLynxManifest) return validateLynxManifest;
+    let path: string;
+    try {
+        path = require.resolve('../../schemas/lynx-manifest.schema.json');
+    } catch {
+        path = require.resolve('../../../schemas/lynx-manifest.schema.json');
+    }
+    const raw = readFileSync(path, 'utf8');
+    const ajv = new Ajv2020({ allErrors: true, strict: true, allowUnionTypes: true });
+    return (validateLynxManifest = ajv.compile(JSON.parse(raw) as Record<string, unknown>));
+}
+
 /**
  * Write the lynx artifacts under `<outDir>/lynx/`. The manifest content
  * comes from the WEB compile (`compiled`) — same themes, tokens and wired
@@ -131,6 +156,21 @@ export async function writeLynxArtifacts(
             dropped: lynx.report.dropped.length,
         },
     };
-    await write(join(lynxDir, 'manifest.json'), JSON.stringify(lynxManifest, null, 2));
+    // Self-validation, exactly like the DS manifest: a manifest the schema
+    // rejects fails the build that PRODUCES it, not the app that reads it.
+    // JSON-roundtripped so the thing validated is byte-for-byte the thing
+    // written.
+    const emitted: unknown = JSON.parse(JSON.stringify(lynxManifest));
+    const validate = lynxManifestValidator();
+    if (!validate(emitted)) {
+        const details = validate.errors
+            ?.map((e) => `  ${e.instancePath || '(root)'} ${e.message ?? ''}`)
+            .join('\n');
+        throw new Error(
+            `[zero-kit] the lynx manifest for "${compiled.name}" does not validate against `
+            + `lynx-manifest.schema.json — refusing to write it:\n${details}`,
+        );
+    }
+    await write(join(lynxDir, 'manifest.json'), JSON.stringify(emitted, null, 2));
     return written;
 }

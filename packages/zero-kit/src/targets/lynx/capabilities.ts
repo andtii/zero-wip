@@ -80,8 +80,13 @@ export function runtimePropertyIn(text: string): string | undefined {
     return RUNTIME_PROPERTY_PATTERN.exec(text)?.[1];
 }
 
-/** Color functions lynx cannot parse; every occurrence must bake or reject. */
-const COLOR_FUNCTION_PATTERN = /\b(?:oklch|oklab|lch|lab|color-mix|light-dark|color)\(/;
+/**
+ * Color functions lynx cannot parse; every occurrence must bake or reject.
+ * Kept in lockstep with `COLOR_FN_START` below — a function only one of the
+ * two knows either bypasses baking (leaks into emitted CSS) or bakes without
+ * ever being flagged; the capabilities test pins the two lists equal.
+ */
+const COLOR_FUNCTION_PATTERN = /\b(?:oklch|oklab|lch|lab|color-mix|light-dark|color|hwb)\(/;
 
 export const hasUnsupportedColorFunction = (value: string): boolean =>
     COLOR_FUNCTION_PATTERN.test(value);

@@ -20,6 +20,16 @@
             "type": "string",
             "minLength": 1
         },
+        "lynx": {
+            "description": "The lynx target's capability findings — present only when the build ran with targets: ['web', 'lynx']. What the lynx emitters translated (semantically equivalent projection) or dropped (not expressible on the target; each entry says how to patch it), so \"what did the lynx copy lose\" has one answer in the same file that answers \"what did this design system ship\".",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["translated", "dropped"],
+            "properties": {
+                "translated": { "$ref": "#/$defs/lynxFindings" },
+                "dropped": { "$ref": "#/$defs/lynxFindings" }
+            }
+        },
         "coverage": {
             "description": "Components styled, against the anatomy manifest validated to.",
             "type": "object",
@@ -129,6 +139,20 @@
         }
     },
     "$defs": {
+        "lynxFindings": {
+            "description": "One list of lynx capability findings — where in the recipe/tokens source, what was found, and what happened to it.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["where", "what", "detail"],
+                "properties": {
+                    "where": { "type": "string", "minLength": 1 },
+                    "what": { "type": "string", "minLength": 1 },
+                    "detail": { "type": "string", "minLength": 1 }
+                }
+            }
+        },
         "apiSurface": {
             "description": "One surface of the vendor-named component API: the prop consumers write, where it routes on zero, and the conformance fidelity grade (docs/architecture.md, \"The authoring surface\").",
             "type": "object",

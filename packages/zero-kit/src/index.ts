@@ -108,7 +108,7 @@ export type { TokenVocabulary } from './resolve/vocabulary.js';
 export { tokenVocabulary } from './resolve/vocabulary.js';
 export { validateRecipes } from './resolve/validate-recipes.js';
 
-export { writeArtifacts, DS_MANIFEST_VERSION } from './artifacts.js';
+export { buildDsManifest, writeArtifacts, DS_MANIFEST_VERSION } from './artifacts.js';
 export type { DesignSystemManifest } from './artifacts.js';
 
 export type { StandardBuildLogger, StandardBuildOptions, StandardBuildResult } from './build.js';

@@ -20,8 +20,10 @@ export type { LynxCapabilityReport, LynxFinding } from './capabilities.js';
 export {
     INTERACTION_STATE_CLASSES,
     bakeColor,
+    bakeColorValue,
     bakeSoft,
     emptyReport,
+    foldConstantCalc,
     hasUnsupportedColorFunction,
     runtimePropertyIn,
 } from './capabilities.js';

@@ -6,6 +6,8 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
+    hasUnsupportedColorFunction,
+    bakeColorValue,
     bakeColor,
     bakeSoft,
     compileLynxTokensCss,
@@ -157,5 +159,27 @@ describe('compileLynxTokensCss', () => {
             },
         };
         expect(() => compileLynxTokensCss(input, emptyReport())).toThrow(/not a kebab-case identifier/);
+    });
+});
+
+describe('color-function detection stays in lockstep with baking', () => {
+    // Copilot caught hwb( bakeable but undetected (#354): a function only one
+    // of the two lists knows either leaks unbaked into emitted CSS or bakes
+    // without ever being flagged. Pin every name behaviorally.
+    const FUNCTIONS: [string, string][] = [
+        ['oklch', 'oklch(45% 0.24 277)'],
+        ['oklab', 'oklab(0.45 0.1 -0.2)'],
+        ['lch', 'lch(45% 30 270)'],
+        ['lab', 'lab(45% 20 -30)'],
+        ['color-mix', 'color-mix(in oklab, #ff0000 40%, #0000ff)'],
+        ['light-dark', 'light-dark(#ffffff, #000000)'],
+        ['color', 'color(srgb 0.2 0.4 0.6)'],
+        ['hwb', 'hwb(200 10% 20%)'],
+    ];
+    it.each(FUNCTIONS)('%s is detected and bakes to a literal', (_name, value) => {
+        expect(hasUnsupportedColorFunction(`0 0 4px ${value}`)).toBe(true);
+        const baked = bakeColorValue(`0 0 4px ${value}`, {}, 'light', 'test');
+        expect(baked).toMatch(/^0 0 4px #[0-9a-f]{6,8}$/);
+        expect(hasUnsupportedColorFunction(baked)).toBe(false);
     });
 });
