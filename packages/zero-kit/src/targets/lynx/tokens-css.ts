@@ -35,6 +35,7 @@ import { resolveSystemTokens } from '../shared.js';
 import type { LynxCapabilityReport } from './capabilities.js';
 import { bakeColor, bakeColorValue, bakeSoft, hasUnsupportedColorFunction, runtimePropertyIn } from './capabilities.js';
 import { HOST_CLASS, themeClass } from './class-names.js';
+import type { LynxThemeColors } from './recipe-css.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- same variance erasure
    as the web emitter: `R` appears in both positions. */
@@ -192,6 +193,64 @@ function bakedNonColor(
 const block = (selector: string, decls: string[]): string =>
     `${selector} {\n${decls.map((d) => `    ${d}`).join('\n')}\n}`;
 
+/**
+ * The structural fallbacks, for a target with nowhere else to put them.
+ *
+ * On the web these live in `@sigx/zero`'s `css/base.css` under
+ * `@layer zero.fallback`, so a recipe may read `var(--text-md)` whether or not
+ * the design system declares a text ramp. Lynx has no `@layer` and no base
+ * stylesheet — the compiled `tokens.css` IS the whole token layer — so the
+ * same fallbacks are emitted here, first inside `.zx-root`, where a design
+ * system's own declaration overrides them by source order.
+ *
+ * daisyUI is the case that proves this is load-bearing: it declares no
+ * `--text-*` ramp at all, so without these every `font-size: var(--text-sm)`
+ * in its recipes read a property nothing defined — and on lynx that is not a
+ * fallback to a default size, it is a declaration that never applies.
+ *
+ * `lynx-tokens-css.test.ts` pins these against `base.css` so the two copies
+ * cannot drift.
+ */
+export const STRUCTURAL_FALLBACKS: Record<string, string> = {
+    '--radius-selector': '0.25rem',
+    '--radius-field': '0.25rem',
+    '--radius-box': '0.5rem',
+    '--size-selector': '0.25rem',
+    '--size-field': '0.25rem',
+    '--text-xs': '0.75rem',
+    '--text-sm': '0.875rem',
+    '--text-md': '1rem',
+    '--text-lg': '1.125rem',
+    '--text-xl': '1.25rem',
+    '--text-2xl': '1.5rem',
+    '--text-3xl': '1.875rem',
+    '--border': '1px',
+    '--disabled-opacity': '0.4',
+};
+
+/**
+ * The per-theme literal color maps, for the recipe emitter's per-theme
+ * restatements. Same baking as the token blocks — deliberately the same
+ * function, so a recipe declaration and a token declaration can never
+ * disagree about what `var(--color-primary)` means in a given theme.
+ *
+ * Reports go to a throwaway report: whatever `bakedColors` would record here
+ * it already recorded while emitting `tokens.css`, and counting it twice
+ * would inflate the capability summary.
+ */
+export function lynxThemeColors<R extends RolesDecl, T extends SystemTokens>(
+    input: TokensInput<R, T>,
+): LynxThemeColors[] {
+    const roles = resolveRoles(input.roles);
+    const throwaway: LynxCapabilityReport = { translated: [], dropped: [] };
+    return Object.entries(input.themes).map(([name, theme]) => ({
+        name,
+        colorScheme: (theme as AnyTheme).colorScheme,
+        isDefault: name === input.defaultLight,
+        colors: bakedColors(theme as AnyTheme, roles, `lynx tokens, theme "${name}"`, throwaway),
+    }));
+}
+
 /** Compile a `TokensInput` to the design system's lynx `tokens.css`. */
 export function compileLynxTokensCss<R extends RolesDecl, T extends SystemTokens>(
     input: TokensInput<R, T>,
@@ -215,7 +274,16 @@ export function compileLynxTokensCss<R extends RolesDecl, T extends SystemTokens
     // theme still paints; every theme (the default ones included) also gets
     // its own full block, because explicit selection must not depend on which
     // theme happened to be the default.
-    const blocks: string[] = [block(`.${HOST_CLASS}`, themeDecls(input.defaultLight, light))];
+    // Fallbacks first inside the block, so a design system's own value for the
+    // same property overrides by source order. `--text-fixed-*` is deliberately
+    // NOT among them: on this target the fixed aliases are materialized as the
+    // scalable ramp's literals per theme, and a fallback alias pointing at
+    // `var(--text-*)` would be indirection the font scaler can still move.
+    const fallbackDecls = Object.entries(STRUCTURAL_FALLBACKS)
+        .map(([prop, value]) => `${prop}: ${value};`);
+    const blocks: string[] = [
+        block(`.${HOST_CLASS}`, [...fallbackDecls, ...themeDecls(input.defaultLight, light)]),
+    ];
     for (const [name, theme] of Object.entries(input.themes)) {
         // The name is interpolated into a class selector — the same injection
         // surface as the web's [data-theme="…"] attribute.

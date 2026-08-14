@@ -32,7 +32,7 @@ import type { LynxCapabilityReport } from './capabilities.js';
 import { emptyReport } from './capabilities.js';
 import { CLASS_GRAMMAR_VERSION } from './class-names.js';
 import { compileLynxRecipeCss } from './recipe-css.js';
-import { compileLynxTokensCss } from './tokens-css.js';
+import { compileLynxTokensCss, lynxThemeColors } from './tokens-css.js';
 
 export interface CompiledLynxTarget {
     tokensCss: string;
@@ -57,6 +57,9 @@ export function compileDesignSystemLynx(
 ): CompiledLynxTarget {
     const report = emptyReport();
     const tokensCss = compileLynxTokensCss(ds.tokens, report);
+    // The recipe emitter restates theme-dependent declarations once per
+    // theme; these are the literal color maps it bakes them against.
+    const themes = lynxThemeColors(ds.tokens);
 
     const byScope = new Map(manifest.components.map((c) => [c.scope, c]));
     const componentCss: Record<string, string> = {};
@@ -78,7 +81,7 @@ export function compileDesignSystemLynx(
                 detail: 'shared raw CSS is web spelling and is not emitted on this target — move it into targets.web (or author a lynx counterpart in targets.lynx.css)',
             });
         }
-        const css = compileLynxRecipeCss(resolveRecipeForTarget(recipe, 'lynx'), component, report);
+        const css = compileLynxRecipeCss(resolveRecipeForTarget(recipe, 'lynx'), component, report, themes);
         if (css) componentCss[recipe.component] = css;
     }
 
@@ -98,7 +101,56 @@ export function compileDesignSystemLynx(
         ...Object.values(componentCss),
     ].join('\n');
 
+    assertNoDanglingVars(ds.name, indexCss);
+
     return { tokensCss, componentCss, indexCss, report };
+}
+
+/** `--x` in a definition position: `--x: …`. */
+const CUSTOM_PROP_DEFINITION = /(--[A-Za-z0-9_-]+)\s*:/g;
+/** `--x` read through `var(--x)`, fallback ignored. */
+const CUSTOM_PROP_REFERENCE = /var\(\s*(--[A-Za-z0-9_-]+)/g;
+
+const names = (css: string, pattern: RegExp): Set<string> =>
+    new Set([...css.matchAll(pattern)].map((m) => m[1]!));
+
+/**
+ * Refuse to ship a stylesheet that reads a custom property nothing in it
+ * defines.
+ *
+ * This is a lynx-specific hazard with a web-shaped cause. On the web an
+ * unresolvable `var()` is survivable — the declaration is invalid at
+ * computed-value time and the cascade falls back to something. On lynx it
+ * simply does not paint: the element renders with no background, no size, no
+ * ink, and nothing anywhere says so. Combined with an emitter that may DROP a
+ * declaration defining a property while KEEPING every declaration that reads
+ * it, that turns one dropped line into a component that silently disappears
+ * (signalxjs/lynx#1029: 24 undefined properties reached 295 of 1043 rules,
+ * and the daisy switch shipped with no width, no radius and no ink).
+ *
+ * Checked against the whole design system at once — `index.css` is tokens
+ * plus every component — because a component legitimately reads properties
+ * the token layer defines. A property an APP is expected to supply must
+ * therefore carry a `var(--x, <fallback>)`, which is also what makes the
+ * expectation visible in the CSS.
+ */
+export function assertNoDanglingVars(dsName: string, indexCss: string): void {
+    // A fallback makes the reference self-sufficient, so strip those first:
+    // `var(--maybe, 8px)` needs no definition to paint.
+    const withoutFallbacks = indexCss.replace(/var\(\s*--[A-Za-z0-9_-]+\s*,[^)]*\)/g, 'FALLBACK');
+    const defined = names(indexCss, CUSTOM_PROP_DEFINITION);
+    const dangling = [...names(withoutFallbacks, CUSTOM_PROP_REFERENCE)]
+        .filter((name) => !defined.has(name))
+        .sort();
+    if (dangling.length === 0) return;
+    throw new Error(
+        `[zero-kit] the lynx stylesheet for "${dsName}" reads ${dangling.length} custom `
+        + `${dangling.length === 1 ? 'property' : 'properties'} that nothing defines: ${dangling.join(', ')}. `
+        + 'On lynx an unresolvable var() does not fall back — the declaration is dropped and the element paints '
+        + 'nothing at all, so this would ship as invisible components rather than as degraded styling. '
+        + 'Either define them (a lynx recipe target section, or the tokens source), or give each reference a '
+        + 'var(--x, <fallback>) so the stylesheet stands on its own.',
+    );
 }
 
 const LYNX_MANIFEST_SCHEMA_URL = 'https://signalxjs.github.io/zero/schemas/lynx-manifest.schema.json';

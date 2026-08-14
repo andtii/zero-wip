@@ -22,11 +22,15 @@
  *   (`&[data-orientation="…"]`, `&[data-placement="…"]`) translate to their
  *   grammar classes instead.
  * - Declarations are capability-checked one by one: `var(--press-*)` rejects
- *   (web-runtime mechanism), color functions bake to literals (theme-var-
- *   dependent ones drop with a report — a recipe is theme-agnostic, so
- *   nothing here can bake them per theme), `calc()` over `var()` drops
- *   (unproven on lynx), and the `flex: <n>` shorthand expands to long-form
- *   (lynx expands it RN-style, collapsing layout).
+ *   (web-runtime mechanism), color functions bake to literals, and the
+ *   `flex: <n>` shorthand expands to long-form (lynx expands it RN-style,
+ *   collapsing layout). `calc()` over `var()` emits verbatim — measured
+ *   working on device (signalxjs/lynx#1029, iOS 18.3).
+ * - A color function over THEME variables cannot bake here, because a recipe
+ *   is theme-agnostic. It is not dropped either: every theme block is a full
+ *   restatement of literals, so the value is finite per theme, and the
+ *   declaration is re-emitted once per theme under that theme's host class.
+ *   See `emitChecked`.
  */
 import type { ManifestComponent, ManifestPart } from '../../contract.js';
 import { carrierPart } from '../../contract.js';
@@ -39,7 +43,7 @@ import {
     hasUnsupportedColorFunction,
     runtimePropertyIn,
 } from './capabilities.js';
-import { axisClass, flagClass, modClass, orientationClass, partClass, placementClass, stateClass } from './class-names.js';
+import { HOST_CLASS, axisClass, flagClass, modClass, orientationClass, partClass, placementClass, stateClass, themeClass } from './class-names.js';
 
 /**
  * One state key resolved to the class that narrows it, `null` for a state
@@ -76,16 +80,51 @@ const CONTRACT_ATTR_PATTERN = /^&\[data-(orientation|placement)="([a-z-]+)"\]$/;
 /** `flex: <number>` — the shorthand lynx expands RN-style (grow N shrink 1 basis auto). */
 const FLEX_NUMBER = /^\s*(\d+(?:\.\d+)?)\s*$/;
 
+/** The one color keyword that is a RUNTIME value, so nothing can bake it. */
+const CURRENT_COLOR = /\bcurrentcolor\b/i;
+
+/** Every `var(--x)` a value reads. */
+const ANY_VAR = /var\(\s*(--[A-Za-z0-9_-]+)/g;
+
 /**
- * Capability-check one declaration block. Returns the props to emit; pushes
- * report entries for what it drops; throws for what the target must refuse.
+ * The first `var()` in a value that per-theme baking cannot resolve.
+ *
+ * A theme block defines the `--color-*` vocabulary and nothing else, so those
+ * bake. A RECIPE-LOCAL property (`--slider-accent`, set by an axis rule) is
+ * not in any theme's map, and its value depends on which compound matched —
+ * there is no single literal to bake it to.
+ */
+function unbakeableVarIn(value: string): string | undefined {
+    for (const match of value.matchAll(ANY_VAR)) {
+        if (!match[1]!.startsWith('--color-')) return match[1];
+    }
+    return undefined;
+}
+
+/**
+ * The result of capability-checking one declaration block: what emits as it
+ * stands, and what has to be RESTATED PER THEME because its value reads theme
+ * colors through a function nothing theme-agnostic can evaluate.
+ */
+interface CheckedProps {
+    /** Emits once, on the plain selector. */
+    props: CssProps;
+    /** Emits once per theme, under that theme's class. Values are unbaked. */
+    perTheme: CssProps;
+}
+
+/**
+ * Capability-check one declaration block. Pushes report entries for what it
+ * drops, throws for what the target must refuse, and defers what only a theme
+ * can resolve.
  */
 function checkedProps(
     props: CssProps,
     where: string,
     report: LynxCapabilityReport,
-): CssProps {
+): CheckedProps {
     const out: CssProps = {};
+    const perTheme: CssProps = {};
     for (const [prop, raw] of Object.entries(props)) {
         const value = String(raw);
         const runtime = runtimePropertyIn(`${prop} ${value}`);
@@ -105,21 +144,35 @@ function checkedProps(
             report.translated.push({ where, what: `flex: ${value}`, detail: 'expanded to flex-grow/flex-shrink/flex-basis — lynx mis-expands the shorthand' });
             continue;
         }
-        if (value.includes('calc(') && value.includes('var(')) {
-            report.dropped.push({
-                where,
-                what: `${prop}: ${value}`,
-                detail: 'calc() over var() is unproven on lynx — dropped; supply a lynx replacement in the recipe target section',
-            });
-            continue;
-        }
         if (hasUnsupportedColorFunction(value)) {
-            if (value.includes('var(')) {
+            if (CURRENT_COLOR.test(value)) {
+                // `currentColor` is the element's own computed `color` — a
+                // runtime value no compile-time pass can know, in a theme
+                // block or anywhere else. Unlike the theme case below, this
+                // is a real loss, so it drops with a report entry.
                 report.dropped.push({
                     where,
                     what: `${prop}: ${value}`,
-                    detail: 'a color function over theme variables cannot bake in theme-agnostic component CSS — dropped; supply a lynx replacement in the recipe target section',
+                    detail: 'a color function over currentColor cannot be evaluated at compile time on any target — dropped; supply a lynx replacement in the recipe target section',
                 });
+                continue;
+            }
+            const unbakeable = unbakeableVarIn(value);
+            if (unbakeable) {
+                report.dropped.push({
+                    where,
+                    what: `${prop}: ${value}`,
+                    detail: `a color function over ${unbakeable} cannot bake — only the theme's --color-* vocabulary has a literal per theme, and a recipe-local property's value depends on which compound matched; dropped, supply a lynx replacement in the recipe target section`,
+                });
+                continue;
+            }
+            if (value.includes('var(')) {
+                // Theme-dependent paint. A recipe is theme-agnostic, so
+                // nothing here can evaluate it — but every theme block is a
+                // full restatement of literals, so the value is finite and
+                // computable ONCE PER THEME. Deferred to the caller, which
+                // owns the theme list and emits the restatements.
+                perTheme[prop] = value;
                 continue;
             }
             out[prop] = bakeColorValue(value, {}, 'light', where);
@@ -127,7 +180,72 @@ function checkedProps(
         }
         out[prop] = value;
     }
-    return out;
+    return { props: out, perTheme };
+}
+
+/**
+ * One theme, reduced to what baking a recipe declaration against it needs:
+ * the literal color map the tokens emitter already produced, and the scheme
+ * `light-dark()` picks a side with. `isDefault` marks the theme `.zx-root`
+ * carries with no theme class selected.
+ */
+export interface LynxThemeColors {
+    name: string;
+    colors: Record<string, string>;
+    colorScheme: 'light' | 'dark';
+    isDefault: boolean;
+}
+
+/**
+ * Emit one checked declaration block: the theme-agnostic half on `selector`,
+ * then one restatement per theme for whatever only a theme can resolve.
+ *
+ * The restatement selector is a DESCENDANT of the theme host —
+ * `.zx-root.zx-theme-dark .zx-button__root` — because the host is where the
+ * theme class lives and the part is somewhere below it. That is three classes
+ * against the plain rule's one, so a theme always wins, and the default
+ * theme's copy rides `.zx-root` alone (two classes) so an app that never
+ * selects a theme still paints. Descendant and compound selectors are both
+ * proven on lynx (signalxjs/lynx#1029, iOS 18.3).
+ */
+function emitChecked(
+    selector: string,
+    props: CssProps,
+    where: string,
+    rules: string[],
+    report: LynxCapabilityReport,
+    themes: readonly LynxThemeColors[],
+): void {
+    const checked = checkedProps(props, where, report);
+    if (Object.keys(checked.props).length > 0) {
+        rules.push(`${selector} {\n${declBlock(checked.props, '    ', where)}\n}`);
+    }
+    if (Object.keys(checked.perTheme).length === 0) return;
+    if (themes.length === 0) {
+        // No theme list to bake against — the pre-theming caller. Report the
+        // loss rather than emit a reference to a value that never lands.
+        for (const [prop, value] of Object.entries(checked.perTheme)) {
+            report.dropped.push({
+                where,
+                what: `${prop}: ${String(value)}`,
+                detail: 'a color function over theme variables needs the theme list to bake against, and none was supplied — dropped',
+            });
+        }
+        return;
+    }
+    for (const theme of themes) {
+        const scoped: CssProps = {};
+        for (const [prop, value] of Object.entries(checked.perTheme)) {
+            scoped[prop] = bakeColorValue(
+                String(value),
+                theme.colors,
+                theme.colorScheme,
+                `${where} (theme "${theme.name}")`,
+            );
+        }
+        const host = theme.isDefault ? `.${HOST_CLASS}` : `.${HOST_CLASS}.${themeClass(theme.name)}`;
+        rules.push(`${host} ${selector} {\n${declBlock(scoped, '    ', where)}\n}`);
+    }
 }
 
 /**
@@ -142,14 +260,13 @@ function emitPartStyles(
     extraClasses: string,
     rules: string[],
     report: LynxCapabilityReport,
+    themes: readonly LynxThemeColors[],
 ): void {
     const part = findPart(component, partName);
     const where = `lynx recipe for "${component.scope}"."${partName}"`;
     const base = `.${partClass(component.scope, partName)}${extraClasses}`;
     const rule = (selector: string, props: CssProps) => {
-        const checked = checkedProps(props, where, report);
-        if (Object.keys(checked).length === 0) return;
-        rules.push(`${selector} {\n${declBlock(checked, '    ', where)}\n}`);
+        emitChecked(selector, props, where, rules, report, themes);
     };
 
     if (styles.base && Object.keys(styles.base).length > 0) {
@@ -198,6 +315,7 @@ export function compileLynxRecipeCss(
     recipe: RecipeInput,
     component: ManifestComponent,
     report: LynxCapabilityReport,
+    themes: readonly LynxThemeColors[] = [],
 ): string {
     if (recipe.component !== component.scope) {
         throw new Error(
@@ -209,14 +327,18 @@ export function compileLynxRecipeCss(
 
     if (recipe.tokens && Object.keys(recipe.tokens).length > 0) {
         const where = `lynx recipe for "${scope}" tokens`;
-        const checked = checkedProps(recipe.tokens, where, report);
-        if (Object.keys(checked).length > 0) {
-            rules.push(`.${partClass(scope, carrierPart(component))} {\n${declBlock(checked, '    ', where)}\n}`);
-        }
+        emitChecked(
+            `.${partClass(scope, carrierPart(component))}`,
+            recipe.tokens,
+            where,
+            rules,
+            report,
+            themes,
+        );
     }
 
     for (const [partName, styles] of Object.entries(recipe.parts)) {
-        emitPartStyles(component, partName, styles, '', rules, report);
+        emitPartStyles(component, partName, styles, '', rules, report, themes);
     }
 
     for (const [axis, values] of Object.entries(recipe.variants ?? {})) {
@@ -226,7 +348,7 @@ export function compileLynxRecipeCss(
             for (const [partName, styles] of Object.entries(parts)) {
                 // No `:not()` default twin: the runtime always stamps a
                 // concrete axis class, explicit or default.
-                emitPartStyles(component, partName, styles, compound, rules, report);
+                emitPartStyles(component, partName, styles, compound, rules, report, themes);
             }
         }
     }
@@ -234,7 +356,7 @@ export function compileLynxRecipeCss(
     for (const [name, parts] of Object.entries(recipe.modifiers ?? {})) {
         const compound = `.${modClass(assertAxisToken('modifier', name, scope))}`;
         for (const [partName, styles] of Object.entries(parts)) {
-            emitPartStyles(component, partName, styles, compound, rules, report);
+            emitPartStyles(component, partName, styles, compound, rules, report, themes);
         }
     }
 
@@ -249,7 +371,7 @@ export function compileLynxRecipeCss(
                 : `.${axisClass(axis, assertAxisToken('value', value, scope))}`)
             .join('');
         for (const [partName, styles] of Object.entries(compoundVariant.parts)) {
-            emitPartStyles(component, partName, styles, compound, rules, report);
+            emitPartStyles(component, partName, styles, compound, rules, report, themes);
         }
     }
 
@@ -263,24 +385,17 @@ export function compileLynxRecipeCss(
         assertKeyframesName(name, scope);
         // Keyframes bodies are raw strings, so they get the same capability
         // checks the declaration path applies — a runtime-property reference
-        // rejects, an unproven calc-over-var drops the whole animation (the
-        // `animation-name` reference then resolves to nothing, which is a
-        // stopped animation, not broken paint), and a var-free color
-        // function bakes.
+        // rejects and a var-free color function bakes. The per-theme
+        // restatement the declaration path uses has no counterpart here: a
+        // keyframes block is not selector-scoped, so theme-dependent paint
+        // inside one would need a whole animation per theme AND a per-theme
+        // `animation-name`. That stays dropped, and the report says why.
         const where = `lynx recipe for "${scope}" keyframes "${name}"`;
         const runtime = runtimePropertyIn(body);
         if (runtime) {
             throw new Error(
                 `[zero-kit] ${where}: references ${runtime}, a web-runtime-published property with no lynx equivalent — move the keyframes into the recipe's web target section`,
             );
-        }
-        if (body.includes('calc(') && body.includes('var(')) {
-            report.dropped.push({
-                where,
-                what: `keyframes ${name}`,
-                detail: 'calc() over var() is unproven on lynx — the animation is dropped; supply a lynx replacement in the recipe target section',
-            });
-            continue;
         }
         const baked = hasUnsupportedColorFunction(body) && !body.includes('var(')
             ? bakeColorValue(body, {}, 'light', where)
@@ -289,7 +404,7 @@ export function compileLynxRecipeCss(
             report.dropped.push({
                 where,
                 what: `keyframes ${name}`,
-                detail: 'a color function over theme variables cannot bake in theme-agnostic component CSS — the animation is dropped; supply a lynx replacement in the recipe target section',
+                detail: 'a keyframes block is not selector-scoped, so a color function over theme variables cannot be restated per theme the way a declaration can — the animation is dropped; supply a lynx replacement in the recipe target section',
             });
             continue;
         }
