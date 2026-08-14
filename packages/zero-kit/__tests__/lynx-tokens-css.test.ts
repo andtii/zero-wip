@@ -9,6 +9,7 @@ import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+    hasComparisonFunction,
     hasUnsupportedColorFunction,
     bakeColorValue,
     bakeColor,
@@ -216,5 +217,27 @@ describe('color-function detection stays in lockstep with baking', () => {
         const baked = bakeColorValue(`0 0 4px ${value}`, {}, 'light', 'test');
         expect(baked).toMatch(/^0 0 4px #[0-9a-f]{6,8}$/);
         expect(hasUnsupportedColorFunction(baked)).toBe(false);
+    });
+
+    // CSS function names are ASCII case-insensitive, so an author's `OKLCH(…)`
+    // or `Min(…)` is the same function a browser sees — and would otherwise
+    // walk straight past a case-sensitive gate into the emitted stylesheet.
+    it.each(FUNCTIONS)('%s is detected whatever its case', (_name, value) => {
+        expect(hasUnsupportedColorFunction(value.toUpperCase())).toBe(true);
+        const baked = bakeColorValue(value.toUpperCase(), {}, 'light', 'test');
+        expect(baked).toMatch(/^#[0-9a-f]{6,8}$/);
+    });
+
+    it.each(['min(1px, 2px)', 'max(1px, 2px)', 'clamp(1px, 2px, 3px)'])(
+        '%s is detected whatever its case',
+        (value) => {
+            expect(hasComparisonFunction(value)).toBe(true);
+            expect(hasComparisonFunction(value.toUpperCase())).toBe(true);
+        },
+    );
+
+    it('does not mistake a longer identifier for a comparison function', () => {
+        expect(hasComparisonFunction('width: minmax(1px, 2px)')).toBe(false);
+        expect(hasComparisonFunction('--my-max: 4px')).toBe(false);
     });
 });

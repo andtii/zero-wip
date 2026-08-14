@@ -96,8 +96,12 @@ export function runtimePropertyIn(text: string): string | undefined {
  * Kept in lockstep with `COLOR_FN_START` below — a function only one of the
  * two knows either bypasses baking (leaks into emitted CSS) or bakes without
  * ever being flagged; the capabilities test pins the two lists equal.
+ *
+ * Case-insensitive, here and in every other function pattern in this file:
+ * CSS function names are ASCII case-insensitive, so `OKLCH(…)` is the same
+ * function to a browser and would otherwise walk straight past the gate.
  */
-const COLOR_FUNCTION_PATTERN = /\b(?:oklch|oklab|lch|lab|color-mix|light-dark|color|hwb)\(/;
+const COLOR_FUNCTION_PATTERN = /\b(?:oklch|oklab|lch|lab|color-mix|light-dark|color|hwb)\(/i;
 
 export const hasUnsupportedColorFunction = (value: string): boolean =>
     COLOR_FUNCTION_PATTERN.test(value);
@@ -121,7 +125,7 @@ export const hasUnsupportedColorFunction = (value: string): boolean =>
  * that never applies, which is precisely the failure mode this target was
  * already bitten by.
  */
-const COMPARISON_FUNCTION_PATTERN = /\b(?:min|max|clamp)\(/;
+const COMPARISON_FUNCTION_PATTERN = /\b(?:min|max|clamp)\(/i;
 
 export const hasComparisonFunction = (value: string): boolean =>
     COMPARISON_FUNCTION_PATTERN.test(value);
@@ -185,7 +189,13 @@ export function foldConstantCalc(text: string): string {
  * silence would paint the platform default instead.
  */
 export function bakeColor(value: string, where: string): string {
-    const parsed = parse(foldConstantCalc(value));
+    // Lower-cased for culori, which matches function names case-sensitively
+    // while CSS does not — `OKLCH(…)` is a real colour a browser accepts, and
+    // before the patterns above went case-insensitive it slipped past the gate
+    // into the emitted stylesheet instead of being baked. Every part of a CSS
+    // colour (keywords, hex digits, function names) is case-insensitive, so
+    // there is nothing here that lower-casing can damage.
+    const parsed = parse(foldConstantCalc(value).toLowerCase());
     if (!parsed) {
         throw new Error(
             `[zero-kit] ${where}: cannot resolve "${value}" to a literal color for the lynx target — `
@@ -240,7 +250,7 @@ function splitTopLevel(text: string): string[] {
     return parts.map((p) => p.trim());
 }
 
-const COLOR_FN_START = /\b(oklch|oklab|lch|lab|color-mix|light-dark|color|hwb)\(/;
+const COLOR_FN_START = /\b(oklch|oklab|lch|lab|color-mix|light-dark|color|hwb)\(/i;
 
 /**
  * Bake every color-FUNCTION occurrence inside a longer value (a shadow, a
@@ -281,7 +291,9 @@ export function bakeColorValue(
     const bakeOne = (expr: string): string => {
         const match = COLOR_FN_START.exec(expr);
         if (!match) return bakeColor(substituteColorVars(expr), where);
-        const fn = match[1]!;
+        // Lower-cased for the same reason as `bakeColor`: CSS function
+        // names are case-insensitive, so the dispatch below must not be.
+        const fn = match[1]!.toLowerCase();
         if (fn === 'light-dark') {
             const open = expr.indexOf('(', match.index);
             const args = splitTopLevel(expr.slice(open + 1, balancedEnd(expr, open) - 1));
@@ -291,8 +303,8 @@ export function bakeColorValue(
         if (fn === 'color-mix') {
             const open = expr.indexOf('(', match.index);
             const args = splitTopLevel(expr.slice(open + 1, balancedEnd(expr, open) - 1));
-            const spaceMatch = /^in\s+([a-z-]+)/.exec(args[0] ?? '');
-            const space = spaceMatch && MIX_SPACES[spaceMatch[1]!];
+            const spaceMatch = /^in\s+([a-z-]+)/i.exec(args[0] ?? '');
+            const space = spaceMatch && MIX_SPACES[spaceMatch[1]!.toLowerCase()];
             if (!space || args.length !== 3) {
                 throw new Error(
                     `[zero-kit] ${where}: cannot evaluate "${expr}" — color-mix() needs "in <space>, <color> <pct>?, <color> <pct>?" with a known space (${Object.keys(MIX_SPACES).join(', ')})`,
