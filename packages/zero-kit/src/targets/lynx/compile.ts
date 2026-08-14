@@ -115,6 +115,43 @@ const names = (css: string, pattern: RegExp): Set<string> =>
     new Set([...css.matchAll(pattern)].map((m) => m[1]!));
 
 /**
+ * Rewrite every `var(--x, <fallback>)` to just `<fallback>`, innermost first.
+ *
+ * A fallback makes its OWN reference self-sufficient — `var(--maybe, 8px)`
+ * paints without `--maybe` — but it does not excuse whatever the fallback
+ * itself reads: `var(--x, var(--y))` still needs `--y`. Replacing the whole
+ * expression with a placeholder would hide exactly that, so the fallback text
+ * is kept and re-scanned. Parentheses are matched by depth because a fallback
+ * may hold nested calls (`var(--x, color-mix(in oklab, var(--y), white))`).
+ */
+function dropFallbackHeads(css: string): string {
+    let out = css;
+    // Each pass rewrites at most one `var(…, …)`, so the total is bounded by
+    // how many the stylesheet holds — no unbounded loop even on odd input.
+    const bound = (css.match(/var\(/g) ?? []).length + 1;
+    for (let pass = 0; pass < bound; pass++) {
+        let rewrote = false;
+        for (let i = out.indexOf('var('); i !== -1; i = out.indexOf('var(', i + 4)) {
+            let depth = 0;
+            let comma = -1;
+            let end = -1;
+            for (let j = i + 3; j < out.length; j++) {
+                if (out[j] === '(') depth++;
+                else if (out[j] === ')') {
+                    if (--depth === 0) { end = j; break; }
+                } else if (out[j] === ',' && depth === 1 && comma === -1) comma = j;
+            }
+            if (end === -1 || comma === -1) continue;
+            out = out.slice(0, i) + out.slice(comma + 1, end).trim() + out.slice(end + 1);
+            rewrote = true;
+            break;
+        }
+        if (!rewrote) break;
+    }
+    return out;
+}
+
+/**
  * Refuse to ship a stylesheet that reads a custom property nothing in it
  * defines.
  *
@@ -135,11 +172,8 @@ const names = (css: string, pattern: RegExp): Set<string> =>
  * expectation visible in the CSS.
  */
 export function assertNoDanglingVars(dsName: string, indexCss: string): void {
-    // A fallback makes the reference self-sufficient, so strip those first:
-    // `var(--maybe, 8px)` needs no definition to paint.
-    const withoutFallbacks = indexCss.replace(/var\(\s*--[A-Za-z0-9_-]+\s*,[^)]*\)/g, 'FALLBACK');
     const defined = names(indexCss, CUSTOM_PROP_DEFINITION);
-    const dangling = [...names(withoutFallbacks, CUSTOM_PROP_REFERENCE)]
+    const dangling = [...names(dropFallbackHeads(indexCss), CUSTOM_PROP_REFERENCE)]
         .filter((name) => !defined.has(name))
         .sort();
     if (dangling.length === 0) return;

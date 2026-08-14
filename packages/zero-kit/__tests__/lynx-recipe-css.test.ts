@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { anatomies } from '@sigx/zero/anatomy';
 import type { ManifestComponent } from '@sigx/zero-kit';
-import { compileDesignSystemLynx, compileLynxRecipeCss, emptyReport } from '../src/targets/lynx/index.js';
+import { assertNoDanglingVars, compileDesignSystemLynx, compileLynxRecipeCss, emptyReport } from '../src/targets/lynx/index.js';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import type { RecipeInput } from '../src/recipes.js';
@@ -302,13 +302,34 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
     it.each([
         ['zero-basic', basicDS],
         ['zero-daisyui', daisyDS],
-    ])('%s defines every custom property it reads', (_name, ds) => {
+    ])('%s defines every custom property it reads', (name, ds) => {
         const { indexCss } = compileDesignSystemLynx(ds as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
-        const defined = new Set([...indexCss.matchAll(/(--[A-Za-z0-9_-]+)\s*:/g)].map((m) => m[1]!));
-        const read = new Set(
-            [...indexCss.replace(/var\(\s*--[A-Za-z0-9_-]+\s*,[^)]*\)/g, 'FALLBACK')
-                .matchAll(/var\(\s*(--[A-Za-z0-9_-]+)/g)].map((m) => m[1]!),
-        );
-        expect([...read].filter((name) => !defined.has(name))).toEqual([]);
+        expect(() => assertNoDanglingVars(name, indexCss)).not.toThrow();
+    });
+});
+
+describe('assertNoDanglingVars', () => {
+    it('accepts a property the stylesheet defines, anywhere in it', () => {
+        expect(() => assertNoDanglingVars('ds', '.a { --x: 1px; }\n.b { width: var(--x); }')).not.toThrow();
+    });
+
+    it('rejects one nothing defines, and names it', () => {
+        expect(() => assertNoDanglingVars('ds', '.b { width: var(--gone); }'))
+            .toThrow(/reads 1 custom property that nothing defines: --gone/);
+    });
+
+    it('accepts a reference that carries its own fallback', () => {
+        expect(() => assertNoDanglingVars('ds', '.b { width: var(--maybe, 8px); }')).not.toThrow();
+    });
+
+    it('still checks what a fallback itself reads', () => {
+        // The whole point of scanning fallbacks rather than blanking them: the
+        // outer reference is excused, the inner one is not.
+        expect(() => assertNoDanglingVars('ds', '.b { width: var(--maybe, var(--gone)); }'))
+            .toThrow(/--gone/);
+        expect(() => assertNoDanglingVars('ds', '.b { color: var(--maybe, color-mix(in oklab, var(--gone), white)); }'))
+            .toThrow(/--gone/);
+        expect(() => assertNoDanglingVars('ds', '.a { --x: red; }\n.b { color: var(--maybe, var(--x)); }'))
+            .not.toThrow();
     });
 });
