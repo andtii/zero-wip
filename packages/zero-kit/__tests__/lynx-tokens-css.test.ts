@@ -4,6 +4,9 @@
  * of the artifact rather than of reviewer attention — the compile-time
  * analogue of the lynx repo's on-device css-engine probe.
  */
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
     hasUnsupportedColorFunction,
@@ -13,6 +16,7 @@ import {
     compileLynxTokensCss,
     emptyReport,
     runtimePropertyIn,
+    STRUCTURAL_FALLBACKS,
 } from '../src/targets/lynx/index.js';
 import type { TokensInput } from '../src/tokens.js';
 import { tokens as basicTokens } from '@sigx/zero-basic';
@@ -25,7 +29,7 @@ import { tokens as daisyTokens } from '@sigx/zero-daisyui';
  */
 const FORBIDDEN = [
     /@layer/, /@property/, /@starting-style/, /@media/, /@supports/,
-    /light-dark\(/, /oklch\(/, /oklab\(/, /color-mix\(/, /calc\(var\(/,
+    /light-dark\(/, /oklch\(/, /oklab\(/, /color-mix\(/,
     /:root/, /\[data-/,
 ] as const;
 
@@ -159,6 +163,37 @@ describe('compileLynxTokensCss', () => {
             },
         };
         expect(() => compileLynxTokensCss(input, emptyReport())).toThrow(/not a kebab-case identifier/);
+    });
+});
+
+/**
+ * Lynx has no `@layer` and no base stylesheet, so the structural fallbacks
+ * `@sigx/zero`'s `css/base.css` provides on the web are emitted into
+ * `tokens.css` instead. Two copies of the same numbers is a drift risk, so
+ * this reads the real `base.css` and pins them equal.
+ */
+describe('structural fallbacks', () => {
+    // Resolved through the package graph rather than a relative path — the
+    // point is to read the base.css that actually ships (`./css` is the
+    // subpath `@sigx/zero` exports it under).
+    const baseCss = readFileSync(
+        createRequire(join(process.cwd(), 'noop.js')).resolve('@sigx/zero/css'),
+        'utf8',
+    );
+
+    it.each(Object.entries(STRUCTURAL_FALLBACKS))('%s matches base.css', (prop, value) => {
+        expect(baseCss).toContain(`${prop}: ${value};`);
+    });
+
+    it('emits them ahead of the design system, so a declared token wins', () => {
+        const css = compileLynxTokensCss(daisyTokens as TokensInput, emptyReport());
+        const root = css.slice(0, css.indexOf('}'));
+        // daisyUI declares no text ramp at all — without the fallback every
+        // `font-size: var(--text-sm)` in its recipes reads a property nothing
+        // defines, and on lynx that declaration simply never applies
+        // (signalxjs/lynx#1029).
+        expect(root).toContain('--text-sm: 0.875rem;');
+        expect(root.indexOf('--text-sm')).toBeLessThan(root.indexOf('--color-primary'));
     });
 });
 

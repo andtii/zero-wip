@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { anatomies } from '@sigx/zero/anatomy';
 import type { ManifestComponent } from '@sigx/zero-kit';
-import { compileDesignSystemLynx, compileLynxRecipeCss, emptyReport } from '../src/targets/lynx/index.js';
+import { assertNoDanglingVars, compileDesignSystemLynx, compileLynxRecipeCss, emptyReport } from '../src/targets/lynx/index.js';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import type { RecipeInput } from '../src/recipes.js';
@@ -136,7 +136,7 @@ describe('compileLynxRecipeCss', () => {
         expect(report.dropped.some((f) => f.what === 'at["reduced-motion"]')).toBe(true);
     });
 
-    it('expands the flex shorthand and drops calc-over-var', () => {
+    it('expands the flex shorthand and keeps calc-over-var', () => {
         const { css, report } = compile({
             component: 'button',
             parts: {
@@ -149,11 +149,16 @@ describe('compileLynxRecipeCss', () => {
         expect(css).toContain('flex-shrink: 1;');
         expect(css).toContain('flex-basis: 0%;');
         expect(css).not.toContain('flex: 1');
-        expect(css).not.toContain('calc(');
-        expect(report.dropped.some((f) => f.what.includes('calc(var(--size-field)'))).toBe(true);
+        // `calc()` over `var()` was dropped for a whole release on the
+        // grounds that it was "unproven on lynx". It was then measured
+        // working on device (signalxjs/lynx#1029, iPhone 16 Pro / iOS 18.3),
+        // and the drop was costing 216 declarations in zero-daisyui alone —
+        // daisy's entire size system is `calc(var(--size-*) * n)`.
+        expect(css).toContain('width: calc(var(--size-field) * 10);');
+        expect(report.dropped.some((f) => f.what.includes('calc(var(--size-field)'))).toBe(false);
     });
 
-    it('bakes literal color functions and drops theme-var-dependent ones', () => {
+    it('bakes literal color functions, and drops theme-var-dependent ones with no themes to bake against', () => {
         const { css, report } = compile({
             component: 'button',
             parts: {
@@ -168,6 +173,64 @@ describe('compileLynxRecipeCss', () => {
         expect(css).toMatch(/box-shadow: 0 1px 2px #[0-9a-f]{8};/);
         expect(css).not.toContain('color-mix');
         expect(report.dropped.some((f) => f.what.startsWith('background:'))).toBe(true);
+    });
+
+    it('restates a theme-var-dependent declaration once per theme, baked', () => {
+        const report = emptyReport();
+        const css = compileLynxRecipeCss(
+            {
+                component: 'button',
+                parts: {
+                    root: {
+                        base: { background: 'color-mix(in oklab, var(--color-primary) 50%, white)' },
+                    },
+                },
+            },
+            button,
+            report,
+            [
+                { name: 'light', colorScheme: 'light', isDefault: true, colors: { primary: '#000000' } },
+                { name: 'dark', colorScheme: 'dark', isDefault: false, colors: { primary: '#ff0000' } },
+            ],
+        );
+        // The default theme rides `.zx-root` alone so an app that never
+        // selects a theme still paints; a named theme is one class more
+        // specific, so selecting it wins.
+        expect(css).toMatch(/\.zx-root \.zx-button__root \{\n\s+background: #[0-9a-f]{6};/);
+        expect(css).toMatch(/\.zx-root\.zx-theme-dark \.zx-button__root \{\n\s+background: #[0-9a-f]{6};/);
+        // Baked, not deferred: two different primaries give two different results.
+        const baked = [...css.matchAll(/background: (#[0-9a-f]{6});/g)].map((m) => m[1]);
+        expect(new Set(baked).size).toBe(2);
+        expect(css).not.toContain('color-mix');
+        expect(report.dropped.some((f) => f.what.startsWith('background:'))).toBe(false);
+    });
+
+    it('drops what no theme can resolve: currentColor and recipe-local properties', () => {
+        const themes = [{ name: 'light', colorScheme: 'light' as const, isDefault: true, colors: { primary: '#000000' } }];
+        const report = emptyReport();
+        const css = compileLynxRecipeCss(
+            {
+                component: 'button',
+                parts: {
+                    root: {
+                        base: {
+                            boxShadow: '0 1px color-mix(in oklab, currentColor 10%, #0000)',
+                            borderColor: 'color-mix(in oklab, var(--btn-accent) 50%, white)',
+                        },
+                    },
+                },
+            },
+            button,
+            report,
+            themes,
+        );
+        // Neither can bake — `currentColor` is a runtime value and
+        // `--btn-accent` is recipe-local, so it has no per-theme literal.
+        // Dropped rather than thrown: legible degradation, not an author error.
+        expect(css).not.toContain('box-shadow');
+        expect(css).not.toContain('border-color');
+        expect(report.dropped.some((f) => f.detail.includes('currentColor'))).toBe(true);
+        expect(report.dropped.some((f) => f.detail.includes('--btn-accent'))).toBe(true);
     });
 
     it('rejects web-runtime property references', () => {
@@ -206,11 +269,15 @@ describe('compileLynxRecipeCss', () => {
 describe('whole-skin lynx output is structurally lynx-safe', () => {
     // The compile-time analogue of the on-device css-engine probe, over the
     // ENTIRE emitted stylesheet of both opted-in skins: nothing the lynx
-    // engine cannot parse may appear, and every selector is a flat class
-    // compound (the axis push-down contract has no combinators).
+    // engine cannot parse may appear, and every selector is either a flat
+    // class compound or a theme host followed by one (the per-theme
+    // restatements; the axis push-down contract has no other combinators).
+    //
+    // `calc(var(*))` is deliberately NOT forbidden — measured working on
+    // device, see the recipe test above.
     const FORBIDDEN = [
         /@layer/, /@property/, /@starting-style/, /@media/, /@supports/, /@scope/,
-        /light-dark\(/, /oklch\(/, /oklab\(/, /color-mix\(/, /calc\(var\(/,
+        /light-dark\(/, /oklch\(/, /oklab\(/, /color-mix\(/,
         /:root/, /\[data-/, /::/, /:hover/, /:focus/, /:active/, /:not\(/,
     ] as const;
     it.each([
@@ -221,9 +288,48 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
         for (const pattern of FORBIDDEN) {
             expect(indexCss, String(pattern)).not.toMatch(pattern);
         }
+        const COMPOUND = '(\\.[A-Za-z0-9_-]+)+';
+        const SELECTOR = new RegExp(`^(${COMPOUND} )?${COMPOUND} \\{$`);
         for (const line of indexCss.split('\n')) {
             if (!line.endsWith('{') || line.startsWith('@keyframes') || line.trim().endsWith('% {') || ['from {', 'to {'].includes(line.trim())) continue;
-            expect(line.trim(), line).toMatch(/^(\.[A-Za-z0-9_-]+)+ \{$/);
+            expect(line.trim(), line).toMatch(SELECTOR);
         }
+    });
+
+    // The guard that would have caught signalxjs/lynx#1029: 24 custom
+    // properties used and never defined, reaching 295 of 1043 rules. On lynx
+    // an unresolvable var() does not fall back — the element paints nothing.
+    it.each([
+        ['zero-basic', basicDS],
+        ['zero-daisyui', daisyDS],
+    ])('%s defines every custom property it reads', (name, ds) => {
+        const { indexCss } = compileDesignSystemLynx(ds as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
+        expect(() => assertNoDanglingVars(name, indexCss)).not.toThrow();
+    });
+});
+
+describe('assertNoDanglingVars', () => {
+    it('accepts a property the stylesheet defines, anywhere in it', () => {
+        expect(() => assertNoDanglingVars('ds', '.a { --x: 1px; }\n.b { width: var(--x); }')).not.toThrow();
+    });
+
+    it('rejects one nothing defines, and names it', () => {
+        expect(() => assertNoDanglingVars('ds', '.b { width: var(--gone); }'))
+            .toThrow(/reads 1 custom property that nothing defines: --gone/);
+    });
+
+    it('accepts a reference that carries its own fallback', () => {
+        expect(() => assertNoDanglingVars('ds', '.b { width: var(--maybe, 8px); }')).not.toThrow();
+    });
+
+    it('still checks what a fallback itself reads', () => {
+        // The whole point of scanning fallbacks rather than blanking them: the
+        // outer reference is excused, the inner one is not.
+        expect(() => assertNoDanglingVars('ds', '.b { width: var(--maybe, var(--gone)); }'))
+            .toThrow(/--gone/);
+        expect(() => assertNoDanglingVars('ds', '.b { color: var(--maybe, color-mix(in oklab, var(--gone), white)); }'))
+            .toThrow(/--gone/);
+        expect(() => assertNoDanglingVars('ds', '.a { --x: red; }\n.b { color: var(--maybe, var(--x)); }'))
+            .not.toThrow();
     });
 });

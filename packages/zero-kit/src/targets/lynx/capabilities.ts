@@ -9,9 +9,20 @@
  * selectors, stylesheet/inline custom properties on a host class,
  * `@keyframes`/`transition`/`@font-face` — and none of the web's attribute
  * selectors, pseudo-classes, pseudo-elements, `:root`, `@layer`, `@property`,
- * `@starting-style`, `oklch()`, `color-mix()` or `light-dark()`. `var()` of a
- * same-scope color token is the one proven indirection; `calc(var(*))` and
- * var→var chains are unproven and deliberately avoided.
+ * `@starting-style`, `oklch()`, `color-mix()` or `light-dark()`.
+ *
+ * `var()` indirection: measured on device (signalxjs/lynx#1029, iPhone 16 Pro
+ * / iOS 18.3, via the Zero Pilot probe card), lynx resolves a color token
+ * `var()`, a var→var chain, `rem`, and `calc()` over a token `var()`. This
+ * file previously assumed the last two did not work and dropped every
+ * declaration using them — 216 of zero-daisyui's 594 drops, including the
+ * whole of daisy's size system, which is `calc(var(--size-*) * n)`.
+ *
+ * The one thing `var()` does NOT do here is fall back. An unresolvable
+ * reference does not compute to an initial value the way the web's
+ * invalid-at-computed-value-time rule does; the declaration is dropped and
+ * the element paints nothing at all. That is why `assertNoDanglingVars`
+ * refuses to ship a stylesheet reading a property nothing defines.
  *
  * Three verdicts:
  *

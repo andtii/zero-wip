@@ -27,7 +27,8 @@ export {
     hasUnsupportedColorFunction,
     runtimePropertyIn,
 } from './capabilities.js';
-export { compileLynxTokensCss } from './tokens-css.js';
+export { STRUCTURAL_FALLBACKS, compileLynxTokensCss, lynxThemeColors } from './tokens-css.js';
+export type { LynxThemeColors } from './recipe-css.js';
 export { compileLynxRecipeCss } from './recipe-css.js';
 export type { CompiledLynxTarget, LynxTargetManifest } from './compile.js';
-export { compileDesignSystemLynx, writeLynxArtifacts } from './compile.js';
+export { assertNoDanglingVars, compileDesignSystemLynx, writeLynxArtifacts } from './compile.js';
