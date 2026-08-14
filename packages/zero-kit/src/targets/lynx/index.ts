@@ -24,6 +24,7 @@ export {
     bakeSoft,
     emptyReport,
     foldConstantCalc,
+    hasComparisonFunction,
     hasUnsupportedColorFunction,
     runtimePropertyIn,
 } from './capabilities.js';

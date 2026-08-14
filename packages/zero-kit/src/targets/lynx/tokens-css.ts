@@ -33,7 +33,7 @@ import {
 import type { RolesDecl, SystemTokens, ThemeInput, TokensInput } from '../../tokens.js';
 import { resolveSystemTokens } from '../shared.js';
 import type { LynxCapabilityReport } from './capabilities.js';
-import { bakeColor, bakeColorValue, bakeSoft, hasUnsupportedColorFunction, runtimePropertyIn } from './capabilities.js';
+import { bakeColor, bakeColorValue, bakeSoft, hasComparisonFunction, hasUnsupportedColorFunction, runtimePropertyIn } from './capabilities.js';
 import { HOST_CLASS, themeClass } from './class-names.js';
 import type { LynxThemeColors } from './recipe-css.js';
 
@@ -169,6 +169,21 @@ function bakedNonColor(
             throw new Error(
                 `[zero-kit] ${where}: "${prop}" references ${runtime}, a web-runtime-published property with no lynx equivalent — move it into a web-only section`,
             );
+        }
+        if (hasComparisonFunction(value)) {
+            // Same verdict as the recipe emitter: lynx does not implement
+            // min()/max()/clamp(), so a token declared with one would be
+            // dropped on device and every reference to it would then resolve
+            // to nothing. Dropping it here is what makes that visible — and
+            // what `assertNoDanglingVars` turns into a build failure if
+            // anything still reads it.
+            report.dropped.push({
+                where,
+                what: `${prop}: ${value}`,
+                detail: 'min()/max()/clamp() are not implemented by lynx\'s engine — dropped; declare a literal for this target instead',
+            });
+            delete inlined[prop];
+            continue;
         }
         if (hasUnsupportedColorFunction(value)) {
             // A color function anywhere in the value — a whole-value accent
