@@ -103,6 +103,30 @@ export const hasUnsupportedColorFunction = (value: string): boolean =>
     COLOR_FUNCTION_PATTERN.test(value);
 
 /**
+ * CSS Values 4 comparison functions, which lynx's engine does not implement.
+ *
+ * `min()` was measured failing on device in both the shapes daisyUI uses —
+ * `min(var, var)` and `min()` nested inside `calc()` — with the declaration
+ * dropped and the element laid out as though it had never been written
+ * (signalxjs/lynx#1066, iPhone 16 Pro / iOS 18.3). `max()` and `clamp()` are
+ * the same spec feature; no engine has ever shipped one of the three without
+ * the others, so they are refused on that evidence rather than each waiting
+ * for its own probe.
+ *
+ * Dropped rather than folded. A folder would need to be unit-aware, and the
+ * motivating case defeats it anyway: daisy's switch radius mixes `rem` (the
+ * theme's radii) with `px` (`--border`), which cannot reduce to a single
+ * literal without assuming a root font size. A recorded drop tells the design
+ * system to supply a lynx replacement; emitting it anyway ships a declaration
+ * that never applies, which is precisely the failure mode this target was
+ * already bitten by.
+ */
+const COMPARISON_FUNCTION_PATTERN = /\b(?:min|max|clamp)\(/;
+
+export const hasComparisonFunction = (value: string): boolean =>
+    COMPARISON_FUNCTION_PATTERN.test(value);
+
+/**
  * Fold `calc()` of NUMERIC LITERALS to the number it computes —
  * `calc(1 * 0.1)` → `0.1`. daisyUI spells constant alphas that way
  * (`oklch(0% 0 0 / calc(1 * 0.1))`), and culori cannot parse calc. Only pure

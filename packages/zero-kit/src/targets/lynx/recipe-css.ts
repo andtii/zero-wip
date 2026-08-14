@@ -40,6 +40,7 @@ import type { LynxCapabilityReport } from './capabilities.js';
 import {
     INTERACTION_STATE_CLASSES,
     bakeColorValue,
+    hasComparisonFunction,
     hasUnsupportedColorFunction,
     runtimePropertyIn,
 } from './capabilities.js';
@@ -82,6 +83,7 @@ const FLEX_NUMBER = /^\s*(\d+(?:\.\d+)?)\s*$/;
 
 /** The one color keyword that is a RUNTIME value, so nothing can bake it. */
 const CURRENT_COLOR = /\bcurrentcolor\b/i;
+
 
 /** Every `var(--x)` a value reads. */
 const ANY_VAR = /var\(\s*(--[A-Za-z0-9_-]+)/g;
@@ -142,6 +144,14 @@ function checkedProps(
             out['flexShrink'] = '1';
             out['flexBasis'] = '0%';
             report.translated.push({ where, what: `flex: ${value}`, detail: 'expanded to flex-grow/flex-shrink/flex-basis — lynx mis-expands the shorthand' });
+            continue;
+        }
+        if (hasComparisonFunction(value)) {
+            report.dropped.push({
+                where,
+                what: `${prop}: ${value}`,
+                detail: 'min()/max()/clamp() are not implemented by lynx\'s engine — the declaration would be dropped on device and lay out as though never written; dropped here instead, supply a lynx replacement in the recipe target section',
+            });
             continue;
         }
         if (hasUnsupportedColorFunction(value)) {

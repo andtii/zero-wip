@@ -29,7 +29,7 @@ import { tokens as daisyTokens } from '@sigx/zero-daisyui';
  */
 const FORBIDDEN = [
     /@layer/, /@property/, /@starting-style/, /@media/, /@supports/,
-    /light-dark\(/, /oklch\(/, /oklab\(/, /color-mix\(/,
+    /light-dark\(/, /oklch\(/, /oklab\(/, /color-mix\(/, /\bmin\(/, /\bmax\(/, /clamp\(/,
     /:root/, /\[data-/,
 ] as const;
 

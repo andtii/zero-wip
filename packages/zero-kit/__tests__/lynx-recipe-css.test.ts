@@ -158,6 +158,36 @@ describe('compileLynxRecipeCss', () => {
         expect(report.dropped.some((f) => f.what.includes('calc(var(--size-field)'))).toBe(false);
     });
 
+    it('drops min()/max()/clamp() rather than emitting a declaration lynx ignores', () => {
+        const { css, report } = compile({
+            component: 'button',
+            parts: {
+                root: {
+                    base: {
+                        // Both shapes daisy's switch uses, measured failing on
+                        // device (signalxjs/lynx#1066): bare, and inside calc().
+                        width: 'min(var(--size-field), 10rem)',
+                        borderRadius: 'calc(var(--radius-field) + min(var(--border), 2px))',
+                        // `max()` and `clamp()` are the same spec feature.
+                        height: 'max(1rem, 2rem)',
+                        padding: 'clamp(1px, 2px, 3px)',
+                    },
+                },
+            },
+        });
+        expect(css).not.toContain('min(');
+        expect(css).not.toContain('max(');
+        expect(css).not.toContain('clamp(');
+        expect(report.dropped.filter((f) => f.detail.includes('min()/max()/clamp()'))).toHaveLength(4);
+        // A plain calc() over var() is untouched — only the comparison
+        // functions are refused.
+        const plain = compile({
+            component: 'button',
+            parts: { root: { base: { width: 'calc(var(--size-field) * 4)' } } },
+        });
+        expect(plain.css).toContain('calc(var(--size-field) * 4)');
+    });
+
     it('bakes literal color functions, and drops theme-var-dependent ones with no themes to bake against', () => {
         const { css, report } = compile({
             component: 'button',
@@ -277,7 +307,7 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
     // device, see the recipe test above.
     const FORBIDDEN = [
         /@layer/, /@property/, /@starting-style/, /@media/, /@supports/, /@scope/,
-        /light-dark\(/, /oklch\(/, /oklab\(/, /color-mix\(/,
+        /light-dark\(/, /oklch\(/, /oklab\(/, /color-mix\(/, /\bmin\(/, /\bmax\(/, /clamp\(/,
         /:root/, /\[data-/, /::/, /:hover/, /:focus/, /:active/, /:not\(/,
     ] as const;
     it.each([
