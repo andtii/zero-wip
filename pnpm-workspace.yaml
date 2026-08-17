@@ -22,5 +22,5 @@ catalog:
   # and e2e goes dark. Safe to diverge from the runtime five: the single-minor
   # rule above exists for @sigx/reactivity's module-state singletons, and the
   # vite plugin is build-time only. Un-pin when the upstream fix ships.
-  "@sigx/vite": ^0.13.0
+  "@sigx/vite": ^0.15.0
   sigx: ^0.15.0
