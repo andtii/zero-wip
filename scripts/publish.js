@@ -156,7 +156,7 @@ function isAlreadyPublished(name, version) {
  */
 function distTagFor(version) {
     if (tag) return tag;
-    const prerelease = /^\d+\.\d+\.\d+-([0-9A-Za-z]+)/.exec(version);
+    const prerelease = /^\d+\.\d+\.\d+-([0-9A-Za-z-]+)/.exec(version);
     return prerelease ? prerelease[1] : null;
 }
 
