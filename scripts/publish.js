@@ -148,12 +148,25 @@ function isAlreadyPublished(name, version) {
     }
 }
 
+/**
+ * npm refuses to publish a prerelease version without an explicit dist-tag
+ * (an untagged publish would land on `latest`). When no --tag is given,
+ * derive it from the first prerelease identifier: 0.2.0-beta.3 → beta.
+ * Stable versions keep npm's default (`latest`).
+ */
+function distTagFor(version) {
+    if (tag) return tag;
+    const prerelease = /^\d+\.\d+\.\d+-([0-9A-Za-z-]+)/.exec(version);
+    return prerelease ? prerelease[1] : null;
+}
+
 function publishPackage(pkg) {
     const fullPath = join(rootDir, pkg.path);
+    const distTag = distTagFor(pkg.version);
     // Use pnpm publish to automatically convert workspace:^ to actual versions
     const publishCmd = dryRun
         ? 'pnpm pack --dry-run'
-        : `pnpm publish --access public --no-git-checks${tag ? ` --tag ${tag}` : ''}${provenance ? ' --provenance' : ''}`;
+        : `pnpm publish --access public --no-git-checks${distTag ? ` --tag ${distTag}` : ''}${provenance ? ' --provenance' : ''}`;
 
     console.log(`\n📦 ${dryRun ? 'Would publish' : 'Publishing'}: ${pkg.name}@${pkg.version}`);
     console.log(`   Path: ${pkg.path}`);
