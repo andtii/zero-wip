@@ -264,6 +264,11 @@ export const tabs: RecipeInput = {
             ]),
         ),
     },
+    // Size only: `md: {}` emits nothing, so this changes no CSS — it states
+    // the default for the manifest (signalxjs/lynx#1070). Deliberately no
+    // `color` default: the un-attributed active tab is a neutral base-100
+    // pill, which is outside the color vocabulary.
+    defaultVariants: { size: 'md' },
 };
 
 /**
@@ -359,6 +364,10 @@ export const collapsible: RecipeInput = {
         } } }])),
         size: disclosureSizes,
     },
+    // Size only: `md: {}` emits nothing, so no CSS changes — manifest fact for
+    // signalxjs/lynx#1070. No `color` default: the un-attributed accent is
+    // base-content ink, outside the color vocabulary.
+    defaultVariants: { size: 'md' },
 };
 
 // daisy "toggle" flavor.
@@ -1361,6 +1370,11 @@ export const progress: RecipeInput = {
             xl: { root: { base: { '--progress-track-size': 'calc(var(--size-selector) * 4.5)' } } },
         },
     },
+    // The base already IS this render — `tokens:` binds the primary accent and
+    // the md track size — so the web `:not()` twins only restate it. Declared
+    // so the manifest states the default for runtimes with no `:not()`
+    // fallback (the lynx target; signalxjs/lynx#1070).
+    defaultVariants: { color: 'primary', size: 'md' },
     keyframes: {
         // Logical, so the sweep runs the way the bar fills — `margin-inline-start`
         // is animatable and direction-aware on its own. The determinate `width`,
@@ -1474,6 +1488,9 @@ export const slider: RecipeInput = {
             xl: { control: { base: { height: 'calc(var(--size-selector) * 8)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
         },
     },
+    // Base equals the default (`tokens:` accent, md control height), so the
+    // twins restate it; declared for the manifest (signalxjs/lynx#1070).
+    defaultVariants: { color: 'primary', size: 'md' },
     skipStates: { root: ['invalid', 'focus-visible'] },
 };
 
@@ -1543,6 +1560,10 @@ export const accordion: RecipeInput = {
         } } }])),
         size: disclosureSizes,
     },
+    // Size only: `md: {}` emits nothing, so no CSS changes — manifest fact for
+    // signalxjs/lynx#1070. No `color` default: the un-attributed accent is
+    // base-content ink, outside the color vocabulary.
+    defaultVariants: { size: 'md' },
 };
 
 /**
@@ -1683,6 +1704,9 @@ export const select: RecipeInput = {
             xl: { trigger: { base: { height: fieldHeight('xl'), paddingInline: 'calc(var(--size-field) * 6)', fontSize: 'var(--text-lg)' } } },
         },
     },
+    // Base equals the default (`tokens:` accent, `fieldControl`'s md height),
+    // so the twins restate it; declared for the manifest (signalxjs/lynx#1070).
+    defaultVariants: { color: 'primary', size: 'md' },
 };
 
 
@@ -2113,6 +2137,10 @@ export const toast: RecipeInput = {
             },
         },
     },
+    // Size only: `md: {}` emits nothing, so no CSS changes — manifest fact for
+    // signalxjs/lynx#1070. No `color` default: the un-attributed toast is a
+    // neutral base-200 surface, outside the color vocabulary.
+    defaultVariants: { size: 'md' },
 };
 
 export const combobox: RecipeInput = {

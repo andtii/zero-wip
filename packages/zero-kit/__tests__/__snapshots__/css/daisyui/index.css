@@ -2462,6 +2462,10 @@
         --progress-accent: color-mix(in oklab, var(--color-primary) 90%, var(--color-primary-content));
     }
 
+    [data-scope="progress"][data-part="root"]:not([data-color]) {
+        --progress-accent: color-mix(in oklab, var(--color-primary) 90%, var(--color-primary-content));
+    }
+
     [data-scope="progress"][data-part="root"][data-color="secondary"] {
         --progress-accent: color-mix(in oklab, var(--color-secondary) 90%, var(--color-secondary-content));
     }
@@ -2499,6 +2503,10 @@
     }
 
     [data-scope="progress"][data-part="root"][data-size="md"] {
+        --progress-track-size: calc(var(--size-selector) * 2.5);
+    }
+
+    [data-scope="progress"][data-part="root"]:not([data-size]) {
         --progress-track-size: calc(var(--size-selector) * 2.5);
     }
 
@@ -2629,6 +2637,10 @@
         --slider-accent: var(--color-primary);
     }
 
+    [data-scope="slider"][data-part="root"]:not([data-color]) {
+        --slider-accent: var(--color-primary);
+    }
+
     [data-scope="slider"][data-part="root"][data-color="secondary"] {
         --slider-accent: var(--color-secondary);
     }
@@ -2678,6 +2690,12 @@
     }
 
     @scope ([data-scope="slider"][data-part="root"][data-size="md"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="label"] {
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="slider"][data-part="root"]:not([data-size])) to ([data-scope="slider"][data-part="root"]) {
         [data-scope="slider"][data-part="label"] {
             font-size: var(--text-sm);
         }
@@ -2997,6 +3015,10 @@
         --select-accent: var(--color-primary);
     }
 
+    [data-scope="select"][data-part="root"]:not([data-color]) {
+        --select-accent: var(--color-primary);
+    }
+
     [data-scope="select"][data-part="root"][data-color="secondary"] {
         --select-accent: var(--color-secondary);
     }
@@ -3042,6 +3064,14 @@
     }
 
     @scope ([data-scope="select"][data-part="root"][data-size="md"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            height: calc(var(--size-field) * 12);
+            padding-inline: calc(var(--size-field) * 4);
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="select"][data-part="root"]:not([data-size])) to ([data-scope="select"][data-part="root"]) {
         [data-scope="select"][data-part="trigger"] {
             height: calc(var(--size-field) * 12);
             padding-inline: calc(var(--size-field) * 4);

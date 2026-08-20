@@ -106,6 +106,10 @@
         --slider-accent: var(--color-primary);
     }
 
+    [data-scope="slider"][data-part="root"]:not([data-color]) {
+        --slider-accent: var(--color-primary);
+    }
+
     [data-scope="slider"][data-part="root"][data-color="secondary"] {
         --slider-accent: var(--color-secondary);
     }
@@ -155,6 +159,12 @@
     }
 
     @scope ([data-scope="slider"][data-part="root"][data-size="md"]) to ([data-scope="slider"][data-part="root"]) {
+        [data-scope="slider"][data-part="label"] {
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="slider"][data-part="root"]:not([data-size])) to ([data-scope="slider"][data-part="root"]) {
         [data-scope="slider"][data-part="label"] {
             font-size: var(--text-sm);
         }

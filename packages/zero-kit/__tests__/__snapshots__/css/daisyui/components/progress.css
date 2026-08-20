@@ -49,6 +49,10 @@
         --progress-accent: color-mix(in oklab, var(--color-primary) 90%, var(--color-primary-content));
     }
 
+    [data-scope="progress"][data-part="root"]:not([data-color]) {
+        --progress-accent: color-mix(in oklab, var(--color-primary) 90%, var(--color-primary-content));
+    }
+
     [data-scope="progress"][data-part="root"][data-color="secondary"] {
         --progress-accent: color-mix(in oklab, var(--color-secondary) 90%, var(--color-secondary-content));
     }
@@ -86,6 +90,10 @@
     }
 
     [data-scope="progress"][data-part="root"][data-size="md"] {
+        --progress-track-size: calc(var(--size-selector) * 2.5);
+    }
+
+    [data-scope="progress"][data-part="root"]:not([data-size]) {
         --progress-track-size: calc(var(--size-selector) * 2.5);
     }
 

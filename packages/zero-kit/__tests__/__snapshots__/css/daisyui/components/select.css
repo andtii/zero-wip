@@ -125,6 +125,10 @@
         --select-accent: var(--color-primary);
     }
 
+    [data-scope="select"][data-part="root"]:not([data-color]) {
+        --select-accent: var(--color-primary);
+    }
+
     [data-scope="select"][data-part="root"][data-color="secondary"] {
         --select-accent: var(--color-secondary);
     }
@@ -170,6 +174,14 @@
     }
 
     @scope ([data-scope="select"][data-part="root"][data-size="md"]) to ([data-scope="select"][data-part="root"]) {
+        [data-scope="select"][data-part="trigger"] {
+            height: calc(var(--size-field) * 12);
+            padding-inline: calc(var(--size-field) * 4);
+            font-size: var(--text-sm);
+        }
+    }
+
+    @scope ([data-scope="select"][data-part="root"]:not([data-size])) to ([data-scope="select"][data-part="root"]) {
         [data-scope="select"][data-part="trigger"] {
             height: calc(var(--size-field) * 12);
             padding-inline: calc(var(--size-field) * 4);
