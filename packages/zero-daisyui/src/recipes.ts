@@ -1488,8 +1488,10 @@ export const slider: RecipeInput = {
             xl: { control: { base: { height: 'calc(var(--size-selector) * 8)' } }, label: { base: { fontSize: 'var(--text-lg)' } } },
         },
     },
-    // Base equals the default (`tokens:` accent, md control height), so the
-    // twins restate it; declared for the manifest (signalxjs/lynx#1070).
+    // Base equals the default — `tokens:` binds the primary accent, and `md`
+    // only restates the label font-size the base already declares (the
+    // control's base height IS the middle step) — so the twins restate it;
+    // declared for the manifest (signalxjs/lynx#1070).
     defaultVariants: { color: 'primary', size: 'md' },
     skipStates: { root: ['invalid', 'focus-visible'] },
 };
