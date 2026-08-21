@@ -1815,6 +1815,47 @@ export const slider: RecipeInput = {
     // declared for the manifest (signalxjs/lynx#1070).
     defaultVariants: { color: 'primary', size: 'md' },
     skipStates: { root: ['invalid', 'focus-visible'] },
+    // ONE design decision, two paints. On the web the accent reaches the
+    // screen twice: the native control is UA-drawn behind `accent-color`, and
+    // the composed range/thumb deepen the accent with `color-mix()`. Lynx
+    // renders neither spelling — `accent-color` styles a native
+    // `<input type=range>` lynx does not have, and the emitter drops
+    // `color-mix()` as unresolvable — so the compiled range and thumb shipped
+    // with no paint at all: grey track, invisible fill, invisible knob
+    // (measured on device, signalxjs/lynx#1075). The geometry all survives
+    // (the sizes are direct calc(), proven working); paint is the only gap,
+    // so this section only restates paint, in lynx-expressible spellings.
+    targets: {
+        lynx: {
+            parts: {
+                range: {
+                    // The web fill deepens the accent 90/10 toward
+                    // base-content (`progressFill`'s recipe); the plain
+                    // accent — a var() chain, proven working on device — is
+                    // the closest lynx-expressible equivalent.
+                    base: { background: 'var(--slider-accent)' },
+                },
+                thumb: {
+                    // daisy's real range thumb (daisyUI 5 `range.css`
+                    // `::-webkit-slider-thumb`): a base-100 knob
+                    // (`background-color: var(--range-thumb)`, with
+                    // `--range-thumb: var(--color-base-100)`) ringed by the
+                    // accent (`border: var(--range-p) solid` in the range's
+                    // currentColor, `--range-p: .25rem` — daisy's own
+                    // literal, deliberately not the theme's size token).
+                    // daisy paints the progress fill itself as a 100cqw
+                    // box-shadow thrown off this thumb — a native-input
+                    // trick with no lynx equivalent; the composed
+                    // `.zx-slider__range` box above IS that fill here, so
+                    // the knob only needs its own two paints.
+                    base: {
+                        background: 'var(--color-base-100)',
+                        border: '0.25rem solid var(--slider-accent)',
+                    },
+                },
+            },
+        },
+    },
 };
 
 export const accordion: RecipeInput = {

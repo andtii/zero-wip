@@ -368,6 +368,37 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
             'transform: translateX(calc(var(--switch-size) - (var(--border) + var(--switch-p)) * 2));',
         );
     });
+
+    // The daisy slider's accent reached the web screen twice — `accent-color`
+    // on the native control and `color-mix()` on the composed range/thumb —
+    // and lynx renders neither spelling, so both the fill and the knob
+    // shipped with no paint at all: grey track, invisible range, invisible
+    // thumb (measured on device, signalxjs/lynx#1075). The recipe's
+    // `targets.lynx` section restates the paint as plain var() chains — the
+    // accent on the fill, daisy's real base-100-knob-with-accent-ring on the
+    // thumb — and this pins that both land in the compiled artifact, with the
+    // range and thumb owning their paint outright (no accent-color ride, no
+    // color-mix survivor).
+    it('zero-daisyui slider: the lynx section paints the range and thumb without accent-color', () => {
+        const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
+        const css = componentCss['slider']!;
+        // No unresolvable paint survives anywhere in the skin…
+        expect(css).not.toMatch(/color-mix\(/);
+        // …the fill is the plain accent chain…
+        const range = css.match(/\.zx-slider__range \{[^}]*\}/)?.[0];
+        expect(range).toBeDefined();
+        expect(range).toContain('background: var(--slider-accent);');
+        // …the knob is daisy's real range-thumb look: a base-100 knob ringed
+        // by the accent at daisy's own --range-p (0.25rem)…
+        const thumb = css.match(/\.zx-slider__thumb \{[^}]*\}/)?.[0];
+        expect(thumb).toBeDefined();
+        expect(thumb).toContain('background: var(--color-base-100);');
+        expect(thumb).toContain('border: 0.25rem solid var(--slider-accent);');
+        // …and neither part's paint rides on accent-color (a native-input
+        // mechanism lynx has no renderer for).
+        expect(range).not.toContain('accent-color');
+        expect(thumb).not.toContain('accent-color');
+    });
 });
 
 describe('assertNoDanglingVars', () => {
