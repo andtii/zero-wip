@@ -274,6 +274,16 @@ describe('compileLynxRecipeCss', () => {
         expect(css).toContain('display: flex;');
         expect(css).not.toContain('inline-flex');
         expect(report.translated.some((f) => f.what === 'display: inline-flex')).toBe(true);
+        // The raw lynx css hatch gets the same mechanical fix — it is
+        // otherwise appended verbatim, and inline-flex would still ship.
+        const raw = compile({
+            component: 'button',
+            parts: {},
+            css: '.zx-button__root.zx-m-pill { display: inline-flex; gap: 4px; }',
+        });
+        expect(raw.css).toContain('display: flex; gap: 4px;');
+        expect(raw.css).not.toContain('inline-flex');
+        expect(raw.report.translated.some((f) => f.where.includes('raw stylesheet escape hatch') && f.what === 'display: inline-flex')).toBe(true);
     });
 
     // The calc-chain inliner (#382), measured on device (signalxjs/lynx#1075):

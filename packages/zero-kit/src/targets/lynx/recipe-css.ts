@@ -434,9 +434,22 @@ export function compileLynxRecipeCss(
     // By the time this emitter runs, `resolveRecipeForTarget('lynx')` has
     // already withheld any SHARED `css` (web spelling by definition; the
     // compile records the drop) — a `css` here came from `targets.lynx.css`
-    // and is lynx-authored by construction, so it appends verbatim.
+    // and is lynx-authored by construction, so it appends verbatim, except
+    // for the one mechanical fix the declaration path also applies: an
+    // `inline-flex` display would keep the broken default linear layout on
+    // device (signalxjs/lynx#1075), so it rewrites to `flex` here too.
     let css = inlined.length > 0 ? `${inlined.join('\n\n')}\n` : '';
-    if (recipe.css?.trim()) css += `${recipe.css.trim()}\n`;
+    if (recipe.css?.trim()) {
+        const rewritten = recipe.css.trim().replace(/(\bdisplay\s*:\s*)inline-flex\b/gi, (_whole, head: string) => {
+            report.translated.push({
+                where: `lynx recipe for "${scope}" css (raw stylesheet escape hatch)`,
+                what: 'display: inline-flex',
+                detail: 'rewritten to display: flex — lynx has no inline formatting context, and an unsupported display value keeps the default linear layout (signalxjs/lynx#1075)',
+            });
+            return `${head}flex`;
+        });
+        css += `${rewritten}\n`;
+    }
     for (const [name, body] of Object.entries(recipe.keyframes ?? {})) {
         assertKeyframesName(name, scope);
         // Keyframes bodies are raw strings, so they get the same capability
