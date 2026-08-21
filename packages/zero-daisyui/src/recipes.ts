@@ -565,6 +565,7 @@ export const switchRecipe: RecipeInput = {
                         // No currentColor on this target — the ink is named
                         // directly, and `checked` moves border + fill below.
                         border: 'var(--border) solid var(--switch-ink)',
+                        userSelect: 'none',
                         transition: 'border-color var(--duration-slow) var(--ease-standard), '
                             + 'background-color var(--duration-normal) var(--ease-standard)',
                     },
@@ -591,7 +592,12 @@ export const switchRecipe: RecipeInput = {
                         // The knob's travel is exactly one knob-width: the
                         // content box is two knobs wide, and the knob starts
                         // at the near end. `translateX` is measured working
-                        // on lynx.
+                        // on lynx. The axis is PHYSICAL where the web's
+                        // growing grid column was logical — an RTL layout
+                        // would need a direction-aware multiplier, but the
+                        // lynx grammar carries no direction hook yet and the
+                        // runtime does not stamp one; revisit with the RTL
+                        // plumbing rather than guessing at it here.
                         checked: {
                             backgroundColor: 'var(--switch-accent)',
                             transform: 'translateX(calc(var(--switch-size) - (var(--border) + var(--switch-p)) * 2))',

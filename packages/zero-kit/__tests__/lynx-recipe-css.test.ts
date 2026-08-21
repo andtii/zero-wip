@@ -347,8 +347,11 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
     it('zero-daisyui switch: the lynx section replaces grid/min() with flex + calc()', () => {
         const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
         const css = componentCss['switch']!;
-        // None of the refused/unresolvable constructs survive…
-        expect(css).not.toMatch(/grid/);
+        // None of the refused/unresolvable constructs survive… (the grid
+        // pattern names the LAYOUT constructs — display values and grid-*
+        // properties — so an unrelated future token merely containing the
+        // substring "grid" cannot trip it)
+        expect(css).not.toMatch(/display:\s*(?:inline-)?grid|grid-template|grid-row|grid-column|place-content/);
         expect(css).not.toMatch(/\bmin\(|\bmax\(|\bclamp\(/);
         expect(css).not.toMatch(/currentcolor/i);
         // …the track is a flexed box with daisy's derived width and the
