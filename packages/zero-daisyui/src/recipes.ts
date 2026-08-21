@@ -407,46 +407,21 @@ export const switchRecipe: RecipeInput = {
             },
         },
         control: {
-            base: {
-                // The knob slides because the grid's leading column GROWS:
-                // `0fr 1fr 1fr` → `1fr 1fr 0fr`, with the knob parked in
-                // column 2. That is daisy's own mechanism, and unlike a
-                // `translateX` it is RTL-correct for free.
-                display: 'inline-grid',
-                gridTemplateColumns: '0fr 1fr 1fr',
-                placeContent: 'center',
-                position: 'relative',
-                verticalAlign: 'middle',
-                flexShrink: '0',
-                boxSizing: 'border-box',
-                width: 'calc((var(--switch-size) * 2) - (var(--border) + var(--switch-p)) * 2)',
-                height: 'var(--switch-size)',
-                padding: 'var(--switch-p)',
-                // daisy's radius formula: the selector radius GROWN by the
-                // padding and the border so the knob's own corner and the
-                // track's stay concentric, each clamped at 3× the token so a
-                // square-cornered theme (cyberpunk, wireframe) stays square.
-                '--switch-radius-max': 'calc(var(--radius-selector) + var(--radius-selector) + var(--radius-selector))',
-                borderRadius: 'calc(var(--radius-selector) + min(var(--switch-p), var(--switch-radius-max)) + min(var(--border), var(--switch-radius-max)))',
-                border: 'var(--border) solid currentColor',
-                color: 'var(--switch-ink)',
-                boxShadow: '0 1px color-mix(in oklab, currentColor calc(var(--depth) * 10%), #0000) inset',
-                userSelect: 'none',
-                transition: 'color var(--duration-slow) var(--ease-standard), '
-                    + 'background-color var(--duration-normal) var(--ease-standard), '
-                    + 'grid-template-columns var(--duration-normal) var(--ease-standard)',
-            },
+            // The track's whole box lives in `targets`: the web mechanism is
+            // an inline-grid whose leading column grows, spelled with grid
+            // and `min()` — both measured unresolvable by lynx's engine
+            // (signalxjs/lynx#1066), so the lynx section lays the same
+            // geometry out with flex + calc() instead. Whole blocks move
+            // (not single declarations) so the merged web view keeps its
+            // declaration order and the web goldens stay byte-identical.
             states: {
                 // daisy's checked toggle empties its track to base-100 and paints
                 // the KNOB with the accent — so the checked knob's contrast is
                 // accent-on-base-100, not accent-content-on-accent. Same
                 // trade-off as the checkbox's unchecked outline: 1.11:1 at worst
                 // (sunset/`neutral`), 7.68 at best, daisy's own numbers.
-                checked: {
-                    gridTemplateColumns: '1fr 1fr 0fr',
-                    color: 'var(--switch-accent)',
-                    backgroundColor: 'var(--color-base-100)',
-                },
+                // Both targets restate the paint in their own spelling below.
+                checked: {},
                 unchecked: {},
                 // `invalid` is semantic: it stays error under every colour
                 // variant. Stated as a longhand because the track's border is
@@ -458,24 +433,9 @@ export const switchRecipe: RecipeInput = {
             },
         },
         thumb: {
-            base: {
-                // daisy's `.toggle:before`: a square knob that fills its grid
-                // cell and takes the UNGROWN selector radius, so it is a
-                // rounded square in daisy's rounded-square themes and a circle
-                // only where the theme says so.
-                gridRowStart: '1',
-                gridColumnStart: '2',
-                aspectRatio: '1',
-                width: '100%',
-                height: '100%',
-                borderRadius: 'var(--radius-selector)',
-                backgroundColor: 'currentColor',
-                backgroundSize: 'auto, calc(var(--noise) * 100%)',
-                backgroundImage: 'none, var(--fx-noise)',
-                boxShadow: '0 -1px var(--depth-shade) inset, 0 8px 0 -4px var(--depth-sheen) inset, '
-                    + '0 1px color-mix(in oklab, currentColor calc(var(--depth) * 10%), #0000)',
-                transition: 'background-color var(--duration-instant) var(--ease-standard)',
-            },
+            // Like `control`, the knob's box is per-target: the web knob fills
+            // its grid cell, the lynx knob is an explicit calc() square that
+            // `translateX`es — see `targets` below.
             states: {
                 checked: {},
                 unchecked: {},
@@ -507,6 +467,140 @@ export const switchRecipe: RecipeInput = {
     // control and its text. Declared rather than left implicit so the
     // delegation reads as a decision.
     skipStates: { root: ['focus-visible'] },
+    // ONE design decision, two spellings. The web track is daisy's own
+    // mechanism — an inline-grid whose leading column grows (`0fr 1fr 1fr` →
+    // `1fr 1fr 0fr`) with a min()-clamped radius — and lynx's engine resolves
+    // neither grid nor the comparison functions (measured on device,
+    // signalxjs/lynx#1066; the emitter refuses min()/max()/clamp() on that
+    // evidence). So the whole box moves here per target: the web section is
+    // the original spelling verbatim, the lynx section rebuilds the same
+    // geometry with flex + calc() and slides the knob with `translateX`.
+    targets: {
+        web: {
+            parts: {
+                control: {
+                    base: {
+                        // The knob slides because the grid's leading column GROWS:
+                        // `0fr 1fr 1fr` → `1fr 1fr 0fr`, with the knob parked in
+                        // column 2. That is daisy's own mechanism, and unlike a
+                        // `translateX` it is RTL-correct for free.
+                        display: 'inline-grid',
+                        gridTemplateColumns: '0fr 1fr 1fr',
+                        placeContent: 'center',
+                        position: 'relative',
+                        verticalAlign: 'middle',
+                        flexShrink: '0',
+                        boxSizing: 'border-box',
+                        width: 'calc((var(--switch-size) * 2) - (var(--border) + var(--switch-p)) * 2)',
+                        height: 'var(--switch-size)',
+                        padding: 'var(--switch-p)',
+                        // daisy's radius formula: the selector radius GROWN by the
+                        // padding and the border so the knob's own corner and the
+                        // track's stay concentric, each clamped at 3× the token so a
+                        // square-cornered theme (cyberpunk, wireframe) stays square.
+                        '--switch-radius-max': 'calc(var(--radius-selector) + var(--radius-selector) + var(--radius-selector))',
+                        borderRadius: 'calc(var(--radius-selector) + min(var(--switch-p), var(--switch-radius-max)) + min(var(--border), var(--switch-radius-max)))',
+                        border: 'var(--border) solid currentColor',
+                        color: 'var(--switch-ink)',
+                        boxShadow: '0 1px color-mix(in oklab, currentColor calc(var(--depth) * 10%), #0000) inset',
+                        userSelect: 'none',
+                        transition: 'color var(--duration-slow) var(--ease-standard), '
+                            + 'background-color var(--duration-normal) var(--ease-standard), '
+                            + 'grid-template-columns var(--duration-normal) var(--ease-standard)',
+                    },
+                    states: {
+                        checked: {
+                            gridTemplateColumns: '1fr 1fr 0fr',
+                            color: 'var(--switch-accent)',
+                            backgroundColor: 'var(--color-base-100)',
+                        },
+                    },
+                },
+                thumb: {
+                    base: {
+                        // daisy's `.toggle:before`: a square knob that fills its grid
+                        // cell and takes the UNGROWN selector radius, so it is a
+                        // rounded square in daisy's rounded-square themes and a circle
+                        // only where the theme says so.
+                        gridRowStart: '1',
+                        gridColumnStart: '2',
+                        aspectRatio: '1',
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: 'var(--radius-selector)',
+                        backgroundColor: 'currentColor',
+                        backgroundSize: 'auto, calc(var(--noise) * 100%)',
+                        backgroundImage: 'none, var(--fx-noise)',
+                        boxShadow: '0 -1px var(--depth-shade) inset, 0 8px 0 -4px var(--depth-sheen) inset, '
+                            + '0 1px color-mix(in oklab, currentColor calc(var(--depth) * 10%), #0000)',
+                        transition: 'background-color var(--duration-instant) var(--ease-standard)',
+                    },
+                },
+            },
+        },
+        lynx: {
+            parts: {
+                root: {
+                    // `inline-flex` has no lynx projection; restated as plain
+                    // flex with the direction explicit (lynx does not default
+                    // it the way a browser does).
+                    base: { display: 'flex', flexDirection: 'row', alignItems: 'center' },
+                },
+                control: {
+                    base: {
+                        display: 'flex',
+                        alignItems: 'center',
+                        flexShrink: '0',
+                        boxSizing: 'border-box',
+                        // Same geometry as the web track: daisy's derived
+                        // width, ONE `--switch-size` driving everything.
+                        width: 'calc((var(--switch-size) * 2) - (var(--border) + var(--switch-p)) * 2)',
+                        height: 'var(--switch-size)',
+                        padding: 'var(--switch-p)',
+                        // The radius formula minus its min() clamps: exact for
+                        // every shipped theme (the clamp only bites when the
+                        // padding or border exceeds 3× the selector radius,
+                        // i.e. near-square themes this package does not ship).
+                        borderRadius: 'calc(var(--radius-selector) + var(--switch-p) + var(--border))',
+                        // No currentColor on this target — the ink is named
+                        // directly, and `checked` moves border + fill below.
+                        border: 'var(--border) solid var(--switch-ink)',
+                        transition: 'border-color var(--duration-slow) var(--ease-standard), '
+                            + 'background-color var(--duration-normal) var(--ease-standard)',
+                    },
+                    states: {
+                        checked: {
+                            borderColor: 'var(--switch-accent)',
+                            backgroundColor: 'var(--color-base-100)',
+                        },
+                    },
+                },
+                thumb: {
+                    base: {
+                        // The web knob fills its square grid cell; here the
+                        // same square is explicit: track height minus border
+                        // and padding on both sides.
+                        width: 'calc(var(--switch-size) - (var(--border) + var(--switch-p)) * 2)',
+                        height: 'calc(var(--switch-size) - (var(--border) + var(--switch-p)) * 2)',
+                        borderRadius: 'var(--radius-selector)',
+                        backgroundColor: 'var(--switch-ink)',
+                        transition: 'transform var(--duration-normal) var(--ease-standard), '
+                            + 'background-color var(--duration-instant) var(--ease-standard)',
+                    },
+                    states: {
+                        // The knob's travel is exactly one knob-width: the
+                        // content box is two knobs wide, and the knob starts
+                        // at the near end. `translateX` is measured working
+                        // on lynx.
+                        checked: {
+                            backgroundColor: 'var(--switch-accent)',
+                            transform: 'translateX(calc(var(--switch-size) - (var(--border) + var(--switch-p)) * 2))',
+                        },
+                    },
+                },
+            },
+        },
+    },
 };
 
 // --------------------------------------------------------------------------

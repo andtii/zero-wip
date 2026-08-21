@@ -336,6 +336,35 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
         const { indexCss } = compileDesignSystemLynx(ds as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
         expect(() => assertNoDanglingVars(name, indexCss)).not.toThrow();
     });
+
+    // The daisy switch is the component signalxjs/lynx#1066 was measured on:
+    // its web spelling is an inline-grid track with a min()-clamped radius,
+    // neither of which lynx's engine resolves — the drop left the switch with
+    // no width, radius or ink at all, rendering as bare text beside its
+    // label. The recipe's `targets.lynx` section restates the track/thumb
+    // with flex + calc() and slides the knob with `translateX`; this pins
+    // that the replacement actually lands in the compiled artifact.
+    it('zero-daisyui switch: the lynx section replaces grid/min() with flex + calc()', () => {
+        const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
+        const css = componentCss['switch']!;
+        // None of the refused/unresolvable constructs survive…
+        expect(css).not.toMatch(/grid/);
+        expect(css).not.toMatch(/\bmin\(|\bmax\(|\bclamp\(/);
+        expect(css).not.toMatch(/currentcolor/i);
+        // …the track is a flexed box with daisy's derived width and the
+        // unclamped radius formula…
+        expect(css).toContain('.zx-switch__control {');
+        expect(css).toContain('display: flex;');
+        expect(css).toContain('width: calc((var(--switch-size) * 2) - (var(--border) + var(--switch-p)) * 2);');
+        expect(css).toContain('border-radius: calc(var(--radius-selector) + var(--switch-p) + var(--border));');
+        // …and the knob is an explicit calc() square that travels exactly one
+        // knob-width when checked.
+        expect(css).toContain('.zx-switch__thumb {');
+        expect(css).toContain('height: calc(var(--switch-size) - (var(--border) + var(--switch-p)) * 2);');
+        expect(css).toContain(
+            'transform: translateX(calc(var(--switch-size) - (var(--border) + var(--switch-p)) * 2));',
+        );
+    });
 });
 
 describe('assertNoDanglingVars', () => {
