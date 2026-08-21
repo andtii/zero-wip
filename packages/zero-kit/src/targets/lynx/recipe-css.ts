@@ -203,7 +203,7 @@ function checkedProps(
             report.dropped.push({
                 where,
                 what: `${prop}: ${value}`,
-                detail: `the standalone ${kebabProp} property resolves on iOS but not on Android (measured, signalxjs/lynx#1084) — cross-platform-asymmetric, treated as unsupported; dropped, spell the motion as a transform function (transform: ${kebabProp === 'translate' ? 'translate…(…)' : `${kebabProp}(…)`}) in the recipe's lynx target section`,
+                detail: `the standalone ${kebabProp} property resolves on iOS but not on Android (measured, signalxjs/lynx#1084) — cross-platform-asymmetric, treated as unsupported; dropped, spell the motion as a transform function (${kebabProp === 'translate' ? 'transform: translateX(...) translateY(...)' : `transform: ${kebabProp}(...)`}) in the recipe's lynx target section`,
             });
             continue;
         }
