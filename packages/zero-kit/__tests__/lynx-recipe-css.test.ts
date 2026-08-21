@@ -188,6 +188,36 @@ describe('compileLynxRecipeCss', () => {
         expect(plain.css).toContain('calc(var(--size-field) * 4)');
     });
 
+    it('drops any declaration valued with currentColor — it never resolves on device', () => {
+        // Measured on both platforms (signalxjs/lynx#1079, 0.2.0-beta.4):
+        // a currentColor-valued declaration ships and silently paints
+        // nothing — the daisy tabs underline was transparent everywhere.
+        const { css, report } = compile({
+            component: 'tabs',
+            parts: {
+                tab: {
+                    base: { borderBottom: '3px solid transparent' },
+                    states: {
+                        // Bare, and spelled with CSS's case-insensitivity.
+                        active: { borderBottomColor: 'currentColor', backgroundColor: 'CurrentColor' },
+                    },
+                },
+            },
+        }, tabs);
+        expect(css).not.toMatch(/currentcolor/i);
+        // The rest of the block still emits — the drop is per declaration.
+        expect(css).toContain('border-bottom: 3px solid transparent;');
+        expect(report.dropped.filter((f) => f.detail.includes('currentColor never resolves'))).toHaveLength(2);
+        // A keyframes body painting with it is the same silent no-paint.
+        const kf = compile({
+            component: 'button',
+            parts: { root: { base: { animation: 'pulse 1s' } } },
+            keyframes: { pulse: 'from { background-color: currentColor; } to { background-color: #ffffff; }' },
+        });
+        expect(kf.css).not.toMatch(/currentcolor/i);
+        expect(kf.report.dropped.some((f) => f.what === 'keyframes pulse' && f.detail.includes('currentColor'))).toBe(true);
+    });
+
     it('bakes literal color functions, and drops theme-var-dependent ones with no themes to bake against', () => {
         const { css, report } = compile({
             component: 'button',
@@ -421,6 +451,12 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
         // unsupported but have no mechanical rewrite; daisy's toast still
         // ships grid properties, so they cannot be forbidden here yet.)
         /display:\s*inline-flex/,
+        // currentColor never resolves on lynx — measured on device on BOTH
+        // platforms (signalxjs/lynx#1079): the declaration ships and
+        // silently paints nothing (the daisy tabs underline, checkbox tick
+        // and radio dot were all invisible because of it). The emitter drops
+        // it with a report entry; nothing may ship it.
+        /currentcolor/i,
     ] as const;
     it.each([
         ['zero-basic', basicDS],
@@ -504,6 +540,50 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
         expect(css).toMatch(/\.zx-progress__track\.zx-a-size-lg \{\n\s+height: calc\(var\(--size-selector\) \* 3\.5\);/);
         expect(css).toMatch(/\.zx-progress__track\.zx-a-size-xl \{\n\s+height: calc\(var\(--size-selector\) \* 4\.5\);/);
         expect(css).not.toContain('--progress-track-size');
+    });
+
+    // The daisy tabs border-flavor underline is the component
+    // signalxjs/lynx#1079 was measured on: its active mark was
+    // `border-bottom-color: currentColor`, which never resolves on lynx —
+    // transparent underline on BOTH platforms. The lynx section now bakes the
+    // color axis's active ink into `--tab-active-ink` (per color, per theme —
+    // the same literal the active `color:` rules land as) and the underline
+    // consumes it as a plain var() chain. This pins the whole mechanism in
+    // the compiled artifact.
+    it('zero-daisyui tabs: the border underline spends the color axis ink, not currentColor', () => {
+        const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
+        const css = componentCss['tabs']!;
+        expect(css).not.toMatch(/currentcolor/i);
+        // The underline consumes the named ink…
+        expect(css).toMatch(/\.zx-tabs__tab\.zx-a-variant-border\.zx-s-active \{\n\s+border-bottom-color: var\(--tab-active-ink\);/);
+        // …the un-attributed default is base-content, the shared active ink…
+        expect(css).toContain('--tab-active-ink: var(--color-base-content);');
+        // …and a color-attributed tab's ink is a concrete per-theme literal
+        // (host + two classes, so it beats the one-class default), equal to
+        // the very hex its active `color:` bakes to in the same theme.
+        const ink = css.match(/\.zx-root \.zx-tabs__tab\.zx-a-color-primary \{\n\s+--tab-active-ink: (#[0-9a-f]{6,8});/)?.[1];
+        const activeColor = css.match(/\.zx-root \.zx-tabs__tab\.zx-a-color-primary\.zx-s-active \{\n\s+color: (#[0-9a-f]{6,8});/)?.[1];
+        expect(ink).toBeDefined();
+        expect(ink).toBe(activeColor);
+    });
+
+    // The checkbox tick and the radio ring/dot were the other three
+    // currentColor spends reaching the lynx artifact — all invisible on
+    // device for the same reason, and the unchecked rings' color-mix-over-
+    // currentColor border fallbacks dropped the whole border besides. Their
+    // lynx sections restate all of it with the named accents the web
+    // spellings resolve to.
+    it('zero-daisyui checkbox/radio: marks and rings spend named accents, not currentColor', () => {
+        const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
+        const checkbox = componentCss['checkbox']!;
+        expect(checkbox).not.toMatch(/currentcolor/i);
+        expect(checkbox).toMatch(/\.zx-checkbox__indicator \{[^}]*background-color: var\(--checkbox-on-accent\);/);
+        expect(checkbox).toMatch(/\.zx-checkbox__control \{[^}]*border: var\(--border\) solid var\(--checkbox-accent\);/);
+        const radio = componentCss['radio-group']!;
+        expect(radio).not.toMatch(/currentcolor/i);
+        expect(radio).toMatch(/\.zx-radio-group__item-control \{[^}]*border: var\(--border\) solid var\(--radio-accent\);/);
+        expect(radio).toMatch(/\.zx-radio-group__item-control\.zx-s-checked \{[^}]*border-color: var\(--radio-accent\);/);
+        expect(radio).toMatch(/\.zx-radio-group__item-indicator\.zx-s-checked \{[^}]*background-color: var\(--radio-accent\);/);
     });
 });
 

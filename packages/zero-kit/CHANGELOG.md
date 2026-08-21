@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **Lynx target refuses `currentColor`** (#388): measured on device on both
+  platforms against 0.2.0-beta.4 (signalxjs/lynx#1079), `currentColor` never
+  resolves on lynx — a declaration valued with it ships and silently paints
+  nothing. The recipe emitter (declarations and keyframes bodies) and the
+  tokens emitter now drop every occurrence with a report entry (the #363
+  refuse-with-report pattern), and both structural gates forbid it in the
+  compiled artifacts. zero-daisyui's four affected spends — the tabs
+  border-flavor underline, the checkbox tick, and the radio checked ring and
+  dot — are restated in their recipes' `targets.lynx` sections with the named
+  inks the web spellings resolve to (the tabs color axis now bakes its active
+  ink into a per-color/per-theme `--tab-active-ink` custom property the
+  underline consumes; checkbox/radio spend their accent variables directly),
+  which also restores the checkbox/radio border rings whose
+  color-mix-over-currentColor fallbacks previously dropped whole
+  declarations. The same measurement round cleared the standalone
+  `translate` property and the logical inset/margin properties: proven
+  working on BOTH platforms (an earlier Android failure was a stale build) —
+  they emit as authored, now documented in the capability notes.
+
 ### Added
 
 - **Recipe per-target sections** (#355): `RecipeInput.targets?: { web?,

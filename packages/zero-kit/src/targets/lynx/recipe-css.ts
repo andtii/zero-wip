@@ -93,7 +93,15 @@ const CONTRACT_ATTR_PATTERN = /^&\[data-(orientation|placement)="([a-z-]+)"\]$/;
 /** `flex: <number>` — the shorthand lynx expands RN-style (grow N shrink 1 basis auto). */
 const FLEX_NUMBER = /^\s*(\d+(?:\.\d+)?)\s*$/;
 
-/** The one color keyword that is a RUNTIME value, so nothing can bake it. */
+/**
+ * The one color keyword that is a RUNTIME value, so nothing can bake it — and
+ * measured NEVER resolving on device, on either platform (signalxjs/lynx#1079,
+ * 0.2.0-beta.4): a declaration valued with it ships and silently paints
+ * nothing (the daisy tabs border underline was transparent because of it).
+ * Refused with a report entry wherever it appears, not only inside a color
+ * function — the recipe's lynx section spends the same ink the element's
+ * `color:` rules deliver instead.
+ */
 const CURRENT_COLOR = /\bcurrentcolor\b/i;
 
 
@@ -182,19 +190,22 @@ function checkedProps(
             });
             continue;
         }
+        if (CURRENT_COLOR.test(value)) {
+            // `currentColor` is the element's own computed `color` — a
+            // runtime value no compile-time pass can know, in a theme block
+            // or anywhere else — and it never resolves on device: the
+            // declaration ships and silently paints nothing on BOTH
+            // platforms (measured, signalxjs/lynx#1079 — the daisy tabs
+            // underline was transparent because of it). Dropped wherever it
+            // appears, not only inside a color function.
+            report.dropped.push({
+                where,
+                what: `${prop}: ${value}`,
+                detail: 'currentColor never resolves on lynx (measured on device on both platforms, signalxjs/lynx#1079) — the declaration would ship and silently paint nothing; dropped, spend the ink the element\'s color rules deliver (a plain var() chain or a baked literal) in the recipe\'s lynx target section',
+            });
+            continue;
+        }
         if (hasUnsupportedColorFunction(value)) {
-            if (CURRENT_COLOR.test(value)) {
-                // `currentColor` is the element's own computed `color` — a
-                // runtime value no compile-time pass can know, in a theme
-                // block or anywhere else. Unlike the theme case below, this
-                // is a real loss, so it drops with a report entry.
-                report.dropped.push({
-                    where,
-                    what: `${prop}: ${value}`,
-                    detail: 'a color function over currentColor cannot be evaluated at compile time on any target — dropped; supply a lynx replacement in the recipe target section',
-                });
-                continue;
-            }
             const unbakeable = unbakeableVarIn(value);
             if (unbakeable) {
                 report.dropped.push({
@@ -465,6 +476,17 @@ export function compileLynxRecipeCss(
             throw new Error(
                 `[zero-kit] ${where}: references ${runtime}, a web-runtime-published property with no lynx equivalent — move the keyframes into the recipe's web target section`,
             );
+        }
+        if (CURRENT_COLOR.test(body)) {
+            // Same verdict as the declaration path: currentColor never
+            // resolves on device (signalxjs/lynx#1079), so an animation
+            // painting with it would silently render nothing.
+            report.dropped.push({
+                where,
+                what: `keyframes ${name}`,
+                detail: 'the animation paints with currentColor, which never resolves on lynx (measured, signalxjs/lynx#1079) — dropped; supply a lynx replacement in the recipe target section',
+            });
+            continue;
         }
         const baked = hasUnsupportedColorFunction(body) && !body.includes('var(')
             ? bakeColorValue(body, {}, 'light', where)

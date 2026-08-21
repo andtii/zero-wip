@@ -185,6 +185,18 @@ function bakedNonColor(
             delete inlined[prop];
             continue;
         }
+        if (/\bcurrentcolor\b/i.test(value)) {
+            // Same verdict as the recipe emitter: currentColor never resolves
+            // on device (signalxjs/lynx#1079), so a token carrying it would
+            // make every consuming declaration silently paint nothing.
+            report.dropped.push({
+                where,
+                what: `${prop}: ${value}`,
+                detail: 'currentColor never resolves on lynx (measured on device on both platforms, signalxjs/lynx#1079) — dropped; declare a concrete ink for this target instead',
+            });
+            delete inlined[prop];
+            continue;
+        }
         if (hasUnsupportedColorFunction(value)) {
             // A color function anywhere in the value — a whole-value accent
             // spelled in oklch, or one EMBEDDED in a shadow/border shorthand —

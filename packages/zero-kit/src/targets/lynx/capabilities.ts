@@ -41,6 +41,22 @@
  * - Descendant-from-host selectors (`.zx-root.zx-theme-x .zx-part`) and
  *   theme-baked plain per-theme definitions are proven working as emitted.
  *
+ * Third round of on-device measurement (signalxjs/lynx#1079, 0.2.0-beta.4,
+ * iPhone 16 Pro / iOS 18.3 + Pixel-density Android emulator / API 35):
+ *
+ * - **`currentColor` never resolves — on either platform.** A declaration
+ *   valued with it ships and silently paints nothing (the daisy tabs border
+ *   underline was transparent on both platforms because of it). It is the
+ *   element's own computed `color`, a runtime value no compile-time pass can
+ *   bake, so every occurrence is dropped with a report entry — the recipe's
+ *   lynx section spends the same ink the element's `color:` rules deliver
+ *   instead (a plain var() chain or a theme-baked literal, both proven).
+ * - The standalone `translate` property and the logical inset/margin
+ *   properties (`inset-block-start`, `margin-inline-start`, …) were suspected
+ *   of resolving on iOS only; re-measured against the actual beta.4 artifact
+ *   they are **proven working on BOTH platforms** (the earlier Android
+ *   failure came from a stale app build) — they emit as authored.
+ *
  * Three verdicts:
  *
  * - **translate** — silently, because the result is semantically equivalent:
@@ -51,7 +67,8 @@
  *   losing it is legible styling degradation an author may want to patch in
  *   a lynx recipe section: `hover` states, pseudo-element `selectors:` keys,
  *   `@starting-style`, `@media`/`@supports` conditions, any `selectors:` key
- *   the class grammar cannot express.
+ *   the class grammar cannot express — and any declaration valued with
+ *   `currentColor`, which never resolves on device (signalxjs/lynx#1079).
  * - **reject, failing the build** — the recipe depends on a web runtime
  *   mechanism with no lynx equivalent (`var(--press-x)` and the other
  *   `RUNTIME_PROPERTIES`) or on a value nothing can bake. Silence would ship
