@@ -1712,6 +1712,23 @@ export const select: RecipeInput = {
 };
 
 
+/**
+ * daisy's BUTTON ramp — `.btn`'s fixed height per size step, in `--size-field`
+ * units, exactly as daisyUI 5 ships it (`components/button.css`: `.btn-xs`
+ * `--size: calc(var(--size-field, .25rem) * 6)` through `.btn-xl` `* 14`,
+ * `.btn`/`.btn-md` `* 10` — 1.5 / 2 / 2.5 / 3 / 3.5rem at the default
+ * `--size-field: 0.25rem`).
+ *
+ * Its own table, not `FIELD_STEPS`: this repo's field ramp sits one step
+ * higher than daisy's (md = 12 units, 3rem), and restating the button off it
+ * would bake that offset into a second component. The button states daisy's
+ * own numbers; #376 is exactly what happened while it had no height at all —
+ * padding alone rendered md at ~30px against daisy's 40px.
+ */
+const BTN_STEPS = { xs: 6, sm: 8, md: 10, lg: 12, xl: 14 } as const;
+const btnHeight = (step: keyof typeof BTN_STEPS): string =>
+    `calc(var(--size-field) * ${BTN_STEPS[step]})`;
+
 export const button: RecipeInput = {
     component: 'button',
     // The two axes meet here instead of multiplying. `color` sets the accent
@@ -1849,12 +1866,17 @@ export const button: RecipeInput = {
                 },
             },
         },
+        // daisy sizes a btn by fixed height (`--size`), not by padding: each
+        // step states its `BTN_STEPS` height and keeps the padding/font ramps
+        // for inline air; the root's flex centering absorbs the block axis.
+        // The `<button>` element is UA `border-box`, so the stated height is
+        // the rendered height, border included — as in daisy.
         size: {
-            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } } },
-            sm: { root: { base: { padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-sm)' } } },
-            md: { root: { base: { padding: 'var(--space-sm) var(--space-lg)', fontSize: 'var(--text-md)' } } },
-            lg: { root: { base: { padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-lg)' } } },
-            xl: { root: { base: { padding: 'var(--space-lg) var(--space-2xl)', fontSize: 'var(--text-xl)' } } },
+            xs: { root: { base: { height: btnHeight('xs'), padding: 'var(--space-2xs) var(--space-xs)', fontSize: 'var(--text-xs)' } } },
+            sm: { root: { base: { height: btnHeight('sm'), padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-sm)' } } },
+            md: { root: { base: { height: btnHeight('md'), padding: 'var(--space-sm) var(--space-lg)', fontSize: 'var(--text-md)' } } },
+            lg: { root: { base: { height: btnHeight('lg'), padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-lg)' } } },
+            xl: { root: { base: { height: btnHeight('xl'), padding: 'var(--space-lg) var(--space-2xl)', fontSize: 'var(--text-xl)' } } },
         },
     },
     /**
