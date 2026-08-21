@@ -388,8 +388,9 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
         const range = css.match(/\.zx-slider__range \{[^}]*\}/)?.[0];
         expect(range).toBeDefined();
         expect(range).toContain('background: var(--slider-accent);');
-        // …the knob is daisy's real range-thumb look: a base-100 knob ringed
-        // by the accent at daisy's own --range-p (0.25rem)…
+        // …the knob is daisy's real range-thumb look — a base-100 knob
+        // ringed by the accent — with daisy's `--range-p` border width
+        // stated as its literal value, 0.25rem…
         const thumb = css.match(/\.zx-slider__thumb \{[^}]*\}/)?.[0];
         expect(thumb).toBeDefined();
         expect(thumb).toContain('background: var(--color-base-100);');

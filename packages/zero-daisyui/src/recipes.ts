@@ -1836,18 +1836,21 @@ export const slider: RecipeInput = {
                     base: { background: 'var(--slider-accent)' },
                 },
                 thumb: {
-                    // daisy's real range thumb (daisyUI 5 `range.css`
-                    // `::-webkit-slider-thumb`): a base-100 knob
-                    // (`background-color: var(--range-thumb)`, with
-                    // `--range-thumb: var(--color-base-100)`) ringed by the
-                    // accent (`border: var(--range-p) solid` in the range's
-                    // currentColor, `--range-p: .25rem` — daisy's own
-                    // literal, deliberately not the theme's size token).
-                    // daisy paints the progress fill itself as a 100cqw
-                    // box-shadow thrown off this thumb — a native-input
-                    // trick with no lynx equivalent; the composed
-                    // `.zx-slider__range` box above IS that fill here, so
-                    // the knob only needs its own two paints.
+                    // daisy's real range thumb, ported from daisyUI 5
+                    // `range.css` `::-webkit-slider-thumb`. The source reads
+                    // `background-color: var(--range-thumb)` +
+                    // `border: var(--range-p) solid` in the range's
+                    // currentColor; here each resolves to its value —
+                    // `--range-thumb` defaults to `var(--color-base-100)`,
+                    // `--range-p` is daisy's literal `.25rem` (deliberately
+                    // not the theme's size token), and the border ink is the
+                    // accent (currentColor on a daisy `.range-*` IS the
+                    // accent role) — because on lynx a named value is a
+                    // var-chain fewer to resolve. daisy paints the progress
+                    // fill itself as a 100cqw box-shadow thrown off this
+                    // thumb — a native-input trick with no lynx equivalent;
+                    // the composed `.zx-slider__range` box above IS that
+                    // fill here, so the knob only needs its own two paints.
                     base: {
                         background: 'var(--color-base-100)',
                         border: '0.25rem solid var(--slider-accent)',
