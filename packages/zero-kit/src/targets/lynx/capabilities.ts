@@ -51,11 +51,22 @@
  *   bake, so every occurrence is dropped with a report entry — the recipe's
  *   lynx section spends the same ink the element's `color:` rules deliver
  *   instead (a plain var() chain or a theme-baked literal, both proven).
- * - The standalone `translate` property and the logical inset/margin
- *   properties (`inset-block-start`, `margin-inline-start`, …) were suspected
- *   of resolving on iOS only; re-measured against the actual beta.4 artifact
- *   they are **proven working on BOTH platforms** (the earlier Android
- *   failure came from a stale app build) — they emit as authored.
+ * Fourth round of on-device measurement (signalxjs/lynx#1084, four-bar probe
+ * on the Android emulator; iOS resolves all four bars):
+ *
+ * - **The logical inset/margin/padding spellings (`inset-block-*`,
+ *   `inset-inline-*`, `margin-block-*`, `margin-inline-*`, `padding-block-*`,
+ *   `padding-inline-*`) and the standalone `translate`/`rotate`/`scale`
+ *   properties resolve on iOS but NOT on Android.** An earlier mid-flight
+ *   re-measure declared them working on both platforms — that verdict was
+ *   wrong (the daisy slider thumb sat visibly off-center on Android because
+ *   of it, user-reported and zoom-confirmed). Cross-platform-asymmetric is
+ *   treated as unsupported: every occurrence is dropped with a report entry.
+ *   Physical spellings (`top`/`right`/`bottom`/`left`, physical
+ *   margins/paddings) and `transform`'s `translate…()`/`rotate()`/`scale()`
+ *   functions are proven on BOTH platforms — the recipe's lynx target
+ *   section restates the same geometry with those, which are this target's
+ *   norm (lynx has no RTL flow to make the logical distinction meaningful).
  *
  * Three verdicts:
  *
@@ -67,8 +78,11 @@
  *   losing it is legible styling degradation an author may want to patch in
  *   a lynx recipe section: `hover` states, pseudo-element `selectors:` keys,
  *   `@starting-style`, `@media`/`@supports` conditions, any `selectors:` key
- *   the class grammar cannot express — and any declaration valued with
- *   `currentColor`, which never resolves on device (signalxjs/lynx#1079).
+ *   the class grammar cannot express — any declaration valued with
+ *   `currentColor`, which never resolves on device (signalxjs/lynx#1079) —
+ *   and any logical inset/margin/padding spelling or standalone
+ *   `translate`/`rotate`/`scale` property, which resolve on iOS but not on
+ *   Android (signalxjs/lynx#1084).
  * - **reject, failing the build** — the recipe depends on a web runtime
  *   mechanism with no lynx equivalent (`var(--press-x)` and the other
  *   `RUNTIME_PROPERTIES`) or on a value nothing can bake. Silence would ship

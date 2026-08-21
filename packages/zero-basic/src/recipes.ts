@@ -606,6 +606,18 @@ export const switchRecipe: RecipeInput = {
     // control and its text. Declared rather than left implicit so the
     // delegation reads as a decision.
     skipStates: { root: ['focus-visible'] },
+    // Logical spellings resolve on iOS but not on Android (measured,
+    // signalxjs/lynx#1084) — the emitter refuses them, so the thumb's anchor
+    // is restated physically here. Physical is the lynx target's norm: lynx
+    // has no RTL flow, so the logical anchor's reason to exist (flipping
+    // with reading direction) never engages there.
+    targets: {
+        lynx: {
+            parts: {
+                thumb: { base: { left: 'var(--switch-pad)' } },
+            },
+        },
+    },
 };
 
 export const dialog: RecipeInput = {
@@ -1019,6 +1031,21 @@ export const menu: RecipeInput = {
     // Trigger-carried axes — same wiring as dialog, same reason. The popup
     // and its items are top-layer siblings the donut cannot reach.
     variants: { color: quietTriggerColors(), size: quietTriggerSizes },
+    // The marker rail's pulled-back padding, restated physically: logical
+    // spellings resolve on iOS but not on Android (measured,
+    // signalxjs/lynx#1084), so the emitter refuses them. Physical is the
+    // lynx target's norm — no RTL flow there for the logical spelling to
+    // flip with.
+    targets: {
+        lynx: {
+            parts: {
+                item: { base: { paddingLeft: 'calc(var(--space-lg) - 2px)' } },
+                'checkbox-item': { base: { paddingLeft: 'calc(var(--space-lg) - 2px)' } },
+                'radio-item': { base: { paddingLeft: 'calc(var(--space-lg) - 2px)' } },
+                'sub-trigger': { base: { paddingLeft: 'calc(var(--space-lg) - 2px)' } },
+            },
+        },
+    },
 };
 
 export const field: RecipeInput = {
@@ -1462,6 +1489,19 @@ export const progress: RecipeInput = {
         // already mirroring while this travelled the other way.
         'zero-basic-indeterminate': 'from { margin-inline-start: -40%; } to { margin-inline-start: 100%; }',
     },
+    // The same sweep with a physical margin: logical spellings resolve on
+    // iOS but not on Android (measured, signalxjs/lynx#1084), so the emitter
+    // refuses the shared keyframes. Physical is the lynx target's norm — no
+    // RTL flow there, so the direction-aware spelling has nothing to flip
+    // with. Keyframes merge per name, so this REPLACES the shared animation
+    // on lynx.
+    targets: {
+        lynx: {
+            keyframes: {
+                'zero-basic-indeterminate': 'from { margin-left: -40%; } to { margin-left: 100%; }',
+            },
+        },
+    },
 };
 
 export const slider: RecipeInput = {
@@ -1684,6 +1724,32 @@ export const slider: RecipeInput = {
                         '--slider-track':
                             'linear-gradient(to right, var(--slider-accent) var(--slider-percent, 50%), var(--color-base-200) 0)',
                     },
+                },
+            },
+        },
+        // The composed geometry, restated physically: logical spellings and
+        // the standalone `translate` property resolve on iOS but not on
+        // Android (measured, signalxjs/lynx#1084 — the thumb sat off-center
+        // there), so the emitter refuses them. Physical spellings and
+        // `transform` functions are proven on both platforms, and physical
+        // is the lynx target's norm (no RTL flow to flip with).
+        lynx: {
+            parts: {
+                track: {
+                    base: {
+                        marginTop: 'calc((var(--slider-thumb-size) - var(--slider-track-size)) / 2)',
+                        marginBottom: 'calc((var(--slider-thumb-size) - var(--slider-track-size)) / 2)',
+                    },
+                },
+                thumb: {
+                    base: {
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        marginLeft: 'calc(var(--slider-thumb-size) / -2)',
+                    },
+                },
+                mark: {
+                    base: { paddingTop: 'calc(var(--slider-track-size) + var(--space-2xs))' },
                 },
             },
         },
@@ -1978,6 +2044,17 @@ export const select: RecipeInput = {
     // `outline` is the un-attributed render, so its empty entry above is a
     // claim rather than an omission — the same shape carbon's `lg` button uses.
     defaultVariants: { variant: 'outline' },
+    // The marker rail's pulled-back padding, restated physically: logical
+    // spellings resolve on iOS but not on Android (measured,
+    // signalxjs/lynx#1084), so the emitter refuses them. Physical is the
+    // lynx target's norm — no RTL flow there to flip with.
+    targets: {
+        lynx: {
+            parts: {
+                item: { base: { paddingLeft: 'calc(var(--space-lg) - 2px)' } },
+            },
+        },
+    },
 };
 
 export const button: RecipeInput = {
@@ -2385,6 +2462,24 @@ export const toast: RecipeInput = {
             },
         },
     },
+    // The corner placements' physical anchors: logical inset spellings
+    // resolve on iOS but not on Android (measured, signalxjs/lynx#1084), so
+    // the emitter refuses them. Physical is the lynx target's norm — no RTL
+    // flow there, so `start` IS left and `end` IS right.
+    targets: {
+        lynx: {
+            parts: {
+                viewport: {
+                    selectors: {
+                        '&[data-placement="top-start"]': { left: '0' },
+                        '&[data-placement="top-end"]': { right: '0' },
+                        '&[data-placement="bottom-start"]': { left: '0' },
+                        '&[data-placement="bottom-end"]': { right: '0' },
+                    },
+                },
+            },
+        },
+    },
 };
 
 export const combobox: RecipeInput = {
@@ -2571,6 +2666,17 @@ export const combobox: RecipeInput = {
     skipStates: {
         input: ['focus-visible'],
         trigger: ['focus-visible'],
+    },
+    // The marker rail's pulled-back padding, restated physically: logical
+    // spellings resolve on iOS but not on Android (measured,
+    // signalxjs/lynx#1084), so the emitter refuses them. Physical is the
+    // lynx target's norm — no RTL flow there to flip with.
+    targets: {
+        lynx: {
+            parts: {
+                item: { base: { paddingLeft: 'calc(var(--space-lg) - 2px)' } },
+            },
+        },
     },
 };
 
@@ -3280,6 +3386,20 @@ export const treeView: RecipeInput = {
             xl: { root: { base: { '--tree-text': 'var(--text-lg)' } } },
         },
     },
+    // The marker rail's pulled-back padding and the indent guide's inline
+    // metrics, restated physically: logical spellings resolve on iOS but not
+    // on Android (measured, signalxjs/lynx#1084), so the emitter refuses
+    // them. Physical is the lynx target's norm — no RTL flow there to flip
+    // with.
+    targets: {
+        lynx: {
+            parts: {
+                item: { base: { paddingLeft: 'calc(0.5rem - 2px)' } },
+                'branch-trigger': { base: { paddingLeft: 'calc(0.5rem - 2px)' } },
+                'branch-content': { base: { marginLeft: '0.5rem', paddingLeft: '0.5rem' } },
+            },
+        },
+    },
 };
 
 /**
@@ -3538,6 +3658,26 @@ export const nativeSelect: RecipeInput = {
             md: {},
             lg: { control: { base: { padding: 'var(--space-lg) var(--space-xl)', paddingInlineEnd: 'calc(var(--space-xl) + 1.25em)', fontSize: 'var(--text-md)' } } },
             xl: { control: { base: { padding: 'var(--space-xl) var(--space-2xl)', paddingInlineEnd: 'calc(var(--space-2xl) + 1.25em)', fontSize: 'var(--text-lg)' } } },
+        },
+    },
+    // The chevron gutter and the indicator anchor, restated physically:
+    // logical spellings resolve on iOS but not on Android (measured,
+    // signalxjs/lynx#1084), so the emitter refuses them. Physical is the
+    // lynx target's norm — no RTL flow there, so `end` IS right.
+    targets: {
+        lynx: {
+            parts: {
+                control: { base: { paddingRight: 'calc(var(--space-xl) + 1.25em)' } },
+                indicator: { base: { right: 'var(--space-md)' } },
+            },
+            variants: {
+                size: {
+                    xs: { control: { base: { paddingRight: 'calc(var(--space-xs) + 1.25em)' } } },
+                    sm: { control: { base: { paddingRight: 'calc(var(--space-sm) + 1.25em)' } } },
+                    lg: { control: { base: { paddingRight: 'calc(var(--space-xl) + 1.25em)' } } },
+                    xl: { control: { base: { paddingRight: 'calc(var(--space-2xl) + 1.25em)' } } },
+                },
+            },
         },
     },
 };
@@ -4103,6 +4243,30 @@ export const indicator: RecipeInput = {
             xl: { item: { base: { fontSize: 'var(--text-lg)' } } },
         },
     },
+    // The corner slots, restated physically: logical inset spellings and the
+    // standalone `translate` property resolve on iOS but not on Android
+    // (measured, signalxjs/lynx#1084), so the emitter refuses them. Physical
+    // anchors plus `transform: translate()` are proven on both platforms,
+    // and physical is the lynx target's norm — no RTL flow there, so the
+    // hand-flipped RTL rules above have nothing to engage with either.
+    targets: {
+        lynx: {
+            parts: {
+                item: {
+                    selectors: {
+                        '&[data-placement="top-start"]': { top: '0', left: '0', transform: 'translate(-50%, -50%)' },
+                        '&[data-placement="top"]': { top: '0', left: '50%', transform: 'translate(-50%, -50%)' },
+                        '&[data-placement="top-end"]': { top: '0', right: '0', transform: 'translate(50%, -50%)' },
+                        '&[data-placement="start"]': { top: '50%', left: '0', transform: 'translate(-50%, -50%)' },
+                        '&[data-placement="end"]': { top: '50%', right: '0', transform: 'translate(50%, -50%)' },
+                        '&[data-placement="bottom-start"]': { bottom: '0', left: '0', transform: 'translate(-50%, 50%)' },
+                        '&[data-placement="bottom"]': { bottom: '0', left: '50%', transform: 'translate(-50%, 50%)' },
+                        '&[data-placement="bottom-end"]': { bottom: '0', right: '0', transform: 'translate(50%, 50%)' },
+                    },
+                },
+            },
+        },
+    },
 };
 
 /**
@@ -4433,6 +4597,16 @@ export const chat: RecipeInput = {
             xl: { bubble: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-xl)' } } },
         },
     },
+    // The row's vertical padding, restated physically: logical spellings
+    // resolve on iOS but not on Android (measured, signalxjs/lynx#1084), so
+    // the emitter refuses them.
+    targets: {
+        lynx: {
+            parts: {
+                root: { base: { paddingTop: 'var(--space-2xs)', paddingBottom: 'var(--space-2xs)' } },
+            },
+        },
+    },
 };
 
 /**
@@ -4685,6 +4859,31 @@ export const navbar: RecipeInput = {
             xl: { root: { base: { paddingBlock: 'var(--space-lg)', fontSize: 'var(--text-lg)' } } },
         },
     },
+    // The bar's padding, restated physically: logical spellings resolve on
+    // iOS but not on Android (measured, signalxjs/lynx#1084), so the emitter
+    // refuses them. Physical is the lynx target's norm — no RTL flow there.
+    targets: {
+        lynx: {
+            parts: {
+                root: {
+                    base: {
+                        paddingTop: 'var(--space-sm)',
+                        paddingBottom: 'var(--space-sm)',
+                        paddingLeft: 'var(--space-lg)',
+                        paddingRight: 'var(--space-lg)',
+                    },
+                },
+            },
+            variants: {
+                size: {
+                    xs: { root: { base: { paddingTop: 'var(--space-2xs)', paddingBottom: 'var(--space-2xs)' } } },
+                    sm: { root: { base: { paddingTop: 'var(--space-xs)', paddingBottom: 'var(--space-xs)' } } },
+                    lg: { root: { base: { paddingTop: 'var(--space-md)', paddingBottom: 'var(--space-md)' } } },
+                    xl: { root: { base: { paddingTop: 'var(--space-lg)', paddingBottom: 'var(--space-lg)' } } },
+                },
+            },
+        },
+    },
 };
 
 /**
@@ -4897,6 +5096,16 @@ export const pagination: RecipeInput = {
             xl: { root: { base: { '--pg-size': 'calc(var(--size-field) * 14)', '--pg-font': 'var(--text-lg)' } } },
         },
     },
+    // The cell's inline padding, restated physically: logical spellings
+    // resolve on iOS but not on Android (measured, signalxjs/lynx#1084), so
+    // the emitter refuses them.
+    targets: {
+        lynx: {
+            parts: {
+                item: { base: { paddingLeft: 'var(--space-2xs)', paddingRight: 'var(--space-2xs)' } },
+            },
+        },
+    },
 };
 
 /**
@@ -5043,6 +5252,34 @@ export const steps: RecipeInput = {
             md: {},
             lg: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 8)' } } },
             xl: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 9)', '--steps-font': 'var(--text-md)' } } },
+        },
+    },
+    // The bridge's anchors and the vertical item's tail padding, restated
+    // physically: logical spellings resolve on iOS but not on Android
+    // (measured, signalxjs/lynx#1084), so the emitter refuses them. Physical
+    // is the lynx target's norm — no RTL flow there to mirror with.
+    targets: {
+        lynx: {
+            parts: {
+                item: {
+                    selectors: {
+                        '&[data-orientation="vertical"]': { paddingBottom: 'var(--space-lg)' },
+                    },
+                },
+                separator: {
+                    selectors: {
+                        '&[data-orientation="horizontal"]': {
+                            top: 'calc(var(--space-xs) + var(--steps-ind) / 2)',
+                            left: '50%',
+                        },
+                        '&[data-orientation="vertical"]': {
+                            left: 'calc(var(--space-xs) + (var(--steps-ind) - var(--border)) / 2)',
+                            top: 'calc(var(--space-xs) + var(--steps-ind))',
+                            bottom: 'calc(var(--space-xs) * -1)',
+                        },
+                    },
+                },
+            },
         },
     },
 };
@@ -5510,6 +5747,22 @@ export const carousel: RecipeInput = {
             xl: { root: { base: { '--carousel-dot': '0.875rem', '--carousel-nav': '3rem' } } },
         },
     },
+    // The nav buttons' anchors, restated physically: logical inset
+    // spellings resolve on iOS but not on Android (measured,
+    // signalxjs/lynx#1084), so the emitter refuses them. Physical is the
+    // lynx target's norm — no RTL flow there, so `start` IS left.
+    targets: {
+        lynx: {
+            parts: {
+                'prev-trigger': {
+                    base: { top: 'calc(50% - var(--carousel-nav) / 2)', left: 'var(--space-sm)' },
+                },
+                'next-trigger': {
+                    base: { top: 'calc(50% - var(--carousel-nav) / 2)', right: 'var(--space-sm)' },
+                },
+            },
+        },
+    },
 };
 
 /**
@@ -5754,6 +6007,21 @@ export const diff: RecipeInput = {
                         inlineSize: 'var(--diff-percent)',
                         overflow: 'hidden',
                     },
+                },
+            },
+        },
+        // The reveal pane's pin and the handle's centering margin, restated
+        // physically: logical spellings resolve on iOS but not on Android
+        // (measured, signalxjs/lynx#1084), so the emitter refuses them.
+        // Physical is the lynx target's norm — no RTL flow there to mirror
+        // with.
+        lynx: {
+            parts: {
+                after: {
+                    base: { top: '0', bottom: '0', left: '0' },
+                },
+                handle: {
+                    base: { top: '0', bottom: '0', marginLeft: 'calc(var(--diff-hit) / -2)' },
                 },
             },
         },

@@ -919,6 +919,26 @@ const btnSizes: Record<string, Record<string, PartStyles>> = {
     xl: { trigger: { base: { height: fieldHeight('xl'), paddingInline: 'calc(var(--size-field) * 6)', fontSize: 'var(--text-lg)' } } },
 };
 
+/**
+ * `btn`'s inline padding restated physically, for the `targets.lynx`
+ * sections of every btn-wearing recipe: logical spellings resolve on iOS but
+ * not on Android (measured, signalxjs/lynx#1084), so the lynx emitter
+ * refuses `padding-inline`. Physical is that target's norm — lynx has no
+ * RTL flow for the logical spelling to flip with.
+ */
+const lynxBtnPad = (mult: number): NonNullable<PartStyles['base']> => ({
+    paddingLeft: `calc(var(--size-field) * ${mult})`,
+    paddingRight: `calc(var(--size-field) * ${mult})`,
+});
+
+/** The btn size ramp's physical inline padding, for `targets.lynx.variants`. */
+const lynxBtnSizes = (part: string): Record<string, Record<string, PartStyles>> => ({
+    xs: { [part]: { base: lynxBtnPad(2) } },
+    sm: { [part]: { base: lynxBtnPad(3) } },
+    lg: { [part]: { base: lynxBtnPad(5) } },
+    xl: { [part]: { base: lynxBtnPad(6) } },
+});
+
 export const dialog: RecipeInput = {
     component: 'dialog',
     keyframes: {
@@ -999,6 +1019,19 @@ export const dialog: RecipeInput = {
     // Trigger-carried axes — see `btnColors` for why the popup is out of
     // reach and the trigger is the whole story here.
     variants: { color: btnColors(), size: btnSizes },
+    // The btn paddings and the footer's push-down, restated physically —
+    // see `lynxBtnPad` for the #1084 verdict this answers.
+    targets: {
+        lynx: {
+            parts: {
+                trigger: { base: lynxBtnPad(4) },
+                close: { base: lynxBtnPad(4) },
+                cancel: { base: lynxBtnPad(4) },
+                footer: { base: { marginTop: '1.5rem' } },
+            },
+            variants: { size: lynxBtnSizes('trigger') },
+        },
+    },
 };
 
 // daisy "dropdown-content"/card look for floating panels.
@@ -1041,6 +1074,16 @@ export const popover: RecipeInput = {
     },
     // Trigger-carried axes — same wiring as dialog, same reason.
     variants: { color: btnColors(), size: btnSizes },
+    // The btn paddings, restated physically — see `lynxBtnPad` (#1084).
+    targets: {
+        lynx: {
+            parts: {
+                trigger: { base: lynxBtnPad(4) },
+                close: { base: lynxBtnPad(3) },
+            },
+            variants: { size: lynxBtnSizes('trigger') },
+        },
+    },
 };
 
 export const tooltip: RecipeInput = {
@@ -1077,6 +1120,13 @@ export const tooltip: RecipeInput = {
     // Trigger-carried axes — same wiring as dialog, same reason. The bubble
     // stays daisy's neutral tooltip whatever the trigger's colour.
     variants: { color: btnColors(), size: btnSizes },
+    // The btn paddings, restated physically — see `lynxBtnPad` (#1084).
+    targets: {
+        lynx: {
+            parts: { trigger: { base: lynxBtnPad(4) } },
+            variants: { size: lynxBtnSizes('trigger') },
+        },
+    },
 };
 
 // daisy "menu in a dropdown" look.
@@ -1223,6 +1273,13 @@ export const menu: RecipeInput = {
     // Trigger-carried axes — same wiring as dialog, same reason. The dropdown
     // and its items are top-layer siblings the donut cannot reach.
     variants: { color: btnColors(), size: btnSizes },
+    // The btn paddings, restated physically — see `lynxBtnPad` (#1084).
+    targets: {
+        lynx: {
+            parts: { trigger: { base: lynxBtnPad(4) } },
+            variants: { size: lynxBtnSizes('trigger') },
+        },
+    },
 };
 
 export const field: RecipeInput = {
@@ -1510,7 +1567,23 @@ export const checkbox: RecipeInput = {
                     // The tick's fill: the control's `color:` names
                     // `--checkbox-on-accent`, and `currentColor` was that
                     // ink by inheritance — spend it directly.
-                    base: { backgroundColor: 'var(--checkbox-on-accent)' },
+                    //
+                    // The tick's motion, restated as `transform`: the
+                    // standalone `rotate`/`translate` properties resolve on
+                    // iOS but not on Android (measured, signalxjs/lynx#1084),
+                    // so the emitter refuses them. `transform` functions are
+                    // proven on both platforms — and the transition follows
+                    // the property that now moves.
+                    base: {
+                        backgroundColor: 'var(--checkbox-on-accent)',
+                        transform: 'rotate(45deg)',
+                        transition: 'clip-path var(--duration-slow) var(--ease-standard) var(--duration-instant), '
+                            + 'opacity var(--duration-instant) var(--ease-standard) var(--duration-instant), '
+                            + 'transform var(--duration-slow) var(--ease-standard) var(--duration-instant)',
+                    },
+                    // The order matches the standalone properties' fixed
+                    // apply order (translate, then rotate).
+                    states: { indeterminate: { transform: 'translateY(-35%) rotate(0deg)' } },
                 },
             },
         },
@@ -1762,6 +1835,18 @@ export const progress: RecipeInput = {
         // other way.
         'zero-daisy-indeterminate': 'from { margin-inline-start: -40%; } to { margin-inline-start: 100%; }',
     },
+    // The same sweep with a physical margin: logical spellings resolve on
+    // iOS but not on Android (measured, signalxjs/lynx#1084), so the emitter
+    // refuses the shared keyframes. Physical is the lynx target's norm — no
+    // RTL flow there for the sweep to mirror with. Keyframes merge per name,
+    // so this REPLACES the shared animation on lynx.
+    targets: {
+        lynx: {
+            keyframes: {
+                'zero-daisy-indeterminate': 'from { margin-left: -40%; } to { margin-left: 100%; }',
+            },
+        },
+    },
 };
 
 export const slider: RecipeInput = {
@@ -1887,6 +1972,22 @@ export const slider: RecipeInput = {
     targets: {
         lynx: {
             parts: {
+                track: {
+                    // The web track's `margin-block` breathing room,
+                    // restated physically: logical spellings resolve on iOS
+                    // but not on Android (measured, signalxjs/lynx#1084), so
+                    // the emitter refuses them. Physical is the lynx
+                    // target's norm — no RTL flow there.
+                    base: {
+                        marginTop: 'calc(var(--size-selector) * 1.5)',
+                        marginBottom: 'calc(var(--size-selector) * 1.5)',
+                    },
+                },
+                mark: {
+                    // Same #1084 verdict: the tick labels hang below the
+                    // track off a physical padding.
+                    base: { paddingTop: 'calc(var(--size-selector) * 2 + var(--space-2xs))' },
+                },
                 range: {
                     // The web fill deepens the accent 90/10 toward
                     // base-content (`progressFill`'s recipe); the plain
@@ -1910,9 +2011,20 @@ export const slider: RecipeInput = {
                     // thumb — a native-input trick with no lynx equivalent;
                     // the composed `.zx-slider__range` box above IS that
                     // fill here, so the knob only needs its own two paints.
+                    //
+                    // The centering geometry is restated physically beside
+                    // the paint: `inset-block-start`/`translate`/
+                    // `margin-inline-start` resolve on iOS but not on
+                    // Android (measured, signalxjs/lynx#1084 — the knob sat
+                    // off-center there), so the emitter refuses them.
+                    // `top` + `transform: translateY()` + `margin-left` are
+                    // proven on both platforms.
                     base: {
                         background: 'var(--color-base-100)',
                         border: '0.25rem solid var(--slider-accent)',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        marginLeft: 'calc(var(--size-selector) * -2.5)',
                     },
                 },
             },
@@ -2133,6 +2245,17 @@ export const select: RecipeInput = {
     // Base equals the default (`tokens:` accent, `fieldControl`'s md height),
     // so the twins restate it; declared for the manifest (signalxjs/lynx#1070).
     defaultVariants: { color: 'primary', size: 'md' },
+    // The btn paddings, restated physically — see `lynxBtnPad` (#1084).
+    // The trigger ramp restates `md` too (unlike `btnSizes`), so its lynx
+    // counterpart does as well.
+    targets: {
+        lynx: {
+            parts: { trigger: { base: lynxBtnPad(4) } },
+            variants: {
+                size: { ...lynxBtnSizes('trigger'), md: { trigger: { base: lynxBtnPad(4) } } },
+            },
+        },
+    },
 };
 
 
@@ -2362,6 +2485,17 @@ export const button: RecipeInput = {
     },
     defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },
     keyframes: { 'zero-daisyui-btn-spin': 'to { transform: rotate(360deg) }' },
+    // The icon chips' zeroed inline padding, restated physically: logical
+    // spellings resolve on iOS but not on Android (measured,
+    // signalxjs/lynx#1084), so the emitter refuses them.
+    targets: {
+        lynx: {
+            modifiers: {
+                square: { root: { base: { paddingLeft: '0', paddingRight: '0' } } },
+                circle: { root: { base: { paddingLeft: '0', paddingRight: '0' } } },
+            },
+        },
+    },
 };
 
 export const avatar: RecipeInput = {
@@ -2589,6 +2723,24 @@ export const toast: RecipeInput = {
     // signalxjs/lynx#1070. No `color` default: the un-attributed toast is a
     // neutral base-200 surface, outside the color vocabulary.
     defaultVariants: { size: 'md' },
+    // The corner placements' physical anchors: logical inset spellings
+    // resolve on iOS but not on Android (measured, signalxjs/lynx#1084), so
+    // the emitter refuses them. Physical is the lynx target's norm — no RTL
+    // flow there, so `start` IS left and `end` IS right.
+    targets: {
+        lynx: {
+            parts: {
+                viewport: {
+                    selectors: {
+                        '&[data-placement="top-start"]': { left: '0' },
+                        '&[data-placement="top-end"]': { right: '0' },
+                        '&[data-placement="bottom-start"]': { left: '0' },
+                        '&[data-placement="bottom-end"]': { right: '0' },
+                    },
+                },
+            },
+        },
+    },
 };
 
 export const combobox: RecipeInput = {
@@ -3071,6 +3223,17 @@ export const numberInput: RecipeInput = {
             xl: { control: { base: { height: fieldHeight('xl') } }, input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-xl)' } } },
         },
     },
+    // The steppers' inline padding, restated physically: logical spellings
+    // resolve on iOS but not on Android (measured, signalxjs/lynx#1084), so
+    // the emitter refuses them.
+    targets: {
+        lynx: {
+            parts: {
+                'increment-trigger': { base: { paddingLeft: 'var(--space-lg)', paddingRight: 'var(--space-lg)' } },
+                'decrement-trigger': { base: { paddingLeft: 'var(--space-lg)', paddingRight: 'var(--space-lg)' } },
+            },
+        },
+    },
 };
 
 /**
@@ -3368,6 +3531,16 @@ export const treeView: RecipeInput = {
             xl: { root: { base: { '--tree-text': 'var(--text-lg)' } } },
         },
     },
+    // The indent, restated physically: logical spellings resolve on iOS but
+    // not on Android (measured, signalxjs/lynx#1084), so the emitter refuses
+    // them. Physical is the lynx target's norm — no RTL flow there.
+    targets: {
+        lynx: {
+            parts: {
+                'branch-content': { base: { paddingLeft: 'var(--space-lg)' } },
+            },
+        },
+    },
 };
 
 /**
@@ -3588,6 +3761,26 @@ export const nativeSelect: RecipeInput = {
             md: {},
             lg: { control: { base: { height: fieldHeight('lg'), fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-lg)', paddingInlineEnd: 'calc(var(--space-lg) + 1.25em)' } } },
             xl: { control: { base: { height: fieldHeight('xl'), fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-xl)', paddingInlineEnd: 'calc(var(--space-xl) + 1.25em)' } } },
+        },
+    },
+    // The chevron gutter and the indicator anchor, restated physically:
+    // logical spellings resolve on iOS but not on Android (measured,
+    // signalxjs/lynx#1084), so the emitter refuses them. Physical is the
+    // lynx target's norm — no RTL flow there, so `end` IS right.
+    targets: {
+        lynx: {
+            parts: {
+                control: { base: { paddingRight: 'calc(var(--space-md) + 1.25em)' } },
+                indicator: { base: { right: 'var(--space-md)' } },
+            },
+            variants: {
+                size: {
+                    xs: { control: { base: { paddingRight: 'calc(var(--space-xs) + 1.25em)' } } },
+                    sm: { control: { base: { paddingRight: 'calc(var(--space-sm) + 1.25em)' } } },
+                    lg: { control: { base: { paddingRight: 'calc(var(--space-lg) + 1.25em)' } } },
+                    xl: { control: { base: { paddingRight: 'calc(var(--space-xl) + 1.25em)' } } },
+                },
+            },
         },
     },
 };
@@ -4063,6 +4256,30 @@ export const indicator: RecipeInput = {
             xl: { item: { base: { fontSize: 'var(--text-lg)' } } },
         },
     },
+    // The corner slots, restated physically: logical inset spellings and the
+    // standalone `translate` property resolve on iOS but not on Android
+    // (measured, signalxjs/lynx#1084), so the emitter refuses them. Physical
+    // anchors plus `transform: translate()` are proven on both platforms,
+    // and physical is the lynx target's norm — no RTL flow there, so the
+    // hand-flipped RTL rules above have nothing to engage with either.
+    targets: {
+        lynx: {
+            parts: {
+                item: {
+                    selectors: {
+                        '&[data-placement="top-start"]': { top: '0', left: '0', transform: 'translate(-50%, -50%)' },
+                        '&[data-placement="top"]': { top: '0', left: '50%', transform: 'translate(-50%, -50%)' },
+                        '&[data-placement="top-end"]': { top: '0', right: '0', transform: 'translate(50%, -50%)' },
+                        '&[data-placement="start"]': { top: '50%', left: '0', transform: 'translate(-50%, -50%)' },
+                        '&[data-placement="end"]': { top: '50%', right: '0', transform: 'translate(50%, -50%)' },
+                        '&[data-placement="bottom-start"]': { bottom: '0', left: '0', transform: 'translate(-50%, 50%)' },
+                        '&[data-placement="bottom"]': { bottom: '0', left: '50%', transform: 'translate(-50%, 50%)' },
+                        '&[data-placement="bottom-end"]': { bottom: '0', right: '0', transform: 'translate(50%, 50%)' },
+                    },
+                },
+            },
+        },
+    },
 };
 
 /** daisy stats: the rounded base-100 panel with rule-thin item joins. */
@@ -4381,6 +4598,16 @@ export const chat: RecipeInput = {
             md: {},
             lg: { bubble: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-lg)' } } },
             xl: { bubble: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-md) var(--space-xl)' } } },
+        },
+    },
+    // The row's vertical padding, restated physically: logical spellings
+    // resolve on iOS but not on Android (measured, signalxjs/lynx#1084), so
+    // the emitter refuses them.
+    targets: {
+        lynx: {
+            parts: {
+                root: { base: { paddingTop: 'var(--space-2xs)', paddingBottom: 'var(--space-2xs)' } },
+            },
         },
     },
 };
@@ -4839,6 +5066,16 @@ export const pagination: RecipeInput = {
             xl: { root: { base: { '--pg-size': 'calc(var(--size-field) * 14)', '--pg-font': 'var(--text-lg)' } } },
         },
     },
+    // The cell's inline padding, restated physically: logical spellings
+    // resolve on iOS but not on Android (measured, signalxjs/lynx#1084), so
+    // the emitter refuses them.
+    targets: {
+        lynx: {
+            parts: {
+                item: { base: { paddingLeft: 'var(--space-2xs)', paddingRight: 'var(--space-2xs)' } },
+            },
+        },
+    },
 };
 
 /**
@@ -4986,6 +5223,34 @@ export const steps: RecipeInput = {
             xl: { root: { base: { '--steps-ind': 'calc(var(--size-selector) * 9)', '--steps-font': 'var(--text-md)' } } },
         },
     },
+    // The bridge's anchors and the vertical item's tail padding, restated
+    // physically: logical spellings resolve on iOS but not on Android
+    // (measured, signalxjs/lynx#1084), so the emitter refuses them. Physical
+    // is the lynx target's norm — no RTL flow there to mirror with.
+    targets: {
+        lynx: {
+            parts: {
+                item: {
+                    selectors: {
+                        '&[data-orientation="vertical"]': { paddingBottom: 'var(--space-lg)' },
+                    },
+                },
+                separator: {
+                    selectors: {
+                        '&[data-orientation="horizontal"]': {
+                            top: 'calc(var(--space-xs) + var(--steps-ind) / 2)',
+                            left: '50%',
+                        },
+                        '&[data-orientation="vertical"]': {
+                            left: 'calc(var(--space-xs) + (var(--steps-ind) - var(--border)) / 2)',
+                            top: 'calc(var(--space-xs) + var(--steps-ind))',
+                            bottom: 'calc(var(--space-xs) * -1)',
+                        },
+                    },
+                },
+            },
+        },
+    },
 };
 
 /**
@@ -5059,6 +5324,16 @@ export const drawer: RecipeInput = {
     // Trigger-carried axes — see `btnColors` for why the panel is out of
     // reach and the trigger is the whole story here.
     variants: { color: btnColors(), size: btnSizes },
+    // The btn paddings, restated physically — see `lynxBtnPad` (#1084).
+    targets: {
+        lynx: {
+            parts: {
+                trigger: { base: lynxBtnPad(4) },
+                close: { base: lynxBtnPad(4) },
+            },
+            variants: { size: lynxBtnSizes('trigger') },
+        },
+    },
 };
 
 /**
@@ -5449,6 +5724,22 @@ export const carousel: RecipeInput = {
             xl: { root: { base: { '--carousel-dot': '0.875rem', '--carousel-nav': '3rem' } } },
         },
     },
+    // The nav buttons' anchors, restated physically: logical inset
+    // spellings resolve on iOS but not on Android (measured,
+    // signalxjs/lynx#1084), so the emitter refuses them. Physical is the
+    // lynx target's norm — no RTL flow there, so `start` IS left.
+    targets: {
+        lynx: {
+            parts: {
+                'prev-trigger': {
+                    base: { top: 'calc(50% - var(--carousel-nav) / 2)', left: 'var(--space-sm)' },
+                },
+                'next-trigger': {
+                    base: { top: 'calc(50% - var(--carousel-nav) / 2)', right: 'var(--space-sm)' },
+                },
+            },
+        },
+    },
 };
 
 /**
@@ -5690,6 +5981,21 @@ export const diff: RecipeInput = {
                         inlineSize: 'var(--diff-percent)',
                         overflow: 'hidden',
                     },
+                },
+            },
+        },
+        // The reveal pane's pin and the handle's centering margin, restated
+        // physically: logical spellings resolve on iOS but not on Android
+        // (measured, signalxjs/lynx#1084), so the emitter refuses them.
+        // Physical is the lynx target's norm — no RTL flow there to mirror
+        // with.
+        lynx: {
+            parts: {
+                after: {
+                    base: { top: '0', bottom: '0', left: '0' },
+                },
+                handle: {
+                    base: { top: '0', bottom: '0', marginLeft: 'calc(var(--diff-hit) / -2)' },
                 },
             },
         },

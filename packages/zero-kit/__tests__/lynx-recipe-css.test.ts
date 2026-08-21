@@ -218,6 +218,69 @@ describe('compileLynxRecipeCss', () => {
         expect(kf.report.dropped.some((f) => f.what === 'keyframes pulse' && f.detail.includes('currentColor'))).toBe(true);
     });
 
+    it('drops logical inset/margin/padding spellings — they resolve on iOS but not on Android', () => {
+        // Measured (signalxjs/lynx#1084, four-bar probe): every logical
+        // spelling lays out on iOS and is ignored on Android — the daisy
+        // slider thumb sat off-center there. Cross-platform-asymmetric is
+        // treated as unsupported; the recipe's lynx section restates the
+        // geometry physically.
+        const { css, report } = compile({
+            component: 'button',
+            parts: {
+                root: {
+                    base: {
+                        insetBlockStart: '50%',
+                        insetInlineEnd: '0',
+                        marginBlock: '4px',
+                        marginInlineStart: '-8px',
+                        paddingBlockEnd: '2px',
+                        paddingInline: '12px',
+                        // The physical spellings pass untouched.
+                        top: '50%',
+                        marginLeft: '-8px',
+                        paddingRight: '12px',
+                    },
+                },
+            },
+        });
+        expect(css).not.toMatch(/(?:^|[\s{;])(?:inset|margin|padding)-(?:block|inline)/m);
+        expect(css).toContain('top: 50%;');
+        expect(css).toContain('margin-left: -8px;');
+        expect(css).toContain('padding-right: 12px;');
+        expect(report.dropped.filter((f) => f.detail.includes('signalxjs/lynx#1084'))).toHaveLength(6);
+    });
+
+    it('drops the standalone translate/rotate/scale properties but keeps transform functions', () => {
+        // Same #1084 verdict: the standalone transform properties resolve on
+        // iOS only; `transform`'s functions are proven on both platforms.
+        const { css, report } = compile({
+            component: 'button',
+            parts: {
+                root: {
+                    base: {
+                        translate: '0 -50%',
+                        rotate: '45deg',
+                        scale: '1.1',
+                        transform: 'translateY(-50%) rotate(45deg) scale(1.1)',
+                    },
+                },
+            },
+        });
+        expect(css).not.toMatch(/(?:^|[\s{;])(?:translate|rotate|scale)\s*:/m);
+        expect(css).toContain('transform: translateY(-50%) rotate(45deg) scale(1.1);');
+        expect(report.dropped.filter((f) => f.detail.includes('signalxjs/lynx#1084'))).toHaveLength(3);
+        // A keyframes body animating one of them is the same one-platform
+        // animation — dropped whole; targets.lynx.keyframes replaces it
+        // (keyframes merge per name).
+        const kf = compile({
+            component: 'button',
+            parts: { root: { base: { animation: 'sweep 1s' } } },
+            keyframes: { sweep: 'from { margin-inline-start: -40%; } to { margin-inline-start: 100%; }' },
+        });
+        expect(kf.css).not.toContain('margin-inline-start');
+        expect(kf.report.dropped.some((f) => f.what === 'keyframes sweep' && f.detail.includes('signalxjs/lynx#1084'))).toBe(true);
+    });
+
     it('bakes literal color functions, and drops theme-var-dependent ones with no themes to bake against', () => {
         const { css, report } = compile({
             component: 'button',
@@ -457,6 +520,16 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
         // and radio dot were all invisible because of it). The emitter drops
         // it with a report entry; nothing may ship it.
         /currentcolor/i,
+        // Logical inset/margin/padding spellings and the standalone
+        // translate/rotate/scale properties resolve on iOS but NOT on
+        // Android (measured, signalxjs/lynx#1084 — the daisy slider thumb
+        // sat off-center there). Cross-platform-asymmetric is treated as
+        // unsupported: the emitter refuses them, the recipes' lynx sections
+        // restate the geometry physically, and nothing may ship them.
+        // Anchored so a custom property (`--tw-translate: …`) cannot trip
+        // the gate.
+        /(?:^|[\s{;])(?:inset|margin|padding)-(?:block|inline)/m,
+        /(?:^|[\s{;])(?:translate|rotate|scale)\s*:/m,
     ] as const;
     it.each([
         ['zero-basic', basicDS],
@@ -631,6 +704,14 @@ describe('assertNoCalcVarChains', () => {
         expect(thumb).toBeDefined();
         expect(thumb).toContain('background: var(--color-base-100);');
         expect(thumb).toContain('border: 0.25rem solid var(--slider-accent);');
+        // …the knob centers PHYSICALLY: the web spelling
+        // (`inset-block-start`/`translate`/`margin-inline-start`) resolves
+        // on iOS but not on Android (signalxjs/lynx#1084 — the thumb sat
+        // visibly off-center there), so the lynx section restates it as
+        // top/transform/margin-left, proven on both platforms…
+        expect(thumb).toContain('top: 50%;');
+        expect(thumb).toContain('transform: translateY(-50%);');
+        expect(thumb).toContain('margin-left: calc(var(--size-selector) * -2.5);');
         // …and neither part's paint rides on accent-color (a native-input
         // mechanism lynx has no renderer for).
         expect(range).not.toContain('accent-color');

@@ -302,6 +302,14 @@ component's anatomy). No component code is ever written or changed.
        its `border-left` is a *stroke of a glyph* rather than an edge of a box,
        and mirroring it would mirror the drawing. A check mark is not mirrored
        in RTL. The lint exempts any part that declares a rotation.
+     - **The lynx target is the inverse: physical only.** Lynx has no RTL
+       flow, and its Android engine does not resolve the logical
+       inset/margin/padding spellings or the standalone
+       `translate`/`rotate`/`scale` properties at all (iOS does — measured,
+       signalxjs/lynx#1084), so the lynx emitter refuses them with a report
+       entry. A recipe whose geometry rides a logical spelling restates it
+       physically (`top`/`left`/`margin-left`/`transform: translate…()`) in
+       its `targets.lynx` section.
      - **`transform` has no logical form**, so it needs a shape rather than a
        rename: put the sign in a custom property and rebind it. This is the one
        case the lint cannot see, so it is on you.
