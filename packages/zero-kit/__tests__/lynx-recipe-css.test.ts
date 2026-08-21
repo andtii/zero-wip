@@ -243,7 +243,7 @@ describe('compileLynxRecipeCss', () => {
                 },
             },
         });
-        expect(css).not.toMatch(/(?:^|[\s{;])(?:inset|margin|padding)-(?:block|inline)/m);
+        expect(css).not.toMatch(/(?:^|[\s{;])(?:inset|margin|padding)-(?:block|inline)/im);
         expect(css).toContain('top: 50%;');
         expect(css).toContain('margin-left: -8px;');
         expect(css).toContain('padding-right: 12px;');
@@ -266,7 +266,7 @@ describe('compileLynxRecipeCss', () => {
                 },
             },
         });
-        expect(css).not.toMatch(/(?:^|[\s{;])(?:translate|rotate|scale)\s*:/m);
+        expect(css).not.toMatch(/(?:^|[\s{;])(?:translate|rotate|scale)\s*:/im);
         expect(css).toContain('transform: translateY(-50%) rotate(45deg) scale(1.1);');
         expect(report.dropped.filter((f) => f.detail.includes('signalxjs/lynx#1084'))).toHaveLength(3);
         // A keyframes body animating one of them is the same one-platform
@@ -528,8 +528,8 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
         // restate the geometry physically, and nothing may ship them.
         // Anchored so a custom property (`--tw-translate: …`) cannot trip
         // the gate.
-        /(?:^|[\s{;])(?:inset|margin|padding)-(?:block|inline)/m,
-        /(?:^|[\s{;])(?:translate|rotate|scale)\s*:/m,
+        /(?:^|[\s{;])(?:inset|margin|padding)-(?:block|inline)/im,
+        /(?:^|[\s{;])(?:translate|rotate|scale)\s*:/im,
     ] as const;
     it.each([
         ['zero-basic', basicDS],

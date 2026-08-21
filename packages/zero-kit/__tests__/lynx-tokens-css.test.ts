@@ -41,8 +41,8 @@ const FORBIDDEN = [
     // (measured, signalxjs/lynx#1084) — refused by the recipe emitter, and
     // no token emission path may leak them either. Anchored so a custom
     // property name (`--tw-translate: …`) cannot trip the gate.
-    /(?:^|[\s{;])(?:inset|margin|padding)-(?:block|inline)/m,
-    /(?:^|[\s{;])(?:translate|rotate|scale)\s*:/m,
+    /(?:^|[\s{;])(?:inset|margin|padding)-(?:block|inline)/im,
+    /(?:^|[\s{;])(?:translate|rotate|scale)\s*:/im,
 ] as const;
 
 function expectLynxSafe(css: string): void {
