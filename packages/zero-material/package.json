@@ -33,12 +33,12 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/signalxjs/zero.git",
+        "url": "git+https://github.com/andtii/zero-wip.git",
         "directory": "packages/zero-material"
     },
     "homepage": "https://sigx.dev/zero/",
     "bugs": {
-        "url": "https://github.com/signalxjs/zero/issues"
+        "url": "https://github.com/andtii/zero-wip/issues"
     },
     "peerDependencies": {
         "@sigx/zero": "workspace:^"
