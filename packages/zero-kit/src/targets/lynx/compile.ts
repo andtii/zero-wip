@@ -102,6 +102,7 @@ export function compileDesignSystemLynx(
     ].join('\n');
 
     assertNoDanglingVars(ds.name, indexCss);
+    assertNoCalcVarChains(ds.name, indexCss);
 
     return { tokensCss, componentCss, indexCss, report };
 }
@@ -184,6 +185,48 @@ export function assertNoDanglingVars(dsName: string, indexCss: string): void {
         + 'nothing at all, so this would ship as invisible components rather than as degraded styling. '
         + 'Either define them (a lynx recipe target section, or the tokens source), or give each reference a '
         + 'var(--x, <fallback>) so the stylesheet stands on its own.',
+    );
+}
+
+/** `--x: value` in a definition position, value captured up to the `;`. */
+const CUSTOM_PROP_DEFINITION_VALUE = /(--[A-Za-z0-9_-]+)\s*:\s*([^;{}]*)/g;
+
+/**
+ * Refuse to ship a stylesheet where any `var(--x)` consumption can resolve to
+ * a value that holds `calc()`.
+ *
+ * Measured on device (signalxjs/lynx#1075, iOS 18.3): lynx drops a
+ * declaration consuming `var(--x)` — bare, with a fallback, or nested inside
+ * a `calc()` — whenever `--x`'s value contains `calc()`. Direct `calc(var())`
+ * works and plain var→var chains work; only the indirection through a
+ * calc-holding property fails, silently, with the element laid out as though
+ * the declaration were never written.
+ *
+ * The recipe emitter already inlines (or refuses) such chains within each
+ * scope (`inlineCalcChains`); what reaches this whole-stylesheet check is the
+ * cross-scope remainder the per-recipe pass cannot see — a calc-holding TOKEN
+ * definition consumed by a recipe, or a chain minted in raw lynx css. Like
+ * `assertNoDanglingVars`, failing the build that produces the stylesheet
+ * beats shipping components that silently do not render.
+ */
+export function assertNoCalcVarChains(dsName: string, indexCss: string): void {
+    const calcHolding = new Set<string>();
+    for (const match of indexCss.matchAll(CUSTOM_PROP_DEFINITION_VALUE)) {
+        if (/calc\(/i.test(match[2]!)) calcHolding.add(match[1]!);
+    }
+    if (calcHolding.size === 0) return;
+    const chained = [...names(indexCss, CUSTOM_PROP_REFERENCE)]
+        .filter((name) => calcHolding.has(name))
+        .sort();
+    if (chained.length === 0) return;
+    throw new Error(
+        `[zero-kit] the lynx stylesheet for "${dsName}" consumes ${chained.length} custom `
+        + `${chained.length === 1 ? 'property' : 'properties'} whose ${chained.length === 1 ? 'definition holds' : 'definitions hold'} `
+        + `calc(): ${chained.join(', ')}. On lynx a declaration consuming var(--x) is dropped whenever --x's value `
+        + 'contains calc() (measured, signalxjs/lynx#1075) — the consumers would silently never apply. The recipe '
+        + 'emitter inlines such chains within a scope; a chain surviving to the final stylesheet is defined outside '
+        + 'the consuming scope (a token, or raw lynx css). Restate the definition as a plain value, or inline the '
+        + 'calc() at the consumer.',
     );
 }
 

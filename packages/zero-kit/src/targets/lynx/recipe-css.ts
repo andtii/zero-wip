@@ -25,7 +25,17 @@
  *   (web-runtime mechanism), color functions bake to literals, and the
  *   `flex: <n>` shorthand expands to long-form (lynx expands it RN-style,
  *   collapsing layout). `calc()` over `var()` emits verbatim — measured
- *   working on device (signalxjs/lynx#1029, iOS 18.3).
+ *   working on device (signalxjs/lynx#1029, iOS 18.3). `display: inline-flex`
+ *   rewrites to `flex` — lynx has no inline formatting context, and an
+ *   unsupported display keeps the broken default linear layout (measured,
+ *   signalxjs/lynx#1075); `grid`/`inline-grid` remain unsupported AND
+ *   unrewritten (no mechanical flex equivalent — daisy's toast still ships
+ *   grid properties, recorded in the capability report only).
+ * - `var()` chains through a CALC-HOLDING custom property are inlined at
+ *   compile time by `inlineCalcChains` (see `calc-chains.ts`), or refused —
+ *   lynx drops any declaration consuming `var(--x)` when `--x`'s value holds
+ *   `calc()` (measured, signalxjs/lynx#1075). Plain var→var chains and
+ *   descendant-from-host selectors are proven working and emit as-is.
  * - A color function over THEME variables cannot bake here, because a recipe
  *   is theme-agnostic. It is not dropped either: every theme block is a full
  *   restatement of literals, so the value is finite per theme, and the
@@ -36,6 +46,8 @@ import type { ManifestComponent, ManifestPart } from '../../contract.js';
 import { carrierPart } from '../../contract.js';
 import type { CssProps, PartStyles, RecipeInput } from '../../recipes.js';
 import { assertAxisToken, assertKeyframesName, declBlock, findPart, kebab } from '../shared.js';
+import type { ChainVocabulary } from './calc-chains.js';
+import { inlineCalcChains } from './calc-chains.js';
 import type { LynxCapabilityReport } from './capabilities.js';
 import {
     INTERACTION_STATE_CLASSES,
@@ -134,6 +146,22 @@ function checkedProps(
             throw new Error(
                 `[zero-kit] ${where}: "${prop}" references ${runtime}, a web-runtime-published property with no lynx equivalent — move the declaration into the recipe's web target section`,
             );
+        }
+        if (kebab(prop) === 'display' && value.trim().toLowerCase() === 'inline-flex') {
+            // Lynx has no inline formatting context: `inline-flex` does not
+            // resolve, and an unsupported display keeps the broken default
+            // linear layout (measured, signalxjs/lynx#1075 — the daisy tabs
+            // list stacked vertically). `flex` is the closest layout that
+            // exists. `grid`/`inline-grid` are equally unsupported but have
+            // no mechanical rewrite — they stay as authored and belong in a
+            // lynx recipe target section instead.
+            out[prop] = 'flex';
+            report.translated.push({
+                where,
+                what: 'display: inline-flex',
+                detail: 'rewritten to display: flex — lynx has no inline formatting context, and an unsupported display value keeps the default linear layout (signalxjs/lynx#1075)',
+            });
+            continue;
         }
         const flexNumber = kebab(prop) === 'flex' ? FLEX_NUMBER.exec(value) : null;
         if (flexNumber) {
@@ -385,12 +413,43 @@ export function compileLynxRecipeCss(
         }
     }
 
+    // Inline (or refuse) every calc-holding custom-property chain before the
+    // rules become text — lynx drops any declaration consuming var(--x) when
+    // --x's value holds calc() (signalxjs/lynx#1075). Raw lynx css and
+    // keyframes bodies are not rewritten, only scanned, so a consumer hiding
+    // there refuses instead of dangling.
+    const vocabulary: ChainVocabulary = {
+        axes: [...new Set([
+            ...Object.keys(recipe.variants ?? {}),
+            ...(recipe.compoundVariants ?? []).flatMap((cv) => Object.entries(cv.match).filter(([, v]) => v !== true).map(([axis]) => axis)),
+        ])],
+        modifiers: [...new Set([
+            ...Object.keys(recipe.modifiers ?? {}),
+            ...(recipe.compoundVariants ?? []).flatMap((cv) => Object.entries(cv.match).filter(([, v]) => v === true).map(([name]) => name)),
+        ])],
+    };
+    const externalCss = [recipe.css ?? '', ...Object.values(recipe.keyframes ?? {})].join('\n');
+    const inlined = inlineCalcChains(scope, rules, vocabulary, report, externalCss);
+
     // By the time this emitter runs, `resolveRecipeForTarget('lynx')` has
     // already withheld any SHARED `css` (web spelling by definition; the
     // compile records the drop) — a `css` here came from `targets.lynx.css`
-    // and is lynx-authored by construction, so it appends verbatim.
-    let css = rules.length > 0 ? `${rules.join('\n\n')}\n` : '';
-    if (recipe.css?.trim()) css += `${recipe.css.trim()}\n`;
+    // and is lynx-authored by construction, so it appends verbatim, except
+    // for the one mechanical fix the declaration path also applies: an
+    // `inline-flex` display would keep the broken default linear layout on
+    // device (signalxjs/lynx#1075), so it rewrites to `flex` here too.
+    let css = inlined.length > 0 ? `${inlined.join('\n\n')}\n` : '';
+    if (recipe.css?.trim()) {
+        const rewritten = recipe.css.trim().replace(/(\bdisplay\s*:\s*)inline-flex\b/gi, (_whole, head: string) => {
+            report.translated.push({
+                where: `lynx recipe for "${scope}" css (raw stylesheet escape hatch)`,
+                what: 'display: inline-flex',
+                detail: 'rewritten to display: flex — lynx has no inline formatting context, and an unsupported display value keeps the default linear layout (signalxjs/lynx#1075)',
+            });
+            return `${head}flex`;
+        });
+        css += `${rewritten}\n`;
+    }
     for (const [name, body] of Object.entries(recipe.keyframes ?? {})) {
         assertKeyframesName(name, scope);
         // Keyframes bodies are raw strings, so they get the same capability

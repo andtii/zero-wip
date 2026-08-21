@@ -31,5 +31,7 @@ export {
 export { STRUCTURAL_FALLBACKS, compileLynxTokensCss, lynxThemeColors } from './tokens-css.js';
 export type { LynxThemeColors } from './recipe-css.js';
 export { compileLynxRecipeCss } from './recipe-css.js';
+export type { ChainVocabulary } from './calc-chains.js';
+export { inlineCalcChains } from './calc-chains.js';
 export type { CompiledLynxTarget, LynxTargetManifest } from './compile.js';
-export { assertNoDanglingVars, compileDesignSystemLynx, writeLynxArtifacts } from './compile.js';
+export { assertNoCalcVarChains, assertNoDanglingVars, compileDesignSystemLynx, writeLynxArtifacts } from './compile.js';
