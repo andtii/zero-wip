@@ -70,6 +70,14 @@ modifiers as presence-only `data-mod-*`: `wide`, `block`, `square`, `circle`,
 daisy 4's `glass` is not carried: daisyUI 5 no longer documents it on any
 component, and the old library never exposed it either.
 
+Tabs carry daisy 5's three flavors as their own `variant` vocabulary —
+`border` (`tabs-border`, the underline that is daisy's default look and the
+un-attributed render here too), `lift` (`tabs-lift`) and `box` (`tabs-box`,
+the raised-pill look this package used to ship as its only one). `color` is
+orthogonal: it inks the active tab — `border`'s underline follows via
+`currentColor` — while `box` fills the active pill with the role and flips
+its label to the `-content` pair, as daisy's own box examples do.
+
 The package declares an **api** (the `defineApi` layer, see
 `docs/architecture.md` §3.6), so beside `/register` it ships a generated
 `./components` module — the daisy-native, single-import, fully-typed surface:

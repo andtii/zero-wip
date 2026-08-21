@@ -21,12 +21,11 @@ declare module '@sigx/zero' {
             ease: 'linear' | 'standard' | 'emphasized';
         };
         components: {
-            /** tabs — color, size wired. */
+            /** tabs — color, size, variant wired. */
             'tabs': {
                 color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
                 size: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-                /** Accepts `variant` at runtime, but no daisyui recipe wires it — the attribute would match nothing. */
-                variant: never;
+                variant: 'border' | 'lift' | 'box';
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };

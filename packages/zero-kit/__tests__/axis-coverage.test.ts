@@ -140,8 +140,10 @@ const NO_VARIANT: Record<string, string> = {
     'toggle-group': 'Radix Themes SegmentedControl varies as surface | classic.',
     combobox: 'Ant Design v6 AutoComplete varies as outlined | borderless | '
         + 'filled | underlined.',
-    tabs: 'HeroUI v3 Tabs varies as primary | secondary (filled vs underline '
-        + 'indicator); Carbon spells the same split line vs contained.',
+    // tabs left this ledger in #377: zero-daisyui wires `variant` as daisy's
+    // border | lift | box flavors, with its own `tokens.scopes.tabs`
+    // vocabulary. (The survey rows that justified the deferral: HeroUI v3
+    // varies as primary | secondary, Carbon as line vs contained.)
     toggle: 'Material 3 makes the toggle a MODE of the icon button rather than '
         + 'a component — all four (standard, filled, filled-tonal, outlined) '
         + 'take `toggle`, so the variant is the button\'s and follows it.',

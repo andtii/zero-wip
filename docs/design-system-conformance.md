@@ -68,7 +68,7 @@ api-derived grades where a system declares one.
 | basic | `zebra` | presence-flag | boolean | `mods.zebra` | exact | `packages/zero-basic` |
 | daisyui | `color` | enumeration | accent, error, info, neutral, primary, secondary, success, warning | `color` | exact | `packages/zero-daisyui` |
 | daisyui | `size` | enumeration | xs, sm, md, lg, xl | `size` | exact | `packages/zero-daisyui` |
-| daisyui | `variant` | enumeration | solid, outline, soft, ghost, dash, link | `variant` | exact | `packages/zero-daisyui` |
+| daisyui | `variant` | enumeration | solid, outline, soft, ghost, dash, link, border, lift, box | `variant` | exact | `packages/zero-daisyui` |
 | daisyui | `active` | presence-flag | boolean | `mods.active` | reshaped | `packages/zero-daisyui` |
 | daisyui | `block` | presence-flag | boolean | `mods.block` | reshaped | `packages/zero-daisyui` |
 | daisyui | `circle` | presence-flag | boolean | `mods.circle` | reshaped | `packages/zero-daisyui` |

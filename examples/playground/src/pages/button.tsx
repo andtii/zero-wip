@@ -32,7 +32,15 @@ const ButtonDemos = component(() => {
                 axis shows no colour row at all. Nothing in this file knows which
                 design system is loaded.
             </p>
-            {axes().variants.map((variant) => (
+            {/*
+              * The BUTTON scope's wired list, not the design-system union
+              * (the same rule select.tsx follows): since #377 the union also
+              * carries the tabs flavors (`border | lift | box`), and a button
+              * row per union value would render `data-variant` values the
+              * button scope never wires — ds-smoke's undeclared-value
+              * invariant, which is scope-aware for exactly this axis.
+              */}
+            {(axes().perScope['button']?.variants ?? []).map((variant) => (
                 <DemoRow>
                     <AxisLabel>{variant}</AxisLabel>
                     {/*

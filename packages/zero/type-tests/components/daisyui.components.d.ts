@@ -60,12 +60,13 @@ import type { Diff as ZDiff } from '@sigx/zero/diff';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
 
-/** tabs — no vendor route; the wired surface keeps zero's names. */
+/** tabs — variant ← variant. Attributes stay zero-spelled. */
 type TabsProps = {
     color?: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
     size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+    'variant'?: 'border' | 'lift' | 'box';
 };
-type TabsAdapted = Adapted<typeof ZTabs, ZeroAxisProp, TabsProps>;
+type TabsAdapted = Adapted<typeof ZTabs, ZeroAxisProp | 'variant', TabsProps>;
 export declare const Tabs: TabsAdapted & AdaptedStatics<typeof ZTabs> & { Root: TabsAdapted };
 
 /** collapsible — no vendor route; the wired surface keeps zero's names. */
