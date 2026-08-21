@@ -112,17 +112,31 @@ const fx = (depth: '0' | '1'): Record<string, string> => ({
 });
 
 /**
- * The `variant` axis vocabulary — what button's variants.variant keys on.
+ * Button's `variant` vocabulary — what button's variants.variant keys on.
  * Declared so a recipe typo is a build error, not a minted value; exported
  * `as const` so `defineApi` can narrow the api declaration against it.
  *
  * `dash` and `link` are daisyUI 5's `btn-dash` / `btn-link` (#332). daisy
  * documents `dash` (with `outline` and `soft`) on badge and alert too, but
- * this package wires `variant` on button only — the repo-wide decision
- * (#175) — so the union below IS button's vocabulary, and the `scopes`
- * entry makes that claim explicit.
+ * this package wires them on button only — the repo-wide decision (#175) —
+ * and the `scopes` entry makes that claim explicit.
  */
-export const variants = ['solid', 'outline', 'soft', 'ghost', 'dash', 'link'] as const;
+export const buttonVariants = ['solid', 'outline', 'soft', 'ghost', 'dash', 'link'] as const;
+
+/**
+ * Tabs' `variant` vocabulary — daisy's three tab flavors (#377):
+ * `tabs-border` (underline, daisy's default look), `tabs-lift`, `tabs-box`.
+ * Its own set rather than a widening of button's: a `border` button or a
+ * `solid` tab is a word with no box, and the per-scope claims below keep
+ * each recipe answerable only for its own flavors.
+ */
+export const tabVariants = ['border', 'lift', 'box'] as const;
+
+/**
+ * The design-system-wide `variant` axis vocabulary — the union of the
+ * per-scope sets; `scopes` narrows each scope back to its own.
+ */
+export const variants = [...buttonVariants, ...tabVariants] as const;
 
 /**
  * daisyUI 5's button modifier set (#332), each a documented `btn-*` class:
@@ -153,17 +167,19 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
     modifiers: [...modifiers, ...tableModifiers],
     /**
      * Per-scope vocabulary claims (#294). Button wires `variant` and the
-     * `btn-*` modifier set (#175); restating that union is the explicit
+     * `btn-*` modifier set (#175); restating its union is the explicit
      * claim "yes, button carries all of it", the same grammar zero-basic's
      * button entry uses. Table (#340) narrows to its own two looks — the
-     * "later scope adopts part of the axis" case this block predicted.
+     * "later scope adopts part of the axis" case this block predicted —
+     * and tabs (#377) carries the three flavors and nothing of button's.
      */
     scopes: {
         button: {
-            variants: [...variants],
+            variants: [...buttonVariants],
             modifiers: [...modifiers],
         },
         table: { modifiers: [...tableModifiers] },
+        tabs: { variants: [...tabVariants] },
     },
     system,
     defaultLight: 'light',

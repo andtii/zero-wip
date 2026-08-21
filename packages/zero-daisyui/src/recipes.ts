@@ -187,6 +187,34 @@ const withPresence = (presence: PartStyles, styles: PartStyles): PartStyles => (
     ),
 });
 
+/**
+ * daisy's three tab flavors (#377): `tabs-border` — daisy's own default look,
+ * an underline under the active tab — plus `tabs-lift` (bordered tab lifting
+ * out of a baseline) and `tabs-box` (list on a base-200 surface, active tab a
+ * raised base-100 pill). All three ported from daisyUI 5.5.19
+ * `components/tab.css`.
+ *
+ * The base holds only flavor-neutral structure. Every flavor's chrome —
+ * including the box surface this recipe used to keep in `parts` — lives in
+ * its own `variant` entry, because the web emitter twins the DEFAULT value's
+ * rules as `:not([data-variant])`: a default that leaned on base styles would
+ * leak them into the other two flavors, and the box chrome in base is exactly
+ * what `variant="border"` must not inherit.
+ *
+ * Sizing goes through a `--tab-py`/`--tab-px` pair rather than a literal
+ * `padding` per size — daisy's own mechanism (`--tab-p`/`--tab-paddings` in
+ * tab.css). It is what lets `lift` move `var(--border)` between border and
+ * padding without restating the size ramp per flavor: axis rules all target
+ * the same part with equal specificity, so a `lift` padding literal would
+ * either lose to or beat the size axis by source order alone.
+ *
+ * variant × color: `color` paints the active tab's INK (`roleInk`, not the
+ * raw role — #210: raw roles are fill colours with no contrast floor as ink).
+ * `border`'s underline and `lift`'s label follow it via `currentColor`;
+ * `box` is the one flavor where daisy fills the active pill with the role
+ * (`checked:bg-primary checked:text-primary-content` in its docs), so a
+ * compound per role restores the fill+`-content` pair there.
+ */
 export const tabs: RecipeInput = {
     component: 'tabs',
     parts: {
@@ -197,10 +225,6 @@ export const tabs: RecipeInput = {
             base: {
                 display: 'inline-flex',
                 alignSelf: 'flex-start',
-                padding: 'var(--space-xs)',
-                gap: 'var(--space-xs)',
-                background: 'var(--color-base-200)',
-                borderRadius: 'var(--radius-field)',
             },
         },
         tab: {
@@ -208,21 +232,31 @@ export const tabs: RecipeInput = {
                 appearance: 'none',
                 border: 'none',
                 background: 'transparent',
-                padding: 'var(--space-sm) var(--space-xl)',
+                '--tab-py': 'var(--space-sm)',
+                '--tab-px': 'var(--space-xl)',
+                // daisy's per-size underline/corner cap: `--tab-radius-min`
+                // in tab.css, `calc(.75rem - var(--border))` at md. Declared
+                // here (not in `lift`, its only reader) so the size axis can
+                // override it — a definition inside the variant entry would
+                // beat the size rules on source order.
+                '--tab-radius-min': 'calc(0.75rem - var(--border))',
+                padding: 'var(--tab-py) var(--tab-px)',
                 fontSize: 'var(--text-sm)',
                 fontWeight: 'var(--weight-semibold)',
                 color: 'color-mix(in oklab, var(--color-base-content) 60%, transparent)',
-                borderRadius: 'calc(var(--radius-field) - 0.25rem)',
                 cursor: 'pointer',
+                // For the flavors' ::before marks (border's underline, lift's
+                // corner shoulders) — daisy's base `.tab` is `position:
+                // relative` for the same reason.
+                position: 'relative',
                 transition: 'background var(--duration-normal) var(--ease-standard), color var(--duration-normal) var(--ease-standard)',
             },
             states: {
                 hover: { color: 'var(--color-base-content)' },
-                active: {
-                    background: 'var(--color-base-100)',
-                    color: 'var(--color-base-content)',
-                    boxShadow: 'var(--shadow-sm)',
-                },
+                // Full-strength ink is the one active mark all three flavors
+                // share; each flavor's own chrome (underline, lift, pill)
+                // lives in its `variant` entry.
+                active: { color: 'var(--color-base-content)' },
                 inactive: {},
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
@@ -235,40 +269,219 @@ export const tabs: RecipeInput = {
     },
     variants: {
         size: {
-            xs: { tab: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-md)' } } },
-            sm: { tab: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-lg)' } } },
+            xs: { tab: { base: { fontSize: 'var(--text-xs)', '--tab-py': 'var(--space-2xs)', '--tab-px': 'var(--space-md)', '--tab-radius-min': 'calc(0.5rem - var(--border))' } } },
+            sm: { tab: { base: { fontSize: 'var(--text-xs)', '--tab-py': 'var(--space-xs)', '--tab-px': 'var(--space-lg)', '--tab-radius-min': 'calc(0.5rem - var(--border))' } } },
             // `md` is the un-attributed render: the base already IS the
             // middle step, so restating it here would be a second copy free
             // to drift. An empty entry emits no rule and keeps the base.
             md: {},
-            lg: { tab: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-md) var(--space-2xl)' } } },
-            xl: { tab: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-lg) var(--space-2xl)' } } },
+            lg: { tab: { base: { fontSize: 'var(--text-md)', '--tab-py': 'var(--space-md)', '--tab-px': 'var(--space-2xl)', '--tab-radius-min': 'calc(1.5rem - var(--border))' } } },
+            xl: { tab: { base: { fontSize: 'var(--text-lg)', '--tab-py': 'var(--space-lg)', '--tab-px': 'var(--space-2xl)', '--tab-radius-min': 'calc(2rem - var(--border))' } } },
         },
         // Every role, not just primary. `data-color` passes through whatever a
         // consumer sets, so a one-role axis made `<Tabs.Root color="success">`
         // type-check, emit the attribute, and match nothing — the tab just
         // stayed primary with no diagnostic anywhere.
+        //
+        // The role lands as the active tab's INK — `border`'s underline and
+        // everything drawn `currentColor` follow it for free. `box` refines
+        // this per role through `compoundVariants` below (fill + `-content`).
         color: Object.fromEntries(
             ROLES.map((c) => [
                 c,
                 {
                     tab: {
                         states: {
-                            active: {
-                                background: `var(--color-${c})`,
-                                color: `var(--color-${c}-content)`,
-                            },
+                            active: { color: roleInk(c) },
                         },
                     },
                 },
             ]),
         ),
+        variant: {
+            // daisy `.tabs-border`: an always-present ::before bar under each
+            // tab — transparent at rest (daisy reaches transparent through an
+            // invalid-at-computed-value-time 4-value custom property; the
+            // rendered result is the same), currentColor + a 3px top border
+            // when active. The border is daisy's forced-colors survival for a
+            // background-painted mark, kept verbatim so the bar's geometry
+            // matches daisy's exactly.
+            border: {
+                tab: {
+                    base: { borderRadius: 'var(--radius-field)' },
+                    selectors: {
+                        '&::before': {
+                            content: '""',
+                            position: 'absolute',
+                            bottom: '0',
+                            insetInlineStart: '10%',
+                            width: '80%',
+                            height: '3px',
+                            borderRadius: 'var(--radius-field)',
+                            backgroundColor: 'transparent',
+                            transition: 'background-color var(--duration-normal) var(--ease-standard)',
+                        },
+                        '&[data-state="active"]:not([data-disabled])::before': {
+                            backgroundColor: 'currentColor',
+                            borderTop: '3px solid',
+                        },
+                    },
+                },
+            },
+            // daisy `.tabs-lift`: every tab sits on a base-300 baseline; the
+            // active one swaps that bottom hairline for top/side borders, a
+            // base-100 fill, rounded top corners, and the radial-gradient
+            // "shoulders" that curve its bottom corners outward into the
+            // baseline. Widths and paddings trade `var(--border)` exactly as
+            // daisy's `--tab-border`/`--tab-paddings` do, so activating a tab
+            // never changes its box size.
+            lift: {
+                tab: {
+                    base: {
+                        '--tab-radius-limit': 'min(var(--radius-field), var(--tab-radius-min))',
+                        borderStartStartRadius: 'var(--tab-radius-limit)',
+                        borderStartEndRadius: 'var(--tab-radius-limit)',
+                        borderWidth: '0 0 var(--border) 0',
+                        borderStyle: 'solid',
+                        borderColor: 'var(--color-base-300)',
+                        padding: 'calc(var(--tab-py) + var(--border)) var(--tab-px) var(--tab-py)',
+                    },
+                    states: {
+                        active: {
+                            background: 'var(--color-base-100)',
+                            borderWidth: 'var(--border) var(--border) 0 var(--border)',
+                            padding: 'var(--tab-py) calc(var(--tab-px) - var(--border)) calc(var(--tab-py) + var(--border))',
+                        },
+                    },
+                    selectors: {
+                        '&[data-state="active"]::before': {
+                            // daisy's `--tab-radius-grad` stop list:
+                            // transparent inside the corner arc, a base-300
+                            // ring of the border's width, base-100 outside.
+                            // Declared here rather than on the tab: every
+                            // shoulder rule below styles this same
+                            // pseudo-element, so they all read it — and on
+                            // lynx it drops with the ::before selector
+                            // instead of surviving as a dead declaration.
+                            '--tab-grad': '#0000 calc(69% - var(--border)), var(--color-base-300) calc(69% - var(--border) + 0.25px), var(--color-base-300) 69%, var(--color-base-100) calc(69% + 0.25px)',
+                            content: '""',
+                            position: 'absolute',
+                            zIndex: '1',
+                            bottom: '0',
+                            // daisy centres the shoulders through the flex
+                            // static position; an explicit symmetric overhang
+                            // of one corner radius per side is the same
+                            // geometry without needing the tab to be a flex
+                            // container.
+                            insetInlineStart: 'calc(var(--tab-radius-limit) * -1)',
+                            width: 'calc(100% + var(--tab-radius-limit) * 2)',
+                            height: 'var(--tab-radius-limit)',
+                            backgroundImage: 'radial-gradient(circle at top left, var(--tab-grad)), radial-gradient(circle at top right, var(--tab-grad))',
+                            backgroundPosition: 'top left, top right',
+                            backgroundSize: 'var(--tab-radius-limit) var(--tab-radius-limit)',
+                            backgroundRepeat: 'no-repeat',
+                        },
+                        // No shoulder past the row's edges — daisy's
+                        // `--radius-start: none` / `--radius-end: none` on
+                        // first/last, both suppressed for an only tab.
+                        '&[data-state="active"]:first-child::before': {
+                            backgroundImage: 'none, radial-gradient(circle at top right, var(--tab-grad))',
+                        },
+                        '&[data-state="active"]:last-child::before': {
+                            backgroundImage: 'radial-gradient(circle at top left, var(--tab-grad)), none',
+                        },
+                        '&[data-state="active"]:only-child::before': {
+                            backgroundImage: 'none',
+                        },
+                        // The gradients' corners are physical; when one side
+                        // is suppressed the image is asymmetric, so RTL needs
+                        // daisy's mirror on exactly the first/last tabs.
+                        [`&[data-state="active"]:first-child${rtl}::before`]: {
+                            transform: 'rotateY(180deg)',
+                        },
+                        [`&[data-state="active"]:last-child${rtl}::before`]: {
+                            transform: 'rotateY(180deg)',
+                        },
+                    },
+                },
+            },
+            // daisy `.tabs-box`: the styles this recipe shipped as its only
+            // look, moved verbatim out of `parts` — list on a padded base-200
+            // surface, active tab a raised base-100 pill.
+            box: {
+                list: {
+                    base: {
+                        padding: 'var(--space-xs)',
+                        gap: 'var(--space-xs)',
+                        background: 'var(--color-base-200)',
+                        borderRadius: 'var(--radius-field)',
+                    },
+                },
+                tab: {
+                    base: { borderRadius: 'calc(var(--radius-field) - 0.25rem)' },
+                    states: {
+                        active: {
+                            background: 'var(--color-base-100)',
+                            boxShadow: 'var(--shadow-sm)',
+                        },
+                    },
+                },
+            },
+        },
     },
-    // Size only: `md: {}` emits nothing, so this changes no CSS — it states
-    // the default for the manifest (signalxjs/lynx#1070). Deliberately no
-    // `color` default: the un-attributed active tab is a neutral base-100
-    // pill, which is outside the color vocabulary.
-    defaultVariants: { size: 'md' },
+    // box × color: daisy's box flavor fills the active pill with the role and
+    // flips the label to `-content` — the fill+pair form is contrast-safe by
+    // construction, so the raw role is right here (unlike the ink the single-
+    // axis rule paints). Emitted after the single-axis rules, so it wins the
+    // `color` tie on source order.
+    compoundVariants: ROLES.map((c) => ({
+        match: { variant: 'box', color: c },
+        parts: {
+            tab: {
+                states: {
+                    active: {
+                        background: `var(--color-${c})`,
+                        color: `var(--color-${c}-content)`,
+                    },
+                },
+            },
+        },
+    })),
+    // `md: {}` emits nothing — it states the size default for the manifest
+    // (signalxjs/lynx#1070). `border` is daisy's own default tab look, and a
+    // DELIBERATE web visual change (#377): the un-attributed render used to
+    // be the box pill. Deliberately no `color` default: the un-attributed
+    // active ink is base-content, outside the color vocabulary.
+    defaultVariants: { size: 'md', variant: 'border' },
+    targets: {
+        lynx: {
+            variants: {
+                variant: {
+                    // The underline is a ::before on the web, which lynx
+                    // drops — redrawn as a real bottom border on the tab
+                    // itself (transparent at rest so activation never moves
+                    // the row). `currentColor` keeps it following the color
+                    // axis ink, the same mechanism switch's shared border
+                    // already relies on for lynx.
+                    border: {
+                        tab: {
+                            base: { borderBottom: '3px solid transparent' },
+                            states: { active: { borderBottomColor: 'currentColor' } },
+                        },
+                    },
+                    // `min()` does not exist on lynx (signalxjs/lynx#1066) and
+                    // the shared `--tab-radius-limit` would drop, leaving its
+                    // readers dangling — the uncapped field radius is the
+                    // closest expressible value.
+                    lift: {
+                        tab: {
+                            base: { '--tab-radius-limit': 'var(--radius-field)' },
+                        },
+                    },
+                },
+            },
+        },
+    },
 };
 
 /**
