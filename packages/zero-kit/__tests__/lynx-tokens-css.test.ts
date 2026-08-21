@@ -32,6 +32,10 @@ const FORBIDDEN = [
     /@layer/, /@property/, /@starting-style/, /@media/, /@supports/,
     /light-dark\(/, /oklch\(/, /oklab\(/, /color-mix\(/, /\bmin\(/, /\bmax\(/, /clamp\(/,
     /:root/, /\[data-/,
+    // currentColor never resolves on lynx — measured on device on both
+    // platforms (signalxjs/lynx#1079); a token carrying it would make every
+    // consumer silently paint nothing.
+    /currentcolor/i,
 ] as const;
 
 function expectLynxSafe(css: string): void {
@@ -153,6 +157,25 @@ describe('compileLynxTokensCss', () => {
         };
         compileLynxTokensCss(input, report);
         expect(report.dropped.some((f) => f.what.includes('--pad'))).toBe(true);
+    });
+
+    it('drops a token valued with currentColor — it never resolves on device', () => {
+        // signalxjs/lynx#1079: currentColor paints nothing on either
+        // platform, so a token carrying it would break every consumer.
+        const report = emptyReport();
+        const input: TokensInput = {
+            defaultLight: 'l',
+            themes: {
+                l: {
+                    colorScheme: 'light',
+                    colors: { 'base-100': '#ffffff', 'base-content': '#111111' },
+                    extra: { '--underline': '0 0 0 2px currentColor' },
+                },
+            },
+        };
+        const css = compileLynxTokensCss(input, report);
+        expect(css).not.toMatch(/currentcolor/i);
+        expect(report.dropped.some((f) => f.what.includes('--underline') && f.detail.includes('currentColor'))).toBe(true);
     });
 
     it('rejects a theme name that cannot be a class', () => {

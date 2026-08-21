@@ -463,18 +463,35 @@ export const tabs: RecipeInput = {
     defaultVariants: { size: 'md', variant: 'border' },
     targets: {
         lynx: {
+            parts: {
+                // The default active ink — base-content, exactly what the
+                // shared `states.active.color` paints. One class, so any
+                // color-axis definition below (host + two classes, baked per
+                // theme) wins on specificity.
+                tab: { base: { '--tab-active-ink': 'var(--color-base-content)' } },
+            },
             variants: {
+                // `currentColor` never resolves on lynx (measured on device
+                // on both platforms, signalxjs/lynx#1079 — the underline was
+                // transparent everywhere), so the color axis restates its
+                // active ink as a plain custom property. `roleInk` reads
+                // theme colors through color-mix(), which the emitter bakes
+                // once per theme — the same per-color/per-theme literal the
+                // active `color:` rules already land as.
+                color: Object.fromEntries(
+                    ROLES.map((c) => [c, { tab: { base: { '--tab-active-ink': roleInk(c) } } }]),
+                ),
                 variant: {
                     // The underline is a ::before on the web, which lynx
                     // drops — redrawn as a real bottom border on the tab
                     // itself (transparent at rest so activation never moves
-                    // the row). `currentColor` keeps it following the color
-                    // axis ink, the same mechanism switch's shared border
-                    // already relies on for lynx.
+                    // the row). The active ink rides `--tab-active-ink`
+                    // above — a plain var() chain, device-proven — instead
+                    // of `currentColor`, which lynx never resolves.
                     border: {
                         tab: {
                             base: { borderBottom: '3px solid transparent' },
-                            states: { active: { borderBottomColor: 'currentColor' } },
+                            states: { active: { borderBottomColor: 'var(--tab-active-ink)' } },
                         },
                     },
                     // `min()` does not exist on lynx (signalxjs/lynx#1066) and
@@ -1475,6 +1492,29 @@ export const checkbox: RecipeInput = {
     // control and its text. Declared rather than left implicit so the
     // delegation reads as a decision.
     skipStates: { root: ['focus-visible'] },
+    // `currentColor` never resolves on lynx (measured on device on both
+    // platforms, signalxjs/lynx#1079), so the tick shipped invisible and the
+    // ring's color-mix-over-currentColor fallback dropped the whole border.
+    // Both restated with the named accents the web spellings resolve to —
+    // plain var() chains, the switch's device-proven #380 mechanism.
+    targets: {
+        lynx: {
+            parts: {
+                control: {
+                    // The web fallback (`color-mix(in oklab, … currentColor …)`)
+                    // exists for consumers that unset the accent; this package
+                    // always defines it, so the plain accent IS the ring.
+                    base: { border: 'var(--border) solid var(--checkbox-accent)' },
+                },
+                indicator: {
+                    // The tick's fill: the control's `color:` names
+                    // `--checkbox-on-accent`, and `currentColor` was that
+                    // ink by inheritance — spend it directly.
+                    base: { backgroundColor: 'var(--checkbox-on-accent)' },
+                },
+            },
+        },
+    },
 };
 
 // --------------------------------------------------------------------------
@@ -1592,6 +1632,25 @@ export const radioGroup: RecipeInput = {
     // wraps it. Declared rather than left implicit so the delegation reads
     // as a decision.
     skipStates: { item: ['focus-visible'] },
+    // `currentColor` never resolves on lynx (measured on device on both
+    // platforms, signalxjs/lynx#1079), so the checked ring and dot shipped
+    // invisible, and the unchecked ring's color-mix-over-currentColor
+    // fallback dropped the whole border. All three restated with the accent
+    // the control's own `color:` names — plain var() chains, the switch's
+    // device-proven #380 mechanism.
+    targets: {
+        lynx: {
+            parts: {
+                'item-control': {
+                    base: { border: 'var(--border) solid var(--radio-accent)' },
+                    states: { checked: { borderColor: 'var(--radio-accent)' } },
+                },
+                'item-indicator': {
+                    states: { checked: { backgroundColor: 'var(--radio-accent)' } },
+                },
+            },
+        },
+    },
 };
 
 // --------------------------------------------------------------------------
