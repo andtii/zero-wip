@@ -36,6 +36,13 @@ const FORBIDDEN = [
     // platforms (signalxjs/lynx#1079); a token carrying it would make every
     // consumer silently paint nothing.
     /currentcolor/i,
+    // Logical inset/margin/padding spellings and the standalone
+    // translate/rotate/scale properties resolve on iOS but not on Android
+    // (measured, signalxjs/lynx#1084) — refused by the recipe emitter, and
+    // no token emission path may leak them either. Anchored so a custom
+    // property name (`--tw-translate: …`) cannot trip the gate.
+    /(?:^|[\s{;])(?:inset|margin|padding)-(?:block|inline)/im,
+    /(?:^|[\s{;])(?:translate|rotate|scale)\s*:/im,
 ] as const;
 
 function expectLynxSafe(css: string): void {

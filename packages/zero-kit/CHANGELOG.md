@@ -4,6 +4,27 @@
 
 ### Fixed
 
+- **Lynx target refuses logical inset/margin/padding spellings and the
+  standalone `translate`/`rotate`/`scale` properties** (#392): measured on
+  device (signalxjs/lynx#1084, four-bar probe on the Android emulator; iOS
+  resolves all four bars), the logical spellings (`inset-block-*`,
+  `inset-inline-*`, `margin-block-*`, `margin-inline-*`, `padding-block-*`,
+  `padding-inline-*`) and the standalone transform properties resolve on iOS
+  but NOT on Android — the daisy slider thumb sat visibly off-center there.
+  This supersedes the re-measure recorded below, which was wrong.
+  Cross-platform-asymmetric is treated as unsupported: the recipe emitter
+  drops every occurrence (declarations and keyframes bodies) with a report
+  entry — the #363/#389 refuse-with-report pattern — and both structural
+  gates forbid the spellings in the compiled artifacts. Physical spellings
+  (`top`/`right`/`bottom`/`left`, physical margins/paddings) and
+  `transform` functions are proven on both platforms; every affected recipe
+  in zero-basic, zero-daisyui and zero-ext-example restates its geometry
+  physically in its `targets.lynx` section (physical is the lynx target's
+  norm — no RTL flow there), the slider thumb centering with
+  `top: 50%; transform: translateY(-50%); margin-left: …`, and the
+  indeterminate-progress sweeps with per-name-replaced `margin-left`
+  keyframes. Web output is byte-identical throughout.
+
 - **Lynx target refuses `currentColor`** (#388): measured on device on both
   platforms against 0.2.0-beta.4 (signalxjs/lynx#1079), `currentColor` never
   resolves on lynx — a declaration valued with it ships and silently paints
@@ -18,10 +39,10 @@
   underline consumes; checkbox/radio spend their accent variables directly),
   which also restores the checkbox/radio border rings whose
   color-mix-over-currentColor fallbacks previously dropped whole
-  declarations. The same measurement round cleared the standalone
-  `translate` property and the logical inset/margin properties: proven
-  working on BOTH platforms (an earlier Android failure was a stale build) —
-  they emit as authored, now documented in the capability notes.
+  declarations. (The same measurement round also declared the standalone
+  `translate` property and the logical inset/margin properties working on
+  both platforms; that verdict was wrong — superseded by #392 above, which
+  measured them iOS-only and refuses them.)
 
 ### Added
 

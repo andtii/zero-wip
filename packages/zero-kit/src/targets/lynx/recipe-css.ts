@@ -104,6 +104,32 @@ const FLEX_NUMBER = /^\s*(\d+(?:\.\d+)?)\s*$/;
  */
 const CURRENT_COLOR = /\bcurrentcolor\b/i;
 
+/**
+ * Logical inset/margin/padding spellings — measured resolving on iOS but NOT
+ * on Android (signalxjs/lynx#1084, four-bar probe against the beta.5
+ * artifact; the daisy slider thumb sat off-center on Android because of
+ * them). Cross-platform-asymmetric, so the target treats them as
+ * unsupported: refused with a report entry wherever they appear. Physical
+ * spellings (`top`, `margin-left`, …) are proven on BOTH platforms and are
+ * this target's norm — lynx has no RTL flow to make the logical/physical
+ * distinction meaningful (see the tabs lynx path from #381).
+ */
+const LOGICAL_PROPERTY = /^(?:inset|margin|padding)-(?:block|inline)(?:-(?:start|end))?$/;
+
+/**
+ * The standalone `translate`/`rotate`/`scale` properties — same #1084
+ * verdict: iOS resolves them, Android does not. `transform`'s
+ * `translate…()`/`rotate()`/`scale()` functions are proven on both
+ * platforms, so the recipe's lynx section spells the same motion there.
+ */
+const STANDALONE_TRANSFORM = /^(?:translate|rotate|scale)$/;
+
+/**
+ * The same refusals for RAW CSS TEXT (keyframes bodies): a property
+ * declaration in one of the refused spellings, anchored so a custom
+ * property like `--tw-translate:` cannot trip it.
+ */
+const REFUSED_PROPERTY_IN_TEXT = /(?:^|[{;\s])(?:(?:inset|margin|padding)-(?:block|inline)(?:-(?:start|end))?|translate|rotate|scale)\s*:/i;
 
 /** Every `var(--x)` a value reads. */
 const ANY_VAR = /var\(\s*(--[A-Za-z0-9_-]+)/g;
@@ -155,7 +181,33 @@ function checkedProps(
                 `[zero-kit] ${where}: "${prop}" references ${runtime}, a web-runtime-published property with no lynx equivalent — move the declaration into the recipe's web target section`,
             );
         }
-        if (kebab(prop) === 'display' && value.trim().toLowerCase() === 'inline-flex') {
+        const kebabProp = kebab(prop);
+        if (LOGICAL_PROPERTY.test(kebabProp)) {
+            // Logical spellings resolve on iOS but NOT on Android (measured,
+            // signalxjs/lynx#1084) — the declaration would ship and lay out
+            // on one platform only. Dropped; the recipe's lynx target
+            // section restates the same geometry with physical spellings,
+            // which are this target's norm (no RTL flow on lynx).
+            report.dropped.push({
+                where,
+                what: `${prop}: ${value}`,
+                detail: `${kebabProp} resolves on iOS but not on Android (measured, signalxjs/lynx#1084) — cross-platform-asymmetric, treated as unsupported; dropped, restate the geometry with a physical spelling (top/right/bottom/left, margin-*/padding-*) in the recipe's lynx target section`,
+            });
+            continue;
+        }
+        if (STANDALONE_TRANSFORM.test(kebabProp)) {
+            // Same #1084 verdict as the logical spellings: the standalone
+            // transform properties resolve on iOS only. `transform`'s
+            // translate…()/rotate()/scale() functions are proven on both
+            // platforms.
+            report.dropped.push({
+                where,
+                what: `${prop}: ${value}`,
+                detail: `the standalone ${kebabProp} property resolves on iOS but not on Android (measured, signalxjs/lynx#1084) — cross-platform-asymmetric, treated as unsupported; dropped, spell the motion as a transform function (${kebabProp === 'translate' ? 'transform: translateX(...) translateY(...)' : `transform: ${kebabProp}(...)`}) in the recipe's lynx target section`,
+            });
+            continue;
+        }
+        if (kebabProp === 'display' && value.trim().toLowerCase() === 'inline-flex') {
             // Lynx has no inline formatting context: `inline-flex` does not
             // resolve, and an unsupported display keeps the broken default
             // linear layout (measured, signalxjs/lynx#1075 — the daisy tabs
@@ -171,7 +223,7 @@ function checkedProps(
             });
             continue;
         }
-        const flexNumber = kebab(prop) === 'flex' ? FLEX_NUMBER.exec(value) : null;
+        const flexNumber = kebabProp === 'flex' ? FLEX_NUMBER.exec(value) : null;
         if (flexNumber) {
             // `flex: <n>` means grow n / shrink 1 / basis 0% — lynx expands
             // the shorthand to `1 1 auto` instead, collapsing layouts, so the
@@ -485,6 +537,18 @@ export function compileLynxRecipeCss(
                 where,
                 what: `keyframes ${name}`,
                 detail: 'the animation paints with currentColor, which never resolves on lynx (measured, signalxjs/lynx#1079) — dropped; supply a lynx replacement in the recipe target section',
+            });
+            continue;
+        }
+        if (REFUSED_PROPERTY_IN_TEXT.test(body)) {
+            // Same verdict as the declaration path: logical spellings and the
+            // standalone translate/rotate/scale properties resolve on iOS but
+            // not on Android (signalxjs/lynx#1084) — an animation moving one
+            // of them would play on one platform only.
+            report.dropped.push({
+                where,
+                what: `keyframes ${name}`,
+                detail: 'the animation declares a logical inset/margin/padding spelling or a standalone translate/rotate/scale property, which resolve on iOS but not on Android (measured, signalxjs/lynx#1084) — dropped; supply a lynx replacement animating physical spellings or transform functions in the recipe\'s targets.lynx.keyframes',
             });
             continue;
         }

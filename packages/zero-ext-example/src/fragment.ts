@@ -107,4 +107,21 @@ export const recipes: RecipeInput[] = [{
             },
         }])),
     },
+    // The lynx engine resolves logical padding spellings on iOS but not on
+    // Android (measured, signalxjs/lynx#1084), so the emitter refuses them;
+    // physical spellings are that target's norm (no RTL flow on lynx).
+    targets: {
+        lynx: {
+            parts: {
+                item: {
+                    base: {
+                        paddingLeft: '0.75em',
+                        paddingRight: '0.75em',
+                        paddingTop: '0.375em',
+                        paddingBottom: '0.375em',
+                    },
+                },
+            },
+        },
+    },
 }];
