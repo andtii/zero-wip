@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { anatomies } from '@sigx/zero/anatomy';
 import type { ManifestComponent } from '@sigx/zero-kit';
-import { assertNoDanglingVars, compileDesignSystemLynx, compileLynxRecipeCss, emptyReport } from '../src/targets/lynx/index.js';
+import { assertNoCalcVarChains, assertNoDanglingVars, compileDesignSystemLynx, compileLynxRecipeCss, emptyReport } from '../src/targets/lynx/index.js';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import type { RecipeInput } from '../src/recipes.js';
@@ -263,6 +263,103 @@ describe('compileLynxRecipeCss', () => {
         expect(report.dropped.some((f) => f.detail.includes('--btn-accent'))).toBe(true);
     });
 
+    it('rewrites display: inline-flex to flex — lynx has no inline formatting context', () => {
+        const { css, report } = compile({
+            component: 'button',
+            parts: { root: { base: { display: 'inline-flex', alignItems: 'center' } } },
+        });
+        // Measured (signalxjs/lynx#1075): `inline-flex` does not resolve and
+        // the view keeps the broken default linear layout — the daisy tabs
+        // list stacked vertically because of it.
+        expect(css).toContain('display: flex;');
+        expect(css).not.toContain('inline-flex');
+        expect(report.translated.some((f) => f.what === 'display: inline-flex')).toBe(true);
+    });
+
+    // The calc-chain inliner (#382), measured on device (signalxjs/lynx#1075):
+    // lynx drops any declaration consuming var(--x) — bare, with a fallback,
+    // or nested inside a calc() — whenever --x's value contains calc().
+    describe('calc-holding custom-property chains', () => {
+        it('inlines a chain across parts, per axis compound, and drops the inert definitions', () => {
+            const { css, report } = compile({
+                component: 'tabs',
+                parts: {
+                    root: { base: { '--t-size': 'calc(var(--size-selector) * 2)' } },
+                    tab: { base: { height: 'var(--t-size)', padding: 'calc(var(--t-size) / 2)' } },
+                },
+                variants: {
+                    size: {
+                        sm: { root: { base: { '--t-size': 'var(--size-selector)' } } },
+                        lg: { root: { base: { '--t-size': 'calc(var(--size-selector) * 3)' } } },
+                    },
+                },
+            }, tabs);
+            // The consumer is restated on the CONSUMING part under the same
+            // axis compound the definition varied over — the push-down
+            // contract stamps axis classes on every part, so it matches, and
+            // class-count specificity keeps the ramp winning over the base.
+            expect(css).toContain('height: calc(var(--size-selector) * 2);');
+            expect(css).toContain('padding: calc((var(--size-selector) * 2) / 2);');
+            expect(css).toMatch(/\.zx-tabs__tab\.zx-a-size-sm \{\n\s+height: var\(--size-selector\);\n\s+padding: calc\(\(var\(--size-selector\)\) \/ 2\);/);
+            expect(css).toMatch(/\.zx-tabs__tab\.zx-a-size-lg \{\n\s+height: calc\(var\(--size-selector\) \* 3\);/);
+            // The chain itself is gone — definitions and consumptions alike.
+            expect(css).not.toContain('--t-size');
+            expect(report.translated.some((f) => f.what === '--t-size' && f.detail.includes('inlined'))).toBe(true);
+            expectFlatCompounds(css);
+        });
+
+        it('resolves a definition that itself chains through another calc-holding property', () => {
+            const { css } = compile({
+                component: 'tabs',
+                parts: {
+                    root: { base: { '--t-size': 'calc(var(--size-selector) * 4)', '--t-pad': 'calc(var(--t-size) * 0.25)' } },
+                    tab: { base: { padding: 'var(--t-pad)' } },
+                },
+                variants: { size: { xs: { root: { base: { '--t-size': 'calc(var(--size-selector) * 2)' } } } } },
+            }, tabs);
+            expect(css).toContain('padding: calc((var(--size-selector) * 4) * 0.25);');
+            expect(css).toMatch(/\.zx-tabs__tab\.zx-a-size-xs \{\n\s+padding: calc\(\(var\(--size-selector\) \* 2\) \* 0\.25\);/);
+            expect(css).not.toContain('--t-pad');
+            expect(css).not.toContain('--t-size');
+        });
+
+        it('refuses a chain it cannot resolve statically: a calc-holding definition under a state', () => {
+            expect(() => compile({
+                component: 'tabs',
+                parts: {
+                    tab: {
+                        base: { height: 'var(--t-size)' },
+                        states: { active: { '--t-size': 'calc(var(--size-selector) * 2)' } },
+                    },
+                },
+            }, tabs)).toThrow(/--t-size.*calc\(\).*cannot resolve statically/s);
+        });
+
+        it('refuses a calc-holding property consumed from raw lynx css or keyframes', () => {
+            expect(() => compile({
+                component: 'tabs',
+                parts: { root: { base: { '--t-size': 'calc(var(--size-selector) * 2)', height: 'var(--t-size)' } } },
+                css: '.zx-tabs__list { height: var(--t-size); }',
+            }, tabs)).toThrow(/raw lynx css or keyframes consume var\(--t-size\)/);
+        });
+
+        it('leaves plain var chains and theme-baked plain definitions untouched', () => {
+            const { css, report } = compile({
+                component: 'tabs',
+                parts: {
+                    root: { base: { '--t-accent': 'var(--color-primary)' } },
+                    tab: { base: { color: 'var(--t-accent)', width: 'calc(var(--size-field) * 10)' } },
+                },
+            }, tabs);
+            // Plain var→var chains and direct calc(var()) are both proven on
+            // device (signalxjs/lynx#1075) — only calc-HOLDING chains move.
+            expect(css).toContain('--t-accent: var(--color-primary);');
+            expect(css).toContain('color: var(--t-accent);');
+            expect(css).toContain('width: calc(var(--size-field) * 10);');
+            expect(report.translated.some((f) => f.what === '--t-accent')).toBe(false);
+        });
+    });
+
     it('rejects web-runtime property references', () => {
         expect(() => compile({
             component: 'button',
@@ -309,6 +406,11 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
         /@layer/, /@property/, /@starting-style/, /@media/, /@supports/, /@scope/,
         /light-dark\(/, /oklch\(/, /oklab\(/, /color-mix\(/, /\bmin\(/, /\bmax\(/, /clamp\(/,
         /:root/, /\[data-/, /::/, /:hover/, /:focus/, /:active/, /:not\(/,
+        // No inline formatting context on lynx — the emitter rewrites
+        // inline-flex to flex (#382). (`grid`/`inline-grid` are equally
+        // unsupported but have no mechanical rewrite; daisy's toast still
+        // ships grid properties, so they cannot be forbidden here yet.)
+        /display:\s*inline-flex/,
     ] as const;
     it.each([
         ['zero-basic', basicDS],
@@ -355,18 +457,62 @@ describe('whole-skin lynx output is structurally lynx-safe', () => {
         expect(css).not.toMatch(/\bmin\(|\bmax\(|\bclamp\(/);
         expect(css).not.toMatch(/currentcolor/i);
         // …the track is a flexed box with daisy's derived width and the
-        // unclamped radius formula…
+        // unclamped radius formula, the `--switch-size`/`--switch-p` chain
+        // inlined per compound (#382 — lynx drops a declaration consuming a
+        // calc-holding property, signalxjs/lynx#1075)…
         expect(css).toContain('.zx-switch__control {');
         expect(css).toContain('display: flex;');
-        expect(css).toContain('width: calc((var(--switch-size) * 2) - (var(--border) + var(--switch-p)) * 2);');
-        expect(css).toContain('border-radius: calc(var(--radius-selector) + var(--switch-p) + var(--border));');
+        expect(css).toContain('width: calc(((var(--size-selector) * 6) * 2) - (var(--border) + ((var(--size-selector) * 6) * 0.125)) * 2);');
+        expect(css).toContain('border-radius: calc(var(--radius-selector) + ((var(--size-selector) * 6) * 0.125) + var(--border));');
+        // …the size ramp is restated on the consuming parts under the same
+        // axis compounds the definition varied over…
+        expect(css).toMatch(/\.zx-switch__control\.zx-a-size-xs \{\n\s+width: calc\(\(\(var\(--size-selector\) \* 4\) \* 2\)/);
+        expect(css).toContain('height: calc(var(--size-selector) * 4);');
         // …and the knob is an explicit calc() square that travels exactly one
         // knob-width when checked.
         expect(css).toContain('.zx-switch__thumb {');
-        expect(css).toContain('height: calc(var(--switch-size) - (var(--border) + var(--switch-p)) * 2);');
+        expect(css).toContain('height: calc((var(--size-selector) * 6) - (var(--border) + ((var(--size-selector) * 6) * 0.125)) * 2);');
         expect(css).toContain(
-            'transform: translateX(calc(var(--switch-size) - (var(--border) + var(--switch-p)) * 2));',
+            'transform: translateX(calc((var(--size-selector) * 6) - (var(--border) + ((var(--size-selector) * 6) * 0.125)) * 2));',
         );
+        // The chain itself is gone.
+        expect(css).not.toContain('var(--switch-size');
+        expect(css).not.toContain('--switch-p');
+    });
+
+    // The daisy progress track is the component #382 was measured on: its
+    // height was `var(--progress-track-size)` while the property's value held
+    // `calc(var(--size-selector) * 2.5)` — a chain lynx drops on device, so
+    // the track rendered zero-height. This pins the substituted artifact: a
+    // concrete calc() height on the track, base and per-size.
+    it('zero-daisyui progress: the track carries a concrete calc() height, base and per-size', () => {
+        const { componentCss } = compileDesignSystemLynx(daisyDS as never, { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] });
+        const css = componentCss['progress']!;
+        expect(css).toMatch(/\.zx-progress__track \{[^}]*height: calc\(var\(--size-selector\) \* 2\.5\);/);
+        expect(css).toMatch(/\.zx-progress__track\.zx-a-size-xs \{\n\s+height: var\(--size-selector\);/);
+        expect(css).toMatch(/\.zx-progress__track\.zx-a-size-sm \{\n\s+height: calc\(var\(--size-selector\) \* 1\.5\);/);
+        expect(css).toMatch(/\.zx-progress__track\.zx-a-size-lg \{\n\s+height: calc\(var\(--size-selector\) \* 3\.5\);/);
+        expect(css).toMatch(/\.zx-progress__track\.zx-a-size-xl \{\n\s+height: calc\(var\(--size-selector\) \* 4\.5\);/);
+        expect(css).not.toContain('--progress-track-size');
+    });
+});
+
+describe('assertNoCalcVarChains', () => {
+    // The whole-stylesheet backstop for chains the per-recipe inliner cannot
+    // see: a calc-holding TOKEN consumed by a recipe, or a chain minted in
+    // raw lynx css (#382, signalxjs/lynx#1075).
+    it('rejects a var() consumption of a calc-holding property, and names it', () => {
+        expect(() => assertNoCalcVarChains('ds', '.a { --x: calc(var(--s) * 2); }\n.b { height: var(--x); }'))
+            .toThrow(/consumes 1 custom property whose definition holds\s+calc\(\): --x/);
+    });
+
+    it('accepts plain var chains and direct calc(var())', () => {
+        expect(() => assertNoCalcVarChains('ds', '.a { --x: var(--s); }\n.b { height: var(--x); width: calc(var(--s) * 2); }'))
+            .not.toThrow();
+    });
+
+    it('accepts a calc-holding property nothing consumes', () => {
+        expect(() => assertNoCalcVarChains('ds', '.a { --x: calc(var(--s) * 2); }')).not.toThrow();
     });
 });
 

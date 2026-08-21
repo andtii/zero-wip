@@ -24,6 +24,23 @@
  * the element paints nothing at all. That is why `assertNoDanglingVars`
  * refuses to ship a stylesheet reading a property nothing defines.
  *
+ * Second round of on-device measurement (signalxjs/lynx#1075, iOS 18.3):
+ *
+ * - A `var(--x)` consumption is ALSO dropped whenever `--x`'s own value
+ *   contains `calc()` — bare, with a fallback, or nested inside a calc().
+ *   Plain var→var chains and direct `calc(var())` keep working; only the
+ *   indirection through a calc-holding property fails. Such chains are
+ *   inlined at compile time (`calc-chains.ts`) or refused — never shipped;
+ *   `assertNoCalcVarChains` backstops the whole stylesheet for cross-scope
+ *   chains the per-recipe pass cannot see.
+ * - `display: inline-flex` does not resolve (no inline formatting context) —
+ *   the view keeps the broken default linear layout. The emitter rewrites it
+ *   to `flex`. `grid`/`inline-grid` are equally unsupported but have NO
+ *   mechanical rewrite, so they pass through as authored (daisy's toast
+ *   still ships grid properties) — a lynx recipe target section is the fix.
+ * - Descendant-from-host selectors (`.zx-root.zx-theme-x .zx-part`) and
+ *   theme-baked plain per-theme definitions are proven working as emitted.
+ *
  * Three verdicts:
  *
  * - **translate** — silently, because the result is semantically equivalent:
