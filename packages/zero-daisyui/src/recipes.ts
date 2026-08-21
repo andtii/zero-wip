@@ -316,6 +316,14 @@ export const tabs: RecipeInput = {
                             bottom: '0',
                             insetInlineStart: '10%',
                             width: '80%',
+                            // daisy renders under Tailwind preflight, whose
+                            // `*,::before,::after { box-sizing: border-box }`
+                            // makes the active `border-top: 3px` swallow the
+                            // 3px height rather than stack on it. zero ships
+                            // no such reset, so the bar carries the one
+                            // declaration itself — without it the active
+                            // underline doubles to 6px (review catch).
+                            boxSizing: 'border-box',
                             height: '3px',
                             borderRadius: 'var(--radius-field)',
                             backgroundColor: 'transparent',

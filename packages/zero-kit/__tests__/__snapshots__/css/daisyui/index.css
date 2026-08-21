@@ -410,6 +410,7 @@
             bottom: 0;
             inset-inline-start: 10%;
             width: 80%;
+            box-sizing: border-box;
             height: 3px;
             border-radius: var(--radius-field);
             background-color: transparent;
@@ -433,6 +434,7 @@
             bottom: 0;
             inset-inline-start: 10%;
             width: 80%;
+            box-sizing: border-box;
             height: 3px;
             border-radius: var(--radius-field);
             background-color: transparent;
