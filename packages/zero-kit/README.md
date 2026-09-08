@@ -208,9 +208,14 @@ artifacts. `sigx zero:build` calls the same function.
 `targets` selects the emit targets (default `['web']`, which is today's
 output exactly). The list is validated up front: unknown names fail, `web`
 is not optional (every other target emits beside it), and `'lynx'` — the
-class-grammar target for platforms without attribute selectors — currently
-fails with "not implemented yet" while its emitters land across the #348
-campaign.
+class-grammar target for platforms without attribute selectors — emits
+`dist/lynx/{tokens.css, components/<scope>.css, index.css, manifest.json}`
+beside the web artifacts, with every declaration translated, dropped with a
+`report.json` entry, or refused (the capability verdicts live in
+`src/targets/lynx/capabilities.ts`). `@sigx/zero-basic` and
+`@sigx/zero-daisyui` pass `targets: ['web', 'lynx']` in their `build.mjs`;
+a recipe restates web-runtime references and lynx replacements in its
+`targets.web` / `targets.lynx` sections.
 
 ## The authoring surface in a browser graph
 

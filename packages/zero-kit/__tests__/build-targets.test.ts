@@ -4,11 +4,14 @@
  * target emits `dist/lynx/**` beside the web artifacts with its capability
  * findings folded into the shared report.json.
  *
- * The lynx integration case runs a SYNTHETIC design system: the real skins
- * still spell web-runtime references (`var(--slider-percent)`) in shared
- * recipe sections, which the lynx target correctly REJECTS — their migration
- * into `targets.web` sections is the recipe-sections follow-up, and the
- * reject itself is pinned below against zero-basic verbatim.
+ * The lynx integration case runs a SYNTHETIC design system so its
+ * assertions stay independent of the skins' recipes. The real skins compile
+ * the lynx target too: zero-basic and zero-daisyui pass
+ * `targets: ['web', 'lynx']` in their `build.mjs`, their web-runtime
+ * references (`var(--slider-percent)`, `--diff-percent`) live in
+ * `targets.web` sections (#355), and the end-to-end case below builds
+ * zero-basic for lynx and pins that none of those references reach the
+ * lynx artifacts.
  */
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';

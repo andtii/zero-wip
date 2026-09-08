@@ -9,9 +9,10 @@
  * far enough, push them; reach for `custom` only when no category owns the
  * value (see `glass.ts`).
  *
- * This one ships in full as `@sigx/zero-brutalist` — recipes for all fifteen
- * components. Read that package when you want the complete worked example;
- * the `system` block below is the same one it declares.
+ * This one ships in full as `@sigx/zero-brutalist` — recipes for every
+ * component the manifest declares. Read that package when you want the
+ * complete worked example; the `system` block below is the same one it
+ * declares.
  */
 import type { RecipeInput, RolesDecl, SystemTokens, TokensInput } from '@sigx/zero-kit';
 
