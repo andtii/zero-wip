@@ -10,8 +10,9 @@
  * value (see `glass.ts`).
  *
  * This one ships in full as `@sigx/zero-brutalist` — recipes for every
- * component the manifest declares. Read that package when you want the complete worked example;
- * the `system` block below is the same one it declares.
+ * component the manifest declares. Read that package when you want the
+ * complete worked example; the `system` block below is the same one it
+ * declares.
  */
 import type { RecipeInput, RolesDecl, SystemTokens, TokensInput } from '@sigx/zero-kit';
 
