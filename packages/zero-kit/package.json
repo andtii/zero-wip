@@ -1,7 +1,7 @@
 {
     "name": "@sigx/zero-kit",
     "version": "0.2.0-beta.6",
-    "description": "Design-system authoring kit for SignalX Zero — typed tokens and recipes compiled to plain CSS, plus the `sigx` CLI plugin closing the AI-generate → validate → iterate loop.",
+    "description": "Design-system authoring kit for SignalX Zero \u2014 typed tokens and recipes compiled to plain CSS, plus the `sigx` CLI plugin closing the AI-generate \u2192 validate \u2192 iterate loop.",
     "type": "module",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -34,7 +34,8 @@
     "sideEffects": false,
     "scripts": {
         "build": "tsgo -p tsconfig.build.json && node scripts/copy-schemas.mjs",
-        "typecheck": "tsgo --noEmit"
+        "typecheck": "tsgo --noEmit",
+        "gen:css-properties": "node scripts/gen-css-properties.mjs"
     },
     "keywords": [
         "SignalX",
@@ -66,6 +67,7 @@
         "@sigx/zero": "workspace:^",
         "@types/culori": "^4.0.1",
         "@types/node": "^22.10.0",
+        "@webref/css": "8.7.4",
         "typescript": "^6.0.3"
     },
     "publishConfig": {

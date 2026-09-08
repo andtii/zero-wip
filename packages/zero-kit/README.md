@@ -169,7 +169,7 @@ Omitting a category is fine — `@sigx/zero/css` ships fallbacks for the
 recommended keys, so absence is never a validation error.
 
 ```bash
-sigx zero:validate   # tokens, WCAG contrast (a failing pair carries a suggested passing value), recipe structure + content
+sigx zero:validate   # tokens, WCAG contrast (a failing pair carries a suggested passing value), recipe structure + content, CSS property spelling (`paddding` is an error naming `padding`)
 sigx zero:validate --report   # what the design system covers, not what's wrong
 sigx zero:audit      # does what it built say what it claims — read from the compiled CSS
 sigx zero:build      # dist/css/index.css + per-component files + manifest + report + audit

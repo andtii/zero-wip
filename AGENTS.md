@@ -111,6 +111,7 @@ pnpm lint          # oxlint packages
 pnpm lint:fix
 pnpm verify:catalog  # catalog: usage check for @sigx core deps
 pnpm verify:pack   # publish dry-run
+pnpm --filter @sigx/zero-kit gen:css-properties  # regenerate the CSS property list from the pinned @webref/css (a test fails when it is stale)
 ```
 
 To run the playground: `pnpm build` (it loads each design system's compiled CSS

@@ -19,6 +19,7 @@ import {
 } from '../contract.js';
 import type { RolesDecl, ScopeVocabulary, TokensInput } from '../tokens.js';
 import { systemNodeAt } from '../contract.js';
+import { nearestOf } from './nearest.js';
 
 /**
  * The vocabulary in force for ONE scope — the union, narrowed by that scope's
@@ -108,30 +109,6 @@ const normProp = (name: string): string => (name.startsWith('--') ? name : `--${
 
 /** Shared by every unrestricted scope — there is nothing to allocate per call. */
 const EMPTY_RESTRICTED: ReadonlySet<string> = new Set();
-
-/**
- * Levenshtein distance, only ever used to suggest a near miss.
- *
- * The length check is a cheap reject, not an early exit from the matrix —
- * token names are short and vocabularies are dozens of entries, so the full
- * DP is not worth optimizing.
- */
-function distance(a: string, b: string, limit: number): number {
-    if (Math.abs(a.length - b.length) > limit) return limit + 1;
-    let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
-    for (let i = 1; i <= a.length; i++) {
-        const row = [i];
-        for (let j = 1; j <= b.length; j++) {
-            row[j] = Math.min(
-                prev[j]! + 1,
-                row[j - 1]! + 1,
-                prev[j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1),
-            );
-        }
-        prev = row;
-    }
-    return prev[b.length]!;
-}
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- variance-erased plumbing */
 export function tokenVocabulary(tokens: TokensInput<any, any>): TokenVocabulary {
@@ -249,16 +226,7 @@ export function tokenVocabulary(tokens: TokensInput<any, any>): TokenVocabulary 
             };
         },
         nearest(name) {
-            let best: string | undefined;
-            let bestDistance = 4; // anything further apart isn't a typo
-            for (const candidate of names) {
-                const d = distance(name, candidate, bestDistance);
-                if (d < bestDistance) {
-                    bestDistance = d;
-                    best = candidate;
-                }
-            }
-            return best;
+            return nearestOf(name, names, 4); // anything further apart isn't a typo
         },
     };
 }

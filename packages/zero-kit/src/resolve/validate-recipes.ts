@@ -11,6 +11,8 @@ import { parse, converter } from 'culori';
 import type { ManifestPart, ZeroManifest } from '../contract.js';
 import { AXIS_VALUE_PATTERN, RESERVED_AXES, TOKEN_KEY_PATTERN } from '../contract.js';
 import { badAxisValue } from './messages.js';
+import { CSS_PROPERTIES, CSS_PROPERTIES_SOURCE } from './css-properties.js';
+import { nearestOf } from './nearest.js';
 import type { CssProps, PartStyles, RecipeInput } from '../recipes.js';
 import type { ValidationIssue } from './validate.js';
 import type { TokenVocabulary } from './vocabulary.js';
@@ -91,6 +93,14 @@ const LOGICAL_TWIN: Record<string, string> = {
  */
 const kebabProp = (prop: string): string =>
     prop.startsWith('--') ? prop : prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+
+/**
+ * `-webkit-appearance`, `-moz-appearance`, `-ms-overflow-style`… — authored
+ * as `WebkitAppearance` / `msOverflowStyle`, so the kebab form may or may
+ * not carry the leading hyphen. Either way it is a deliberate vendor hack
+ * the property check leaves alone.
+ */
+const VENDOR_PREFIX = /^-?(?:webkit|moz|ms|o)-/;
 
 /** A physical property named at the head of a declaration inside a raw body. */
 const PHYSICAL_IN_BODY = new RegExp(
@@ -327,6 +337,36 @@ export function validateRecipes(
         }
     };
 
+    // A declaration key the CSS specifications do not define never renders:
+    // the browser drops the whole declaration and says nothing (#51), so
+    // this is the one authoring slip no later gate can see. Near a real
+    // property it is a typo and an error; far from every property it is
+    // either brand-new CSS or a typo of something exotic, and the honest
+    // verdict is a warning. Custom properties are the author's to name, and
+    // a vendor-prefixed spelling is a deliberate hack the specs mostly do
+    // not list — neither is questioned.
+    const checkProperty = (prop: string, at: string) => {
+        const name = kebabProp(prop);
+        if (name.startsWith('--') || CSS_PROPERTIES.has(name) || VENDOR_PREFIX.test(name)) return;
+        const near = nearestOf(name, CSS_PROPERTIES, 3); // within two edits
+        if (near) {
+            issues.push({
+                level: 'error',
+                where: at,
+                rule: 'css-property',
+                suggest: { token: name, value: near },
+                message: `"${name}" is not a CSS property — did you mean "${near}"? The browser drops the declaration silently`,
+            });
+        } else {
+            issues.push({
+                level: 'warning',
+                where: at,
+                rule: 'css-property',
+                message: `"${name}" is not a property this kit knows (${CSS_PROPERTIES_SOURCE}) — new CSS passes here, a typo does not render`,
+            });
+        }
+    };
+
     const byScope = new Map(manifest.components.map((c) => [c.scope, c]));
 
     /** component scope → the roles its `color` axis wires. Compared at the end. */
@@ -420,6 +460,7 @@ export function validateRecipes(
         if (recipe.css) values.push({ path: 'css', prop: '', value: recipe.css });
 
         for (const { path, prop, value } of values) {
+            if (prop !== '') checkProperty(prop, `${where}.${path}`);
             for (const match of value.matchAll(VAR_REF)) {
                 const token = match[1]!;
                 const hasFallback = Boolean(match[2]);

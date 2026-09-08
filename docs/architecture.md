@@ -296,6 +296,16 @@ the set down). The other rules worth knowing:
   `assertAxisToken('value', …)` on both emitters, and the `axisValue` /
   `kebabToken` defs in every schema move together — the constant is
   parity-tested between kit and zero.
+- **CSS property names** (#51): every declaration key is checked against
+  `resolve/css-properties.ts`, the property names the CSS specifications
+  define, generated from a pinned `@webref/css` by
+  `scripts/gen-css-properties.mjs` and held equal to it by a test. A key
+  within two edits of a real property (`paddding`) is an error carrying
+  `rule: 'css-property'` and `suggest`; a key near nothing is a warning,
+  because new CSS must pass while a typo of something exotic must still be
+  seen. Custom properties and vendor-prefixed spellings are exempt. This is
+  the one authoring slip no other gate can see — the browser drops the
+  declaration and says nothing.
 - Reserved names: an axis may not shadow a named prop (`color`, `size`,
   `variant`, `mods`, `axes`) nor anything the anatomy contract owns
   (`scope`, `part`, `state`, `orientation`, the flag vocabulary). The kit
@@ -948,8 +958,6 @@ Honesty section. These are the edges the tree knows about today:
   [#197](https://github.com/signalxjs/zero/issues/197) /
   [#199](https://github.com/signalxjs/zero/issues/199) (ancestor-scoped
   axes, responsive axis values),
-  [#51](https://github.com/signalxjs/zero/issues/51) (misspelled CSS
-  property names still compile),
   [#11](https://github.com/signalxjs/zero/issues/11) (`eject`),
   [#17](https://github.com/signalxjs/zero/issues/17) (first publish — the
   standing deadline that made every breaking change above free).
