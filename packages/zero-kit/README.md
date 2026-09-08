@@ -629,7 +629,8 @@ sigx zero:audit --rule button-affordance     # one rule (repeatable)
 sigx zero:audit --json -                     # the audit.json document on stdout
 ```
 
-`zero:build` runs the same audit after the report and writes it as
+`zero:build` runs the same audit after the compile, before the report
+(which folds the summary in and scores it), and writes it as
 `dist/audit.json` (`schemas/audit.schema.json`: `findings`, `waived`,
 `summary`, sorted severity → rule → where). The summary — `{ errors,
 warnings, info, byRule }` — also lands in `report.json` under `audit`, and
