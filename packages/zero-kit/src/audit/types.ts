@@ -56,7 +56,14 @@ export const RULE_SEVERITY: Readonly<Record<AuditRuleId, AuditSeverity>> = {
 export interface AuditFinding {
     rule: AuditRuleId;
     severity: AuditSeverity;
-    /** `scope`, `scope.part`, or `scope.axis` — the `where` convention `ValidationIssue` uses. */
+    /**
+     * Where the finding points, in `ValidationIssue`'s dotted spelling:
+     * `scope` (a component-level legibility finding), `scope.part`, or
+     * `scope.axis` (a coverage finding about one scope) — and, for the one
+     * rule that speaks at design-system level (`axis-value-coverage/unused`),
+     * `axis.value` (`color.primary`, `size.2xl`), where `scope` is absent.
+     * Read the structured fields beside it rather than parsing this.
+     */
     where: string;
     /** Absent only for a design-system-level finding (a declared value no scope uses). */
     scope?: string;
