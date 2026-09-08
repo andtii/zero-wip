@@ -33,6 +33,7 @@ import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import { designSystem as materialDS } from '@sigx/zero-material';
 import { designSystem as brutalistDS } from '@sigx/zero-brutalist';
 import { designSystem as herouiDS } from '@sigx/zero-heroui';
+import { designSystem as carbonDS } from '@sigx/zero-carbon';
 
 const manifest = {
     components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
@@ -44,6 +45,7 @@ const shipped: Array<[string, DesignSystemInput]> = [
     ['material', materialDS as DesignSystemInput],
     ['brutalist', brutalistDS as DesignSystemInput],
     ['heroui', herouiDS as DesignSystemInput],
+    ['carbon', carbonDS as DesignSystemInput],
 ];
 
 const reportFor = (ds: DesignSystemInput): DesignSystemReport =>
@@ -423,6 +425,29 @@ describe('a design system that does not compile', () => {
     });
 });
 
+describe('the score — every shipped skin clears the floor', () => {
+    // Measured 2026-09-08 (#408): basic 96.5, daisyui 93.2, material 97.1,
+    // brutalist 95.0, heroui 97.4, carbon 96.8. The floors sit under the
+    // measurements with room for an honest regression to register before
+    // the grade flips, and the states floor is the loosest because that is
+    // the criterion the skins actually differ on (74.8 – 87.2).
+    it.each(shipped)('%s', (_name, ds) => {
+        const report = reportFor(ds);
+        expect(report.reportVersion).toBe(2);
+        expect(report.score.grade).toBe('A');
+        expect(report.score.total).toBeGreaterThanOrEqual(90);
+        expect(report.score.criteria.components.score).toBe(100);
+        expect(report.score.criteria.vocabulary.score).toBe(100);
+        expect(report.score.criteria.states.score).toBeGreaterThanOrEqual(70);
+        expect(report.score.criteria.contrast.score).toBeGreaterThanOrEqual(85);
+    });
+
+    it('sits right after the name, where a reader of the JSON looks first', () => {
+        expect(Object.keys(reportFor(basicDS as DesignSystemInput)).slice(0, 4))
+            .toEqual(['$schema', 'reportVersion', 'name', 'score']);
+    });
+});
+
 describe('report shape', () => {
     it('is JSON-serialisable and stable across two builds', () => {
         for (const [name, ds] of shipped) {
@@ -450,6 +475,7 @@ describe('formatReport', () => {
     it('names the design system, the coverage and every theme', () => {
         const lines = formatReport(reportFor(herouiDS as DesignSystemInput));
         expect(lines[0]).toBe('heroui — coverage report');
+        expect(lines[1]).toMatch(/^  score \d+(\.\d)? \(A\): components 100 · /);
         expect(lines.join('\n')).toContain(`components styled: ${total}/${total} (100%)`);
         expect(lines.join('\n')).toContain(`color wired: 0/${total} (0%) — no such axis`);
         expect(lines.join('\n')).toContain('theme hero-light: min contrast');

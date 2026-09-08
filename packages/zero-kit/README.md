@@ -467,15 +467,37 @@ sigx zero:validate --report-json -          # JSON on stdout, ready to pipe
 
 ```
 heroui — coverage report
-  components styled: 8/23 (35%)
+  score 68.4 (D): components 2 · vocabulary 92.3 · states 75 · contrast 100 · issues 94
+  components styled: 1/52 (2%)
     unstyled: accordion, avatar, collapsible, combobox, menu, …
   declared out of existence: color
-  color wired: 0/8 (0%) — no such axis
-  size wired: 5/8 (63%)
-  variant wired: 1/8 (13%)
-  states+flags covered: 83/104 (80%) (0 conditionally, 2 skipped deliberately)
+  color wired: 0/1 (0%) — no such axis
+  size wired: 1/1 (100%)
+  variant wired: 1/1 (100%)
+  states+flags covered: 6/8 (75%) (0 conditionally, 0 skipped deliberately)
   theme hero-light: min contrast 14.33:1 (base-300 vs base-content)
 ```
+
+The **score** is the line a generating agent iterates against — one number
+that moves, and a grade that says when to stop (`A` ≥ 90, `B` ≥ 80, `C` ≥ 70,
+`D` ≥ 60, else `F`). It is folded from the sections under it, never from
+anything else: components styled (weight 25), declared axis values honoured
+by some recipe and claimed by some scope (15), part states and flags covered
+(20), the WCAG margin of the declared role pairs in the *weakest* theme (25),
+and the validation counts when the report was built alongside a validation
+pass (15 — ten points an error, two a warning). A sixth criterion, `audit`,
+joins the weighting when an audit score is handed to `computeScore`; absent
+criteria drop out and the weights renormalise, so a report built without a
+validation pass is comparable to one built with it. Three things it
+deliberately does not do: penalise a declined axis (`roles: {}` / `sizes: []`
+are statements — an axis in `declaredOut` leaves the denominator, and a role
+declared as a fill with `content: false` / `soft: false` is a token, not an
+axis value), give full credit for `skipStates` (half — a recipe that skips
+every state cannot score above 50 on that criterion), or score per-scope
+`variant` wiring (the carriers that leave it unwired do so by recorded
+decision). Every criterion carries the counts it was computed from under
+`detail`, so a number can be argued with. The six in-repo skins score
+93–97 (A); a Button-only start scores 68 (D).
 
 The report is emitted whether or not validation passes — a design system that
 fails is exactly the one whose coverage is worth reading. (The one exception is
@@ -485,8 +507,10 @@ there is nothing to report about it.)
 `sigx zero:build` writes the same report to `dist/report.json` alongside
 `manifest.json` and `register.d.ts`, as does `writeArtifacts` when handed one —
 so a built design system carries its report without anyone running `validate`.
+The document is `reportVersion: 2` (`schemas/report.schema.json`); version 2
+added the required `score` section.
 
-It carries, per design system: components styled against the anatomy manifest;
+It carries, per design system: the score above; components styled against the anatomy manifest;
 the axes each component wires, and which its `register.d.ts` types `never`
 (derived from the same harvest, so the two cannot disagree); declared-but-unwired
 values per axis and per modifier — the only place a declared-but-unused colour

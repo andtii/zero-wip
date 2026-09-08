@@ -99,6 +99,8 @@ export type {
     UnstyledComponentReport,
 } from './resolve/report.js';
 export { buildReport, formatReport, REPORT_SCHEMA_URL } from './resolve/report.js';
+export type { ReportScore, ScoreCriterion, ScoreExtras, ScoreGrade } from './resolve/score.js';
+export { computeScore, formatScore, gradeFor, pairScore, SCORE_WEIGHTS } from './resolve/score.js';
 
 export type {
     ConformanceFixtureInput,
@@ -153,6 +155,8 @@ export {
     carrierPart,
     defaultSwatch,
     resolveRoles,
+    isFillRole,
+    axisRoles,
     systemNodeAt,
     requiredColorTokens,
     contrastPairs,

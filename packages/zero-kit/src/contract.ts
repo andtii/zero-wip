@@ -255,6 +255,28 @@ export function resolveRoles(roles: Record<string, RoleDecl> | undefined): Recor
     return roles ?? DEFAULT_ROLES;
 }
 
+/**
+ * Whether a role is a fill or a hairline rather than an action colour.
+ *
+ * `tokens.roles` does double duty as the palette and as the `color` axis
+ * vocabulary (#286). A role that opts out of `-content` or `-soft` —
+ * Material's tonal `surface*` family, its `outline` — is a token a recipe
+ * reads, not a value a consumer can pass as `color`; every skin filters it
+ * out of the axis, the value-coverage guard exempts it, and the score leaves
+ * it out of the vocabulary denominator. One predicate, so #286 becomes a
+ * one-function change when the declaration grows an explicit field.
+ */
+export function isFillRole(decl: RoleDecl | undefined): boolean {
+    return decl?.content === false || decl?.soft === false;
+}
+
+/** The roles that make up the `color` axis — every declared role that is not a fill, in declaration order. */
+export function axisRoles(roles: Record<string, RoleDecl>): string[] {
+    return Object.entries(roles)
+        .filter(([, decl]) => !isFillRole(decl))
+        .map(([name]) => name);
+}
+
 /** Theme-authorable color token names for a declaration (no `-soft` — optional). */
 export function requiredColorTokens(roles: Record<string, RoleDecl>): string[] {
     return [

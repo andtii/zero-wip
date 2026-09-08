@@ -1,8 +1,10 @@
 /**
  * zero-basic recipes — readable neutral styling for every zero component.
- * Pure data (type-only kit imports); compiled to CSS by build.mjs.
+ * Pure data — the kit is imported as types, plus `axisRoles` from the
+ * browser-safe `/define` subpath; compiled to CSS by build.mjs.
  */
-import type { CssProps, PartStyles, RecipeInput, RoleDecl } from '@sigx/zero-kit';
+import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
+import { axisRoles } from '@sigx/zero-kit/define';
 import { roles } from './tokens.js';
 
 /**
@@ -12,9 +14,7 @@ import { roles } from './tokens.js';
  * `-content` or `-soft` are fills or hairlines, not action colours; this
  * design system declares none.
  */
-const ROLES = Object.entries(roles as Record<string, RoleDecl>)
-    .filter(([, decl]) => decl.content !== false && decl.soft !== false)
-    .map(([name]) => name);
+const ROLES = axisRoles(roles);
 
 /**
  * "…and the reading direction is right-to-left" — appended to a selector, never
