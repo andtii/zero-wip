@@ -26,6 +26,9 @@ export interface ValidateOptions {
     diff?: string;
 }
 
+/** The top-level sections `diffReports` reads — a file without them is not a report. */
+const REPORT_SECTIONS = ['name', 'score', 'coverage', 'components', 'unwired', 'themes'] as const;
+
 /**
  * The earlier report for `--diff`. Every way this can go wrong names the
  * path: a missing file, unreadable JSON, or something that is not a report —
@@ -48,6 +51,13 @@ async function readPreviousReport(env: CommandEnv, spec: string): Promise<Design
     }
     if (typeof parsed !== 'object' || parsed === null || typeof (parsed as { reportVersion?: unknown }).reportVersion !== 'number') {
         throw new Error(`--diff: "${path}" is not a coverage report (no numeric reportVersion)`);
+    }
+    // The sections the diff reads. Checked by name so a stray JSON file that
+    // happens to carry a `reportVersion` fails here, naming the path, rather
+    // than deep inside `diffReports` on an undefined field.
+    const missing = REPORT_SECTIONS.filter((key) => !(key in (parsed as Record<string, unknown>)));
+    if (missing.length > 0) {
+        throw new Error(`--diff: "${path}" is not a coverage report (missing ${missing.join(', ')})`);
     }
     return parsed as DesignSystemReport;
 }

@@ -159,6 +159,21 @@ describe('diffReports', () => {
         expect(diffReports(narrower, baseline).manifest).toEqual({ added: ['kbd'], removed: [] });
     });
 
+    it('a state new to the manifest on a shared scope is judged on arrival', () => {
+        // Both reports style `button`; the newer manifest gave `button.root` a
+        // state no recipe covers yet. That is debt from the moment it exists,
+        // so it is newly uncovered — while a state that LEFT the manifest is
+        // owed nothing and is not "resolved".
+        const grown = clone(baseline);
+        const root = (grown.components['button'] as { parts: Record<string, { states: { uncovered: string[] } }> }).parts['root']!;
+        root.states.uncovered.push('brand-new');
+        const diff = diffReports(baseline, grown);
+        expect(diff.uncovered.newly).toEqual(['button.root.brand-new']);
+        const shrunk = diffReports(grown, baseline);
+        expect(shrunk.uncovered.resolved).toEqual([]);
+        expect(shrunk.changed).toBe(false);
+    });
+
     it('unwired values are keyed by axis, and appear/resolve symmetrically', () => {
         const more = clone(baseline);
         more.unwired.color.push('tertiary');

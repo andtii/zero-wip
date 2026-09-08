@@ -13,7 +13,9 @@
  * - **Only like is compared with like.** A scope styled in one report and not
  *   the other shows up under `components`; its parts' states are NOT also
  *   listed as newly uncovered or resolved, because that would count one change
- *   twice. A scope present in one report's manifest and absent from the other's
+ *   twice. Within a scope both reports style, a state that is new to the
+ *   manifest IS judged — uncovered on arrival is debt — while one that left it
+ *   is owed nothing. A scope present in one report's manifest and absent from the other's
  *   is a manifest change (`manifest.added` / `removed`), not a styling change —
  *   a build that merged an ecosystem fragment and a validate that did not
  *   differ in what they were asked, not in what was styled. Likewise a theme or
@@ -173,9 +175,12 @@ export function diffReports(prev: DesignSystemReport, next: DesignSystemReport):
     const after = coverage(next, both);
     const uncovered = { newly: [] as string[], resolved: [] as string[] };
     const skipped = { newly: [] as string[], resolved: [] as string[] };
-    for (const [key, was] of before) {
-        const now = after.get(key);
-        if (now === undefined) continue; // the state left the manifest — not a coverage change
+    // Walk the NEWER report's keys: a state that left the manifest is nothing
+    // owed any more, but a state that entered it (a new state or flag on a
+    // part both reports style) is new coverage debt the moment it is
+    // uncovered — so a key with no `before` is judged on `now` alone.
+    for (const [key, now] of after) {
+        const was = before.get(key);
         const styledNow = now === 'covered' || now === 'coveredIndirectly';
         if (was === 'uncovered' && styledNow) uncovered.resolved.push(key);
         if (now === 'uncovered' && was !== 'uncovered') uncovered.newly.push(key);
