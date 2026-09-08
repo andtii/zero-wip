@@ -41,8 +41,13 @@ import type { AuditFinding, RuleOutput } from '../types.js';
  * the same reading the other audit rules take (#418).
  */
 const isStructural = (prelude: string): boolean => prelude.startsWith('@layer') || prelude.startsWith('@scope');
+/**
+ * The reduced-motion query and nothing else — `@media print and
+ * (prefers-reduced-motion: reduce)` CONTAINS it and is a narrower condition,
+ * so the prelude is matched whole (whitespace-insensitive), not searched.
+ */
 const isReducedMotion = (prelude: string): boolean =>
-    prelude.startsWith('@media') && /prefers-reduced-motion\s*:\s*reduce/.test(prelude);
+    prelude.replace(/\s+/g, '') === '@media(prefers-reduced-motion:reduce)';
 
 /** The default render: every prelude is structural. */
 const isDefaultContext = (rule: CssRule): boolean => rule.at.every(isStructural);

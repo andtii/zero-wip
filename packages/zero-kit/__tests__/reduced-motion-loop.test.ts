@@ -172,6 +172,17 @@ describe('reduced-motion/loop', () => {
             base: { animation: 'spin 1s linear infinite' },
             at: { print: { at: { 'reduced-motion': { base: { animation: 'none' } } } } },
         }))).toEqual(['spinner.root']);
+        // …and the same constraint folded into ONE raw prelude: the query must
+        // BE the reduced-motion query, not merely contain it.
+        expect(loops(spinner({
+            base: { animation: 'spin 1s linear infinite' },
+            at: { '@media print and (prefers-reduced-motion: reduce)': { base: { animation: 'none' } } },
+        }))).toEqual(['spinner.root']);
+        // Whitespace is not a condition.
+        expect(loops(spinner({
+            base: { animation: 'spin 1s linear infinite' },
+            at: { '@media  ( prefers-reduced-motion:reduce )': { base: { animation: 'none' } } },
+        }))).toEqual([]);
     });
 
     it('ignores a finite animation', () => {
