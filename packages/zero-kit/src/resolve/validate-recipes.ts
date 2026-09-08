@@ -10,7 +10,7 @@
 import { parse, converter } from 'culori';
 import type { ManifestPart, ZeroManifest } from '../contract.js';
 import { AXIS_VALUE_PATTERN, RESERVED_AXES, TOKEN_KEY_PATTERN } from '../contract.js';
-import { badAxisValue } from './validate.js';
+import { badAxisValue } from './messages.js';
 import type { CssProps, PartStyles, RecipeInput } from '../recipes.js';
 import type { ValidationIssue } from './validate.js';
 import type { TokenVocabulary } from './vocabulary.js';

@@ -21,6 +21,7 @@
  */
 import { parse, wcagContrast } from 'culori';
 import type { ZeroManifest } from '../contract.js';
+import { badAxisValue } from './messages.js';
 import {
     BASE_SURFACE_TOKEN_LIST,
     RESERVED_AXES,
@@ -110,15 +111,6 @@ function badValue(syntax: string, value: unknown): string | undefined {
         return `"${text}" is not a valid <number> — this token is unitless (a weight, a multiplier or an opacity)`;
     }
     return undefined;
-}
-
-/**
- * The message for a value `AXIS_VALUE_PATTERN` refuses. Names the two places
- * the value is written verbatim, so the reason reads as a fact about the
- * artifacts rather than a style rule.
- */
-export function badAxisValue(value: string): string {
-    return `"${value}" is not a valid axis value — lowercase letters, digits and hyphens only, so it survives [data-…="…"] and .zx-a-…-… verbatim`;
 }
 
 export function validateDesignSystem<R extends RolesDecl>(
