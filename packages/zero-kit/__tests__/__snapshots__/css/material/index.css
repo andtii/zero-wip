@@ -8299,6 +8299,10 @@
         background: color-mix(in oklch, var(--color-base-content) 12%, transparent);
     }
 
+    [data-scope="pagination"][data-part="item"][data-state="active"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklch, var(--pg-accent) 88%, var(--color-base-content));
+    }
+
     [data-scope="pagination"][data-part="ellipsis"] {
         display: inline-flex;
         align-items: center;

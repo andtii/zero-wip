@@ -329,7 +329,7 @@ describe('the aggregate', () => {
         expect(() => auditDesignSystem(mixed, manifest, { rules: ['contrast/nope' as AuditRuleId] }))
             .toThrow(/unknown audit rule "contrast\/nope"/);
         // …and the default is every rule the registry knows.
-        expect(AUDIT_RULES.length).toBe(9);
+        expect(AUDIT_RULES.length).toBe(12);
     });
 
     it('takes a compile the caller already has and reaches the same verdict', () => {
@@ -356,6 +356,13 @@ describe('the aggregate', () => {
         ], { sizes: [] });
         const result = auditDesignSystem(clean, manifest);
         expect(result.findings).toEqual([]);
-        expect(formatAudit(result)).toEqual(['fixture — audit', '  no findings', '  0 error(s), 0 warning(s), 0 info']);
+        expect(formatAudit(result)).toEqual([
+            'fixture — audit',
+            '  no findings',
+            // The contrast line is a count, not a finding: cells it measured,
+            // and — were there any — cells it could not.
+            expect.stringMatching(/^ {2}contrast day: \d+ cells, \d+ measured, 0 below floor, 0 below AA$/),
+            '  0 error(s), 0 warning(s), 0 info',
+        ]);
     });
 });

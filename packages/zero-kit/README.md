@@ -584,13 +584,14 @@ const result = auditDesignSystem(designSystem, manifest);
 console.log(formatAudit(result).join('\n'));
 result.findings;   // AuditFinding[] — severity → rule → where, each naming its fix
 result.waived;     // what a declared mechanism excused, listed rather than swallowed
+result.contrast;   // the static contrast matrix's full cell table, per theme
 result.summary;    // { errors, warnings, info, byRule }
 ```
 
 Every rule reads the **compiled CSS**, not the recipe tree — state styling
 reaches the stylesheet through seven doors (`states`, `selectors`,
 `variants.*`, `compoundVariants`, `modifiers`, nested `at`, raw `css`) and only
-the artifact sees all of them. Nine rules in this release:
+the artifact sees all of them. Twelve rules:
 
 | Rule | Severity | It reports… | Waived by |
 |---|---|---|---|
@@ -603,12 +604,62 @@ the artifact sees all of them. Nine rules in this release:
 | `axis-value-coverage/unused` | warning | a declared value no recipe paints or claims; or one in no scope's vocabulary | a role declared `content: false` / `soft: false` (a fill, not an axis value) |
 | `axis-coverage` | warning | a styled scope that accepts a declared `color`/`size` axis at runtime and wires nothing | `roles: {}` / `sizes: []`; `tokens.scopes.<scope>.colors: []` / `.sizes: []` |
 | `reduced-motion/loop` | error | an infinite animation in the default render with no `animation: none` for the same selector under `prefers-reduced-motion: reduce` as its only condition — the kit collapses durations there, so a loop strobes rather than stops; a cancel also gated by `@supports` or a second `@media` stops it for some readers, not all | — (a loop that only exists behind `@supports` / `@container` is not the default render's and is not judged) |
+| `contrast/text` | error below 3:1 per cell; warning 3–4.5:1, once per (part, theme) naming the worst cell; `disabled` error below 2:1 pre-fade | a text-bearing part whose computed ink against its effective background clears no floor, in any state × flag combination, in any theme — the design system's own axis surface (every wired `variant`/`color` value, each modifier) included | — |
+| `contrast/indicator` | error below 3:1 per cell; 3–4.5:1 is `info` (a non-text mark meets WCAG 1.4.11 at 3:1) | a mark whose whole job is paint (the tick, the dot, the thumb, the range, the chevrons, the star) that cannot be seen against what it is painted on, measured inside its real ancestor chain | — |
+| `contrast/unmeasured` | info | cells the static reader could not judge, once per (scope, part, reason) with the count — never a pass, never a failure | — |
 
 Only the default render counts: a difference that lives under a `@media`
 (the `forced-colors` glyph fallback, a breakpoint, `print`) is not the reader
 differentiating. The rule modules under `src/audit/rules/` carry the full
 reasoning in their docblocks, and each has fixtures it MUST report — the
 in-repo skins are held to zero findings through the same function.
+
+### The static contrast matrix
+
+The three `contrast/*` rules are the browser contrast audit
+(`examples/playground/e2e/contrast-audit.spec.ts`) computed from the compiled
+CSS: the same two matrices (text legibility over every text-bearing part in
+every renderable state combination plus the wired axis surface; indicator
+paint over the parts whose job is paint, each in its real ancestor chain),
+the same cell keys, the same colour math (premultiplied, 8-bit rounded where
+a canvas would round), the same floors — 3:1, the 4.5:1 AA band as a
+warning for text (one finding per part and theme, the worst cell named; the
+table keeps every cell) and a note for a mark (WCAG 1.4.11 holds a non-text
+mark to 3:1), and `disabled` on its own 2:1 floor measured on the pair *before*
+the state's uniform fade. Every cell is on `result.contrast` with its verdict
+(`pass`, `warn`, `fail`, `disabled-fail`, `unrendered`, `unpainted`,
+`unmeasured`), ratio, in-group ratio, ink, backdrop and carrier.
+
+What makes it honest rather than merely static: a browser always produces a
+pixel, and a reader of CSS sometimes cannot. Every such cell is `unmeasured`
+with one of a closed set of reasons — `gradient-or-image` (paint whose extent
+the reader cannot see), `unresolved-var`, `runtime-property` (`--press-*`,
+written inline by the runtime), `unsupported-selector` (`:has()` on a node
+with children, `:nth-*()`, sibling combinators), `unparseable-color`,
+`currentcolor-cycle`, `filter-or-blend` (light changed after the fact),
+`unknown-geometry` (a transform with no determinant the reader can take),
+`raw-css`, `conditional-rule` (a declaration under `@supports`, `@container`
+or a `@media` query the reference page cannot decide) — and
+`contrast/unmeasured` lists them as `info`: cells to eyeball
+in the playground, never a pass and never a build break. Interaction
+pseudo-classes are not measured (the resting render, as in the browser),
+`box-shadow` does not count as a carrier (it does not survive
+`forced-colors`), and nested same-scope instances are not modelled. `@media`
+queries are evaluated against the browser matrix's page (`REFERENCE_MEDIA`:
+Playwright's Desktop Chrome — 1280×720, `hover: hover`, `pointer: fine`,
+light scheme, no preference flags), so a `min-width` breakpoint that page
+meets applies and a `hover: none` block does not. The
+browser audit stays the ground truth; the six in-repo skins are held to zero
+`contrast/*` errors through this function and to a named set of unmeasured
+reasons each, so the estimate can neither drift into lying nor retreat into
+not measuring.
+
+Pass `{ themes: ['dark'] }` to measure a subset of themes and
+`{ axisCellBudget }` to raise the chained-cell ceiling (tripped, never
+silently applied). `buildReport(…, { contrast: result.contrast })` folds the
+matrix into `report.contrast` — per theme: cells, measured, failing,
+warnings, disabled failures, and the unmeasured count by reason — via
+`summarizeContrast`, which `formatReport` prints as one line per theme.
 
 `auditDesignSystem` never throws on a finding: a design system mid-iteration
 must be able to read its own audit. Pass `{ rules: [...] }` to run a subset

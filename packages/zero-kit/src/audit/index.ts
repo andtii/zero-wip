@@ -13,8 +13,8 @@
  * over each scope's compiled CSS) rather than the recipe tree, for the reason
  * every one of them records in its own docblock: only the emitted CSS sees
  * every door a declaration can arrive through. The contrast matrix — the
- * static half of the browser contrast audit — is the C slice and joins this
- * module with its own `contrast/*` rules and a cell table on the result.
+ * static half of the browser contrast audit — followed as three more rules
+ * (`contrast/*`, `./contrast/`) and the cell table on the result.
  *
  * A finding is a verdict about one place; a waiver is a verdict a declared
  * mechanism excused, listed rather than swallowed. `auditDesignSystem` never
@@ -29,6 +29,7 @@ import type { AuditContext } from './context.js';
 import * as axisCoverage from './rules/axis-coverage.js';
 import * as axisValueCoverage from './rules/axis-value-coverage.js';
 import * as buttonAffordance from './rules/button-affordance.js';
+import * as contrastRules from './rules/contrast.js';
 import * as reducedMotion from './rules/reduced-motion.js';
 import * as stateLegibility from './rules/state-legibility.js';
 import type { AuditFinding, AuditResult, AuditRuleId, AuditSeverity, AuditWaiver, RuleOutput } from './types.js';
@@ -81,6 +82,35 @@ export {
 } from './rules/axis-value-coverage.js';
 export { axisCoverage } from './rules/axis-coverage.js';
 export { declaresLoop, loopFindings } from './rules/reduced-motion.js';
+export { contrastFindings } from './rules/contrast.js';
+export type { ContrastCell, ContrastMatrix, ContrastOptions, ContrastVerdict } from './contrast/matrix.js';
+export { AA, DISABLED_FLOOR, FLOOR, buildContrastMatrix } from './contrast/matrix.js';
+export type { UnmeasuredReason } from './contrast/cascade.js';
+export { UNMEASURED_REASONS, clipCollapsed } from './contrast/cascade.js';
+export type { ThemeEnv } from './contrast/theme-env.js';
+export { themeEnvironments } from './contrast/theme-env.js';
+export type { RGB } from './contrast/color.js';
+export { blend, contrast, hasInk, luminance, parseColor, resolveOver } from './contrast/color.js';
+export type { Cell, Combo, IndicatorCell, IndicatorSpec, NodeSpec, WiredAxes } from './contrast/cells-index.js';
+export {
+    AXIS_CELL_BUDGET,
+    INDICATORS,
+    NOT_RENDERED_ON_WEB,
+    PAINT_ONLY_PART,
+    axisCellsFor,
+    axisTag,
+    cellKey,
+    chainFor,
+    colourBearingAxes,
+    combosFor,
+    derivedChainAncestors,
+    indicatorAncestors,
+    indicatorCellsFor,
+    indicatorChains,
+    restingCombos,
+    textCells,
+    uncoveredPaintParts,
+} from './contrast/cells-index.js';
 
 /** The `$schema` every emitted `audit.json` carries — the artifact's self-reference. */
 export const AUDIT_SCHEMA_URL = 'https://signalxjs.github.io/zero/schemas/audit.schema.json';
@@ -95,8 +125,8 @@ export interface AuditArtifact extends AuditResult {
 }
 
 export function buildAuditArtifact(result: AuditResult): AuditArtifact {
-    const { auditVersion, name, findings, waived, summary } = result;
-    return { $schema: AUDIT_SCHEMA_URL, auditVersion, name, findings, waived, summary };
+    const { auditVersion, name, findings, waived, contrast, summary } = result;
+    return { $schema: AUDIT_SCHEMA_URL, auditVersion, name, findings, waived, contrast, summary };
 }
 
 export interface AuditOptions {
@@ -104,6 +134,10 @@ export interface AuditOptions {
     rules?: readonly AuditRuleId[];
     /** A compile the caller already has, so the audit does not repeat it. */
     compiled?: CompiledDesignSystem;
+    /** Contrast: measure only these themes; default every declared theme. */
+    themes?: readonly string[];
+    /** Contrast: the chained-cell ceiling per (design system, theme); default `AXIS_CELL_BUDGET`. */
+    axisCellBudget?: number;
 }
 
 interface RuleModule {
@@ -125,6 +159,8 @@ const MODULES: readonly RuleModule[] = [
     { ids: ['axis-coverage'], run: axisCoverage.run },
     { ids: ['reduced-motion/loop'], run: reducedMotion.run },
 ];
+
+const CONTRAST_RULES: readonly AuditRuleId[] = ['contrast/text', 'contrast/indicator', 'contrast/unmeasured'];
 
 const SEVERITY_ORDER: Readonly<Record<AuditSeverity, number>> = { error: 0, warning: 1, info: 2 };
 
@@ -150,6 +186,7 @@ export function auditDesignSystem(
     const ctx = buildAuditContext(ds, manifest, options.compiled);
     const findings: AuditFinding[] = [];
     const waived: AuditWaiver[] = [];
+    let contrast: AuditResult['contrast'] = { themes: [] };
     for (const module of MODULES) {
         if (!module.ids.some((id) => wanted.has(id))) continue;
         const out = module.run(ctx);
@@ -157,6 +194,16 @@ export function auditDesignSystem(
         // state-legibility rules share one parse and one case table.
         findings.push(...out.findings.filter((f) => wanted.has(f.rule)));
         waived.push(...out.waived.filter((f) => wanted.has(f.rule)));
+    }
+    // The contrast rules take options no other rule does (a theme filter,
+    // the cell budget) and hand back the matrix beside their findings.
+    if (CONTRAST_RULES.some((id) => wanted.has(id))) {
+        const out = contrastRules.run(ctx, {
+            ...(options.themes ? { themes: options.themes } : {}),
+            ...(options.axisCellBudget !== undefined ? { axisCellBudget: options.axisCellBudget } : {}),
+        });
+        findings.push(...out.findings.filter((f) => wanted.has(f.rule)));
+        contrast = out.contrast;
     }
     findings.sort(compareFindings);
     waived.sort(compareFindings);
@@ -167,7 +214,7 @@ export function auditDesignSystem(
         else summary.info++;
         summary.byRule[f.rule] = (summary.byRule[f.rule] ?? 0) + 1;
     }
-    return { auditVersion: 1, name: ds.name, findings, waived, summary };
+    return { auditVersion: 1, name: ds.name, findings, waived, contrast, summary };
 }
 
 /**
@@ -187,6 +234,16 @@ export function formatAudit(result: AuditResult): string[] {
             lines.push(`  ${f.rule} (${f.severity}) ×${result.summary.byRule[f.rule] ?? 0}`);
         }
         lines.push(`    ${f.message}`);
+    }
+    for (const theme of result.contrast.themes) {
+        const count = (verdict: string): number => theme.cells.filter((c) => c.verdict === verdict).length;
+        const measured = theme.cells.length - count('unmeasured') - count('unrendered') - count('unpainted');
+        const unmeasured = count('unmeasured');
+        lines.push(
+            `  contrast ${theme.name}: ${theme.cells.length} cells, ${measured} measured, `
+            + `${count('fail') + count('disabled-fail')} below floor, ${count('warn')} below AA`
+            + (unmeasured > 0 ? `, ${unmeasured} unmeasured` : ''),
+        );
     }
     if (result.waived.length > 0) {
         const byMechanism = new Map<string, number>();

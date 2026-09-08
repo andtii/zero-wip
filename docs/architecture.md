@@ -891,7 +891,8 @@ checking a fraction of what it claimed.)
 | Register compile gate | `zero-kit/__tests__/register-dts-compile.test.ts` | Every skin's emitted `register.d.ts` compiles with `skipLibCheck: false` against a generated stub of `@sigx/zero`, so the artifact's self-assertions actually execute ([§3.5](#35-the-register-artifact)). |
 | Typed-app capstone | `examples/typed-app` (CI, after build) | The consumer side: three isolated programs against **emitted `dist/`** through real package exports — register narrowing, the no-register components surface, and carbon's values remap. |
 | Interaction e2e (22 specs) | `examples/playground/e2e/` — press-feedback, dialog, drawer, popover, tooltip, menu-submenu, context-menu, combobox, select, toast-presence, tabs, tree-view, slider, number-input, rating-group, carousel, diff | Real-browser contracts (chromium/firefox/webkit, plus reduced-motion and forced-colors projects), under the **locator law** (`e2e/demo.ts`): a part is located through a named root, never page-wide selectors or cross-demo positional indexing. |
-| Contrast audit | `e2e/contrast-audit.spec.ts` | Two matrices over every state combination × skin × theme: text legibility for text-bearing parts and indicator paint for parts whose job is paint, measured in their real ancestor chains (derived from the part tree); each skin's wired axis surface rides the text matrix; 3:1 hard floor, 2:1 for `disabled` measured pre-fade. |
+| Static contrast matrix | `zero-kit/src/audit/contrast/` via the `contrast/*` audit rules; `contrast-static.test.ts` (the six skins at zero `contrast/*` errors and a named set of unmeasured reasons each; one red fixture per browser finding — #210, #116, #211, #207 — and one per `unmeasured` reason), `contrast-selector.test.ts`, `contrast-cascade.test.ts` | The browser contrast audit's two matrices computed from **compiled CSS**: the same cell product (ported, the indicator chains now derived from the part tree), a three-valued selector matcher for the emitted grammar, a computed-style model for what a reading depends on, the same compositing and floors. Every cell the reader cannot judge is `unmeasured` with a closed reason and reported as `info` — never a pass. Reachable by a design system built outside this repo. |
+| Contrast audit | `e2e/contrast-audit.spec.ts` | Two matrices over every state combination × skin × theme: text legibility for text-bearing parts and indicator paint for parts whose job is paint, measured in their real ancestor chains (derived from the part tree); each skin's wired axis surface rides the text matrix; 3:1 hard floor, 2:1 for `disabled` measured pre-fade. The ground truth the static matrix answers to. |
 | DS smoke | `e2e/ds-smoke.spec.ts` | All six skins: `hidden` computes `display: none`, no undeclared axis/mod value renders, the runtime swap leaves one live stylesheet and re-seeds vocabulary + themes, boot logs no console error. |
 | Reduced motion / RTL | `e2e/reduced-motion.spec.ts`, `e2e/rtl.spec.ts` | The two loops (Skeleton, Spinner) assert `animation-name` running under chromium **and** `none` under reduced-motion — both directions, or a never-animating recipe passes; RTL measures rendered boxes across all six skins, complementing the physical-direction lint's `transform` blind spot ([§5](#5-the-compiler-and-css-architecture)). |
 | Axe audit | `e2e/axe-audit.spec.ts` | axe-core over every playground page, hard-failing serious/critical WCAG A/AA, with an **empty allowlist** (`axe-allowlist.json` — stale entries fail; a real bug gets fixed in `packages/zero`, never allowlisted). |
@@ -910,6 +911,19 @@ Honesty section. These are the edges the tree knows about today:
   generated stub instead of zero's real source. The flip to `false` the day
   core ships clean declarations is the whole remaining gap, and the
   tsconfigs say so in place.
+- **The static contrast matrix is an estimate, and says so.** Its blind
+  spots are a closed list rather than a silent default: interaction
+  pseudo-classes are not measured (the resting render, as in the browser
+  matrix), a gradient's extent and a `filter`'s effect are not modelled, a
+  selector outside the emitted grammar (`:has()` on a node with children,
+  `:nth-*()`, sibling combinators) is not evaluated, a condition outside
+  `@media` (`@supports`, `@container`) is not decided, and nested same-scope
+  instances are not built. Each surfaces as `unmeasured` with its reason;
+  `@media` itself is decided against the fixed reference page the browser
+  matrix runs in (`REFERENCE_MEDIA`, Playwright's Desktop Chrome);
+  the browser matrix (`e2e/contrast-audit.spec.ts`) is the ground truth,
+  and the parity gate that holds the estimate to it on every cell it claims
+  is the D slice of #403.
 - **The dual-controller theme desync** ([§6](#6-the-theme-model)) is known
   and deliberately unfixed; consumers that swap design systems at runtime
   carry the playground's capture/re-apply pattern.

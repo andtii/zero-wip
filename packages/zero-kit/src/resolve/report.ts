@@ -34,6 +34,7 @@ import type { PartStyles, RecipeInput } from '../recipes.js';
 import type { DesignSystemApi, MappedGrade } from '../api.js';
 import { apiGrade, modifierGrade } from '../api.js';
 import type { ValidationResult } from './validate.js';
+import type { ContrastMatrix } from '../audit/contrast/matrix.js';
 import type { ReportScore } from './score.js';
 import { computeScore, formatScore } from './score.js';
 import type { AuditResult, AuditRuleId } from '../audit/types.js';
@@ -180,6 +181,33 @@ export interface ApiSurfaceReport {
     respelled: string[];
 }
 
+/**
+ * One theme of the static contrast matrix, summarised (#403). The full cell
+ * table lives on `AuditResult.contrast`; this is what a reviewer reads
+ * first — how much was measured, how much of it failed, and what the
+ * estimate could not judge, by reason, so `unmeasured` is a number on the
+ * record rather than a silent gap.
+ */
+export interface ContrastReportTheme {
+    name: string;
+    /** Every cell the matrix produced for this theme. */
+    cells: number;
+    /** Cells with a ratio: `cells` minus unmeasured, unrendered and unpainted. */
+    measured: number;
+    /** Below the 3:1 floor. */
+    failing: number;
+    /** In the 3:1–4.5:1 band. */
+    warnings: number;
+    /** `disabled` cells whose pre-fade pair is below 2:1. */
+    disabledFailing: number;
+    unrendered: number;
+    unpainted: number;
+    /** Reason → how many cells the estimate could not judge for it. */
+    unmeasured: Record<string, number>;
+    /** The ten lowest measured ratios, worst first. */
+    worst: Array<{ key: string; ratio: number; ink: string; bg: string }>;
+}
+
 export interface DesignSystemReport {
     $schema: string;
     reportVersion: 2;
@@ -253,6 +281,13 @@ export interface DesignSystemReport {
     /** Axis name → its per-component partition. `mods` is included as an axis. */
     divergence: Record<string, AxisDivergence>;
     themes: ThemeContrastReport[];
+    /**
+     * The static contrast matrix, per theme — present when the report was
+     * built beside an audit that computed it (an audit that carried it).
+     * Declared-pair contrast (`themes`) says what the tokens promise; this
+     * says what the recipe cascade produces when states combine.
+     */
+    contrast?: ContrastReportTheme[];
     /**
      * The vendor-named component API surfaces, sorted by prop — present only
      * when the design system declares an `api`.
@@ -581,6 +616,36 @@ function apiSurfaces(api: DesignSystemApi): ApiSurfaceReport[] {
     return surfaces.sort((a, b) => a.prop.localeCompare(b.prop));
 }
 
+/** The report's view of an audit's contrast matrix — counts and the worst ten, per theme. */
+export function summarizeContrast(matrix: ContrastMatrix): ContrastReportTheme[] {
+    return matrix.themes.map((theme) => {
+        const count = (verdict: string): number => theme.cells.filter((c) => c.verdict === verdict).length;
+        const unmeasured: Record<string, number> = {};
+        for (const cell of theme.cells) {
+            if (cell.verdict !== 'unmeasured') continue;
+            const reason = cell.reason ?? 'unknown';
+            unmeasured[reason] = (unmeasured[reason] ?? 0) + 1;
+        }
+        const measuredCells = theme.cells.filter((c) => c.ratio !== undefined);
+        return {
+            name: theme.name,
+            cells: theme.cells.length,
+            measured: measuredCells.length,
+            failing: count('fail'),
+            warnings: count('warn'),
+            disabledFailing: count('disabled-fail'),
+            unrendered: count('unrendered'),
+            unpainted: count('unpainted'),
+            unmeasured: Object.fromEntries(Object.entries(unmeasured).sort(([a], [b]) => a.localeCompare(b))),
+            worst: [...measuredCells]
+                .sort((a, b) => a.ratio! - b.ratio! || a.key.localeCompare(b.key))
+                .slice(0, 10)
+                .map((c) => ({ key: c.key, ratio: c.ratio!, ink: c.ink ?? 'none', bg: c.bg ?? 'none' })),
+        };
+    });
+}
+
+
 export function buildReport(
     compiled: CompiledDesignSystem,
     ds: DesignSystemInput,
@@ -672,6 +737,7 @@ export function buildReport(
         components,
         divergence: divergence(compiled),
         themes: themeReports(ds, compiled),
+        ...(audit?.contrast.themes.length ? { contrast: summarizeContrast(audit.contrast) } : {}),
         ...(ds.api ? { api: apiSurfaces(ds.api) } : {}),
         ...(result ? { issues: { errors: result.errors.length, warnings: result.warnings.length } } : {}),
         ...(audit ? { audit: { auditVersion: audit.auditVersion, ...audit.summary } } : {}),
@@ -794,6 +860,16 @@ export function formatReport(report: DesignSystemReport): string[] {
     if (report.audit) {
         lines.push(`  audit: ${report.audit.errors} errors, ${report.audit.warnings} warnings, ${report.audit.info} info`);
     }
+    for (const theme of report.contrast ?? []) {
+        const unmeasured = Object.entries(theme.unmeasured);
+        const total = unmeasured.reduce((n, [, c]) => n + c, 0);
+        lines.push(
+            `  theme ${theme.name}: state matrix ${theme.cells} cells, ${theme.measured} measured, `
+            + `${theme.failing + theme.disabledFailing} below floor, ${theme.warnings} below 4.5:1`
+            + (total > 0 ? `, ${total} unmeasured (${unmeasured.map(([r, c]) => `${r} ${c}`).join(', ')})` : ''),
+        );
+    }
+
     if (report.issues) {
         lines.push(`  validation: ${report.issues.errors} errors, ${report.issues.warnings} warnings`);
     }

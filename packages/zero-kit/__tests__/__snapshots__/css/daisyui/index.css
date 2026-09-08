@@ -7486,7 +7486,7 @@
 
     [data-scope="steps"][data-part="indicator"][data-state="complete"] {
         background: color-mix(in oklch, var(--steps-accent) 20%, var(--color-base-100));
-        color: var(--steps-accent-ink);
+        color: color-mix(in oklab, var(--steps-accent) 70%, var(--color-base-content));
     }
 
     [data-scope="steps"][data-part="indicator"][data-state="inactive"] {

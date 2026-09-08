@@ -977,6 +977,37 @@ A waiver is listed, never swallowed: the `waived:` line in the output and
 the `waived` array in `audit.json` say what each declared mechanism excused,
 so an excuse you did not intend is as visible as a finding.
 
+The three `contrast/*` rules are the browser contrast audit computed from
+the compiled CSS instead of a page — the same two matrices, cell product,
+colour math and floors, with one honesty contract on top: a cell the
+static reader cannot judge is `unmeasured`, never a pass.
+
+- `contrast/text` — every text-bearing part, in every state × flag
+  combination, in every theme, plus your own axis surface (each wired
+  `variant`/`color` value, each modifier): the computed ink against the
+  effective background. Below 3:1 is an error per cell; 3–4.5:1 is one
+  warning per part and theme (the worst cell named — the table keeps them
+  all); a
+  `disabled` cell answers to a 2:1 floor measured on the pair *before* the
+  state's fade — dimming is the state, choosing ink nobody could have read
+  is not.
+- `contrast/indicator` — the parts whose whole job is paint (the checkbox
+  tick, the radio dot, the switch thumb, the progress range, the chevrons,
+  the star), measured inside their real ancestor chain against the fill
+  they sit on. Same 3:1 floor; the 3–4.5:1 band is a note, because WCAG
+  1.4.11 holds a non-text mark to 3:1. A mark that is intentionally not painted in a
+  state (unchecked → `scale(0)`) is `unpainted`, not a failure.
+- `contrast/unmeasured` — the cells a static reader cannot judge, once per
+  (scope, part, reason): a gradient, a `filter`, a selector it does not
+  evaluate, a `var()` nothing defines, a declaration under `@supports` or
+  `@container` (a `@media` query is decided against the desktop page the
+  browser audit runs in). Reported as `info` so they never fail
+  a build and never pass silently — check them in the playground, where the
+  browser contrast audit is the ground truth.
+
+Read `result.contrast` for the whole cell table; `buildReport(…, { contrast })`
+summarises it per theme in `report.contrast`.
+
 ## Reference
 
 ### The brief pack — start here

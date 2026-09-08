@@ -4227,6 +4227,14 @@ export const pagination: RecipeInput = {
                 '&[data-pressed]:not([data-disabled])': {
                     background: 'color-mix(in oklch, var(--color-base-content) 12%, transparent)',
                 },
+                // The state layer on the ACTIVE page: Material's pressed
+                // overlay deepens the container rather than replacing it —
+                // the plain wash above left `--pg-accent-content` on a
+                // base-tinted surface (1.05:1 in dark), found by the static
+                // contrast matrix (#403).
+                '&[data-state="active"][data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklch, var(--pg-accent) 88%, var(--color-base-content))',
+                },
             },
         },
         ellipsis: {

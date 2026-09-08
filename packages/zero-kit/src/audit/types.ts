@@ -15,6 +15,8 @@
  * `unmeasured` cells (the C slice), which must be listed and must never fail.
  */
 
+import type { ContrastMatrix } from './contrast/matrix.js';
+
 export type AuditRuleId =
     | 'state-legibility/component'
     | 'state-legibility/indicator'
@@ -24,7 +26,10 @@ export type AuditRuleId =
     | 'axis-value-coverage/gap'
     | 'axis-value-coverage/ambiguous-base'
     | 'axis-value-coverage/unused'
-    | 'reduced-motion/loop';
+    | 'reduced-motion/loop'
+    | 'contrast/text'
+    | 'contrast/indicator'
+    | 'contrast/unmeasured';
 
 /** Every rule the audit knows, in the order `formatAudit` groups them. */
 export const AUDIT_RULES: readonly AuditRuleId[] = [
@@ -37,6 +42,9 @@ export const AUDIT_RULES: readonly AuditRuleId[] = [
     'axis-value-coverage/unused',
     'axis-coverage',
     'reduced-motion/loop',
+    'contrast/text',
+    'contrast/indicator',
+    'contrast/unmeasured',
 ];
 
 export type AuditSeverity = 'error' | 'warning' | 'info';
@@ -51,6 +59,9 @@ export const RULE_SEVERITY: Readonly<Record<AuditRuleId, AuditSeverity>> = {
     'axis-value-coverage/unused': 'warning',
     'axis-coverage': 'warning',
     'reduced-motion/loop': 'error',
+    'contrast/text': 'error',
+    'contrast/indicator': 'error',
+    'contrast/unmeasured': 'info',
 };
 
 export interface AuditFinding {
@@ -74,6 +85,14 @@ export interface AuditFinding {
     axis?: string;
     /** The axis values a coverage finding names. */
     values?: readonly string[];
+    /** The theme a contrast finding was measured in. */
+    theme?: string;
+    /** The contrast cell (`ds/theme/scope/part/state/flag/axes`) a contrast finding is about. */
+    cell?: string;
+    /** The measured pair behind a contrast finding, and the floor it answered to. */
+    contrast?: { ratio: number; inGroup: number; floor: number };
+    /** Why a `contrast/unmeasured` finding could not be measured. */
+    reason?: string;
     /** Names the fix, as the guard messages always did. */
     message: string;
 }
@@ -106,6 +125,13 @@ export interface AuditResult {
     /** Sorted severity → rule → where, so two runs over one input diff cleanly. */
     findings: AuditFinding[];
     waived: AuditWaiver[];
+    /**
+     * The static contrast matrix's full cell table, per theme — every cell
+     * with its verdict, not only the failing ones, so a reviewer can see what
+     * was measured and what was not. Empty when the `contrast/*` rules were
+     * filtered out.
+     */
+    contrast: ContrastMatrix;
     summary: AuditSummary;
 }
 

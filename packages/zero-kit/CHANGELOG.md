@@ -69,6 +69,50 @@
   `report.schema.json`'s `declaredOut` enum gains `variant`). A custom axis
   in `tokens.axes` still cannot be declared away — `[]` there stays an
   error, there being no named prop to switch off.
+- **The static contrast matrix — `contrast/text`, `contrast/indicator`,
+  `contrast/unmeasured`** (#403, slice C; closes #118). The browser contrast
+  audit (`e2e/contrast-audit.spec.ts`) ran its two matrices over the six
+  in-repo skins on every PR, and a design system built anywhere else never
+  ran it. The same matrices are now computed from the compiled CSS inside
+  `auditDesignSystem`: the cell product ported function-for-function
+  (`src/audit/contrast/cells.ts`, `paint-parts.ts` — with the indicator
+  ancestor chains DERIVED from the part tree instead of restated by hand;
+  one entry, `menu`, keeps a hand chain because the mark sits on a host row
+  the tree does not name), a selector matcher for the grammar the kit emits
+  that answers `yes`/`no`/`unknown` and never lets an unknown collapse into a
+  match (`selector.ts`), a computed-style model for the properties a
+  contrast reading depends on — cascade order, `!important`, `var()`
+  chains resolved at the declaring element and inherited resolved,
+  `currentColor`, the `background`/`border` shorthands in their physical
+  and logical spellings, `@scope` donuts evaluated against the chain, the
+  geometry that collapses a mark (`cascade.ts`) — and the browser spec's
+  compositing and WCAG formulas with 8-bit rounding where a canvas would
+  round (`color.ts`, `matrix.ts`). Same floors: 3:1 per cell, the AA band as one
+  warning per part and theme for text (worst cell named) and a note for a
+  non-text mark (WCAG 1.4.11 stops at 3:1) — the AA band as a
+  warning, `disabled` on its own 2:1 pre-fade floor. Every cell is on
+  `AuditResult.contrast` with its verdict; a cell the reader cannot judge is
+  `unmeasured` with one of a closed set of reasons and is reported as `info`,
+  never as a pass. Conditional at-rules are evaluated the way the browser
+  matrix's page would see them, not skipped: `@media` against a fixed
+  reference environment (`REFERENCE_MEDIA` — Playwright's Desktop Chrome,
+  1280×720, a fine pointer that hovers, light scheme, no preference flags),
+  so a `min-width` breakpoint the page meets applies and `hover: none`,
+  `forced-colors` or `print` blocks do not; `@starting-style` is never the
+  resting render; `@supports`, `@container` and any query the model cannot
+  decide taint what they declare (`conditional-rule`). An unreadable raw
+  `css` rule taints every box it could have styled, pseudo-elements
+  included. Two blind spots the browser probe had are gone in the
+  process: text parts below their carrier are measured inside the chain
+  the part tree derives, so a recipe's component tokens (declared on the
+  carrier) resolve where the bare probe silently fell back to the inherited
+  colour — which is how the matrix found the two recipe bugs under Fixed.
+  `AuditOptions.themes` filters the themes measured; `AuditOptions.axisCellBudget`
+  raises the chained-cell ceiling. An audit handed to `buildReport` folds its matrix into a
+  matrix into the new optional `report.contrast` section (`summarizeContrast`;
+  `report.schema.json` gains `contrastTheme`; `formatReport` prints one
+  line per theme). The cell product, the paint table, the colour math and
+  the floors are exported so the browser spec can import them (slice D).
 - **Palette derivation** (#402): `derivePalette`, `deriveThemePair`,
   `solveContentLightness`, `contrastRatio`, `clampChroma` and `formatOklch`
   on `@sigx/zero-kit/define` (and the barrel). From seed hues — `{ primary:
@@ -200,6 +244,29 @@
   the value error now reads `"…" is not a valid axis value` naming both
   places the value is written verbatim. Modifier-name errors name the
   `data-mod-` tail they would become.
+
+### Fixed
+
+- **`color-mix()` bakes with premultiplied alpha** (#403). The shared colour
+  evaluator (`resolve/color-bake.ts`, extracted from the lynx target so the
+  static contrast matrix and the lynx emitters can never disagree about a
+  colour) interpolated `color-mix()` without premultiplying, so a mix toward
+  `transparent` drifted toward black: `color-mix(in oklch, #e8e9ea 70%,
+  transparent)` came out `#909091b3` instead of `#e8e9eab3`. CSS Color 5
+  specifies premultiplied interpolation, and the static matrix was the first
+  reader to notice — thirty-odd dark-theme cells read as failing until the
+  evaluator agreed with the browser. The lynx artifacts of any design system
+  mixing toward transparency (daisyUI's `color-mix(… 60%, #0000)` inks)
+  change accordingly, to what the web has always painted.
+
+- **Two recipe bugs the matrix found the day it could see carrier tokens.**
+  zero-basic's and zero-material's pagination `item` lost its accent fill
+  while pressed on the ACTIVE page: the pressed wash (`base-content` at 12%
+  over transparent) outranked the active fill and left `--pg-accent-content`
+  on a base-tinted surface — 1.27:1 in light, 1.05:1 in material's dark.
+  The active page now deepens under the press instead. zero-daisyui's
+  completed step indicator read 2.96:1 under nord's muted primary (the 95%
+  role ink on a 20% tint); the ink is deepened toward `base-content`.
 
 ## [0.2.0-beta.6] - 2026-08-22
 

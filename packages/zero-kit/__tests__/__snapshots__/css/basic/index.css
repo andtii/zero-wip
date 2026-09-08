@@ -7010,6 +7010,11 @@
         transition: none;
     }
 
+    [data-scope="pagination"][data-part="item"][data-state="active"][data-pressed]:not([data-disabled]) {
+        background: color-mix(in oklch, var(--pg-accent) 85%, var(--color-base-content));
+        transition: none;
+    }
+
     [data-scope="pagination"][data-part="ellipsis"] {
         display: inline-flex;
         align-items: center;

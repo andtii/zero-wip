@@ -5012,7 +5012,19 @@ export const pagination: RecipeInput = {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 ...focusRing,
             },
-            selectors: { ...pressedInk },
+            selectors: {
+                ...pressedInk,
+                // The pressed wash is a translucent ink over the RESTING fill;
+                // on the active page it replaced the accent fill outright and
+                // left `--pg-accent-content` on a base-tinted wash — 1.27:1,
+                // found by the static contrast matrix (#403), which measures
+                // the item inside its root and so sees the tokens the bare
+                // probe never did. The active page deepens instead.
+                '&[data-state="active"][data-pressed]:not([data-disabled])': {
+                    background: 'color-mix(in oklch, var(--pg-accent) 85%, var(--color-base-content))',
+                    transition: 'none',
+                },
+            },
         },
         ellipsis: {
             base: {
