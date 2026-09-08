@@ -1,5 +1,5 @@
 /**
- * Brief: **seeded** — one hue, everything derived. An indigo primary with a
+ * Brief: **seeded** — two hues, everything derived. An indigo primary with a
  * coral accent, soft-cornered, quiet shadows, a near-flat type ramp; the
  * calm product look you get when the brief is a single word and a colour.
  *
@@ -103,7 +103,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
     system,
     systemDark,
     swatch: ['primary', 'accent', 'base-100', 'base-content'],
-    // Declared so recipes can write `at: { md: … }`; the baseline's use `sm`.
+    // Declared so recipes can write `at: { md: … }`; the baseline recipes use `sm`.
     breakpoints: { sm: '640px', md: '840px', lg: '1120px' },
     defaultLight: 'seeded',
     defaultDark: 'seeded-dark',
