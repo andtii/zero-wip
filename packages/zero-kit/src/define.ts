@@ -31,6 +31,9 @@ export type {
 } from './tokens.js';
 export { defineTokens } from './tokens.js';
 
+export type { DerivePaletteOptions, DeriveThemePairOptions, Harmony, Oklch, RoleSeed } from './palette.js';
+export { clampChroma, contrastRatio, derivePalette, deriveThemePair, formatOklch, solveContentLightness } from './palette.js';
+
 export type { CssProps, PartStyles, RecipeContext, RecipeInput } from './recipes.js';
 export { defineRecipe } from './recipes.js';
 

@@ -698,6 +698,19 @@ is deliberately no scaffolding command — `init` was declined
 (#10, closed not-planned: the skill's "copy `zero-basic`" instruction *is*
 the front door); `eject` remains open (#11).
 
+**Colour is derived before it is authored.** `derivePalette` /
+`deriveThemePair` (`packages/zero-kit/src/palette.ts`, on `./define`) turn
+seed hues into the exact token set `requiredColorTokens(roles)` names, with
+every `<role>`/`<role>-content` pair solved to its floor (4.5:1; 7:1 for
+`base-100`/`base-content`) and every value clamped into sRGB *before* the
+validator ever sees it — the guarantee is measured on the formatted
+`oklch()` string, so what the validator re-parses is what the solver
+measured. The module carries no dependency: the `./define` graph may only
+reach relative modules, so the oklch → linear-sRGB conversion is
+hand-rolled on culori's own matrices and pinned to `wcagContrast` at 1e-6
+by `palette.test.ts`. The validator remains the measurement of record;
+derivation is the front door that makes its contrast check a formality.
+
 **The generation skill** (`packages/zero-kit/skills/design-system/`, shipped
 in the package) is the repo's graded asset: a model reads the anatomy
 manifest, writes `tokens.ts` + `recipes.ts` against the token grammar, and

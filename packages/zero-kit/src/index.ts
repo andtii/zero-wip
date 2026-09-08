@@ -34,6 +34,8 @@ export { compileTokensCss } from './targets/web/tokens-css.js';
 
 export type { TypeScale } from './scale.js';
 export { generateTypeScale } from './scale.js';
+export type { DerivePaletteOptions, DeriveThemePairOptions, Harmony, Oklch, RoleSeed } from './palette.js';
+export { clampChroma, contrastRatio, derivePalette, deriveThemePair, formatOklch, solveContentLightness } from './palette.js';
 
 export type { CssProps, PartStyles, RecipeContext, RecipeInput } from './recipes.js';
 export { defineRecipe, BUILTIN_CONDITIONS } from './recipes.js';
