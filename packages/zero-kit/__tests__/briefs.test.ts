@@ -19,6 +19,7 @@ import * as glass from '../skills/design-system/briefs/glass.js';
 import * as corporate from '../skills/design-system/briefs/corporate.js';
 import * as terminal from '../skills/design-system/briefs/terminal.js';
 import * as riso from '../skills/design-system/briefs/riso.js';
+import * as seeded from '../skills/design-system/briefs/seeded.js';
 import { system as brutalistPackageSystem } from '../../zero-brutalist/src/tokens.js';
 
 const manifest = {
@@ -26,7 +27,7 @@ const manifest = {
 };
 
 /** Every brief exports the same four things, in the same shape. */
-const PACK = [brutalist, glass, corporate, terminal, riso];
+const PACK = [brutalist, glass, corporate, terminal, riso, seeded];
 
 const compile = (brief: (typeof PACK)[number]): ReturnType<typeof compileDesignSystem> =>
     compileDesignSystem(
@@ -146,6 +147,24 @@ describe('the signature move of each brief survives compilation', () => {
         // The compound crosses an axis value with a modifier — `match: true`
         // reaching a `data-mod-*` attribute rather than a `data-<axis>` one.
         expect(css).toMatch(/\[data-variant="ghost"\]\[data-mod-overprint\]|\[data-mod-overprint\]\[data-variant="ghost"\]/);
+    });
+
+    it('seeded writes no colour: both themes come out of deriveThemePair', () => {
+        // The brief's whole point is that `themes` holds no literal. Read the
+        // source rather than the object — a derived value is an oklch()
+        // string too, so only the file can show which kind it was.
+        const source = readFileSync(resolve(process.cwd(), 'packages/zero-kit/skills/design-system/briefs/seeded.ts'), 'utf8');
+        const themes = source.slice(source.indexOf('themes: {'), source.indexOf('const ROLES'));
+        expect(themes).toContain('deriveThemePair');
+        expect(themes).not.toMatch(/oklch\(/);
+        // …and what came out is a paired light/dark set the validator has
+        // nothing to say about (the `validates with no errors` case above
+        // proves the contrast; this pins the pairing).
+        expect(seeded.tokens.themes.seeded).toMatchObject({ colorScheme: 'light', pair: 'seeded-dark' });
+        expect(seeded.tokens.themes['seeded-dark']).toMatchObject({ colorScheme: 'dark', pair: 'seeded' });
+        const css = compile(seeded).tokensCss;
+        expect(css).toContain('[data-theme="seeded-dark"]');
+        expect(css).toMatch(/--color-primary: oklch\(/);
     });
 
     it('riso declares both the colour and the size axis out of existence', () => {

@@ -701,7 +701,7 @@ installed, so it could never run in the empty directory a new design system
 starts as, and `@sigx/cli`'s `create` has no template hook. `@sigx/create-zero-ds`
 (`pnpm create @sigx/zero-ds <name> --brief <id>`, #401) sidesteps both: a
 Node-only bin with no runtime dependencies, templates embedded at build time
-(zero-basic's `recipes.ts` and `tokens.ts`, the five briefs, a `versions.json`
+(zero-basic's `recipes.ts` and `tokens.ts`, the six briefs, a `versions.json`
 with the lockstep ranges — lockstep is what makes embedding and reading the
 installed packages content-identical, and neither source file is reachable
 through an `exports` map anyway). The generated package is the brief's tokens
@@ -732,9 +732,11 @@ derivation is the front door that makes its contrast check a formality.
 **The generation skill** (`packages/zero-kit/skills/design-system/`, shipped
 in the package) is the repo's graded asset: a model reads the anatomy
 manifest, writes `tokens.ts` + `recipes.ts` against the token grammar, and
-iterates against `zero:validate`. It travels with a **brief pack** (five
-worked style briefs; `zero-brutalist` is the end-to-end regression test for
-the skill itself) and the **conformance fixtures** — compiling
+iterates against `zero:validate`. It travels with a **brief pack** (six
+worked style briefs — `seeded` derives its whole palette through
+`deriveThemePair` and is the pack's worked example of the `/define` runtime
+import; `zero-brutalist` is the end-to-end regression test for the skill
+itself) and the **conformance fixtures** — compiling
 `TokensInput`/`RecipeInput` files for HeroUI, Material, Radix Themes, Ant
 and Carbon, each proving a non-default axis surface.
 
