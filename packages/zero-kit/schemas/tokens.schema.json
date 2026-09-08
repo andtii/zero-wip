@@ -28,7 +28,7 @@
             }
         },
         "variants": {
-            "description": "The `variant` axis vocabulary — the fill/chrome styles this design system offers (solid, outline, …). Once declared, the validator closes the set: a recipe variants.variant value outside it is an error. Omitted → the axis stays undeclared and recipe values are unchecked. Entries become [data-variant=\"…\"] selector values and lynx class-name tails, hence the axis-value grammar (lowercase, digits, hyphens — repeated hyphens included).",
+            "description": "The `variant` axis vocabulary — the fill/chrome styles this design system offers (solid, outline, …). Once declared, the validator closes the set: a recipe variants.variant value outside it is an error. Omitted → the axis stays undeclared and recipe values are unchecked; EMPTY ([]) → this design system has no variant axis at all, the claim `sizes: []` makes about size. Entries become [data-variant=\"…\"] selector values and lynx class-name tails, hence the axis-value grammar (lowercase, digits, hyphens — repeated hyphens included).",
             "type": "array",
             "items": {
                 "$ref": "#/$defs/axisValue"

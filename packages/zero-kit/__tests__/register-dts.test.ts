@@ -112,6 +112,24 @@ describe('the generated shapes', () => {
         expect(dts).not.toContain('declares no variant axis at all');
     });
 
+    it('says "declares no variant axis at all" under variants: []', () => {
+        // The other half of the distinction above (#200/#295): an EMPTY
+        // declaration is the claim, so the reason changes and the advice
+        // with it — there is no variant to go and wire.
+        const ds = dsWith({
+            component: 'button',
+            parts: { root: { base: { padding: '0' } } },
+            variants: { color: { primary: { root: { base: { color: 'var(--color-primary)' } } } } },
+        });
+        ds.tokens = { ...ds.tokens, variants: [] };
+        const dts = compileRegisterDts(compileDesignSystem(ds, manifest));
+        expect(dts).toContain('Accepts `variant` at runtime, but probe declares no variant axis at all');
+        expect(dts).toContain('variant: never;');
+        expect(dts).not.toContain('Accepts `variant` at runtime, but no probe recipe wires it');
+        // `size` is merely unwired here, and keeps the unwired reason.
+        expect(dts).toContain('Accepts `size` at runtime, but no probe recipe wires it');
+    });
+
     it('emits never for unwired axes and Record<string, never> for empty axes', () => {
         const dts = compileRegisterDts(compile({
             component: 'button',

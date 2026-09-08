@@ -123,10 +123,20 @@ describe('the validator', () => {
         expect(issues.map((i) => i.message)).toContainEqual(expect.stringContaining('"kind--x" is not a kebab-case identifier'));
     });
 
-    it('keeps the empty-declaration error for design-system-wide vocabularies', () => {
-        // `variants: []` at the design-system level is #200/#295 — a separate change.
-        expect(messages(dsWith('solid', { variants: [] })))
-            .toContainEqual(expect.stringContaining('declared but empty'));
+    it('keeps the empty-declaration error for a custom axis, and only there', () => {
+        // `variants: []` is a claim — "no variant axis" (#200/#295), the
+        // grammar `sizes: []` uses — so it is no longer "declared but empty".
+        // A custom axis has no recommended default to decline and no named
+        // prop to switch off, so `[]` there still says nothing an omission
+        // doesn't.
+        const noVariants = messages(dsWith('solid', { variants: [] }));
+        expect(noVariants).not.toContainEqual(expect.stringContaining('declared but empty'));
+        expect(noVariants).toContainEqual(expect.stringContaining('declares no variant axis (tokens.variants is empty)'));
+        expect(validateDesignSystem(dsWith('solid', { axes: { density: [] } }), manifest).errors)
+            .toContainEqual(expect.objectContaining({
+                where: 'tokens.axes.density',
+                message: expect.stringContaining('declared but empty'),
+            }));
     });
 });
 

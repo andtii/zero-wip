@@ -753,11 +753,29 @@ describe('declared axis vocabularies (docs/architecture.md, "Declared vocabulary
             .toContainEqual(expect.stringContaining('declares no size axis'));
     });
 
-    it('validates variants/axes declarations: non-empty, kebab-case, no duplicates', () => {
+    it('accepts variants: [] as "this design system has no variant axis"', () => {
+        // The same claim `sizes: []` makes about size and `roles: {}` about
+        // colour (#200/#295). Omitting `variants` means "declared nothing,
+        // check nothing"; empty means "there isn't one".
+        const noVariants = dsWith(tabsWith({ color: 'var(--color-primary)' }));
+        noVariants.tokens.variants = [];
+        expect(validateDesignSystem(noVariants, manifest).errors).toEqual([]);
+    });
+
+    it('errors when a recipe wires variant under variants: []', () => {
+        const noVariants = dsWith(tabsVariant({ solid: '0' }));
+        noVariants.tokens.variants = [];
+        const errors = validateDesignSystem(noVariants, manifest).errors.map((e) => e.message);
+        expect(errors).toContainEqual(expect.stringContaining('declares no variant axis (tokens.variants is empty)'));
+        // The whole-axis message, not the off-the-set one: there is no set.
+        expect(errors).not.toContainEqual(expect.stringContaining('is not a declared variant'));
+    });
+
+    it('validates variants/axes declarations: kebab-case, no duplicates, custom axes non-empty', () => {
         const clean = (): DesignSystemInput => dsWith(tabsWith({ color: 'var(--color-primary)' }));
 
         const empty = clean();
-        empty.tokens.variants = [];
+        empty.tokens.axes = { density: [] };
         expect(validateDesignSystem(empty, manifest).errors.map((e) => e.message))
             .toContainEqual(expect.stringContaining('declared but empty'));
 

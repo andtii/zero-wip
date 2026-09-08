@@ -99,7 +99,9 @@ Every axis takes a restriction (`colors`, `sizes`, `variants`, `axes`,
 `modifiers`), a scope may only narrow, and the vocabulary reaches the manifest,
 the report and `register.d.ts`. An **absent** key means the scope offers the
 whole union; an **empty list** is the claim "this scope has no such axis at
-all", the same grammar `sizes: []` uses design-system-wide. The unit is the
+all", the same grammar `sizes: []` and `variants: []` use design-system-wide
+(an omitted `variants` is only silence — the manifest's
+`tokens.variantsDeclared` tells the two apart). The unit is the
 scope rather than the part: zero puts one attribute per axis on the scope's
 carrier and cascades it to every part below, so two vocabularies inside one
 component are two **axes** — declare the second in `axes`. See

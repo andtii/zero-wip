@@ -51,7 +51,7 @@
             "required": [
                 "roles",
                 "sizes",
-                "variants",
+                "variants", "variantsDeclared",
                 "axes",
                 "modifiers",
                 "scopes",
@@ -80,11 +80,15 @@
                     }
                 },
                 "variants": {
-                    "description": "The `variant` axis vocabulary \u2014 the UNION of every scope's vocabulary once tokens.scopes restricts any ([] when undeclared).",
+                    "description": "The `variant` axis vocabulary \u2014 the UNION of every scope's vocabulary once tokens.scopes restricts any ([] when undeclared or declared out of existence \u2014 `variantsDeclared` tells the two apart).",
                     "type": "array",
                     "items": {
                         "$ref": "#/$defs/axisValue"
                     }
+                },
+                "variantsDeclared": {
+                    "description": "Whether `tokens.variants` was stated at all. `variants: []` is the claim \"this design system has no variant axis\" (the grammar `sizes: []` uses); an omitted key is only silence, and both resolve to an empty `variants` list.",
+                    "type": "boolean"
                 },
                 "axes": {
                     "description": "Declared custom variant axes: axis name \u2192 values.",

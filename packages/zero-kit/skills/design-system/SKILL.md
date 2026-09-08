@@ -616,11 +616,15 @@ component's anatomy). No component code is ever written or changed.
      empty means "there isn't one", and that reaches the manifest, the
      coverage report and the generated types, where `size` / `color` becomes
      `never` rather than a prop that is offered and then matches nothing.
-     Note the two spellings differ because the declarations do: `roles` is a
-     map, `sizes` a list.
+     `variants: []` makes the same claim about the variant axis — a design
+     system with one treatment per component has no `variant` to offer, and
+     saying so beats declaring `solid|outline|soft|ghost` and wiring one.
+     Note the spellings differ because the declarations do: `roles` is a
+     map, `sizes` and `variants` are lists.
      ```ts
      roles: {},        // no `color` axis — the palette lives in `custom`
      sizes: [],        // no `size` axis — one set of metrics, deliberately
+     variants: [],     // no `variant` axis — one treatment, deliberately
      ```
      Reach for this whenever the brief's colour story isn't "eight
      interchangeable semantic roles". A design system with one accent, or with
@@ -829,7 +833,7 @@ component's anatomy). No component code is ever written or changed.
    form, `-` for stdout; `zero:build` also writes `dist/report.json` every
    time.) Read four things:
    - **`declared out of existence`** — the axes you opted out of with
-     `roles: {}` / `sizes: []`. If an axis you meant to ship is on this list,
+     `roles: {}` / `sizes: []` / `variants: []`. If an axis you meant to ship is on this list,
      you declared it empty by accident; if one you don't have is missing from
      it, you left the recommended vocabulary in place by omission.
    - **`wired by nothing`** — a value the whole design system declares and no
