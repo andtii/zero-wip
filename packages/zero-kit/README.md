@@ -470,6 +470,53 @@ to stderr and pass/fail is the exit code. Two flags rather than one
 `--report=json` because `@sigx/args` has no optional-value form yet; they
 collapse once it does.
 
+## The audit
+
+Validation says whether the design system is *correct*; the report says what it
+*covers*; the audit says whether what it built **says what it claims** — the
+questions this repo's own CI asked of its six skins from vitest files, and
+which a design system generated anywhere else could not ask at all until they
+shipped with the kit:
+
+```ts
+import { auditDesignSystem, formatAudit } from '@sigx/zero-kit';
+
+const result = auditDesignSystem(designSystem, manifest);
+console.log(formatAudit(result).join('\n'));
+result.findings;   // AuditFinding[] — severity → rule → where, each naming its fix
+result.waived;     // what a declared mechanism excused, listed rather than swallowed
+result.summary;    // { errors, warnings, info, byRule }
+```
+
+Every rule reads the **compiled CSS**, not the recipe tree — state styling
+reaches the stylesheet through seven doors (`states`, `selectors`,
+`variants.*`, `compoundVariants`, `modifiers`, nested `at`, raw `css`) and only
+the artifact sees all of them. Nine rules in this release:
+
+| Rule | Severity | It reports… | Waived by |
+|---|---|---|---|
+| `state-legibility/component` | error | two declared states no part of the component renders differently | `skipStates` on every part that has them; the anatomy's `hiddenIn` |
+| `state-legibility/indicator` | error | an `*indicator` part that renders identically across its own states — a spacer, not an indicator | `skipStates` on the indicator; `hiddenIn` |
+| `state-legibility/disclosure` | error | the control of an in-flow disclosure (collapsible, accordion, tree-view) that says nothing about `open`/`closed` — the panel expanding is the browser's doing | `skipStates` on the control; a sibling `*indicator` that differentiates |
+| `button-affordance` | error | a part zero renders as a real `<button>` with no unconditional `appearance` reset, so the user agent paints its chip | — (set `appearance: none`) |
+| `axis-value-coverage/gap` | error | a declared step a sibling scope implements that this scope neither paints nor claims as its base (#258's shape) | `tokens.scopes` |
+| `axis-value-coverage/ambiguous-base` | error | two values written as empty entries, both claiming the base and rendering identically | — |
+| `axis-value-coverage/unused` | warning | a declared value no recipe paints or claims; or one in no scope's vocabulary | a role declared `content: false` / `soft: false` (a fill, not an axis value) |
+| `axis-coverage` | warning | a styled scope that accepts a declared `color`/`size` axis at runtime and wires nothing | `roles: {}` / `sizes: []`; `tokens.scopes.<scope>.colors: []` / `.sizes: []` |
+| `reduced-motion/loop` | error | an infinite animation with no `animation: none` for the same selector under `prefers-reduced-motion: reduce` — the kit collapses durations there, so a loop strobes rather than stops | — |
+
+Only the default render counts: a difference that lives under a `@media`
+(the `forced-colors` glyph fallback, a breakpoint, `print`) is not the reader
+differentiating. The rule modules under `src/audit/rules/` carry the full
+reasoning in their docblocks, and each has fixtures it MUST report — the
+in-repo skins are held to zero findings through the same function.
+
+`auditDesignSystem` never throws on a finding: a design system mid-iteration
+must be able to read its own audit. Pass `{ rules: [...] }` to run a subset
+and `{ compiled }` to reuse a compile you already have. The `sigx zero:audit`
+command, `dist/audit.json`, and the static contrast matrix follow in the
+next slices of #403.
+
 ## JSON Schemas
 
 The package ships JSON Schemas (draft 2020-12) for the authoring surfaces.

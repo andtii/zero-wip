@@ -15,12 +15,19 @@
  *
  * The carrier list is read from the component sources rather than hardcoded,
  * for the same reason: a hardcoded list is one more thing to forget.
+ *
+ * The colour/size question itself is the kit's `axis-coverage` audit rule
+ * (`src/audit/rules/axis-coverage.ts`, #403), so a design system generated
+ * outside this repo is asked it too. What stays here is what is a fact about
+ * this repo rather than about a design system: the carrier discovery, the
+ * `NO_VARIANT` ledger, and the `UNWIRED_AXES` debt ledger the rule's findings
+ * are filtered through.
  */
 import { describe, it, expect } from 'vitest';
 import { readdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { compileDesignSystem } from '@sigx/zero-kit';
-import type { ManifestComponent } from '@sigx/zero-kit';
+import { auditDesignSystem, compileDesignSystem } from '@sigx/zero-kit';
+import type { DesignSystemInput, ManifestComponent } from '@sigx/zero-kit';
 import { anatomies } from '@sigx/zero/anatomy';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
@@ -53,6 +60,15 @@ const carriers: string[] = readdirSync(COMPONENTS_DIR, { withFileTypes: true })
     })
     .map((e) => e.name)
     .sort();
+
+const inputs: Record<string, DesignSystemInput> = {
+    basic: basicDS as DesignSystemInput,
+    daisyui: daisyDS as DesignSystemInput,
+    material: materialDS as DesignSystemInput,
+    brutalist: brutalistDS as DesignSystemInput,
+    heroui: herouiDS as DesignSystemInput,
+    carbon: carbonDS as DesignSystemInput,
+};
 
 const designSystems = {
     basic: compileDesignSystem(basicDS, manifest),
@@ -294,29 +310,23 @@ describe('no component accepts an axis no design system wires', () => {
     });
 
     it.each(Object.keys(designSystems))('%s wires colour and size for every carrier it skins', (name) => {
-        const compiled = designSystems[name as keyof typeof designSystems];
-        // An axis a design system declares OUT of existence is not a gap:
-        // `roles: {}` means there is no colour axis to wire, and `sizes: []`
-        // means there is no size ramp. Demanding those would make a
-        // deliberately colourless design system impossible to ship — and
-        // `zero-heroui` is exactly that.
-        const declared = {
-            color: Object.keys(compiled.tokens.roles).length > 0,
-            size: compiled.tokens.sizes.length > 0,
-        };
-        const gaps: string[] = [];
-        for (const scope of carriers) {
-            const wired = compiled.components[scope];
-            // A carrier with no recipe is a DIFFERENT failure — the validator
-            // already warns "will render unstyled" — and conflating the two
-            // would make this fail for a reason it was not built to catch.
-            if (!wired) continue;
-            for (const axis of CHECKED_AXES) {
-                if (`${scope}.${axis}` in UNWIRED_AXES) continue;
-                if (declared[axis] && wired[axis].length === 0) gaps.push(`${scope}.${axis}`);
-            }
-        }
+        // The rule already knows that an axis declared OUT of existence is
+        // not a gap (`roles: {}`, `sizes: []`, or a scope's own `[]` in
+        // `tokens.scopes` — zero-heroui is the colourless case) and that a
+        // scope with no recipe is the validator's failure, not this one's.
+        // What it cannot know is this repo's debt ledger, applied here.
+        const findings = auditDesignSystem(inputs[name]!, manifest, {
+            rules: ['axis-coverage'],
+            compiled: designSystems[name as keyof typeof designSystems],
+        }).findings;
+        const gaps = findings
+            .filter((f) => carriers.includes(f.scope!))
+            .filter((f) => !(f.where in UNWIRED_AXES))
+            .map((f) => f.where);
         expect(gaps, `${name} accepts these axes at runtime and wires nothing for them`).toEqual([]);
+        // The rule reports only the two checked axes, by design (`variant` is
+        // the ledger's question, below).
+        for (const f of findings) expect(CHECKED_AXES as readonly string[]).toContain(f.axis);
     });
 
     // The unwired ledger, bound from both ends like NO_VARIANT: an entry must

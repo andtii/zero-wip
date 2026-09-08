@@ -1,45 +1,19 @@
 /**
- * The no-UA-chrome guard.
+ * The no-UA-chrome guard — the six in-repo skins, through the kit's
+ * `button-affordance` audit rule.
  *
- * zero picks the element each part renders as, and sixteen parts across the
- * component set render as a real `<button>`. That is an accessibility decision
- * (it is a button, so it is a `<button>`), and it comes with a styling
- * obligation the design system — not zero — owes: a `<button>` that no rule
- * claims is painted by the user agent. Chrome draws a 13.33px Arial chip with a
- * 2px outset bevel and its own focus ring, which belongs to no design system in
- * this repo and looks like a bug in all six.
- *
- * Nothing asked. `validate-recipes` warns when a part is missing entirely, but
- * `trigger: { base: {}, states: { open: {}, closed: {}, disabled: {} } }`
- * mentions the part and every state, so it warned about nothing. The css
- * goldens recorded the absence faithfully and understood none of it. The
- * state-legibility guard asks whether two states differ, and `{}` vs `{}` under
- * a component whose OTHER part carries the difference is a legitimate answer.
- * So #213: all six design systems shipped a `tooltip/trigger` with no button
- * treatment at all, four of them as raw UA chrome, for as long as the component
- * has existed.
- *
- * ── THE PROXY ────────────────────────────────────────────────────────────────
- * `appearance` is the one declaration that means "I have taken this element's
- * paint away from the user agent", and it is the only one that means it: a
- * background, a border and a font can each be set on a `<button>` while the UA
- * still supplies the rest of the chip. Requiring it is narrow enough to be
- * mechanically checkable and honest about what it proves — it proves the design
- * system LOOKED at the part. A recipe can still set `appearance: none` and
- * nothing else, and this guard will pass it; what it cannot do any more is
- * never mention the part at all, which is the failure that actually happened.
- *
- * ── THE DEFAULT CONTEXT ──────────────────────────────────────────────────────
- * The same substrate and the same reasoning as `state-legibility.test.ts`: the
- * compiled CSS (because a reset can arrive through `base`, `selectors`,
- * `variants.*` or the raw `css` escape hatch, and only the artifact sees all of
- * them), read for the render a reader actually gets. A reset that only applies
- * under a `@media` query, in one state, or for one non-default variant leaves
- * the un-attributed button beveled, so only the unconditional rule counts.
+ * The rule lives in `src/audit/rules/button-affordance.ts` (#403), lifted
+ * verbatim from this file so a design system generated outside this repo is
+ * asked the same question through `auditDesignSystem`. The reasoning — why
+ * `appearance` is the proxy, why only the unconditional rule counts — moved
+ * with it. What stays here: the six skins are clean, the manifest still
+ * carries `element` (else every assertion passes vacuously), and the guard's
+ * own teeth — resets behind a state, a variant and a media query that each
+ * leave the plain render beveled.
  */
 import { describe, it, expect } from 'vitest';
-import { compileDesignSystem, compileRecipeCss } from '@sigx/zero-kit';
-import type { CompiledDesignSystem, ManifestComponent, RecipeInput } from '@sigx/zero-kit';
+import { auditDesignSystem, compileDesignSystem, compileRecipeCss, parseRules } from '@sigx/zero-kit';
+import type { CompiledDesignSystem, DesignSystemInput, ManifestComponent, RecipeInput } from '@sigx/zero-kit';
 import { anatomies } from '@sigx/zero/anatomy';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
@@ -47,8 +21,7 @@ import { designSystem as materialDS } from '@sigx/zero-material';
 import { designSystem as brutalistDS } from '@sigx/zero-brutalist';
 import { designSystem as herouiDS } from '@sigx/zero-heroui';
 import { designSystem as carbonDS } from '@sigx/zero-carbon';
-import { parseRules } from './helpers/css-rules.js';
-import type { CssRule } from './helpers/css-rules.js';
+import { buttonParts, resetsAppearance } from '../src/audit/index.js';
 
 const manifest = {
     components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
@@ -56,6 +29,7 @@ const manifest = {
 
 interface System {
     name: string;
+    ds: DesignSystemInput;
     compiled: CompiledDesignSystem;
 }
 
@@ -63,60 +37,21 @@ interface System {
 // give: `DesignSystemInput<R>` is invariant in `R`, so the inputs cannot be
 // widened into one array while the compiled results share a non-generic type.
 const SYSTEMS: readonly System[] = [
-    { name: 'basic', compiled: compileDesignSystem(basicDS, manifest) },
-    { name: 'daisyui', compiled: compileDesignSystem(daisyDS, manifest) },
-    { name: 'material', compiled: compileDesignSystem(materialDS, manifest) },
-    { name: 'brutalist', compiled: compileDesignSystem(brutalistDS, manifest) },
-    { name: 'heroui', compiled: compileDesignSystem(herouiDS, manifest) },
-    { name: 'carbon', compiled: compileDesignSystem(carbonDS, manifest) },
+    { name: 'basic', ds: basicDS as DesignSystemInput, compiled: compileDesignSystem(basicDS, manifest) },
+    { name: 'daisyui', ds: daisyDS as DesignSystemInput, compiled: compileDesignSystem(daisyDS, manifest) },
+    { name: 'material', ds: materialDS as DesignSystemInput, compiled: compileDesignSystem(materialDS, manifest) },
+    { name: 'brutalist', ds: brutalistDS as DesignSystemInput, compiled: compileDesignSystem(brutalistDS, manifest) },
+    { name: 'heroui', ds: herouiDS as DesignSystemInput, compiled: compileDesignSystem(herouiDS, manifest) },
+    { name: 'carbon', ds: carbonDS as DesignSystemInput, compiled: compileDesignSystem(carbonDS, manifest) },
 ];
 
 /** Every `(scope, part)` zero renders as a real `<button>`. */
-const BUTTON_PARTS: ReadonlyArray<{ scope: string; part: string }> = manifest.components.flatMap(
-    (c) => c.parts.filter((p) => p.element === 'button').map((p) => ({ scope: c.scope, part: p.name })),
-);
-
-/** Rules that apply somewhere other than the plain, un-attributed render. */
-const isDefaultContext = (rule: CssRule): boolean => rule.at.every((p) => p.startsWith('@layer'));
-
-/**
- * Does this rule apply to `part` with nothing else asked of the element?
- *
- * `[data-scope][data-part]` and any ancestor written the same way are the
- * unconditional cascade; a `[data-state=…]`, `[data-variant=…]`, `:hover` or
- * `::before` left over means the rule is conditional and the plain render does
- * not get it.
- */
-function isUnconditionalFor(rule: CssRule, part: string): boolean {
-    const subjects = [...rule.selector.matchAll(/\[data-part="([^"]+)"\]/g)];
-    if (subjects[subjects.length - 1]?.[1] !== part) return false;
-    const residue = rule.selector
-        .replace(/\[data-scope="[^"]+"\]/g, '')
-        .replace(/\[data-part="[^"]+"\]/g, '')
-        .trim();
-    return residue === '';
-}
-
-const declares = (rule: CssRule, prop: string): boolean =>
-    rule.decls.some((d) => d.slice(0, d.indexOf(':')).trim().toLowerCase().replace(/^-\w+-/, '') === prop);
+const BUTTON_PARTS = buttonParts(manifest);
 
 /** The cells in one design system where a `<button>` keeps its UA chrome. */
-function findings(system: System): string[] {
-    const out: string[] = [];
-    for (const { scope, part } of BUTTON_PARTS) {
-        const css = system.compiled.componentCss[scope];
-        // No CSS at all is the "renders unstyled" failure `validate-recipes`
-        // already warns about; conflating the two would make this fail for a
-        // reason it was not built to catch.
-        if (css === undefined) continue;
-        const reset = parseRules(css).some(
-            (r) => isDefaultContext(r) && isUnconditionalFor(r, part) && declares(r, 'appearance'),
-        );
-        if (reset) continue;
-        out.push(`${system.name}/${scope}.${part}`);
-    }
-    return out;
-}
+const findings = (system: System): string[] =>
+    auditDesignSystem(system.ds, manifest, { rules: ['button-affordance'], compiled: system.compiled })
+        .findings.map((f) => `${system.name}/${f.where}`);
 
 describe('button affordance', () => {
     it('knows which parts zero renders as a <button>', () => {
@@ -155,10 +90,7 @@ describe('the guard\'s own teeth', () => {
     const report = (parts: RecipeInput['parts']): string[] => {
         const recipe: RecipeInput = { component: 'tooltip', parts };
         const css = compileRecipeCss(recipe, tooltip);
-        const rules = parseRules(css);
-        return rules.some((r) => isDefaultContext(r) && isUnconditionalFor(r, 'trigger') && declares(r, 'appearance'))
-            ? []
-            : ['tooltip.trigger'];
+        return resetsAppearance(parseRules(css), 'trigger') ? [] : ['tooltip.trigger'];
     };
 
     it('reports #213 verbatim — a mentioned part with an empty base', () => {

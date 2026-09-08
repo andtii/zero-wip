@@ -22,6 +22,30 @@
   suggested fix for a failing pair (#402 follow-up) and a derived brief
   build on this.
 
+- **`auditDesignSystem` / `formatAudit` — the compiled-CSS guards, shipped
+  with the kit** (#403, slice A). The state-legibility guard (three rules:
+  `component`, `indicator`, `disclosure`), the button-affordance guard, the
+  axis-value-coverage guard (`gap`, `ambiguous-base`, `unused`) and the
+  design-system half of the axis-coverage guard were vitest files importing
+  this repo's six skins by name — the skill told an external author "CI
+  fails it", and for them nothing did. They now live under
+  `src/audit/rules/`, lifted verbatim with their reasoning, and the four
+  in-repo tests are thin callers of them (keeping the carrier discovery and
+  the `NO_VARIANT` / `UNWIRED_AXES` / material ledgers, which are facts about
+  this repo rather than about a design system). One new rule joins them:
+  `reduced-motion/loop`, the static half of the browser reduced-motion spec —
+  an infinite animation must have an `animation: none` under
+  `prefers-reduced-motion: reduce` for the SAME selector, since `@media` adds
+  no specificity and a broader cancel stops nothing. Findings carry a rule
+  id, a severity (the former hard-fails are errors; the two advisory rules
+  are warnings), a `where`, the structured scope/part/states/axis/values, and
+  a message naming the fix; what `skipStates`, `hiddenIn`, `tokens.scopes` or
+  a fill-role declaration excused is listed under `waived` rather than
+  swallowed. `parseRules` (the CSS reader the guards stand on, formerly a
+  test helper) is exported beside them. Exported from the barrel and from
+  `@sigx/zero-kit/build`; the `sigx zero:audit` command, `dist/audit.json`
+  and the static contrast matrix are the B and C slices.
+
 ## [0.2.0-beta.6] - 2026-08-22
 
 ### Fixed

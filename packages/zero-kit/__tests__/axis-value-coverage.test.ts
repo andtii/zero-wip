@@ -1,92 +1,27 @@
 /**
- * The declared-step-nobody-honours guard.
+ * The declared-step-nobody-honours guard — the six in-repo skins, through
+ * the kit's `axis-value-coverage/*` audit rules.
  *
- * A design system's `tokens.sizes` / `tokens.variants` / `tokens.roles` /
- * `tokens.axes` are not notes to self. They reach `manifest.json`, the docs
- * site and the generated `register.d.ts`; an app is entitled to pass any value
- * in them and `data-size="2xl"` reaches the DOM whether or not a rule matches.
- * A declared value nothing matches doesn't fail — it silently renders the base.
- *
- * So #258: zero-carbon declared `sm md lg xl 2xl` and only `button` shipped
- * `xl`/`2xl`. The other fourteen size-bearing scopes fell back to their `md`
- * base at both steps, which is *smaller than `lg`* — avatar 48 → 40px, checkbox
- * 22 → 18, switch 56×28 → 48×24. Growing the size axis shrank the control. The
- * full suite was green throughout: the css goldens recorded the absent rules
- * faithfully, `validate-recipes` only asks whether a value names a declared one
- * (it did not exist, so there was nothing to name), and `axis-coverage.test.ts`
- * asks whether a scope wires the axis *at all* — avatar wired `sm` and `lg`, so
- * it was wiring size. Nothing asked whether the ramp had holes in it.
- *
- * ── THE UN-ATTRIBUTED STEP ───────────────────────────────────────────────────
- * The naive rule — "every declared value must emit a rule in every scope" —
- * cannot be stated, because one step per axis legitimately emits nothing:
- *
- *     sm: { root: { base: { minHeight: '2rem' } } },
- *     md: {},   // the base already IS md; restating it is a second copy free to drift
- *     lg: { root: { base: { minHeight: '3rem' } } },
- *
- * That is right, and it is not always `md` — zero-carbon's button writes
- * `lg: {}` because Carbon's default button is the 48px one, and zero-heroui's
- * whole size axis is based on `md`.
- *
- * This guard reads the empty entry AS the claim: **a declared value is
- * accounted for when it emits a rule in the default render, or when the recipe
- * writes it as an entry that emits nothing at all — which says "the base is
- * this step".** No new syntax, no schema change; it is already what every
- * author means. `defaultVariants` is deliberately NOT a second way to say it:
- * it would let a forgotten step be excused by a field written for a different
- * purpose, and the point of the empty entry is that an author who forgot a step
- * wrote nothing at all.
- *
- * "Emits nothing at all" is stricter than "emits nothing here": an entry whose
- * only rule sits inside a `@media` has clearly been thought about and is not
- * claiming to be the base, so it is a gap rather than a claim — which is also
- * the honest reading, since at the default viewport it renders as the base
- * without meaning to.
- *
- * The claim being singular is half the guard (assertion B). Two silent values
- * both stand for the base, so they render identically — which is #258's harm
- * exactly, reached by the other door: "fix" a missing `xl` by writing `xl: {}`
- * and `xl` still renders as `md`. A closes the hole B would open, and B closes
- * A's.
- *
- * ── WHY THE COMPILED CSS ─────────────────────────────────────────────────────
- * The same substrate and the same reasoning as `state-legibility.test.ts` and
- * `button-affordance.test.ts`: a value can be implemented through `variants`,
- * `compoundVariants` or the raw `css` escape hatch, and only the artifact sees
- * all three. Only the *default context* counts — a step whose only rule sits
- * inside a `@media` is not implemented at the default viewport, and what the
- * reader gets there is the base. (The recipe tree is read for exactly one
- * thing: whether a value was WRITTEN, which is not visible in CSS that an
- * empty entry by definition does not emit.)
- *
- * ── WHY IT IS NOT THE NAIVE RULE ─────────────────────────────────────────────
- * Measured before it was written: across the six design systems, "every
- * declared value in every scope with a recipe" reports **1267** findings. That
- * is the shape that got the per-part legibility guard reverted at 164. The
- * scoping below reports **0**, and reports the 28 that #258 actually was.
- *
- * Two restrictions get it there, and each is a claim rather than a threshold:
- *
- * 1. **Only scopes that participate.** A scope wiring nothing for an axis is
- *    not making a promise about it — zero's dialog, popover and tooltip take no
- *    size prop, and `axis-coverage.test.ts` already owns the question of which
- *    scopes ought to. (1267 → 124.)
- * 2. **Only values some scope in the design system implements.** A step
- *    `button` ships is a step the design system has decided exists, and a
- *    sibling that also takes the axis and skips it is the #258 gap. A value NO
- *    recipe implements is a different claim — the design system said a word and
- *    never used it — and assertion C takes that one at design-system
- *    granularity, where it is three findings instead of sixty-four. (124 → 0,
- *    once the un-attributed step is read.)
+ * The rules live in `src/audit/rules/axis-value-coverage.ts` (#403), lifted
+ * verbatim from this file so a design system generated outside this repo is
+ * asked the same three questions through `auditDesignSystem`: no scope skips
+ * a step its siblings implement (`gap`), at most one value per scope claims
+ * the base (`ambiguous-base`), and a declared value some recipe uses
+ * (`unused`). The reasoning — the un-attributed step, why the compiled CSS,
+ * why it is not the naive rule and what that rule would have reported —
+ * moved with the code. What stays here is this repo's ledger (Material's
+ * four fill roles are the one deliberate let-through, now listed as waivers)
+ * and the guard's own teeth.
  */
 import { describe, it, expect } from 'vitest';
-import { axisClaims, compileDesignSystem, offeredFor } from '@sigx/zero-kit';
+import { auditDesignSystem, compileDesignSystem } from '@sigx/zero-kit';
 import type {
+    AuditFinding,
+    AuditRuleId,
     CompiledDesignSystem,
+    DesignSystemInput,
     ManifestComponent,
     RecipeInput,
-    RoleDecl,
     ScopeVocabulary,
 } from '@sigx/zero-kit';
 import { anatomies } from '@sigx/zero/anatomy';
@@ -96,8 +31,16 @@ import { designSystem as materialDS } from '@sigx/zero-material';
 import { designSystem as brutalistDS } from '@sigx/zero-brutalist';
 import { designSystem as herouiDS } from '@sigx/zero-heroui';
 import { designSystem as carbonDS } from '@sigx/zero-carbon';
-import { parseRules } from './helpers/css-rules.js';
-import type { CssRule } from './helpers/css-rules.js';
+import {
+    ambiguousBases as ambiguousBaseFindings,
+    coverageGaps as coverageGapFindings,
+    declaredVocabulary,
+    implementedSomewhere,
+    isFillOrHairline,
+    paintedValues,
+    participatingCells,
+    unusedVocabulary,
+} from '../src/audit/index.js';
 
 const manifest = {
     components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
@@ -107,255 +50,24 @@ const manifest = {
 // and `button-affordance.test.ts` all give: `DesignSystemInput<R>` is invariant
 // in `R`, so the inputs cannot be widened into one array while the compiled
 // results share a non-generic type.
-const SYSTEMS: ReadonlyArray<{ name: string; compiled: CompiledDesignSystem }> = [
-    { name: 'basic', compiled: compileDesignSystem(basicDS, manifest) },
-    { name: 'daisyui', compiled: compileDesignSystem(daisyDS, manifest) },
-    { name: 'material', compiled: compileDesignSystem(materialDS, manifest) },
-    { name: 'brutalist', compiled: compileDesignSystem(brutalistDS, manifest) },
-    { name: 'heroui', compiled: compileDesignSystem(herouiDS, manifest) },
-    { name: 'carbon', compiled: compileDesignSystem(carbonDS, manifest) },
+const SYSTEMS: ReadonlyArray<{ name: string; ds: DesignSystemInput; compiled: CompiledDesignSystem }> = [
+    { name: 'basic', ds: basicDS as DesignSystemInput, compiled: compileDesignSystem(basicDS, manifest) },
+    { name: 'daisyui', ds: daisyDS as DesignSystemInput, compiled: compileDesignSystem(daisyDS, manifest) },
+    { name: 'material', ds: materialDS as DesignSystemInput, compiled: compileDesignSystem(materialDS, manifest) },
+    { name: 'brutalist', ds: brutalistDS as DesignSystemInput, compiled: compileDesignSystem(brutalistDS, manifest) },
+    { name: 'heroui', ds: herouiDS as DesignSystemInput, compiled: compileDesignSystem(herouiDS, manifest) },
+    { name: 'carbon', ds: carbonDS as DesignSystemInput, compiled: compileDesignSystem(carbonDS, manifest) },
 ];
 
-/**
- * The value vocabulary this design system declares, per axis attribute.
- *
- * Keyed by the attribute the CSS matches on, which is what makes the vendor
- * API remap (#183) a non-issue here: zero-carbon's `kind` is the `variant` axis
- * under a vendor name, spelled kebab in `tokens.variants` and kebab in
- * `[data-variant="danger-tertiary"]`; the double-hyphen spelling exists only at
- * the prop boundary.
- *
- * An axis declared out of existence (`roles: {}`, `sizes: []`) is absent, not
- * empty — there is no vocabulary to honour.
- */
-function declaredVocabulary(compiled: CompiledDesignSystem): Record<string, readonly string[]> {
-    const out: Record<string, readonly string[]> = {};
-    const roles = Object.keys(compiled.tokens.roles);
-    if (roles.length > 0) out['color'] = roles;
-    if (compiled.tokens.sizes.length > 0) out['size'] = compiled.tokens.sizes;
-    if (compiled.tokens.variants.length > 0) out['variant'] = compiled.tokens.variants;
-    for (const [axis, values] of Object.entries(compiled.tokens.axes)) {
-        if (values.length > 0) out[axis] = values;
-    }
-    return out;
-}
+const audit = (name: string, rule: AuditRuleId) => {
+    const system = SYSTEMS.find((s) => s.name === name)!;
+    return auditDesignSystem(system.ds, manifest, { rules: [rule], compiled: system.compiled });
+};
 
-/**
- * Rules that apply somewhere other than the plain, default-viewport render.
- * `@scope` is a WHERE, not a WHEN: the donut that bounds a non-carrier axis
- * rule (#317) narrows which elements match, exactly like the selector it
- * replaced, and applies in the default render — so it does not make a rule
- * conditional the way `@media` does.
- */
-const isDefaultContext = (rule: CssRule): boolean =>
-    rule.at.every((p) => p.startsWith('@layer') || p.startsWith('@scope'));
-
-/**
- * The values of `axis` this stylesheet matches on.
- *
- * `where: 'default'` is what the reader gets with no query satisfied — the only
- * render a value can be said to be implemented in. `where: 'anywhere'` includes
- * `@media`, and exists to tell an entry that paints *somewhere* apart from one
- * that paints nowhere at all: only the second is the empty entry that claims
- * the base.
- */
-function paintedValues(css: string, axis: string, where: 'default' | 'anywhere'): Set<string> {
-    const out = new Set<string>();
-    const attr = new RegExp(`\\[data-${axis}="([^"]+)"\\]`, 'g');
-    for (const rule of parseRules(css)) {
-        if (where === 'default' && !isDefaultContext(rule)) continue;
-        for (const [, value] of rule.selector.matchAll(attr)) out.add(value!);
-        // A non-carrier axis rule carries its attribute in the `@scope` donut
-        // prelude rather than in its own selector (#317) — the value is still
-        // painted by every rule inside the donut.
-        for (const prelude of rule.at) {
-            if (!prelude.startsWith('@scope')) continue;
-            for (const [, value] of prelude.matchAll(attr)) out.add(value!);
-        }
-    }
-    return out;
-}
-
-/**
- * The values of `axis` this recipe WROTE, whether or not they emit anything.
- *
- * `harvestAxes` already collects exactly this — the keys of `variants[axis]`
- * plus any value named in a `compoundVariants` match — which is why the empty
- * entry is legible at all: `md: {}` emits no CSS but is a key.
- */
-const writtenValues = (axes: CompiledDesignSystem['components'][string], axis: string): Set<string> =>
-    new Set(
-        axis === 'color' ? axes.color
-            : axis === 'size' ? axes.size
-                : axis === 'variant' ? axes.variant
-                    : (axes.axes[axis] ?? []),
-    );
-
-/**
- * The vocabulary one SCOPE offers for one axis — its `tokens.scopes` entry
- * where it declared one, else the design-system-wide list (#294).
- *
- * The distinction is what keeps rule A honest under a union: once
- * `tokens.variants` is the union of every scope's vocabulary, "a value a
- * sibling implements" stops meaning "a value this scope owes you".
- */
-function vocabularyFor(compiled: CompiledDesignSystem, scope: string, axis: string): readonly string[] {
-    const wired = compiled.components[scope];
-    const offered = wired ? offeredFor(wired, axis) : undefined;
-    return offered ?? declaredVocabulary(compiled)[axis] ?? [];
-}
-
-interface Cell {
-    scope: string;
-    axis: string;
-    /** Painted in the default render — the only place a value counts as implemented. */
-    painted: Set<string>;
-    /** Written as an entry, whether or not it emits anything. */
-    written: Set<string>;
-    /** Written and emitting nothing anywhere: the claim that the base IS this value. */
-    claims: string[];
-    /** The vocabulary this scope offers for the axis — see `vocabularyFor`. */
-    offered: readonly string[];
-    /** True when that vocabulary is the scope's own rather than the union's. */
-    restricted: boolean;
-}
-
-/** Every (scope, axis) in one design system that participates in the axis. */
-function participatingCells(compiled: CompiledDesignSystem): Cell[] {
-    const cells: Cell[] = [];
-    for (const [scope, axes] of Object.entries(compiled.components)) {
-        const css = compiled.componentCss[scope] ?? '';
-        for (const axis of Object.keys(declaredVocabulary(compiled))) {
-            const painted = paintedValues(css, axis, 'default');
-            const anywhere = paintedValues(css, axis, 'anywhere');
-            const written = writtenValues(axes, axis);
-            const declared = offeredFor(axes, axis);
-            // A scope that declared the axis out of existence FOR ITSELF is
-            // not participating, whatever the CSS says. Wiring an axis you
-            // declared away is a `validate-recipes` error, and this guard must
-            // not report the same mistake a second time as a coverage gap.
-            if (declared?.length === 0) continue;
-            // A scope with a vocabulary of its own participates even when it
-            // paints and writes nothing. Before per-scope vocabularies there
-            // was no way to promise anything, so silence was the only honest
-            // reading; a declared vocabulary IS the promise, and promising a
-            // vocabulary and shipping none of it is the sharpest #258 there is.
-            //
-            // Otherwise: a scope that neither paints nor writes a single value
-            // of this axis has nothing this guard can hold it to. Whether it
-            // *should* participate is `axis-coverage.test.ts`'s question, not
-            // this one's — conflating the two would make this fail for a
-            // reason it was not built to catch.
-            if (!declared && anywhere.size === 0 && written.size === 0) continue;
-            cells.push({
-                scope,
-                axis,
-                painted,
-                written,
-                claims: [...written].filter((v) => !anywhere.has(v)),
-                offered: vocabularyFor(compiled, scope, axis),
-                restricted: declared !== undefined,
-            });
-        }
-    }
-    return cells;
-}
-
-/** Values `axis` is implemented for by at least one scope in this design system. */
-function implementedSomewhere(compiled: CompiledDesignSystem, axis: string): Set<string> {
-    const out = new Set<string>();
-    for (const css of Object.values(compiled.componentCss)) {
-        for (const value of paintedValues(css, axis, 'default')) out.add(value);
-    }
-    return out;
-}
-
-/** Assertion A: a step a sibling implements, that this scope neither paints nor claims. */
-function coverageGaps(compiled: CompiledDesignSystem): string[] {
-    const out: string[] = [];
-    const declared = declaredVocabulary(compiled);
-    const promised = new Map<string, Set<string>>(
-        Object.keys(declared).map((axis) => [axis, implementedSomewhere(compiled, axis)]),
-    );
-    for (const cell of participatingCells(compiled)) {
-        const claimed = new Set(cell.claims);
-        // Two readings of "owes you this value", and which applies is exactly
-        // whether the scope declared a vocabulary (#294):
-        //
-        // - **Restricted**: it named the values itself, so every one of them is
-        //   owed and a sibling's set is irrelevant. This is what stops a union
-        //   from making `button.variant: classic` a finding when `classic` was
-        //   declared for `select` and painted there.
-        // - **Unrestricted**: the original rule, unchanged — a value some
-        //   sibling implements, since the whole union is on offer here.
-        //
-        // A design system where one scope restricts and a sibling does not gets
-        // findings against the sibling, and that is the union's honest
-        // consequence rather than a bug: the sibling really is still offering
-        // values declared for someone else. `validateDesignSystem` names it at
-        // the declaration, before it can arrive here.
-        const missing = cell.offered.filter(
-            (v) => !cell.painted.has(v) && !claimed.has(v)
-                && (cell.restricted || promised.get(cell.axis)!.has(v)),
-        );
-        if (missing.length > 0) out.push(`${cell.scope}.${cell.axis}: ${missing.join(', ')}`);
-    }
-    return out.sort();
-}
-
-/** Assertion B: more than one value claiming to be the base. */
-function ambiguousBases(compiled: CompiledDesignSystem): string[] {
-    return participatingCells(compiled)
-        .filter((cell) => cell.claims.length > 1)
-        .map((cell) => `${cell.scope}.${cell.axis}: ${[...cell.claims].sort().join(', ')}`)
-        .sort();
-}
-
-/**
- * Assertion C, in two classes that the union splits apart (#294):
- *
- * - **`unused`** — declared, in some scope's vocabulary, painted by nothing and
- *   claimed by nothing. The original rule: a word the design system says and
- *   never uses.
- * - **`unclaimed`** — declared, and in NO scope's vocabulary at all. Only
- *   reachable once every scope is restricted; while one is still open its
- *   vocabulary *is* the union, `axisClaims` says so, and the value falls to
- *   `unused` the old way.
- *
- * The two are different mistakes with different fixes — paint it somewhere,
- * versus give it to a scope or drop it from the union — so they are reported
- * apart rather than merged into "nobody uses this".
- */
-function unusedVocabulary(
-    compiled: CompiledDesignSystem,
-): Array<{ axis: string; value: string; reason: 'unused' | 'unclaimed' }> {
-    const out: Array<{ axis: string; value: string; reason: 'unused' | 'unclaimed' }> = [];
-    const cells = participatingCells(compiled);
-    for (const [axis, values] of Object.entries(declaredVocabulary(compiled))) {
-        const painted = implementedSomewhere(compiled, axis);
-        const claimed = new Set(cells.filter((c) => c.axis === axis).flatMap((c) => c.claims));
-        const claims = axisClaims(compiled, axis);
-        for (const value of values) {
-            if (!claims.unrestricted && !claims.claimed.has(value)) {
-                out.push({ axis, value, reason: 'unclaimed' });
-            } else if (!painted.has(value) && !claimed.has(value)) {
-                out.push({ axis, value, reason: 'unused' });
-            }
-        }
-    }
-    return out;
-}
-
-/**
- * A role that opted out of `-content` or `-soft` is a fill or a hairline —
- * Material's tonal `surface*` family, its `outline` — which is a token, not
- * something a control can be coloured. `tokens.roles` does double duty as the
- * palette and as the `color` vocabulary, and SKILL.md already tells authors to
- * filter exactly this predicate out of the axis. So the four material roles no
- * recipe wires are the declaration working as intended, not a gap.
- */
-const isFillOrHairline = (decl: RoleDecl | undefined): boolean =>
-    decl?.content === false || decl?.soft === false;
+/** The guard's old one-line spelling of a finding: `scope.axis: value, value`. */
+const cell = (f: AuditFinding): string => `${f.where}: ${(f.values ?? []).join(', ')}`;
+const coverageGaps = (compiled: CompiledDesignSystem): string[] => coverageGapFindings(compiled).map(cell);
+const ambiguousBases = (compiled: CompiledDesignSystem): string[] => ambiguousBaseFindings(compiled).map(cell);
 
 describe('every declared axis value is honoured or claimed', () => {
     it('reads a vocabulary and a stylesheet worth asserting on', () => {
@@ -381,9 +93,8 @@ describe('every declared axis value is honoured or claimed', () => {
     it.each(SYSTEMS.map((s) => s.name))(
         '%s: no scope skips a step its siblings implement',
         (name) => {
-            const compiled = SYSTEMS.find((s) => s.name === name)!.compiled;
             expect(
-                coverageGaps(compiled),
+                audit(name, 'axis-value-coverage/gap').findings.map(cell),
                 `${name} declares these values, implements them in some scope, and silently renders the base in these`,
             ).toEqual([]);
         },
@@ -392,9 +103,8 @@ describe('every declared axis value is honoured or claimed', () => {
     it.each(SYSTEMS.map((s) => s.name))(
         '%s: at most one value per scope claims the base',
         (name) => {
-            const compiled = SYSTEMS.find((s) => s.name === name)!.compiled;
             expect(
-                ambiguousBases(compiled),
+                audit(name, 'axis-value-coverage/ambiguous-base').findings.map(cell),
                 `${name} writes these values as empty entries, so they all render as the base — and identically to each other`,
             ).toEqual([]);
         },
@@ -403,17 +113,14 @@ describe('every declared axis value is honoured or claimed', () => {
     it.each(SYSTEMS.map((s) => s.name))(
         '%s: a declared value no recipe uses is a token, not an axis value',
         (name) => {
-            const compiled = SYSTEMS.find((s) => s.name === name)!.compiled;
             // The deliberate let-through, made visible rather than silent. A
             // colour role that is a fill or a hairline is legitimately never a
-            // `data-color` value; anything else — a size step, a variant, a
-            // custom axis value, a full colour role — is a word the design
-            // system says and never uses, and this is where it surfaces.
-            const unexplained = unusedVocabulary(compiled).filter(
-                (u) => !(u.axis === 'color' && isFillOrHairline(compiled.tokens.roles[u.value])),
-            );
+            // `data-color` value, and the rule lists it as a WAIVER; anything
+            // else — a size step, a variant, a custom axis value, a full colour
+            // role — is a word the design system says and never uses, and this
+            // is where it surfaces.
             expect(
-                unexplained.map((u) => `${u.axis}: ${u.value}`).sort(),
+                audit(name, 'axis-value-coverage/unused').findings.map((f) => `${f.axis}: ${(f.values ?? []).join(', ')}`),
                 `${name} declares these and no recipe paints or claims them — an app may pass them and get the base`,
             ).toEqual([]);
         },
@@ -435,6 +142,16 @@ describe('every declared axis value is honoured or claimed', () => {
             'material/color: surface',
             'material/color: surface-container',
             'material/color: surface-container-high',
+        ]);
+        // …and the audit lists exactly those as waivers, by the mechanism
+        // that excuses them, rather than dropping them on the floor.
+        const waived = SYSTEMS.flatMap((s) =>
+            audit(s.name, 'axis-value-coverage/unused').waived.map((w) => `${s.name}/${w.where} (${w.waivedBy.mechanism})`));
+        expect(waived.sort()).toEqual([
+            'material/color.outline (role-decl)',
+            'material/color.surface (role-decl)',
+            'material/color.surface-container (role-decl)',
+            'material/color.surface-container-high (role-decl)',
         ]);
     });
 });

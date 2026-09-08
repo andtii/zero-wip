@@ -1,61 +1,20 @@
 /**
- * The states-look-alike guard.
+ * The states-look-alike guard — the six in-repo skins, through the kit's
+ * `state-legibility/*` audit rules.
  *
- * `data-state` is the contract's promise that a component tells you which state
- * it is in. A design system can accept that promise and then break it silently:
- * declare every state, style none of them differently, and every existing check
- * still passes. The validator's coverage warning only asks whether a state was
- * MENTIONED. The css goldens see the whole artifact and understand none of it.
- * Nothing asked whether two states actually render differently.
- *
- * So they did not. Before #226: material's and brutalist's checkbox indicator
- * painted no mark at all — three identical empty boxes — and every design
- * system's rating group set the same `color` for `full` and `half`, so a half
- * star rendered as a full one. Six design systems, the same two bugs, none of
- * them caught.
- *
- * ── WHY THE COMPILED CSS, NOT THE RECIPE TREE ───────────────────────────────
- * State styling reaches the stylesheet through `states`, `selectors`,
- * `variants.*`, `compoundVariants`, `modifiers`, nested `at`, and the raw `css`
- * escape hatch. Only the emitted CSS sees all seven. A guard reading `states`
- * would have called zero-basic and zero-daisyui broken for putting their tick
- * in `selectors['&[data-state="checked"]::after']` — the two that were right.
- * `css-golden.test.ts` already establishes compiled CSS as this package's
- * assertion substrate; this is a second reader of it, one that understands what
- * it reads.
- *
- * ── WHAT COUNTS AS A DIFFERENCE ──────────────────────────────────────────────
- * The default render, and only what the reader can see in it. Rules under any
- * `@media` are excluded (`isDefaultContext`) and motion-only declarations are
- * dropped (`isVisual`) — a guard that accepted either would have accepted the
- * bug it was written for: #226 gives every drawn mark a `forced-colors`/`print`
- * glyph fallback, so `content: "\2713"` vs `content: "\2212"` would have made
- * "the indicator distinguishes `checked` from `indeterminate`" true of an
- * indicator that draws two identical empty boxes. `the guard's own teeth` at the
- * bottom of this file keeps both holes shut with fixtures.
- *
- * ── WHY THERE ARE THREE ASSERTIONS AND NOT ONE ──────────────────────────────
- * A judges the COMPONENT: some part of it, anywhere, tells the two states
- * apart. That is deliberately loose, because "the difference lives on a sibling
- * part" is legitimate and extremely common — and judging every part separately
- * reported 164 of those. B and C are the two places where that looseness is not
- * good enough, and each names the part whose job the state IS: an `indicator`
- * (B), and the control of an in-flow disclosure (C). Both are contract claims
- * about a specific part, not heuristics about components in general, which is
- * why they can afford to be strict where A cannot.
- *
- * C exists because A cleared #220. zero-material's collapsible and accordion
- * triggers were byte-identical open vs closed — `open: {}` and `closed: {}`,
- * both empty — and A was satisfied by
- * `[data-part="root"][open]::details-content { block-size: auto }`, i.e. by the
- * panel physically expanding, which is what `<details>` does in every design
- * system whether or not the recipe says anything. A guard that passes on
- * browser behaviour rather than on a styling decision is a false green, and a
- * false green is worse than no guard because it is trusted.
+ * The rules themselves live in `src/audit/rules/state-legibility.ts` (#403),
+ * lifted verbatim from this file so that a design system generated OUTSIDE
+ * this repo gets the same three assertions through `auditDesignSystem`. The
+ * reasoning — why the compiled CSS and not the recipe tree, what counts as a
+ * difference, why three rules and not one — moved with the code and is the
+ * docblock there. What stays here is what is a fact about THIS repo: the
+ * six skins are clean, the disclosure rule is pointed at exactly the three
+ * in-flow components it claims, avatar's `hiddenIn` reaches the manifest,
+ * and the guard's own teeth — state-blind fixtures the rules MUST report.
  */
 import { describe, it, expect } from 'vitest';
-import { compileDesignSystem, compileRecipeCss } from '@sigx/zero-kit';
-import type { CompiledDesignSystem, ManifestComponent, PartStyles, RecipeInput } from '@sigx/zero-kit';
+import { auditDesignSystem, compileDesignSystem, compileRecipeCss } from '@sigx/zero-kit';
+import type { AuditFinding, AuditRuleId, CompiledDesignSystem, DesignSystemInput, ManifestComponent, PartStyles, RecipeInput } from '@sigx/zero-kit';
 import { anatomies } from '@sigx/zero/anatomy';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
@@ -63,8 +22,20 @@ import { designSystem as materialDS } from '@sigx/zero-material';
 import { designSystem as brutalistDS } from '@sigx/zero-brutalist';
 import { designSystem as herouiDS } from '@sigx/zero-heroui';
 import { designSystem as carbonDS } from '@sigx/zero-carbon';
-import { parseRules } from './helpers/css-rules.js';
-import type { CssRule } from './helpers/css-rules.js';
+import {
+    caseOf,
+    componentFindings,
+    disclosureFindings,
+    distinguishes,
+    fingerprint,
+    indicatorFindings,
+    isOverlayComponent,
+    isTriggerPart,
+    ownGroups,
+    pairsOf,
+    presenceDiffers,
+} from '../src/audit/index.js';
+import type { LegibilityCase as Case } from '../src/audit/index.js';
 
 const manifest = {
     components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[],
@@ -77,156 +48,29 @@ const manifest = {
 // the recipe, not in the CSS.
 interface System {
     name: string;
+    ds: DesignSystemInput;
     recipes: readonly RecipeInput[];
     compiled: CompiledDesignSystem;
 }
 
 const SYSTEMS: readonly System[] = [
-    { name: 'basic', recipes: basicDS.recipes, compiled: compileDesignSystem(basicDS, manifest) },
-    { name: 'daisyui', recipes: daisyDS.recipes, compiled: compileDesignSystem(daisyDS, manifest) },
-    { name: 'material', recipes: materialDS.recipes, compiled: compileDesignSystem(materialDS, manifest) },
-    { name: 'brutalist', recipes: brutalistDS.recipes, compiled: compileDesignSystem(brutalistDS, manifest) },
-    { name: 'heroui', recipes: herouiDS.recipes, compiled: compileDesignSystem(herouiDS, manifest) },
-    { name: 'carbon', recipes: carbonDS.recipes, compiled: compileDesignSystem(carbonDS, manifest) },
+    { name: 'basic', ds: basicDS as DesignSystemInput, recipes: basicDS.recipes, compiled: compileDesignSystem(basicDS, manifest) },
+    { name: 'daisyui', ds: daisyDS as DesignSystemInput, recipes: daisyDS.recipes, compiled: compileDesignSystem(daisyDS, manifest) },
+    { name: 'material', ds: materialDS as DesignSystemInput, recipes: materialDS.recipes, compiled: compileDesignSystem(materialDS, manifest) },
+    { name: 'brutalist', ds: brutalistDS as DesignSystemInput, recipes: brutalistDS.recipes, compiled: compileDesignSystem(brutalistDS, manifest) },
+    { name: 'heroui', ds: herouiDS as DesignSystemInput, recipes: herouiDS.recipes, compiled: compileDesignSystem(herouiDS, manifest) },
+    { name: 'carbon', ds: carbonDS as DesignSystemInput, recipes: carbonDS.recipes, compiled: compileDesignSystem(carbonDS, manifest) },
 ];
 
-/**
- * States the browser also carries natively, and the selectors that read them.
- *
- * A design system may style `open` as `[open]` on a `<details>` or `:checked`
- * on a real input rather than through `data-state` — zero renders both. Without
- * this, material's `<details>`-based accordion and collapsible look
- * undifferentiated when they are styled through
- * `[data-part="root"][open]::details-content`.
- */
-const NATIVE_PROXIES: Readonly<Record<string, readonly string[]>> = {
-    open: ['[open]', ':popover-open', ':open'],
-    checked: [':checked'],
-    indeterminate: [':indeterminate'],
-};
+/** One rule's findings for one skin, as the messages a reader would see. */
+const findingsFor = (system: System, rule: AuditRuleId): string[] =>
+    auditDesignSystem(system.ds, manifest, { rules: [rule], compiled: system.compiled })
+        .findings.map((f) => `${system.name}/${f.message}`);
 
-/** Every fragment that means "this rule applies in state `s`". */
-const fragmentsFor = (state: string): readonly string[] =>
-    [`[data-state="${state}"]`, ...(NATIVE_PROXIES[state] ?? [])];
+const messages = (findings: readonly AuditFinding[]): string[] => findings.map((f) => f.message);
 
-/** The part a rule's subject is, plus any pseudo-element hung off it. */
-function groupOf(rule: CssRule): string | undefined {
-    // The LAST `data-part` is the subject — `[data-color="x"] [data-part="y"]`
-    // styles `y`, and pseudo-projected parts (`dialog.backdrop` →
-    // `[data-part="popup"]::backdrop`) land under their host's name.
-    const parts = [...rule.selector.matchAll(/\[data-part="([^"]+)"\]/g)];
-    const part = parts[parts.length - 1]?.[1];
-    if (!part) return undefined;
-    // Key by (host part, pseudo suffix): a recipe-authored `::after` is a
-    // different surface from the element itself, and a component that draws its
-    // mark there is drawing it somewhere real.
-    const pseudo = /(::[a-z-]+(?:\([^)]*\))?)\s*$/.exec(rule.selector)?.[1] ?? '';
-    return `${part}${pseudo}`;
-}
-
-/**
- * Rules that only apply somewhere other than the default render.
- *
- * The question this guard asks is whether the state is legible in the render
- * the reader gets — so only the unconditional cascade counts. `@layer` is
- * structure and stays; every condition is disqualifying, and the two that
- * matter most are `forced-colors` and `print`. Both carry the glyph fallbacks
- * the drawn marks swap in (`content: "\2713"` vs `"\2212"`), and counting those
- * would make this assertion vacuous for exactly the pair it exists to protect:
- * an indicator that draws NOTHING in either state would still be "legible"
- * because a palette the reader is not using tells them apart. A breakpoint or a
- * `hover: none` difference is disqualified for the same reason — a difference
- * some readers never see is not the default render differentiating.
- */
-const isDefaultContext = (rule: CssRule): boolean => rule.at.every((p) => p.startsWith('@layer'));
-
-/**
- * Declarations that cannot change how a RESTING state looks.
- *
- * A state whose only declaration is `transition: scale … var(--duration-fast)`
- * differs in how it ARRIVES, not in how it looks once it has: material's
- * `&[data-state="checked"]::after` restates the transition to stagger the
- * second arm, and that alone must not count as drawing a mark. Kept out of the
- * fingerprint rather than out of the CSS, and a rule left with nothing else is
- * dropped whole — otherwise its bare existence would still differentiate.
- *
- * `animation-delay` joins them for the same reason; `animation` itself does
- * not, since a state can legitimately BE an animation (daisy's radio dot).
- */
-const NON_VISUAL: ReadonlySet<string> = new Set([
-    'transition',
-    'transition-property',
-    'transition-duration',
-    'transition-timing-function',
-    'transition-delay',
-    'transition-behavior',
-    'will-change',
-    'animation-delay',
-]);
-
-const isVisual = (decl: string): boolean =>
-    !NON_VISUAL.has(decl.slice(0, decl.indexOf(':')).trim().toLowerCase());
-
-/**
- * The rules that apply to one group in one state, with the state itself blanked.
- *
- * Blanking is what makes the comparison meaningful: two rules that differ ONLY
- * in which state they name are the same paint, so the states are
- * indistinguishable. Declarations are sorted, because a reordering is not a
- * visual difference.
- */
-function fingerprint(rules: readonly CssRule[], group: string, state: string): string[] {
-    const fragments = fragmentsFor(state);
-    const out: string[] = [];
-    for (const rule of rules) {
-        if (!isDefaultContext(rule)) continue;
-        if (groupOf(rule) !== group) continue;
-        if (!fragments.some((f) => rule.selector.includes(f))) continue;
-        const decls = rule.decls.filter(isVisual);
-        if (!decls.length) continue;
-        let selector = rule.selector;
-        for (const f of fragments) selector = selector.split(f).join('[data-state="§"]');
-        out.push([...rule.at, selector, [...decls].sort().join('; ')].join(' | '));
-    }
-    return out.sort();
-}
-
-const distinguishes = (rules: readonly CssRule[], group: string, a: string, b: string): boolean =>
-    fingerprint(rules, group, a).join('\n') !== fingerprint(rules, group, b).join('\n');
-
-/** Every unordered pair of a closed state set. */
-function pairsOf(states: readonly string[]): Array<[string, string]> {
-    const pairs: Array<[string, string]> = [];
-    for (let i = 0; i < states.length; i++) {
-        for (let j = i + 1; j < states.length; j++) pairs.push([states[i]!, states[j]!]);
-    }
-    return pairs;
-}
-
-interface Case {
-    ds: string;
-    scope: string;
-    component: ManifestComponent;
-    rules: CssRule[];
-    groups: string[];
-    /** The recipe's own exemptions, kept per part — see `skipsPair`. */
-    skipStates: Readonly<Record<string, readonly string[]>>;
-}
-
-/** One judgeable unit: an anatomy, the recipe for it, and the CSS that came out. */
-function caseOf(ds: string, component: ManifestComponent, recipe: RecipeInput, css: string): Case {
-    const rules = parseRules(css);
-    return {
-        ds,
-        scope: component.scope,
-        component,
-        rules,
-        groups: [...new Set(rules.map(groupOf).filter((g): g is string => Boolean(g)))],
-        skipStates: recipe.skipStates ?? {},
-    };
-}
-
-const CASES: Case[] = SYSTEMS.flatMap(({ name, recipes, compiled }) =>
+/** Every judgeable unit across the six skins, tagged with its skin for the pins below. */
+const CASES: Array<Case & { ds: string }> = SYSTEMS.flatMap(({ name, recipes, compiled }) =>
     manifest.components.flatMap((component) => {
         const css = compiled.componentCss[component.scope];
         const recipe = recipes.find((r) => r.component === component.scope);
@@ -234,253 +78,8 @@ const CASES: Case[] = SYSTEMS.flatMap(({ name, recipes, compiled }) =>
         // already warns about ("will render unstyled"); conflating the two would
         // make this fail for a reason it was not built to catch.
         if (!css || !recipe) return [];
-        return [caseOf(name, component, recipe, css)];
+        return [{ ds: name, ...caseOf(component, recipe, css) }];
     }));
-
-/**
- * Has `part` declared this pair intentionally unstyled?
- *
- * `skipStates` already means "this declared state is intentionally left
- * unstyled" — the same claim this guard tests, so the same opt-out, declared in
- * the design system's own source next to the recipe rather than in a test file
- * its author never opens. But it is declared PER PART, and it has to be read per
- * part: zero-brutalist's radio-group skips `checked`/`unchecked` on `item` and
- * `item-label` (a row and a text label that do not change when selected), and
- * that must not quietly excuse `item-indicator` — the one part whose entire job
- * is to look different. Flattening the map, as the first draft of this file did,
- * turned two honest per-part claims into a component-wide opt-out.
- */
-const skipsPair = (c: Case, part: string, a: string, b: string): boolean => {
-    const skipped = c.skipStates[part] ?? [];
-    return skipped.includes(a) || skipped.includes(b);
-};
-
-/**
- * The exemption `skipStates` cannot express, because it is not a design
- * system's claim to make.
- *
- * Avatar's three states are CSS-identical in all six design systems and that
- * is correct: zero sets `hidden` on the image while `error` and on the
- * fallback while `loaded`, so a rule for those states can never paint. Stating
- * it through `skipStates` would mean six design systems each restating a fact
- * about zero's runtime; stating it here (as this file did until #227) means a
- * test carrying a hand-maintained table of it. It is the anatomy's fact, so
- * the anatomy declares it — `PartSpec.hiddenIn`, read back out of the
- * manifest. A part rename now breaks the declaration at its source instead of
- * quietly widening an allowlist here.
- *
- * It reaches the two assertions as two different questions, below.
- */
-const hiddenStates = (c: Case, part: string): readonly string[] =>
-    c.component.parts.find((p) => p.name === part)?.hiddenIn ?? [];
-
-/**
- * Does PRESENCE tell `a` from `b` — is some part rendered in exactly one of
- * them? Assertion A's question, and the reason `hiddenIn` reads with `some`
- * over the parts where `skipStates` reads with `every`: a skip is a WAIVER,
- * which every part carrying those states has to sign, whereas appearing and
- * disappearing is a DIFFERENCE — one part making it is enough, exactly as one
- * part painting the states differently is.
- *
- * EXACTLY one, though. A part hidden in BOTH states is absent either way and
- * so differentiates nothing; the pair still has to be legible somewhere, and
- * `hidden.includes(a) || hidden.includes(b)` would have quietly excused it.
- */
-const presenceDiffers = (c: Case, parts: readonly string[], a: string, b: string): boolean =>
-    parts.some((name) => {
-        const hidden = hiddenStates(c, name);
-        return hidden.includes(a) !== hidden.includes(b);
-    });
-
-/**
- * Can this part's own CSS be asked to tell `a` from `b` at all? Assertion B's
- * question, and it is the OR: a rule for a hidden state never paints, so if
- * the runtime hides the part in EITHER state, demanding a visible difference
- * demands something no recipe can supply. (When it hides the part in exactly
- * one, the reader can still tell them apart — the part is simply gone.)
- */
-const cannotPaintPair = (c: Case, part: string, a: string, b: string): boolean => {
-    const hidden = hiddenStates(c, part);
-    return hidden.includes(a) || hidden.includes(b);
-};
-
-/**
- * ASSERTION A, for one component — at COMPONENT level, not part level.
- *
- * "The difference lives on a sibling part" is legitimate and extremely common:
- * a checkbox's `control` renders `checked` and `indeterminate` identically in
- * most design systems because the `indicator` inside draws a check versus a
- * dash. Judging per part reports 164 of those; judging per component reports
- * the real thing, and the carve-out is structural instead of an allowlist
- * somebody has to maintain.
- */
-function componentFindings(c: Case): string[] {
-    const findings: string[] = [];
-    // Every distinct closed state set, with the parts that declare it — the
-    // owners are what scopes a skip to the states it actually speaks about.
-    const sets = new Map<string, string[]>();
-    for (const part of c.component.parts) {
-        if (!part.states?.length) continue;
-        const key = JSON.stringify(part.states);
-        const owners = sets.get(key) ?? [];
-        owners.push(part.name);
-        sets.set(key, owners);
-    }
-    for (const [key, owners] of sets) {
-        for (const [a, b] of pairsOf(JSON.parse(key) as string[])) {
-            // A skip is a claim about ONE part, so a component-wide "these two
-            // states may look the same" needs it from every part that has those
-            // states. Material's checkbox skips them on `root` and `label`
-            // because a row and its text do not change when you tick it — which
-            // says nothing about the box and the mark, and must not excuse them
-            // both rendering nothing (#212). `hiddenIn`, in contrast, states a
-            // difference rather than waiving one, so one matching part is enough.
-            if (owners.every((p) => skipsPair(c, p, a, b))) continue;
-            if (presenceDiffers(c, owners, a, b)) continue;
-            if (c.groups.some((g) => distinguishes(c.rules, g, a, b))) continue;
-            findings.push(
-                `${c.ds}/${c.scope}: states "${a}" and "${b}" are visually identical — no `
-                + `part of the component styles them differently. Style one of them, or `
-                + `declare skipStates: { <part>: ['${b}'] } with a reason.`,
-            );
-        }
-    }
-    return findings;
-}
-
-/** Part-name roles the anatomy vocabulary reserves, read by B and C. */
-const isIndicatorPart = (name: string): boolean =>
-    name === 'indicator' || name.endsWith('-indicator');
-const isTriggerPart = (name: string): boolean => name === 'trigger' || name.endsWith('-trigger');
-const isPopupPart = (name: string): boolean => name === 'popup' || name.endsWith('-popup');
-
-/**
- * An overlay component — the revealed thing is not under the control, so
- * assertion C's in-flow reasoning does not apply. Two honest signals, both
- * needed: a part NAMED popup (the anchored floats — popover, menu, select),
- * and a part whose ELEMENT is `dialog` (the top layer). The second exists
- * because Drawer (#339) names its surface `panel` — the truthful name for an
- * edge sheet — and a name-only rule would have classified it as an in-flow
- * disclosure and demanded its trigger tell open from closed while the open
- * drawer's scrim covers that trigger entirely.
- */
-const isOverlayComponent = (c: { parts: ReadonlyArray<{ name: string; element: string }> }): boolean =>
-    c.parts.some((p) => isPopupPart(p.name) || p.element === 'dialog');
-
-/**
- * The groups that ARE this part: the element itself and any pseudo-element hung
- * off it. A recipe-authored `::after` is where zero-basic and zero-daisyui
- * legitimately draw their marks, so it counts as the part drawing them.
- */
-const ownGroups = (c: Case, part: string): string[] =>
-    c.groups.filter((g) => g === part || g.startsWith(`${part}::`));
-
-/**
- * ASSERTION B, for one component — an indicator must distinguish its own states.
- *
- * Contract-grade rather than heuristic: an indicator part exists for exactly
- * one reason, which is to show which state the thing is in. If it renders
- * identically across its declared states it is not an indicator, it is a
- * spacer.
- */
-function indicatorFindings(c: Case): string[] {
-    const findings: string[] = [];
-    for (const part of c.component.parts) {
-        if (!isIndicatorPart(part.name)) continue;
-        if (!part.states?.length) continue;
-        const own = ownGroups(c, part.name);
-        const alike = pairsOf(part.states).filter(([a, b]) =>
-            !skipsPair(c, part.name, a, b)
-            && !cannotPaintPair(c, part.name, a, b)
-            && !own.some((g) => distinguishes(c.rules, g, a, b)));
-        if (!alike.length) continue;
-        const pairs = alike.map(([a, b]) => `"${a}"/"${b}"`).join(', ');
-        findings.push(
-            `${c.ds}/${c.scope}.${part.name}: an indicator part renders identically for `
-            + `${pairs} — nothing it emits, on itself or its pseudo-elements, tells those `
-            + `states apart. Draw the mark (this part exists for nothing else), or declare `
-            + `skipStates: { '${part.name}': ['${alike[0]![1]}'] } with a reason.`
-            + (own.length ? '' : ' It emits no rules at all.'),
-        );
-    }
-    return findings;
-}
-
-/**
- * ASSERTION C, for one component — an in-flow disclosure control says which way
- * it is pointing.
- *
- * ── WHAT IT JUDGES, AND WHY NOT EVERY TRIGGER ────────────────────────────────
- * A trigger whose component also declares a `popup` part opens an OVERLAY: the
- * revealed thing floats above the page, takes focus, and is the only thing the
- * reader is looking at. Whether the trigger underneath it also changes is a
- * taste question, and the six design systems answer it six ways: basic and
- * heroui differentiate every one of their dialog/popover/tooltip/menu triggers,
- * material and brutalist none of them, daisyui and carbon some. Twenty-two
- * findings if this assertion had an opinion — the flood it was written to
- * avoid — and no reading of the contract says which answer is wrong. So it has
- * none.
- *
- * A trigger whose component declares NO popup part discloses IN FLOW: the panel
- * is a sibling directly under the control, both are on screen in both states,
- * and the control is what the reader reads. It is also the case where "you can
- * see the panel, so you can tell" fails outright — a list of accordion items
- * that are all collapsed has no open one to compare against, and #220's
- * screenshots are exactly that. So here the control owes the reader a
- * difference, and "the panel expands" does not pay it.
- *
- * That is the hole this closes. Assertion A judged material's collapsible
- * clean because `[data-part="root"][open]::details-content { block-size: auto }`
- * differentiates `open` from `closed` — the browser opening the disclosure,
- * true of every `<details>` in every design system, signing off on a header
- * that said nothing. The fix is not to teach A which rules are "really" the
- * browser's (a property denylist this file argues against, and one that a
- * recipe styling its `panel` at all would defeat anyway); it is to ask the
- * question of the part the claim is about.
- *
- * ── WHY A SIBLING INDICATOR STILL CLEARS IT ──────────────────────────────────
- * Not any sibling — the one whose job this is. A `*-indicator` next to the
- * control is the disclosure marker, the chevron that rotates, and a reader
- * takes the control and its marker in as one thing. All six design systems
- * differentiate `tree-view.branch-trigger` that way and none of them touch the
- * trigger itself, which is correct and must not be reported. Collapsible and
- * accordion declare no indicator part at all, so for them there is nowhere else
- * for the signal to go — which is precisely why #220 was a bug and not a style.
- * Assertion B independently forces that indicator to earn it, so this is not a
- * loophole: it is a hand-off to a stricter assertion.
- */
-function disclosureFindings(c: Case): string[] {
-    // An overlay component: the revealed thing is not under the control.
-    if (isOverlayComponent(c.component)) return [];
-    const indicators = c.component.parts.filter((p) => isIndicatorPart(p.name));
-    const findings: string[] = [];
-    for (const part of c.component.parts) {
-        if (!isTriggerPart(part.name) || !part.states?.length) continue;
-        const own = ownGroups(c, part.name);
-        const alike = pairsOf(part.states).filter(([a, b]) =>
-            !skipsPair(c, part.name, a, b)
-            && !cannotPaintPair(c, part.name, a, b)
-            && !own.some((g) => distinguishes(c.rules, g, a, b))
-            && !indicators.some((i) =>
-                ownGroups(c, i.name).some((g) => distinguishes(c.rules, g, a, b))));
-        if (!alike.length) continue;
-        const pairs = alike.map(([a, b]) => `"${a}"/"${b}"`).join(', ');
-        findings.push(
-            `${c.ds}/${c.scope}.${part.name}: the control of an in-flow disclosure renders `
-            + `identically for ${pairs} — the panel is a sibling under it, so a reader `
-            + `looking at a collapsed one has only this control to read, and the panel `
-            + `expanding is the browser's doing, not this design system's. Style the `
-            + `control, or declare skipStates: { '${part.name}': ['${alike[0]![1]}'] } with `
-            + `a reason.`
-            + (indicators.length
-                ? ` (${c.scope} declares ${indicators.map((i) => `"${i.name}"`).join(', ')};`
-                    + ` differentiating there would clear this too.)`
-                : ` (${c.scope} declares no indicator part — there is nowhere else for the`
-                    + ` signal to live.)`),
-        );
-    }
-    return findings;
-}
 
 describe('state legibility', () => {
     it('reads a rule per state out of the compiled CSS', () => {
@@ -494,18 +93,36 @@ describe('state legibility', () => {
     });
 
     it.each(SYSTEMS.map((s) => s.name))('%s: no component renders two of a part\'s states alike', (ds) => {
-        const findings = CASES.filter((x) => x.ds === ds).flatMap(componentFindings);
-        expect(findings.sort()).toEqual([]);
+        expect(findingsFor(SYSTEMS.find((s) => s.name === ds)!, 'state-legibility/component')).toEqual([]);
     });
 
     it.each(SYSTEMS.map((s) => s.name))('%s: every stateful indicator part differs across its states', (ds) => {
-        const findings = CASES.filter((x) => x.ds === ds).flatMap(indicatorFindings);
-        expect(findings.sort()).toEqual([]);
+        expect(findingsFor(SYSTEMS.find((s) => s.name === ds)!, 'state-legibility/indicator')).toEqual([]);
     });
 
     it.each(SYSTEMS.map((s) => s.name))('%s: every in-flow disclosure control differs across its states', (ds) => {
-        const findings = CASES.filter((x) => x.ds === ds).flatMap(disclosureFindings);
-        expect(findings.sort()).toEqual([]);
+        expect(findingsFor(SYSTEMS.find((s) => s.name === ds)!, 'state-legibility/disclosure')).toEqual([]);
+    });
+
+    it('the audit runs the three rules over the same cases this file reads', () => {
+        // The thin-caller contract: what `auditDesignSystem` judges is exactly
+        // what the primitives judge case by case — otherwise a green audit
+        // above could be a rule that silently skipped a scope.
+        const basic = SYSTEMS[0]!;
+        const direct = CASES.filter((c) => c.ds === 'basic')
+            .flatMap((c) => [...componentFindings(c), ...indicatorFindings(c), ...disclosureFindings(c)])
+            .map((f) => f.message).sort();
+        const audited = auditDesignSystem(basic.ds, manifest, {
+            rules: ['state-legibility/component', 'state-legibility/indicator', 'state-legibility/disclosure'],
+        }).findings.map((f) => f.message).sort();
+        expect(audited).toEqual(direct);
+        // …and the waivers are listed rather than swallowed: material's
+        // checkbox skips the selection states on `root` and `label`, and
+        // avatar's `hiddenIn` excuses every pair of its three states.
+        const material = SYSTEMS.find((s) => s.name === 'material')!;
+        const waived = auditDesignSystem(material.ds, manifest, { rules: ['state-legibility/component'] }).waived;
+        expect(waived.some((w) => w.scope === 'avatar' && w.waivedBy.mechanism === 'hiddenIn')).toBe(true);
+        expect(waived.every((w) => w.rule === 'state-legibility/component')).toBe(true);
     });
 
     it('assertion C is pointed at the parts it claims to be pointed at', () => {
@@ -576,7 +193,7 @@ describe('the guard\'s own teeth', () => {
     ): { c: Case; css: string } => {
         const recipe: RecipeInput = { component: 'checkbox', parts, ...(skipStates ? { skipStates } : {}) };
         const css = compileRecipeCss(recipe, component);
-        return { c: caseOf('fixture', component, recipe, css), css };
+        return { c: caseOf(component, recipe, css), css };
     };
 
     /** The same checkbox, but the runtime hides `indicator` in the given states. */
@@ -611,8 +228,8 @@ describe('the guard\'s own teeth', () => {
     it('reports an indicator that draws nothing', () => {
         const { c } = fixture({ control, indicator: blind });
         expect(indicatorFindings(c)).toHaveLength(1);
-        expect(indicatorFindings(c)[0]).toContain('"checked"/"indeterminate"');
-        expect(indicatorFindings(c)[0]).toContain('"checked"/"unchecked"');
+        expect(messages(indicatorFindings(c))[0]).toContain('"checked"/"indeterminate"');
+        expect(messages(indicatorFindings(c))[0]).toContain('"checked"/"unchecked"');
     });
 
     it('reports it even when a forced-colors or print glyph tells the states apart', () => {
@@ -625,7 +242,7 @@ describe('the guard\'s own teeth', () => {
         expect(css).toContain('@media (forced-colors: active)');
         expect(css).toContain('@media print');
         expect(css.match(/content: "\\2713"/g)).toHaveLength(2);
-        expect(indicatorFindings(c)[0]).toContain('"checked"/"indeterminate"');
+        expect(messages(indicatorFindings(c))[0]).toContain('"checked"/"indeterminate"');
     });
 
     it('reports it when the only difference is how the state arrives', () => {
@@ -641,7 +258,7 @@ describe('the guard\'s own teeth', () => {
             },
         });
         expect(css).toContain('transition: scale 150ms linear');
-        expect(indicatorFindings(c)[0]).toContain('"checked"/"indeterminate"');
+        expect(messages(indicatorFindings(c))[0]).toContain('"checked"/"indeterminate"');
     });
 
     it('accepts a mark that is actually drawn', () => {
@@ -666,7 +283,7 @@ describe('the guard\'s own teeth', () => {
             { control, indicator: blind, label: { base: { fontSize: '1rem' } } },
             { control: ['checked', 'unchecked', 'indeterminate'], label: ['checked'] },
         );
-        expect(indicatorFindings(c)[0]).toContain('"checked"/"indeterminate"');
+        expect(messages(indicatorFindings(c))[0]).toContain('"checked"/"indeterminate"');
     });
 
     it('honours skipStates declared on the indicator itself', () => {
@@ -677,8 +294,8 @@ describe('the guard\'s own teeth', () => {
         expect(indicatorFindings(c)).toEqual([]);
         // …and only for the states it names.
         const partial = fixture({ control, indicator: blind }, { indicator: ['indeterminate'] });
-        expect(indicatorFindings(partial.c)[0]).toContain('"checked"/"unchecked"');
-        expect(indicatorFindings(partial.c)[0]).not.toContain('"checked"/"indeterminate"');
+        expect(messages(indicatorFindings(partial.c))[0]).toContain('"checked"/"unchecked"');
+        expect(messages(indicatorFindings(partial.c))[0]).not.toContain('"checked"/"indeterminate"');
     });
 
     it('reports a component where no part tells two states apart', () => {
@@ -687,7 +304,7 @@ describe('the guard\'s own teeth', () => {
         // indicator paints nothing, so the component as a whole cannot say
         // which of the two it is in — #212's render exactly.
         expect(componentFindings(c)).toHaveLength(1);
-        expect(componentFindings(c)[0]).toContain('"checked" and "indeterminate"');
+        expect(messages(componentFindings(c))[0]).toContain('"checked" and "indeterminate"');
     });
 
     it('does not let a skip on the row and the text excuse the whole component', () => {
@@ -699,22 +316,22 @@ describe('the guard\'s own teeth', () => {
             { control, indicator: blind, label: { base: { fontSize: '1rem' } } },
             { root: ['checked', 'unchecked', 'indeterminate'], label: ['checked', 'unchecked', 'indeterminate'] },
         );
-        expect(componentFindings(c)[0]).toContain('"checked" and "indeterminate"');
+        expect(messages(componentFindings(c))[0]).toContain('"checked" and "indeterminate"');
     });
 
     it('honours the anatomy\'s hiddenIn, for exactly the states it names', () => {
         // Avatar's shape, run on the fixture: identical CSS, one line of
         // anatomy between "unstyled" and "correct". Same recipe both times.
         const before = fixture({ control, indicator: blind });
-        expect(indicatorFindings(before.c)[0]).toContain('"checked"/"indeterminate"');
+        expect(messages(indicatorFindings(before.c))[0]).toContain('"checked"/"indeterminate"');
         expect(componentFindings(before.c)).toHaveLength(1);
 
         const { c } = fixture({ control, indicator: blind }, undefined, hidingIndicator('indeterminate'));
         // A state that never paints cannot be reported for not painting…
-        expect(indicatorFindings(c)[0]).not.toContain('"indeterminate"');
+        expect(messages(indicatorFindings(c))[0]).not.toContain('"indeterminate"');
         expect(componentFindings(c)).toEqual([]);
         // …and every other pair still has to earn its difference.
-        expect(indicatorFindings(c)[0]).toContain('"checked"/"unchecked"');
+        expect(messages(indicatorFindings(c))[0]).toContain('"checked"/"unchecked"');
     });
 
     it('does not let a part hidden in BOTH states excuse the component', () => {
@@ -725,7 +342,7 @@ describe('the guard\'s own teeth', () => {
         const { c } = fixture({ control, indicator: blind }, undefined,
             hidingIndicator('checked', 'indeterminate'));
         expect(componentFindings(c)).toHaveLength(1);
-        expect(componentFindings(c)[0]).toContain('"checked" and "indeterminate"');
+        expect(messages(componentFindings(c))[0]).toContain('"checked" and "indeterminate"');
         // The indicator ITSELF is excused throughout — every pair now involves
         // a state it never renders in, and no recipe can differentiate those.
         // The two assertions ask different questions of the same declaration.
@@ -769,7 +386,7 @@ describe('the in-flow disclosure control', () => {
         const recipe: RecipeInput = {
             component: component.scope, parts, ...(skipStates ? { skipStates } : {}),
         };
-        return caseOf('fixture', component, recipe, compileRecipeCss(recipe, component));
+        return caseOf(component, recipe, compileRecipeCss(recipe, component));
     };
 
     /** #220 verbatim: a header that is byte-identical open and closed. */
@@ -795,9 +412,9 @@ describe('the in-flow disclosure control', () => {
     it('reports a control that declares open/closed and styles neither', () => {
         const c = caseFor(collapsible, { trigger: blindTrigger });
         expect(disclosureFindings(c)).toHaveLength(1);
-        expect(disclosureFindings(c)[0]).toContain('collapsible.trigger');
-        expect(disclosureFindings(c)[0]).toContain('"open"/"closed"');
-        expect(disclosureFindings(c)[0]).toContain('no indicator part');
+        expect(messages(disclosureFindings(c))[0]).toContain('collapsible.trigger');
+        expect(messages(disclosureFindings(c))[0]).toContain('"open"/"closed"');
+        expect(messages(disclosureFindings(c))[0]).toContain('no indicator part');
     });
 
     it('the false green: assertion A clears what assertion C reports', () => {
@@ -811,7 +428,7 @@ describe('the in-flow disclosure control', () => {
         expect(componentFindings(c)).toEqual([]);
         // …and the browser opening the panel is not the header saying anything.
         expect(disclosureFindings(c)).toHaveLength(1);
-        expect(disclosureFindings(c)[0]).toContain('collapsible.trigger');
+        expect(messages(disclosureFindings(c))[0]).toContain('collapsible.trigger');
     });
 
     it('is not satisfied by the panel either, which a property denylist would have been', () => {
@@ -854,7 +471,7 @@ describe('the in-flow disclosure control', () => {
         });
         expect(componentFindings(elsewhere)).toEqual([]);
         expect(disclosureFindings(elsewhere)).toHaveLength(1);
-        expect(disclosureFindings(elsewhere)[0]).toContain('"branch-indicator"');
+        expect(messages(disclosureFindings(elsewhere))[0]).toContain('"branch-indicator"');
     });
 
     it('honours skipStates declared on the control itself', () => {

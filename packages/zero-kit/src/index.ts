@@ -79,6 +79,28 @@ export {
 export { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
 export { axisClaims, defineDesignSystem, compileDesignSystem, offeredFor, undeclaredAxes } from './design-system.js';
 
+export type {
+    AuditContext,
+    AuditFinding,
+    AuditOptions,
+    AuditResult,
+    AuditRuleId,
+    AuditSeverity,
+    AuditSummary,
+    AuditWaiver,
+    CssRule,
+    LegibilityCase,
+} from './audit/index.js';
+export {
+    AUDIT_RULES,
+    RULE_SEVERITY,
+    auditDesignSystem,
+    buildAuditContext,
+    compareFindings,
+    formatAudit,
+    parseRules,
+} from './audit/index.js';
+
 export type { ValidationIssue, ValidationResult } from './resolve/validate.js';
 export { validateDesignSystem } from './resolve/validate.js';
 

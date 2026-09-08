@@ -12,6 +12,10 @@
  * nesting but no selector nesting — and it is only ever pointed at that output.
  * Quoted strings are stepped over verbatim so a `content: "\2714"` or a data-URI
  * value cannot be mistaken for structure.
+ *
+ * It began as a test helper (`__tests__/helpers/css-rules.ts`) and moved into
+ * the kit when the guards that read it did (#403): every audit rule that judges
+ * the artifact rather than the recipe tree stands on this one reader.
  */
 
 export interface CssRule {
