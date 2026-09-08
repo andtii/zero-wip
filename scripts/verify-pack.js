@@ -402,14 +402,18 @@ function main() {
     // purpose — the recommended shape, and riso (roles: {}, sizes: [], a fused
     // variant), the shape the fit helper exists for. Glass also takes the lynx
     // target, so the extra exports and dist/lynx are exercised too.
+    // The real JS entry points, not `.bin` shims: on Windows `.bin` holds
+    // `.cmd` files, which `node` cannot execute.
     step('Scaffold two design systems from the packed @sigx/create-zero-ds and build them');
+    const createBin = join('node_modules', '@sigx', 'create-zero-ds', 'bin', 'create-zero-ds.mjs');
+    const tscBin = join('node_modules', 'typescript', 'bin', 'tsc');
     const scaffolds = [
         { name: 'zero-riso-smoke', brief: 'riso', targets: 'web' },
         { name: 'zero-glass-smoke', brief: 'glass', targets: 'web,lynx' },
     ];
     for (const { name, brief, targets } of scaffolds) {
-        run(`node node_modules/.bin/create-zero-ds ${name} --brief ${brief} --targets ${targets}`, { cwd: appDir });
-        run(`node node_modules/.bin/tsc -p ${name}/tsconfig.json`, { cwd: appDir });
+        run(`node ${JSON.stringify(createBin)} ${name} --brief ${brief} --targets ${targets}`, { cwd: appDir });
+        run(`node ${JSON.stringify(tscBin)} -p ${name}/tsconfig.json`, { cwd: appDir });
         run(`node ${name}/build.mjs`, { cwd: appDir });
         const css = join(appDir, name, 'dist', 'css', 'index.css');
         if (readFileSync(css, 'utf-8').trim() === '') throw new Error(`${name}: dist/css/index.css is empty`);
