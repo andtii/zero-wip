@@ -59,9 +59,11 @@ const inputsFor = (ds: DesignSystemInput): LoadedInputs => ({ ds, manifest, resu
 
 const logger = () => ({ log: vi.fn<(m: string) => void>(), warn: vi.fn<(m: string) => void>(), error: vi.fn<(m: string) => void>() });
 
+/** A focus ring keeps the validator's focus-visible rule quiet — the fixtures below must VALIDATE, not only compile. */
+const focusRing = { 'focus-visible': { outline: '2px solid black' } };
 const control: PartStyles = {
     base: { width: '1rem', height: '1rem', border: '1px solid gray' },
-    states: { checked: { background: 'blue' }, indeterminate: { background: 'blue' }, unchecked: {} },
+    states: { checked: { background: 'blue' }, indeterminate: { background: 'blue' }, unchecked: {}, ...focusRing },
 };
 /** #212: three declared states, nothing drawn — two error findings. */
 const blind: PartStyles = { base: { width: '100%' }, states: { checked: {}, unchecked: {}, indeterminate: {} } };
@@ -79,7 +81,7 @@ const passing = fixture([{ component: 'checkbox', parts: { control, indicator: d
 /** A styled scope that accepts a declared colour axis and wires nothing — one warning, no errors. */
 const warningOnly = fixture([
     // `appearance: none` keeps button-affordance quiet; the one role is wired here, so `unused` is quiet too.
-    { component: 'button', parts: { root: { base: { appearance: 'none' } } }, variants: { color: { primary: { root: { base: { background: 'blue' } } } } } },
+    { component: 'button', parts: { root: { base: { appearance: 'none' }, states: focusRing } }, variants: { color: { primary: { root: { base: { background: 'blue' } } } } } },
     { component: 'avatar', parts: { root: { base: {} } } },
 ], {
     roles: { primary: {} },
@@ -110,6 +112,7 @@ describe('zero:audit exit contract', () => {
     });
 
     it('passes the twin and says so', async () => {
+        expect(inputsFor(passing).result.ok).toBe(true);
         const env = { cwd: process.cwd(), logger: logger() };
         await expect(auditInputs(env, inputsFor(passing), { strict: false })).resolves.toBeUndefined();
         expect(env.logger.log.mock.calls.at(-1)?.[0]).toMatch(/"fixture" passed audit \(0 warnings\)/);
@@ -133,6 +136,22 @@ describe('zero:audit exit contract', () => {
         const env = { cwd: process.cwd(), logger: logger() };
         await expect(auditInputs(env, inputsFor(passing), { strict: false, rule: ['nope'] }))
             .rejects.toThrow(/unknown audit rule "nope".*known rules: state-legibility\/component/);
+    });
+
+    it('prints the audit but still fails a design system that compiles and fails validation', async () => {
+        // An undeclared token reference compiles (the CSS is emitted as
+        // written) and is a validation ERROR; the audit itself is clean.
+        const invalid = fixture([{
+            component: 'checkbox',
+            parts: { control: { ...control, base: { ...control.base, color: 'var(--color-nope)' } }, indicator: drawn },
+        }]);
+        const inputs = inputsFor(invalid);
+        expect(inputs.result.ok).toBe(false);
+        const env = { cwd: process.cwd(), logger: logger() };
+        await expect(auditInputs(env, inputs, { strict: false }))
+            .rejects.toThrow(/passed audit \(0 warnings\) but FAILED validation \(1 errors\)/);
+        // The audit was still printed — that is the mid-iteration value.
+        expect(env.logger.log.mock.calls.map(([m]) => m).join('\n')).toContain('fixture — audit');
     });
 
     it('refuses a design system that does not compile, in the validator\'s words', async () => {

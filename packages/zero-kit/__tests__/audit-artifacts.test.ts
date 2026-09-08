@@ -1,8 +1,8 @@
 /**
  * The audit as an ARTIFACT (#403, slice B): `runStandardBuild` runs it after
- * the report, writes `dist/audit.json`, folds its summary into
- * `report.json` under `audit`, and hands its score to the report's sixth
- * criterion — and the build never fails on a finding. `zero:validate
+ * the compile and before the report, writes `dist/audit.json`, folds its
+ * summary into `report.json` under `audit`, and hands its score to the
+ * report's sixth criterion — and the build never fails on a finding. `zero:validate
  * --report` produces the same report through `reportFor`, so a
  * `--diff dist/report.json` compares like with like.
  *

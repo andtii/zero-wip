@@ -68,7 +68,8 @@ export interface StandardBuildOptions {
      */
     targets?: readonly BuildTarget[];
     /**
-     * Run the audit (`auditDesignSystem`, #403) after the report: its
+     * Run the audit (`auditDesignSystem`, #403) after the compile and before
+     * the report, which folds its summary in and scores it: its
      * findings are written as `dist/audit.json`, its summary lands in
      * `report.json` under `audit` and feeds the score's sixth criterion,
      * and every error-severity finding is logged as a warning. The build

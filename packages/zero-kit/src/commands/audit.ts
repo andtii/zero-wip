@@ -84,5 +84,15 @@ export async function auditInputs(
     if (errors > 0 || (opts.strict && warnings > 0)) {
         throw new Error(`"${ds.name}" FAILED audit (${errors} errors, ${warnings} warnings)`);
     }
+    // A design system that compiles but fails validation gets its audit
+    // printed (that is the mid-iteration value) and still exits non-zero:
+    // "passed audit" on an invalid source would be a misleading exit code
+    // for a script, and `zero:build` refuses such a source outright.
+    if (!result.ok) {
+        throw new Error(
+            `"${ds.name}" passed audit (${warnings} warnings) but FAILED validation `
+            + `(${result.errors.length} errors) — the audit is advisory until it validates`,
+        );
+    }
     if (!stdoutIsJson) env.logger.log(`"${ds.name}" passed audit (${warnings} warnings)`);
 }
