@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.2.0-beta.6] - 2026-08-22
+
 ### Fixed
 
 - **Lynx target refuses logical inset/margin/padding spellings and the
@@ -11,7 +13,7 @@
   `inset-inline-*`, `margin-block-*`, `margin-inline-*`, `padding-block-*`,
   `padding-inline-*`) and the standalone transform properties resolve on iOS
   but NOT on Android — the daisy slider thumb sat visibly off-center there.
-  This supersedes the re-measure recorded below, which was wrong.
+  This supersedes the re-measure recorded under 0.2.0-beta.5 (#388), which was wrong.
   Cross-platform-asymmetric is treated as unsupported: the recipe emitter
   drops every occurrence (declarations and keyframes bodies) with a report
   entry — the #363/#389 refuse-with-report pattern — and both structural
@@ -24,6 +26,10 @@
   `top: 50%; transform: translateY(-50%); margin-left: …`, and the
   indeterminate-progress sweeps with per-name-replaced `margin-left`
   keyframes. Web output is byte-identical throughout.
+
+## [0.2.0-beta.5] - 2026-08-21
+
+### Fixed
 
 - **Lynx target refuses `currentColor`** (#388): measured on device on both
   platforms against 0.2.0-beta.4 (signalxjs/lynx#1079), `currentColor` never
@@ -41,8 +47,84 @@
   color-mix-over-currentColor fallbacks previously dropped whole
   declarations. (The same measurement round also declared the standalone
   `translate` property and the logical inset/margin properties working on
-  both platforms; that verdict was wrong — superseded by #392 above, which
+  both platforms; that verdict was wrong — superseded by #392 (0.2.0-beta.6), which
   measured them iOS-only and refuses them.)
+
+## [0.2.0-beta.4] - 2026-08-21
+
+### Fixed
+
+- **Lynx target inlines calc-holding custom-property chains and rewrites
+  `inline-flex`** (#382): measured on device (signalxjs/lynx#1075, iOS 18.3),
+  lynx drops any declaration consuming `var(--x)` — bare, with a fallback, or
+  nested in a `calc()` — whenever `--x`'s value contains `calc()` (the daisy
+  progress track rendered zero-height because of it). A new `calc-chains.ts`
+  pass substitutes every calc-holding custom property — directly or
+  transitively through a var chain — into its consumers, parenthesized inside
+  an outer `calc()`; where a size ramp redefines the property per axis
+  compound on the carrier, the consumer is re-emitted on the consuming part
+  under the same compound (the axis push-down contract stamps the classes on
+  every part, so the compound matches), with variant emissions equal to the
+  base elided. The now-inert definitions are dropped; plain-value definitions
+  stay. Chains the pass cannot resolve statically REFUSE the build naming the
+  property and scope (a definition under a theme host or state/flag compound,
+  a cycle, a consumer in raw lynx `css`/keyframes, a fan-out above 256
+  compounds); `assertNoCalcVarChains` backstops the whole stylesheet for
+  cross-scope chains. `display: inline-flex` rewrites to `flex` — lynx has no
+  inline formatting context (the daisy tabs list stacked vertically);
+  `grid`/`inline-grid` pass through as authored and are called out in the
+  capability notes. In zero-daisyui this inlines 20 chain properties across
+  17 components, each a `translated` report entry. Web goldens untouched.
+
+## [0.2.0-beta.3] - 2026-08-21
+
+No changes to this package's code — lockstep version bump. Published
+metadata only: every package's `repository`/`bugs` URL now points at
+`andtii/zero-wip` (#374) so npm provenance validation passes. The version
+was cut on 2026-08-20; the tag was re-pointed and published on 2026-08-21
+after `scripts/publish.js` learned to derive the prerelease dist-tag when no
+`--tag` is given (#370).
+
+## [0.2.0-beta.2] - 2026-08-15
+
+### Fixed
+
+- **Lynx target: `calc()` over `var()` emits, theme-dependent colour
+  functions restate per theme, the structural fallbacks ship, and a dangling
+  `var()` fails the build** (#359). First on-device run of the lynx target
+  (signalxjs/lynx#1029, iPhone 16 Pro / iOS 18.3): zero-daisyui's report goes
+  from 594 dropped declarations to 219. `calc()` over `var()` — the whole of
+  daisy's size system — was dropped as unproven; the Zero Pilot probe card
+  measures it resolving, so it emits. A theme-agnostic recipe value such as
+  `color-mix(in oklab, var(--color-base-content) 60%, #0000)` could not bake
+  once; it is now re-emitted once per theme under that theme's host class,
+  baked to a literal (the default theme rides `.zx-root` alone; a named theme
+  is one class more specific). What genuinely cannot bake still drops and
+  says which reason applies: `currentColor` (a runtime value) or a
+  recipe-local property set by an axis rule (no single per-theme literal).
+  `@sigx/zero`'s `css/base.css` structural fallbacks — which lynx, having no
+  `@layer` and no base stylesheet, never shipped — now emit first inside
+  `.zx-root`, pinned equal to the real `base.css` by a test. And the bug the
+  rest was hiding: the emitter dropped declarations that DEFINED a custom
+  property while keeping every declaration that READ it (24 undefined
+  properties reaching 295 of 1043 rules), and on lynx an unresolvable `var()`
+  paints nothing at all — daisy's switch shipped invisible. `assertNoDanglingVars`
+  runs over the whole design system (`index.css` is tokens plus every
+  component) and fails the build; a property an app is expected to supply
+  must carry `var(--x, <fallback>)`.
+
+- **Lynx target refuses `min()`/`max()`/`clamp()` instead of emitting them.**
+  Measured (signalxjs/lynx#1066): lynx does not implement `min()`, in either
+  shape daisy's switch spends it — bare or nested inside `calc()` — and the
+  failure mode is the declaration being dropped. The three CSS Values 4
+  comparison functions are refused on the same evidence (no engine has ever
+  shipped one without the others; stated explicitly in the capability doc)
+  and drop with a report entry asking for a lynx replacement rather than
+  being folded — the motivating radius mixes `rem` with `px`, which no
+  unit-blind evaluator can reduce. Both structural-safety gates gain the
+  three functions.
+
+## [0.2.0-beta.1] - 2026-08-13
 
 ### Added
 

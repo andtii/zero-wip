@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+## [0.2.0-beta.6] - 2026-08-22
+
+No changes — lockstep version bump.
+
+## [0.2.0-beta.5] - 2026-08-21
+
+No changes — lockstep version bump.
+
+## [0.2.0-beta.4] - 2026-08-21
+
+No changes — lockstep version bump.
+
+## [0.2.0-beta.3] - 2026-08-21
+
+No changes to this package's code — lockstep version bump. Published
+metadata only: `repository`/`bugs` URLs point at `andtii/zero-wip` (#374).
+
+## [0.2.0-beta.2] - 2026-08-15
+
+No changes — lockstep version bump.
+
+## [0.2.0-beta.1] - 2026-08-13
+
 ### Added
 
 - **Lynx target groundwork** (#346): the contract now projects onto

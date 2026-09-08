@@ -248,8 +248,10 @@ that null reports a `TypeError` instead of "the popup was not showing".
   and the CLI call), the `/define` subpath (the `define*` helpers from a
   `node:`-free module graph, the ONE zero-kit surface a DS package may
   value-import at runtime), the `sigx` CLI plugin (`zero:build | zero:validate`,
-  aliased `build | validate`; `init` and `eject` are planned — see issues
-  #10/#11), and the design-system generation agent skill, and the JSON schemas
+  aliased `build | validate`; `init` was declined — #10, a plugin command
+  cannot run in the empty directory a new design system starts as, so
+  scaffolding belongs to a `create-*` package — and `eject` remains open,
+  #11), and the design-system generation agent skill, and the JSON schemas
   for manifest/tokens/recipes (shipped in `schemas/`, referenced by
   `manifest.json`). devDependency of DS packages; never a runtime dependency.
   It ships no binary of its own — commands are discovered by `@sigx/cli`
