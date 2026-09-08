@@ -212,6 +212,12 @@ export function diffReports(prev: DesignSystemReport, next: DesignSystemReport):
         }
     }
 
+    // Deterministic like every other section: theme, then bg, then fg.
+    const byPair = (a: PairDelta, b: PairDelta): number =>
+        a.theme.localeCompare(b.theme) || a.bg.localeCompare(b.bg) || a.fg.localeCompare(b.fg) || a.threshold - b.threshold;
+    contrast.newlyFailing.sort(byPair);
+    contrast.resolved.sort(byPair);
+
     const diff: ReportDiff = {
         name: next.name,
         reportVersion: nextVersion,
@@ -253,6 +259,9 @@ export function diffReports(prev: DesignSystemReport, next: DesignSystemReport):
         || (diff.issues !== undefined && (diff.issues.errors.delta !== 0 || diff.issues.warnings.delta !== 0));
     return diff;
 }
+
+/** How many contrast crossings `formatReportDiff` prints per direction before summarising. */
+const CONTRAST_LINES = 6;
 
 const signed = (n: number): string => (n > 0 ? `+${n}` : `${n}`);
 const moved = (d: Delta): string => `${d.from} → ${d.to} (${signed(d.delta)})`;
@@ -301,12 +310,16 @@ export function formatReportDiff(diff: ReportDiff): string[] {
     if (diff.uncovered.newly.length > 0) lines.push(`  states newly uncovered: ${list(diff.uncovered.newly)}`);
     if (diff.skipped.newly.length > 0) lines.push(`  states newly skipped (delegated, not styled): ${list(diff.skipped.newly)}`);
     if (diff.skipped.resolved.length > 0) lines.push(`  states skipped before, styled now: ${list(diff.skipped.resolved)}`);
-    for (const pair of diff.contrast.newlyFailing) {
-        lines.push(`  contrast ${pair.theme} ${pair.bg}/${pair.fg}: ${pair.from.toFixed(2)} → ${pair.to.toFixed(2)}, now below ${pair.threshold}:1`);
-    }
-    for (const pair of diff.contrast.resolved) {
-        lines.push(`  contrast ${pair.theme} ${pair.bg}/${pair.fg}: ${pair.from.toFixed(2)} → ${pair.to.toFixed(2)}, now meets ${pair.threshold}:1`);
-    }
+    // Capped like the key lists: a theme rewrite can move every pair at once,
+    // and the count is the news then — the full list is in the JSON.
+    const crossings = (pairs: readonly PairDelta[], verdict: string): void => {
+        for (const pair of pairs.slice(0, CONTRAST_LINES)) {
+            lines.push(`  contrast ${pair.theme} ${pair.bg}/${pair.fg}: ${pair.from.toFixed(2)} → ${pair.to.toFixed(2)}, ${verdict} ${pair.threshold}:1`);
+        }
+        if (pairs.length > CONTRAST_LINES) lines.push(`  …and ${pairs.length - CONTRAST_LINES} more pair(s) ${verdict} a threshold`);
+    };
+    crossings(diff.contrast.newlyFailing, 'now below');
+    crossings(diff.contrast.resolved, 'now meets');
     if (diff.issues && (diff.issues.errors.delta !== 0 || diff.issues.warnings.delta !== 0)) {
         lines.push(`  issues: errors ${moved(diff.issues.errors)}, warnings ${moved(diff.issues.warnings)}`);
     }

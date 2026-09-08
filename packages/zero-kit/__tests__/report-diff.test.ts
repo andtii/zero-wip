@@ -141,6 +141,21 @@ describe('diffReports', () => {
         expect(diffReports(baseline, extra).contrast.newlyFailing).toEqual([]);
     });
 
+    it('contrast crossings are sorted by theme, bg, fg and the printout is capped', () => {
+        const worse = clone(baseline);
+        const theme = worse.themes[0]!;
+        const movable = theme.pairs.filter((p) => p.ratio >= 5).slice(0, 8);
+        expect(movable.length).toBeGreaterThan(6);
+        for (const pair of movable.reverse()) pair.ratio = 2.5; // reversed, so input order ≠ sorted order
+        const diff = diffReports(baseline, worse);
+        const keys = diff.contrast.newlyFailing.map((p) => `${p.theme}|${p.bg}|${p.fg}`);
+        expect(keys).toEqual([...keys].sort());
+        expect(diff.contrast.newlyFailing).toHaveLength(movable.length);
+        const lines = formatReportDiff(diff).filter((l) => l.includes('contrast ') || l.includes('more pair'));
+        expect(lines).toHaveLength(7);
+        expect(lines[6]).toBe(`  …and ${movable.length - 6} more pair(s) now below a threshold`);
+    });
+
     it('a scope missing from one manifest is a manifest change, not a styling change', () => {
         // A build that merged an ecosystem fragment and a validate that did
         // not: the extra scope was styled in one report and absent from the
