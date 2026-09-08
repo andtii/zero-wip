@@ -87,7 +87,11 @@
   `reduced-motion/loop`, the static half of the browser reduced-motion spec —
   an infinite animation must have an `animation: none` under
   `prefers-reduced-motion: reduce` for the SAME selector, since `@media` adds
-  no specificity and a broader cancel stops nothing. Findings carry a rule
+  no specificity and a broader cancel stops nothing — and (#418) with the
+  reduced-motion query as the cancel's ONLY condition, since one also gated
+  by `@supports` or a second `@media` stops the loop for some readers, not
+  all; only `@layer`/`@scope` count as structure, so a loop that exists
+  only behind `@supports`/`@container` is not judged as the default render's. Findings carry a rule
   id, a severity (the former hard-fails are errors; the two advisory rules
   are warnings), a `where`, the structured scope/part/states/axis/values, and
   a message naming the fix; what `skipStates`, `hiddenIn`, `tokens.scopes` or

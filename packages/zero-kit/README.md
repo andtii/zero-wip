@@ -561,7 +561,7 @@ the artifact sees all of them. Nine rules in this release:
 | `axis-value-coverage/ambiguous-base` | error | two values written as empty entries, both claiming the base and rendering identically | — |
 | `axis-value-coverage/unused` | warning | a declared value no recipe paints or claims; or one in no scope's vocabulary | a role declared `content: false` / `soft: false` (a fill, not an axis value) |
 | `axis-coverage` | warning | a styled scope that accepts a declared `color`/`size` axis at runtime and wires nothing | `roles: {}` / `sizes: []`; `tokens.scopes.<scope>.colors: []` / `.sizes: []` |
-| `reduced-motion/loop` | error | an infinite animation with no `animation: none` for the same selector under `prefers-reduced-motion: reduce` — the kit collapses durations there, so a loop strobes rather than stops | — |
+| `reduced-motion/loop` | error | an infinite animation in the default render with no `animation: none` for the same selector under `prefers-reduced-motion: reduce` as its only condition — the kit collapses durations there, so a loop strobes rather than stops; a cancel also gated by `@supports` or a second `@media` stops it for some readers, not all | — (a loop that only exists behind `@supports` / `@container` is not the default render's and is not judged) |
 
 Only the default render counts: a difference that lives under a `@media`
 (the `forced-colors` glyph fallback, a breakpoint, `print`) is not the reader
