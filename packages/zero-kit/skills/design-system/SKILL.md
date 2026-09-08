@@ -775,7 +775,13 @@ component's anatomy). No component code is ever written or changed.
      owns (`scope`, `part`, `state`, `orientation`, or any flag such as
      `disabled` / `selected`) — the validator errors and zero refuses to render
      it, because shadowing `data-state` would silently repoint every
-     `[data-state="open"]` rule you wrote.
+     `[data-state="open"]` rule you wrote. An axis **value** takes a wider
+     grammar than a name: lowercase letters, digits and hyphens, repeated
+     hyphens included — so a vendor spelling like Carbon's `danger--tertiary`
+     is a legal declared value, not something to remap. What stays out is what
+     a lynx class name (`zx-a-kind-danger--tertiary`) cannot carry verbatim:
+     `%`, `.`, quotes, whitespace, uppercase. A value the grammar refuses
+     (Radix's `105%`) is what the `api.values` remap exists for.
 
 5. **Assemble** (`src/design-system.ts`): `{ name, tokens, recipes }` exported
    as `designSystem`.

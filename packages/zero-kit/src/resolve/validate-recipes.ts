@@ -9,7 +9,8 @@
  */
 import { parse, converter } from 'culori';
 import type { ManifestPart, ZeroManifest } from '../contract.js';
-import { RESERVED_AXES, TOKEN_KEY_PATTERN } from '../contract.js';
+import { AXIS_VALUE_PATTERN, RESERVED_AXES, TOKEN_KEY_PATTERN } from '../contract.js';
+import { badAxisValue } from './messages.js';
 import type { CssProps, PartStyles, RecipeInput } from '../recipes.js';
 import type { ValidationIssue } from './validate.js';
 import type { TokenVocabulary } from './vocabulary.js';
@@ -307,20 +308,22 @@ export function validateRecipes(
     const error = (where: string, message: string) => issues.push({ level: 'error', where, message });
     const warn = (where: string, message: string) => issues.push({ level: 'warning', where, message });
 
-    // Axis names and values are interpolated into `[data-<axis>="<value>"]`.
-    // The vocabularies are open by design, so "open" has to stop at what can
-    // actually be an attribute — otherwise a value carrying a quote closes the
-    // selector early and everything after it is read as CSS, silently styling
-    // parts the recipe never named. `compileRecipeCss` throws on the same
-    // input; this is where an author gets told, with all the other issues.
+    // Axis names and values are interpolated into `[data-<axis>="<value>"]`
+    // (and, on lynx, into `.zx-a-<axis>-<value>`). The vocabularies are open
+    // by design, so "open" has to stop at what those carry verbatim —
+    // otherwise a value carrying a quote closes the selector early and
+    // everything after it is read as CSS, silently styling parts the recipe
+    // never named. Names take the token-key grammar, values the wider axis
+    // value grammar (#198). `compileRecipeCss` throws on the same input; this
+    // is where an author gets told, with all the other issues.
     const checkAxisName = (axis: string, where: string) => {
         if (!TOKEN_KEY_PATTERN.test(axis)) {
             error(where, `axis "${axis}" is not a kebab-case identifier — it becomes the attribute name data-${axis}`);
         }
     };
-    const checkAxisValue = (axis: string, value: string, where: string) => {
-        if (!TOKEN_KEY_PATTERN.test(value)) {
-            error(where, `"${value}" is not a kebab-case identifier — it becomes the attribute value in [data-${axis}="…"]`);
+    const checkAxisValue = (_axis: string, value: string, where: string) => {
+        if (!AXIS_VALUE_PATTERN.test(value)) {
+            error(where, badAxisValue(value));
         }
     };
 

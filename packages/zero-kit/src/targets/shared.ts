@@ -15,7 +15,7 @@
  * compounds from the shared grammar — neither belongs here.
  */
 import type { ManifestComponent, ManifestPart } from '../contract.js';
-import { TOKEN_CATEGORIES, TOKEN_KEY_PATTERN, systemNodeAt, tokenProperty } from '../contract.js';
+import { AXIS_VALUE_PATTERN, TOKEN_CATEGORIES, TOKEN_KEY_PATTERN, systemNodeAt, tokenProperty } from '../contract.js';
 import type { CssProps, RecipeContext } from '../recipes.js';
 import { BUILTIN_CONDITIONS } from '../recipes.js';
 import { generateTypeScale } from '../scale.js';
@@ -228,6 +228,16 @@ export function renderBucket(conditions: Condition[], rules: string[]): string {
  * calling the compile functions directly, which are public API.
  */
 export function assertAxisToken(kind: 'axis' | 'value' | 'modifier', token: string, scope: string): string {
+    // Values take the wider grammar (#198): repeated hyphens survive an
+    // attribute value and a class name alike. Names keep the token-key one.
+    if (kind === 'value') {
+        if (!AXIS_VALUE_PATTERN.test(token)) {
+            throw new Error(
+                `[zero-kit] recipe for "${scope}" uses value "${token}", which is not a valid axis value — it would be written into a selector fragment verbatim`,
+            );
+        }
+        return token;
+    }
     if (!TOKEN_KEY_PATTERN.test(token)) {
         throw new Error(
             `[zero-kit] recipe for "${scope}" uses ${kind} "${token}", which is not a kebab-case identifier — it would be written into a selector fragment verbatim`,

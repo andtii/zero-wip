@@ -21,11 +21,13 @@
  */
 import { parse, wcagContrast } from 'culori';
 import type { ZeroManifest } from '../contract.js';
+import { badAxisValue } from './messages.js';
 import {
     BASE_SURFACE_TOKEN_LIST,
     RESERVED_AXES,
     RESERVED_ROLE_NAMES,
     TOKEN_CATEGORIES,
+    AXIS_VALUE_PATTERN,
     TOKEN_KEY_PATTERN,
     VARIANT_AXES,
     systemNodeAt,
@@ -404,9 +406,12 @@ export function validateDesignSystem<R extends RolesDecl>(
     }
 
     // ── Sizes ──
-    // A declared size becomes the value in `[data-size="…"]`, so the open
-    // vocabulary stops at what can be an attribute value. Caught at the
-    // declaration rather than only where a recipe uses it.
+    // A declared size becomes the value in `[data-size="…"]` (and the tail of
+    // a lynx class), so the open vocabulary stops at what those carry
+    // verbatim — `AXIS_VALUE_PATTERN`, the value grammar, not the token-key
+    // one: `tokens.sizes` is pure axis vocabulary (the `--size-*` tokens come
+    // from `system.size`, a separate scale). Caught at the declaration rather
+    // than only where a recipe uses it.
     //
     // `sizes: []` is legal and means "this design system has no size axis" —
     // the same claim `roles: {}` already makes about colour. Omitting `sizes`
@@ -417,8 +422,8 @@ export function validateDesignSystem<R extends RolesDecl>(
     const sizes = ds.tokens.sizes;
     if (sizes) {
         for (const size of sizes) {
-            if (!TOKEN_KEY_PATTERN.test(size)) {
-                error('tokens.sizes', `"${size}" is not a kebab-case identifier`);
+            if (!AXIS_VALUE_PATTERN.test(size)) {
+                error('tokens.sizes', badAxisValue(size));
             }
         }
         if (new Set(sizes).size !== sizes.length) {
@@ -428,11 +433,13 @@ export function validateDesignSystem<R extends RolesDecl>(
 
     // ── Variant axis vocabularies ──
     // Same rules as sizes: a declared value becomes the value in
-    // `[data-variant="…"]` / `[data-<axis>="…"]`, so the same attribute-value
-    // grammar applies, caught at the declaration. Axis NAMES additionally
-    // must not re-declare an axis that has a named prop and must not take a
-    // name the anatomy contract owns — the zero runtime throws on both, and
-    // the validator must reject exactly what the runtime refuses to render.
+    // `[data-variant="…"]` / `[data-<axis>="…"]` and the tail of a lynx
+    // class, so the value grammar applies, caught at the declaration. Axis
+    // and modifier NAMES take the token-key grammar instead — they become
+    // `data-<axis>` / `data-mod-<name>` — and axis names additionally must
+    // not re-declare an axis that has a named prop and must not take a name
+    // the anatomy contract owns: the zero runtime throws on both, and the
+    // validator must reject exactly what the runtime refuses to render.
     //
     // `empty` differs by tier and the difference is the whole per-scope
     // grammar: design-system-wide, an empty list says nothing an omission
@@ -447,20 +454,39 @@ export function validateDesignSystem<R extends RolesDecl>(
             error(where, 'declared but empty — omit it to leave the vocabulary undeclared');
         }
         for (const value of values) {
-            if (!TOKEN_KEY_PATTERN.test(value)) {
-                error(where, `"${value}" is not a kebab-case identifier`);
+            if (!AXIS_VALUE_PATTERN.test(value)) {
+                error(where, badAxisValue(value));
             }
         }
         if (new Set(values).size !== values.length) {
             error(where, 'contains duplicate entries');
         }
     };
+    // NAMES: the same shape checks, under the token-key grammar. Split from
+    // `checkAxisValues` so the two grammars cannot drift back into one — the
+    // value grammar is wider on purpose (#198).
+    const checkAxisNames = (
+        where: string,
+        names: readonly string[],
+        opts: { empty: 'error' | 'means-none' } = { empty: 'error' },
+    ): void => {
+        if (names.length === 0 && opts.empty === 'error') {
+            error(where, 'declared but empty — omit it to leave the vocabulary undeclared');
+        }
+        for (const name of names) {
+            if (!TOKEN_KEY_PATTERN.test(name)) {
+                error(where, `"${name}" is not a kebab-case identifier — it becomes the tail of data-mod-${name}`);
+            }
+        }
+        if (new Set(names).size !== names.length) {
+            error(where, 'contains duplicate entries');
+        }
+    };
     if (ds.tokens.variants) checkAxisValues('tokens.variants', ds.tokens.variants);
-    // Modifier NAMES take the same grammar axis values do — they become the
-    // tail of `data-mod-<name>`. No reserved-name check is needed: the prefix
-    // puts every modifier outside the anatomy contract's namespace, which is
-    // the whole reason it exists.
-    if (ds.tokens.modifiers) checkAxisValues('tokens.modifiers', ds.tokens.modifiers);
+    // Modifier NAMES become the tail of `data-mod-<name>`. No reserved-name
+    // check is needed: the prefix puts every modifier outside the anatomy
+    // contract's namespace, which is the whole reason it exists.
+    if (ds.tokens.modifiers) checkAxisNames('tokens.modifiers', ds.tokens.modifiers);
     for (const [axis, values] of Object.entries(ds.tokens.axes ?? {})) {
         if (!TOKEN_KEY_PATTERN.test(axis)) {
             error('tokens.axes', `"${axis}" is not a kebab-case identifier — it becomes the attribute name data-${axis}`);
@@ -534,7 +560,8 @@ export function validateDesignSystem<R extends RolesDecl>(
                 narrows = true;
                 const axis = key === 'colors' ? 'color' : key === 'sizes' ? 'size' : key === 'variants' ? 'variant' : key;
                 note(axis, scope);
-                checkAxisValues(`${where}.${key}`, values, { empty: 'means-none' });
+                if (key === 'modifiers') checkAxisNames(`${where}.${key}`, values, { empty: 'means-none' });
+                else checkAxisValues(`${where}.${key}`, values, { empty: 'means-none' });
                 const union = unions[key];
                 if (union === undefined) {
                     error(

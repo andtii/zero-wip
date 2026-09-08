@@ -87,7 +87,7 @@ describe('compileRecipeCss', () => {
             component: 'tabs',
             parts: { tab: { base: { padding: '1rem' } } },
             variants: { size: { [injected]: { tab: { base: { color: 'red' } } } } },
-        }, tabsComponent)).toThrow(/not a kebab-case identifier/);
+        }, tabsComponent)).toThrow(/not a valid axis value/);
 
         expect(() => compileRecipeCss({
             component: 'tabs',
@@ -99,7 +99,7 @@ describe('compileRecipeCss', () => {
             component: 'tabs',
             parts: { tab: { base: { padding: '1rem' } } },
             compoundVariants: [{ match: { size: injected }, parts: { tab: { base: { color: 'red' } } } }],
-        }, tabsComponent)).toThrow(/not a kebab-case identifier/);
+        }, tabsComponent)).toThrow(/not a valid axis value/);
     });
 
     it('still accepts every spelling the shipped design systems use', () => {

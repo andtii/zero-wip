@@ -21,17 +21,17 @@
             }
         },
         "sizes": {
-            "description": "The design system's `size` axis vocabulary \u2014 the values recipes may key variants.size on. Omitted \u2192 the recommended ramp (xs, sm, md, lg, xl); [] \u2192 this design system has no size axis at all. Entries become [data-size=\"\u2026\"] selector values, hence the kebab-case grammar.",
+            "description": "The design system's `size` axis vocabulary \u2014 the values recipes may key variants.size on. Omitted \u2192 the recommended ramp (xs, sm, md, lg, xl); [] \u2192 this design system has no size axis at all. Entries become [data-size=\"\u2026\"] selector values and lynx class-name tails, hence the axis-value grammar (lowercase, digits, hyphens \u2014 repeated hyphens included).",
             "type": "array",
             "items": {
-                "$ref": "#/$defs/tokenKey"
+                "$ref": "#/$defs/axisValue"
             }
         },
         "variants": {
-            "description": "The `variant` axis vocabulary — the fill/chrome styles this design system offers (solid, outline, …). Once declared, the validator closes the set: a recipe variants.variant value outside it is an error. Omitted → the axis stays undeclared and recipe values are unchecked. Entries become [data-variant=\"…\"] selector values, hence the kebab-case grammar.",
+            "description": "The `variant` axis vocabulary — the fill/chrome styles this design system offers (solid, outline, …). Once declared, the validator closes the set: a recipe variants.variant value outside it is an error. Omitted → the axis stays undeclared and recipe values are unchecked. Entries become [data-variant=\"…\"] selector values and lynx class-name tails, hence the axis-value grammar (lowercase, digits, hyphens — repeated hyphens included).",
             "type": "array",
             "items": {
-                "$ref": "#/$defs/tokenKey"
+                "$ref": "#/$defs/axisValue"
             }
         },
         "modifiers": {
@@ -50,7 +50,7 @@
             "additionalProperties": {
                 "type": "array",
                 "items": {
-                    "$ref": "#/$defs/tokenKey"
+                    "$ref": "#/$defs/axisValue"
                 }
             }
         },
@@ -75,14 +75,14 @@
                         "description": "The `size` ramp this scope offers — a subset of the resolved sizes.",
                         "type": "array",
                         "items": {
-                            "$ref": "#/$defs/tokenKey"
+                            "$ref": "#/$defs/axisValue"
                         }
                     },
                     "variants": {
                         "description": "The `variant` vocabulary this scope offers — a subset of tokens.variants.",
                         "type": "array",
                         "items": {
-                            "$ref": "#/$defs/tokenKey"
+                            "$ref": "#/$defs/axisValue"
                         }
                     },
                     "axes": {
@@ -94,7 +94,7 @@
                         "additionalProperties": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/$defs/tokenKey"
+                                "$ref": "#/$defs/axisValue"
                             }
                         }
                     },
@@ -175,8 +175,13 @@
         }
     },
     "$defs": {
+        "axisValue": {
+            "description": "An axis VALUE: lowercase letters, digits and hyphens, repeated hyphens included (Carbon's danger--tertiary) — what a quoted [data-…=\"…\"] attribute selector, a single-quoted literal union in register.d.ts and an unescaped lynx class name (zx-a-<axis>-<value>) all carry verbatim. Wider than the kebab-case grammar names take; still no %, ., quotes, backslashes, whitespace or uppercase.",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-+[a-z0-9]+)*$"
+        },
         "tokenKey": {
-            "description": "A kebab-case identifier that may start with a digit (--text-2xl is legal) \u2014 the grammar for token keys, size names and swatch entries.",
+            "description": "A kebab-case identifier that may start with a digit (--text-2xl is legal) \u2014 the grammar for token keys, axis and modifier names, and swatch entries.",
             "type": "string",
             "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
         },

@@ -248,6 +248,20 @@ export type TokenCategoryId = typeof TOKEN_CATEGORIES[number]['id'];
 export const TOKEN_KEY_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 /**
+ * Axis VALUES have a grammar of their own (#198). A value only ever lands in
+ * a quoted attribute selector (`[data-variant="danger--tertiary"]`), a
+ * single-quoted literal in `register.d.ts`, and — on the lynx target — an
+ * unescaped class name (`zx-a-variant-danger--tertiary`). Repeated hyphens
+ * are legal in all three, which is Carbon's entire `kind` axis
+ * (`danger--tertiary`). `%` and `.` are not: a class name would need CSS
+ * escaping for them, so Radix's `105%` stays an `api.values` remap. Quotes,
+ * backslashes and whitespace stay out so every interpolation site stays
+ * escape-free; uppercase stays out because `data-*` values are
+ * case-sensitive. Axis, modifier and role NAMES keep `TOKEN_KEY_PATTERN`.
+ */
+export const AXIS_VALUE_PATTERN = /^[a-z0-9]+(-+[a-z0-9]+)*$/;
+
+/**
  * Fixed-size alias for the text ramp: for every emitted `--text-<key>` the
  * token compiler also emits `--text-fixed-<key>`.
  *

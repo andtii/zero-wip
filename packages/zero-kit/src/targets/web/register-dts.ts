@@ -12,8 +12,9 @@
  * `properties` list is read back off the emitted CSS, per-component axes come
  * from `CompiledDesignSystem.components` — so the types cannot drift from the
  * stylesheet backing them. Every value interpolated into a literal union has
- * already passed the validator's kebab-case attribute grammar, so plain
- * single-quoting is safe.
+ * already passed the validator's axis-value grammar (`AXIS_VALUE_PATTERN`:
+ * lowercase, digits, hyphens — no quotes, backslashes or whitespace), so
+ * plain single-quoting is safe.
  */
 import { TOKEN_CATEGORIES, systemNodeAt } from '../../contract.js';
 import type { CompiledComponentAxes, CompiledDesignSystem } from '../../design-system.js';

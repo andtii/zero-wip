@@ -30,10 +30,13 @@
  * State/flag/axis classes are deliberately scope-agnostic: semantics attach
  * through the compound with the part class (`.zx-tabs__tab.zx-s-active`), and
  * the runtime's emission stays a trivial map over the part's own inputs.
- * Every input is grammar-guarded kebab-case already (`TOKEN_KEY_PATTERN`
- * governs axis/mod names, the state and flag vocabularies are closed), so no
- * escaping is needed; classes are write-only — nothing ever parses one back —
- * so the joining `-` in `zx-a-<axis>-<value>` is unambiguous in practice.
+ * Every input is grammar-guarded already (`TOKEN_KEY_PATTERN` governs
+ * axis/mod names, `AXIS_VALUE_PATTERN` axis values — lowercase, digits and
+ * hyphens, repeated hyphens included, which is why `%` and `.` are refused:
+ * they would need escaping here — and the state and flag vocabularies are
+ * closed), so no escaping is needed; classes are write-only — nothing ever
+ * parses one back — so the joining `-` in `zx-a-<axis>-<value>` is
+ * unambiguous in practice even when the value carries `--`.
  *
  * ## The axis push-down rule
  *
