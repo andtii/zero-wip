@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### Added
+
+- **Palette derivation** (#402): `derivePalette`, `deriveThemePair`,
+  `solveContentLightness`, `contrastRatio`, `clampChroma` and `formatOklch`
+  on `@sigx/zero-kit/define` (and the barrel). From seed hues — `{ primary:
+  260 }` is enough — `derivePalette` produces exactly
+  `requiredColorTokens(roles)` for one scheme with every `<role>` /
+  `<role>-content` pair at or above 4.5:1 and `base-100`/`base-content` at
+  or above 7:1 **by construction**, every value inside sRGB, hues preserved,
+  deterministic; `deriveThemePair` returns a light and a dark theme already
+  wired with `colorScheme`, `pair` and `softMix`, spreadable into `themes`.
+  The semantic four take fixed hues, `secondary`/`accent` follow a
+  `harmony` rotation, `neutral` is the primary hue desaturated, unknown
+  role names fall back deterministically. The oklch → linear-sRGB math is
+  hand-rolled (the `/define` graph may only reach relative modules) and
+  pinned against culori to 1e-6; every guarantee is measured on the
+  formatted string, so rounding cannot eat the margin. The validator's
+  suggested fix for a failing pair (#402 follow-up) and a derived brief
+  build on this.
+
 ## [0.2.0-beta.6] - 2026-08-22
 
 ### Fixed

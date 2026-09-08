@@ -231,6 +231,55 @@ import { defineApi } from '@sigx/zero-kit/define';
 
 and keeps the full literal narrowing without a `satisfies` reimplementation.
 
+## Deriving a palette
+
+Every theme colour used to be authored by hand, and the only thing between
+a guessed `oklch()` and a shipped 2.8:1 label was the validator's contrast
+check after the fact. `derivePalette` runs the other way: from the hues that
+carry the brief it derives every token `requiredColorTokens(roles)` asks for
+— base surfaces, roles, `-content` pairs — and solves each pair's lightness
+so the floor holds **by construction**. `deriveThemePair` does it for a
+light and a dark theme at once, already wired to each other:
+
+```ts
+import { deriveThemePair } from '@sigx/zero-kit/define';
+
+export const tokens = {
+    roles,
+    defaultLight: 'ink',
+    defaultDark: 'ink-dark',
+    themes: {
+        ...deriveThemePair({ roles, seeds: { primary: 205, accent: 55 }, light: 'ink', dark: 'ink-dark' }),
+    },
+};
+```
+
+`{ primary: 260 }` is enough. The four semantic roles take fixed hues (info
+245, success 155, warning 85, error 25), `secondary` and `accent` follow the
+`harmony` rotation (`analogous` by default; `complementary`, `split`,
+`triadic`), `neutral` is the primary hue desaturated, and any role the kit
+has no opinion about (`tertiary`, `surface-container`) falls back to the
+primary hue at an index-derived lightness — seed it for a real colour. A
+seed can be a bare hue or `{ hue, chroma?, lightness? }`; `base` tints the
+surfaces; `floors` moves the targets (4.5:1 per role pair, 7:1 for
+`base-100` against `base-content` by default).
+
+What is guaranteed, measured on the emitted strings: every `<role>` /
+`<role>-content` pair at or above the floor, every value inside the sRGB
+gamut, a seeded hue preserved to the tenth of a degree, and exactly the
+declared key set — no `-content` for a `content: false` role, never a
+`-soft` (the compiler derives those from `softMix`), only the base surfaces
+for `roles: {}`. The derivation is deterministic: the same seeds always
+produce the same strings, so a derived theme can sit in a golden.
+
+It lives on `@sigx/zero-kit/define`, so a `tokens.ts` in the browser bundle
+may call it. The colour math is hand-rolled for that reason (the `/define`
+graph may only reach relative modules) and is pinned against culori to 1e-6
+by `palette.test.ts`. `solveContentLightness(fg, against, floor)` and
+`contrastRatio` are exported for callers that have already parsed a colour
+and want the same solver — the validator's suggested fix for a failing pair
+is built on it.
+
 ## The vendor-named component API
 
 A design system may declare, beside `tokens` and `recipes`, how zero's axis
