@@ -20,6 +20,8 @@ import type { ValidationResult } from './resolve/validate.js';
 import { validateDesignSystem } from './resolve/validate.js';
 import { buildReport } from './resolve/report.js';
 import { buildDsManifest, writeArtifacts } from './artifacts.js';
+export { auditDesignSystem, formatAudit } from './audit/index.js';
+export type { AuditFinding, AuditOptions, AuditResult, AuditRuleId } from './audit/index.js';
 import type { CompiledLynxTarget } from './targets/lynx/compile.js';
 import { compileDesignSystemLynx, writeLynxArtifacts } from './targets/lynx/compile.js';
 
