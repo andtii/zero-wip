@@ -391,7 +391,7 @@ a design-system package.
 
 ```
 sigx zero:validate [entry] [--manifest <path>] [--extra-manifest <path>]...
-                   [--strict] [--report] [--report-json <path>]
+                   [--strict] [--report] [--report-json <path>] [--diff <path>]
 sigx zero:build    [entry] [--manifest <path>] [--extra-manifest <path>]...
                    [--out <dir>]
 ```
@@ -534,6 +534,33 @@ to stderr and pass/fail is the exit code. Two flags rather than one
 `--report=json` because `@sigx/args` has no optional-value form yet; they
 collapse once it does.
 
+### Comparing two runs
+
+```sh
+sigx zero:validate --diff dist/report.json   # what moved since the last build
+```
+
+`--diff <path>` reads an earlier `report.json` and prints what changed between
+it and the report of the current source: the score and each criterion's delta,
+scopes newly styled or unstyled, values newly wired or unwired, states newly
+covered or uncovered, declared role pairs that crossed the 4.5:1 or 3:1
+contrast thresholds in either direction, and the validation counts when both
+reports carry them. `sigx zero:build` writes `dist/report.json` every run, so
+the loop is build → change → `--diff dist/report.json`. Programmatically it is
+`diffReports(prev, next)` and `formatReportDiff(diff)`, pure functions over two
+reports — no design system, no manifest, no `node:`.
+
+Compare like with like: a build that merged an ecosystem fragment
+(`build.mjs` with `mergeManifests`) and a validate run without the matching
+`--extra-manifest` were asked about different manifests, and the diff says so
+(`manifest differs … removed ext-stepper`) rather than calling the missing scope
+unstyled.
+
+Two things the diff will not do. A state moved into `skipStates` is listed as
+*newly skipped*, never as resolved — the same half-credit stance the score
+takes, so a waiver cannot read as progress. And two reports of different
+`reportVersion` are refused with a message naming both: the older one needs
+regenerating with this kit, not a best-effort comparison of two shapes.
 ## The audit
 
 Validation says whether the design system is *correct*; the report says what it

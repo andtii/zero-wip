@@ -844,6 +844,11 @@ component's anatomy). No component code is ever written or changed.
      `axis-coverage` asks about; one that wires *some* values is the
      ramp-with-a-hole above. A scope listed under `diverges across components`
      with `(declared)` beside it is not diverging — it narrowed on purpose.
+   - **After each fix, run `sigx zero:validate --report --diff dist/report.json`**
+     and read what moved: the score line, then anything newly unstyled,
+     unwired, uncovered or below a contrast threshold. `zero:build` rewrites
+     `dist/report.json`, so the comparison is always against your last build.
+     A state you put in `skipStates` shows as *newly skipped*, not resolved.
 
 7. **Build**: `sigx zero:build` (or the package's `build.mjs`) emits
    `dist/css/index.css` + per-component files. The app consumes it with two

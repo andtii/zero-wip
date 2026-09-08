@@ -200,6 +200,26 @@ describe('zero:validate args', () => {
         expect(args.reportJson).toBe('-');
     });
 
+    it('takes --diff as a path, kebab or camel, and defaults it off', () => {
+        expect(parseArgs(['--diff', 'dist/report.json'], shape).args.diff).toBe('dist/report.json');
+        expect(parseArgs(['--diff=prev.json'], shape).args.diff).toBe('prev.json');
+        expect(parseArgs([], shape).args.diff).toBeUndefined();
+    });
+
+    it('rejects a bare --diff: the previous report is not optional', () => {
+        // Same @sigx/args limitation as --report-json (#177): a value flag has
+        // no optional form, so `--diff` without a path is a parse error rather
+        // than "diff against dist/report.json". The default is spelled out in
+        // the help text instead.
+        try {
+            parseArgs(['--diff'], shape);
+            expect.unreachable('should have thrown');
+        } catch (err) {
+            expect(err).toBeInstanceOf(ParseError);
+            expect((err as ParseError).code).toBe('MISSING_VALUE');
+        }
+    });
+
     it('rejects --report-json with no value, which is why the flag is split', () => {
         // This is the whole reason `--report` and `--report=json` cannot be one
         // flag: @sigx/args has no optional-value form, so a bare value flag is

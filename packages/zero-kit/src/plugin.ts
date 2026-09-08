@@ -100,6 +100,10 @@ export default definePlugin({
                     .string()
                     .valueHint('path')
                     .describe('Write the coverage report as JSON to <path> ("-" for stdout, which then carries nothing else)'),
+                diff: a
+                    .string()
+                    .valueHint('path')
+                    .describe('Print what moved since an earlier report.json (zero:build writes dist/report.json every run, so `--diff dist/report.json` compares against the last build)'),
             },
             async run(ctx) {
                 const { runValidate } = await import('./commands/validate.js');
@@ -110,6 +114,7 @@ export default definePlugin({
                     strict: ctx.args.strict,
                     report: ctx.args.report,
                     reportJson: ctx.args.reportJson,
+                    diff: ctx.args.diff,
                 });
             },
         },

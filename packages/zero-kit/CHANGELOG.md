@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### Added
+
+- **`sigx zero:validate --diff <report.json>` — what moved between two
+  coverage reports** (#415). `diffReports(prev, next)` and
+  `formatReportDiff(diff)` in `resolve/report-diff.ts` (pure, exported from
+  the barrel) compare two `reportVersion: 2` documents: the score and each
+  criterion's delta, scopes newly styled or unstyled, `axis:value` keys newly
+  wired or unwired, `scope.part.state` keys newly covered or uncovered over
+  the scopes styled in both, declared role pairs crossing the 4.5:1 or 3:1
+  thresholds in either direction (the most severe crossing when a pair falls
+  through both), and the validation counts when both reports carry them. A
+  state moved into `skipStates` is reported as newly *skipped*, never as
+  resolved — the half-credit stance the score takes, kept so a waiver cannot
+  read as progress. A `reportVersion` mismatch throws naming both versions.
+  The flag is a required-value flag (`@sigx/args` has no optional form, #177);
+  `zero:build` writes `dist/report.json` every run, so
+  `--diff dist/report.json` compares against the last build. The diff prints
+  after the report and before the verdict, stays silent under
+  `--report-json -`, and an unreadable path fails the run naming it.
+
 ### Changed
 
 - **`report.json` is `reportVersion: 2`** (#408): the required `score`

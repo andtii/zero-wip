@@ -1,11 +1,12 @@
 /** `sigx zero:validate` — check a design system against the anatomy manifest. */
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import type { ZeroManifest } from '../contract.js';
 import type { DesignSystemInput } from '../design-system.js';
 import { compileDesignSystem } from '../design-system.js';
 import type { DesignSystemReport } from '../resolve/report.js';
 import { buildReport, formatReport } from '../resolve/report.js';
+import { diffReports, formatReportDiff } from '../resolve/report-diff.js';
 import type { ValidationResult } from '../resolve/validate.js';
 import type { CommandEnv } from './shared.js';
 import { loadInputs } from './shared.js';
@@ -21,6 +22,34 @@ export interface ValidateOptions {
     report?: boolean;
     /** Write the machine-readable report here; `-` means stdout. */
     reportJson?: string;
+    /** An earlier `report.json` to print the changes against. */
+    diff?: string;
+}
+
+/**
+ * The earlier report for `--diff`. Every way this can go wrong names the
+ * path: a missing file, unreadable JSON, or something that is not a report —
+ * a silent skip here would make "no change" indistinguishable from "did not
+ * compare".
+ */
+async function readPreviousReport(env: CommandEnv, spec: string): Promise<DesignSystemReport> {
+    const path = resolve(env.cwd, spec);
+    let text: string;
+    try {
+        text = await readFile(path, 'utf8');
+    } catch (err) {
+        throw new Error(`--diff: cannot read "${path}": ${(err as Error).message}`);
+    }
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(text);
+    } catch (err) {
+        throw new Error(`--diff: "${path}" is not JSON: ${(err as Error).message}`);
+    }
+    if (typeof parsed !== 'object' || parsed === null || typeof (parsed as { reportVersion?: unknown }).reportVersion !== 'number') {
+        throw new Error(`--diff: "${path}" is not a coverage report (no numeric reportVersion)`);
+    }
+    return parsed as DesignSystemReport;
 }
 
 /**
@@ -67,7 +96,11 @@ export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promi
     // fails validation is exactly the one whose coverage is worth reading, and
     // that loop — generate, validate, see what is still uncovered, fix — is what
     // the report exists for (docs/architecture.md, "The authoring surface").
-    if (opts.report || opts.reportJson) {
+    // Read before anything is printed, so a bad --diff path fails the run
+    // outright instead of after a report the caller may have already acted on.
+    const previous = opts.diff ? await readPreviousReport(env, opts.diff) : undefined;
+
+    if (opts.report || opts.reportJson || previous) {
         // `validateDesignSystem` compiles too, but discards the result behind
         // its own try/catch. Compiling again keeps that seam untouched and costs
         // nothing measurable. `undefined` here means only one thing — the design
@@ -91,6 +124,14 @@ export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promi
                     await writeFile(path, `${json}\n`);
                 }
             }
+            // After the report and before the verdict: "what moved" reads best
+            // right under "where it stands". Silent under `--report-json -`
+            // like everything else; the JSON pipeline has both files anyway.
+            if (previous && !stdoutIsJson) {
+                for (const line of formatReportDiff(diffReports(previous, report))) env.logger.log(line);
+            }
+        } else if (previous && !stdoutIsJson) {
+            env.logger.warn('--diff skipped: the design system does not compile, so there is no current report to compare');
         }
     }
 
