@@ -192,9 +192,9 @@ export function diffReports(prev: DesignSystemReport, next: DesignSystemReport):
     for (const theme of next.themes) {
         const was = prevThemes.get(theme.name);
         if (!was) continue;
-        const wasPairs = new Map(was.pairs.map((pair) => [`${pair.bg} ${pair.fg}`, pair.ratio]));
+        const wasPairs = new Map(was.pairs.map((pair) => [`${pair.bg}|${pair.fg}`, pair.ratio]));
         for (const pair of theme.pairs) {
-            const from = wasPairs.get(`${pair.bg} ${pair.fg}`);
+            const from = wasPairs.get(`${pair.bg}|${pair.fg}`);
             if (from === undefined) continue;
             const down = crossedDown(from, pair.ratio);
             if (down !== null) {
