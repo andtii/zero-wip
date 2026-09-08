@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **`report.json` is `reportVersion: 2`** (#408): the required `score`
+  section was added (below). A consumer pinned to version 1 must read
+  `score` or ignore it; nothing else in the shape moved. `formatReport`
+  prints the score line first, under the title.
+
 ### Added
 
 - **Palette derivation** (#402): `derivePalette`, `deriveThemePair`,
@@ -21,6 +28,29 @@
   formatted string, so rounding cannot eat the margin. The validator's
   suggested fix for a failing pair (#402 follow-up) and a derived brief
   build on this.
+- **A composite score and grade in the coverage report** (#408;
+  `resolve/score.ts`, `computeScore` / `formatScore` / `pairScore` /
+  `gradeFor` / `SCORE_WEIGHTS` exported from the barrel). Five named
+  criteria, each 0–100 with the counts it was computed from: components
+  styled (weight 25), declared axis values honoured and claimed (15), part
+  states and flags covered with `skipStates` at half credit (20), the WCAG
+  margin of the declared pairs in the weakest theme — mean over pairs, min
+  over themes, full marks at 4.5:1, half at 3:1 (25), and the validation
+  counts when the report was built alongside a validation pass — ten points
+  an error, two a warning (15). `computeScore(report, compiled, { audit })`
+  takes a sixth, `audit`, for `zero:audit` to fill; absent criteria drop out
+  and the weights renormalise. Grades: A ≥ 90, B ≥ 80, C ≥ 70, D ≥ 60, else
+  F. A declined axis (`declaredOut`) and a fill role cost nothing; per-scope
+  `variant` wiring is deliberately not scored. Measured: basic 96.5, daisyui
+  93.2, material 97.1, brutalist 95.0, heroui 97.4, carbon 96.8 — all A,
+  pinned as floors in `report.test.ts`; a Button-only start scores 68.4 (D).
+- **`isFillRole` and `axisRoles`** in `contract.ts`, exported from the barrel
+  and from `/define`: the one predicate for "a role that opts out of
+  `-content` or `-soft` is a token, not a `color`-axis value" (#286).
+  zero-basic, zero-material, zero-daisyui and zero-brutalist derive their
+  `ROLES` through `axisRoles(roles)` instead of each restating the filter;
+  CSS output byte-identical (css-golden gate). When #286 gives the
+  declaration an explicit field, this is the one function that changes.
 
 ## [0.2.0-beta.6] - 2026-08-22
 

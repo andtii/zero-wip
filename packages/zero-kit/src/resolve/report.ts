@@ -34,6 +34,8 @@ import type { PartStyles, RecipeInput } from '../recipes.js';
 import type { DesignSystemApi, MappedGrade } from '../api.js';
 import { apiGrade, modifierGrade } from '../api.js';
 import type { ValidationResult } from './validate.js';
+import type { ReportScore } from './score.js';
+import { computeScore, formatScore } from './score.js';
 
 /** The contract axes, in the order the register artifact emits them. */
 const CONTRACT_AXES = ['color', 'size', 'variant'] as const;
@@ -179,8 +181,14 @@ export interface ApiSurfaceReport {
 
 export interface DesignSystemReport {
     $schema: string;
-    reportVersion: 1;
+    reportVersion: 2;
     name: string;
+    /**
+     * The composite score (`score.ts`): five named criteria weighted into a
+     * total and a letter grade — the scalar a generating agent iterates
+     * against. Derived from the sections below, never from anything else.
+     */
+    score: ReportScore;
     /**
      * The lynx target's capability findings — present only when the build
      * ran with `targets: ['web', 'lynx']`. What the lynx emitters translated
@@ -612,9 +620,9 @@ export function buildReport(
         };
     }
 
-    return {
+    const body: Omit<DesignSystemReport, 'score'> = {
         $schema: REPORT_SCHEMA_URL,
-        reportVersion: 1,
+        reportVersion: 2,
         name: compiled.name,
         coverage: {
             componentsStyled: Object.keys(compiled.components).length,
@@ -651,6 +659,10 @@ export function buildReport(
         ...(ds.api ? { api: apiSurfaces(ds.api) } : {}),
         ...(result ? { issues: { errors: result.errors.length, warnings: result.warnings.length } } : {}),
     };
+    // The score reads the finished sections, so it is folded in last — and
+    // placed right after `name`, where a reader of the JSON looks first.
+    const { $schema, reportVersion, name, ...rest } = body;
+    return { $schema, reportVersion, name, score: computeScore(body, compiled), ...rest };
 }
 
 /** `n/total (pct%)`, the one number a reviewer reads first. */
@@ -666,6 +678,10 @@ const ratio = (n: number, total: number): string =>
  */
 export function formatReport(report: DesignSystemReport): string[] {
     const lines: string[] = [`${report.name} — coverage report`];
+
+    // The score first: it is the one line that answers "better or worse than
+    // last time", and everything under it is what it was computed from.
+    lines.push(`  ${formatScore(report.score)}`);
 
     lines.push(`  components styled: ${ratio(report.coverage.componentsStyled, report.coverage.componentsTotal)}`);
     if (report.coverage.unstyled.length > 0) {

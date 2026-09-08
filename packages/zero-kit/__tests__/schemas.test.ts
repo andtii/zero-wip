@@ -179,6 +179,18 @@ describe('report.schema.json', () => {
         expect(validateReport(asJson({ ...(reportNamed('basic') as object), vendor: 'acme' }))).toBe(false);
     });
 
+    it('rejects a report without its score, and a version-1 report', () => {
+        const { score: _score, ...noScore } = asJson(reportNamed('basic')) as { score: unknown };
+        expect(validateReport(noScore)).toBe(false);
+        expect(validateReport({ ...(reportNamed('basic') as object), reportVersion: 1 })).toBe(false);
+    });
+
+    it('rejects a grade outside the closed set', () => {
+        const bad = asJson(reportNamed('basic')) as { score: { grade: string } };
+        bad.score.grade = 'S';
+        expect(validateReport(bad)).toBe(false);
+    });
+
     it('rejects `variant` in declaredOut', () => {
         // Only colour and size can be declared out of existence — an omitted
         // `tokens.variants` means "declared nothing", not "no variant axis".

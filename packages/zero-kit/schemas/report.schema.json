@@ -5,21 +5,22 @@
     "description": "What a design system COVERS, as opposed to what is wrong with it — emitted as dist/report.json by the zero build and by `sigx zero:validate --report-json` (docs/architecture.md, \"The authoring surface\"). Components styled against the anatomy manifest, the axes each component wires and which are typed `never` by its register artifact, declared-but-unwired values per axis and modifier, per-part state and flag coverage including deliberate `skipStates`, the axis-agnostic divergence partition and the minimum contrast margin per theme. Machine-readable first: the conformance matrix generates its already-proven-in-repo rows from this file, so they cannot go stale by hand.",
     "type": "object",
     "additionalProperties": false,
-    "required": ["$schema", "reportVersion", "name", "coverage", "vocabulary", "unwired", "unclaimed", "components", "divergence", "themes"],
+    "required": ["$schema", "reportVersion", "name", "score", "coverage", "vocabulary", "unwired", "unclaimed", "components", "divergence", "themes"],
     "properties": {
         "$schema": {
             "description": "Self-reference to this schema — the emitter always writes exactly this URL.",
             "const": "https://signalxjs.github.io/zero/schemas/report.schema.json"
         },
         "reportVersion": {
-            "description": "Shape version of this document. Bumped when a consumer would have to change to keep reading it.",
-            "const": 1
+            "description": "Shape version of this document. Bumped when a consumer would have to change to keep reading it. 2 added the required `score` section.",
+            "const": 2
         },
         "name": {
             "description": "The design system's name, as declared on the design-system input.",
             "type": "string",
             "minLength": 1
         },
+        "score": { "$ref": "#/$defs/score" },
         "lynx": {
             "description": "The lynx target's capability findings — present only when the build ran with targets: ['web', 'lynx']. What the lynx emitters translated (semantically equivalent projection) or dropped (not expressible on the target; each entry says how to patch it), so \"what did the lynx copy lose\" has one answer in the same file that answers \"what did this design system ship\".",
             "type": "object",
@@ -139,6 +140,43 @@
         }
     },
     "$defs": {
+        "criterion": {
+            "description": "One scored criterion: 0–100 (one decimal), its weight in the total, and the counts it was computed from.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["score", "weight", "detail"],
+            "properties": {
+                "score": { "type": "number", "minimum": 0, "maximum": 100 },
+                "weight": { "type": "number", "exclusiveMinimum": 0 },
+                "detail": {
+                    "type": "object",
+                    "additionalProperties": { "type": ["number", "string"] }
+                }
+            }
+        },
+        "score": {
+            "description": "The composite score (docs/architecture.md, \"The authoring surface\"): five named criteria — six when an audit score was handed in — weighted into a total and a letter grade. A declined axis (`declaredOut`) and a fill role (`content: false` / `soft: false`) cost nothing; `skipStates` earns half credit; the weakest theme is the one graded. Per-scope `variant` wiring is deliberately not scored.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["total", "grade", "criteria"],
+            "properties": {
+                "total": { "type": "number", "minimum": 0, "maximum": 100 },
+                "grade": { "enum": ["A", "B", "C", "D", "F"] },
+                "criteria": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["components", "vocabulary", "states", "contrast"],
+                    "properties": {
+                        "components": { "$ref": "#/$defs/criterion" },
+                        "vocabulary": { "$ref": "#/$defs/criterion" },
+                        "states": { "$ref": "#/$defs/criterion" },
+                        "contrast": { "$ref": "#/$defs/criterion" },
+                        "issues": { "$ref": "#/$defs/criterion" },
+                        "audit": { "$ref": "#/$defs/criterion" }
+                    }
+                }
+            }
+        },
         "lynxFindings": {
             "description": "One list of lynx capability findings — where in the recipe/tokens source, what was found, and what happened to it.",
             "type": "array",

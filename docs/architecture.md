@@ -736,9 +736,22 @@ are the same object and cannot drift apart. Tier-3 rows are generated from
 package's `dist/report.json` and behind `sigx zero:validate --report`:
 components styled, axes wired per scope, declared-but-unwired values, the
 axis-agnostic divergence partition, state coverage, and the minimum
-contrast margin per theme. Automated vendor-doc checking is out of scope by
-design — it rots, then gets muted; the dated source column is the honest
-amount of process.
+contrast margin per theme — and, since `reportVersion: 2` (#408), a
+**composite score** folded from those sections (`resolve/score.ts`): five
+named criteria (components 25, vocabulary 15, states 20, contrast 25,
+issues 15 — an `audit` sixth when `zero:audit` hands one in), each 0–100
+with the counts it came from, weighted into a total and a letter grade.
+The score is the scalar a generating agent iterates against, and three
+properties are pinned rather than hoped: a declined axis costs nothing
+(`declaredOut` axes and fill roles — `isFillRole` in `contract.ts`, the one
+predicate the skins, the value-coverage guard and the score share, so #286
+is a one-function change — leave the denominator), `skipStates` earns half
+credit so the score cannot be raised by delegating everything, and the
+weakest theme is the one graded. Per-scope `variant` wiring is not scored:
+the `NO_VARIANT` ledger owns that decision. The six in-repo skins score
+93–97 (A), pinned as floors in `report.test.ts`. Automated vendor-doc
+checking is out of scope by design — it rots, then gets muted; the dated
+source column is the honest amount of process.
 
 ## 8. Ecosystem components
 

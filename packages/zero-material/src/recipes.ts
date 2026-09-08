@@ -5,7 +5,8 @@
  * tonal surface roles, the `level1`–`level5` elevation ramp, Material's
  * emphasized easings, and a dialog that goes full-screen below `sm`.
  */
-import type { CssProps, PartStyles, RecipeInput, RoleDecl } from '@sigx/zero-kit';
+import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
+import { axisRoles } from '@sigx/zero-kit/define';
 import { roles } from './tokens.js';
 
 /**
@@ -21,9 +22,7 @@ import { roles } from './tokens.js';
  * because they are fills and hairlines — not something a button can be. So
  * the exclusion the hand-written list encoded by hand is exactly this filter.
  */
-const ROLES = Object.entries(roles as Record<string, RoleDecl>)
-    .filter(([, decl]) => decl.content !== false && decl.soft !== false)
-    .map(([name]) => name);
+const ROLES = axisRoles(roles);
 
 /**
  * "…and the reading direction is right-to-left" — appended to a selector, never
