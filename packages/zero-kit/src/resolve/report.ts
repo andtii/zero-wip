@@ -46,7 +46,7 @@ export const REPORT_SCHEMA_URL = 'https://signalxjs.github.io/zero/schemas/repor
 /**
  * Whether an axis is wired, left unwired, or declared out of existence.
  *
- * `undeclared` is reachable only for `color` and `size` — see `undeclaredAxes`.
+ * `undeclared` is reachable for every named axis — see `undeclaredAxes`.
  * Both non-`wired` states produce `never` in the register artifact; they differ
  * only in what an author should do about it, which is why the report keeps them
  * apart rather than collapsing to a boolean.

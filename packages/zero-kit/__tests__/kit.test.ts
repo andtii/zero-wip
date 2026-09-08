@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+    buildDsManifest,
     compileDesignSystem,
     compileRecipeCss,
     compileTokensCss,
@@ -542,6 +543,33 @@ describe('extensible color roles', () => {
         });
         const compiled = compileDesignSystem({ name: 'no-sizes', tokens: noSizes, recipes: [] }, manifest);
         expect(compiled.tokens.sizes).toEqual([]);
+    });
+
+    it('a design system with no variant axis says so in its manifest, apart from one that never said', () => {
+        // `variants` has no recommended ramp to resolve, so both an omitted
+        // and an empty declaration compile to `[]` — `variantsDeclared` is
+        // what keeps "there isn't one" apart from "I didn't say" (#200/#295).
+        const base = {
+            roles: { primary: {} },
+            themes: {
+                day: {
+                    colorScheme: 'light' as const,
+                    colors: {
+                        'base-100': 'white', 'base-200': 'white', 'base-300': 'white', 'base-content': 'black',
+                        primary: 'blue', 'primary-content': 'white',
+                    },
+                },
+            },
+            defaultLight: 'day',
+        };
+        const silent = compileDesignSystem({ name: 'silent', tokens: defineTokens(base), recipes: [] }, manifest);
+        const declined = compileDesignSystem({ name: 'declined', tokens: defineTokens({ ...base, variants: [] }), recipes: [] }, manifest);
+        expect(silent.tokens.variants).toEqual([]);
+        expect(declined.tokens.variants).toEqual([]);
+        expect(silent.tokens.variantsDeclared).toBe(false);
+        expect(declined.tokens.variantsDeclared).toBe(true);
+        expect(buildDsManifest(silent).tokens.variantsDeclared).toBe(false);
+        expect(buildDsManifest(declined).tokens.variantsDeclared).toBe(true);
     });
 
     it('errors when a declared custom token has no theme value', () => {

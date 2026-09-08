@@ -61,6 +61,29 @@ describe('a declined axis costs nothing', () => {
         expect(report.score.criteria.vocabulary.detail['declaredOut']).toBe('color');
     });
 
+    it('a design system with `variants: []` scores full vocabulary marks', () => {
+        // #200/#295: declared out of existence is a statement, not a gap —
+        // the same treatment heroui's `roles: {}` gets above.
+        const probe: DesignSystemInput = {
+            ...(basicDS as DesignSystemInput),
+            tokens: { ...(basicDS as DesignSystemInput).tokens, variants: [] },
+            recipes: (basicDS as DesignSystemInput).recipes.map((r) => {
+                const { variant: _variant, ...axes } = r.variants ?? {};
+                const { variant: _default, ...defaults } = r.defaultVariants ?? {};
+                return {
+                    ...r,
+                    variants: axes,
+                    defaultVariants: defaults,
+                    compoundVariants: r.compoundVariants?.filter((c) => !('variant' in c.match)),
+                };
+            }),
+        };
+        const report = reportFor(probe);
+        expect(report.vocabulary.declaredOut).toEqual(['variant']);
+        expect(report.score.criteria.vocabulary.score).toBe(100);
+        expect(report.score.criteria.vocabulary.detail['declaredOut']).toBe('variant');
+    });
+
     it('material scores full vocabulary marks although four fill roles are unwired', () => {
         // The four tonal `surface*`/`outline` roles are tokens, not axis
         // values (#286) — `unwired.color` lists them, the score must not.

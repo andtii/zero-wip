@@ -127,12 +127,42 @@ describe('axis status', () => {
         expect(styled(heroui, 'button').axes.variant.status).toBe('wired');
     });
 
-    it('leaves `variant` declarable-but-unwired rather than undeclared', () => {
+    it('leaves an OMITTED `variants` declarable-but-unwired rather than undeclared', () => {
         // Omitting `tokens.variants` means "declared nothing", not "no variant
-        // axis" — so `variant` can never appear in declaredOut.
+        // axis" — every shipped skin declares a vocabulary, so `variant` never
+        // appears in their declaredOut.
         for (const [, ds] of shipped) {
             expect(reportFor(ds).vocabulary.declaredOut).not.toContain('variant');
         }
+    });
+
+    it('reads `variants: []` as the variant axis declared out of existence', () => {
+        // #200/#295: the claim `sizes: []` makes about size. The report says
+        // "no such axis" (not "wired by nothing"), the per-scope status is
+        // `undeclared`, and the register artifact gives the declared-out
+        // reason — one predicate, two readers.
+        const probe: DesignSystemInput = {
+            ...(basicDS as DesignSystemInput),
+            tokens: { ...(basicDS as DesignSystemInput).tokens, variants: [] },
+            recipes: (basicDS as DesignSystemInput).recipes.map((r) => {
+                const { variant: _variant, ...axes } = r.variants ?? {};
+                const { variant: _default, ...defaults } = r.defaultVariants ?? {};
+                return {
+                    ...r,
+                    variants: axes,
+                    defaultVariants: defaults,
+                    compoundVariants: r.compoundVariants?.filter((c) => !('variant' in c.match)),
+                };
+            }),
+        };
+        const report = reportFor(probe);
+        expect(report.vocabulary.declaredOut).toEqual(['variant']);
+        expect(report.vocabulary.variants).toEqual([]);
+        expect(styled(report, 'button').axes.variant.status).toBe('undeclared');
+        expect(styled(report, 'button').axes.color.status).toBe('wired');
+        const dts = compileRegisterDts(compileDesignSystem(probe, manifest));
+        expect(dts).toContain('basic declares no variant axis at all');
+        expect(dts).not.toContain('no basic recipe wires it');
     });
 
     it('reports the four colour-carrying systems as having no declaredOut axes', () => {

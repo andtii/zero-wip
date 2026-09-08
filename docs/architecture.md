@@ -183,11 +183,17 @@ empty means "there isn't one".**
   errors, and the register artifact emits `size: never` everywhere. An
   *omitted* `sizes` takes the recommended ramp. `roles: {}` makes the same
   claim for colour (zero-heroui is the shipped proof: genuinely colourless).
-- `variants: []` at the design-system level is currently an **error**
-  ("declared but empty — omit it to leave the vocabulary undeclared");
-  an omitted `variants` means "declared nothing, check nothing", not "no
-  variant axis". The asymmetry with `sizes` is a known wart, tracked in
-  [#295](https://github.com/signalxjs/zero/issues/295).
+- `variants: []` makes the same claim for the variant axis (#200/#295):
+  every recipe keying `variants.variant` errors, the manifest records
+  `tokens.variantsDeclared: true`, the report lists `variant` under
+  `declaredOut`, and the register artifact emits `variant: never` with the
+  declared-out reason ("declares no variant axis at all") rather than the
+  unwired one ("no recipe wires it"). An *omitted* `variants` still means
+  "declared nothing, check nothing" — `variant` has no recommended default
+  to fall back to, so both spellings compile to an empty list and
+  `variantsDeclared` is what tells them apart. A custom axis in
+  `tokens.axes` cannot be declared away: `[]` there stays an error, since
+  there is no named prop to switch off.
 
 **Per-scope vocabularies** (`tokens.scopes`). A design system may declare,
 per component scope, which part of each axis vocabulary that scope offers —
@@ -895,9 +901,6 @@ Honesty section. These are the edges the tree knows about today:
   [#286](https://github.com/signalxjs/zero/issues/286) (`tokens.roles` is
   both palette and colour vocabulary, so a token-only role reads as a
   declared axis value),
-  [#295](https://github.com/signalxjs/zero/issues/295) (`variants: []` at
-  the design-system level, so `variant: never` can say which of its two
-  meanings it has),
   [#197](https://github.com/signalxjs/zero/issues/197) /
   [#199](https://github.com/signalxjs/zero/issues/199) (ancestor-scoped
   axes, responsive axis values),

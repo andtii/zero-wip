@@ -247,7 +247,13 @@ export interface TokensInput<R extends RolesDecl = RolesDecl, T extends SystemTo
      * `sizes` is: it flows into the manifest, and once declared the validator
      * closes the set — a recipe `variants.variant` value outside it is an
      * error rather than a silently minted vocabulary entry. Omitted → the
-     * axis stays undeclared and recipe values are unchecked, exactly as today.
+     * axis stays undeclared and recipe values are unchecked. **Empty** (`[]`)
+     * → this design system has no variant axis at all, the claim `sizes: []`
+     * makes about size and `roles: {}` about colour (#200/#295): every recipe
+     * keying `variants.variant` errors, the manifest records
+     * `variantsDeclared`, and the register artifact emits `variant: never`
+     * with the declared-out reason. Absence means "I didn't say"; empty means
+     * "there isn't one".
      */
     variants?: readonly string[];
     /**

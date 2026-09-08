@@ -767,6 +767,12 @@ export function validateRecipes(
                         } else {
                             error(where_, `"${value}" is not a declared variant (${vocabulary.variants?.join(', ') ?? 'none'})`);
                         }
+                    } else if (scoped.variants.length === 0) {
+                        // `variants: []` design-system-wide — no variant axis
+                        // at all (#200/#295), the same claim `sizes: []` makes
+                        // above: not a value off the set but a whole axis
+                        // that should not exist.
+                        error(where_, `this design system declares no variant axis (tokens.variants is empty), so "${axis}" cannot be wired`);
                     } else {
                         error(where_, `"${value}" is not a declared variant (${scoped.variants.join(', ')})`);
                     }

@@ -21,6 +21,23 @@
   the brief pack, cheat-sheet table, `briefs/README.md` and the scaffold's
   `--brief` choices carry the new entry.
 
+- **`variants: []` declares the variant axis out of existence** (#200,
+  #295). The claim `sizes: []` makes about size and `roles: {}` about
+  colour, now available for the third named axis: the validator accepts the
+  empty list (it used to error "declared but empty"), every recipe keying
+  `variants.variant` errors with "declares no variant axis (tokens.variants
+  is empty)", the coverage report lists `variant` under `declaredOut` (and
+  the score charges nothing for it), and `register.d.ts` emits
+  `variant: never` with the declared-out reason ("declares no variant axis
+  at all") instead of the unwired one — `variant: never` can finally say
+  which of its two meanings it has. An *omitted* `variants` still means
+  "declared nothing, check nothing"; since `variant` has no recommended
+  default, both spellings compile to an empty list, and the compiled form
+  and the DS manifest gain `tokens.variantsDeclared: boolean` to keep them
+  apart (`ds-manifest.schema.json` and its lynx mirror require it;
+  `report.schema.json`'s `declaredOut` enum gains `variant`). A custom axis
+  in `tokens.axes` still cannot be declared away — `[]` there stays an
+  error, there being no named prop to switch off.
 - **Palette derivation** (#402): `derivePalette`, `deriveThemePair`,
   `solveContentLightness`, `contrastRatio`, `clampChroma` and `formatOklch`
   on `@sigx/zero-kit/define` (and the barrel). From seed hues — `{ primary:

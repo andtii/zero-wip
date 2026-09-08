@@ -191,12 +191,15 @@ describe('report.schema.json', () => {
         expect(validateReport(bad)).toBe(false);
     });
 
-    it('rejects `variant` in declaredOut', () => {
-        // Only colour and size can be declared out of existence — an omitted
-        // `tokens.variants` means "declared nothing", not "no variant axis".
-        const bad = asJson(reportNamed('basic')) as { vocabulary: { declaredOut: string[] } };
-        bad.vocabulary.declaredOut.push('variant');
-        expect(validateReport(bad)).toBe(false);
+    it('accepts `variant` in declaredOut and rejects an axis that cannot be declared out', () => {
+        // Every named axis can be declared out of existence (#200/#295) —
+        // `variants: []` lands `variant` here. A custom axis never can: `[]`
+        // in `tokens.axes` is an error, not a claim.
+        const report = asJson(reportNamed('basic')) as { vocabulary: { declaredOut: string[] } };
+        report.vocabulary.declaredOut.push('variant');
+        expectValid(validateReport, report, 'variant declared out');
+        report.vocabulary.declaredOut.push('density');
+        expect(validateReport(report)).toBe(false);
     });
 
     it('rejects an unstyled component that carries axes anyway', () => {

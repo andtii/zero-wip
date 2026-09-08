@@ -121,8 +121,19 @@ export interface CompiledDesignSystem {
         roles: Record<string, RoleDecl>;
         /** The DS's `size` axis vocabulary, resolved (declared, else recommended). */
         sizes: string[];
-        /** The DS's declared `variant` axis vocabulary ([] when undeclared). */
+        /**
+         * The DS's declared `variant` axis vocabulary ([] when undeclared OR
+         * declared out of existence — `variantsDeclared` tells the two apart).
+         */
         variants: string[];
+        /**
+         * Whether `tokens.variants` was stated at all. `variants: []` is the
+         * claim "this design system has no variant axis" (#200/#295), the
+         * grammar `sizes: []` uses; an omitted key is only silence. The
+         * resolved list alone cannot carry that difference, since the
+         * recommended default for `variants` is nothing rather than a ramp.
+         */
+        variantsDeclared: boolean;
         /** Declared custom variant axes: axis name → values ({} when undeclared). */
         axes: Record<string, string[]>;
         /** Declared presence-only modifiers ([] when undeclared). */
@@ -206,17 +217,18 @@ function harvestAxes(recipe: RecipeInput): CompiledComponentAxes {
  * The distinction matters in the diagnostic: "no recipe wires it" tells an
  * author to go wire one, which is wrong advice when there is no axis to wire.
  *
- * Only `color` and `size` can be declared away, and only by an *explicitly
- * empty* declaration — `resolveRoles(undefined)` yields the recommended eight
- * and `resolveSizes(undefined)` the recommended ramp, so an empty result here
- * can only have come from `roles: {}` or `sizes: []`.
- *
- * `variant` is deliberately absent: omitting `tokens.variants` means "declared
- * nothing, check nothing", NOT "this design system has no variant axis", and
- * `compileDesignSystem` normalises the omission to `[]`. Treating that as
- * out-of-existence would mislabel every unwired `variant` in a design system
- * that simply never declared the vocabulary — the exact error this function
- * exists to avoid, pointed the other way.
+ * Every named axis can be declared away, and only by an *explicitly empty*
+ * declaration: `resolveRoles(undefined)` yields the recommended eight and
+ * `resolveSizes(undefined)` the recommended ramp, so an empty result there
+ * can only have come from `roles: {}` or `sizes: []`. `variant` has no
+ * recommended default — `compileDesignSystem` normalises an OMITTED
+ * `tokens.variants` to `[]` as well — so the resolved list alone cannot say
+ * which of its two meanings an empty `variant` has, and `variantsDeclared`
+ * carries the difference (#200/#295): `variants: []` is the claim "no variant
+ * axis"; omission means "declared nothing, check nothing", and treating that
+ * as out-of-existence would mislabel every unwired `variant` in a design
+ * system that simply never declared the vocabulary — the exact error this
+ * function exists to avoid, pointed the other way.
  *
  * Target-neutral, and shared: `compileRegisterDts` picks the `never` doc
  * comment from it, and `buildReport` names the same axes. Two readers of one
@@ -228,10 +240,10 @@ export function undeclaredAxes(compiled: CompiledDesignSystem, scope?: string): 
     const out = new Set<string>();
     if (Object.keys(compiled.tokens.roles).length === 0) out.add('color');
     if (compiled.tokens.sizes.length === 0) out.add('size');
+    if (compiled.tokens.variantsDeclared && compiled.tokens.variants.length === 0) out.add('variant');
     // A scope may declare an axis out of existence FOR ITSELF, with the same
-    // empty-list grammar (#294) — and here `variant` can be one of them, which
-    // it never can design-system-wide: `variants: []` on a scope is a positive
-    // claim, where an omitted `tokens.variants` is only silence.
+    // empty-list grammar (#294): `variants: []` on a scope is the same positive
+    // claim the design-system-wide declaration makes, scoped to one component.
     const offered = scope ? compiled.components[scope]?.offered : undefined;
     if (offered) {
         if (offered.color?.length === 0) out.add('color');
@@ -397,6 +409,7 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
             roles,
             sizes: [...resolveSizes(ds.tokens.sizes)],
             variants: [...(ds.tokens.variants ?? [])],
+            variantsDeclared: ds.tokens.variants !== undefined,
             axes: Object.fromEntries(
                 Object.entries(ds.tokens.axes ?? {}).map(([axis, values]) => [axis, [...values]]),
             ),

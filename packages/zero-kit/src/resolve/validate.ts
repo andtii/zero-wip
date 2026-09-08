@@ -441,10 +441,13 @@ export function validateDesignSystem<R extends RolesDecl>(
     // the anatomy contract owns: the zero runtime throws on both, and the
     // validator must reject exactly what the runtime refuses to render.
     //
-    // `empty` differs by tier and the difference is the whole per-scope
-    // grammar: design-system-wide, an empty list says nothing an omission
-    // doesn't, so it is an error; per scope, it is the claim "this scope has
-    // no such axis" and must be allowed through.
+    // `empty` is the load-bearing option. For the two named axes with a
+    // recommended default (`sizes`, `variants`) an empty list is the claim
+    // "this design system has no such axis" — the same statement `roles: {}`
+    // makes about colour (#200/#295) — and the omission means "I didn't say".
+    // A custom axis in `tokens.axes` has no recommended default to decline and
+    // no named prop to switch off, so `[]` there says nothing an omission
+    // doesn't and stays an error. Per scope, empty is always the claim.
     const checkAxisValues = (
         where: string,
         values: readonly string[],
@@ -482,7 +485,11 @@ export function validateDesignSystem<R extends RolesDecl>(
             error(where, 'contains duplicate entries');
         }
     };
-    if (ds.tokens.variants) checkAxisValues('tokens.variants', ds.tokens.variants);
+    // `variants: []` — no variant axis at all, the grammar `sizes: []` uses
+    // (docs/architecture.md, "Declared vocabulary"). It reaches the manifest
+    // (`variantsDeclared`), the report (`declaredOut`) and the register
+    // artifact, where `variant` becomes `never` with the declared-out reason.
+    if (ds.tokens.variants) checkAxisValues('tokens.variants', ds.tokens.variants, { empty: 'means-none' });
     // Modifier NAMES become the tail of `data-mod-<name>`. No reserved-name
     // check is needed: the prefix puts every modifier outside the anatomy
     // contract's namespace, which is the whole reason it exists.

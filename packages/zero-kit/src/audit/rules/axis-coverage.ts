@@ -26,9 +26,11 @@
  * its silence is an answer rather than an omission.
  *
  * `variant` is deliberately not checked: omitting `tokens.variants` means
- * "declared nothing", not "no variant axis", and every shipped skin wires it
- * on a handful of scopes by decision. The value-coverage rules judge the
- * variant vocabulary a design system DOES declare.
+ * "declared nothing", not "no variant axis" (`variants: []` is that claim,
+ * #200/#295, and would be a waiver here if the axis were checked), and every
+ * shipped skin wires it on a handful of scopes by decision. The
+ * value-coverage rules judge the variant vocabulary a design system DOES
+ * declare.
  */
 import { offeredFor } from '../../design-system.js';
 import type { AuditContext } from '../context.js';

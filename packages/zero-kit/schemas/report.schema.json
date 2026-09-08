@@ -58,9 +58,9 @@
                 "axes": { "$ref": "#/$defs/valueListsByAxis" },
                 "modifiers": { "$ref": "#/$defs/tokenList" },
                 "declaredOut": {
-                    "description": "Axes declared OUT of existence rather than merely left unwired — `roles: {}` retires colour, `sizes: []` retires the size ramp. Only these two can be, and `variant` never appears: omitting `tokens.variants` means \"declared nothing\", not \"no variant axis\".",
+                    "description": "Axes declared OUT of existence rather than merely left unwired — `roles: {}` retires colour, `sizes: []` retires the size ramp, `variants: []` retires the variant axis. Only an explicitly empty declaration lands here: omitting `tokens.variants` means \"declared nothing\", not \"no variant axis\".",
                     "type": "array",
-                    "items": { "enum": ["color", "size"] },
+                    "items": { "enum": ["color", "size", "variant"] },
                     "uniqueItems": true
                 },
                 "scopes": {
