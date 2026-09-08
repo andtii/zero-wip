@@ -1,6 +1,7 @@
 /**
  * zero-basic recipes — readable neutral styling for every zero component.
- * Pure data (type-only kit imports); compiled to CSS by build.mjs.
+ * Pure data — the kit is imported as types, plus `axisRoles` from the
+ * browser-safe `/define` subpath; compiled to CSS by build.mjs.
  */
 import type { CssProps, PartStyles, RecipeInput } from '@sigx/zero-kit';
 import { axisRoles } from '@sigx/zero-kit/define';
