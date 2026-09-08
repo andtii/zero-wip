@@ -20,8 +20,10 @@ import type { ValidationResult } from './resolve/validate.js';
 import { validateDesignSystem } from './resolve/validate.js';
 import { buildReport } from './resolve/report.js';
 import { buildDsManifest, writeArtifacts } from './artifacts.js';
-export { auditDesignSystem, formatAudit } from './audit/index.js';
-export type { AuditFinding, AuditOptions, AuditResult, AuditRuleId } from './audit/index.js';
+import { auditDesignSystem } from './audit/index.js';
+import type { AuditResult } from './audit/index.js';
+export { AUDIT_SCHEMA_URL, auditDesignSystem, buildAuditArtifact, formatAudit } from './audit/index.js';
+export type { AuditArtifact, AuditFinding, AuditOptions, AuditResult, AuditRuleId } from './audit/index.js';
 import type { CompiledLynxTarget } from './targets/lynx/compile.js';
 import { compileDesignSystemLynx, writeLynxArtifacts } from './targets/lynx/compile.js';
 
@@ -65,6 +67,15 @@ export interface StandardBuildOptions {
      * target with `targets: ['web', 'lynx']` once the lynx emitters land.
      */
     targets?: readonly BuildTarget[];
+    /**
+     * Run the audit (`auditDesignSystem`, #403) after the report: its
+     * findings are written as `dist/audit.json`, its summary lands in
+     * `report.json` under `audit` and feeds the score's sixth criterion,
+     * and every error-severity finding is logged as a warning. The build
+     * never fails on a finding — `sigx zero:audit` is where the exit code
+     * lives. Default `true`; `false` skips all of it.
+     */
+    audit?: boolean;
     logger?: StandardBuildLogger;
 }
 
@@ -75,8 +86,8 @@ export interface StandardBuildResult {
 }
 
 /**
- * validate → compile → buildReport → writeArtifacts, with uniform issue
- * printing. Throws — after printing every issue — when validation fails:
+ * validate → compile → audit → buildReport → writeArtifacts, with uniform
+ * issue printing. Throws — after printing every issue — when validation fails:
  * nothing is ever emitted from an invalid source, and a rejected promise is
  * what fails a build script and the CLI alike.
  */
@@ -112,10 +123,27 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
     }
 
     const compiled = compileDesignSystem(ds, manifest);
+    // The audit reuses the compile and runs BEFORE the report, because the
+    // report folds the audit's summary in and scores it. It is quality, not
+    // correctness: findings are surfaced, written and scored, never fatal.
+    let audit: AuditResult | undefined;
+    if (options.audit !== false) {
+        audit = auditDesignSystem(ds, manifest, { compiled });
+        const { errors, warnings, info } = audit.summary;
+        logger.log(
+            `[${ds.name}] audit: ${errors} error(s), ${warnings} warning(s), ${info} info`
+            + (errors + warnings > 0 ? ' — see audit.json, or run `sigx zero:audit`' : ''),
+        );
+        for (const finding of audit.findings) {
+            if (finding.severity === 'error') {
+                logger.warn(`[${ds.name}] audit ${finding.rule}: ${finding.where} — ${finding.message}`);
+            }
+        }
+    }
     // The coverage report is built here rather than inside writeArtifacts: it
     // needs the authoring input and the anatomy manifest, neither of which
     // survives into CompiledDesignSystem.
-    const report = buildReport(compiled, ds, manifest, result);
+    const report = buildReport(compiled, ds, manifest, result, audit);
 
     // The lynx target compiles BEFORE the web artifacts are written: its
     // capability findings belong in the same report.json, and a lynx reject
@@ -133,7 +161,7 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
         }
     }
 
-    const written = await writeArtifacts(compiled, outDir, report);
+    const written = await writeArtifacts(compiled, outDir, report, audit);
     if (lynx) {
         written.push(...await writeLynxArtifacts(compiled, lynx, buildDsManifest(compiled), outDir));
     }

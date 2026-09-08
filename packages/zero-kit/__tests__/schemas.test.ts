@@ -30,7 +30,7 @@ import {
     STATE_SYNONYMS,
     PLACEMENT_VOCABULARY,
 } from '@sigx/zero/contract';
-import { buildDsManifest, buildReport, compileDesignSystem } from '@sigx/zero-kit';
+import { AUDIT_RULES, auditDesignSystem, buildAuditArtifact, buildDsManifest, buildReport, compileDesignSystem } from '@sigx/zero-kit';
 import type { DesignSystemInput, ManifestComponent } from '@sigx/zero-kit';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
@@ -54,6 +54,7 @@ const validateManifest = ajv.compile(loadSchema('manifest'));
 const validateTokens = ajv.compile(loadSchema('tokens'));
 const validateRecipe = ajv.compile(loadSchema('recipe'));
 const validateReport = ajv.compile(loadSchema('report'));
+const validateAudit = ajv.compile(loadSchema('audit'));
 
 /**
  * JSON roundtrip before validating. The design systems are authored as TS
@@ -234,6 +235,101 @@ describe('report.schema.json', () => {
 });
 
 // ── tokens.schema.json ───────────────────────────────────────────────────
+
+describe('report.schema.json — the audit section', () => {
+    const reportManifest = { components: manifest.components as ManifestComponent[] };
+    const withAudit = (): unknown => {
+        const ds = basicDS as DesignSystemInput;
+        const compiled = compileDesignSystem(ds, reportManifest);
+        return asJson(buildReport(compiled, ds, reportManifest, undefined, auditDesignSystem(ds, reportManifest, { compiled })));
+    };
+
+    it('accepts a report carrying the audit summary and its criterion', () => {
+        expectValid(validateReport, withAudit(), 'basic report with audit');
+    });
+
+    it('rejects an audit section with an unknown key or a stray rule id', () => {
+        const report = withAudit() as { audit: Record<string, unknown> & { byRule: Record<string, number> } };
+        expect(validateReport({ ...report, audit: { ...report.audit, vendor: 'acme' } })).toBe(false);
+        expect(validateReport({ ...report, audit: { ...report.audit, byRule: { 'not-a-rule': 1 } } })).toBe(false);
+    });
+});
+
+// ── audit.schema.json ────────────────────────────────────────────────────
+
+describe('audit.schema.json', () => {
+    const auditManifest = { components: manifest.components as ManifestComponent[] };
+    const audits = SYSTEMS.map(
+        ([name, ds]) => [name, buildAuditArtifact(auditDesignSystem(ds as DesignSystemInput, auditManifest))] as const,
+    );
+    const basic = (): unknown => asJson(audits.find(([n]) => n === 'basic')![1]);
+
+    it.each(audits)('accepts the audit emitted for %s', (name, audit) => {
+        expectValid(validateAudit, asJson(audit), `${name} audit`);
+    });
+
+    it('accepts findings and waivers of every shape the rules produce', () => {
+        // A synthetic design system that trips several rules at once, so the
+        // finding and waiver item shapes are exercised, not just the empty list.
+        const ds: DesignSystemInput = {
+            name: 'noisy',
+            tokens: {
+                roles: { primary: {} },
+                sizes: [],
+                defaultLight: 'day',
+                themes: { day: { colorScheme: 'light', colors: {
+                    'base-100': 'white', 'base-200': 'white', 'base-300': 'white',
+                    'base-content': 'black', primary: 'blue', 'primary-content': 'white',
+                } } },
+            },
+            recipes: [
+                { component: 'button', parts: { root: { base: {} } }, variants: { color: { primary: { root: { base: { background: 'blue' } } } } } },
+                { component: 'avatar', parts: { root: { base: {} } } },
+                { component: 'tooltip', parts: { trigger: { base: { padding: '1rem' }, states: { open: {}, closed: {} } } } },
+                {
+                    component: 'checkbox',
+                    parts: { control: { base: {} }, indicator: { base: {}, states: { checked: {}, unchecked: {}, indeterminate: {} } } },
+                    skipStates: { indicator: ['checked', 'unchecked', 'indeterminate'] },
+                },
+            ],
+        };
+        const artifact = buildAuditArtifact(auditDesignSystem(ds, auditManifest));
+        expect(artifact.findings.length).toBeGreaterThan(0);
+        expect(artifact.waived.length).toBeGreaterThan(0);
+        expectValid(validateAudit, asJson(artifact), 'noisy audit');
+    });
+
+    it('rejects an unknown top-level key (the emitter is closed)', () => {
+        expect(validateAudit({ ...(basic() as object), vendor: 'acme' })).toBe(false);
+    });
+
+    it('pins the rule enum in both schemas to AUDIT_RULES', () => {
+        // Two hand-written copies of one closed set (audit.schema.json's
+        // ruleId and report.schema.json's audit.byRule keys) — the kind of
+        // mirror this suite exists to keep honest.
+        const audit = loadSchema('audit') as { $defs: { ruleId: { enum: string[] } } };
+        const report = loadSchema('report') as { properties: { audit: { properties: { byRule: { propertyNames: { enum: string[] } } } } } };
+        expect(audit.$defs.ruleId.enum).toEqual([...AUDIT_RULES]);
+        expect(report.properties.audit.properties.byRule.propertyNames.enum).toEqual([...AUDIT_RULES]);
+    });
+
+    it('rejects a finding whose rule or severity is outside the closed sets', () => {
+        const finding = { rule: 'button-affordance', severity: 'error', where: 'button.root', message: 'x' };
+        const ok = { ...(basic() as { summary: unknown }), findings: [finding] };
+        expectValid(validateAudit, ok, 'one finding');
+        expect(validateAudit({ ...ok, findings: [{ ...finding, rule: 'not-a-rule' }] })).toBe(false);
+        expect(validateAudit({ ...ok, findings: [{ ...finding, severity: 'fatal' }] })).toBe(false);
+    });
+
+    it('rejects a waiver without its mechanism, and a version other than 1', () => {
+        const waiver = { rule: 'axis-coverage', severity: 'warning', where: 'avatar.color', message: 'x', waivedBy: { mechanism: 'tokens.scopes', detail: 'd' } };
+        const ok = { ...(basic() as object), waived: [waiver] };
+        expectValid(validateAudit, ok, 'one waiver');
+        const { waivedBy: _w, ...bare } = waiver;
+        expect(validateAudit({ ...ok, waived: [bare] })).toBe(false);
+        expect(validateAudit({ ...(basic() as object), auditVersion: 2 })).toBe(false);
+    });
+});
 
 describe('tokens.schema.json', () => {
     it.each(SYSTEMS)('accepts %s tokens', (name, ds) => {

@@ -190,6 +190,7 @@ export function renderReadme(ctx: RenderContext): string {
         'pnpm install',
         'pnpm build                      # tsc, then compile tokens + recipes to dist/css',
         'npx sigx zero:validate --report # the generate → validate → fix loop',
+        'npx sigx zero:audit             # …and the audit: does the compiled CSS say what it claims',
         '```',
         '',
         '## Use',

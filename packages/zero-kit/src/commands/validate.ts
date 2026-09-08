@@ -7,6 +7,7 @@ import { compileDesignSystem } from '../design-system.js';
 import type { DesignSystemReport } from '../resolve/report.js';
 import { buildReport, formatReport } from '../resolve/report.js';
 import { diffReports, formatReportDiff } from '../resolve/report-diff.js';
+import { auditDesignSystem } from '../audit/index.js';
 import type { ValidationResult } from '../resolve/validate.js';
 import type { CommandEnv } from './shared.js';
 import { loadInputs } from './shared.js';
@@ -76,8 +77,15 @@ async function readPreviousReport(env: CommandEnv, spec: string): Promise<Design
  * itself sits outside the `try` entirely, so a bug there always surfaces —
  * including for a design system that fails validation, which is exactly when
  * its report matters most.
+ *
+ * The audit runs here too, on the same compile, and only for the report's
+ * sake: its summary is a section of the report and its score the sixth
+ * criterion, and `runStandardBuild` does the same — so `--report` and
+ * `dist/report.json` are the same document and `--diff dist/report.json`
+ * compares like with like. The findings themselves are `zero:audit`'s to
+ * print.
  */
-function tryBuildReport(
+export function reportFor(
     ds: DesignSystemInput,
     manifest: ZeroManifest,
     result: ValidationResult,
@@ -89,7 +97,7 @@ function tryBuildReport(
         if (result.ok) throw err;
         return undefined;
     }
-    return buildReport(compiled, ds, manifest, result);
+    return buildReport(compiled, ds, manifest, result, auditDesignSystem(ds, manifest, { compiled }));
 }
 
 export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promise<void> {
@@ -115,7 +123,7 @@ export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promi
         // its own try/catch. Compiling again keeps that seam untouched and costs
         // nothing measurable. `undefined` here means only one thing — the design
         // system does not compile, which `result` already says.
-        const report = tryBuildReport(ds, manifest, result);
+        const report = reportFor(ds, manifest, result);
         if (report) {
             if (opts.report && !stdoutIsJson) for (const line of formatReport(report)) env.logger.log(line);
             if (opts.reportJson) {

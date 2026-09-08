@@ -41,9 +41,10 @@ describe('plugin registration', () => {
     it('registers namespaced commands with bare aliases', () => {
         // Namespaced so a project that is also a Lynx app doesn't get whichever
         // `build` loaded last; the bare alias still resolves when unclaimed.
-        expect(Object.keys(plugin.commands).sort()).toEqual(['zero:build', 'zero:validate']);
+        expect(Object.keys(plugin.commands).sort()).toEqual(['zero:audit', 'zero:build', 'zero:validate']);
         expect(plugin.commands['zero:build']!.aliases).toEqual(['build']);
         expect(plugin.commands['zero:validate']!.aliases).toEqual(['validate']);
+        expect(plugin.commands['zero:audit']!.aliases).toEqual(['audit']);
     });
 
     it('describes every command and flag', () => {
@@ -232,5 +233,51 @@ describe('zero:validate args', () => {
             expect(err).toBeInstanceOf(ParseError);
             expect((err as ParseError).code).toBe('MISSING_VALUE');
         }
+    });
+});
+
+describe('zero:audit args', () => {
+    const shape = shapeOf('zero:audit');
+
+    it('applies the shared defaults and no others', () => {
+        const { args } = parseArgs([], shape);
+        expect(args.entry).toBe('./dist/design-system.js');
+        expect(args.manifest).toBeUndefined();
+        expect(args.strict).toBe(false);
+        expect(args.json).toBeUndefined();
+        expect(args.rule ?? []).toEqual([]);
+    });
+
+    it('takes --rule repeatedly', () => {
+        const { args } = parseArgs(['--rule', 'button-affordance', '--rule', 'axis-coverage'], shape);
+        expect(args.rule).toEqual(['button-affordance', 'axis-coverage']);
+    });
+
+    it('takes --json as a path, "-" included', () => {
+        expect(parseArgs(['--json', 'audit.json'], shape).args.json).toBe('audit.json');
+        expect(parseArgs(['--json=-'], shape).args.json).toBe('-');
+    });
+
+    it('rejects --json with no value (the --report-json rule, for the same reason)', () => {
+        try {
+            parseArgs(['--json'], shape);
+            expect.unreachable('should have thrown');
+        } catch (err) {
+            expect(err).toBeInstanceOf(ParseError);
+            expect((err as ParseError).code).toBe('MISSING_VALUE');
+        }
+    });
+
+    it('does not let --strict swallow the next token', () => {
+        const { args } = parseArgs(['--strict', '--manifest', 'm.json'], shape);
+        expect(args.strict).toBe(true);
+        expect(args.manifest).toBe('m.json');
+    });
+
+    it('has neither --out nor --report', () => {
+        // The audit writes nothing but its own artifact, and the coverage
+        // report is zero:validate's — offering either would be a lie.
+        expect(() => parseArgs(['--out', 'x'], shape)).toThrow(ParseError);
+        expect(() => parseArgs(['--report'], shape)).toThrow(ParseError);
     });
 });

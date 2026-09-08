@@ -230,6 +230,19 @@ attribute is absent, i.e. CSS-only defaults.
 
 ### 3.2 Build-time validation
 
+Two questions are asked at build time, by two different mechanisms.
+**Validation** (`validateDesignSystem` / `validateRecipes`) asks "is this
+correct?" — its errors gate the build, and nothing is emitted from an
+invalid source. The **audit** (`auditDesignSystem`, [§9](#9-the-verification-architecture),
+#403) asks "does what was built say what it claims?" by reading the
+*compiled* CSS; it is quality rather than correctness, so it never gates
+the build — `runStandardBuild` runs it, writes it as `dist/audit.json`,
+folds its counts into `report.json` under `audit` and scores them, and
+`sigx zero:audit` is the command with the exit code (error findings fail
+it, `--strict` fails on warnings, `info` never). A design system
+mid-iteration must be able to read its own audit and still get artifacts
+to look at; that is the whole reason the two are not one command.
+
 `validateDesignSystem` / `validateRecipes`
 (`packages/zero-kit/src/resolve/`) enforce one principle stated in the
 source: **an explicit declaration closes its set.** Colour against `roles`,
@@ -722,9 +735,23 @@ The pipeline — merge fragments → validate → throw before emitting anything
 on failure → compile → build the coverage report → `writeArtifacts` — used
 to be copied byte-identically across six `build.mjs` files; it now lives
 once in `@sigx/zero-kit/build`, and a skin's `build.mjs` is ~15 lines of
-declaration passing. The CLI (`sigx zero:build` / `zero:validate`, aliased
-`build`/`validate`, discovered through the `"sigx-cli"` field) calls the
-same functions, so the CLI path and the build.mjs path cannot drift.
+declaration passing. The CLI (`sigx zero:build` / `zero:validate` /
+`zero:audit`, aliased `build`/`validate`/`audit`, discovered through the
+`"sigx-cli"` field) calls the same functions, so the CLI path and the
+build.mjs path cannot drift.
+
+**The audit is an artifact as well as a command.** After the compile,
+`runStandardBuild` runs `auditDesignSystem` on it (opt-out `audit: false`),
+logs every error-severity finding as a warning, and hands the result to
+both writers: `writeArtifacts` emits it as `dist/audit.json`
+(`schemas/audit.schema.json` — findings, waivers, summary, sorted severity →
+rule → where; every skin exports it as `./audit.json`), and `buildReport`
+takes it as a fifth input, carrying its counts under `report.audit` and
+scoring them as the sixth criterion (`auditScore`: the issues formula
+applied to findings, `info` never charged). `zero:validate --report` runs
+the same audit for the report's sake, so the report it prints and the one
+the build writes are one document — which is what lets a later
+`--diff dist/report.json` compare like with like.
 
 **Scaffolding is a `create-*` package, not a plugin command.** `init` was
 declined (#10): a `sigx` plugin only loads where `@sigx/zero-kit` is already
@@ -859,6 +886,7 @@ checking a fraction of what it claimed.)
 | CSS goldens | `zero-kit/__tests__/css-golden.test.ts` | Byte-for-byte compiled CSS per skin: ordering, layering, specificity are the product. |
 | Parity family (6) | `contract-parity`, `registry-parity`, `reserved-props-parity`, `schemas`, `llms-doc`, `type-test-paths` | Every deliberately duplicated surface (kit↔zero contract copies, manifest↔registry, api reserved props↔real Root props, schemas↔reality, llms.txt claims↔source, type-test paths↔package exports) is pinned from both sides. |
 | Audit rules (in-kit) | `zero-kit/src/audit/rules/` via `auditDesignSystem`; the six skins through the thin callers `state-legibility.test.ts`, `button-affordance.test.ts`, `axis-value-coverage.test.ts`, `axis-coverage.test.ts`; `audit-api.test.ts` + `reduced-motion-loop.test.ts` hold every rule's red fixture | Every declared state is visually distinct (component / indicator / in-flow disclosure, honoring `hiddenIn` and per-part `skipStates`); every real `<button>` part resets `appearance`; no declared axis step goes unhonored by the recipes that claim it, and at most one claims the base; no styled scope accepts a declared `color`/`size` axis and wires nothing (ledgered, [§3.8](#38-the-ledgers)); every infinite animation stops under `prefers-reduced-motion` on the same selector. All read from **compiled CSS**, and — since #403 — reachable by a design system built outside this repo. |
+| Audit command + artifact | `zero-kit/src/commands/audit.ts` (`sigx zero:audit`), `build.ts` → `dist/audit.json` + `report.audit`; `audit-cli.test.ts`, `audit-artifacts.test.ts`, `schemas.test.ts` (`audit.schema.json`, and the rule enum pinned to `AUDIT_RULES` in both schemas) | The exit-code contract (errors fail, `--strict` adds warnings, `info` never; `--json -` owns stdout; a non-compiling DS is refused in the validator's words); the build never fails on a finding but writes, summarises and scores every one; `zero:validate --report` and `dist/report.json` are the same document. |
 | Type tests (6 isolated projects) | `packages/zero/type-tests/` — `open`, `augmented`, `generated`, `components`, `registered-components`, `ecosystem` | Each proves one narrowing regime in its own program (augmentation leaks program-wide, so isolation is the point): the unaugmented open fallback; a hand-written augmentation (a `.ts`, so `skipLibCheck` cannot skip it); the real emitted material golden; the emitted `components.d.ts` goldens with the vocabulary untouched, two design systems coexisting; **all 51 scopes' real prop surfaces** under the emitted zero-basic golden; and the ecosystem `Exclude`-gate round trip. |
 | Register compile gate | `zero-kit/__tests__/register-dts-compile.test.ts` | Every skin's emitted `register.d.ts` compiles with `skipLibCheck: false` against a generated stub of `@sigx/zero`, so the artifact's self-assertions actually execute ([§3.5](#35-the-register-artifact)). |
 | Typed-app capstone | `examples/typed-app` (CI, after build) | The consumer side: three isolated programs against **emitted `dist/`** through real package exports — register narrowing, the no-register components surface, and carbon's values remap. |

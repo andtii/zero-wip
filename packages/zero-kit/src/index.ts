@@ -85,6 +85,7 @@ export { axisClaims, defineDesignSystem, compileDesignSystem, offeredFor, undecl
 export type {
     AuditContext,
     AuditFinding,
+    AuditArtifact,
     AuditOptions,
     AuditResult,
     AuditRuleId,
@@ -96,8 +97,10 @@ export type {
 } from './audit/index.js';
 export {
     AUDIT_RULES,
+    AUDIT_SCHEMA_URL,
     RULE_SEVERITY,
     auditDesignSystem,
+    buildAuditArtifact,
     buildAuditContext,
     compareFindings,
     formatAudit,
@@ -121,10 +124,10 @@ export type {
     UnstyledComponentReport,
 } from './resolve/report.js';
 export { buildReport, formatReport, REPORT_SCHEMA_URL } from './resolve/report.js';
-export type { ReportScore, ScoreCriterion, ScoreExtras, ScoreGrade } from './resolve/score.js';
+export type { AuditCounts, ReportScore, ScoreCriterion, ScoreExtras, ScoreGrade } from './resolve/score.js';
 export type { Delta, PairDelta, ReportDiff } from './resolve/report-diff.js';
 export { diffReports, formatReportDiff } from './resolve/report-diff.js';
-export { computeScore, formatScore, gradeFor, pairScore, SCORE_WEIGHTS } from './resolve/score.js';
+export { auditScore, computeScore, formatScore, gradeFor, pairScore, SCORE_WEIGHTS } from './resolve/score.js';
 
 export type {
     ConformanceFixtureInput,

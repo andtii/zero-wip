@@ -569,7 +569,10 @@ per-theme in `custom` — all surface in the DS's dist/manifest.json, which
 also lists every custom property the DS emits under `tokens.properties`.
 Compile with `sigx zero:build`; check with `sigx zero:validate` (declared-role
 completeness, WCAG contrast on every declared role/-content pair, state
-coverage). Reference implementation: @sigx/zero-basic; daisyUI-flavored
+coverage) and `sigx zero:audit` (the compiled CSS: every declared state
+renders differently, indicators draw, real buttons reset `appearance`,
+declared axis steps are honoured, loops stop under reduced motion; also
+written as dist/audit.json by the build). Reference implementation: @sigx/zero-basic; daisyUI-flavored
 skin: @sigx/zero-daisyui.
 
 ## Building your own component (ecosystem packages)

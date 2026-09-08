@@ -14,7 +14,8 @@ Zero splits UI into two artifacts that evolve independently:
    look is an import swap; generating a *new* look is something an AI (or a
    human afternoon) can do against the published anatomy manifest, with
    `sigx zero:validate` checking token completeness, WCAG contrast and state
-   coverage.
+   coverage, and `sigx zero:audit` reading the compiled CSS for what the
+   states, indicators and axes actually render.
 
 ```tsx
 <Tabs.Root model={() => state.tab}>
@@ -44,7 +45,7 @@ pnpm create @sigx/zero-ds zero-acme --brief riso
 | Package | What it is |
 |---|---|
 | [`@sigx/zero`](packages/zero) | The runtime foundation: anatomy contract, headless behaviors (controllable models, SSR-safe ids, roving focus, dismissal), 51 unstyled components (primitives plus the content, navigation and behavior tiers), theme engine, `manifest.json` + `llms.txt` |
-| [`@sigx/zero-kit`](packages/zero-kit) | Node-only authoring kit: `defineTokens` / `defineRecipe` / `defineDesignSystem`, the CSS compiler, the `sigx` CLI plugin (`zero:build` / `zero:validate`), and the design-system generation agent skill |
+| [`@sigx/zero-kit`](packages/zero-kit) | Node-only authoring kit: `defineTokens` / `defineRecipe` / `defineDesignSystem`, the CSS compiler, the `sigx` CLI plugin (`zero:build` / `zero:validate` / `zero:audit`), and the design-system generation agent skill |
 | [`@sigx/zero-basic`](packages/zero-basic) | Neutral starter design system — readable defaults, and the reference input for the AI skill |
 | [`@sigx/zero-daisyui`](packages/zero-daisyui) | daisyUI-flavored skin — daisy's tokens and component look as pure data, no Tailwind required; ships a daisy-native typed `./components` surface (`<Button wide loading variant="dash" color="primary">`) |
 | [`@sigx/zero-material`](packages/zero-material) | Material-flavored skin — the acceptance test that a foreign design language (13 colour roles, `level1`–`level5` elevation, its own easings and breakpoints) fits the contract with no special-casing |

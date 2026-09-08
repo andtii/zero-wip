@@ -330,9 +330,9 @@ component's anatomy). No component code is ever written or changed.
      the *browser* doing its job, not your design system saying anything, so
      `trigger: { states: { open: {}, closed: {} } }` on a collapsible or an
      accordion ships a header that is byte-identical either way — and a list of
-     items that are all collapsed has no open one to compare against. CI fails
-     it (`__tests__/state-legibility.test.ts`): a `*trigger` part in a component
-     with **no `popup` part** — collapsible, accordion, tree-view, i.e. the ones
+     items that are all collapsed has no open one to compare against. The
+     audit fails it (`state-legibility/disclosure`, `sigx zero:audit`): a
+     `*trigger` part in a component with **no `popup` part** — collapsible, accordion, tree-view, i.e. the ones
      that disclose *in flow* — must differentiate its states on itself or on a
      sibling `*indicator`. Tree-view's rotating `branch-indicator` is the
      idiomatic answer; collapsible and accordion declare no indicator part, so
@@ -401,7 +401,8 @@ component's anatomy). No component code is ever written or changed.
      every state it declares.** An `indicator` part — checkbox's tick, radio's
      dot, a rating symbol, select's checkmark — exists for exactly one reason:
      to say which state the thing is in. Three rules, and the first two are
-     enforced in CI by `__tests__/state-legibility.test.ts`:
+     enforced by the audit (`state-legibility/component` and
+     `state-legibility/indicator`, `sigx zero:audit`):
      1. **Every pair of a part's declared states must render differently.**
         Declaring `states` and styling them alike is the one bug the anatomy
         cannot catch for you: `full` and `half` both setting `color:
@@ -639,10 +640,10 @@ component's anatomy). No component code is ever written or changed.
      it goes BACKWARDS: zero-carbon declared five sizes and shipped `xl`/`2xl`
      on `button` only, and every other control got smaller at `xl` than at
      `lg` (avatar 48 → 40px, checkbox 22 → 18). Nothing failed, because the
-     step was declared, not misspelled. CI now asks
-     (`__tests__/axis-value-coverage.test.ts`), and it reads the *compiled*
-     CSS, so the rule may come from `variants`, a `compoundVariants` match or
-     the raw `css` escape hatch:
+     step was declared, not misspelled. The audit now asks
+     (`axis-value-coverage/gap` and `/ambiguous-base`, `sigx zero:audit`),
+     and it reads the *compiled* CSS, so the rule may come from `variants`,
+     a `compoundVariants` match or the raw `css` escape hatch:
      1. **A scope that wires an axis at all must account for every value the
         design system implements anywhere.** Wiring `sm` and `lg` and stopping
         is the failure — `button` shipping `xl` is what makes `xl` a step this
@@ -824,7 +825,7 @@ component's anatomy). No component code is ever written or changed.
 6. **Validate and iterate**: `sigx zero:validate` (after building the TS), or
    programmatically `validateDesignSystem(ds, manifest)`. Fix every error and
    drive warnings to zero unless deliberate. This loop is the point: generate
-   → validate → fix → repeat.
+   → validate → audit → fix → repeat.
 
    **Then run `sigx zero:validate --report`.** Validation answers "is anything
    wrong?"; the report answers "did I build what I said I would?" — the
@@ -857,9 +858,31 @@ component's anatomy). No component code is ever written or changed.
      `dist/report.json`, so the comparison is always against your last build.
      A state you put in `skipStates` shows as *newly skipped*, not resolved.
 
+   **Then run `sigx zero:audit`.** Validation asks "is it correct?", the
+   report asks "did I build what I said?", and the audit asks the third
+   question — "does what I built *say* what it claims?" — by reading the
+   compiled CSS: a state you declared that no part renders differently, an
+   indicator that draws nothing, a real `<button>` the user agent still
+   paints, a declared step a sibling scope honours and this one does not, a
+   loop that never stops under reduced motion. These are the checks this
+   repo's own CI ran on its six skins; `zero:audit` is how a design system
+   built anywhere else runs them (the full list is under "What `audit` will
+   catch" below). Read it errors first — every finding names its fix — and
+   what it lists under `waived` is what a `skipStates`, `hiddenIn` or
+   `tokens.scopes` declaration excused, so an excuse you did not mean is
+   visible too. Error findings fail the command (`--strict` fails on
+   warnings as well; `info` never fails); `--rule <id>` runs one rule;
+   `--json <path>` (or `-`) writes the same artifact `zero:build` emits as
+   `dist/audit.json`. The audit's counts also sit in the report under
+   `audit` and feed the score's sixth criterion, so the grade already
+   reflects it — the build never *fails* on a finding, which is the point:
+   a design system mid-iteration must be able to read its own audit and
+   still get artifacts to look at.
+
 7. **Build**: `sigx zero:build` (or the package's `build.mjs`) emits
-   `dist/css/index.css` + per-component files. The app consumes it with two
-   lines: `import '<pkg>/css'` and `installThemes()`.
+   `dist/css/index.css` + per-component files, plus `dist/report.json` and
+   `dist/audit.json`. The app consumes it with two lines:
+   `import '<pkg>/css'` and `installThemes()`.
 
 ## Ecosystem components (merged manifest fragments)
 
@@ -927,6 +950,32 @@ And these are warnings worth driving to zero:
   guard for that state, on **that part only** — write the reason next to it.
 - `var(--x, fallback)` referencing something undeclared — the fallback makes
   it safe, so it's the sanctioned way to read an app-supplied property.
+
+## What `audit` will catch
+
+`sigx zero:audit` (after building the TS; `zero:build` runs it too and
+writes `dist/audit.json`) reads the **compiled CSS** — the only place every
+door a declaration can arrive through (`states`, `selectors`, `variants`,
+`compoundVariants`, `modifiers`, nested `at`, raw `css`) is visible. Only
+the default render counts: a difference that lives under a `@media` is not
+the reader differentiating. Errors fail the command; warnings fail it under
+`--strict`; `info` never does.
+
+| Rule | Severity | It reports… | Waived by |
+|---|---|---|---|
+| `state-legibility/component` | error | two declared states no part of the component renders differently | `skipStates` on every part that has them; the anatomy's `hiddenIn` |
+| `state-legibility/indicator` | error | an `*indicator` part that renders identically across its own states — a spacer, not an indicator | `skipStates` on the indicator; `hiddenIn` |
+| `state-legibility/disclosure` | error | the control of an in-flow disclosure (collapsible, accordion, tree-view) that says nothing about `open`/`closed` | `skipStates` on the control; a sibling `*indicator` that differentiates |
+| `button-affordance` | error | a part zero renders as a real `<button>` with no unconditional `appearance` reset, so the user agent paints its chip | — (set `appearance: none`) |
+| `axis-value-coverage/gap` | error | a declared step a sibling scope implements that this scope neither paints nor claims as its base | `tokens.scopes` |
+| `axis-value-coverage/ambiguous-base` | error | two values written as empty entries, both claiming the base | — |
+| `axis-value-coverage/unused` | warning | a declared value no recipe paints or claims; or one in no scope's vocabulary | a role declared `content: false` / `soft: false` (a fill, not an axis value) |
+| `axis-coverage` | warning | a styled scope that accepts a declared `color`/`size` axis and wires nothing | `roles: {}` / `sizes: []`; `tokens.scopes.<scope>.colors: []` / `.sizes: []` |
+| `reduced-motion/loop` | error | an infinite animation with no `animation: none` on the same selector under `prefers-reduced-motion: reduce` — the kit collapses durations there, so a loop strobes rather than stops | — |
+
+A waiver is listed, never swallowed: the `waived:` line in the output and
+the `waived` array in `audit.json` say what each declared mechanism excused,
+so an excuse you did not intend is as visible as a finding.
 
 ## Reference
 

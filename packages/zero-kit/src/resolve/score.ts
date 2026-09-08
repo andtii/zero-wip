@@ -65,9 +65,31 @@ export interface ReportScore {
     };
 }
 
+/** What `zero:audit` counted — the shape `AuditResult.summary` carries. */
+export interface AuditCounts {
+    errors: number;
+    warnings: number;
+    info: number;
+}
+
 export interface ScoreExtras {
-    /** A 0–100 audit score, when an audit ran. Absent → the criterion is omitted and the weights renormalise. */
-    audit?: number;
+    /**
+     * The audit, when one ran: its counts (the usual form — `report.audit`
+     * and `AuditResult.summary` both fit) scored by `auditScore`, or a
+     * 0–100 number a caller already has. Absent → the criterion is omitted
+     * and the weights renormalise.
+     */
+    audit?: number | AuditCounts;
+}
+
+/**
+ * The audit criterion, the issues formula applied to audit findings:
+ * `100 − 10·errors − 2·warnings`, floored at 0. `info` findings (the
+ * contrast matrix's `unmeasured` cells) are listed, never charged — a cell
+ * the estimate could not judge is not a defect.
+ */
+export function auditScore({ errors, warnings }: Pick<AuditCounts, 'errors' | 'warnings'>): number {
+    return clamp(100 - 10 * errors - 2 * warnings);
 }
 
 /** The fixed weights. `issues` and `audit` drop out (and the rest renormalise) when absent. */
@@ -216,6 +238,13 @@ export function computeScore(
     }
     if (typeof extras.audit === 'number') {
         criteria.audit = { score: round1(clamp(extras.audit)), weight: SCORE_WEIGHTS.audit, detail: {} };
+    } else if (extras.audit) {
+        const { errors, warnings, info } = extras.audit;
+        criteria.audit = {
+            score: round1(auditScore(extras.audit)),
+            weight: SCORE_WEIGHTS.audit,
+            detail: { errors, warnings, info },
+        };
     }
     const present = Object.values(criteria);
     const weight = present.reduce((sum, c) => sum + c.weight, 0);
