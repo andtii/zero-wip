@@ -42,6 +42,7 @@ const PACKAGES = [
     'packages/zero-kit',
     'packages/zero-basic',
     'packages/zero-daisyui',
+    'packages/create-zero-ds',
 ];
 
 const sandbox = join(tmpdir(), `sigx-zero-verify-pack-${Date.now()}`);
@@ -392,6 +393,36 @@ function main() {
         ].join('\n')
     );
     run('node resolve-check.mjs', { cwd: appDir });
+
+    // The scaffold is only proven by what it writes AGAINST THE PUBLISHED
+    // SHAPE: templates must travel in `files`, the bin must link, and the
+    // generated package must compile and build against the packed kit types
+    // (module resolution walks up to the scratch app's node_modules, so the
+    // generated packages need no install of their own). Two briefs on
+    // purpose — the recommended shape, and riso (roles: {}, sizes: [], a fused
+    // variant), the shape the fit helper exists for. Glass also takes the lynx
+    // target, so the extra exports and dist/lynx are exercised too.
+    // The real JS entry points, not `.bin` shims: on Windows `.bin` holds
+    // `.cmd` files, which `node` cannot execute.
+    step('Scaffold two design systems from the packed @sigx/create-zero-ds and build them');
+    const createBin = join('node_modules', '@sigx', 'create-zero-ds', 'bin', 'create-zero-ds.mjs');
+    const tscBin = join('node_modules', 'typescript', 'bin', 'tsc');
+    const scaffolds = [
+        { name: 'zero-riso-smoke', brief: 'riso', targets: 'web' },
+        { name: 'zero-glass-smoke', brief: 'glass', targets: 'web,lynx' },
+    ];
+    for (const { name, brief, targets } of scaffolds) {
+        run(`node ${JSON.stringify(createBin)} ${name} --brief ${brief} --targets ${targets}`, { cwd: appDir });
+        run(`node ${JSON.stringify(tscBin)} -p ${name}/tsconfig.json`, { cwd: appDir });
+        run(`node ${name}/build.mjs`, { cwd: appDir });
+        const css = join(appDir, name, 'dist', 'css', 'index.css');
+        if (readFileSync(css, 'utf-8').trim() === '') throw new Error(`${name}: dist/css/index.css is empty`);
+        if (targets.includes('lynx')) {
+            const lynx = join(appDir, name, 'dist', 'lynx', 'index.css');
+            if (readFileSync(lynx, 'utf-8').trim() === '') throw new Error(`${name}: dist/lynx/index.css is empty`);
+        }
+        console.log(`   ✓ ${name} (--brief ${brief} --targets ${targets}) scaffolded, compiled and built`);
+    }
 
     step('✅ Pack smoke test passed');
 }

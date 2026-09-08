@@ -693,10 +693,28 @@ to be copied byte-identically across six `build.mjs` files; it now lives
 once in `@sigx/zero-kit/build`, and a skin's `build.mjs` is ~15 lines of
 declaration passing. The CLI (`sigx zero:build` / `zero:validate`, aliased
 `build`/`validate`, discovered through the `"sigx-cli"` field) calls the
-same functions, so the CLI path and the build.mjs path cannot drift. There
-is deliberately no scaffolding command — `init` was declined
-(#10, closed not-planned: the skill's "copy `zero-basic`" instruction *is*
-the front door); `eject` remains open (#11).
+same functions, so the CLI path and the build.mjs path cannot drift.
+
+**Scaffolding is a `create-*` package, not a plugin command.** `init` was
+declined (#10): a `sigx` plugin only loads where `@sigx/zero-kit` is already
+installed, so it could never run in the empty directory a new design system
+starts as, and `@sigx/cli`'s `create` has no template hook. `@sigx/create-zero-ds`
+(`pnpm create @sigx/zero-ds <name> --brief <id>`, #401) sidesteps both: a
+Node-only bin with no runtime dependencies, templates embedded at build time
+(zero-basic's `recipes.ts` and `tokens.ts`, the five briefs, a `versions.json`
+with the lockstep ranges — lockstep is what makes embedding and reading the
+installed packages content-identical, and neither source file is reachable
+through an `exports` map anyway). The generated package is the brief's tokens
+and worked Button over **zero-basic's 51 recipes as the baseline**, composed
+in `src/recipes.ts` through `fitRecipesToVocabulary` — the kit's one
+non-`define*` export on `/define`, a pure function that keeps exactly what
+the tokens declare (roles, the size ramp, the variant vocabulary, custom
+axes, modifiers; dropped defaults and compounds follow) and redraws every
+undeclared role or category step on the base surfaces or the category's
+resting step. It is the identity for the recommended shape (all six skins
+round-trip deep-equal), and the reason a `roles: {}` / `sizes: []` brief
+compiles on its first build instead of erroring on every one of basic's
+size blocks and role references. `eject` remains open (#11).
 
 **Colour is derived before it is authored.** `derivePalette` /
 `deriveThemePair` (`packages/zero-kit/src/palette.ts`, on `./define`) turn
@@ -797,6 +815,7 @@ checking a fraction of what it claimed.)
 | DS smoke | `e2e/ds-smoke.spec.ts` | All six skins: `hidden` computes `display: none`, no undeclared axis/mod value renders, the runtime swap leaves one live stylesheet and re-seeds vocabulary + themes, boot logs no console error. |
 | Reduced motion / RTL | `e2e/reduced-motion.spec.ts`, `e2e/rtl.spec.ts` | The two loops (Skeleton, Spinner) assert `animation-name` running under chromium **and** `none` under reduced-motion — both directions, or a never-animating recipe passes; RTL measures rendered boxes across all six skins, complementing the physical-direction lint's `transform` blind spot ([§5](#5-the-compiler-and-css-architecture)). |
 | Axe audit | `e2e/axe-audit.spec.ts` | axe-core over every playground page, hard-failing serious/critical WCAG A/AA, with an **empty allowlist** (`axe-allowlist.json` — stale entries fail; a real bug gets fixed in `packages/zero`, never allowlisted). |
+| Scaffold e2e | `create-zero-ds/__tests__/scaffold.test.ts`, `zero-kit/__tests__/fit.test.ts`, `scripts/verify-pack.js` | Every brief scaffolds in-process into a package that validates with **zero errors and zero warnings**, styles all 51 scopes and builds; `fitRecipesToVocabulary` is the identity for all six skins and fits basic's recipes to riso's tokens (counts pinned); verify-pack scaffolds riso and glass(lynx) from the **packed** tarballs and compiles + builds them, so the templates ship and the generated code holds against the published kit types. |
 | CI ordering | `.github/workflows/ci.yml` | lint → catalog → typecheck → build → **type tests after build** (so unmapped subpaths cannot fall through to an absent `dist/`) → test; the e2e job adds playground typecheck + typed-app + Playwright. Bundle-size budgets run as their own workflow; `verify-pack` dry-runs publishing. |
 
 ## 10. Known limitations and open directions

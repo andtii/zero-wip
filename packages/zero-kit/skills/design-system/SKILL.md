@@ -27,20 +27,45 @@ component's anatomy). No component code is ever written or changed.
    `display` you set on such a part is dead in those states rather than
    dangerous — it used to defeat the hiding entirely (#209).
 
-2. **Set up the package.** There is no scaffolding command and there will not
-   be one in this package (#10, closed): a sigx CLI plugin only loads where
-   `@sigx/zero-kit` is already installed, so it could never run in the empty
-   directory a new design system starts as. Copy the shape of an existing
-   design system instead — `@sigx/zero-basic` is the smallest:
+2. **Scaffold the package.** Run the scaffold rather than copying a layout
+   by hand — it lays down the whole package from nothing, with every
+   component already styled:
+
+   ```sh
+   pnpm create @sigx/zero-ds <name> --brief <brutalist|glass|corporate|terminal|riso|basic>
+   # npm create @sigx/zero-ds … / npx @sigx/create-zero-ds … work the same
+   cd <name> && pnpm install && pnpm build
+   ```
+
+   Pick the brief nearest the style (see "The brief pack" below; `basic` is
+   `@sigx/zero-basic`'s own tokens). What you get:
 
    ```
-   packages/<name>/
-     package.json      # peerDependency + devDependency on @sigx/zero,
-                       # devDependency on @sigx/zero-kit; "build": tsgo && node build.mjs
+   <name>/
+     package.json        # peerDependency + devDependency on @sigx/zero,
+                         # devDependencies on @sigx/zero-kit, @sigx/cli, typescript
      tsconfig.json
-     build.mjs         # validate → compile → writeArtifacts (copy it verbatim)
-     src/{tokens,recipes,design-system,index}.ts
+     build.mjs           # runStandardBuild — validate → compile → report → writeArtifacts
+     src/tokens.ts       # the brief's TokensInput (roles, system, themes)
+     src/button.ts       # the brief's worked Button recipe
+     src/baseline.ts     # @sigx/zero-basic's 51 recipes, copied whole — yours now
+     src/recipes.ts      # [...fitRecipesToVocabulary(baseline, tokens) minus button, button]
+     src/design-system.ts, src/index.ts
    ```
+
+   `baseline.ts` is why the first build styles every component instead of one:
+   it is zero-basic's recipes verbatim, and `recipes.ts` runs them through
+   `fitRecipesToVocabulary` (from `@sigx/zero-kit/define`) so they compile
+   under the brief's vocabulary — the identity for the recommended shape, and
+   for a brief that declines the colour or size axis or fuses `variant`
+   (riso) it drops the blocks those axes would have wired and redraws every
+   undeclared role in `base-content` on `base-100`. That monochrome baseline
+   is the honest starting point for a two-ink or no-colour-axis system; the
+   brief's Button shows where the inks get spent. **Diverge from the baseline
+   freely, and delete the fit call once every recipe speaks the design
+   system's own vocabulary** — it is scaffolding, not architecture.
+   `--baseline none` scaffolds the Button alone; `--targets web,lynx` adds the
+   lynx target; `--dry-run` prints the plan.
 
    `src/index.ts` is the runtime half: it registers each theme so
    `themeController()` can switch between them. Hand your whole `tokens`
@@ -54,7 +79,7 @@ component's anatomy). No component code is ever written or changed.
    import { registerThemes } from '@sigx/zero';
    import { tokens } from './tokens.js';
 
-   export { roles, system, tokens } from './tokens.js';
+   export { roles, tokens } from './tokens.js';
    export { recipes } from './recipes.js';
    export { designSystem } from './design-system.js';
 
@@ -63,9 +88,10 @@ component's anatomy). No component code is ever written or changed.
    }
    ```
 
-   Import from the kit **type-only** in `tokens.ts` and `recipes.ts`: those
-   modules ship in the browser bundle, and the kit is Node-only. (`@sigx/zero`
-   is the one runtime import a design system makes.)
+   Import from the kit **type-only** in `tokens.ts` and `recipes.ts`, except
+   the `/define` subpath: those modules ship in the browser bundle, and the
+   kit's barrel is Node-only. (`@sigx/zero` is the one other runtime import a
+   design system makes.)
 
 3. **Author tokens** (`src/tokens.ts`): one light + one dark theme minimum,
    paired via `pair`. **Declare the color vocabulary first**: `roles` names
@@ -739,9 +765,9 @@ component's anatomy). No component code is ever written or changed.
      emits it (with `dist/register.js`) from the compiled system: it augments
      `@sigx/zero`'s `ZeroVocabulary`, so an app that adds
      `import '@sigx/<your-ds>/register'` gets your themes, tokens and
-     per-component axis values as types. Add the `"./register"` entry to your
-     `package.json` `exports` (copy it from `@sigx/zero-basic`) and never
-     edit the emitted file.
+     per-component axis values as types. The scaffold already wrote the
+     `"./register"` entry into your `package.json` `exports`; never edit the
+     emitted file.
      ```tsx
      <Button.Root color="primary" axes={{ density: 'compact' }}>Save</Button.Root>
      ```
@@ -857,10 +883,12 @@ And these are warnings worth driving to zero:
 
 `skills/design-system/briefs/` holds five complete, compiling starting points.
 Each file is one `TokensInput` (every category filled, both schemes, contrast
-clean) plus one worked `RecipeInput` for Button. **Copy the closest one to
-`src/tokens.ts` and `src/recipes.ts`, then diverge.** They are compiled and
-validated by the repo's test suite, so a brief that has gone stale is a
-failing test rather than a trap.
+clean) plus one worked `RecipeInput` for Button. **Pass the closest one as
+`--brief` to the scaffold (step 2), then diverge** — it becomes
+`src/tokens.ts` and `src/button.ts`, over zero-basic's recipes as the
+baseline for everything else. They are compiled and validated by the repo's
+test suite, so a brief that has gone stale is a failing test rather than a
+trap.
 
 The five are deliberately not five palettes — each one teaches a different
 mechanic, and reading all five is the fastest way to learn what the token

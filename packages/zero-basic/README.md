@@ -2,7 +2,9 @@
 
 Neutral starter design system for [SignalX Zero](https://npmjs.com/package/@sigx/zero) —
 readable defaults so a zero app looks sane on day one, and the reference
-implementation for generating your own design system with `@sigx/zero-kit`.
+implementation for generating your own design system with `@sigx/zero-kit` —
+its recipes are the baseline `pnpm create @sigx/zero-ds` lays under every
+brief, fitted to that brief's vocabulary.
 
 Its visual identity is **Monograph**: documentation-grade calm, engineered for
 UIs people read all day.

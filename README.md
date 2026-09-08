@@ -34,6 +34,11 @@ import { installThemes } from '@sigx/zero-daisyui';
 installThemes();
 ```
 
+```sh
+# …and "yours" starts as one command:
+pnpm create @sigx/zero-ds zero-acme --brief riso
+```
+
 ## Packages
 
 | Package | What it is |
@@ -46,6 +51,7 @@ installThemes();
 | [`@sigx/zero-brutalist`](packages/zero-brutalist) | Brutalist skin — generated from a one-line style brief through the design-system agent skill, as the end-to-end proof that a look is data |
 | [`@sigx/zero-heroui`](packages/zero-heroui) | HeroUI-flavoured skin — the acceptance test for non-orthogonal axis surfaces: no colour axis at all, colour fused into a seven-member `variant`, and presence-only `data-mod-*` modifiers |
 | [`@sigx/zero-carbon`](packages/zero-carbon) | Carbon-flavoured skin — the runtime acceptance test for the api `values` remap: the fused `kind` axis with Carbon's double-hyphen spellings restored at the prop boundary by the generated `./components` module |
+| [`@sigx/create-zero-ds`](packages/create-zero-ds) | `pnpm create @sigx/zero-ds <name> --brief <id>` — scaffolds a design-system package from a style brief, with zero-basic's 51 recipes as the baseline fitted to the brief's vocabulary |
 | [`@sigx/zero-ext-example`](packages/zero-ext-example) | Ecosystem-component acceptance test — a `Stepper` zero doesn't ship, built entirely from `@sigx/zero`'s public surface, published as a manifest fragment + recipe pack and adopted by zero-basic |
 
 `examples/playground` is the kitchen sink — `pnpm --filter zero-playground dev`.

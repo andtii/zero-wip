@@ -5,7 +5,10 @@ one `TokensInput` — every category filled, both colour schemes, contrast clean
 plus one worked `RecipeInput` for Button, the component a design system is
 judged on and the only one where all three variant axes matter at once.
 
-**Copy the closest file to `src/tokens.ts` and `src/recipes.ts`, then diverge.**
+**Pass the closest file as `--brief` to `pnpm create @sigx/zero-ds`, then
+diverge.** The scaffold splits it into `src/tokens.ts` and `src/button.ts`
+and lays `@sigx/zero-basic`'s 51 recipes under it as the baseline, fitted to
+the brief's vocabulary (`fitRecipesToVocabulary`).
 
 | File | The look | Teaches |
 |---|---|---|

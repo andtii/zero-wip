@@ -43,6 +43,7 @@ const PACKAGES = [
     'packages/zero-kit',
     'packages/zero-basic',
     'packages/zero-daisyui',
+    'packages/create-zero-ds',
 ];
 
 const args = process.argv.slice(2);

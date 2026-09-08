@@ -37,6 +37,9 @@ export { generateTypeScale } from './scale.js';
 export type { DerivePaletteOptions, DeriveThemePairOptions, Harmony, Oklch, RoleSeed } from './palette.js';
 export { clampChroma, contrastRatio, derivePalette, deriveThemePair, formatOklch, solveContentLightness } from './palette.js';
 
+export type { FitReport } from './fit.js';
+export { explainFit, fitRecipesToVocabulary } from './fit.js';
+
 export type { CssProps, PartStyles, RecipeContext, RecipeInput } from './recipes.js';
 export { defineRecipe, BUILTIN_CONDITIONS } from './recipes.js';
 export { compileRecipeCss } from './targets/web/recipe-css.js';
