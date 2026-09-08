@@ -441,13 +441,15 @@ export function validateDesignSystem<R extends RolesDecl>(
     // the anatomy contract owns: the zero runtime throws on both, and the
     // validator must reject exactly what the runtime refuses to render.
     //
-    // `empty` is the load-bearing option. For the two named axes with a
-    // recommended default (`sizes`, `variants`) an empty list is the claim
-    // "this design system has no such axis" — the same statement `roles: {}`
-    // makes about colour (#200/#295) — and the omission means "I didn't say".
-    // A custom axis in `tokens.axes` has no recommended default to decline and
-    // no named prop to switch off, so `[]` there says nothing an omission
-    // doesn't and stays an error. Per scope, empty is always the claim.
+    // `empty` is the load-bearing option. For the named axes (`sizes`,
+    // `variants`) an empty list is the claim "this design system has no such
+    // axis" — the same statement `roles: {}` makes about colour (#200/#295) —
+    // and the omission means "I didn't say": `sizes` then takes the
+    // recommended ramp, `variants` stays undeclared and unchecked (it has no
+    // recommended vocabulary, which is why the compiled form carries
+    // `variantsDeclared`). A custom axis in `tokens.axes` has no named prop to
+    // switch off, so `[]` there says nothing an omission doesn't and stays an
+    // error. Per scope, empty is always the claim.
     const checkAxisValues = (
         where: string,
         values: readonly string[],
