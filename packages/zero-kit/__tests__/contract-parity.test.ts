@@ -37,6 +37,7 @@ const SHARED: Record<string, [unknown, unknown]> = {
     // flags too, so adding `i` to one copy and not the other still fails.
     ROLE_NAME_PATTERN: [zero.ROLE_NAME_PATTERN, kit.ROLE_NAME_PATTERN],
     TOKEN_KEY_PATTERN: [zero.TOKEN_KEY_PATTERN, kit.TOKEN_KEY_PATTERN],
+    AXIS_VALUE_PATTERN: [zero.AXIS_VALUE_PATTERN, kit.AXIS_VALUE_PATTERN],
     TEXT_FIXED_PREFIX: [zero.TEXT_FIXED_PREFIX, kit.TEXT_FIXED_PREFIX],
     // Deep-compared including order: the categories drive emission order, so
     // a reordering in one copy is real drift, not cosmetic.

@@ -46,12 +46,12 @@
                 "sizes": {
                     "description": "The `size` axis ramp, resolved (declared, else the recommended ramp); [] when declared out of existence.",
                     "type": "array",
-                    "items": { "$ref": "#/$defs/kebabToken" }
+                    "items": { "$ref": "#/$defs/axisValue" }
                 },
                 "variants": {
                     "description": "The `variant` axis vocabulary — the UNION of every scope's vocabulary once tokens.scopes restricts any ([] when undeclared).",
                     "type": "array",
-                    "items": { "$ref": "#/$defs/kebabToken" }
+                    "items": { "$ref": "#/$defs/axisValue" }
                 },
                 "axes": {
                     "description": "Declared custom variant axes: axis name → values.",
@@ -59,7 +59,7 @@
                     "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
                     "additionalProperties": {
                         "type": "array",
-                        "items": { "$ref": "#/$defs/kebabToken" }
+                        "items": { "$ref": "#/$defs/axisValue" }
                     }
                 },
                 "modifiers": {
@@ -111,8 +111,13 @@
         }
     },
     "$defs": {
+        "axisValue": {
+            "description": "An axis VALUE: lowercase letters, digits and hyphens, repeated hyphens included (Carbon's danger--tertiary) — what a quoted [data-…=\"…\"] attribute selector, a single-quoted literal union in register.d.ts and an unescaped lynx class name (zx-a-<axis>-<value>) all carry verbatim. Wider than the kebab-case grammar names take; still no %, ., quotes, backslashes, whitespace or uppercase.",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-+[a-z0-9]+)*$"
+        },
         "kebabToken": {
-            "description": "A kebab-case identifier that may start with a digit — the grammar for axis values and token keys.",
+            "description": "A kebab-case identifier that may start with a digit — the grammar for token keys and axis/modifier names.",
             "type": "string",
             "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
         },
@@ -144,8 +149,9 @@
             }
         },
         "axisValues": {
+            "description": "A wired value set. Modifier names ride the same list shape; their kebab grammar is a subset of the axis-value one.",
             "type": "array",
-            "items": { "$ref": "#/$defs/kebabToken" }
+            "items": { "$ref": "#/$defs/axisValue" }
         },
         "componentAxes": {
             "type": "object",
@@ -165,7 +171,7 @@
                 "defaults": {
                     "description": "The recipe's defaultVariants — manifest/docs only, never widens a union.",
                     "type": "object",
-                    "additionalProperties": { "$ref": "#/$defs/kebabToken" }
+                    "additionalProperties": { "$ref": "#/$defs/axisValue" }
                 },
                 "offered": {
                     "description": "The vocabulary this scope OFFERS (its tokens.scopes entry, resolved) — the promise, where the sibling fields are the delivery.",

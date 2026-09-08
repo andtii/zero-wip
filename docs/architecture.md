@@ -252,6 +252,22 @@ the set down). The other rules worth knowing:
   `--color-danger-soft`; a role literally named `danger-soft` emits the same
   property) are an error — a live hazard, since `danger-soft` is a real
   HeroUI variant name.
+- **Axis-value grammar** (#198): names and values are graded separately.
+  An axis, modifier or role *name* is `TOKEN_KEY_PATTERN` (kebab-case, digit
+  allowed first) because it becomes `data-<axis>`, `data-mod-<name>`,
+  `--color-<role>`. An axis *value* is `AXIS_VALUE_PATTERN`
+  (`/^[a-z0-9]+(-+[a-z0-9]+)*$/`): repeated hyphens are admitted, which is
+  Carbon's entire `kind` axis (`danger--tertiary`) declared verbatim; `%`
+  and `.` are not, because the lynx target writes a value into an
+  unescaped class name (`zx-a-<axis>-<value>`) and zero's runtime composes
+  the same class — so Radix's `105%` stays an `api.values` remap. Quotes,
+  backslashes and whitespace stay out so every interpolation site
+  (`[data-…="…"]`, the single-quoted unions in `register.d.ts`, the class
+  compounds) stays escape-free; uppercase stays out because `data-*` values
+  are case-sensitive. The validator (`checkAxisValues` / `checkAxisNames`),
+  `assertAxisToken('value', …)` on both emitters, and the `axisValue` /
+  `kebabToken` defs in every schema move together — the constant is
+  parity-tested between kit and zero.
 - Reserved names: an axis may not shadow a named prop (`color`, `size`,
   `variant`, `mods`, `axes`) nor anything the anatomy contract owns
   (`scope`, `part`, `state`, `orientation`, the flag vocabulary). The kit
@@ -850,9 +866,8 @@ Honesty section. These are the edges the tree knows about today:
   the design-system level, so `variant: never` can say which of its two
   meanings it has),
   [#197](https://github.com/signalxjs/zero/issues/197) /
-  [#198](https://github.com/signalxjs/zero/issues/198) /
   [#199](https://github.com/signalxjs/zero/issues/199) (ancestor-scoped
-  axes, a token-key grammar for axis values, responsive axis values),
+  axes, responsive axis values),
   [#51](https://github.com/signalxjs/zero/issues/51) (misspelled CSS
   property names still compile),
   [#11](https://github.com/signalxjs/zero/issues/11) (`eject`),

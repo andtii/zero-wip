@@ -22,6 +22,28 @@
   suggested fix for a failing pair (#402 follow-up) and a derived brief
   build on this.
 
+### Changed
+
+- **Axis values are graded by their own grammar, not the token-key one**
+  (#198). `AXIS_VALUE_PATTERN` (`/^[a-z0-9]+(-+[a-z0-9]+)*$/`, exported from
+  the kit and from `@sigx/zero/contract`, parity-tested) now governs
+  `tokens.sizes`, `tokens.variants`, `tokens.axes.<axis>` and
+  `tokens.scopes.*` values, recipe `variants`/`compoundVariants`/
+  `defaultVariants` values, `assertAxisToken('value', …)` on both emitters,
+  and the value positions of every schema (`axisValue` beside `kebabToken`;
+  `report.schema.json` gains `valueList`/`valueListsByAxis`). Repeated
+  hyphens are admitted, so Carbon's entire `kind` axis (`danger--tertiary`)
+  is a legal declared value rather than something to remap. `%` and `.` are
+  deliberately still refused: the lynx target writes a value into an
+  unescaped class name (`zx-a-<axis>-<value>`) and the runtime composes the
+  same class, so Radix's `105%` stays an `api.values` remap. Quotes,
+  backslashes, whitespace and uppercase stay out as before. Axis, modifier
+  and role NAMES keep `TOKEN_KEY_PATTERN` — `checkAxisValues` is split from a
+  new `checkAxisNames` so the two grammars cannot drift back into one — and
+  the value error now reads `"…" is not a valid axis value` naming both
+  places the value is written verbatim. Modifier-name errors name the
+  `data-mod-` tail they would become.
+
 ## [0.2.0-beta.6] - 2026-08-22
 
 ### Fixed

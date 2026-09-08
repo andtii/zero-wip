@@ -451,7 +451,7 @@ describe('variants', () => {
             component: 'tabs',
             parts: { tab: { states: { 'focus-visible': { outline: '1px solid' } } } },
             variants: { size: { 'x"], [data-part="panel': { tab: { base: { color: 'red' } } } } },
-        }).errors).toContainEqual(expect.stringContaining('not a kebab-case identifier'));
+        }).errors).toContainEqual(expect.stringContaining('not a valid axis value'));
     });
 
     it('errors on an axis NAME that would break out of its selector', () => {
@@ -484,7 +484,7 @@ describe('variants', () => {
                 match: { size: 'x"], [data-part="panel' },
                 parts: { tab: { base: { color: 'red' } } },
             }],
-        }).errors).toContainEqual(expect.stringContaining('not a kebab-case identifier'));
+        }).errors).toContainEqual(expect.stringContaining('not a valid axis value'));
     });
 
     it('errors on a component token spelled without the leading --', () => {
@@ -769,7 +769,7 @@ describe('declared axis vocabularies (docs/architecture.md, "Declared vocabulary
         const badCase = clean();
         badCase.tokens.axes = { density: ['Not Kebab'] };
         expect(validateDesignSystem(badCase, manifest).errors.map((e) => e.message))
-            .toContainEqual(expect.stringContaining('not a kebab-case identifier'));
+            .toContainEqual(expect.stringContaining('"Not Kebab" is not a valid axis value'));
     });
 
     it('rejects axis names the runtime refuses to render', () => {

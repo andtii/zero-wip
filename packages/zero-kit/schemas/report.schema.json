@@ -52,9 +52,9 @@
             "required": ["roles", "sizes", "variants", "axes", "modifiers", "declaredOut", "scopes"],
             "properties": {
                 "roles": { "$ref": "#/$defs/tokenList" },
-                "sizes": { "$ref": "#/$defs/tokenList" },
-                "variants": { "$ref": "#/$defs/tokenList" },
-                "axes": { "$ref": "#/$defs/tokenListsByAxis" },
+                "sizes": { "$ref": "#/$defs/valueList" },
+                "variants": { "$ref": "#/$defs/valueList" },
+                "axes": { "$ref": "#/$defs/valueListsByAxis" },
                 "modifiers": { "$ref": "#/$defs/tokenList" },
                 "declaredOut": {
                     "description": "Axes declared OUT of existence rather than merely left unwired — `roles: {}` retires colour, `sizes: []` retires the size ramp. Only these two can be, and `variant` never appears: omitting `tokens.variants` means \"declared nothing\", not \"no variant axis\".",
@@ -71,9 +71,9 @@
                         "additionalProperties": false,
                         "properties": {
                             "colors": { "$ref": "#/$defs/tokenList" },
-                            "sizes": { "$ref": "#/$defs/tokenList" },
-                            "variants": { "$ref": "#/$defs/tokenList" },
-                            "axes": { "$ref": "#/$defs/tokenListsByAxis" },
+                            "sizes": { "$ref": "#/$defs/valueList" },
+                            "variants": { "$ref": "#/$defs/valueList" },
+                            "axes": { "$ref": "#/$defs/valueListsByAxis" },
                             "modifiers": { "$ref": "#/$defs/tokenList" }
                         }
                     }
@@ -87,9 +87,9 @@
             "required": ["color", "size", "variant", "axes", "modifiers"],
             "properties": {
                 "color": { "$ref": "#/$defs/tokenList" },
-                "size": { "$ref": "#/$defs/tokenList" },
-                "variant": { "$ref": "#/$defs/tokenList" },
-                "axes": { "$ref": "#/$defs/tokenListsByAxis" },
+                "size": { "$ref": "#/$defs/valueList" },
+                "variant": { "$ref": "#/$defs/valueList" },
+                "axes": { "$ref": "#/$defs/valueListsByAxis" },
                 "modifiers": { "$ref": "#/$defs/tokenList" }
             }
         },
@@ -100,9 +100,9 @@
             "required": ["color", "size", "variant", "axes", "modifiers"],
             "properties": {
                 "color": { "$ref": "#/$defs/tokenList" },
-                "size": { "$ref": "#/$defs/tokenList" },
-                "variant": { "$ref": "#/$defs/tokenList" },
-                "axes": { "$ref": "#/$defs/tokenListsByAxis" },
+                "size": { "$ref": "#/$defs/valueList" },
+                "variant": { "$ref": "#/$defs/valueList" },
+                "axes": { "$ref": "#/$defs/valueListsByAxis" },
                 "modifiers": { "$ref": "#/$defs/tokenList" }
             }
         },
@@ -178,8 +178,25 @@
                 }
             }
         },
+        "axisValue": {
+            "description": "An axis VALUE: lowercase letters, digits and hyphens, repeated hyphens included (Carbon's danger--tertiary) — what a quoted [data-…=\"…\"] attribute selector, a single-quoted literal union in register.d.ts and an unescaped lynx class name (zx-a-<axis>-<value>) all carry verbatim. Wider than the kebab-case grammar names take; still no %, ., quotes, backslashes, whitespace or uppercase.",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-+[a-z0-9]+)*$"
+        },
+        "valueList": {
+            "description": "A duplicate-free list of axis VALUES (the wider grammar). Same ordering rule as tokenList.",
+            "type": "array",
+            "items": { "$ref": "#/$defs/axisValue" },
+            "uniqueItems": true
+        },
+        "valueListsByAxis": {
+            "description": "Custom axis name → its value list.",
+            "type": "object",
+            "propertyNames": { "$ref": "#/$defs/kebabToken" },
+            "additionalProperties": { "$ref": "#/$defs/valueList" }
+        },
         "kebabToken": {
-            "description": "A kebab-case identifier that may start with a digit — the grammar shared by scope, part, state, flag, axis and axis-value names.",
+            "description": "A kebab-case identifier that may start with a digit — the grammar shared by scope, part, state, flag, axis and modifier names (and role names, which are also colour-axis values).",
             "type": "string",
             "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
         },
@@ -232,7 +249,7 @@
                         "variant": { "$ref": "#/$defs/axisReport" }
                     }
                 },
-                "customAxes": { "$ref": "#/$defs/tokenListsByAxis" },
+                "customAxes": { "$ref": "#/$defs/valueListsByAxis" },
                 "mods": {
                     "description": "Presence-only modifiers this recipe wires, rendered `data-mod-<name>`.",
                     "$ref": "#/$defs/tokenList"
@@ -241,7 +258,7 @@
                     "description": "The recipe's `defaultVariants`, when it has any. Documentation only — a default never widens a generated union.",
                     "type": "object",
                     "propertyNames": { "$ref": "#/$defs/kebabToken" },
-                    "additionalProperties": { "$ref": "#/$defs/kebabToken" }
+                    "additionalProperties": { "$ref": "#/$defs/axisValue" }
                 },
                 "never": {
                     "description": "The contract axes this design system's register artifact types `never` — exactly the axes whose status is not `wired`. Derived from the same harvest as the artifact, so the two cannot disagree.",
@@ -262,10 +279,10 @@
             "additionalProperties": false,
             "required": ["wired", "status"],
             "properties": {
-                "wired": { "$ref": "#/$defs/tokenList" },
+                "wired": { "$ref": "#/$defs/valueList" },
                 "offered": {
                     "description": "The values this scope's own vocabulary offers — present only when `tokens.scopes` restricts this axis for this scope. `wired` is what the recipe delivers against it.",
-                    "$ref": "#/$defs/tokenList"
+                    "$ref": "#/$defs/valueList"
                 },
                 "status": {
                     "description": "`undeclared` means the design system has no such axis (`roles: {}` / `sizes: []`) and is reachable only for colour and size; `unwired` means the axis exists and this recipe keys nothing on it. Both produce `never` in the register artifact — they differ in what the author should do about it.",
@@ -320,13 +337,13 @@
             "properties": {
                 "wiredAnywhere": {
                     "description": "The union any component wires. Divergence is measured against this rather than against the declared vocabulary, so a value held back everywhere on purpose says nothing while a component lagging behind its siblings does.",
-                    "$ref": "#/$defs/tokenList"
+                    "$ref": "#/$defs/valueList"
                 },
                 "byComponent": {
                     "description": "Scope → its value set. Only components wiring at least one value: wiring nothing is `never`, not divergence.",
                     "type": "object",
                     "propertyNames": { "$ref": "#/$defs/kebabToken" },
-                    "additionalProperties": { "$ref": "#/$defs/tokenList" }
+                    "additionalProperties": { "$ref": "#/$defs/valueList" }
                 },
                 "subsets": {
                     "description": "Components wiring a STRICT subset of `wiredAnywhere` — where an axis value renders as the default here but not elsewhere.",
@@ -337,8 +354,8 @@
                         "required": ["scope", "wired", "missing"],
                         "properties": {
                             "scope": { "$ref": "#/$defs/kebabToken" },
-                            "wired": { "$ref": "#/$defs/tokenList" },
-                            "missing": { "$ref": "#/$defs/tokenList" }
+                            "wired": { "$ref": "#/$defs/valueList" },
+                            "missing": { "$ref": "#/$defs/valueList" }
                         }
                     }
                 },

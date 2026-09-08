@@ -21,8 +21,8 @@
  * `register-dts.ts` rather than in the target-neutral core. Everything is
  * harvested from the COMPILED design system, so the types cannot drift from
  * the stylesheet backing them; every interpolated value has passed either the
- * kebab-case attribute grammar or the api validator's vendor-spelling
- * grammar, so plain single-quoting is safe.
+ * axis-value grammar (`AXIS_VALUE_PATTERN`) or the api validator's
+ * vendor-spelling grammar, so plain single-quoting is safe.
  */
 import type { CompiledComponentApi } from '../../api.js';
 import type { CompiledComponentAxes, CompiledDesignSystem } from '../../design-system.js';

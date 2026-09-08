@@ -76,14 +76,14 @@
                     "description": "The `size` axis ramp, resolved (declared, else the recommended ramp); [] when declared out of existence.",
                     "type": "array",
                     "items": {
-                        "$ref": "#/$defs/kebabToken"
+                        "$ref": "#/$defs/axisValue"
                     }
                 },
                 "variants": {
                     "description": "The `variant` axis vocabulary \u2014 the UNION of every scope's vocabulary once tokens.scopes restricts any ([] when undeclared).",
                     "type": "array",
                     "items": {
-                        "$ref": "#/$defs/kebabToken"
+                        "$ref": "#/$defs/axisValue"
                     }
                 },
                 "axes": {
@@ -95,7 +95,7 @@
                     "additionalProperties": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/$defs/kebabToken"
+                            "$ref": "#/$defs/axisValue"
                         }
                     }
                 },
@@ -194,8 +194,13 @@
         }
     },
     "$defs": {
+        "axisValue": {
+            "description": "An axis VALUE: lowercase letters, digits and hyphens, repeated hyphens included (Carbon's danger--tertiary) \u2014 what a quoted [data-\u2026=\"\u2026\"] attribute selector, a single-quoted literal union in register.d.ts and an unescaped lynx class name (zx-a-<axis>-<value>) all carry verbatim. Wider than the kebab-case grammar names take; still no %, ., quotes, backslashes, whitespace or uppercase.",
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-+[a-z0-9]+)*$"
+        },
         "kebabToken": {
-            "description": "A kebab-case identifier that may start with a digit \u2014 the grammar for axis values and token keys.",
+            "description": "A kebab-case identifier that may start with a digit \u2014 the grammar for token keys and axis/modifier names.",
             "type": "string",
             "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
         },
@@ -246,9 +251,10 @@
             }
         },
         "axisValues": {
+            "description": "A wired value set. Modifier names ride the same list shape; their kebab grammar is a subset of the axis-value one.",
             "type": "array",
             "items": {
-                "$ref": "#/$defs/kebabToken"
+                "$ref": "#/$defs/axisValue"
             }
         },
         "componentAxes": {
@@ -288,7 +294,7 @@
                     "description": "The recipe's defaultVariants \u2014 manifest/docs only, never widens a union.",
                     "type": "object",
                     "additionalProperties": {
-                        "$ref": "#/$defs/kebabToken"
+                        "$ref": "#/$defs/axisValue"
                     }
                 },
                 "offered": {

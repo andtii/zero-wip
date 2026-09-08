@@ -152,6 +152,12 @@ variants: { density: { compact: { root: { base: { paddingBlock: '0.15rem' } } } 
 
 Axis names are kebab-case and may not be ones the anatomy contract owns
 (`scope`, `part`, `state`, `orientation`, or any flag) — see `RESERVED_AXES`.
+Axis **values** take a wider grammar, `AXIS_VALUE_PATTERN`: lowercase letters,
+digits and hyphens, repeated hyphens included — Carbon's `danger--tertiary` is
+a legal declared value. What stays out is what an unescaped lynx class name
+(`zx-a-<axis>-<value>`) cannot carry verbatim: `%`, `.`, quotes, whitespace,
+uppercase. A spelling the grammar refuses is what the `api.values` remap is
+for.
 
 Both halves of the token contract work the same way: a **closed set of
 categories**, each fixing a `--prefix-` and a value grammar, with **open keys
