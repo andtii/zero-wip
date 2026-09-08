@@ -22,15 +22,6 @@
   after the report and before the verdict, stays silent under
   `--report-json -`, and an unreadable path fails the run naming it.
 
-### Changed
-
-- **`report.json` is `reportVersion: 2`** (#408): the required `score`
-  section was added (below). A consumer pinned to version 1 must read
-  `score` or ignore it; nothing else in the shape moved. `formatReport`
-  prints the score line first, under the title.
-
-### Added
-
 - **A derived brief: `seeded`** (#414). The sixth file in
   `skills/design-system/briefs/` writes no colour: its `themes` block is
   one `deriveThemePair` call over two seed hues (indigo primary, coral
@@ -96,6 +87,11 @@
 
 ### Changed
 
+- **`report.json` is `reportVersion: 2`** (#408): the required `score`
+  section was added (below). A consumer pinned to version 1 must read
+  `score` or ignore it; nothing else in the shape moved. `formatReport`
+  prints the score line first, under the title.
+
 - **The generation skill's step 2 runs the scaffold** (#401):
   `pnpm create @sigx/zero-ds <name> --brief <id>` replaces the hand-copied
   package layout, and the brief pack's "copy the closest file" instruction
@@ -126,8 +122,6 @@
   test helper) is exported beside them. Exported from the barrel and from
   `@sigx/zero-kit/build`; the `sigx zero:audit` command, `dist/audit.json`
   and the static contrast matrix are the B and C slices.
-
-### Changed
 
 - **Axis values are graded by their own grammar, not the token-key one**
   (#198). `AXIS_VALUE_PATTERN` (`/^[a-z0-9]+(-+[a-z0-9]+)*$/`, exported from
