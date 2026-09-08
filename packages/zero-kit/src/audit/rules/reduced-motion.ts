@@ -22,19 +22,46 @@
  * loop's loses the cascade and stops nothing. (`animation-play-state: paused`
  * is deliberately not accepted: it freezes a frame rather than removing the
  * loop, and the browser spec's `animation-name: none` is the contract.) The
- * "and it runs otherwise" direction stays with the browser: a static reader
- * can see that a loop is declared, not that it plays.
+ * cancel must carry the reduced-motion query as its ONLY condition — one
+ * that also sits under `@supports` or a second `@media` stops the loop for
+ * some reduced-motion readers, not all — and a loop that itself only exists
+ * behind a `@supports` / `@container` / other condition is not the default
+ * render's loop and is not judged (#418). The "and it runs otherwise"
+ * direction stays with the browser: a static reader can see that a loop is
+ * declared, not that it plays.
  */
 import type { CssRule } from '../css-rules.js';
 import type { AuditContext } from '../context.js';
 import type { AuditFinding, RuleOutput } from '../types.js';
 
-const isMedia = (prelude: string): boolean => prelude.startsWith('@media');
+/**
+ * `@layer` and `@scope` are structure — where a rule sits, not when it
+ * applies. Everything else `PartStyles.at` can emit (`@media`, `@supports`,
+ * `@container`, `@starting-style`, a raw `@…` prelude) is a condition, and
+ * the same reading the other audit rules take (#418).
+ */
+const isStructural = (prelude: string): boolean => prelude.startsWith('@layer') || prelude.startsWith('@scope');
+/**
+ * The reduced-motion query and nothing else — `@media print and
+ * (prefers-reduced-motion: reduce)` CONTAINS it and is a narrower condition,
+ * so the prelude is matched whole (whitespace-insensitive), not searched.
+ */
 const isReducedMotion = (prelude: string): boolean =>
-    isMedia(prelude) && /prefers-reduced-motion\s*:\s*reduce/.test(prelude);
+    prelude.replace(/\s+/g, '') === '@media(prefers-reduced-motion:reduce)';
 
-/** The default render: `@layer` and `@scope` are structure; any `@media` is a condition. */
-const isDefaultContext = (rule: CssRule): boolean => rule.at.every((p) => !isMedia(p));
+/** The default render: every prelude is structural. */
+const isDefaultContext = (rule: CssRule): boolean => rule.at.every(isStructural);
+
+/**
+ * Does this rule stop the loop for EVERY reduced-motion reader? Only when
+ * the reduced-motion query is its one and only condition: a cancel that
+ * also sits under `@supports (…)` or `@media print` stops the loop only
+ * where that second condition holds too (#418).
+ */
+const cancelsForAllReducedMotionReaders = (rule: CssRule): boolean => {
+    const conditions = rule.at.filter((p) => !isStructural(p));
+    return conditions.length === 1 && isReducedMotion(conditions[0]!);
+};
 
 const split = (decl: string): [string, string] => {
     const i = decl.indexOf(':');
@@ -55,8 +82,8 @@ const stopsAnimation = (rule: CssRule): boolean =>
         return (prop === 'animation' && /^none\b/.test(value)) || (prop === 'animation-name' && value === 'none');
     });
 
-/** The at-rule preludes that place a rule, with the media condition removed. */
-const placement = (rule: CssRule): string => rule.at.filter((p) => !isMedia(p)).join(' ');
+/** The structural preludes that place a rule. */
+const placement = (rule: CssRule): string => rule.at.filter(isStructural).join(' ');
 
 /** The part a rule's subject is, for the finding's `where`. */
 const partOf = (rule: CssRule): string | undefined => {
@@ -69,7 +96,7 @@ export function loopFindings(scope: string, rules: readonly CssRule[]): AuditFin
     for (const loop of rules) {
         if (!isDefaultContext(loop) || !declaresLoop(loop)) continue;
         const stopped = rules.some((r) =>
-            r.at.some(isReducedMotion)
+            cancelsForAllReducedMotionReaders(r)
             && r.selector === loop.selector
             && placement(r) === placement(loop)
             && stopsAnimation(r));

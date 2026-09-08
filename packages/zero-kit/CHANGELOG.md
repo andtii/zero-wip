@@ -108,20 +108,25 @@
   fails it", and for them nothing did. They now live under
   `src/audit/rules/`, lifted verbatim with their reasoning, and the four
   in-repo tests are thin callers of them (keeping the carrier discovery and
-  the `NO_VARIANT` / `UNWIRED_AXES` / material ledgers, which are facts about
-  this repo rather than about a design system). One new rule joins them:
-  `reduced-motion/loop`, the static half of the browser reduced-motion spec —
-  an infinite animation must have an `animation: none` under
-  `prefers-reduced-motion: reduce` for the SAME selector, since `@media` adds
-  no specificity and a broader cancel stops nothing. Findings carry a rule
-  id, a severity (the former hard-fails are errors; the two advisory rules
-  are warnings), a `where`, the structured scope/part/states/axis/values, and
-  a message naming the fix; what `skipStates`, `hiddenIn`, `tokens.scopes` or
-  a fill-role declaration excused is listed under `waived` rather than
-  swallowed. `parseRules` (the CSS reader the guards stand on, formerly a
-  test helper) is exported beside them. Exported from the barrel and from
-  `@sigx/zero-kit/build`; the `sigx zero:audit` command, `dist/audit.json`
-  and the static contrast matrix are the B and C slices.
+  the `NO_VARIANT` / `UNWIRED_AXES` / material ledgers, which are facts
+  about this repo rather than about a design system). One new rule joins
+  them: `reduced-motion/loop`, the static half of the browser reduced-motion
+  spec — an infinite animation must have an `animation: none` under
+  `prefers-reduced-motion: reduce` for the SAME selector, since `@media`
+  adds no specificity and a broader cancel stops nothing — and (#418) with
+  the reduced-motion query as the cancel's ONLY condition, since one also
+  gated by `@supports` or a second `@media` stops the loop for some readers,
+  not all; only `@layer`/`@scope` count as structure, so a loop that exists
+  only behind `@supports`/`@container` is not judged as the default
+  render's. Findings carry a rule id, a severity (the former hard-fails are
+  errors; the two advisory rules are warnings), a `where`, the structured
+  scope/part/states/axis/values, and a message naming the fix; what
+  `skipStates`, `hiddenIn`, `tokens.scopes` or a fill-role declaration
+  excused is listed under `waived` rather than swallowed. `parseRules` (the
+  CSS reader the guards stand on, formerly a test helper) is exported beside
+  them. Exported from the barrel and from `@sigx/zero-kit/build`; the `sigx
+  zero:audit` command, `dist/audit.json` and the static contrast matrix are
+  the B and C slices.
 
 ### Changed
 

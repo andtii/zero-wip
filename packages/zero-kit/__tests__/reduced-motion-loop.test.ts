@@ -138,6 +138,53 @@ describe('reduced-motion/loop', () => {
         }))).toEqual([]);
     });
 
+    it('ignores a loop that only exists behind a feature or container query (#418)', () => {
+        // `PartStyles.at` admits `@supports` / `@container` / any raw `@…`
+        // prelude, and those are conditional renders like `@media` — only
+        // `@layer` and `@scope` are structure. A loop behind one is not the
+        // default render's loop, and reporting it is a false positive.
+        expect(loops(spinner({
+            base: {},
+            at: { '@supports (rotate: 1deg)': { base: { animation: 'spin 1s linear infinite' } } },
+        }))).toEqual([]);
+        expect(loops(spinner({
+            base: {},
+            at: { '@container (min-width: 1px)': { base: { animation: 'spin 1s linear infinite' } } },
+        }))).toEqual([]);
+    });
+
+    it('does not accept a cancel that is itself gated by another condition (#418)', () => {
+        // A cancel under `@supports (…)` AND the reduced-motion query stops
+        // the loop only where the feature query also holds; a reduced-motion
+        // user whose environment fails it still sees the loop. The cancel
+        // must carry the reduced-motion query and nothing else conditional.
+        expect(loops(spinner({
+            base: { animation: 'spin 1s linear infinite' },
+            at: { '@supports (rotate: 1deg)': { at: { 'reduced-motion': { base: { animation: 'none' } } } } },
+        }))).toEqual(['spinner.root']);
+        expect(loops(spinner({
+            base: { animation: 'spin 1s linear infinite' },
+            at: { 'reduced-motion': { at: { '@supports (rotate: 1deg)': { base: { animation: 'none' } } } } },
+        }))).toEqual(['spinner.root']);
+        // …including a second media query: a cancel that only holds in print
+        // is not a cancel for the screen the reduced-motion user is reading.
+        expect(loops(spinner({
+            base: { animation: 'spin 1s linear infinite' },
+            at: { print: { at: { 'reduced-motion': { base: { animation: 'none' } } } } },
+        }))).toEqual(['spinner.root']);
+        // …and the same constraint folded into ONE raw prelude: the query must
+        // BE the reduced-motion query, not merely contain it.
+        expect(loops(spinner({
+            base: { animation: 'spin 1s linear infinite' },
+            at: { '@media print and (prefers-reduced-motion: reduce)': { base: { animation: 'none' } } },
+        }))).toEqual(['spinner.root']);
+        // Whitespace is not a condition.
+        expect(loops(spinner({
+            base: { animation: 'spin 1s linear infinite' },
+            at: { '@media  ( prefers-reduced-motion:reduce )': { base: { animation: 'none' } } },
+        }))).toEqual([]);
+    });
+
     it('ignores a finite animation', () => {
         expect(loops(spinner({ base: { animation: 'spin 0.3s ease-out' } }))).toEqual([]);
     });
