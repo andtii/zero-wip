@@ -13,6 +13,7 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { anatomies } from '@sigx/zero/anatomy';
 import { compileDesignSystem, validateDesignSystem } from '@sigx/zero-kit';
@@ -76,6 +77,13 @@ describe('the templates collected from the workspace', () => {
     });
 });
 
+/**
+ * The generated module as an import specifier. A `file://` URL rather than
+ * the bare path: Node's `import()` rejects an absolute Windows path (`C:\…`
+ * parses as a `c:` scheme), and the CI matrix runs the suite on Windows.
+ */
+const generated = (dir: string): string => pathToFileURL(join(dir, 'src', 'design-system.ts')).href;
+
 /** One scaffold per brief, written on first use (templates arrive in `beforeAll`). */
 const scaffolds = new Map<string, { dir: string; plan: ReturnType<typeof planScaffold> }>();
 function scaffolded(brief: string): { dir: string; plan: ReturnType<typeof planScaffold> } {
@@ -108,7 +116,7 @@ describe.each(BRIEFS)('scaffold --brief %s', (brief) => {
 
     it('generates a design system that validates with no errors and no warnings', async () => {
         const { dir } = scaffolded(brief);
-        const { designSystem } = await import(join(dir, 'src/design-system.ts')) as { designSystem: DesignSystemInput };
+        const { designSystem } = await import(generated(dir)) as { designSystem: DesignSystemInput };
         expect(designSystem.name).toBe(`${brief}-demo`);
         const result = validateDesignSystem(designSystem, manifest);
         expect(result.errors.map((e) => `${e.where}: ${e.message}`)).toEqual([]);
@@ -117,14 +125,14 @@ describe.each(BRIEFS)('scaffold --brief %s', (brief) => {
 
     it('styles every component in the manifest', async () => {
         const { dir } = scaffolded(brief);
-        const { designSystem } = await import(join(dir, 'src/design-system.ts')) as { designSystem: DesignSystemInput };
+        const { designSystem } = await import(generated(dir)) as { designSystem: DesignSystemInput };
         const compiled = compileDesignSystem(designSystem, manifest);
         expect(Object.keys(compiled.componentCss).sort()).toEqual(manifest.components.map((c) => c.scope).sort());
     });
 
     it('builds the web artifacts through runStandardBuild', async () => {
         const { dir } = scaffolded(brief);
-        const { designSystem } = await import(join(dir, 'src/design-system.ts')) as { designSystem: DesignSystemInput };
+        const { designSystem } = await import(generated(dir)) as { designSystem: DesignSystemInput };
         const outDir = tempDir();
         await runStandardBuild({ designSystem, manifest, outDir, logger: silent });
         expect(existsSync(join(outDir, 'css', 'index.css'))).toBe(true);
@@ -138,7 +146,7 @@ describe("the brief's signature survives the composition", () => {
     it('riso: the overprint modifier and the fused variant reach the CSS, and no role token leaks', async () => {
         const dir = scaffoldDir();
         writePlan(dir, planScaffold({ name: '@acme/zero-riso', brief: 'riso' }, templates));
-        const { designSystem } = await import(join(dir, 'src/design-system.ts')) as { designSystem: DesignSystemInput };
+        const { designSystem } = await import(generated(dir)) as { designSystem: DesignSystemInput };
         const compiled = compileDesignSystem(designSystem, manifest);
         expect(compiled.componentCss.button).toContain('[data-mod-overprint]');
         expect(compiled.componentCss.button).toContain('[data-variant="key"]');
@@ -149,7 +157,7 @@ describe("the brief's signature survives the composition", () => {
     it('brutalist: the tracked-out mono type and zero radius are what every component wears', async () => {
         const dir = scaffoldDir();
         writePlan(dir, planScaffold({ name: 'zero-brut', brief: 'brutalist' }, templates));
-        const { designSystem } = await import(join(dir, 'src/design-system.ts')) as { designSystem: DesignSystemInput };
+        const { designSystem } = await import(generated(dir)) as { designSystem: DesignSystemInput };
         const compiled = compileDesignSystem(designSystem, manifest);
         expect(compiled.tokensCss).toContain('--tracking-wide: 0.1em');
         expect(compiled.tokensCss).toContain('--radius-box: 0');
@@ -164,7 +172,7 @@ describe('options', () => {
         const pkg = JSON.parse(plan.find((f) => f.path === 'package.json')!.content) as { exports: Record<string, unknown> };
         expect(pkg.exports['./lynx/index.css']).toBe('./dist/lynx/index.css');
         expect(plan.find((f) => f.path === 'build.mjs')!.content).toContain("targets: ['web', 'lynx']");
-        const { designSystem } = await import(join(dir, 'src/design-system.ts')) as { designSystem: DesignSystemInput };
+        const { designSystem } = await import(generated(dir)) as { designSystem: DesignSystemInput };
         const outDir = tempDir();
         await runStandardBuild({ designSystem, manifest, outDir, targets: ['web', 'lynx'], logger: silent });
         expect(existsSync(join(outDir, 'lynx', 'index.css'))).toBe(true);
@@ -175,7 +183,7 @@ describe('options', () => {
         const plan = planScaffold({ name: 'zero-terminal-min', brief: 'terminal', baseline: 'none' }, templates);
         writePlan(dir, plan);
         expect(plan.map((f) => f.path)).not.toContain('src/baseline.ts');
-        const { designSystem } = await import(join(dir, 'src/design-system.ts')) as { designSystem: DesignSystemInput };
+        const { designSystem } = await import(generated(dir)) as { designSystem: DesignSystemInput };
         expect(designSystem.recipes).toHaveLength(1);
         const result = validateDesignSystem(designSystem, manifest);
         expect(result.errors).toEqual([]);
