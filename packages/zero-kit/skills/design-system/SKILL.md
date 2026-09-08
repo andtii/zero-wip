@@ -130,7 +130,10 @@ component's anatomy). No component code is ever written or changed.
    Every theme must define every declared role (+ its `-content` when
    declared) plus the fixed base surfaces `base-100/200/300/base-content`.
    Rules of thumb for the hand-authored parts:
-   - `x-content` must contrast with `x` at ≥ 4.5:1 (the validator errors < 3:1).
+   - `x-content` must contrast with `x` at ≥ 4.5:1 (the validator errors
+     < 3:1 and warns below 4.5:1, and either way names the nearest passing
+     value — `suggest x-content: oklch(…)`, same hue, lightness moved — so
+     paste that rather than guessing).
    - oklch() everywhere; keep hue families consistent between light and dark.
    - `softMix` (0.08–0.2) controls the derived `-soft` tinted surfaces.
    - **Structural feel goes in `system`, declared once for the whole design
@@ -884,6 +887,11 @@ Content is checked, not just structure. These are errors:
 
 - a `var(--…)` this design system never declares — it resolves to nothing.
   The message suggests the nearest declared name.
+- a role/`-content` pair (or a base surface against `base-content`) below
+  3:1. The message ends with the nearest passing value at 4.5:1 (`suggest
+  primary-content: oklch(…)`), and the same fix rides the issue as
+  `suggest: { token, value }` for tooling; 3–4.5:1 is the warning form of
+  the same rule.
 - a component that styles `focus-visible` nowhere, so keyboard focus is
   invisible.
 - a `skipStates` entry naming neither a state nor a flag of that part.

@@ -11,9 +11,10 @@
  * resolved to nothing at runtime).
  */
 import { describe, expect, it } from 'vitest';
+import { oklch, wcagContrast } from 'culori';
 import { anatomies } from '@sigx/zero/anatomy';
 import type { DesignSystemInput, ManifestComponent, TokensInput } from '@sigx/zero-kit';
-import { validateDesignSystem } from '@sigx/zero-kit';
+import { suggestContrastFix, validateDesignSystem } from '@sigx/zero-kit';
 
 const manifest = { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] };
 
@@ -146,5 +147,76 @@ describe('custom-property definition cycles', () => {
             };
         }));
         expect(result).toBe('');
+    });
+});
+
+describe('contrast failures suggest the nearest passing value (#412)', () => {
+    /** Same fixture, one pair broken: a mid-lightness primary with a near-identical content ink. */
+    const lowPrimaryContent = 'oklch(55% 0.2 300)';
+    const broken = ds((t) => {
+        t.themes.day.colors.primary = 'oklch(45% 0.2 300)';
+        t.themes.day.colors['primary-content'] = lowPrimaryContent;
+    });
+    const contrastIssue = (input: DesignSystemInput, level: 'error' | 'warning', token: string) => {
+        const result = validateDesignSystem(input, manifest);
+        return (level === 'error' ? result.errors : result.warnings).find(
+            (i) => i.message.startsWith('contrast') && i.message.includes(` vs ${token} `),
+        );
+    };
+
+    it('an error carries a structured suggestion that clears AA, on the same hue', () => {
+        const issue = contrastIssue(broken, 'error', 'primary-content');
+        expect(issue).toBeDefined();
+        expect(issue!.rule).toBe('contrast-floor');
+        expect(issue!.suggest).toEqual({ token: 'primary-content', value: expect.stringMatching(/^oklch\(/) });
+        expect(issue!.message).toContain(`suggest primary-content: ${issue!.suggest!.value}`);
+        // culori is the oracle, on the formatted string the author would paste.
+        expect(wcagContrast('oklch(45% 0.2 300)', issue!.suggest!.value)).toBeGreaterThanOrEqual(4.5);
+        const hue = oklch(issue!.suggest!.value)!.h ?? 0;
+        expect(Math.abs(hue - 300)).toBeLessThanOrEqual(1);
+    });
+
+    it('pasting the suggestion back validates that pair clean', () => {
+        const suggested = contrastIssue(broken, 'error', 'primary-content')!.suggest!.value;
+        const fixed = ds((t) => {
+            t.themes.day.colors.primary = 'oklch(45% 0.2 300)';
+            t.themes.day.colors['primary-content'] = suggested;
+        });
+        expect(contrastIssue(fixed, 'error', 'primary-content')).toBeUndefined();
+        expect(contrastIssue(fixed, 'warning', 'primary-content')).toBeUndefined();
+    });
+
+    it('a warning-tier pair (3–4.5:1) suggests the AA value', () => {
+        // 3.6:1 against the primary above.
+        const nearMiss = ds((t) => {
+            t.themes.day.colors.primary = 'oklch(45% 0.2 300)';
+            t.themes.day.colors['primary-content'] = 'oklch(78% 0.05 300)';
+        });
+        const issue = contrastIssue(nearMiss, 'warning', 'primary-content');
+        expect(issue).toBeDefined();
+        expect(issue!.rule).toBe('contrast-floor');
+        expect(wcagContrast('oklch(45% 0.2 300)', issue!.suggest!.value)).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it('when no lightness can reach the floor, the helper says so (unreachable at AA, reachable at 7:1)', () => {
+        // Against a mid-grey, black clears 4.5:1 from below or white from
+        // above — there is no lightness the AA floor cannot reach, so the
+        // validator's "move the role" branch never fires at 4.5. It exists
+        // for a stricter floor: at 7:1 a background near 60% L is out of
+        // reach from both sides, and the helper reports null rather than a
+        // value it cannot vouch for.
+        expect(suggestContrastFix('oklch(60% 0 0)', 'oklch(58% 0 0)', 7)).toBeNull();
+        const atAA = suggestContrastFix('oklch(60% 0 0)', 'oklch(58% 0 0)', 4.5);
+        expect(atAA).not.toBeNull();
+        expect(wcagContrast('oklch(60% 0 0)', atAA!)).toBeGreaterThanOrEqual(4.5);
+        expect(suggestContrastFix('not a colour', 'oklch(58% 0 0)', 4.5)).toBeNull();
+    });
+
+    it('issues from other rules carry neither field', () => {
+        const missing = ds((t) => { delete (t.themes.day.colors as Record<string, string>)['primary-content']; });
+        const issue = validateDesignSystem(missing, manifest).errors.find((e) => e.message.includes('missing color token'));
+        expect(issue).toBeDefined();
+        expect(issue!.rule).toBeUndefined();
+        expect(issue!.suggest).toBeUndefined();
     });
 });
