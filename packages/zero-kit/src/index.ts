@@ -105,7 +105,7 @@ export {
 } from './audit/index.js';
 
 export type { ValidationIssue, ValidationResult } from './resolve/validate.js';
-export { validateDesignSystem } from './resolve/validate.js';
+export { suggestContrastFix, validateDesignSystem } from './resolve/validate.js';
 
 export type {
     ApiSurfaceReport,

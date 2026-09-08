@@ -14,8 +14,7 @@ import { describe, expect, it } from 'vitest';
 import { oklch, wcagContrast } from 'culori';
 import { anatomies } from '@sigx/zero/anatomy';
 import type { DesignSystemInput, ManifestComponent, TokensInput } from '@sigx/zero-kit';
-import { validateDesignSystem } from '@sigx/zero-kit';
-import { suggestContrastFix } from '../src/resolve/validate.js';
+import { suggestContrastFix, validateDesignSystem } from '@sigx/zero-kit';
 
 const manifest = { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] };
 
