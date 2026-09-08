@@ -204,13 +204,14 @@ const rulesOf = (compiled: CompiledDesignSystem, scope: string, parsed?: Readonl
 /** Every (scope, axis) in one design system that participates in the axis. */
 export function participatingCells(compiled: CompiledDesignSystem, parsed?: ReadonlyMap<string, readonly CssRule[]>): AxisCell[] {
     const cells: AxisCell[] = [];
-    for (const [scope, axes] of Object.entries(compiled.components)) {
+    const axes = Object.keys(declaredVocabulary(compiled));
+    for (const [scope, wired] of Object.entries(compiled.components)) {
         const rules = rulesOf(compiled, scope, parsed);
-        for (const axis of Object.keys(declaredVocabulary(compiled))) {
+        for (const axis of axes) {
             const painted = paintedValues(rules, axis, 'default');
             const anywhere = paintedValues(rules, axis, 'anywhere');
-            const written = writtenValues(axes, axis);
-            const declared = offeredFor(axes, axis);
+            const written = writtenValues(wired, axis);
+            const declared = offeredFor(wired, axis);
             // A scope that declared the axis out of existence FOR ITSELF is
             // not participating, whatever the CSS says. Wiring an axis you
             // declared away is a `validate-recipes` error, and this rule must
