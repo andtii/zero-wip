@@ -19,7 +19,7 @@
  *   (compile already hard-errors); every declared machine state of a styled
  *   part is addressed or explicitly listed in `skipStates`.
  */
-import { parse, wcagContrast } from 'culori';
+import { converter, parse, wcagContrast } from 'culori';
 import type { ZeroManifest } from '../contract.js';
 import { badAxisValue } from './messages.js';
 import {
@@ -45,11 +45,45 @@ import type { DesignSystemInput } from '../design-system.js';
 import { compileDesignSystem } from '../design-system.js';
 import { validateRecipes } from './validate-recipes.js';
 import { tokenVocabulary } from './vocabulary.js';
+import { formatOklch, solveContentLightness } from '../palette.js';
 
 export interface ValidationIssue {
     level: 'error' | 'warning';
     where: string;
     message: string;
+    /**
+     * A stable id for the rule that raised the issue — for tooling that
+     * counts or filters by rule (an iteration log, a score). Rules gain ids
+     * as they need them; absence means the rule has none yet.
+     */
+    rule?: string;
+    /**
+     * A concrete replacement the rule can vouch for: paste `value` in as
+     * the theme's `token` and this issue goes away. Only rules that can
+     * compute a fix carry it; the message repeats it in prose.
+     */
+    suggest?: { token: string; value: string };
+}
+
+/** WCAG AA for text — the floor a suggested content colour must clear. */
+const CONTRAST_AA = 4.5;
+
+const toOklch = converter('oklch');
+
+/**
+ * The nearest value for `fg` that reaches `floor` against `bg` — hue and
+ * chroma kept, lightness moved by `solveContentLightness` — formatted the
+ * way the briefs spell colours, or `null` when no lightness reaches the
+ * floor from either side (a mid-grey `bg`; at 4.5:1 that cannot happen,
+ * since black or white always clears it, but at 7:1 it can). Both inputs
+ * are any CSS colour culori can parse.
+ */
+export function suggestContrastFix(bg: string, fg: string, floor: number): string | null {
+    const b = toOklch(bg);
+    const f = toOklch(fg);
+    if (!b || !f) return null;
+    const solved = solveContentLightness({ l: f.l, c: f.c, h: f.h ?? 0 }, { l: b.l, c: b.c, h: b.h ?? 0 }, floor);
+    return solved ? formatOklch(solved) : null;
 }
 
 export interface ValidationResult {
@@ -361,11 +395,29 @@ export function validateDesignSystem<R extends RolesDecl>(
             const b = colors[fg];
             if (!a || !b || !parse(a) || !parse(b)) continue;
             const ratio = wcagContrast(a, b);
-            if (ratio < 3) {
-                error(`themes.${themeName}`, `contrast ${bg} vs ${fg} is ${ratio.toFixed(2)}:1 (< 3:1)`);
-            } else if (ratio < 4.5) {
-                warn(`themes.${themeName}`, `contrast ${bg} vs ${fg} is ${ratio.toFixed(2)}:1 (< 4.5:1 AA)`);
-            }
+            if (ratio >= CONTRAST_AA) continue;
+            // The fix is solved at AA even for the 3:1 error tier: a value
+            // that only just clears 3:1 would come straight back as the
+            // warning on the next run, which is not a fix an author can
+            // paste and move on from.
+            const level = ratio < 3 ? 'error' : 'warning';
+            const said = `contrast ${bg} vs ${fg} is ${ratio.toFixed(2)}:1 (${ratio < 3 ? '< 3:1' : `< ${CONTRAST_AA}:1 AA`})`;
+            const value = suggestContrastFix(a, b, CONTRAST_AA);
+            const issue: ValidationIssue = value
+                ? {
+                    level,
+                    where: `themes.${themeName}`,
+                    message: `${said} — suggest ${fg}: ${value}`,
+                    rule: 'contrast-floor',
+                    suggest: { token: fg, value },
+                }
+                : {
+                    level,
+                    where: `themes.${themeName}`,
+                    message: `${said} — no ${fg} lightness reaches ${CONTRAST_AA}:1 against ${bg}; move ${bg}'s lightness instead`,
+                    rule: 'contrast-floor',
+                };
+            (level === 'error' ? errors : warnings).push(issue);
         }
         const themeCustom = new Set(Object.keys(theme.custom ?? {}).map(normProp));
         for (const name of Object.keys(customDecls)) {

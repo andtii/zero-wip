@@ -36,8 +36,24 @@
   hand-rolled (the `/define` graph may only reach relative modules) and
   pinned against culori to 1e-6; every guarantee is measured on the
   formatted string, so rounding cannot eat the margin. The validator's
-  suggested fix for a failing pair (#402 follow-up) and a derived brief
-  build on this.
+  suggested fix for a failing pair (#412, below) and a derived brief build
+  on this.
+
+- **Contrast failures suggest the nearest passing value** (#412). When a
+  `contrastPairs` pair fails in `validateDesignSystem` — error below 3:1,
+  warning below 4.5:1 — the issue now ends ` — suggest <token>: oklch(…)`:
+  the content side (`<role>-content`, or `base-content` for the base
+  surfaces) moved in lightness only, hue and chroma kept, to the nearest
+  value that clears **AA (4.5:1)** even for the error tier, since a fix
+  that only just clears 3:1 would come straight back as the warning. The
+  same fix is carried structurally: `ValidationIssue` gains two optional
+  fields, `rule` (a stable id — `contrast-floor` here; other rules stamp
+  theirs as tooling needs them) and `suggest: { token, value }`, so a
+  generating agent can apply it without parsing prose. `suggestContrastFix(bg,
+  fg, floor)` is exported for callers with their own floor; it returns
+  `null` when no lightness reaches the floor from either side (impossible
+  at 4.5:1 — black or white always clears a mid-grey — but real at 7:1),
+  and the validator then says the role itself has to move.
 - **A composite score and grade in the coverage report** (#408;
   `resolve/score.ts`, `computeScore` / `formatScore` / `pairScore` /
   `gradeFor` / `SCORE_WEIGHTS` exported from the barrel). Five named

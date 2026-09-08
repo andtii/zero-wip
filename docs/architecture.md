@@ -233,6 +233,15 @@ scope's own `tokens.scopes` entry — all errors listing the declared set.
 Only the default-resolved size ramp stays advisory (the author never wrote
 the set down). The other rules worth knowing:
 
+- **A contrast failure carries its fix.** The per-theme WCAG check (error
+  below 3:1, warning below 4.5:1 on every `contrastPairs` pair) solves the
+  content side's lightness with the palette solver
+  ([§7](#7-the-authoring-surface)) at AA and attaches it twice: in prose
+  (` — suggest primary-content: oklch(…)`) and as `ValidationIssue.suggest
+  { token, value }` under `rule: 'contrast-floor'`, so an agent iterating
+  on a generated theme pastes the value rather than guessing a lightness.
+  `rule` and `suggest` are optional on every issue; a rule carries them
+  only when it can vouch for a fix.
 - **`defaultVariants` is validated unconditionally** — against the recipe
   itself (wired keys and values), so it needs no declaration to be checked.
 - **An axis wired with zero values is an error** — the components emitter
