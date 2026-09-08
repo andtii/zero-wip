@@ -2,14 +2,25 @@
 
 ## [Unreleased]
 
-### Changed
-
-- **`report.json` is `reportVersion: 2`** (#408): the required `score`
-  section was added (below). A consumer pinned to version 1 must read
-  `score` or ignore it; nothing else in the shape moved. `formatReport`
-  prints the score line first, under the title.
-
 ### Added
+
+- **`sigx zero:validate --diff <report.json>` — what moved between two
+  coverage reports** (#415). `diffReports(prev, next)` and
+  `formatReportDiff(diff)` in `resolve/report-diff.ts` (pure, exported from
+  the barrel) compare two `reportVersion: 2` documents: the score and each
+  criterion's delta, scopes newly styled or unstyled, `axis:value` keys newly
+  wired or unwired, `scope.part.state` keys newly covered or uncovered over
+  the scopes styled in both, declared role pairs crossing the 4.5:1 or 3:1
+  thresholds in either direction (the most severe crossing when a pair falls
+  through both), and the validation counts when both reports carry them. A
+  state moved into `skipStates` is reported as newly *skipped*, never as
+  resolved — the half-credit stance the score takes, kept so a waiver cannot
+  read as progress. A `reportVersion` mismatch throws naming both versions.
+  The flag is a required-value flag (`@sigx/args` has no optional form, #177);
+  `zero:build` writes `dist/report.json` every run, so
+  `--diff dist/report.json` compares against the last build. The diff prints
+  after the report and before the verdict, stays silent under
+  `--report-json -`, and an unreadable path fails the run naming it.
 
 - **A derived brief: `seeded`** (#414). The sixth file in
   `skills/design-system/briefs/` writes no colour: its `themes` block is
@@ -109,6 +120,11 @@
 
 ### Changed
 
+- **`report.json` is `reportVersion: 2`** (#408): the required `score`
+  section was added (below). A consumer pinned to version 1 must read
+  `score` or ignore it; nothing else in the shape moved. `formatReport`
+  prints the score line first, under the title.
+
 - **The generation skill's step 2 runs the scaffold** (#401):
   `pnpm create @sigx/zero-ds <name> --brief <id>` replaces the hand-copied
   package layout, and the brief pack's "copy the closest file" instruction
@@ -144,8 +160,6 @@
   them. Exported from the barrel and from `@sigx/zero-kit/build`; the `sigx
   zero:audit` command, `dist/audit.json` and the static contrast matrix are
   the B and C slices.
-
-### Changed
 
 - **Axis values are graded by their own grammar, not the token-key one**
   (#198). `AXIS_VALUE_PATTERN` (`/^[a-z0-9]+(-+[a-z0-9]+)*$/`, exported from

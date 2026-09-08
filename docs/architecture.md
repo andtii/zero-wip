@@ -800,7 +800,14 @@ is a one-function change — leave the denominator), `skipStates` earns half
 credit so the score cannot be raised by delegating everything, and the
 weakest theme is the one graded. Per-scope `variant` wiring is not scored:
 the `NO_VARIANT` ledger owns that decision. The six in-repo skins score
-93–97 (A), pinned as floors in `report.test.ts`. Automated vendor-doc
+93–97 (A), pinned as floors in `report.test.ts`. What a change *did* is
+the third question, answered by `diffReports` (`resolve/report-diff.ts`,
+`sigx zero:validate --diff <report.json>`, #415): score and criterion
+deltas, scopes newly styled or unstyled, values newly wired or unwired,
+states newly covered or uncovered, and role pairs crossing a contrast
+threshold — with a state moved into `skipStates` reported as skipped, never
+as resolved, and a `reportVersion` mismatch refused rather than
+approximated. Automated vendor-doc
 checking is out of scope by design — it rots, then gets muted; the dated
 source column is the honest amount of process.
 
