@@ -182,6 +182,23 @@ grows with the design system rather than being a list to maintain.
 The `skills/design-system` folder ships an agent skill that generates a
 complete design system from a style brief and iterates against `validate`.
 
+## Starting a design system
+
+```sh
+pnpm create @sigx/zero-ds zero-acme --brief riso    # or npm create @sigx/zero-ds …
+cd zero-acme && pnpm install && pnpm build
+npx sigx zero:validate --report
+```
+
+[`@sigx/create-zero-ds`](../create-zero-ds) lays down the whole package from
+nothing: the brief's tokens and worked Button (`src/tokens.ts`,
+`src/button.ts`), `@sigx/zero-basic`'s 51 recipes as `src/baseline.ts`, and a
+`src/recipes.ts` that composes them through `fitRecipesToVocabulary` — so the
+first build styles every component, whatever axis shape the brief declares.
+`--brief` takes `brutalist | glass | corporate | terminal | riso | basic`;
+`--baseline none` scaffolds the Button alone; `--targets web,lynx` adds the
+lynx target. Non-interactive throughout — it is built for agents to drive.
+
 ## Building a design system
 
 Every design system runs the same pipeline; it ships as one function on the
@@ -230,6 +247,23 @@ import { defineApi } from '@sigx/zero-kit/define';
 ```
 
 and keeps the full literal narrowing without a `satisfies` reimplementation.
+
+### `fitRecipesToVocabulary`
+
+The one thing on `/define` that is not a `define*` helper. Given a recipe
+list and a `TokensInput`, it returns the recipes fitted to what the tokens
+declare: `variants.color` keeps declared roles only; `variants.size`,
+`variants.variant`, custom axes and `modifiers` keep declared values once
+the corresponding vocabulary is declared (`sizes: []` empties the size
+axis); `defaultVariants` and `compoundVariants` naming a dropped value go
+with it; every `var(--color-<role>…)` the tokens never define is redrawn on
+the base surfaces (`base-content` / `base-100` / `base-200`), and a
+category step the tokens never declare (`var(--ease-exit)`) collapses to
+the category's resting step (`--ease-standard`). Pure, and the identity for
+recipes that already fit — every in-repo skin round-trips deep-equal.
+`explainFit` returns the counts instead of the recipes. The scaffold's
+generated `src/recipes.ts` is its caller; delete the call once the recipes
+speak the design system's own vocabulary.
 
 ## Deriving a palette
 

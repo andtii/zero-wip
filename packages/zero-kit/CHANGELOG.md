@@ -22,6 +22,27 @@
   suggested fix for a failing pair (#402 follow-up) and a derived brief
   build on this.
 
+- **`fitRecipesToVocabulary` / `explainFit` on `/define`** (#401): fit a
+  recipe list to what a `TokensInput` declares — `variants.color` keeps
+  declared roles only; `size`, `variant`, custom axes and `modifiers` keep
+  declared values once the vocabulary is declared (`sizes: []` empties the
+  axis); `defaultVariants` / `compoundVariants` naming a dropped value go with
+  it; `var(--color-<role>…)` the tokens never define is redrawn on the base
+  surfaces, and an undeclared category step (`--ease-exit`) collapses to the
+  category's resting step. Pure, and the identity for recipes that already
+  fit (all six in-repo skins round-trip deep-equal). The caller is the new
+  `@sigx/create-zero-ds` scaffold's generated `src/recipes.ts`, which lays
+  `@sigx/zero-basic`'s 51 recipes under any brief.
+
+### Changed
+
+- **The generation skill's step 2 runs the scaffold** (#401):
+  `pnpm create @sigx/zero-ds <name> --brief <id>` replaces the hand-copied
+  package layout, and the brief pack's "copy the closest file" instruction
+  becomes "pass it as `--brief`". The skill now documents the generated
+  `baseline.ts` / `button.ts` / `recipes.ts` split and when to delete the fit
+  call.
+
 ## [0.2.0-beta.6] - 2026-08-22
 
 ### Fixed

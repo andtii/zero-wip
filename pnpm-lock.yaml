@@ -134,6 +134,21 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  packages/create-zero-ds:
+    devDependencies:
+      '@sigx/zero-basic':
+        specifier: workspace:^
+        version: link:../zero-basic
+      '@sigx/zero-kit':
+        specifier: workspace:^
+        version: link:../zero-kit
+      '@types/node':
+        specifier: ^22.10.0
+        version: 22.20.1
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   packages/zero:
     devDependencies:
       '@sigx/reactivity':

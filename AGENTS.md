@@ -303,6 +303,20 @@ that null reports a `TypeError` instead of "the popup was not showing".
   its emitted `register.d.ts` the Exclude-form compile proof
   (`packages/zero/type-tests/ecosystem/`). Private — it proves the loop the
   way zero-heroui proves axis shapes.
+- `packages/create-zero-ds` → `@sigx/create-zero-ds` — the scaffold behind
+  `pnpm create @sigx/zero-ds <name> --brief <id>` (#401): a Node-only bin with
+  zero runtime deps that lays down a design-system package from nothing —
+  the brief's tokens + Button, `@sigx/zero-basic`'s 51 recipes as
+  `src/baseline.ts`, and a `src/recipes.ts` composing them through the kit's
+  `fitRecipesToVocabulary` (on `/define`) so any axis shape compiles on the
+  first build. Templates are embedded at build time
+  (`scripts/collect-templates.mjs` → gitignored `templates/*.txt`, shipped via
+  `files`), so the package devDepends on zero-basic and zero-kit for build
+  order only. It exists in-repo because a CLI *plugin* can never run in an
+  empty directory (#10) and `@sigx/cli`'s `create` has no template hook.
+  Published, lockstep; listed in `scripts/publish.js` + `verify-pack.js`,
+  and verify-pack scaffolds riso + glass(lynx) from the packed tarballs and
+  builds them. Never gets a CHANGELOG (its notes live in its README).
 - `examples/playground` — private demo app, structured like a docs site: a
   sidebar of per-component pages (hash-routed, `src/pages/registry.ts` is the
   single source the sidebar, the router and the derived `#/all` kitchen-sink
