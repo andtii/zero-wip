@@ -42,7 +42,7 @@ create-zero-ds <name> --brief <id> [options]
 
   <name>                 zero-acme, or @acme/zero-acme (the design system is
                          named from the last segment, minus a leading zero-)
-  --brief <id>           brutalist | glass | corporate | terminal | riso | basic
+  --brief <id>           brutalist | glass | corporate | terminal | riso | seeded | basic
   --baseline basic|none  basic (default): zero-basic's recipes fitted to the
                          brief; none: the brief's Button only
   --targets web[,lynx]   emit targets (default: web)
@@ -64,7 +64,7 @@ starts as (#10). A `create-*` package runs from nothing — `pnpm create`,
 no template hook in `@sigx/cli`.
 
 The templates are embedded at build time: zero-basic's `recipes.ts` and
-`tokens.ts`, the five briefs from `@sigx/zero-kit/skills/design-system/briefs`,
+`tokens.ts`, the six briefs from `@sigx/zero-kit/skills/design-system/briefs`,
 zero-basic's `tsconfig.json`, and a `versions.json` carrying the lockstep
 version and the ranges a generated package needs. This package has no runtime
 dependencies; `pnpm create` is instant.

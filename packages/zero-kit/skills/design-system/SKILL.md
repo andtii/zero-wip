@@ -32,7 +32,7 @@ component's anatomy). No component code is ever written or changed.
    component already styled:
 
    ```sh
-   pnpm create @sigx/zero-ds <name> --brief <brutalist|glass|corporate|terminal|riso|basic>
+   pnpm create @sigx/zero-ds <name> --brief <brutalist|glass|corporate|terminal|riso|seeded|basic>
    # npm create @sigx/zero-ds … / npx @sigx/create-zero-ds … work the same
    cd <name> && pnpm install && pnpm build
    ```
@@ -99,9 +99,37 @@ component's anatomy). No component code is ever written or changed.
    (`primary|secondary|accent|neutral|info|success|warning|error`, the
    default when `roles` is omitted) unless the brief demands otherwise, and
    add/rename/drop roles freely when it does (e.g. Material-style
-   `surface: { content: false, soft: false }` tonal steps). Every theme must
-   then define every declared role (+ its `-content` when declared) plus the
-   fixed base surfaces `base-100/200/300/base-content`. Rules of thumb:
+   `surface: { content: false, soft: false }` tonal steps).
+
+   **Then derive the themes, don't author them.** Name the hues that carry
+   the brief and let the kit solve every other colour:
+   ```ts
+   import { deriveThemePair } from '@sigx/zero-kit/define';   // the ONE runtime kit import
+
+   themes: {
+       ...deriveThemePair<typeof roles, typeof system>({
+           roles, seeds: { primary: 260, accent: 30 }, light: 'x', dark: 'x-dark',
+       }),
+   },
+   ```
+   `{ primary: 260 }` alone is enough: the semantic four take fixed hues,
+   `secondary`/`accent` follow a `harmony` rotation, `neutral` is the
+   primary hue desaturated, and the result carries **exactly**
+   `requiredColorTokens(roles)` — base surfaces, every declared role, every
+   `-content` — for a light and a dark theme already paired. What is
+   guaranteed, measured on the emitted strings: every `<role>`/`-content`
+   pair ≥ 4.5:1, `base-100`/`base-content` ≥ 7:1, everything inside sRGB,
+   seeded hues preserved. A role the kit has no opinion about (`tertiary`)
+   falls back to the primary hue — seed it. The `seeded` brief is the
+   worked example; `derivePalette` does one scheme when the two differ.
+
+   Hand-author a colour only when it is locked (the logo's exact blue): a
+   full `RoleSeed` (`primary: { hue, chroma, lightness }`) keeps the value
+   and still derives its `-content`; a literal written into the theme is
+   measured by the validator, which reports the ratio when it misses.
+   Every theme must define every declared role (+ its `-content` when
+   declared) plus the fixed base surfaces `base-100/200/300/base-content`.
+   Rules of thumb for the hand-authored parts:
    - `x-content` must contrast with `x` at ≥ 4.5:1 (the validator errors < 3:1).
    - oklch() everywhere; keep hue families consistent between light and dark.
    - `softMix` (0.08–0.2) controls the derived `-soft` tinted surfaces.
@@ -887,7 +915,7 @@ And these are warnings worth driving to zero:
 
 ### The brief pack — start here
 
-`skills/design-system/briefs/` holds five complete, compiling starting points.
+`skills/design-system/briefs/` holds six complete, compiling starting points.
 Each file is one `TokensInput` (every category filled, both schemes, contrast
 clean) plus one worked `RecipeInput` for Button. **Pass the closest one as
 `--brief` to the scaffold (step 2), then diverge** — it becomes
@@ -896,12 +924,14 @@ baseline for everything else. They are compiled and validated by the repo's
 test suite, so a brief that has gone stale is a failing test rather than a
 trap.
 
-The five are deliberately not five palettes — each one teaches a different
-mechanic, and reading all five is the fastest way to learn what the token
-contract can express. Note that the first four all take the default axis
+The six are deliberately not six palettes — each one teaches a different
+mechanic, and reading all six is the fastest way to learn what the token
+contract can express. Note that five of them take the default axis
 surface (the recommended eight roles, xs–xl, and the four-name variant set);
 `riso` is the one that doesn't, and it is the one to read when the brief's
-shape isn't the conventional one:
+shape isn't the conventional one. `seeded` is the one whose colours are
+derived rather than written, and the one to start from when the brief is a
+hue and a mood:
 
 | Brief | radius | border | Signature move | Teaches |
 |---|---|---|---|---|
@@ -910,12 +940,13 @@ shape isn't the conventional one:
 | corporate | 0.5rem | 1px | a two-part shadow ramp (contact + ambient) and a 1.2 type ratio | contrast discipline and declared breakpoints — the two things this brief is judged on |
 | terminal | 0 | 1px | every duration is 0ms, and `--shadow-*` is a glow in `var(--color-primary)` | 0ms durations instead of `transition:none`, and a glow built from theme colours |
 | riso | 0.125rem | 2px | overlapping ink multiplies instead of covering, via a modifier and a compound that matches it | `roles:{}` and `sizes:[]` to decline an axis, a fused variant vocabulary, modifiers and a compound that matches one |
+| seeded | 0.75rem | 1.5px | no colour literal anywhere in themes — `deriveThemePair` from two seed hues | deriving a whole palette from seed hues with the contrast guarantee, and where hand-tuning still belongs |
 
 Typography carries a brief further than anything else: brutalist wants a
 mono or condensed stack with 800+ weights and wide tracking; editorial
 wants a serif with generous `leading`; corporate wants a humanist sans and
-a restrained `ratio`. The five ratios above — 1.414, 1.25, 1.2, 1.125, 1.333 —
-are most of the difference between those five looks.
+a restrained `ratio`. The six ratios above — 1.414, 1.25, 1.2, 1.125, 1.333,
+1.15 — are most of the difference between those six looks.
 
 ### Worked design systems
 

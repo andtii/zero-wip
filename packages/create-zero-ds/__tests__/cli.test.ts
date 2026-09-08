@@ -89,7 +89,7 @@ describe('create-zero-ds', () => {
         const cwd = tempDir();
         const help = await run(['--help'], cwd);
         expect(help.code).toBe(EXIT_OK);
-        expect(help.out.join('\n')).toContain('Briefs: basic, brutalist, corporate, glass, riso, terminal');
+        expect(help.out.join('\n')).toContain('Briefs: basic, brutalist, corporate, glass, riso, seeded, terminal');
         const version = await run(['-v'], cwd);
         expect(version.out).toEqual([templates.versions.version]);
     });

@@ -11,6 +11,16 @@
 
 ### Added
 
+- **A derived brief: `seeded`** (#414). The sixth file in
+  `skills/design-system/briefs/` writes no colour: its `themes` block is
+  one `deriveThemePair` call over two seed hues (indigo primary, coral
+  accent), the worked example both of the palette derivation below and of
+  the one runtime import a `tokens.ts` may make from the kit
+  (`@sigx/zero-kit/define`). The skill's step 3 now leads with derivation —
+  seed the hues that carry the brief, hand-author only a locked value — and
+  the brief pack, cheat-sheet table, `briefs/README.md` and the scaffold's
+  `--brief` choices carry the new entry.
+
 - **Palette derivation** (#402): `derivePalette`, `deriveThemePair`,
   `solveContentLightness`, `contrastRatio`, `clampChroma` and `formatOklch`
   on `@sigx/zero-kit/define` (and the barrel). From seed hues — `{ primary:

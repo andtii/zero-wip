@@ -60,7 +60,7 @@ beforeAll(async () => {
     templates = loadTemplates(dir);
 });
 
-const BRIEFS = ['brutalist', 'glass', 'corporate', 'terminal', 'riso', 'basic'] as const;
+const BRIEFS = ['brutalist', 'glass', 'corporate', 'terminal', 'riso', 'seeded', 'basic'] as const;
 
 const EXPECTED_FILES = [
     'package.json', 'tsconfig.json', 'build.mjs', 'README.md', '.gitignore',

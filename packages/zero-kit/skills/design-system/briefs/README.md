@@ -1,6 +1,6 @@
 # Style-brief pack
 
-Five complete, compiling starting points for a Zero design system. Each file is
+Six complete, compiling starting points for a Zero design system. Each file is
 one `TokensInput` — every category filled, both colour schemes, contrast clean —
 plus one worked `RecipeInput` for Button, the component a design system is
 judged on and the only one where all three variant axes matter at once.
@@ -17,17 +17,25 @@ the brief's vocabulary (`fitRecipesToVocabulary`).
 | [`corporate.ts`](corporate.ts) | blue primary, grey ramp, modest and layered | contrast discipline and declared breakpoints |
 | [`terminal.ts`](terminal.ts) | phosphor console, monospace, one signal colour | `0ms` durations instead of `transition: none`, and a glow built from theme colours |
 | [`riso.ts`](riso.ts) | duotone risograph print, two spot inks on warm paper | `roles: {}` / `sizes: []` to decline an axis, a fused `variant` vocabulary, modifiers, and a compound that matches one |
+| [`seeded.ts`](seeded.ts) | indigo and coral, soft corners, a near-flat type ramp | deriving a whole palette from seed hues with the contrast guarantee, and where hand-tuning still belongs |
 
-They are deliberately not five palettes. Read all five and you have seen most
+They are deliberately not six palettes. Read all six and you have seen most
 of what the token contract can express — the type ratios alone (1.414, 1.25,
-1.2, 1.125, 1.333) are most of the difference between the five looks.
+1.2, 1.125, 1.333, 1.15) are most of the difference between the six looks.
 
-**The first four all take the default axis surface** — the recommended eight
+**Five of the six take the default axis surface** — the recommended eight
 roles, the `xs…xl` ramp, and `solid | outline | soft | ghost`. That set is a
-convention, not the contract, and reading only those four is how a generated
+convention, not the contract, and reading only those is how a generated
 design system ends up inheriting it by accident. `riso.ts` is the counterweight:
 it declines the colour and size axes outright and fuses colour into `variant`,
 the shape `@sigx/zero-heroui` and `@sigx/zero-carbon` declare.
+
+**`seeded.ts` is the only one that writes no colour.** Its `themes` block is
+one `deriveThemePair` call over two seed hues — the worked example of the
+kit's palette derivation and of the one runtime import a `tokens.ts` may
+make from the kit (`@sigx/zero-kit/define`). The other five hand-author
+every `oklch()`; read `seeded.ts` first when the brief is a hue and a mood,
+and the others when a value is locked and has to be written.
 
 ## These files run
 

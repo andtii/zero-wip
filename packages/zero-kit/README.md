@@ -201,7 +201,7 @@ nothing: the brief's tokens and worked Button (`src/tokens.ts`,
 `src/button.ts`), `@sigx/zero-basic`'s 51 recipes as `src/baseline.ts`, and a
 `src/recipes.ts` that composes them through `fitRecipesToVocabulary` — so the
 first build styles every component, whatever axis shape the brief declares.
-`--brief` takes `brutalist | glass | corporate | terminal | riso | basic`;
+`--brief` takes `brutalist | glass | corporate | terminal | riso | seeded | basic`;
 `--baseline none` scaffolds the Button alone; `--targets web,lynx` adds the
 lynx target. Non-interactive throughout — it is built for agents to drive.
 
