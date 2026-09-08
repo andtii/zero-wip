@@ -102,6 +102,17 @@ const kebabProp = (prop: string): string =>
  */
 const VENDOR_PREFIX = /^-?(?:webkit|moz|ms|o)-/;
 
+/**
+ * A declaration head inside a raw body (`keyframes`, the `css` hatch): a
+ * property-shaped word after the start, a `;` or a `{`, followed by `:` and
+ * a value that runs to `;` or `}` (left unconsumed, so it can anchor the
+ * next head) without opening a block. The last clause
+ * is what tells `a:hover { … }` (a selector, opens a block) from
+ * `color: red;` (a declaration). `--x` custom properties match too and are
+ * exempted by the caller like every other custom property.
+ */
+const DECLARATION_HEAD = /(?:^|[;{])\s*(--?[A-Za-z_][\w-]*|[A-Za-z][\w-]*)\s*:\s*[^;{}]*(?=[;}])/g;
+
 /** A physical property named at the head of a declaration inside a raw body. */
 const PHYSICAL_IN_BODY = new RegExp(
     `(?:^|[;{\\s])(${Object.keys(LOGICAL_TWIN).join('|')})\\s*:`,
@@ -460,7 +471,13 @@ export function validateRecipes(
         if (recipe.css) values.push({ path: 'css', prop: '', value: recipe.css });
 
         for (const { path, prop, value } of values) {
-            if (prop !== '') checkProperty(prop, `${where}.${path}`);
+            if (prop !== '') {
+                checkProperty(prop, `${where}.${path}`);
+            } else {
+                // keyframes bodies and the raw `css` hatch: a declaration
+                // there vanishes just as silently, so its head is checked too.
+                for (const head of value.matchAll(DECLARATION_HEAD)) checkProperty(head[1]!, `${where}.${path}`);
+            }
             for (const match of value.matchAll(VAR_REF)) {
                 const token = match[1]!;
                 const hasFallback = Boolean(match[2]);

@@ -122,6 +122,30 @@ describe('the css-property rule', () => {
         expect(issues.map((i) => i.suggest!.value).sort()).toEqual(['color', 'font-size', 'outline', 'transition']);
     });
 
+    it('reads declaration heads inside keyframes bodies and the raw css hatch', () => {
+        const recipe: RecipeInput = {
+            component: 'tabs',
+            parts: { tab: { base: { padding: '1rem' }, states: { 'focus-visible': { outline: '1px solid' } } } },
+            keyframes: { pulse: 'from { opacty: 0 } 50% { opacity: 1; trnsform: scale(1.1) } to { opacity: 0 }' },
+            css: '[data-scope="tabs"] [data-part="tab"]:hover { colr: red; --tab-ink: blue; -webkit-appearence: none }',
+        };
+        const issues = propertyIssues(recipe);
+        expect(issues.map((i) => `${i.where} ${i.suggest?.value ?? '?'}`).sort()).toEqual([
+            'recipes.tabs.css color',
+            'recipes.tabs.keyframes.pulse opacity',
+            'recipes.tabs.keyframes.pulse transform',
+        ]);
+    });
+
+    it('does not mistake a selector, a pseudo-class or a URL for a declaration head', () => {
+        const recipe: RecipeInput = {
+            component: 'tabs',
+            parts: { tab: { base: { padding: '1rem' }, states: { 'focus-visible': { outline: '1px solid' } } } },
+            css: 'a:hover { color: red } [data-part="tab"]::before { content: "x"; background: url(https://example.test/a.png) } @media (hover: hover) { div:not(.x):focus-visible { outline: 0 } }',
+        };
+        expect(propertyIssues(recipe)).toEqual([]);
+    });
+
     it('lets every real property through', () => {
         expect(propertyIssues(tabsWith({
             padding: '1rem', insetInlineStart: '0', interpolateSize: 'allow-keywords', textWrap: 'balance',
