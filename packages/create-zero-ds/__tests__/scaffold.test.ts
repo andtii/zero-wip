@@ -16,7 +16,7 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { anatomies } from '@sigx/zero/anatomy';
-import { compileDesignSystem, validateDesignSystem } from '@sigx/zero-kit';
+import { auditDesignSystem, compileDesignSystem, validateDesignSystem } from '@sigx/zero-kit';
 import type { DesignSystemInput, ManifestComponent } from '@sigx/zero-kit';
 import { runStandardBuild } from '@sigx/zero-kit/build';
 import { collectTemplates } from '../src/collect.js';
@@ -121,6 +121,18 @@ describe.each(BRIEFS)('scaffold --brief %s', (brief) => {
         const result = validateDesignSystem(designSystem, manifest);
         expect(result.errors.map((e) => `${e.where}: ${e.message}`)).toEqual([]);
         expect(result.warnings.map((w) => `${w.where}: ${w.message}`)).toEqual([]);
+    });
+
+    it('passes zero:audit with no error findings — the brief sits over a baseline that paints the whole ramp', async () => {
+        // #422: the four default-shape briefs used to wire Button's size axis
+        // as sm|md|lg while the baseline paints xs…xl on every sibling, so a
+        // fresh scaffold exited 1 from `sigx zero:audit` (axis-value-coverage/gap).
+        // Zero validation errors is not enough; the pack must clear the audit too.
+        const { dir } = scaffolded(brief);
+        const { designSystem } = await import(generated(dir)) as { designSystem: DesignSystemInput };
+        const audit = auditDesignSystem(designSystem, manifest);
+        const errors = audit.findings.filter((f) => f.severity === 'error');
+        expect(errors.map((f) => `${f.rule} ${f.where}: ${f.message}`)).toEqual([]);
     });
 
     it('styles every component in the manifest', async () => {

@@ -103,11 +103,11 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'base-300': 'oklch(88% 0.04 95)',
                 'base-content': 'oklch(0% 0 0)',
 
-                primary: 'oklch(56% 0.24 28)',
+                primary: 'oklch(50% 0.22 28)',
                 'primary-content': 'oklch(100% 0 0)',
                 secondary: 'oklch(45% 0.2 265)',
                 'secondary-content': 'oklch(100% 0 0)',
-                accent: 'oklch(80% 0.18 92)',
+                accent: 'oklch(58% 0.16 92)',
                 'accent-content': 'oklch(0% 0 0)',
                 neutral: 'oklch(0% 0 0)',
                 'neutral-content': 'oklch(100% 0 0)',
@@ -116,9 +116,9 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'info-content': 'oklch(100% 0 0)',
                 success: 'oklch(48% 0.17 150)',
                 'success-content': 'oklch(100% 0 0)',
-                warning: 'oklch(80% 0.18 92)',
+                warning: 'oklch(58% 0.16 92)',
                 'warning-content': 'oklch(0% 0 0)',
-                error: 'oklch(56% 0.24 28)',
+                error: 'oklch(50% 0.22 28)',
                 'error-content': 'oklch(100% 0 0)',
             },
         },
@@ -132,7 +132,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'base-300': 'oklch(25% 0.014 95)',
                 'base-content': 'oklch(100% 0 0)',
 
-                primary: 'oklch(72% 0.2 28)',
+                primary: 'oklch(78% 0.19 28)',
                 'primary-content': 'oklch(0% 0 0)',
                 secondary: 'oklch(72% 0.16 265)',
                 'secondary-content': 'oklch(0% 0 0)',
@@ -147,7 +147,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'success-content': 'oklch(0% 0 0)',
                 warning: 'oklch(87% 0.17 92)',
                 'warning-content': 'oklch(0% 0 0)',
-                error: 'oklch(72% 0.2 28)',
+                error: 'oklch(78% 0.19 28)',
                 'error-content': 'oklch(0% 0 0)',
             },
         },
@@ -222,10 +222,17 @@ export const button: RecipeInput = {
             // Even "ghost" keeps the rule. Brutalism has no invisible states.
             ghost: { root: { base: { background: 'transparent', boxShadow: 'none' } } },
         },
+        // The whole recommended ramp, not a sm|md|lg excerpt: the scaffold lays
+        // a baseline under this Button that paints xs and xl on every sibling,
+        // and a step every sibling has that Button neither paints nor claims
+        // is the ramp-with-a-hole the audit refuses (#422). `md` claims the
+        // base with an empty entry — the un-attributed render IS that step.
         size: {
+            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-sm)', fontSize: 'var(--text-xs)' } } },
             sm: { root: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-sm)' } } },
             md: { root: { base: {} } },
             lg: { root: { base: { padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-lg)' } } },
+            xl: { root: { base: { padding: 'var(--space-lg) var(--space-2xl)', fontSize: 'var(--text-xl)' } } },
         },
     },
     defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },

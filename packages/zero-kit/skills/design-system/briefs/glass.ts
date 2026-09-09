@@ -123,7 +123,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'base-300': 'oklch(89% 0.025 255)',
                 'base-content': 'oklch(24% 0.03 255)',
 
-                primary: 'oklch(52% 0.2 265)',
+                primary: 'oklch(46% 0.2 265)',
                 'primary-content': 'oklch(99% 0 0)',
                 secondary: 'oklch(50% 0.16 320)',
                 'secondary-content': 'oklch(99% 0 0)',
@@ -136,8 +136,8 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'info-content': 'oklch(99% 0 0)',
                 success: 'oklch(48% 0.13 150)',
                 'success-content': 'oklch(99% 0 0)',
-                warning: 'oklch(78% 0.15 75)',
-                'warning-content': 'oklch(22% 0.04 75)',
+                warning: 'oklch(60% 0.15 75)',
+                'warning-content': 'oklch(15% 0.03 75)',
                 error: 'oklch(52% 0.2 25)',
                 'error-content': 'oklch(99% 0 0)',
             },
@@ -275,10 +275,17 @@ export const button: RecipeInput = {
                 },
             },
         },
+        // The whole recommended ramp, not a sm|md|lg excerpt: the scaffold lays
+        // a baseline under this Button that paints xs and xl on every sibling,
+        // and a step every sibling has that Button neither paints nor claims
+        // is the ramp-with-a-hole the audit refuses (#422). `md` claims the
+        // base with an empty entry — the un-attributed render IS that step.
         size: {
+            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-sm)', fontSize: 'var(--text-xs)' } } },
             sm: { root: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-sm)' } } },
             md: { root: { base: {} } },
             lg: { root: { base: { padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-lg)' } } },
+            xl: { root: { base: { padding: 'var(--space-lg) var(--space-2xl)', fontSize: 'var(--text-xl)' } } },
         },
     },
     defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },

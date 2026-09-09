@@ -29,6 +29,31 @@
   colour, background and border for `button`, `input`/`textarea`/`select`,
   `a` and `dialog` below every author declaration.
 
+- **A fresh scaffold clears `sigx zero:audit`** (#422). The audit became an
+  artifact (#403) and immediately found three things the brief pack had been
+  getting away with. (1) The five default-shape briefs wired Button's `size`
+  axis as `sm|md|lg` over a baseline that paints `xs…xl` on every sibling —
+  the ramp-with-a-hole `axis-value-coverage/gap` refuses; they wire the whole
+  ramp now. (2) Three briefs spent a role the recommended recipes use as INK
+  — outline/soft/ghost text, the radio dot, the rating fill — at a lightness
+  no page surface can carry (brutalist's amber at 80%, glass's warning at
+  78%, terminal's paper warning at 52%); the values moved, hue kept.
+  (3) `fitRecipesToVocabulary` under a fused `variant` vocabulary left
+  basic's badge and select wiring the one value the two vocabularies shared,
+  which is the same hole one axis over; a block that no longer covers its
+  scope's vocabulary is now dropped whole (`droppedVariantBlocks`), and a
+  scope narrowing from `tokens.scopes` is the vocabulary that counts (daisyui's
+  tabs `border|lift|box` survive). `packages/create-zero-ds`'s scaffold
+  suite asserts zero audit errors for every brief beside its zero
+  validation errors, so the pack cannot regress into any of the three.
+- **`derivePalette` has an ink floor, and a dark neutral is light** (#422).
+  Every role is now solved to ≥ 3:1 (`floors.ink`) against `base-200` AND
+  against its own soft surface, derived the way the compiler does
+  (`color-mix(in oklab, role softMix, base-100)` — `softMix` is a new option,
+  `deriveThemePair` passes its own through). A preset warning at 0.65 lands
+  near 0.6 in light. The dark preset's `neutral` was 0.33 on a 0.19 surface —
+  1.5:1, an invisible ink — and is 0.80.
+
 ### Added
 
 - **`sigx zero:validate --log <path>` / `ZERO_ITERATION_LOG=<path>` — an

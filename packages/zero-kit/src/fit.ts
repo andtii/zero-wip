@@ -48,6 +48,19 @@ export interface FitReport {
     droppedModifiers: number;
     /** `defaultVariants` entries dropped because their value no longer exists. */
     droppedDefaults: number;
+    /**
+     * `variants.variant` (or custom-axis) BLOCKS dropped whole because, after
+     * filtering, they no longer covered the scope's declared vocabulary. A
+     * block that wires some declared values and not others is the
+     * ramp-with-a-hole `zero:audit` refuses (`axis-value-coverage/gap`, #422),
+     * and claiming the rest with empty entries is refused too (only one value
+     * may claim the base). So a fused vocabulary basic's badge never heard of
+     * (riso's `key|spot|tint`) leaves badge with no variant axis at all —
+     * honest: the axis is unwired until the author writes it, and the brief's
+     * Button shows how. Colour and size never need this: a declared ramp
+     * filters basic's blocks to exactly itself.
+     */
+    droppedVariantBlocks: number;
     /** `compoundVariants` entries dropped because a matched value no longer exists. */
     droppedCompounds: number;
     /** `var(--color-<role>…)` references rewritten to the base surfaces. */
@@ -68,8 +81,18 @@ interface Admits {
     variants: ReadonlySet<string> | undefined;
     axes: Readonly<Record<string, ReadonlySet<string>>> | undefined;
     modifiers: ReadonlySet<string> | undefined;
+    /** `tokens.scopes` narrowings, per scope — a scope's own vocabulary wins over the design-system-wide one. */
+    scopes: Readonly<Record<string, { variants?: ReadonlySet<string>; axes?: Readonly<Record<string, ReadonlySet<string>>> }>>;
     /** Every custom property a recipe may reference under this design system — the validator's own set. */
     names: ReadonlySet<string>;
+}
+
+/** The declared value set for `axis` on `scope`, or undefined when the axis is open (colour and size are handled by `keepsValue`). */
+function declaredFor(admits: Admits, scope: string, axis: string): ReadonlySet<string> | undefined {
+    if (axis === 'color' || axis === 'size') return undefined;
+    const scoped = admits.scopes[scope];
+    if (axis === 'variant') return scoped?.variants ?? admits.variants;
+    return scoped?.axes?.[axis] ?? admits.axes?.[axis];
 }
 
 function admitsOf(tokens: AnyTokens): Admits {
@@ -79,6 +102,7 @@ function admitsOf(tokens: AnyTokens): Admits {
         variants?: readonly string[];
         axes?: Record<string, readonly string[]>;
         modifiers?: readonly string[];
+        scopes?: Record<string, { variants?: readonly string[]; axes?: Record<string, readonly string[]> }>;
     };
     const roles = resolveRoles(t.roles);
     return {
@@ -89,6 +113,10 @@ function admitsOf(tokens: AnyTokens): Admits {
             ? Object.fromEntries(Object.entries(t.axes).map(([axis, values]) => [axis, new Set(values)]))
             : undefined,
         modifiers: t.modifiers ? new Set(t.modifiers) : undefined,
+        scopes: Object.fromEntries(Object.entries(t.scopes ?? {}).map(([scope, decl]) => [scope, {
+            ...(decl.variants ? { variants: new Set(decl.variants) } : {}),
+            ...(decl.axes ? { axes: Object.fromEntries(Object.entries(decl.axes).map(([axis, values]) => [axis, new Set(values)])) } : {}),
+        }])),
         names: tokenVocabulary(tokens).names,
     };
 }
@@ -117,12 +145,15 @@ const RESTING_STEP: Readonly<Record<string, string>> = {
 };
 
 /** Whether one axis value survives — `undefined` sets mean "undeclared, anything keeps". */
-function keepsValue(admits: Admits, axis: string, value: string): boolean {
+function keepsValue(admits: Admits, scope: string, axis: string, value: string): boolean {
     if (axis === 'color') return admits.roles.has(value);
     if (axis === 'size') return admits.sizes?.has(value) ?? true;
-    if (axis === 'variant') return admits.variants?.has(value) ?? true;
-    if (!admits.axes) return true;
-    return admits.axes[axis]?.has(value) ?? false;
+    // A scope's own vocabulary (`tokens.scopes`) wins over the design-system-wide
+    // one — daisyui's tabs wire `border|lift|box`, which the DS-wide set never lists.
+    const declared = declaredFor(admits, scope, axis);
+    if (axis === 'variant') return declared?.has(value) ?? true;
+    if (!admits.axes && !admits.scopes[scope]?.axes) return true;
+    return declared?.has(value) ?? false;
 }
 
 function keepsModifier(admits: Admits, name: string): boolean {
@@ -189,20 +220,33 @@ type Sections = Pick<RecipeInput, 'variants' | 'modifiers' | 'compoundVariants' 
  * `{}`, so an axis the fit emptied does not linger as a declared-but-empty
  * axis (which the validator would flag on its own).
  */
-function fitSections<T extends Sections>(input: T, admits: Admits, report: FitReport): T {
+function fitSections<T extends Sections>(input: T, scope: string, admits: Admits, report: FitReport, shared: boolean): T {
     const out: Sections & Record<string, unknown> = { ...input };
+    const droppedAxes = new Set<string>();
 
     if (input.variants) {
         const variants: NonNullable<RecipeInput['variants']> = {};
         for (const [axis, values] of Object.entries(input.variants)) {
             const kept: Record<string, Record<string, unknown>> = {};
             for (const [value, parts] of Object.entries(values)) {
-                if (keepsValue(admits, axis, value)) {
+                if (keepsValue(admits, scope, axis, value)) {
                     kept[value] = parts;
                 } else if (axis === 'color') report.droppedColorValues += 1;
                 else if (axis === 'size') report.droppedSizeValues += 1;
                 else if (axis === 'variant') report.droppedVariantValues += 1;
                 else report.droppedAxisValues += 1;
+            }
+            // A SHARED block that survives with fewer values than the scope's
+            // vocabulary declares is dropped whole (see `droppedVariantBlocks`).
+            // A per-target override is exempt: it deep-merges over the shared
+            // block and legitimately restates one value (daisyui's tabs
+            // restate `border` alone for lynx).
+            const declared = shared ? declaredFor(admits, scope, axis) : undefined;
+            const covers = !declared || [...declared].every((value) => kept[value] !== undefined);
+            if (Object.keys(kept).length > 0 && !covers) {
+                report.droppedVariantBlocks += 1;
+                droppedAxes.add(axis);
+                continue;
             }
             if (Object.keys(kept).length > 0) variants[axis] = kept as (typeof variants)[string];
         }
@@ -223,7 +267,7 @@ function fitSections<T extends Sections>(input: T, admits: Admits, report: FitRe
     if (input.compoundVariants) {
         const compounds = input.compoundVariants.filter((entry) => {
             const keeps = Object.entries(entry.match).every(([axis, value]) =>
-                value === true ? keepsModifier(admits, axis) : keepsValue(admits, axis, value));
+                !droppedAxes.has(axis) && (value === true ? keepsModifier(admits, axis) : keepsValue(admits, scope, axis, value)));
             if (!keeps) report.droppedCompounds += 1;
             return keeps;
         });
@@ -249,11 +293,11 @@ function fitSections<T extends Sections>(input: T, admits: Admits, report: FitRe
 }
 
 function fitRecipe(recipe: RecipeInput, admits: Admits, report: FitReport): RecipeInput {
-    const fitted: RecipeInput = fitSections(recipe, admits, report);
+    const fitted: RecipeInput = fitSections(recipe, recipe.component, admits, report, true);
     if (recipe.targets) {
         const targets: NonNullable<RecipeInput['targets']> = {};
         for (const [target, override] of Object.entries(recipe.targets) as [keyof NonNullable<RecipeInput['targets']>, RecipeTargetOverride][]) {
-            targets[target] = fitSections(override, admits, report);
+            targets[target] = fitSections(override, recipe.component, admits, report, false);
         }
         fitted.targets = targets;
     }
@@ -272,6 +316,7 @@ function emptyReport(): FitReport {
         droppedAxisValues: 0,
         droppedModifiers: 0,
         droppedDefaults: 0,
+        droppedVariantBlocks: 0,
         droppedCompounds: 0,
         rewrittenRoleRefs: 0,
         collapsedCategoryRefs: 0,
@@ -286,7 +331,8 @@ function run(recipes: readonly RecipeInput[], tokens: AnyTokens): { recipes: Rec
     report.identity =
         report.droppedColorValues + report.droppedSizeValues + report.droppedVariantValues
             + report.droppedAxisValues + report.droppedModifiers + report.droppedDefaults
-            + report.droppedCompounds + report.rewrittenRoleRefs + report.collapsedCategoryRefs === 0;
+            + report.droppedCompounds + report.rewrittenRoleRefs + report.collapsedCategoryRefs
+            + report.droppedVariantBlocks === 0;
     return { recipes: fitted, report };
 }
 
