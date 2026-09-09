@@ -86,7 +86,7 @@ export { contrastFindings } from './rules/contrast.js';
 export type { ContrastCell, ContrastMatrix, ContrastOptions, ContrastVerdict } from './contrast/matrix.js';
 export { AA, DISABLED_FLOOR, FLOOR, buildContrastMatrix } from './contrast/matrix.js';
 export type { UnmeasuredReason } from './contrast/cascade.js';
-export { UNMEASURED_REASONS, clipCollapsed } from './contrast/cascade.js';
+export { REFERENCE_MEDIA, UNMEASURED_REASONS, clipCollapsed, evaluateMedia } from './contrast/cascade.js';
 export type { ThemeEnv } from './contrast/theme-env.js';
 export { themeEnvironments } from './contrast/theme-env.js';
 export type { RGB } from './contrast/color.js';

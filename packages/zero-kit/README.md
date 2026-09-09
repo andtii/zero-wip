@@ -689,6 +689,16 @@ warnings, disabled failures, and the unmeasured count by reason — via
 must be able to read its own audit. Pass `{ rules: [...] }` to run a subset
 and `{ compiled }` to reuse a compile you already have.
 
+**It is held to the browser.** The playground's `e2e/contrast-audit.spec.ts`
+imports this cell product and, in every `contrast:` test, compares the
+static reading of each claimed cell to the browser's under the same key —
+painted-at-all, ratio within `max(0.15, 2%)`, floor verdict — and pins each
+skin's measured share from both ends. The browser is the ground truth; a
+disagreement is fixed by making the reader report `unmeasured` for the
+construct it misread (or by modelling it, as the UA stylesheet's
+`buttontext` on a real `<button>` and `calc()` border widths now are),
+never by bending the floor.
+
 ### `sigx zero:audit` and `dist/audit.json`
 
 The command is where the exit code lives: error findings fail it, warnings

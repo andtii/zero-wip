@@ -37,11 +37,12 @@
  * - the axis surface of scopes that wire no `variant` — a bare `data-color`
  *   selects role tokens whose pairing the token validator already checks
  *   statically, and `data-size` moves metrics, not ink. See `axisCellsFor`;
- * - part nesting, in the TEXT matrix — each part renders directly on the app
- *   surface (base-100/base-content), the same backdrop the real surfaces sit
- *   on in every shipped design system. The INDICATOR matrix is the exception:
- *   a mark's whole point is that it sits on its control's fill, which sits on
- *   the page, so there it renders inside its real ancestor chain;
+ * - part nesting beyond what the anatomy's part tree declares — a text part
+ *   below its scope's carrier and every indicator render inside the ancestor
+ *   chain the tree derives (`PartSpec.parent`, #317), on the app surface
+ *   (base-100/base-content); a part with no path to the carrier is a
+ *   one-element probe on that surface, the same backdrop the real surfaces
+ *   sit on in every shipped design system;
  * - `box-shadow`, in the INDICATOR matrix. A shadow is the one delineation the
  *   reader can lose: `forced-colors: active` strips it outright. A mark whose
  *   only separation from its backdrop is a shadow (basic/daisyUI/HeroUI all
@@ -57,20 +58,55 @@
  */
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { test, expect, type Page } from '@playwright/test';
-// Not a hand copy: `carrierPart` decides where the compiler anchors a variant
-// selector, and this file now uses it for BOTH the chain roots and the guard
-// that checks them. A local reimplementation would let the two agree with each
-// other while both drifting from what the CSS actually says (#297).
-import { carrierPart } from '@sigx/zero-kit';
+// Not a hand copy, and since #403 (slice D) not a copy at all: the cell
+// product — which parts are measured, in which state combinations, through
+// which ancestor chain, under which key — is IMPORTED from `@sigx/zero-kit`,
+// where the static contrast matrix consumes the same functions. Two products
+// would let the browser and the static reader agree with each other while
+// both drifting from the third thing, the CSS (#297); one product is what
+// makes the parity block below a comparison rather than a coincidence.
+import {
+    AA,
+    AXIS_CELL_BUDGET,
+    DISABLED_FLOOR,
+    FLOOR,
+    INDICATORS,
+    REFERENCE_MEDIA,
+    auditDesignSystem,
+    axisCellsFor,
+    carrierPart,
+    cellKey,
+    chainFor,
+    colourBearingAxes,
+    derivedChainAncestors,
+    indicatorCellsFor,
+    textCells,
+    uncoveredPaintParts,
+} from '@sigx/zero-kit';
 import type {
+    AuditRuleId,
+    Cell,
+    ContrastCell,
+    DesignSystemInput,
     DesignSystemManifest,
+    IndicatorCell,
     ManifestComponent as KitManifestComponent,
     ManifestPart as KitManifestPart,
 } from '@sigx/zero-kit';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+
+/**
+ * No touch emulation here. The chromium project turns it on for the
+ * press-feedback spec, and Chromium answers `(hover: hover)` / `(pointer:
+ * fine)` differently once a touchscreen exists — which is not the page the
+ * static matrix models (`REFERENCE_MEDIA`) and not one this spec ever
+ * touches. The `reference media` test below is what notices if the two
+ * drift apart again.
+ */
+test.use({ hasTouch: false });
 const read = (p: string): string => readFileSync(join(root, p), 'utf8');
 
 /**
@@ -87,52 +123,19 @@ const baseCss = read('packages/zero/css/base.css');
 
 const DESIGN_SYSTEMS = ['basic', 'daisyui', 'material', 'brutalist', 'heroui', 'carbon'] as const;
 
-/** One renderable attribute combination for a part. */
-interface Combo { state?: string; flag?: string }
+/** A design system's compiled input, loaded from its built `dist/` — see `staticMatrix`. */
+type DesignSystemModule = { designSystem: DesignSystemInput };
 
-/** Every state, every flag, every state × flag pair — plus the bare part. */
-function combosFor(part: ManifestPart): Combo[] {
-    const states = part.states ?? [];
-    // `press-animating` is a one-shot animation frame, not a resting style.
-    const flags = (part.flags ?? []).filter((f) => f !== 'press-animating');
-    const combos: Combo[] = [{}];
-    for (const state of states) combos.push({ state });
-    for (const flag of flags) combos.push({ flag });
-    for (const state of states) for (const flag of flags) combos.push({ state, flag });
-    return combos;
-}
-
-/** One node of a rendered chain — enough for the page to rebuild it. */
-// `readonly` because the anatomy's arrays are: NodeSpec copies them out of
-// the manifest rather than owning them.
-interface NodeSpec { part: string; element: string; states: readonly string[]; flags: readonly string[]; pin?: string }
-
-interface Cell {
-    scope: string;
-    part: string;
-    state?: string;
-    flag?: string;
-    /** Axis attributes to set on the probe — `variant: 'danger'` → `data-variant="danger"`. */
-    axes?: Record<string, string>;
-    /** Presence-only modifiers to set — `pending` → `data-mod-pending`. */
-    mods?: string[];
-    /**
-     * Declared ancestor chain, outermost first, this part last (#297). Present
-     * only for a text part below its scope's carrier: the axis attributes go on
-     * `chain[0]`, which is where the compiler anchors the selector.
-     */
-    chain?: NodeSpec[];
-}
-
-const cells: Cell[] = anatomy.components.flatMap((component) =>
-    component.parts
-        // Text-bearing parts only, per the anatomy's own hint — checking the
-        // `color` of a part that never renders text is noise, not coverage.
-        .filter((part) => part.tokens?.includes('text'))
-        .flatMap((part) => combosFor(part).map((combo) => ({
-            scope: component.scope, part: part.name, ...combo,
-        }))),
-);
+/**
+ * The text cells every design system measures — every text-bearing part of
+ * every component, in every renderable combination, chained below its
+ * scope's carrier where the part tree says so (`textCells` in the kit; the
+ * probe used to render every text part alone on the app surface, and the
+ * static reader showed why that was a blind spot — a recipe's component
+ * tokens are declared on the CARRIER, so a lone `trigger` reads them as
+ * nothing and inherits a pass).
+ */
+const cells: Cell[] = textCells(anatomy.components);
 
 /**
  * Combinations this audit does not currently assert. Keep this list SHORT and
@@ -187,9 +190,9 @@ const INTENDED_LOW_CONTRAST = new Set<string>([
  * contrast minimum. The colour pair underneath is not, and that is what this
  * floor holds.
  */
-const FLOOR = 3;
-const AA = 4.5;
-const DISABLED_FLOOR = 2;
+// `FLOOR`, `AA` and `DISABLED_FLOOR` are the kit's — the static matrix
+// answers to the same three numbers, which is what makes the parity block a
+// comparison of readings and not of policies.
 
 /**
  * The half of an allowlist nobody ever does. `allowlist coverage` proves an
@@ -239,197 +242,18 @@ const STALE_MESSAGE =
     + 'Delete each listed key from INTENDED_LOW_CONTRAST and close the issue its comment cites; '
     + 'left in place it silently absorbs the next regression on that exact cell.';
 
-/** Axis values and modifiers, in a stable spelling — part of a cell's identity. */
-const axisTag = (c: Cell): string => [
-    ...Object.entries(c.axes ?? {}).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}=${v}`),
-    ...(c.mods ?? []).map((m) => `+${m}`),
-].join(',') || '-';
-
-const cellKey = (ds: string, theme: string, c: Cell): string =>
-    [ds, theme, c.scope, c.part, c.state ?? '-', c.flag ?? '-', axisTag(c)].join('/');
+// `cellKey` is the kit's: `ds/theme/scope/part/state/flag/axes`, seven
+// segments of vocabulary, and the key the static matrix reports under — the
+// parity block joins the two matrices on it.
 
 // ── The axis surface (#207) ─────────────────────────────────────────────────
-
-/** One scope's wired axis vocabulary, as `@sigx/zero-kit` emits it. */
-type WiredAxes = DesignSystemManifest['components'][string];
-
-/** Which axes of a scope can carry colour — see `axisCellsFor`. */
-function colourBearingAxes(wired: WiredAxes): Record<string, string[]> {
-    const fused: Record<string, string[]> = {};
-    if (wired.variant?.length) fused.variant = wired.variant;
-    // A design system may also declare a custom axis of its own. None of the
-    // six does today — carbon's `kind` is the vendor SPELLING of `variant`,
-    // restored at the prop boundary by the generated `./components` module and
-    // never an attribute — but the manifest has the field, so this reads it.
-    for (const [axis, values] of Object.entries(wired.axes ?? {})) {
-        if (values.length) fused[axis] = values;
-    }
-    return fused;
-}
-
-/**
- * The axis cells for one design system: every wired value of every
- * colour-bearing axis, crossed with each declared modifier and with the
- * carrier part's own state/flag combos.
- *
- * **Why the gate is `variant`, and not `color`.** In basic/daisyUI/material/
- * brutalist, `variant` and `color` are orthogonal and `color` alone selects
- * role tokens whose pairing `zero-kit`'s token validator already checks. In
- * HeroUI and carbon there IS no colour axis (`roles: {}`) — colour is fused
- * INTO the variant, so `danger`, `danger-soft` and `danger-ghost` are the only
- * place a destructive colour exists at all, and until `data-variant` is set
- * this matrix measures a stylesheet nobody ships. So the scopes that wire a
- * variant are exactly the scopes whose colour the cascade decides rather than
- * the token file, and there `color` joins the product — a raw role token used
- * as INK on a base surface is the daisyUI #210 bug, and it is per-role
- * (`neutral` measured 1.12:1 where `primary` passed).
- *
- * **Why `size` is not in the product.** It moves padding and font-size, and
- * this audit's floors do not vary with type size. It would triple the cell
- * count to re-measure the same colours.
- *
- * **Why modifiers are taken one at a time** rather than as a power set: a
- * modifier is presence-only and the recipes wire each one independently, so
- * the pairs measure nothing the singles do not. The one that matters is
- * HeroUI's `pending`, which is `opacity: 0.7` on the root — a group fade that
- * changes every ratio underneath it.
- *
- * Cost: `button` is the only variant-wiring scope in all six design systems,
- * and its anatomy is one part with three resting flags.
- */
-/**
- * Text-bearing parts that sit BELOW their scope's carrier are reached through
- * the chain the component really renders (#297) — the axis matrix's
- * counterpart to `INDICATORS`, and read by the `axis coverage` guard as well
- * as by the probe.
- *
- * The one-element probe can only put `data-variant` on the carrier, because
- * that is where the compiler anchors it: the emitted rule is scoped to
- * `[data-part="root"][data-variant="x"]`. A scope whose text lives below the
- * carrier therefore has no measurable colour at all until the ancestor is
- * there to select on — which is why every chain's FIRST node is the carrier,
- * and why the axis attributes go on `nodes[0]` rather than on the measured
- * element.
- *
- * DERIVED from the anatomy's part tree (`PartSpec.parent`, #317), not
- * hand-maintained: the hand list this replaces (`AXIS_CHAINS`) restated
- * nesting the components already knew, and a renamed part or a new
- * variant-wiring scope had to be re-declared here by hand or its cells
- * silently measured nothing.
- *
- * Every ancestor that declares an `open` state is PINNED open, the same
- * `part=state` pin `INDICATORS` uses: a chain exists to measure a part while
- * it is ON SCREEN, and for a popup ancestor the pin is the difference between
- * measuring and not — a closed popup is `visibility: hidden`, which inherits,
- * so a part measured inside a default-state popup reports "not painted" and
- * the cell quietly leaves the matrix. For an ancestor that is visible either
- * way (an open-capable trigger above a value) the pin simply measures the
- * state in which the descendant is actually being read.
- *
- * `undefined` means the tree declares no path from the carrier down to the
- * part — the `axis coverage` guard turns that into a named failure instead of
- * letting the cells vanish.
- */
-function derivedChainAncestors(component: ManifestComponent, part: ManifestPart): string[] | undefined {
-    const carrier = carrierPart(component);
-    const byName = new Map(component.parts.map((p) => [p.name, p]));
-    const ancestors: string[] = [];
-    let cursor: ManifestPart | undefined = part;
-    while (cursor && cursor.name !== carrier) {
-        const parent: ManifestPart | undefined = cursor.parent === undefined ? undefined : byName.get(cursor.parent);
-        if (!parent) return undefined;
-        ancestors.unshift(parent.states?.includes('open') ? `${parent.name}=open` : parent.name);
-        cursor = parent;
-    }
-    return cursor ? ancestors : undefined;
-}
-
-/**
- * Chained axis cells are bounded to the RESTING combos — `{}` plus each state,
- * without the state × flag pairs the carrier's own probe keeps.
- *
- * The pairs re-measure a colour the singles already produced, and the product
- * is not small: select alone is 4 variants × 8 roles × ~18 combos × 3 text
- * parts ≈ 1,728 cells per (design system, theme). The role dimension is
- * deliberately NOT the one cut instead — the daisyUI #210 finding was
- * per-role (`neutral` at 1.12:1 where `primary` passed), so collapsing roles
- * would drop exactly the bug this matrix exists to catch.
- */
-function restingCombos(part: ManifestPart): Combo[] {
-    return [{}, ...(part.states ?? []).map((state) => ({ state }))];
-}
-
-function axisCellsFor(components: Record<string, WiredAxes>): Cell[] {
-    const out: Cell[] = [];
-    for (const [scope, wired] of Object.entries(components)) {
-        const fused = colourBearingAxes(wired);
-        if (Object.keys(fused).length === 0) continue;
-        if (wired.color?.length) fused.color = wired.color;
-
-        const component = anatomy.components.find((c) => c.scope === scope);
-        if (!component) continue;
-        const carrier = component.parts.find((p) => p.name === carrierPart(component))!;
-
-        let axisCombos: Record<string, string>[] = [{}];
-        for (const [axis, values] of Object.entries(fused)) {
-            axisCombos = axisCombos.flatMap((base) => values.map((v) => ({ ...base, [axis]: v })));
-        }
-        const modSets: string[][] = [[], ...(wired.mods ?? []).map((m) => [m])];
-
-        /**
-         * Two shapes, one product. A carrier that renders text is measured by
-         * the one-element probe as before; text BELOW the carrier is measured
-         * through the chain the part tree derives, with the axis attributes on
-         * the chain's root. `axis coverage` is the guard that every
-         * text-bearing part of a colour-bearing scope is reached by one of the
-         * two.
-         */
-        const targets: Array<{ part: ManifestPart; chain?: NodeSpec[] }> = [];
-        if (carrier.tokens?.includes('text')) targets.push({ part: carrier });
-        for (const part of component.parts) {
-            if (part.name === carrier.name || !part.tokens?.includes('text')) continue;
-            const ancestors = derivedChainAncestors(component, part);
-            if (!ancestors) continue; // `axis coverage` names this as a failure
-            targets.push({
-                part,
-                chain: chainFor(scope, [...ancestors, part.name]),
-            });
-        }
-
-        for (const axes of axisCombos) {
-            for (const mods of modSets) {
-                for (const target of targets) {
-                    // Resting combos only for a chained cell — see
-                    // `restingCombos` for why the pairs are the dimension cut
-                    // and the roles are not.
-                    const combos = target.chain ? restingCombos(target.part) : combosFor(target.part);
-                    for (const combo of combos) {
-                        out.push({
-                            scope,
-                            part: target.part.name,
-                            ...combo,
-                            axes,
-                            ...(mods.length > 0 ? { mods } : {}),
-                            ...(target.chain ? { chain: target.chain } : {}),
-                        });
-                    }
-                }
-            }
-        }
-    }
-    return out;
-}
-
-/**
- * A hard ceiling on the chained product, tripped rather than silently applied.
- *
- * A cap nobody sees reads as "covered everything" when it did not, so the
- * count is annotated on every run and this throws when the next scope pushes
- * it over. Raise it deliberately, with the wall-clock cost in hand — the
- * number is per (design system, theme), which is where the multiplication
- * that matters happens.
- */
-const AXIS_CELL_BUDGET = 2500;
+//
+// `axisCellsFor`, `colourBearingAxes` and `derivedChainAncestors` are the
+// kit's, docblocks and all. The reasoning that used to live here — why the
+// gate is `variant` and not `color`, why `size` is not in the product, why
+// modifiers are taken one at a time, why a chained cell keeps only its
+// resting combos, and why the chains are DERIVED from the part tree rather
+// than hand-listed — is on the functions in `zero-kit/src/audit/contrast/cells.ts`.
 
 // ── Colour math, shared by both matrices ────────────────────────────────────
 
@@ -504,221 +328,17 @@ function installColorMath(): void {
 }
 
 // ── The indicator matrix (#228) ─────────────────────────────────────────────
-
-/**
- * Selection rule — which parts are "indicators", read off the anatomy rather
- * than listed by hand:
- *
- *   a part is an indicator when it declares no `text` token AND its name comes
- *   from the anatomy's closed paint-only vocabulary — `indicator`,
- *   `<thing>-indicator`, `thumb`, `range`.
- *
- * Checked against the shipped manifest, that selects exactly the parts whose
- * whole job is paint: checkbox/indicator, radio-group/item-indicator,
- * switch/thumb, select/indicator, select/item-indicator,
- * combobox/item-indicator, tree-view/branch-indicator, progress/range, plus
- * slider/range and slider/thumb (excluded below — the web never renders them).
- *
- * The rule sketched in #228 — "tokens include `color` but not `text`, and 2+
- * `data-state` values" — was tried first and rejected. It drags in a dozen
- * SURFACES (dialog/popup, dialog/backdrop, popover/popup, menu/popup,
- * menu/sub-popup, collapsible/root, accordion/item, avatar/root, select/popup,
- * combobox/control, combobox/trigger, and the bare checkbox/switch/radio
- * roots) which legitimately paint the same base surface the page paints —
- * measured as "ink" those read ~1:1 and would fail for being correct. It also
- * MISSES select/item-indicator and combobox/item-indicator (whose only axis is
- * the `selected` flag, so zero states) and tree-view/branch-indicator (which
- * declares no tokens at all).
- *
- * `rating-group/item` is the one part the vocabulary cannot name: the star is
- * named after what it repeats rather than after its role. Same bug class — a
- * mark whose only job is paint — so it is opted in explicitly.
- */
-const PAINT_ONLY_PART = /^(?:.*-)?(?:indicator|thumb|range)$/;
-
-/**
- * Selected parts the web never renders. Empty since #325 — slider's
- * track/range/thumb used to be the Lynx-only projection, but the composed
- * range slider renders them for real now, so they are measured like any
- * other mark. Kept (with its guard below) for the next platform-divergent
- * part.
- */
-const NOT_RENDERED_ON_WEB = new Set<string>([]);
-
-/**
- * The manifest declares parts, not nesting — so each indicator's real ancestor
- * chain is stated here, mirroring the component's own JSX (outermost first).
- * The ancestors are the whole point: the dot sits on the control's fill, which
- * sits on the page, and every ancestor that declares the same `data-state`
- * carries it in the real DOM too (`Checkbox.Root` puts `data-state` on root,
- * control AND indicator), which is exactly why a checked control's fill is the
- * backdrop the tick has to survive.
- *
- * An ancestor written `part=state` is PINNED to that state — the state it has
- * to be in for the indicator to exist at all. `popup=open` is the load-bearing
- * case: a closed popup is `visibility: hidden`, which inherits, so a `✓` inside
- * a default-state popup measures as "not painted" and the cell would silently
- * vanish from the matrix.
- *
- * `glyph` is the default mark the component itself renders when the app passes
- * no children (`Select.Indicator` → `▾`, item indicators → `✓`,
- * `TreeView.BranchIndicator` → `›`, `RatingGroup.Item` → `★`). The
- * checkbox/radio/switch/progress marks are drawn by the recipe, not by zero,
- * so those parts stay empty here — as they are on screen.
- */
-/**
- * `only` is the flag the part cannot exist WITHOUT — the indicator's own
- * version of an ancestor's `=state` pin.
- *
- * `Select.Item` and `Combobox.Item` mount the `✓` only while selected, and
- * always with `data-selected=""` on it (`Select.tsx`, `Combobox.tsx`). Without
- * this, `combosFor()`'s bare `{}` cell would measure an unselected item's
- * indicator — a node that is never in the DOM. That is the same fiction
- * `NOT_RENDERED_ON_WEB` exists to keep out, one level down.
- */
-interface IndicatorSpec { scope: string; part: string; ancestors: string[]; glyph?: string; only?: string }
-
-const INDICATORS: IndicatorSpec[] = [
-    { scope: 'checkbox', part: 'indicator', ancestors: ['root', 'control'] },
-    { scope: 'radio-group', part: 'item-indicator', ancestors: ['root', 'item', 'item-control'] },
-    { scope: 'switch', part: 'thumb', ancestors: ['root', 'control'] },
-    { scope: 'progress', part: 'range', ancestors: ['root', 'track'] },
-    // The composed range slider's marks (#325) — real web parts now, painted
-    // on the rail exactly like progress's.
-    { scope: 'slider', part: 'range', ancestors: ['root', 'track'] },
-    { scope: 'slider', part: 'thumb', ancestors: ['root', 'track'] },
-    // Menu's checked mark (#325). No glyph: zero renders an empty span and
-    // the recipe draws the mark (geometry or its own ::after glyph). The
-    // chain pins the host row via checkbox-item; radio-item shares the same
-    // row grammar in all six design systems, so one host chain measures both.
-    { scope: 'menu', part: 'item-indicator', ancestors: ['popup=open', 'checkbox-item'] },
-    { scope: 'select', part: 'indicator', ancestors: ['root', 'trigger'], glyph: '▾' },
-    // NativeSelect's replacement chevron (#333): `appearance: none` removes
-    // the platform arrow, so this mark is the ONLY affordance saying the
-    // field is a picker — an invisible one is a real bug. It overlays the
-    // control, but the chain is root>indicator: the anatomy's parent tree,
-    // where the control is a sibling, not an ancestor.
-    { scope: 'native-select', part: 'indicator', ancestors: ['root'], glyph: '▾' },
-    { scope: 'select', part: 'item-indicator', ancestors: ['root', 'popup=open', 'item'], glyph: '✓', only: 'selected' },
-    { scope: 'combobox', part: 'item-indicator', ancestors: ['root', 'popup=open', 'item'], glyph: '✓', only: 'selected' },
-    {
-        scope: 'tree-view',
-        part: 'branch-indicator',
-        ancestors: ['root', 'tree', 'branch', 'branch-trigger'],
-        glyph: '›',
-    },
-    // The one non-`indicator`-named mark; see PAINT_ONLY_PART above. `★` for
-    // every state — the recipes differ in `color`, not in the glyph.
-    { scope: 'rating-group', part: 'item', ancestors: ['root', 'control'], glyph: '★' },
-    /**
-     * Spinner is opted in by hand (#314): its name matches no
-     * `PAINT_ONLY_PART` pattern, but it is pure paint on the page and an
-     * invisible one is a real bug — the WCAG 1.4.11 non-text floor is the same
-     * 3:1 this matrix already enforces. No ancestors: a spinner stands on the
-     * app surface, which is what the empty chain measures it against.
-     *
-     * SKELETON is deliberately NOT here, and the distinction is the point. A
-     * skeleton is not a control and not content — it is the absence of
-     * content, and a placeholder loud enough to clear 3:1 would read as a
-     * filled block someone meant. Holding it to a control's floor would make
-     * every design system draw a worse skeleton.
-     */
-    { scope: 'spinner', part: 'root', ancestors: [] },
-    /**
-     * Status is spinner's static sibling (#334): an empty element whose whole
-     * job is paint, opted in by hand for the same reason — an invisible
-     * presence dot is a real bug, and WCAG 1.4.11's non-text floor is this
-     * matrix's 3:1. Empty chain: a status dot stands on the app surface.
-     */
-    { scope: 'status', part: 'root', ancestors: [] },
-    /**
-     * Timeline's marker (#334): the dot on the axis. Named after what it is
-     * rather than after its job, so `PAINT_ONLY_PART` cannot select it —
-     * opted in by hand like the rating star. Measured inside its real
-     * root > item chain; no glyph, because the recipes draw the dot as
-     * geometry and zero renders the part empty.
-     */
-    { scope: 'timeline', part: 'marker', ancestors: ['root', 'item'] },
-    // The carousel dot: auto-selected by the paint-only pattern (named
-    // `indicator`, no text hint). Both of its states are measured — an
-    // inactive dot a viewer cannot find is a pagination they cannot use.
-    { scope: 'carousel', part: 'indicator', ancestors: ['root', 'indicator-group'] },
-    // Diff's divider handle: named `handle`, so the paint-only pattern does
-    // not select it — opted in by hand like rating-group's star. Its grab
-    // affordance (line + grip) must clear the non-text floor against the
-    // root's resting surface.
-    { scope: 'diff', part: 'handle', ancestors: ['root'] },
-    /**
-     * RadialProgress's ring (#334): painted ON the root as a background-colour
-     * ink under conic/annulus masks — background-colour rather than a
-     * gradient image precisely so this matrix can read it (a gradient
-     * painting a box is deliberately not measured; see `imageInks`). Empty
-     * chain, like spinner: the ring stands on the app surface. The states
-     * ride along from `combosFor`, so complete's success ink is measured too.
-     */
-    { scope: 'radial-progress', part: 'root', ancestors: [] },
-    /**
-     * Pagination's prev/next triggers (#339): the `‹`/`›` glyph is the only
-     * affordance for "there are more pages", so an invisible one is a real
-     * bug. Opted in by hand (their names match no PAINT_ONLY_PART pattern),
-     * measured in the root chain they really render in; `disabled` rides
-     * along from `combosFor` and answers to the 2:1 pre-fade floor.
-     */
-    { scope: 'pagination', part: 'prev-trigger', ancestors: ['root'], glyph: '‹' },
-    { scope: 'pagination', part: 'next-trigger', ancestors: ['root'], glyph: '›' },
-];
-
-const partOf = (scope: string, name: string): ManifestPart => {
-    const part = anatomy.components.find((c) => c.scope === scope)?.parts.find((p) => p.name === name);
-    if (!part) throw new Error(`anatomy declares no ${scope}/${name}`);
-    return part;
-};
-
-interface IndicatorCell extends Cell {
-    /** Outermost ancestor first; the indicator itself is last. */
-    chain: NodeSpec[];
-    glyph?: string;
-}
-
-/**
- * A declared ancestor chain, resolved against the anatomy — outermost first,
- * the measured part last. Shared by the indicator matrix's hand-declared
- * `INDICATORS` and the axis matrix's tree-derived chains (#297, #317).
- *
- * The two throw-on-typo checks are the point of resolving it here rather than
- * trusting the string: `partOf` rejects a part the anatomy does not declare,
- * and the `=state` pin is rejected unless that part really has that state. A
- * renamed part or a dropped state becomes a loud failure at collection time
- * instead of a chain that silently measures the wrong node — or measures
- * nothing, which reads identically to a clean run.
- */
-function chainFor(scope: string, path: string[]): NodeSpec[] {
-    return path.map((entry) => {
-        const [name, pin] = entry.split('=');
-        const part = partOf(scope, name);
-        if (pin && !part.states?.includes(pin)) throw new Error(`${scope}/${name} has no state "${pin}"`);
-        return {
-            part: name,
-            element: part.element ?? 'div',
-            states: part.states ?? [],
-            flags: part.flags ?? [],
-            pin,
-        };
-    });
-}
-
-const indicatorCells: IndicatorCell[] = INDICATORS.flatMap((spec) => {
-    const chain = chainFor(spec.scope, [...spec.ancestors, spec.part]);
-    const part = partOf(spec.scope, spec.part);
-    if (spec.only && !part.flags?.includes(spec.only)) {
-        throw new Error(`${spec.scope}/${spec.part} has no flag "${spec.only}"`);
-    }
-    return combosFor(part)
-        .filter((combo) => !spec.only || combo.flag === spec.only)
-        .map((combo) => ({
-            scope: spec.scope, part: spec.part, ...combo, chain, glyph: spec.glyph,
-        }));
-});
+//
+// The selection rule (`PAINT_ONLY_PART`), the hand opt-ins and the `glyph` /
+// `only` facts are the kit's `INDICATORS` table (`zero-kit/src/audit/contrast/
+// paint-parts.ts`), with the ancestor chains DERIVED from the anatomy's part
+// tree — every containing part up to the top, popup ancestors pinned open.
+// The hand-listed chains this file used to carry were pinned equal to the
+// derived ones, row for row, in the kit's `contrast-static.test.ts` before
+// they were retired here; one entry (`menu`) keeps a hand chain, because the
+// anatomy names the containing popup while the mark sits on a host ROW the
+// tree does not know.
+const indicatorCells: IndicatorCell[] = indicatorCellsFor(anatomy.components);
 
 interface Reading {
     key: string;
@@ -753,16 +373,14 @@ interface IndicatorReading {
 test('indicator coverage: every paint-only part has an ancestor chain', ({}, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'one engine is enough');
 
-    const selected = anatomy.components.flatMap((component) => component.parts
-        .filter((part) => !part.tokens?.includes('text') && PAINT_ONLY_PART.test(part.name))
-        .map((part) => `${component.scope}/${part.name}`))
-        .filter((key) => !NOT_RENDERED_ON_WEB.has(key));
-    const covered = new Set(INDICATORS.map((i) => `${i.scope}/${i.part}`));
-
+    // The kit's own guard, as a function — the same selection rule and the
+    // same table the static matrix measures.
     expect(
-        selected.filter((key) => !covered.has(key)),
-        'paint-only parts with no ancestor chain declared — add them to INDICATORS (or, if the web never renders them, to NOT_RENDERED_ON_WEB)',
+        uncoveredPaintParts(anatomy.components),
+        'paint-only parts with no ancestor chain declared — add them to INDICATORS in the kit (or, if the web never renders them, to NOT_RENDERED_ON_WEB)',
     ).toEqual([]);
+    // And not vacuously: the table must name the marks the six skins draw.
+    expect(INDICATORS.length).toBeGreaterThanOrEqual(20);
 });
 
 /**
@@ -834,7 +452,7 @@ test('axis chains: every derived chain resolves against the anatomy, rooted at t
             const ancestors = derivedChainAncestors(component, part);
             if (!ancestors) continue;
             derived += 1;
-            expect(() => chainFor(component.scope, [...ancestors, part.name])).not.toThrow();
+            expect(() => chainFor(component, [...ancestors, part.name])).not.toThrow();
             expect(
                 ancestors[0]?.split('=')[0],
                 `derived chain for ${component.scope}/${part.name} must be rooted at the carrier`,
@@ -861,7 +479,7 @@ test('allowlist coverage: every INTENDED_LOW_CONTRAST entry names a cell some ma
     const known = new Set<string>();
     for (const ds of DESIGN_SYSTEMS) {
         const manifest: DesignSystemManifest = JSON.parse(read(`packages/zero-${ds}/dist/manifest.json`));
-        const dsCells: Cell[] = [...cells, ...axisCellsFor(manifest.components), ...indicatorCells];
+        const dsCells: Cell[] = [...cells, ...axisCellsFor(manifest.components, anatomy.components), ...indicatorCells];
         for (const theme of manifest.themes) {
             for (const cell of dsCells) known.add(cellKey(ds, theme.name, cell));
         }
@@ -873,13 +491,218 @@ test('allowlist coverage: every INTENDED_LOW_CONTRAST entry names a cell some ma
     ).toEqual([]);
 });
 
+// ── Parity with the static matrix (#403, slice D) ───────────────────────────
+
+/**
+ * The static contrast matrix (`auditDesignSystem`'s `contrast/*` rules,
+ * `zero-kit/src/audit/contrast/`) computes these two matrices from compiled
+ * CSS, so a design system built outside this repo gets the same floors. This
+ * spec is what keeps it honest: the browser is the ground truth, and every
+ * cell the static reader CLAIMS — a verdict other than `unmeasured` — is held
+ * to the browser's reading of the same cell, under the same key.
+ *
+ * Three things are compared, and a fourth is pinned:
+ *
+ * - the cell product is ONE product: a reading the static side does not list
+ *   at all, or a static claim the browser has no reading for, is a
+ *   disagreement (the two sides no longer measure the same cells);
+ * - "painted at all" agrees: static `unrendered`/`unpainted` against the
+ *   browser's `unrendered`/`unpainted`;
+ * - the number agrees to `tolerance(ratio)` — canvas rounding and culori's
+ *   oklch conversion differ in the last digit, not the first — and the floor
+ *   verdict agrees (`< 3`, `< 2` on the in-group pair for `disabled`), except
+ *   for a cell the browser puts within tolerance of the floor itself, which
+ *   is annotated rather than failed: a 2.97 against a 3.02 is one reading,
+ *   not two;
+ * - and the measured SHARE is pinned per design system from both sides
+ *   (`STATIC_COVERAGE`), so the estimate can neither retreat into
+ *   `unmeasured` unnoticed nor quietly claim more than it did when the pin
+ *   was set.
+ *
+ * The static side runs Node-side, once per design system per worker, from
+ * the skin's built `dist/design-system.js` — the same artifact `zero:audit`
+ * reads — so the comparison costs milliseconds and no browser time.
+ */
+const CONTRAST_RULES: AuditRuleId[] = ['contrast/text', 'contrast/indicator', 'contrast/unmeasured'];
+
+/**
+ * How far the two readings of one cell may differ before it is a
+ * disagreement: `0.15`, or 2% of the ratio, whichever is larger.
+ *
+ * The absolute part is the last-digit noise of two different colour
+ * pipelines (a canvas pixel against culori's oklch conversion). The relative
+ * part is the canvas: it composites a translucent wash — `oklch(… / 0.06)`
+ * over a dark surface — in 8-bit premultiplied arithmetic, so one channel of
+ * the backdrop lands one unit off, and near black that one unit is a
+ * measurable slice of the ratio's denominator. Measured at 11–16:1 the
+ * two sides differ by 1.0–1.5%, in BOTH directions; a floor at 3:1 is
+ * still held to 0.15. Widen this only with a reading in hand.
+ */
+const tolerance = (ratio: number): number => Math.max(0.15, ratio * 0.02);
+
+/**
+ * The measured share each design system's static matrix claims, in percent
+ * of its cells across both matrices, pinned from BOTH ends: a run below the
+ * pin means the estimate retreated into `unmeasured`; a run more than
+ * `COVERAGE_HEADROOM` points above it means it now claims more than when the
+ * pin was set — raise the pin, on purpose, having looked at what it newly
+ * claims. Set from this gate's first green run: 802 / 1994 / 650 / 634 / 590 /
+ * 590 cells per theme, with daisyui's 206 and heroui's 20 unmeasured.
+ */
+const STATIC_COVERAGE: Record<(typeof DESIGN_SYSTEMS)[number], number> = {
+    basic: 100,
+    // `+active` is `filter: brightness()`; the control fills carry daisy's
+    // noise texture as a second background layer; the star preview brightens.
+    daisyui: 89.7,
+    material: 100,
+    brutalist: 100,
+    // The half star is a hard-stop gradient on `::before`.
+    heroui: 96.6,
+    carbon: 100,
+};
+const COVERAGE_HEADROOM = 5;
+
+const staticMatrices = new Map<string, Promise<Map<string, ContrastCell[]>>>();
+
+/** The static matrix for one design system, keyed by theme — computed once per worker. */
+function staticMatrix(ds: string): Promise<Map<string, ContrastCell[]>> {
+    let pending = staticMatrices.get(ds);
+    if (!pending) {
+        pending = (async () => {
+            // The skin's compiled input from its built `dist/` — by path, not
+            // through the package entry, which registers themes with
+            // `@sigx/zero` and has no business running under Node.
+            const url = pathToFileURL(join(root, `packages/zero-${ds}/dist/design-system.js`)).href;
+            const { designSystem } = (await import(url)) as DesignSystemModule;
+            const result = auditDesignSystem(designSystem, anatomy, { rules: CONTRAST_RULES });
+            return new Map(result.contrast.themes.map((t) => [t.name, t.cells]));
+        })();
+        staticMatrices.set(ds, pending);
+    }
+    return pending;
+}
+
+/** What both matrices agree a browser reading is: a ratio, its pre-fade pair, and whether anything was painted. */
+interface BrowserReading {
+    key: string;
+    ratio: number;
+    inGroup: number;
+    disabled: boolean;
+    /** `unrendered` in the text matrix, `unpainted` in the indicator one. */
+    gone: boolean;
+    /** What the browser painted with and on — for the disagreement line, so a miss is diagnosable from the log. */
+    ink: string;
+    bg: string;
+}
+
+interface Parity {
+    /** Cells the static side claimed, i.e. everything but `unmeasured`. */
+    claimed: number;
+    disagreements: string[];
+    /** Floor verdicts that differ where the browser reading is within tolerance of the floor. */
+    nearFloor: string[];
+}
+
+/** The static cells of one matrix against the browser's readings of the same cells. */
+function parity(matrix: 'text' | 'indicator', statics: ContrastCell[], readings: BrowserReading[]): Parity {
+    const out: Parity = { claimed: 0, disagreements: [], nearFloor: [] };
+    const cellsOf = statics.filter((c) => c.matrix === matrix);
+    const staticKeys = new Set(cellsOf.map((c) => c.key));
+    const byKey = new Map(readings.map((r) => [r.key, r]));
+    const goneWord = matrix === 'text' ? 'unrendered' : 'unpainted';
+    const sides = (c: ContrastCell, r: BrowserReading): string =>
+        `[static ${c.carrier ? `${c.carrier} ` : ''}${c.ink ?? '?'} on ${c.bg ?? '?'}${c.detail ? ` (${c.detail})` : ''}; browser ${r.ink} on ${r.bg}]`;
+
+    for (const r of readings) {
+        if (!staticKeys.has(r.key)) out.disagreements.push(`${r.key} — the browser measures a cell the static matrix does not list at all`);
+    }
+    for (const c of cellsOf) {
+        if (c.verdict === 'unmeasured') continue;
+        out.claimed += 1;
+        const r = byKey.get(c.key);
+        if (!r) {
+            out.disagreements.push(`${c.key} — static ${c.verdict}, the browser has no reading for this cell`);
+            continue;
+        }
+        const staticGone = c.verdict === 'unrendered' || c.verdict === 'unpainted';
+        if (staticGone !== r.gone) {
+            out.disagreements.push(`${c.key} — static ${c.verdict}, browser ${r.gone ? goneWord : `${r.ratio}:1`} ${sides(c, r)}`);
+            continue;
+        }
+        if (staticGone) continue;
+
+        // `disabled` is judged on the pre-fade pair on both sides.
+        const floor = r.disabled ? DISABLED_FLOOR : FLOOR;
+        const sRatio = r.disabled ? c.inGroup : c.ratio;
+        const bRatio = r.disabled ? r.inGroup : r.ratio;
+        if (sRatio === undefined) {
+            out.disagreements.push(`${c.key} — static ${c.verdict} carries no ratio`);
+            continue;
+        }
+        const delta = Math.abs(sRatio - bRatio);
+        const allowed = tolerance(bRatio);
+        if (!(delta <= allowed)) {
+            out.disagreements.push(`${c.key} — static ${sRatio}:1, browser ${bRatio}:1 (Δ ${delta.toFixed(2)} > ${allowed.toFixed(2)}) ${sides(c, r)}`);
+            continue;
+        }
+        const staticFail = r.disabled ? c.verdict === 'disabled-fail' : c.verdict === 'fail';
+        const browserFail = bRatio < floor;
+        if (staticFail !== browserFail) {
+            const line = `${c.key} — static ${c.verdict} at ${sRatio}:1, browser ${bRatio}:1 against the ${floor}:1 floor ${sides(c, r)}`;
+            if (Math.abs(bRatio - floor) <= tolerance(floor)) out.nearFloor.push(line);
+            else out.disagreements.push(line);
+        }
+    }
+    return out;
+}
+
+/** Percent of a theme's cells (both matrices) the static side claimed, to one decimal. */
+function measuredShare(statics: ContrastCell[]): number {
+    const unmeasured = statics.filter((c) => c.verdict === 'unmeasured').length;
+    return statics.length === 0 ? 0 : Math.round((1 - unmeasured / statics.length) * 1000) / 10;
+}
+
+/**
+ * The static matrix evaluates `@media` against `REFERENCE_MEDIA` — the page
+ * it assumes this spec renders. If the chromium project ever drifts from that
+ * page (a viewport change, a touch emulation that flips `hover`), the parity
+ * block would start disagreeing about `@media (min-width: …)` rules for a
+ * reason that has nothing to do with either matrix; this names the cause.
+ */
+test('reference media: the chromium project renders the page the static matrix assumes', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'chromium', 'the static matrix models the chromium project only');
+
+    await page.setContent('<p>probe</p>');
+    const seen = await page.evaluate((media) => {
+        const unmet: string[] = [];
+        const unknown: string[] = [];
+        for (const [feature, value] of Object.entries(media.discrete)) {
+            const query = `(${feature}: ${value})`;
+            if (matchMedia(query).matches) continue;
+            // Media Queries 4: a feature the engine does not implement is
+            // `unknown`, and `not unknown` is still unknown — so both the
+            // query and its negation fail to match. A feature the engine
+            // KNOWS and answers differently matches the negation.
+            (matchMedia(`not ${query}`).matches ? unmet : unknown).push(query);
+        }
+        return { width: innerWidth, height: innerHeight, unmet, unknown };
+    }, REFERENCE_MEDIA);
+
+    // A feature this engine has not implemented cannot contradict the table;
+    // it is on the record so the day it lands, its answer is looked at.
+    for (const q of seen.unknown) testInfo.annotations.push({ type: 'reference-media-unknown', description: `${q} — not implemented by this engine` });
+    expect(seen.width, 'viewport width must match REFERENCE_MEDIA.width').toBe(REFERENCE_MEDIA.width);
+    expect(seen.height, 'viewport height must match REFERENCE_MEDIA.height').toBe(REFERENCE_MEDIA.height);
+    expect(seen.unmet, 'media features the page answers differently — REFERENCE_MEDIA and the chromium project describe different pages').toEqual([]);
+});
+
 for (const ds of DESIGN_SYSTEMS) {
     const dsCss = read(`packages/zero-${ds}/dist/css/index.css`);
     const dsManifest: DesignSystemManifest = JSON.parse(read(`packages/zero-${ds}/dist/manifest.json`));
     const themes = dsManifest.themes;
     // The axis surface is per design system — a shared list cannot express
     // "carbon wires `danger-ghost` and heroui does not".
-    const textCells: Cell[] = [...cells, ...axisCellsFor(dsManifest.components)];
+    const dsTextCells: Cell[] = [...cells, ...axisCellsFor(dsManifest.components, anatomy.components)];
 
     /** The app baseline every real app provides, plus the compiled DS CSS. */
     const stage = async (page: Page, theme: string): Promise<void> => {
@@ -891,6 +714,17 @@ for (const ds of DESIGN_SYSTEMS) {
         await page.evaluate((themeName) => {
             document.documentElement.setAttribute('data-theme', themeName);
         }, theme);
+        // Resting styles only, in BOTH matrices. A popup with
+        // `@starting-style` + `transition` computes its ENTRY style
+        // (`opacity: 0`) for the frame it is inserted in, and a part whose
+        // recipe animates it in (`countdown`'s digits, from `opacity: 0`)
+        // is mid-keyframe at that same instant — either reads as "not
+        // painted" and the cell silently leaves the matrix. Killing
+        // transitions and animations settles every probe immediately; entry
+        // and exit motion is not what this audit measures anyway.
+        await page.addStyleTag({
+            content: '*, *::before, *::after { transition: none !important; animation: none !important; }',
+        });
         await page.evaluate(installColorMath);
     };
 
@@ -903,10 +737,10 @@ for (const ds of DESIGN_SYSTEMS) {
             // The chained product is the one that grows without anyone
             // noticing, so it is counted out loud on every run and capped
             // hard. A silent cap reads as "covered everything" when it did not.
-            const chainedCount = textCells.filter((c) => c.chain).length;
+            const chainedCount = dsTextCells.filter((c) => c.chain).length;
             testInfo.annotations.push({
                 type: 'axis-cell-count',
-                description: `${ds}/${theme.name}: ${textCells.length} text cells `
+                description: `${ds}/${theme.name}: ${dsTextCells.length} text cells `
                     + `(${chainedCount} through a declared chain, budget ${AXIS_CELL_BUDGET})`,
             });
             expect(
@@ -1029,7 +863,7 @@ for (const ds of DESIGN_SYSTEMS) {
                     root.remove();
                 }
                 return out;
-            }, { cells: textCells.map((c) => ({ ...c, key: cellKey(ds, theme.name, c) })) });
+            }, { cells: dsTextCells.map((c) => ({ ...c, key: cellKey(ds, theme.name, c) })) });
 
             const visible = readings.filter((r) => !r.unrendered && !INTENDED_LOW_CONTRAST.has(r.key));
             for (const r of readings.filter((r) => r.unrendered)) {
@@ -1078,21 +912,48 @@ for (const ds of DESIGN_SYSTEMS) {
                 `disabled colour pairs below ${DISABLED_FLOOR}:1 before the state's own fade — dimming is the state, choosing ink nobody could have read is not`,
             ).toEqual([]);
             expect.soft(staleEntries(readings, (r) => !r.unrendered), STALE_MESSAGE).toEqual([]);
+
+            // ── Parity: the static matrix against these readings ──
+            const statics = (await staticMatrix(ds)).get(theme.name);
+            expect(statics, `the static matrix has no theme "${theme.name}" for ${ds}`).toBeDefined();
+            const check = parity('text', statics!, readings.map((r) => ({
+                key: r.key, ratio: r.ratio, inGroup: r.inGroup, disabled: r.disabled, gone: r.unrendered, ink: r.color, bg: r.bg,
+            })));
+            testInfo.annotations.push({
+                type: 'static-parity',
+                description: `${ds}/${theme.name}: ${check.claimed} text cells claimed by the static matrix, `
+                    + `${check.disagreements.length} disagreements, ${check.nearFloor.length} straddling a floor within tolerance`,
+            });
+            for (const n of check.nearFloor) testInfo.annotations.push({ type: 'static-parity-near-floor', description: n });
+            expect.soft(
+                check.disagreements,
+                `cells where the static contrast matrix and the browser disagree — the browser is the ground truth; make the static side report unmeasured for the construct it misread, never bend the floor`,
+            ).toEqual([]);
+            // Not vacuously: a design system whose static side claims nothing
+            // would "agree" on every cell.
+            expect(check.claimed, 'the static matrix claims no text cells at all').toBeGreaterThan(0);
+
+            // ── Coverage: pinned from both ends ──
+            const share = measuredShare(statics!);
+            const pin = STATIC_COVERAGE[ds];
+            testInfo.annotations.push({
+                type: 'static-coverage',
+                description: `${ds}/${theme.name}: ${share}% of ${statics!.length} cells measured statically (pin ${pin}%)`,
+            });
+            expect(
+                share,
+                `the static matrix measures less of ${ds} than STATIC_COVERAGE pins — it retreated into unmeasured; find out why before lowering the pin`,
+            ).toBeGreaterThanOrEqual(pin);
+            expect(
+                share,
+                `the static matrix now measures more than ${COVERAGE_HEADROOM} points above STATIC_COVERAGE's pin for ${ds} — raise the pin deliberately, having looked at what it newly claims`,
+            ).toBeLessThanOrEqual(pin + COVERAGE_HEADROOM);
         });
 
         test(`indicator contrast: ${ds} / ${theme.name}`, async ({ page }, testInfo) => {
             test.skip(testInfo.project.name !== 'chromium', 'one engine; canvas-resolved colors are engine-independent');
 
             await stage(page, theme.name);
-            // Resting styles only. Indicators live inside popups, and a popup
-            // with `@starting-style` + `transition` computes its ENTRY style
-            // (`opacity: 0`) for the frame it is inserted in — which would read
-            // as "the ✓ is not painted" and silently drop the cell. Killing
-            // transitions and animations settles every chain immediately; entry
-            // and exit motion is not what this audit measures anyway.
-            await page.addStyleTag({
-                content: '*, *::before, *::after { transition: none !important; animation: none !important; }',
-            });
 
             const readings: IndicatorReading[] = await page.evaluate(({ cells }) => {
                 const { resolve, blend, contrast, hasInk } = window.zeroColorMath;
@@ -1474,6 +1335,24 @@ for (const ds of DESIGN_SYSTEMS) {
                 `disabled indicator paint below ${DISABLED_FLOOR}:1 before the state's own fade — dimming is the state, drawing a mark nobody could have found is not`,
             ).toEqual([]);
             expect.soft(staleEntries(readings, (r) => !r.unpainted), STALE_MESSAGE).toEqual([]);
+
+            // ── Parity: the static matrix against these readings ──
+            const statics = (await staticMatrix(ds)).get(theme.name);
+            expect(statics, `the static matrix has no theme "${theme.name}" for ${ds}`).toBeDefined();
+            const check = parity('indicator', statics!, readings.map((r) => ({
+                key: r.key, ratio: r.ratio, inGroup: r.inGroup, disabled: r.disabled, gone: r.unpainted, ink: `${r.carrier} ${r.ink}`, bg: r.bg,
+            })));
+            testInfo.annotations.push({
+                type: 'static-parity',
+                description: `${ds}/${theme.name}: ${check.claimed} indicator cells claimed by the static matrix, `
+                    + `${check.disagreements.length} disagreements, ${check.nearFloor.length} straddling a floor within tolerance`,
+            });
+            for (const n of check.nearFloor) testInfo.annotations.push({ type: 'static-parity-near-floor', description: n });
+            expect.soft(
+                check.disagreements,
+                `indicator cells where the static contrast matrix and the browser disagree — the browser is the ground truth; make the static side report unmeasured for the construct it misread, never bend the floor`,
+            ).toEqual([]);
+            expect(check.claimed, 'the static matrix claims no indicator cells at all').toBeGreaterThan(0);
         });
     }
 }

@@ -270,3 +270,59 @@ describe('evaluateMedia — the reference page', () => {
         expect(evaluateMedia(query)).toBe(verdict);
     });
 });
+
+// ── What the browser parity gate found (#403, slice D) ─────────────────────
+
+const chainOf = (element: string, part: string, rulesText: string, envOverride: Partial<ThemeEnv> = {}) => {
+    const node: StyleNode = {
+        scope: 'x', part, element, hasElementChildren: false,
+        attrs: new Map([['data-scope', 'x'], ['data-part', part]]),
+    };
+    const e = { ...env, ...envOverride };
+    return computeChain([node], css(rulesText), e)[0]!;
+};
+
+describe('border widths the browser draws (parity gate)', () => {
+    it('folds a calc() width, nested and in rem, instead of reading it as zero', () => {
+        // The spinner's ring and the carousel dot are `calc(var(--border) * 2)`
+        // strokes; the status dot's is `calc(calc(0.25rem * 2.5) / 2)`. Every
+        // one read as "no width" and the mark as unpainted, while the browser
+        // painted it at 6:1.
+        const a = chainOf('div', 'a', `[data-scope="x"][data-part="a"] { border: calc(1px * 2) solid red; }`);
+        expect(rgb(borderInk(a, 'self', env)!)).toBe('#ff0000');
+        const b = chainOf('div', 'b', `[data-scope="x"][data-part="b"] { border: calc(calc(0.25rem * 3) / 2) solid blue; }`);
+        expect(rgb(borderInk(b, 'self', env)!)).toBe('#0000ff');
+    });
+
+    it('a width it cannot evaluate is unmeasured, never "no border"', () => {
+        const a = chainOf('div', 'a', `[data-scope="x"][data-part="a"] { border-width: max(1px, 0.5%); border-style: solid; border-color: red; }`);
+        expect(() => borderInk(a, 'self', env)).toThrow(Unmeasured);
+        try { borderInk(a, 'self', env); } catch (e) { expect((e as Unmeasured).reason).toBe('unknown-geometry'); }
+    });
+});
+
+describe('the user agent stylesheet (parity gate)', () => {
+    it('a real <button> that no recipe colours renders buttontext, not its parent\'s ink', () => {
+        // steps/item is a `<button>`; the browser chain builds a real one and
+        // measured 20:1 (black on the page) where the static reader inherited
+        // base-content and said 14.9:1.
+        const light = chainOf('button', 'a', ``);
+        expect(rgb(colorOf(light, 'self', env))).toBe('#000000');
+        expect(rgb(background(light, 'self', env).color)).toBe('#efefef');
+        expect(rgb(borderInk(light, 'self', env)!)).toBe('#000000');
+        const dark = chainOf('button', 'a', ``, { colorScheme: 'dark' });
+        expect(rgb(colorOf(dark, 'self', { ...env, colorScheme: 'dark' }))).toBe('#ffffff');
+    });
+
+    it('a recipe declaration beats the UA default, shorthand included', () => {
+        const a = chainOf('button', 'a', `[data-scope="x"][data-part="a"] { color: var(--color-primary); background: transparent; border: none; }`);
+        expect(rgb(colorOf(a, 'self', env))).toBe('#0000ff');
+        expect(background(a, 'self', env).color.alpha).toBe(0);
+        expect(borderInk(a, 'self', env)).toBeUndefined();
+    });
+
+    it('an anchor is linktext; a div still inherits', () => {
+        expect(rgb(colorOf(chainOf('a', 'a', ``), 'self', env))).toBe('#0000ee');
+        expect(rgb(colorOf(chainOf('div', 'a', ``), 'self', env))).toBe('#111111');
+    });
+});

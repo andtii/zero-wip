@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **`color-mix()` toward an achromatic colour invented a hue** (#403,
+  slice D). CSS Color 4 §12.3: a MISSING component — black's hue in oklch,
+  any grey's, `transparent`'s — is carried over from the other colour before
+  interpolating. culori marks it `undefined` and, left alone, drifted the
+  hue: `color-mix(in oklch, #0087a0 86%, black)` baked to `#00716a` where
+  Chrome paints `#006d82`. `carryMissingComponents` (exported) now runs
+  before the premultiplied mix in the shared baker, so the static contrast
+  matrix reads what the browser paints — **and the lynx artifacts of every
+  recipe that mixes toward black/white/grey in a polar space change to the
+  colour the web has always shown** (zero-basic's and zero-material's
+  pressed `solid` buttons, among others). Found by the browser parity gate.
+- **The static contrast matrix read a `calc()` border width as zero** and
+  called the spinner's ring, the carousel dot and the status/timeline marks
+  unpainted where the browser painted them at 6:1. Border widths are now
+  evaluated as lengths on the reference page (`px`, `rem`/`em` at 16px,
+  `calc()` folded innermost-first); a width the reader cannot evaluate
+  (`%`, `max()`) is `unmeasured: unknown-geometry`, never "no border".
+- **The static contrast matrix ignored the user agent stylesheet.** A real
+  `<button>` that no recipe colours renders `buttontext` (black on a light
+  scheme, white on dark), not its parent's ink — the browser chain builds
+  real elements, and steps/item measured 20:1 there against the reader's
+  inherited 14.9:1. `uaDefaults(element, scheme)` (exported) seeds Chromium's
+  colour, background and border for `button`, `input`/`textarea`/`select`,
+  `a` and `dialog` below every author declaration.
+
 ### Added
 
 - **`sigx zero:validate --log <path>` / `ZERO_ITERATION_LOG=<path>` — an
@@ -18,6 +45,22 @@
   killed run left half-written is skipped). The scaffold's `.gitignore`
   carries `.zero-iterations.jsonl`, and the skill's step 6 sets the variable
   before the first run.
+
+- **The browser parity gate for the static contrast matrix** (#403, slice D
+  — the last one). `examples/playground/e2e/contrast-audit.spec.ts` imports
+  the cell product from the kit (`textCells`, `axisCellsFor`,
+  `indicatorCellsFor`, `cellKey`, `INDICATORS`, `uncoveredPaintParts`) —
+  its own copies and the hand-listed indicator chains are gone — and every
+  `contrast:` / `indicator contrast:` test now runs `auditDesignSystem`
+  Node-side from the skin's built `dist/design-system.js` and holds every
+  cell the static side CLAIMS to the browser's reading under the same key:
+  same cell product, same painted-at-all, ratios within `max(0.15, 2%)`,
+  same floor verdict (annotated when the browser sits within tolerance of
+  the floor). The measured share is pinned per skin from both ends
+  (`STATIC_COVERAGE`). A `reference media` test holds the chromium project
+  to `REFERENCE_MEDIA`, now exported with `evaluateMedia`. First run: 244
+  disagreements, all three classes above plus the text probe's missing
+  transition kill; final run: 0 across 12,996 claimed cells.
 
 - **`sigx zero:validate --diff <report.json>` — what moved between two
   coverage reports** (#415). `diffReports(prev, next)` and
