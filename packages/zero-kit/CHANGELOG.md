@@ -4,6 +4,21 @@
 
 ### Added
 
+- **`sigx zero:validate --log <path>` / `ZERO_ITERATION_LOG=<path>` — an
+  iteration log for the generate → validate → fix loop** (#426). Opt-in,
+  local, append-only JSONL: every run appends one line (timestamp, error and
+  warning counts, score and grade when the design system compiled, the five
+  rules that fired most — `ValidationIssue.rule` or the first two segments
+  of `where` — and wall-clock) and prints its trend line, each count beside
+  the run before (`iteration 7 — errors 0 (was 3), warnings 3 (was 14),
+  score 92 → A (was 71 C); top: contrast-floor ×2`). The flag wins over the
+  environment; there is no bare `--log` (#177). `resolve/iteration.ts`
+  (`iterationEntryFrom`, `formatIterationLog`, `whereFamily`, pure) and
+  `commands/iteration-log.ts` (append with parents, tolerant read — a line a
+  killed run left half-written is skipped). The scaffold's `.gitignore`
+  carries `.zero-iterations.jsonl`, and the skill's step 6 sets the variable
+  before the first run.
+
 - **`sigx zero:validate --diff <report.json>` — what moved between two
   coverage reports** (#415). `diffReports(prev, next)` and
   `formatReportDiff(diff)` in `resolve/report-diff.ts` (pure, exported from

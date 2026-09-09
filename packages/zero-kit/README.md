@@ -398,6 +398,7 @@ a design-system package.
 ```
 sigx zero:validate [entry] [--manifest <path>] [--extra-manifest <path>]...
                    [--strict] [--report] [--report-json <path>] [--diff <path>]
+                   [--log <path>]
 sigx zero:audit    [entry] [--manifest <path>] [--extra-manifest <path>]...
                    [--strict] [--rule <id>]... [--json <path>]
 sigx zero:build    [entry] [--manifest <path>] [--extra-manifest <path>]...
@@ -569,6 +570,28 @@ Two things the diff will not do. A state moved into `skipStates` is listed as
 takes, so a waiver cannot read as progress. And two reports of different
 `reportVersion` are refused with a message naming both: the older one needs
 regenerating with this kit, not a best-effort comparison of two shapes.
+
+### Watching the loop
+
+```sh
+export ZERO_ITERATION_LOG=.zero-iterations.jsonl   # once, before the first run
+sigx zero:validate --report                        # every run appends one line…
+# [sigx] iteration 7 — errors 0 (was 3), warnings 3 (was 14), score 92 → A (was 71 C); top: contrast-floor ×2, recipes.button ×1
+```
+
+The skill calls generate → validate → fix "the point", and this is what
+observes it: opt-in, local, append-only. With `ZERO_ITERATION_LOG=<path>` in
+the environment (or `--log <path>` on one run — the flag wins), every
+`zero:validate` appends one JSON line — timestamp, error and warning counts,
+the score and grade when the design system compiled, the five rules that
+fired most, and wall-clock — and prints the trend line for that run, each
+count beside what it was the run before. The rule ids are `ValidationIssue.rule`
+where a rule has one and the first two segments of `where` (`recipes.button`,
+`themes.dark`) where it does not. Nothing runs unless a path is named, and
+nothing leaves the machine; add the file to `.gitignore`. Programmatically:
+`iterationEntryFrom(...)` builds an entry, `formatIterationLog(entries)` the
+lines — both pure. A line a killed run left half-written is skipped, never
+fatal.
 ## The audit
 
 Validation says whether the design system is *correct*; the report says what it

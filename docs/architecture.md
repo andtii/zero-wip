@@ -834,7 +834,13 @@ deltas, scopes newly styled or unstyled, values newly wired or unwired,
 states newly covered or uncovered, and role pairs crossing a contrast
 threshold — with a state moved into `skipStates` reported as skipped, never
 as resolved, and a `reportVersion` mismatch refused rather than
-approximated. Automated vendor-doc
+approximated. And whether the loop is *converging* is the fourth, answered
+by the iteration log (`resolve/iteration.ts` + `commands/iteration-log.ts`,
+`ZERO_ITERATION_LOG=<path>` or `sigx zero:validate --log <path>`, #426):
+opt-in, local, one JSON line per run — counts, score, the rules that fired
+most, wall-clock — and a trend line printed beside each run, which is what
+lets an edit to the skill be measured by the iterations it saves.
+Automated vendor-doc
 checking is out of scope by design — it rots, then gets muted; the dated
 source column is the honest amount of process.
 

@@ -8,9 +8,11 @@ import type { DesignSystemReport } from '../resolve/report.js';
 import { buildReport, formatReport } from '../resolve/report.js';
 import { diffReports, formatReportDiff } from '../resolve/report-diff.js';
 import { auditDesignSystem } from '../audit/index.js';
+import { formatIterationLog, iterationEntryFrom } from '../resolve/iteration.js';
 import type { ValidationResult } from '../resolve/validate.js';
 import type { CommandEnv } from './shared.js';
 import { loadInputs } from './shared.js';
+import { appendIteration, readIterationLog, resolveIterationLogPath } from './iteration-log.js';
 
 export interface ValidateOptions {
     entry: string;
@@ -25,6 +27,8 @@ export interface ValidateOptions {
     reportJson?: string;
     /** An earlier `report.json` to print the changes against. */
     diff?: string;
+    /** Append this run to an iteration log (JSONL); `ZERO_ITERATION_LOG` is the environment spelling. */
+    log?: string;
 }
 
 /** The top-level sections `diffReports` reads — a file without them is not a report. */
@@ -101,6 +105,12 @@ export function reportFor(
 }
 
 export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promise<void> {
+    // The log times the whole answer — load, validate, report — because that
+    // is what an author waits for between edits. Resolved before anything
+    // runs so a bad path fails at the parse, not after the work.
+    const started = performance.now();
+    const logPath = resolveIterationLogPath(env.cwd, opts.log, process.env);
+
     const { ds, manifest, result } = await loadInputs(env, opts.entry, opts.manifest, opts.extraManifest ?? []);
 
     // `--report-json -` makes stdout the JSON and nothing else, so it can be
@@ -118,12 +128,15 @@ export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promi
     // outright instead of after a report the caller may have already acted on.
     const previous = opts.diff ? await readPreviousReport(env, opts.diff) : undefined;
 
-    if (opts.report || opts.reportJson || previous) {
+    // The log wants the score too, so it is one more reason to build the
+    // report. Kept outside the block so the entry below can read it.
+    let report: DesignSystemReport | undefined;
+    if (opts.report || opts.reportJson || previous || logPath) {
         // `validateDesignSystem` compiles too, but discards the result behind
         // its own try/catch. Compiling again keeps that seam untouched and costs
         // nothing measurable. `undefined` here means only one thing — the design
         // system does not compile, which `result` already says.
-        const report = reportFor(ds, manifest, result);
+        report = reportFor(ds, manifest, result);
         if (report) {
             if (opts.report && !stdoutIsJson) for (const line of formatReport(report)) env.logger.log(line);
             if (opts.reportJson) {
@@ -150,6 +163,17 @@ export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promi
             }
         } else if (previous && !stdoutIsJson) {
             env.logger.warn('--diff skipped: the design system does not compile, so there is no current report to compare');
+        }
+    }
+
+    // Appended BEFORE the verdict, like the report: a failing run is exactly
+    // the one the log is for. One line for this run only — the earlier lines
+    // are in the file, and the `(was …)` beside each count is the trend.
+    if (logPath) {
+        await appendIteration(logPath, iterationEntryFrom({ name: ds.name, result, report, ms: performance.now() - started }));
+        if (!stdoutIsJson) {
+            const line = formatIterationLog(await readIterationLog(logPath)).at(-1);
+            if (line) env.logger.log(line);
         }
     }
 

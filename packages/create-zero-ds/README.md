@@ -19,7 +19,7 @@ zero-acme/
   package.json        peer + dev dependency on @sigx/zero; dev on @sigx/zero-kit, @sigx/cli, typescript
   tsconfig.json
   build.mjs           runStandardBuild — validate → compile → report → writeArtifacts
-  README.md, .gitignore
+  README.md, .gitignore   (dist/, node_modules/, .zero-iterations.jsonl — the validate loop's log)
   src/tokens.ts       the brief's TokensInput (roles, system, themes), provenance-stamped
   src/button.ts       the brief's worked Button recipe
   src/baseline.ts     @sigx/zero-basic's 51 recipes, copied whole — yours now
