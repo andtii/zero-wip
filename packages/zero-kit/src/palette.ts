@@ -82,12 +82,22 @@ export interface DerivePaletteOptions<R extends RolesDecl = RolesDecl> {
     harmony?: Harmony;
     /** Tint of the base surfaces. Defaults to the primary hue at a paper-tint chroma. */
     base?: { hue?: number; chroma?: number };
-    /** Contrast floors. `content` for every `<role>`/`<role>-content` pair (default 4.5), `base` for `base-100`/`base-content` (default 7). */
-    floors?: { content?: number; base?: number };
+    /**
+     * Contrast floors. `content` for every `<role>`/`<role>-content` pair
+     * (default 4.5); `base` for `base-100`/`base-content` (default 7); `ink`
+     * for every role against `base-200` (default 3) — the recommended recipes
+     * spend a role as INK on the page surfaces (outline, soft and ghost
+     * variants, indicator fills), not only as a fill under its `-content`, so
+     * a role has to read there too. `base-200` is the nearer surface; clearing
+     * it clears `base-100`.
+     */
+    floors?: { content?: number; base?: number; ink?: number };
+    /** The theme's `softMix` — the ink floor is also measured against each role's own `-soft` surface, derived the way the compiler does (`color-mix(in oklab, role <softMix>, base-100)`). Default 0.16, the compiler's. */
+    softMix?: number;
 }
 
 export interface DeriveThemePairOptions<R extends RolesDecl = RolesDecl>
-    extends Omit<DerivePaletteOptions<R>, 'scheme'> {
+    extends Omit<DerivePaletteOptions<R>, 'scheme' | 'softMix'> {
     /** Name of the light theme. */
     light: string;
     /** Name of the dark theme. */
@@ -150,6 +160,18 @@ function luminance(color: Oklch): number {
  * `wcagContrast` does, so the parity test holds for out-of-gamut samples
  * as well as in-gamut ones.
  */
+/** `color-mix(in oklab, a t, b)` — the compiler's soft-surface derivation, so the floor sees the surface a reader sees. */
+function mixOklab(a: Oklch, b: Oklch, t: number): Oklch {
+    const A = { l: a.l, a: a.c * Math.cos((a.h * Math.PI) / 180), b: a.c * Math.sin((a.h * Math.PI) / 180) };
+    const B = { l: b.l, a: b.c * Math.cos((b.h * Math.PI) / 180), b: b.c * Math.sin((b.h * Math.PI) / 180) };
+    const l = A.l * t + B.l * (1 - t);
+    const aa = A.a * t + B.a * (1 - t);
+    const bb = A.b * t + B.b * (1 - t);
+    const c = Math.hypot(aa, bb);
+    const h = c < 1e-9 ? b.h : ((Math.atan2(bb, aa) * 180) / Math.PI + 360) % 360;
+    return { l, c, h };
+}
+
 export function contrastRatio(a: Oklch, b: Oklch): number {
     const la = luminance(a);
     const lb = luminance(b);
@@ -298,7 +320,8 @@ interface SchemePreset {
  * Per-scheme starting points, lifted from zero-basic's themes so a derived
  * theme reads like a hand-tuned one: mid-dark roles on paper in light, lit
  * roles on slate in dark; warning brighter than its siblings (amber has to
- * read as amber); neutral an ink rather than a fill.
+ * read as amber); neutral an ink rather than a fill — which in dark means a
+ * LIGHT neutral (0.33 on a 0.19 surface was 1.5:1, invisible; #422).
  */
 const PRESET: Record<'light' | 'dark', SchemePreset> = {
     light: {
@@ -307,7 +330,7 @@ const PRESET: Record<'light' | 'dark', SchemePreset> = {
         content: [[0.98, 0.01], [0.18, 0.04]],
     },
     dark: {
-        role: 0.74, warning: 0.80, neutral: 0.33,
+        role: 0.74, warning: 0.80, neutral: 0.80,
         base: [0.19, 0.23, 0.285], baseChroma: 0.012, ink: 0.91,
         content: [[0.18, 0.04], [0.98, 0.01]],
     },
@@ -339,7 +362,9 @@ function contentFor(role: Oklch, preset: SchemePreset, floor: number): Oklch | n
  * Derive one theme's colour tokens from seed hues.
  *
  * Guarantees, measured on the emitted strings: every `<role>` /
- * `<role>-content` pair ≥ `floors.content` (default 4.5:1);
+ * `<role>-content` pair ≥ `floors.content` (default 4.5:1); every role
+ * against `base-200` and against its own soft surface ≥ `floors.ink`
+ * (default 3:1);
  * `base-100`/`base-content` ≥ `floors.base` (default 7:1) with
  * `base-200`/`base-300` ≥ 4.5:1 against the same ink; every value inside
  * the sRGB gamut; a seeded hue preserved to the tenth of a degree.
@@ -354,6 +379,8 @@ export function derivePalette<R extends RolesDecl = RolesDecl>(opts: DerivePalet
     const preset = PRESET[opts.scheme];
     const contentFloor = opts.floors?.content ?? 4.5;
     const baseFloor = opts.floors?.base ?? 7;
+    const inkFloor = opts.floors?.ink ?? 3;
+    const softMix = opts.softMix ?? 0.16;
     const seeds = (opts.seeds ?? {}) as Partial<Record<string, number | RoleSeed>>;
     const rotation = HARMONY[opts.harmony ?? 'analogous'];
 
@@ -370,7 +397,7 @@ export function derivePalette<R extends RolesDecl = RolesDecl>(opts: DerivePalet
     const baseHue = normHue(opts.base?.hue ?? anchorHue);
     const baseChroma = opts.base?.chroma ?? preset.baseChroma;
     const surfaces = preset.base.map((l) => clampChroma({ l, c: baseChroma, h: baseHue }));
-    const [base100, , base300] = surfaces as [Oklch, Oklch, Oklch];
+    const [base100, base200, base300] = surfaces as [Oklch, Oklch, Oklch];
     let ink: Oklch | null = clampChroma({ l: preset.ink, c: Math.min(baseChroma * 2, 0.015), h: baseHue });
     if (contrastRatio(ink, base100) < baseFloor) ink = solveContentLightness(ink, base100, baseFloor);
     // base-300 is the surface closest to the ink; clearing AA there only
@@ -432,6 +459,36 @@ export function derivePalette<R extends RolesDecl = RolesDecl>(opts: DerivePalet
         }
 
         let role = clampChroma({ l: lightness, c: chroma, h: hue });
+        // The ink floor: the role must read against the nearer page surface
+        // AND against its own soft tint (which carries a little of the role,
+        // so it is the harder of the two). Hue and chroma stay; only the
+        // lightness moves, and only as far as the floor needs — a preset
+        // warning at 0.65 lands near 0.6 in light. The soft surface moves with
+        // the role, so this iterates; three rounds settle it.
+        // The check runs on the QUANTIZED role — the value that gets printed —
+        // with a margin of 0.05: the reader (the browser, the audit, culori)
+        // measures the soft surface as an 8-bit pixel, and the tenth-of-a-
+        // percent lightness rounding plus that pixel rounding are worth a few
+        // hundredths of a ratio. Without the margin a printed role lands at
+        // 2.99 against a #rrggbb soft.
+        const inkMargin = 0.05;
+        for (let i = 0; i < 4; i++) {
+            const printed = quantize(role);
+            const soft = mixOklab(printed, base100, softMix);
+            const softLimits = contrastRatio(printed, soft) < contrastRatio(printed, base200);
+            const against = softLimits ? soft : base200;
+            if (contrastRatio(printed, against) >= inkFloor + inkMargin) { role = printed; break; }
+            const inked = solveContentLightness(role, against, inkFloor + inkMargin * 1.5);
+            if (!inked) {
+                throw new Error(
+                    `[zero-kit] derivePalette: no ${name} lightness reaches ${inkFloor}:1 against ` +
+                    (softLimits
+                        ? `its own soft surface ${formatOklch(soft)} (softMix ${softMix}) — lower floors.ink, lower softMix, or change base.chroma`
+                        : `base-200 ${formatOklch(base200)} — lower floors.ink or change base.chroma`),
+                );
+            }
+            role = inked;
+        }
         const wantsContent = roles[name]!.content !== false;
         let content: Oklch | null = wantsContent ? contentFor(role, preset, contentFloor) : null;
         // Mid-grey escape: walk the role away from the surfaces until a
@@ -480,13 +537,13 @@ export function deriveThemePair<R extends RolesDecl = RolesDecl, T extends Syste
             colorScheme: 'light',
             pair: dark,
             softMix: mix.light,
-            colors: derivePalette<R>({ ...rest, scheme: 'light' }),
+            colors: derivePalette<R>({ ...rest, scheme: 'light', softMix: mix.light }),
         },
         [dark]: {
             colorScheme: 'dark',
             pair: light,
             softMix: mix.dark,
-            colors: derivePalette<R>({ ...rest, scheme: 'dark' }),
+            colors: derivePalette<R>({ ...rest, scheme: 'dark', softMix: mix.dark }),
         },
     };
 }

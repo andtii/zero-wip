@@ -148,7 +148,7 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
                 'info-content': 'oklch(98% 0.01 85)',
                 success: 'oklch(45% 0.12 145)',
                 'success-content': 'oklch(98% 0.01 85)',
-                warning: 'oklch(52% 0.14 75)',
+                warning: 'oklch(46% 0.14 75)',
                 'warning-content': 'oklch(98% 0.01 85)',
                 error: 'oklch(48% 0.18 27)',
                 'error-content': 'oklch(98% 0.01 85)',
@@ -223,10 +223,15 @@ export const button: RecipeInput = {
             // A prompt rather than a button.
             ghost: { root: { base: { borderColor: 'transparent', boxShadow: 'none' } } },
         },
+        // The whole recommended ramp on the character grid — the scaffold's
+        // baseline paints xs and xl on every sibling, and a step Button neither
+        // paints nor claims is the ramp-with-a-hole the audit refuses (#422).
         size: {
+            xs: { root: { base: { padding: '0 var(--space-xs)', fontSize: 'var(--text-xs)' } } },
             sm: { root: { base: { padding: '0 var(--space-sm)', fontSize: 'var(--text-sm)' } } },
             md: { root: { base: {} } },
             lg: { root: { base: { padding: 'var(--space-sm) var(--space-lg)', fontSize: 'var(--text-lg)' } } },
+            xl: { root: { base: { padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-xl)' } } },
         },
     },
     defaultVariants: { color: 'primary', variant: 'outline', size: 'md' },

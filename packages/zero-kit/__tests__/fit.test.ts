@@ -91,12 +91,13 @@ describe("zero-basic's recipes fit riso's tokens (roles: {}, sizes: [], fused va
             "droppedAxisValues": 0,
             "droppedColorValues": 408,
             "droppedCompounds": 0,
-            "droppedDefaults": 8,
+            "droppedDefaults": 9,
             "droppedModifiers": 2,
             "droppedSizeValues": 263,
+            "droppedVariantBlocks": 3,
             "droppedVariantValues": 5,
             "identity": false,
-            "rewrittenRoleRefs": 156,
+            "rewrittenRoleRefs": 155,
           }
         `);
     });
@@ -168,6 +169,36 @@ describe('each rule in isolation', () => {
             droppedColorValues: 2, droppedSizeValues: 1, droppedVariantValues: 1, droppedAxisValues: 1,
             droppedModifiers: 2, droppedDefaults: 1, droppedCompounds: 2, identity: false,
         });
+    });
+
+    it('drops a variant block whole when the fitted values no longer cover the scope vocabulary (#422)', () => {
+        // basic's badge wires solid|soft|outline. Under a fused vocabulary
+        // that shares only `outline`, keeping `outline` alone would be the
+        // ramp-with-a-hole the audit refuses, and claiming the rest with empty
+        // entries trips its ambiguous-base rule — so the block goes, and the
+        // compound that matched it goes with it.
+        const badge = {
+            component: 'badge',
+            parts: { root: { base: {} } },
+            variants: { variant: { solid: { root: { base: { color: 'red' } } }, outline: { root: { base: { color: 'blue' } } } } },
+            compoundVariants: [{ match: { variant: 'outline' }, parts: { root: { base: { padding: '0' } } } }],
+            defaultVariants: { variant: 'solid' },
+        } as unknown as RecipeInput;
+        const fused = { variants: ['key', 'spot', 'outline'], themes: { light }, defaultLight: 'light' } as unknown as TokensInput;
+        const [out] = fitRecipesToVocabulary([badge], fused);
+        expect(out!.variants).toBeUndefined();
+        expect(out!.compoundVariants).toBeUndefined();
+        expect(out!.defaultVariants).toBeUndefined();
+        expect(explainFit([badge], fused)).toMatchObject({ droppedVariantValues: 1, droppedVariantBlocks: 1, droppedCompounds: 1, droppedDefaults: 1 });
+        // A scope narrowing (`tokens.scopes`) is the vocabulary that counts:
+        // basic's own badge covers its narrowed set exactly, so it survives.
+        const narrowed = {
+            variants: ['key', 'spot', 'outline', 'solid'], scopes: { badge: { variants: ['solid', 'outline'] } },
+            themes: { light }, defaultLight: 'light',
+        } as unknown as TokensInput;
+        const [kept] = fitRecipesToVocabulary([badge], narrowed);
+        expect(Object.keys(kept!.variants!.variant!)).toEqual(['solid', 'outline']);
+        expect(explainFit([badge], narrowed).identity).toBe(true);
     });
 
     it('rewrites undeclared role references to the base surfaces, in every string position', () => {

@@ -13,7 +13,7 @@
  * input, the floor sweep fails on the first mid-grey role.
  */
 import { describe, expect, it } from 'vitest';
-import { converter, displayable, parse, wcagContrast } from 'culori';
+import { converter, displayable, formatHex, interpolate, parse, wcagContrast } from 'culori';
 import { anatomies } from '@sigx/zero/anatomy';
 import type { DesignSystemInput, ManifestComponent, RolesDecl } from '@sigx/zero-kit';
 import {
@@ -156,6 +156,20 @@ describe.each(SCHEMES)('derivePalette (%s)', (scheme) => {
                         .toBeGreaterThanOrEqual(floor);
                 }
 
+                // The ink floor (#422): every role reads at 3:1 on base-200 and
+                // on its own soft surface, derived the way the compiler does —
+                // the recommended recipes spend a role as ink on outline, soft
+                // and ghost variants and as an indicator fill.
+                for (const name of roleNames) {
+                    const role = colors[name]!;
+                    // `color-mix(in oklab, role 16%, base-100)` is 16% ROLE into the base — the compiler's spelling.
+                    const soft = formatHex(interpolate([colors['base-100']!, role], 'oklab')(0.16));
+                    expect(wcagContrast(role, colors['base-200']!), `${name} ${role} on base-200 ${colors['base-200']} (seeds ${JSON.stringify(seeds)})`)
+                        .toBeGreaterThanOrEqual(3 - 1e-6);
+                    expect(wcagContrast(role, soft), `${name} ${role} on its soft ${soft} (seeds ${JSON.stringify(seeds)})`)
+                        .toBeGreaterThanOrEqual(3 - 1e-6);
+                }
+
                 // A seeded hue survives to the tenth of a degree wherever it
                 // carries enough chroma to have one.
                 for (const [name, seed] of Object.entries(seeds)) {
@@ -196,7 +210,7 @@ describe('derivePalette defaults', () => {
             "secondary-content": "oklch(98% 0.01 290)",
             "success": "oklch(48% 0.118 155)",
             "success-content": "oklch(98% 0.01 155)",
-            "warning": "oklch(65% 0.12 85)",
+            "warning": "oklch(61% 0.12 85)",
             "warning-content": "oklch(18% 0.036 85)",
           }
         `);

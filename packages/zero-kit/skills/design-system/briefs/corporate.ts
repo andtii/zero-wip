@@ -233,10 +233,17 @@ export const button: RecipeInput = {
                 },
             },
         },
+        // The whole recommended ramp, not a sm|md|lg excerpt: the scaffold lays
+        // a baseline under this Button that paints xs and xl on every sibling,
+        // and a step every sibling has that Button neither paints nor claims
+        // is the ramp-with-a-hole the audit refuses (#422). `md` claims the
+        // base with an empty entry — the un-attributed render IS that step.
         size: {
+            xs: { root: { base: { padding: 'var(--space-2xs) var(--space-sm)', fontSize: 'var(--text-xs)' } } },
             sm: { root: { base: { padding: 'var(--space-xs) var(--space-md)', fontSize: 'var(--text-sm)' } } },
             md: { root: { base: {} } },
             lg: { root: { base: { padding: 'var(--space-md) var(--space-xl)', fontSize: 'var(--text-lg)' } } },
+            xl: { root: { base: { padding: 'var(--space-lg) var(--space-2xl)', fontSize: 'var(--text-xl)' } } },
         },
     },
     defaultVariants: { color: 'primary', variant: 'solid', size: 'md' },

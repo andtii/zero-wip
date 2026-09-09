@@ -593,7 +593,11 @@ component's anatomy). No component code is ever written or changed.
      when one component wires fewer roles than its siblings — holding a role
      back everywhere on purpose is fine and says nothing.
    - **The `size` axis is your vocabulary too.** `xs|sm|md|lg|xl` is the
-     recommended ramp, not a fixed one. If the brief calls for density steps
+     recommended ramp, not a fixed one. Whatever the ramp is, wire ALL of it
+     on Button — the scaffold's baseline paints every step on every sibling,
+     so a Button that wires `sm|md|lg` over it leaves `xs` and `xl` as steps
+     the design system has and Button neither paints nor claims, and
+     `sigx zero:audit` refuses that hole (`axis-value-coverage/gap`, #422). If the brief calls for density steps
      or a numbered ramp, declare it and use it — `<Button.Root size="…">`
      accepts any name, and the validator checks recipes against what you
      declared rather than against xs–xl:
