@@ -105,6 +105,10 @@ export default definePlugin({
                     .string()
                     .valueHint('path')
                     .describe('Print what moved since an earlier report.json (zero:build writes dist/report.json every run, so `--diff dist/report.json` compares against the last build)'),
+                log: a
+                    .string()
+                    .valueHint('path')
+                    .describe('Append this run to an iteration log (JSONL) and print the trend line; ZERO_ITERATION_LOG=<path> does the same for every run'),
             },
             async run(ctx) {
                 const { runValidate } = await import('./commands/validate.js');
@@ -116,6 +120,7 @@ export default definePlugin({
                     report: ctx.args.report,
                     reportJson: ctx.args.reportJson,
                     diff: ctx.args.diff,
+                    log: ctx.args.log,
                 });
             },
         },

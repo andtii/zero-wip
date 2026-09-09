@@ -857,6 +857,14 @@ component's anatomy). No component code is ever written or changed.
      unwired, uncovered or below a contrast threshold. `zero:build` rewrites
      `dist/report.json`, so the comparison is always against your last build.
      A state you put in `skipStates` shows as *newly skipped*, not resolved.
+   - **Keep an iteration log.** Before the first `zero:validate`, run
+     `export ZERO_ITERATION_LOG=.zero-iterations.jsonl` (the scaffold already
+     gitignores that name; add it yourself otherwise). Every run then prints
+     one trend line — `iteration 7 — errors 0 (was 3), warnings 3 (was 14),
+     score 92 → A (was 71 C); top: contrast-floor ×2` — and appends it to the
+     file. Read it each run: the counts must fall, and `top` names the rule
+     to fix next. Stop when errors are 0, every remaining warning is
+     deliberate, and the grade is B or better. Nothing leaves the machine.
 
    **Then run `sigx zero:audit`.** Validation asks "is it correct?", the
    report asks "did I build what I said?", and the audit asks the third

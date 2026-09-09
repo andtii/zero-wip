@@ -137,6 +137,7 @@ export async function main(argv: readonly string[], io: CliIo = {
         io.stdout(`  cd ${dir}`);
         io.stdout('  pnpm install');
         io.stdout('  pnpm build                       # tsc + compile to dist/css');
+        io.stdout('  export ZERO_ITERATION_LOG=.zero-iterations.jsonl  # optional: a trend line per validate run');
         io.stdout('  npx sigx zero:validate --report  # then iterate — see node_modules/@sigx/zero-kit/skills/design-system/SKILL.md');
         io.stdout('  npx sigx zero:audit              # does what you built say what it claims (the compiled CSS)');
         return EXIT_OK;

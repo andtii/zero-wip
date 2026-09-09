@@ -221,6 +221,24 @@ describe('zero:validate args', () => {
         }
     });
 
+    it('takes --log as a path, kebab or camel, and defaults it off', () => {
+        expect(parseArgs(['--log', '.zero-iterations.jsonl'], shape).args.log).toBe('.zero-iterations.jsonl');
+        expect(parseArgs(['--log=it.jsonl'], shape).args.log).toBe('it.jsonl');
+        expect(parseArgs([], shape).args.log).toBeUndefined();
+    });
+
+    it('rejects a bare --log: the environment variable is the "always on" spelling', () => {
+        // #177 again — no optional-value form — so `--log` alone cannot mean
+        // "log to the default path". ZERO_ITERATION_LOG=<path> is that form.
+        try {
+            parseArgs(['--log'], shape);
+            expect.unreachable('should have thrown');
+        } catch (err) {
+            expect(err).toBeInstanceOf(ParseError);
+            expect((err as ParseError).code).toBe('MISSING_VALUE');
+        }
+    });
+
     it('rejects --report-json with no value, which is why the flag is split', () => {
         // This is the whole reason `--report` and `--report=json` cannot be one
         // flag: @sigx/args has no optional-value form, so a bare value flag is

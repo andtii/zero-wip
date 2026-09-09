@@ -189,6 +189,7 @@ export function renderReadme(ctx: RenderContext): string {
         '```sh',
         'pnpm install',
         'pnpm build                      # tsc, then compile tokens + recipes to dist/css',
+        'export ZERO_ITERATION_LOG=.zero-iterations.jsonl  # optional: one trend line per run, gitignored',
         'npx sigx zero:validate --report # the generate → validate → fix loop',
         'npx sigx zero:audit             # …and the audit: does the compiled CSS say what it claims',
         '```',
@@ -209,7 +210,9 @@ export function renderReadme(ctx: RenderContext): string {
 }
 
 export function renderGitignore(): string {
-    return 'dist/\nnode_modules/\n';
+    // `.zero-iterations.jsonl` is where the skill's step 6 keeps the
+    // validate loop's iteration log (ZERO_ITERATION_LOG) — local, never shipped.
+    return 'dist/\nnode_modules/\n.zero-iterations.jsonl\n';
 }
 
 /** The comment block stamped at the top of a copied file — where it came from, and that it is now the author's. */
