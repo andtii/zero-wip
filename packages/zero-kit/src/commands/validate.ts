@@ -8,7 +8,7 @@ import type { DesignSystemReport } from '../resolve/report.js';
 import { buildReport, formatReport } from '../resolve/report.js';
 import { diffReports, formatReportDiff } from '../resolve/report-diff.js';
 import { auditDesignSystem } from '../audit/index.js';
-import { formatIterationLog, iterationEntryFrom } from '../resolve/iteration.js';
+import { formatIterationLine, iterationEntryFrom } from '../resolve/iteration.js';
 import type { ValidationResult } from '../resolve/validate.js';
 import type { CommandEnv } from './shared.js';
 import { loadInputs } from './shared.js';
@@ -106,8 +106,11 @@ export function reportFor(
 
 export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promise<void> {
     // The log times the whole answer — load, validate, report — because that
-    // is what an author waits for between edits. Resolved before anything
-    // runs so a bad path fails at the parse, not after the work.
+    // is what an author waits for between edits, so the clock starts before
+    // anything runs. Only the path is decided here (flag beats environment,
+    // resolved against cwd); whether it can be written is found out at the
+    // append, after the work — a validate run should not fail up front over
+    // its own bookkeeping.
     const started = performance.now();
     const logPath = resolveIterationLogPath(env.cwd, opts.log, process.env);
 
@@ -168,13 +171,14 @@ export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promi
 
     // Appended BEFORE the verdict, like the report: a failing run is exactly
     // the one the log is for. One line for this run only — the earlier lines
-    // are in the file, and the `(was …)` beside each count is the trend.
+    // are in the file, and the `(was …)` beside each count is the trend, which
+    // needs just the previous entry and this run's position. The log is read
+    // once, before the append, so the line just written is never parsed back.
     if (logPath) {
-        await appendIteration(logPath, iterationEntryFrom({ name: ds.name, result, report, ms: performance.now() - started }));
-        if (!stdoutIsJson) {
-            const line = formatIterationLog(await readIterationLog(logPath)).at(-1);
-            if (line) env.logger.log(line);
-        }
+        const earlier = await readIterationLog(logPath);
+        const entry = iterationEntryFrom({ name: ds.name, result, report, ms: performance.now() - started });
+        await appendIteration(logPath, entry);
+        if (!stdoutIsJson) env.logger.log(formatIterationLine(entry, earlier.length + 1, earlier.at(-1)));
     }
 
     const counts = `${result.errors.length} errors, ${result.warnings.length} warnings`;

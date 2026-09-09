@@ -128,7 +128,7 @@ export type { AuditCounts, ReportScore, ScoreCriterion, ScoreExtras, ScoreGrade 
 export type { Delta, PairDelta, ReportDiff } from './resolve/report-diff.js';
 export { diffReports, formatReportDiff } from './resolve/report-diff.js';
 export type { IterationEntry, IterationEntryInput } from './resolve/iteration.js';
-export { formatIterationLog, isIterationEntry, iterationEntryFrom, whereFamily } from './resolve/iteration.js';
+export { formatIterationLine, formatIterationLog, isIterationEntry, iterationEntryFrom, whereFamily } from './resolve/iteration.js';
 export { auditScore, computeScore, formatScore, gradeFor, pairScore, SCORE_WEIGHTS } from './resolve/score.js';
 
 export type {

@@ -14,6 +14,7 @@ import { describe, expect, it } from 'vitest';
 import {
     buildReport,
     compileDesignSystem,
+    formatIterationLine,
     formatIterationLog,
     iterationEntryFrom,
     validateDesignSystem,
@@ -135,5 +136,20 @@ describe('formatIterationLog', () => {
 
     it('returns nothing for an empty log', () => {
         expect(formatIterationLog([])).toEqual([]);
+    });
+
+    it('is one line per entry — what the CLI prints for the current run from the previous entry alone', () => {
+        // `runValidate` prints only the latest line, built from this run's
+        // entry, its position, and the entry before it — so the whole-log
+        // formatter must agree with the single-line one at every position.
+        const runs: IterationEntry[] = [
+            entry({ errors: 3, warnings: 14, score: { total: 71, grade: 'C' } }),
+            entry({ errors: 0, warnings: 3, score: { total: 92, grade: 'A' }, top: [{ id: 'contrast-floor', count: 2 }] }),
+        ];
+        expect(formatIterationLine(runs[0]!, 1)).toBe(formatIterationLog(runs)[0]);
+        expect(formatIterationLine(runs[1]!, 2, runs[0])).toBe(formatIterationLog(runs)[1]);
+        expect(formatIterationLine(runs[1]!, 2, runs[0])).toBe(
+            'iteration 2 — errors 0 (was 3), warnings 3 (was 14), score 92 → A (was 71 C); top: contrast-floor ×2',
+        );
     });
 });

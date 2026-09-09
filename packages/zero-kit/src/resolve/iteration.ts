@@ -126,21 +126,24 @@ const scoreText = (score: IterationEntry['score']): string => (score ? `${score.
 const wasScore = (score: IterationEntry['score']): string => (score ? `${score.total} ${score.grade}` : 'n/a');
 
 /**
- * One line per run, each compared against the run before it. The first line
- * has nothing to compare against and says so by omission; every later line
- * carries `(was …)` beside each count, so the trend reads without the
- * earlier lines on screen — the CLI prints only the latest.
+ * The line for one run: its 1-based position in the log, and the run before
+ * it (absent for the first). The first line has nothing to compare against
+ * and says so by omission; every later line carries `(was …)` beside each
+ * count, so the trend reads without the earlier lines on screen — which is
+ * why the CLI can print only this one, from the previous entry alone.
  */
+export function formatIterationLine(entry: IterationEntry, index: number, prev?: IterationEntry): string {
+    const was = (value: string): string => (prev ? ` (was ${value})` : '');
+    const head = `iteration ${index} — errors ${entry.errors}${was(String(prev?.errors))}, `
+        + `warnings ${entry.warnings}${was(String(prev?.warnings))}, `
+        + `score ${scoreText(entry.score)}${was(wasScore(prev?.score))}`;
+    const top = entry.top.length > 0
+        ? `; top: ${entry.top.map((t) => `${t.id} ×${t.count}`).join(', ')}`
+        : '';
+    return head + top;
+}
+
+/** Every run's line, each compared against the one before it. */
 export function formatIterationLog(entries: readonly IterationEntry[]): string[] {
-    return entries.map((entry, i) => {
-        const prev = i > 0 ? entries[i - 1] : undefined;
-        const was = (value: string): string => (prev ? ` (was ${value})` : '');
-        const head = `iteration ${i + 1} — errors ${entry.errors}${was(String(prev?.errors))}, `
-            + `warnings ${entry.warnings}${was(String(prev?.warnings))}, `
-            + `score ${scoreText(entry.score)}${was(wasScore(prev?.score))}`;
-        const top = entry.top.length > 0
-            ? `; top: ${entry.top.map((t) => `${t.id} ×${t.count}`).join(', ')}`
-            : '';
-        return head + top;
-    });
+    return entries.map((entry, i) => formatIterationLine(entry, i + 1, i > 0 ? entries[i - 1] : undefined));
 }

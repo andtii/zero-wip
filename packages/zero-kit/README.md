@@ -589,8 +589,8 @@ count beside what it was the run before. The rule ids are `ValidationIssue.rule`
 where a rule has one and the first two segments of `where` (`recipes.button`,
 `themes.dark`) where it does not. Nothing runs unless a path is named, and
 nothing leaves the machine; add the file to `.gitignore`. Programmatically:
-`iterationEntryFrom(...)` builds an entry, `formatIterationLog(entries)` the
-lines — both pure. A line a killed run left half-written is skipped, never
+`iterationEntryFrom(...)` builds an entry, `formatIterationLine(entry, index, prev)`
+the line for one run and `formatIterationLog(entries)` every line — all pure. A line a killed run left half-written is skipped, never
 fatal.
 ## The audit
 
