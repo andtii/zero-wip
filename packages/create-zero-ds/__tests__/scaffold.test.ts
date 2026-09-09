@@ -142,6 +142,9 @@ describe.each(BRIEFS)('scaffold --brief %s', (brief) => {
         expect(Object.keys(compiled.componentCss).sort()).toEqual(manifest.components.map((c) => c.scope).sort());
     });
 
+    // A full design system: compile, audit (the static contrast matrix over
+    // every theme), report, write. Windows CI once crossed vitest's 5 s
+    // default (#434); the 30 s budget is the honest cost, not a guess.
     it('builds the web artifacts through runStandardBuild', async () => {
         const { dir } = scaffolded(brief);
         const { designSystem } = await import(generated(dir)) as { designSystem: DesignSystemInput };
@@ -151,7 +154,7 @@ describe.each(BRIEFS)('scaffold --brief %s', (brief) => {
         expect(existsSync(join(outDir, 'register.d.ts'))).toBe(true);
         expect(existsSync(join(outDir, 'manifest.json'))).toBe(true);
         expect(existsSync(join(outDir, 'lynx'))).toBe(false);
-    });
+    }, 30_000);
 });
 
 describe("the brief's signature survives the composition", () => {
@@ -188,7 +191,7 @@ describe('options', () => {
         const outDir = tempDir();
         await runStandardBuild({ designSystem, manifest, outDir, targets: ['web', 'lynx'], logger: silent });
         expect(existsSync(join(outDir, 'lynx', 'index.css'))).toBe(true);
-    });
+    }, 30_000);
 
     it('--baseline none scaffolds the Button alone, and only "have no recipe" remains', async () => {
         const dir = scaffoldDir();
