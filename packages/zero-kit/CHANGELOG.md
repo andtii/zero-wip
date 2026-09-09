@@ -32,9 +32,14 @@
   'css-property'` and `suggest: { token, value }` — the browser drops such a
   declaration silently, which is why nothing else in the pipeline could ever
   say. A key near nothing is a **warning**: new CSS must pass, a typo of
-  something exotic must not render unnoticed. Custom properties and
-  vendor-prefixed spellings (`WebkitAppearance`, `msOverflowStyle`) are never
-  questioned. The Levenshtein helper the token vocabulary's "did you mean"
+  something exotic must not render unnoticed. Keyframes bodies are read
+  too (a keyframe block holds nothing but declarations); the raw `css` hatch
+  is not — it exists to hold `@font-face`/`@property`/`@counter-style`
+  blocks whose descriptors (`src`, `syntax`, `symbols`) are not properties.
+  Custom properties and vendor-prefixed spellings (`WebkitAppearance`,
+  `msOverflowStyle`) are never questioned, and a key under four characters
+  only ever warns: the SVG geometry properties (`r`, `x`, `cx`) sit two
+  edits from any short typo. The Levenshtein helper the token vocabulary's "did you mean"
   used moved to `src/resolve/nearest.ts` so both rules share it; the hints
   are byte-identical. All six skins, the ecosystem recipe pack and the six
   briefs produce no new issue.

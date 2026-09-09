@@ -54,8 +54,11 @@ describe('the checked-in property list', () => {
     it('is exactly what @webref/css generates — a stale list is a failing test, not a trap', async () => {
         const data = await collectCssProperties();
         // vitest runs from the repo root; the generated file lives beside the rule.
+        // A Windows checkout with autocrlf hands the file back with CRLF; the
+        // comparison is about content, so both sides are read as LF.
+        const lf = (s: string) => s.replace(/\r\n/g, '\n');
         const committed = readFileSync(resolve('packages/zero-kit/src/resolve/css-properties.ts'), 'utf8');
-        expect(committed).toBe(renderCssProperties(data));
+        expect(lf(committed)).toBe(lf(renderCssProperties(data)));
         expect(CSS_PROPERTIES_SOURCE).toBe(`@webref/css ${data.version}`);
     });
 
@@ -122,28 +125,41 @@ describe('the css-property rule', () => {
         expect(issues.map((i) => i.suggest!.value).sort()).toEqual(['color', 'font-size', 'outline', 'transition']);
     });
 
-    it('reads declaration heads inside keyframes bodies and the raw css hatch', () => {
+    it('reads declaration heads inside keyframes bodies', () => {
         const recipe: RecipeInput = {
             component: 'tabs',
             parts: { tab: { base: { padding: '1rem' }, states: { 'focus-visible': { outline: '1px solid' } } } },
-            keyframes: { pulse: 'from { opacty: 0 } 50% { opacity: 1; trnsform: scale(1.1) } to { opacity: 0 }' },
-            css: '[data-scope="tabs"] [data-part="tab"]:hover { colr: red; --tab-ink: blue; -webkit-appearence: none }',
+            keyframes: { pulse: 'from { opacty: 0 } 50% { opacity: 1; trnsform: scale(1.1); --tab-ink: blue } to { opacity: 0 }' },
         };
         const issues = propertyIssues(recipe);
         expect(issues.map((i) => `${i.where} ${i.suggest?.value ?? '?'}`).sort()).toEqual([
-            'recipes.tabs.css color',
             'recipes.tabs.keyframes.pulse opacity',
             'recipes.tabs.keyframes.pulse transform',
         ]);
     });
 
-    it('does not mistake a selector, a pseudo-class or a URL for a declaration head', () => {
+    it('leaves the raw css hatch alone — at-rule descriptors are not properties', () => {
         const recipe: RecipeInput = {
             component: 'tabs',
             parts: { tab: { base: { padding: '1rem' }, states: { 'focus-visible': { outline: '1px solid' } } } },
-            css: 'a:hover { color: red } [data-part="tab"]::before { content: "x"; background: url(https://example.test/a.png) } @media (hover: hover) { div:not(.x):focus-visible { outline: 0 } }',
+            css: [
+                '@font-face { font-family: X; src: url(x.woff2); font-display: swap }',
+                '@property --tab-ink { syntax: "<color>"; inherits: true; initial-value: red }',
+                '@counter-style dots { system: cyclic; symbols: "•" }',
+                // and a genuine typo the hatch is NOT asked about — the
+                // author chose the hatch, so the author checks it.
+                '[data-part="tab"]:hover { colr: red }',
+            ].join(' '),
         };
         expect(propertyIssues(recipe)).toEqual([]);
+    });
+
+    it('never suggests for a short key — the SVG geometry properties are two edits from anything', () => {
+        const issues = propertyIssues(tabsWith({ tpo: '0', xx: '1' } as CssProps));
+        expect(issues.map((i) => i.level)).toEqual(['warning', 'warning']);
+        expect(issues.every((i) => i.suggest === undefined)).toBe(true);
+        // …while a four-letter typo of a real property still names it.
+        expect(propertyIssues(tabsWith({ colr: 'red' } as CssProps))[0]!.suggest).toEqual({ token: 'colr', value: 'color' });
     });
 
     it('lets every real property through', () => {

@@ -927,8 +927,13 @@ Content is checked, not just structure. These are errors:
 - a declaration key that is not a CSS property but is within two edits of
   one — `paddding`, `borderRadus` — with the property you meant. The browser
   drops such a declaration silently, so nothing else would ever tell you.
-  Custom properties (`--x`) and vendor-prefixed spellings (`WebkitAppearance`)
-  are never questioned.
+  Keyframes bodies are read too. Custom properties (`--x`) and
+  vendor-prefixed spellings (`WebkitAppearance`) are never questioned, keys
+  under four characters only ever warn (the SVG geometry properties `r`,
+  `x`, `cx`… are two edits from anything), and the raw `css` hatch is not
+  read at all — it exists to hold what the typed surface cannot, and an
+  `@font-face`'s `src` or an `@property`'s `syntax` is a descriptor, not a
+  property. What you write in the hatch, you check.
 - a component that styles `focus-visible` nowhere, so keyboard focus is
   invisible.
 - a `skipStates` entry naming neither a state nor a flag of that part.

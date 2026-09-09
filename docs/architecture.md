@@ -303,9 +303,12 @@ the set down). The other rules worth knowing:
   within two edits of a real property (`paddding`) is an error carrying
   `rule: 'css-property'` and `suggest`; a key near nothing is a warning,
   because new CSS must pass while a typo of something exotic must still be
-  seen. Custom properties and vendor-prefixed spellings are exempt. This is
-  the one authoring slip no other gate can see — the browser drops the
-  declaration and says nothing.
+  seen. Keyframes bodies are read; the raw `css` hatch is not (its at-rule
+  descriptors — `src`, `syntax`, `symbols` — are not properties). Custom
+  properties, vendor-prefixed spellings and keys under four characters
+  (the SVG geometry properties are two edits from any short typo) never
+  reach the error tier. This is the one authoring slip no other gate can
+  see — the browser drops the declaration and says nothing.
 - Reserved names: an axis may not shadow a named prop (`color`, `size`,
   `variant`, `mods`, `axes`) nor anything the anatomy contract owns
   (`scope`, `part`, `state`, `orientation`, the flag vocabulary). The kit

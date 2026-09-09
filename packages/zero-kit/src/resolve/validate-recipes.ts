@@ -103,13 +103,20 @@ const kebabProp = (prop: string): string =>
 const VENDOR_PREFIX = /^-?(?:webkit|moz|ms|o)-/;
 
 /**
- * A declaration head inside a raw body (`keyframes`, the `css` hatch): a
- * property-shaped word after the start, a `;` or a `{`, followed by `:` and
- * a value that runs to `;` or `}` (left unconsumed, so it can anchor the
- * next head) without opening a block. The last clause
- * is what tells `a:hover { … }` (a selector, opens a block) from
- * `color: red;` (a declaration). `--x` custom properties match too and are
- * exempted by the caller like every other custom property.
+ * A declaration head inside a keyframes body: a property-shaped word after
+ * the start, a `;` or a `{`, followed by `:` and a value that runs to `;` or
+ * `}` (left unconsumed, so it can anchor the next head) without opening a
+ * block. The last clause is what tells `50% { … }` (a selector, opens a
+ * block) from `opacity: 0;` (a declaration). `--x` custom properties match
+ * too and are exempted by the caller like every other custom property.
+ *
+ * Only keyframes bodies are read this way. A keyframe block can hold nothing
+ * but property declarations, so every head is a property or a typo. The raw
+ * `css` hatch is not read: it is the escape hatch precisely so an author can
+ * write what the typed surface cannot — `@font-face { src: … }`,
+ * `@property { syntax: …; inherits: … }`, `@counter-style { symbols: … }` —
+ * and those descriptors are not properties. A checker that reads them would
+ * call `src` a typo of `r`.
  */
 const DECLARATION_HEAD = /(?:^|[;{])\s*(--?[A-Za-z_][\w-]*|[A-Za-z][\w-]*)\s*:\s*[^;{}]*(?=[;}])/g;
 
@@ -356,11 +363,16 @@ export function validateRecipes(
     // verdict is a warning. Custom properties are the author's to name, and
     // a vendor-prefixed spelling is a deliberate hack the specs mostly do
     // not list — neither is questioned.
+    //
+    // The suggestion needs both names to be at least four characters. The
+    // list holds the SVG geometry properties (`r`, `x`, `cx`, `rx`…), and
+    // two edits from a three-letter key reaches most of them — `tpo` would
+    // be "corrected" to `r`. A short unknown key is the warning tier.
     const checkProperty = (prop: string, at: string) => {
         const name = kebabProp(prop);
         if (name.startsWith('--') || CSS_PROPERTIES.has(name) || VENDOR_PREFIX.test(name)) return;
-        const near = nearestOf(name, CSS_PROPERTIES, 3); // within two edits
-        if (near) {
+        const near = name.length >= 4 ? nearestOf(name, CSS_PROPERTIES, 3) : undefined; // within two edits
+        if (near && near.length >= 4) {
             issues.push({
                 level: 'error',
                 where: at,
@@ -473,9 +485,10 @@ export function validateRecipes(
         for (const { path, prop, value } of values) {
             if (prop !== '') {
                 checkProperty(prop, `${where}.${path}`);
-            } else {
-                // keyframes bodies and the raw `css` hatch: a declaration
-                // there vanishes just as silently, so its head is checked too.
+            } else if (path.startsWith('keyframes.')) {
+                // a keyframes body: a declaration there vanishes just as
+                // silently, so its head is checked too. The raw `css` hatch
+                // is deliberately not read — see DECLARATION_HEAD.
                 for (const head of value.matchAll(DECLARATION_HEAD)) checkProperty(head[1]!, `${where}.${path}`);
             }
             for (const match of value.matchAll(VAR_REF)) {
