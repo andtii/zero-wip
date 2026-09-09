@@ -31,7 +31,14 @@ import {
     resolveRoles,
 } from '../../contract.js';
 import type { RolesDecl, SystemTokens, ThemeInput, TokensInput } from '../../tokens.js';
-import { resolveSystemTokens } from '../shared.js';
+import { STRUCTURAL_FALLBACKS, resolveSystemTokens } from '../shared.js';
+
+/**
+ * Re-exported from `../shared.ts`, where the structural fallbacks moved once
+ * the static contrast matrix needed the same table the lynx tokens emit
+ * first inside `.zx-root` (#403). Same values, one home.
+ */
+export { STRUCTURAL_FALLBACKS };
 import type { LynxCapabilityReport } from './capabilities.js';
 import { bakeColor, bakeColorValue, bakeSoft, hasComparisonFunction, hasUnsupportedColorFunction, runtimePropertyIn } from './capabilities.js';
 import { HOST_CLASS, themeClass } from './class-names.js';
@@ -220,40 +227,6 @@ function bakedNonColor(
 const block = (selector: string, decls: string[]): string =>
     `${selector} {\n${decls.map((d) => `    ${d}`).join('\n')}\n}`;
 
-/**
- * The structural fallbacks, for a target with nowhere else to put them.
- *
- * On the web these live in `@sigx/zero`'s `css/base.css` under
- * `@layer zero.fallback`, so a recipe may read `var(--text-md)` whether or not
- * the design system declares a text ramp. Lynx has no `@layer` and no base
- * stylesheet — the compiled `tokens.css` IS the whole token layer — so the
- * same fallbacks are emitted here, first inside `.zx-root`, where a design
- * system's own declaration overrides them by source order.
- *
- * daisyUI is the case that proves this is load-bearing: it declares no
- * `--text-*` ramp at all, so without these every `font-size: var(--text-sm)`
- * in its recipes read a property nothing defined — and on lynx that is not a
- * fallback to a default size, it is a declaration that never applies.
- *
- * `lynx-tokens-css.test.ts` pins these against `base.css` so the two copies
- * cannot drift.
- */
-export const STRUCTURAL_FALLBACKS: Record<string, string> = {
-    '--radius-selector': '0.25rem',
-    '--radius-field': '0.25rem',
-    '--radius-box': '0.5rem',
-    '--size-selector': '0.25rem',
-    '--size-field': '0.25rem',
-    '--text-xs': '0.75rem',
-    '--text-sm': '0.875rem',
-    '--text-md': '1rem',
-    '--text-lg': '1.125rem',
-    '--text-xl': '1.25rem',
-    '--text-2xl': '1.5rem',
-    '--text-3xl': '1.875rem',
-    '--border': '1px',
-    '--disabled-opacity': '0.4',
-};
 
 /**
  * The per-theme literal color maps, for the recipe emitter's per-theme

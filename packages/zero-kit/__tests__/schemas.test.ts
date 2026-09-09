@@ -186,6 +186,19 @@ describe('report.schema.json', () => {
         expect(validateReport({ ...(reportNamed('basic') as object), reportVersion: 1 })).toBe(false);
     });
 
+    it('accepts the contrast section an audit-backed build adds, and keeps it closed', () => {
+        const contrast = [{
+            name: 'basic', cells: 802, measured: 727, failing: 0, warnings: 56, disabledFailing: 0,
+            unrendered: 4, unpainted: 15, unmeasured: { 'filter-or-blend': 0 },
+            worst: [{ key: 'basic/basic/badge/root/-/-/-', ratio: 3.4, ink: '#8a8a8a', bg: 'inherit(base-100)' }],
+        }];
+        expectValid(validateReport, asJson({ ...(reportNamed('basic') as object), contrast }), 'report with contrast');
+        const [theme] = contrast;
+        expect(validateReport(asJson({ ...(reportNamed('basic') as object), contrast: [{ ...theme, vendor: 1 }] }))).toBe(false);
+        const { worst: _worst, ...noWorst } = theme!;
+        expect(validateReport(asJson({ ...(reportNamed('basic') as object), contrast: [noWorst] }))).toBe(false);
+    });
+
     it('rejects a grade outside the closed set', () => {
         const bad = asJson(reportNamed('basic')) as { score: { grade: string } };
         bad.score.grade = 'S';

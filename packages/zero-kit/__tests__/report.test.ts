@@ -28,6 +28,7 @@ import type {
     StyledComponentReport,
 } from '@sigx/zero-kit';
 import { anatomies } from '@sigx/zero/anatomy';
+import { auditDesignSystem, summarizeContrast } from '@sigx/zero-kit';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import { designSystem as materialDS } from '@sigx/zero-material';
@@ -529,5 +530,45 @@ describe('formatReport', () => {
         const lines = formatReport(reportFor(basicDS as DesignSystemInput));
         expect(Array.isArray(lines)).toBe(true);
         expect(lines.every((l) => !l.includes('\n'))).toBe(true);
+    });
+});
+
+describe('the static contrast matrix, summarised (#403)', () => {
+    const audit = auditDesignSystem(basicDS, manifest, { rules: ['contrast/text', 'contrast/indicator', 'contrast/unmeasured'] });
+    const matrix = audit.contrast;
+
+    it('folds the audit\'s cell table into `report.contrast`, one row per theme, and prints it', () => {
+        const compiled = compileDesignSystem(basicDS, manifest);
+        const report = buildReport(compiled, basicDS, manifest, undefined, audit);
+        expect(report.contrast?.map((t) => t.name)).toEqual(matrix.themes.map((t) => t.name));
+        const [row] = report.contrast!;
+        const [theme] = matrix.themes;
+        expect(row!.cells).toBe(theme!.cells.length);
+        expect(row!.measured + row!.unrendered + row!.unpainted + Object.values(row!.unmeasured).reduce((a, b) => a + b, 0)).toBe(row!.cells);
+        expect(row!.failing).toBe(0);
+        expect(row!.worst.length).toBeLessThanOrEqual(10);
+        expect(row!.worst.map((w) => w.ratio)).toEqual([...row!.worst.map((w) => w.ratio)].sort((a, b) => a - b));
+        expect(formatReport(report).some((line) => /state matrix \d+ cells, \d+ measured/.test(line))).toBe(true);
+    });
+
+    it('is absent, not empty, when the report was built without an audit', () => {
+        const report = reportFor(basicDS);
+        expect('contrast' in report).toBe(false);
+        expect(formatReport(report).some((line) => line.includes('state matrix'))).toBe(false);
+    });
+
+    it('summarizeContrast counts unmeasured cells by reason', () => {
+        const [row] = summarizeContrast({
+            themes: [{
+                name: 't',
+                cells: [
+                    { key: 'a', scope: 's', part: 'p', matrix: 'text', verdict: 'unmeasured', reason: 'gradient-or-image' },
+                    { key: 'b', scope: 's', part: 'p', matrix: 'text', verdict: 'unmeasured', reason: 'gradient-or-image' },
+                    { key: 'c', scope: 's', part: 'p', matrix: 'text', verdict: 'fail', ratio: 1.5, inGroup: 1.5, ink: '#fff', bg: '#eee' },
+                ],
+            }],
+        });
+        expect(row).toMatchObject({ cells: 3, measured: 1, failing: 1, unmeasured: { 'gradient-or-image': 2 } });
+        expect(row!.worst).toEqual([{ key: 'c', ratio: 1.5, ink: '#fff', bg: '#eee' }]);
     });
 });

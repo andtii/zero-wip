@@ -123,6 +123,11 @@
             "type": "array",
             "items": { "$ref": "#/$defs/themeContrast" }
         },
+        "contrast": {
+            "description": "The static contrast matrix, per theme — present when the report was built beside an audit that computed it (`buildReport(…, { contrast })`). Declared-pair contrast (`themes`) says what the tokens promise; this says what the recipe cascade produces when states combine, with every cell the estimate could not judge counted by reason rather than dropped.",
+            "type": "array",
+            "items": { "$ref": "#/$defs/contrastTheme" }
+        },
         "api": {
             "description": "The vendor-named component API surfaces (issue #179), one row per vendor prop, sorted by prop — present only when the design system declares an `api`. Grades are derived from the declaration the ./components artifact is emitted from, so a conformance-matrix row generated from this section cannot claim a mapping the artifact doesn't implement.",
             "type": "array",
@@ -162,7 +167,10 @@
                             "axis-value-coverage/ambiguous-base",
                             "axis-value-coverage/unused",
                             "axis-coverage",
-                            "reduced-motion/loop"
+                            "reduced-motion/loop",
+                            "contrast/text",
+                            "contrast/indicator",
+                            "contrast/unmeasured"
                         ]
                     },
                     "additionalProperties": { "type": "integer", "minimum": 1 }
@@ -483,6 +491,43 @@
                                 "type": "number",
                                 "minimum": 1
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "contrastTheme": {
+            "description": "One theme of the static contrast matrix, summarised. The full cell table lives in the audit result (`AuditResult.contrast`).",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "cells", "measured", "failing", "warnings", "disabledFailing", "unrendered", "unpainted", "unmeasured", "worst"],
+            "properties": {
+                "name": { "$ref": "#/$defs/kebabToken" },
+                "cells": { "description": "Every cell the matrix produced for this theme.", "type": "integer", "minimum": 0 },
+                "measured": { "description": "Cells with a ratio — `cells` minus unmeasured, unrendered and unpainted.", "type": "integer", "minimum": 0 },
+                "failing": { "description": "Below the 3:1 floor.", "type": "integer", "minimum": 0 },
+                "warnings": { "description": "In the 3:1–4.5:1 band.", "type": "integer", "minimum": 0 },
+                "disabledFailing": { "description": "`disabled` cells whose pre-fade pair is below 2:1.", "type": "integer", "minimum": 0 },
+                "unrendered": { "type": "integer", "minimum": 0 },
+                "unpainted": { "type": "integer", "minimum": 0 },
+                "unmeasured": {
+                    "description": "Reason → how many cells the estimate could not judge for it.",
+                    "type": "object",
+                    "additionalProperties": { "type": "integer", "minimum": 0 }
+                },
+                "worst": {
+                    "description": "The ten lowest measured ratios, worst first.",
+                    "type": "array",
+                    "maxItems": 10,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["key", "ratio", "ink", "bg"],
+                        "properties": {
+                            "key": { "type": "string" },
+                            "ratio": { "type": "number", "minimum": 1 },
+                            "ink": { "type": "string" },
+                            "bg": { "type": "string" }
                         }
                     }
                 }

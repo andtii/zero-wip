@@ -5160,7 +5160,11 @@ export const steps: RecipeInput = {
             },
             states: {
                 active: { background: 'var(--steps-accent)', color: 'var(--steps-accent-content)' },
-                complete: { background: 'color-mix(in oklch, var(--steps-accent) 20%, var(--color-base-100))', color: 'var(--steps-accent-ink)' },
+                // Ink deepened toward base-content: the 95% role ink on a 20%
+                // tint measured 2.96:1 under nord's muted primary (the static
+                // contrast matrix, #403); 70% keeps the hue and clears the floor
+                // in every theme.
+                complete: { background: 'color-mix(in oklch, var(--steps-accent) 20%, var(--color-base-100))', color: 'color-mix(in oklab, var(--steps-accent) 70%, var(--color-base-content))' },
                 inactive: { background: 'var(--color-base-200)', color: 'var(--color-base-content)' },
             },
         },
