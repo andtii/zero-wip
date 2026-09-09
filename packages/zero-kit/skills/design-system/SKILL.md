@@ -928,7 +928,10 @@ Content is checked, not just structure. These are errors:
   one — `paddding`, `borderRadus` — with the property you meant. The browser
   drops such a declaration silently, so nothing else would ever tell you.
   Keyframes bodies are read too. Custom properties (`--x`) and
-  vendor-prefixed spellings (`WebkitAppearance`) are never questioned, keys
+  vendor-prefixed spellings (`WebkitAppearance`, `MsOverflowStyle` — capital
+  first, so the emitted name opens with the hyphen; `msOverflowStyle` emits
+  `ms-overflow-style`, which nothing reads, and is an error) are never
+  questioned, keys
   under four characters only ever warn (the SVG geometry properties `r`,
   `x`, `cx`… are two edits from anything), and the raw `css` hatch is not
   read at all — it exists to hold what the typed surface cannot, and an

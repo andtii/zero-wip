@@ -37,7 +37,10 @@
   is not — it exists to hold `@font-face`/`@property`/`@counter-style`
   blocks whose descriptors (`src`, `syntax`, `symbols`) are not properties.
   Custom properties and vendor-prefixed spellings (`WebkitAppearance`,
-  `msOverflowStyle`) are never questioned, and a key under four characters
+  `MsOverflowStyle` — the capital is what opens the emitted name with the
+  hyphen; a lowercase-led `msOverflowStyle` emits `ms-overflow-style`, which
+  nothing reads, and is an error naming the fix) are never questioned, and
+  a key under four characters
   only ever warns: the SVG geometry properties (`r`, `x`, `cx`) sit two
   edits from any short typo. The Levenshtein helper the token vocabulary's "did you mean"
   used moved to `src/resolve/nearest.ts` so both rules share it; the hints

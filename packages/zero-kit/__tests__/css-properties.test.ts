@@ -104,9 +104,20 @@ describe('the css-property rule', () => {
             '--tab-ink': 'red',
             WebkitAppearance: 'none',
             MozAppearance: 'none',
-            msOverflowStyle: 'none',
+            MsOverflowStyle: 'none',
+            '-ms-overflow-style': 'none',
             WebkitTapHighlightColor: 'transparent',
         } as CssProps))).toEqual([]);
+    });
+
+    it('names the vendor prefix that lost its hyphen — msOverflowStyle emits ms-overflow-style, which nothing reads', () => {
+        const issues = propertyIssues(tabsWith({ msOverflowStyle: 'none', webkitAppearance: 'none' } as CssProps));
+        expect(issues.map((i) => i.level)).toEqual(['error', 'error']);
+        expect(issues[0]!.message).toBe(
+            '"ms-overflow-style" is not a CSS property — a vendor prefix needs its leading hyphen: write "MsOverflowStyle" so it emits as "-ms-overflow-style". The browser drops the declaration silently',
+        );
+        expect(issues[0]!.suggest).toEqual({ token: 'ms-overflow-style', value: '-ms-overflow-style' });
+        expect(issues[1]!.suggest).toEqual({ token: 'webkit-appearance', value: '-webkit-appearance' });
     });
 
     it('reaches states, variants, conditions and keyframe-free nested styles', () => {
