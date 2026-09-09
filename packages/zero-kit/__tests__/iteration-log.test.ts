@@ -44,6 +44,14 @@ describe('resolveIterationLogPath', () => {
         expect(resolveIterationLogPath('/cwd', 'flag.jsonl', { ZERO_ITERATION_LOG: 'env.jsonl' }))
             .toBe(resolve('/cwd', 'flag.jsonl'));
     });
+
+    it('lets an empty --log= switch the log OFF for this run, even with the environment set', () => {
+        // "The flag wins" has to hold for the empty value too: `--log=` is the
+        // one-run opt-out of ZERO_ITERATION_LOG, not a fall-through to it.
+        expect(resolveIterationLogPath('/cwd', '', { ZERO_ITERATION_LOG: 'env.jsonl' })).toBeUndefined();
+        expect(resolveIterationLogPath('/cwd', '   ', { ZERO_ITERATION_LOG: 'env.jsonl' })).toBeUndefined();
+        expect(resolveIterationLogPath('/cwd', undefined, { ZERO_ITERATION_LOG: '  ' })).toBeUndefined();
+    });
 });
 
 describe('appendIteration / readIterationLog', () => {

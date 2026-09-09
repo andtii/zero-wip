@@ -16,17 +16,18 @@ export const ITERATION_LOG_ENV = 'ZERO_ITERATION_LOG';
 
 /**
  * Where the log goes, or `undefined` when it is off. The flag wins over the
- * environment; both resolve against the command's cwd. There is no bare
- * `--log` (a value flag has no optional form in @sigx/args, #177) — the
- * environment variable is the "set once, log every run" spelling, which is
- * what the skill uses.
+ * environment — including an explicitly empty `--log=`, which switches the
+ * log off for this one run rather than falling through to the variable.
+ * Both resolve against the command's cwd. There is no bare `--log` (a value
+ * flag has no optional form in @sigx/args, #177) — the environment variable
+ * is the "set once, log every run" spelling, which is what the skill uses.
  */
 export function resolveIterationLogPath(
     cwd: string,
     flag: string | undefined,
     env: Record<string, string | undefined>,
 ): string | undefined {
-    const spec = flag || env[ITERATION_LOG_ENV];
+    const spec = (flag ?? env[ITERATION_LOG_ENV])?.trim();
     return spec ? resolve(cwd, spec) : undefined;
 }
 
