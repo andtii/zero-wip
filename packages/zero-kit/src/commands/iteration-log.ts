@@ -8,8 +8,9 @@
  */
 import { appendFile, mkdir, open, readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
+import type { Logger } from '@sigx/cli/plugin';
 import type { IterationEntry } from '../resolve/iteration.js';
-import { isIterationEntry } from '../resolve/iteration.js';
+import { formatIterationLine, isIterationEntry } from '../resolve/iteration.js';
 
 /** The environment variable that turns the log on for every run. */
 export const ITERATION_LOG_ENV = 'ZERO_ITERATION_LOG';
@@ -88,4 +89,27 @@ export async function readIterationLog(path: string): Promise<IterationEntry[]> 
         if (isIterationEntry(parsed)) entries.push(parsed);
     }
     return entries;
+}
+
+/**
+ * Record one run and return its trend line — or `undefined`, having warned,
+ * when the log cannot be read or written. The log is bookkeeping: a
+ * permission error, a path that is a file, a full disk — none of them may
+ * turn a valid design system into a failed `zero:validate`, and none may
+ * hide the verdict behind an unrelated stack trace. Read once, before the
+ * append, so the line just written is never parsed back.
+ */
+export async function recordIteration(
+    logger: Pick<Logger, 'warn'>,
+    path: string,
+    entry: IterationEntry,
+): Promise<string | undefined> {
+    try {
+        const earlier = await readIterationLog(path);
+        await appendIteration(path, entry);
+        return formatIterationLine(entry, earlier.length + 1, earlier.at(-1));
+    } catch (err) {
+        logger.warn(`iteration log: cannot write ${path}: ${(err as Error).message}`);
+        return undefined;
+    }
 }

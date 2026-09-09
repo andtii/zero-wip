@@ -15,7 +15,7 @@ import { join, resolve } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import type { IterationEntry } from '@sigx/zero-kit';
 import { formatIterationLog } from '@sigx/zero-kit';
-import { appendIteration, readIterationLog, resolveIterationLogPath } from '../src/commands/iteration-log.js';
+import { appendIteration, readIterationLog, recordIteration, resolveIterationLogPath } from '../src/commands/iteration-log.js';
 
 const dirs: string[] = [];
 const tempDir = (): string => {
@@ -106,5 +106,32 @@ describe('appendIteration / readIterationLog', () => {
         const entries = await readIterationLog(path);
         expect(entries).toEqual([entry(1)]);
         expect(() => formatIterationLog(entries)).not.toThrow();
+    });
+});
+
+describe('recordIteration', () => {
+    const stub = () => {
+        const warnings: string[] = [];
+        return { logger: { log() {}, warn(m: string) { warnings.push(m); }, error() {} }, warnings };
+    };
+
+    it('appends and returns the trend line for this run', async () => {
+        const path = join(tempDir(), 'it.jsonl');
+        const { logger, warnings } = stub();
+        expect(await recordIteration(logger, path, entry(1))).toBe('iteration 1 — errors 1, warnings 0, score n/a');
+        expect(await recordIteration(logger, path, entry(0))).toBe('iteration 2 — errors 0 (was 1), warnings 0 (was 0), score n/a (was n/a)');
+        expect(warnings).toEqual([]);
+        expect(await readIterationLog(path)).toEqual([entry(1), entry(0)]);
+    });
+
+    it('warns and returns nothing when the log cannot be written — bookkeeping never fails the run', async () => {
+        // A parent that is a FILE: mkdir -p and the append both fail with a
+        // filesystem error. The verdict must still be reachable.
+        const blocker = join(tempDir(), 'not-a-dir');
+        writeFileSync(blocker, 'x');
+        const { logger, warnings } = stub();
+        expect(await recordIteration(logger, join(blocker, 'it.jsonl'), entry(1))).toBeUndefined();
+        expect(warnings).toHaveLength(1);
+        expect(warnings[0]).toMatch(/iteration log: cannot write .*not-a-dir/);
     });
 });
