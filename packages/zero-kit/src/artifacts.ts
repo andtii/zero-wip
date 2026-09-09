@@ -12,6 +12,7 @@
  * dist/register.js          (empty module so the /register subpath resolves)
  * dist/report.json          (coverage report — docs/architecture.md,
  *                            "The authoring surface"; only when given one)
+ * dist/audit.json           (the audit — findings, waivers, summary; only when given one)
  * dist/components.d.ts      (vendor-named component types — issue #179; only when the design system declares an `api`)
  * dist/components.js        (data-only adapt() wiring for the same — issue #179; only with an `api`)
  * ```
@@ -30,6 +31,8 @@ import type {
     CompiledTheme,
 } from './design-system.js';
 import type { DesignSystemReport } from './resolve/report.js';
+import type { AuditResult } from './audit/types.js';
+import { buildAuditArtifact } from './audit/index.js';
 import { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
 import { compileComponentsDts, compileComponentsJs } from './targets/web/components-dts.js';
 
@@ -121,12 +124,14 @@ export function buildDsManifest(compiled: CompiledDesignSystem): DesignSystemMan
  * `buildReport` needs the authoring input and the anatomy manifest, neither of
  * which survives into `CompiledDesignSystem`. Optional, so a caller that wants
  * no coverage report keeps working unchanged; every other artifact is written
- * either way.
+ * either way. `audit` likewise: the audit result becomes `audit.json` (its
+ * summary already sits in the report, when both were built together).
  */
 export async function writeArtifacts(
     compiled: CompiledDesignSystem,
     outDir: string,
     report?: DesignSystemReport,
+    audit?: AuditResult,
 ): Promise<string[]> {
     const cssDir = join(outDir, 'css');
     const componentsDir = join(cssDir, 'components');
@@ -176,5 +181,6 @@ export async function writeArtifacts(
         await write(join(outDir, 'components.js'), compileComponentsJs(compiled));
     }
     if (report) await write(join(outDir, 'report.json'), JSON.stringify(report, null, 2));
+    if (audit) await write(join(outDir, 'audit.json'), JSON.stringify(buildAuditArtifact(audit), null, 2));
     return written;
 }

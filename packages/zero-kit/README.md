@@ -171,7 +171,8 @@ recommended keys, so absence is never a validation error.
 ```bash
 sigx zero:validate   # tokens, WCAG contrast (a failing pair carries a suggested passing value), recipe structure + content
 sigx zero:validate --report   # what the design system covers, not what's wrong
-sigx zero:build      # dist/css/index.css + per-component files + manifest
+sigx zero:audit      # does what it built say what it claims — read from the compiled CSS
+sigx zero:build      # dist/css/index.css + per-component files + manifest + report + audit
 ```
 
 Conditional styles live in `parts.<part>.at`, keyed by a declared breakpoint
@@ -227,8 +228,11 @@ await runStandardBuild({
 ```
 
 It validates, prints every issue, refuses to emit from an invalid source
-(throws after printing), compiles, builds the coverage report and writes the
-artifacts. `sigx zero:build` calls the same function.
+(throws after printing), compiles, runs the audit, builds the coverage report
+and writes the artifacts. `sigx zero:build` calls the same function. The
+audit (below) never fails the build: its findings are logged, written as
+`dist/audit.json`, summarised in `report.json` under `audit` and scored;
+`audit: false` skips all of that.
 
 `targets` selects the emit targets (default `['web']`, which is today's
 output exactly). The list is validated up front: unknown names fail, `web`
@@ -394,6 +398,8 @@ a design-system package.
 ```
 sigx zero:validate [entry] [--manifest <path>] [--extra-manifest <path>]...
                    [--strict] [--report] [--report-json <path>] [--diff <path>]
+sigx zero:audit    [entry] [--manifest <path>] [--extra-manifest <path>]...
+                   [--strict] [--rule <id>]... [--json <path>]
 sigx zero:build    [entry] [--manifest <path>] [--extra-manifest <path>]...
                    [--out <dir>]
 ```
@@ -606,9 +612,34 @@ in-repo skins are held to zero findings through the same function.
 
 `auditDesignSystem` never throws on a finding: a design system mid-iteration
 must be able to read its own audit. Pass `{ rules: [...] }` to run a subset
-and `{ compiled }` to reuse a compile you already have. The `sigx zero:audit`
-command, `dist/audit.json`, and the static contrast matrix follow in the
-next slices of #403.
+and `{ compiled }` to reuse a compile you already have.
+
+### `sigx zero:audit` and `dist/audit.json`
+
+The command is where the exit code lives: error findings fail it, warnings
+fail it under `--strict`, `info` never does. It prints the audit (errors
+first, one line per finding, a `waived:` count per mechanism), and
+`--json <path>` writes the artifact — `-` for stdout, which then carries
+nothing else, so it pipes.
+
+```bash
+sigx zero:audit                              # every rule; exit 1 on an error finding
+sigx zero:audit --strict                     # …and on a warning finding
+sigx zero:audit --rule button-affordance     # one rule (repeatable)
+sigx zero:audit --json -                     # the audit.json document on stdout
+```
+
+`zero:build` runs the same audit after the compile, before the report
+(which folds the summary in and scores it), and writes it as
+`dist/audit.json` (`schemas/audit.schema.json`: `findings`, `waived`,
+`summary`, sorted severity → rule → where). The summary — `{ errors,
+warnings, info, byRule }` — also lands in `report.json` under `audit`, and
+the score's sixth criterion reads it: `100 − 10·errors − 2·warnings`, the
+issues formula applied to findings (`auditScore`), `info` never charged.
+`zero:validate --report` runs the audit for the report's sake too, so the
+report it prints and the one the build writes are the same document. A
+design system that fails validation cannot be audited (there is no compiled
+CSS to read); the command says so in the validator's words.
 
 ## JSON Schemas
 
@@ -629,6 +660,8 @@ URL where they will be served (publishing tracked on the docs repo):
   code, the `DesignSystemManifest` type on the package root), and
   `writeArtifacts` self-validates against it before writing, so a shape break
   fails the build that produces the manifest rather than the app that reads it
+- `https://signalxjs.github.io/zero/schemas/audit.schema.json` — the audit
+  (`dist/audit.json`, `sigx zero:audit --json`): findings, waivers, summary
 - `https://signalxjs.github.io/zero/schemas/report.schema.json` — the coverage
   report (`dist/report.json` declares it as its `$schema`)
 - `https://signalxjs.github.io/zero/schemas/fragment.schema.json` — the

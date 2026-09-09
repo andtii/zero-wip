@@ -137,6 +137,37 @@
                 "errors": { "type": "integer", "minimum": 0 },
                 "warnings": { "type": "integer", "minimum": 0 }
             }
+        },
+        "audit": {
+            "description": "The audit's counts (auditDesignSystem, #403) — present when the report was built beside an audit, which the zero build and `sigx zero:validate --report` both do. The findings live in dist/audit.json (audit.schema.json); this is what the score's `audit` criterion reads.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["auditVersion", "errors", "warnings", "info", "byRule"],
+            "properties": {
+                "auditVersion": { "const": 1 },
+                "errors": { "type": "integer", "minimum": 0 },
+                "warnings": { "type": "integer", "minimum": 0 },
+                "info": { "type": "integer", "minimum": 0 },
+                "byRule": {
+                    "description": "Finding count per rule that fired. The key set mirrors audit.schema.json's ruleId — a test pins both against AUDIT_RULES.",
+                    "type": "object",
+                    "propertyNames": {
+                        "type": "string",
+                        "enum": [
+                            "state-legibility/component",
+                            "state-legibility/indicator",
+                            "state-legibility/disclosure",
+                            "button-affordance",
+                            "axis-value-coverage/gap",
+                            "axis-value-coverage/ambiguous-base",
+                            "axis-value-coverage/unused",
+                            "axis-coverage",
+                            "reduced-motion/loop"
+                        ]
+                    },
+                    "additionalProperties": { "type": "integer", "minimum": 1 }
+                }
+            }
         }
     },
     "$defs": {

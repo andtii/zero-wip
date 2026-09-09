@@ -36,6 +36,7 @@ import { apiGrade, modifierGrade } from '../api.js';
 import type { ValidationResult } from './validate.js';
 import type { ReportScore } from './score.js';
 import { computeScore, formatScore } from './score.js';
+import type { AuditResult, AuditRuleId } from '../audit/types.js';
 
 /** The contract axes, in the order the register artifact emits them. */
 const CONTRACT_AXES = ['color', 'size', 'variant'] as const;
@@ -258,6 +259,20 @@ export interface DesignSystemReport {
      */
     api?: ApiSurfaceReport[];
     issues?: { errors: number; warnings: number };
+    /**
+     * The audit's counts (`auditDesignSystem`, #403) — present when the
+     * report was built beside an audit, which `runStandardBuild` and
+     * `zero:validate --report` both do, so `dist/report.json` and the
+     * command's report agree. The findings themselves live in
+     * `dist/audit.json`; this is the summary the score reads.
+     */
+    audit?: {
+        auditVersion: 1;
+        errors: number;
+        warnings: number;
+        info: number;
+        byRule: Partial<Record<AuditRuleId, number>>;
+    };
 }
 
 const sorted = (values: Iterable<string>): string[] => [...new Set(values)].sort();
@@ -571,6 +586,7 @@ export function buildReport(
     ds: DesignSystemInput,
     manifest: Pick<ZeroManifest, 'components'>,
     result?: ValidationResult,
+    audit?: AuditResult,
 ): DesignSystemReport {
     const recipesByScope = new Map<string, RecipeInput>(ds.recipes.map((r) => [r.component, r]));
     const byScope = new Map<string, ManifestComponent>(manifest.components.map((c) => [c.scope, c]));
@@ -658,11 +674,17 @@ export function buildReport(
         themes: themeReports(ds, compiled),
         ...(ds.api ? { api: apiSurfaces(ds.api) } : {}),
         ...(result ? { issues: { errors: result.errors.length, warnings: result.warnings.length } } : {}),
+        ...(audit ? { audit: { auditVersion: audit.auditVersion, ...audit.summary } } : {}),
     };
     // The score reads the finished sections, so it is folded in last — and
-    // placed right after `name`, where a reader of the JSON looks first.
+    // placed right after `name`, where a reader of the JSON looks first. The
+    // audit joins as the sixth criterion only when one was handed in.
     const { $schema, reportVersion, name, ...rest } = body;
-    return { $schema, reportVersion, name, score: computeScore(body, compiled), ...rest };
+    return {
+        $schema, reportVersion, name,
+        score: computeScore(body, compiled, audit ? { audit: audit.summary } : {}),
+        ...rest,
+    };
 }
 
 /** `n/total (pct%)`, the one number a reviewer reads first. */
@@ -769,6 +791,9 @@ export function formatReport(report: DesignSystemReport): string[] {
         );
     }
 
+    if (report.audit) {
+        lines.push(`  audit: ${report.audit.errors} errors, ${report.audit.warnings} warnings, ${report.audit.info} info`);
+    }
     if (report.issues) {
         lines.push(`  validation: ${report.issues.errors} errors, ${report.issues.warnings} warnings`);
     }

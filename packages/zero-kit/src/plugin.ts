@@ -1,7 +1,8 @@
 /**
  * @sigx/zero-kit plugin
  *
- * Registers the design-system build and validate commands with the sigx CLI.
+ * Registers the design-system build, validate and audit commands with the
+ * sigx CLI.
  * Auto-discovered in any package that has `@sigx/zero-kit` installed — see the
  * `"sigx-cli"` field in this package's package.json.
  *
@@ -16,7 +17,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { a, definePlugin } from '@sigx/cli/plugin';
 
-/** Shared flag declarations — identical across both commands. */
+/** Shared flag declarations — identical across the three commands. */
 const entryArg = a
     .positional()
     .default('./dist/design-system.js')
@@ -115,6 +116,42 @@ export default definePlugin({
                     report: ctx.args.report,
                     reportJson: ctx.args.reportJson,
                     diff: ctx.args.diff,
+                });
+            },
+        },
+        // A third command rather than a flag on validate: validation is
+        // correctness and gates the build, the audit is quality and must be
+        // readable mid-iteration — and their exit-code semantics differ
+        // (`--strict` here fails on warning FINDINGS). The build runs the
+        // audit too, but never fails on it; this is where the exit code lives.
+        'zero:audit': {
+            description: 'Audit a design system — does what it built say what it claims?',
+            aliases: ['audit'],
+            args: {
+                entry: entryArg,
+                manifest: manifestArg,
+                extraManifest: extraManifestArg,
+                strict: a.boolean().default(false).describe('Fail on warning findings, not just errors'),
+                rule: a
+                    .string()
+                    .multiple()
+                    .describe('Run only this rule (repeatable; default every rule — unknown names list the known ones)'),
+                // The same two-flag shape as `--report`/`--report-json`, for the
+                // same reason (#177): a value flag cannot also be bare.
+                json: a
+                    .string()
+                    .valueHint('path')
+                    .describe('Write the audit as JSON to <path> ("-" for stdout, which then carries nothing else)'),
+            },
+            async run(ctx) {
+                const { runAudit } = await import('./commands/audit.js');
+                await runAudit(ctx, {
+                    entry: ctx.args.entry,
+                    manifest: ctx.args.manifest,
+                    extraManifest: ctx.args.extraManifest,
+                    strict: ctx.args.strict,
+                    rule: ctx.args.rule,
+                    json: ctx.args.json,
                 });
             },
         },

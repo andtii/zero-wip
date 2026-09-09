@@ -31,6 +31,26 @@
   seed the hues that carry the brief, hand-author only a locked value — and
   the brief pack, cheat-sheet table, `briefs/README.md` and the scaffold's
   `--brief` choices carry the new entry.
+- **`sigx zero:audit`, `dist/audit.json`, `report.audit`** (#403, slice B).
+  The audit is now a command and an artifact, not only an API. The command
+  is where the exit code lives: error findings fail it, `--strict` fails on
+  warning findings too, `info` never fails; `--rule <id>` (repeatable) runs
+  a subset, `--json <path>` writes the artifact (`-` for stdout, which then
+  carries nothing else). A design system that fails to compile is refused
+  in the validator's words rather than a compiler stack. `runStandardBuild`
+  runs the audit after the compile (opt-out `audit: false`), logs every
+  error-severity finding as a warning, writes `dist/audit.json`
+  (`schemas/audit.schema.json`, `auditVersion: 1`; every skin exports
+  `./audit.json`) and hands the result to `buildReport`, which gained a
+  fifth parameter: the counts land in `report.json` under `audit` and
+  score as the sixth criterion (`auditScore` — `100 − 10·errors −
+  2·warnings`, `info` never charged; `computeScore`'s `extras.audit` now
+  takes the counts as well as a number). `zero:validate --report` runs the
+  audit for the report's sake too, so the report it prints and the one the
+  build writes are the same document. The build never fails on a finding.
+  Red-first: the `FAILED audit` exit, the stdout purity of `--json -`, the
+  presence of `audit.json` and of the `audit` criterion were each watched
+  failing before the code that satisfies them existed.
 
 - **`variants: []` declares the variant axis out of existence** (#200,
   #295). The claim `sizes: []` makes about size and `roles: {}` about

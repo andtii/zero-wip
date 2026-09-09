@@ -82,6 +82,23 @@ export {
 export { axisCoverage } from './rules/axis-coverage.js';
 export { declaresLoop, loopFindings } from './rules/reduced-motion.js';
 
+/** The `$schema` every emitted `audit.json` carries — the artifact's self-reference. */
+export const AUDIT_SCHEMA_URL = 'https://signalxjs.github.io/zero/schemas/audit.schema.json';
+
+/**
+ * `dist/audit.json` — the result with its schema pointer in front, the way
+ * `report.json` carries `report.schema.json`. Pure; `writeArtifacts` and
+ * `sigx zero:audit --json` serialise it.
+ */
+export interface AuditArtifact extends AuditResult {
+    $schema: typeof AUDIT_SCHEMA_URL;
+}
+
+export function buildAuditArtifact(result: AuditResult): AuditArtifact {
+    const { auditVersion, name, findings, waived, summary } = result;
+    return { $schema: AUDIT_SCHEMA_URL, auditVersion, name, findings, waived, summary };
+}
+
 export interface AuditOptions {
     /** Run only these rules; default every rule in `AUDIT_RULES`. */
     rules?: readonly AuditRuleId[];
