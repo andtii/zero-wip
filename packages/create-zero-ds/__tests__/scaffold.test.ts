@@ -142,6 +142,9 @@ describe.each(BRIEFS)('scaffold --brief %s', (brief) => {
         expect(Object.keys(compiled.componentCss).sort()).toEqual(manifest.components.map((c) => c.scope).sort());
     });
 
+    // A full design system: compile, audit (the static contrast matrix over
+    // every theme), report, write. Windows CI once crossed vitest's 5 s
+    // default (#434); the 30 s budget is the honest cost, not a guess.
     it('builds the web artifacts through runStandardBuild', async () => {
         const { dir } = scaffolded(brief);
         const { designSystem } = await import(generated(dir)) as { designSystem: DesignSystemInput };
@@ -151,9 +154,6 @@ describe.each(BRIEFS)('scaffold --brief %s', (brief) => {
         expect(existsSync(join(outDir, 'register.d.ts'))).toBe(true);
         expect(existsSync(join(outDir, 'manifest.json'))).toBe(true);
         expect(existsSync(join(outDir, 'lynx'))).toBe(false);
-    // A full design system: compile, audit (the static contrast matrix over
-    // every theme), report, write. Windows CI once crossed vitest's 5 s
-    // default (#434); the budget below is the honest cost, not a guess.
     }, 30_000);
 });
 
