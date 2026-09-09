@@ -924,6 +924,19 @@ Content is checked, not just structure. These are errors:
   primary-content: oklch(…)`), and the same fix rides the issue as
   `suggest: { token, value }` for tooling; 3–4.5:1 is the warning form of
   the same rule.
+- a declaration key that is not a CSS property but is within two edits of
+  one — `paddding`, `borderRadus` — with the property you meant. The browser
+  drops such a declaration silently, so nothing else would ever tell you.
+  Keyframes bodies are read too. Custom properties (`--x`) and
+  vendor-prefixed spellings (`WebkitAppearance`, `MsOverflowStyle` — capital
+  first, so the emitted name opens with the hyphen; `msOverflowStyle` emits
+  `ms-overflow-style`, which nothing reads, and is an error) are never
+  questioned, keys
+  under four characters only ever warn (the SVG geometry properties `r`,
+  `x`, `cx`… are two edits from anything), and the raw `css` hatch is not
+  read at all — it exists to hold what the typed surface cannot, and an
+  `@font-face`'s `src` or an `@property`'s `syntax` is a descriptor, not a
+  property. What you write in the hatch, you check.
 - a component that styles `focus-visible` nowhere, so keyboard focus is
   invisible.
 - a `skipStates` entry naming neither a state nor a flag of that part.
@@ -932,6 +945,10 @@ Content is checked, not just structure. These are errors:
 
 And these are warnings worth driving to zero:
 
+- a declaration key no CSS specification defines and nothing is close to
+  (`glorbification`). New CSS lands here rather than as an error, so a
+  property newer than the kit's list passes — but a typo of something exotic
+  does not render, so look before you dismiss it.
 - a hardcoded palette colour. Achromatic-with-alpha (`oklch(0% 0 0 / 0.3)`)
   is exempt — that's a shadow or scrim, not palette.
 - a literal duration in a `transition`: reduced motion only collapses

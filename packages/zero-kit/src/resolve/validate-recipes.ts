@@ -11,6 +11,8 @@ import { parse, converter } from 'culori';
 import type { ManifestPart, ZeroManifest } from '../contract.js';
 import { AXIS_VALUE_PATTERN, RESERVED_AXES, TOKEN_KEY_PATTERN } from '../contract.js';
 import { badAxisValue } from './messages.js';
+import { CSS_PROPERTIES, CSS_PROPERTIES_SOURCE } from './css-properties.js';
+import { nearestOf } from './nearest.js';
 import type { CssProps, PartStyles, RecipeInput } from '../recipes.js';
 import type { ValidationIssue } from './validate.js';
 import type { TokenVocabulary } from './vocabulary.js';
@@ -91,6 +93,38 @@ const LOGICAL_TWIN: Record<string, string> = {
  */
 const kebabProp = (prop: string): string =>
     prop.startsWith('--') ? prop : prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`);
+
+/**
+ * `-webkit-appearance`, `-moz-appearance`, `-ms-overflow-style`… — a
+ * deliberate vendor hack the property check leaves alone. The kebab form
+ * MUST carry the leading hyphen: the emitter turns `WebkitAppearance` into
+ * `-webkit-appearance` (the capital opens with a hyphen) but `msOverflowStyle`
+ * into `ms-overflow-style`, which no engine reads. The lowercase-led form is
+ * therefore not exempt — it is the one vendor slip worth naming, see
+ * `VENDOR_PREFIX_MISSING_HYPHEN`.
+ */
+const VENDOR_PREFIX = /^-(?:webkit|moz|ms|o)-/;
+
+/** A vendor prefix without its hyphen — `ms-overflow-style` from `msOverflowStyle`. */
+const VENDOR_PREFIX_MISSING_HYPHEN = /^(?:webkit|moz|ms|o)-/;
+
+/**
+ * A declaration head inside a keyframes body: a property-shaped word after
+ * the start, a `;` or a `{`, followed by `:` and a value that runs to `;` or
+ * `}` (left unconsumed, so it can anchor the next head) without opening a
+ * block. The last clause is what tells `50% { … }` (a selector, opens a
+ * block) from `opacity: 0;` (a declaration). `--x` custom properties match
+ * too and are exempted by the caller like every other custom property.
+ *
+ * Only keyframes bodies are read this way. A keyframe block can hold nothing
+ * but property declarations, so every head is a property or a typo. The raw
+ * `css` hatch is not read: it is the escape hatch precisely so an author can
+ * write what the typed surface cannot — `@font-face { src: … }`,
+ * `@property { syntax: …; inherits: … }`, `@counter-style { symbols: … }` —
+ * and those descriptors are not properties. A checker that reads them would
+ * call `src` a typo of `r`.
+ */
+const DECLARATION_HEAD = /(?:^|[;{])\s*(--?[A-Za-z_][\w-]*|[A-Za-z][\w-]*)\s*:\s*[^;{}]*(?=[;}])/g;
 
 /** A physical property named at the head of a declaration inside a raw body. */
 const PHYSICAL_IN_BODY = new RegExp(
@@ -327,6 +361,57 @@ export function validateRecipes(
         }
     };
 
+    // A declaration key the CSS specifications do not define never renders:
+    // the browser drops the whole declaration and says nothing (#51), so
+    // this is the one authoring slip no later gate can see. Near a real
+    // property it is a typo and an error; far from every property it is
+    // either brand-new CSS or a typo of something exotic, and the honest
+    // verdict is a warning. Custom properties are the author's to name, and
+    // a vendor-prefixed spelling is a deliberate hack the specs mostly do
+    // not list — neither is questioned.
+    //
+    // The suggestion needs both names to be at least four characters. The
+    // list holds the SVG geometry properties (`r`, `x`, `cx`, `rx`…), and
+    // two edits from a three-letter key reaches most of them — `tpo` would
+    // be "corrected" to `r`. A short unknown key is the warning tier.
+    const checkProperty = (prop: string, at: string) => {
+        const name = kebabProp(prop);
+        if (name.startsWith('--') || CSS_PROPERTIES.has(name) || VENDOR_PREFIX.test(name)) return;
+        if (VENDOR_PREFIX_MISSING_HYPHEN.test(name)) {
+            // `msOverflowStyle` → `ms-overflow-style`: the hyphen the prefix
+            // needs never appears, because only a capital opens with one.
+            const fixed = `-${name}`;
+            // A camelCase key gets the capital that opens the hyphen; a kebab
+            // key already spells itself and only lacks the hyphen.
+            const spelled = prop.includes('-') ? fixed : prop[0]!.toUpperCase() + prop.slice(1);
+            issues.push({
+                level: 'error',
+                where: at,
+                rule: 'css-property',
+                suggest: { token: name, value: fixed },
+                message: `"${name}" is not a CSS property — a vendor prefix needs its leading hyphen: write "${spelled}" so it emits as "${fixed}". The browser drops the declaration silently`,
+            });
+            return;
+        }
+        const near = name.length >= 4 ? nearestOf(name, CSS_PROPERTIES, 3) : undefined; // within two edits
+        if (near && near.length >= 4) {
+            issues.push({
+                level: 'error',
+                where: at,
+                rule: 'css-property',
+                suggest: { token: name, value: near },
+                message: `"${name}" is not a CSS property — did you mean "${near}"? The browser drops the declaration silently`,
+            });
+        } else {
+            issues.push({
+                level: 'warning',
+                where: at,
+                rule: 'css-property',
+                message: `"${name}" is not a property this kit knows (${CSS_PROPERTIES_SOURCE}) — new CSS passes here, a typo does not render`,
+            });
+        }
+    };
+
     const byScope = new Map(manifest.components.map((c) => [c.scope, c]));
 
     /** component scope → the roles its `color` axis wires. Compared at the end. */
@@ -420,6 +505,14 @@ export function validateRecipes(
         if (recipe.css) values.push({ path: 'css', prop: '', value: recipe.css });
 
         for (const { path, prop, value } of values) {
+            if (prop !== '') {
+                checkProperty(prop, `${where}.${path}`);
+            } else if (path.startsWith('keyframes.')) {
+                // a keyframes body: a declaration there vanishes just as
+                // silently, so its head is checked too. The raw `css` hatch
+                // is deliberately not read — see DECLARATION_HEAD.
+                for (const head of value.matchAll(DECLARATION_HEAD)) checkProperty(head[1]!, `${where}.${path}`);
+            }
             for (const match of value.matchAll(VAR_REF)) {
                 const token = match[1]!;
                 const hasFallback = Boolean(match[2]);
