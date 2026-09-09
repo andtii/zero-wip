@@ -14,6 +14,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import type { IterationEntry } from '@sigx/zero-kit';
+import { formatIterationLog } from '@sigx/zero-kit';
 import { appendIteration, readIterationLog, resolveIterationLogPath } from '../src/commands/iteration-log.js';
 
 const dirs: string[] = [];
@@ -79,5 +80,23 @@ describe('appendIteration / readIterationLog', () => {
         writeFileSync(path, '{"not":"an entry"}\n[1,2]\n');
         await appendIteration(path, entry(1));
         expect(await readIterationLog(path)).toEqual([entry(1)]);
+    });
+
+    it('skips a line with the right keys but a malformed `top` or `score` — the formatter must never throw on what the reader let through', async () => {
+        const path = join(tempDir(), 'it.jsonl');
+        const base = { ts: '2026-09-08T00:00:00.000Z', name: 'x', errors: 0, warnings: 0, ms: 1 };
+        writeFileSync(path, [
+            JSON.stringify({ ...base, top: ['not-an-object'] }),
+            JSON.stringify({ ...base, top: [{ id: 'x' }] }),                 // count missing
+            JSON.stringify({ ...base, top: [{ id: 1, count: 1 }] }),         // id not a string
+            JSON.stringify({ ...base, top: [], score: 'A' }),                // score not an object
+            JSON.stringify({ ...base, top: [], score: { total: 90 } }),      // grade missing
+            JSON.stringify({ ...base, top: [], score: { total: 90, grade: 'Z' } }),
+            JSON.stringify({ ...base, top: [], score: null }),
+        ].join('\n') + '\n');
+        await appendIteration(path, entry(1));
+        const entries = await readIterationLog(path);
+        expect(entries).toEqual([entry(1)]);
+        expect(() => formatIterationLog(entries)).not.toThrow();
     });
 });

@@ -96,16 +96,30 @@ export function iterationEntryFrom({ name, result, report, ms, now }: IterationE
     return entry;
 }
 
-/** A structural check for a parsed log line — the reader skips anything else. */
+const GRADES: ReadonlySet<string> = new Set(['A', 'B', 'C', 'D', 'F']);
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/**
+ * A structural check for a parsed log line — the reader skips anything else.
+ * It checks everything `formatIterationLog` dereferences, not just the
+ * top-level keys: a line that parses but carries a malformed `top` item or
+ * `score` would otherwise get through the reader and throw in the
+ * formatter, which is the opposite of "skipped, never fatal".
+ */
 export function isIterationEntry(value: unknown): value is IterationEntry {
-    if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
-    const v = value as Record<string, unknown>;
-    return typeof v['ts'] === 'string'
-        && typeof v['name'] === 'string'
-        && typeof v['errors'] === 'number'
-        && typeof v['warnings'] === 'number'
-        && Array.isArray(v['top'])
-        && typeof v['ms'] === 'number';
+    if (!isRecord(value)) return false;
+    if (typeof value['ts'] !== 'string'
+        || typeof value['name'] !== 'string'
+        || typeof value['errors'] !== 'number'
+        || typeof value['warnings'] !== 'number'
+        || typeof value['ms'] !== 'number') return false;
+    const top = value['top'];
+    if (!Array.isArray(top) || !top.every((t) => isRecord(t) && typeof t['id'] === 'string' && typeof t['count'] === 'number')) return false;
+    if (!('score' in value) || value['score'] === undefined) return true;
+    const score = value['score'];
+    return isRecord(score) && typeof score['total'] === 'number' && typeof score['grade'] === 'string' && GRADES.has(score['grade']);
 }
 
 const scoreText = (score: IterationEntry['score']): string => (score ? `${score.total} → ${score.grade}` : 'n/a');
