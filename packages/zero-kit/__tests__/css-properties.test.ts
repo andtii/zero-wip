@@ -118,6 +118,9 @@ describe('the css-property rule', () => {
         );
         expect(issues[0]!.suggest).toEqual({ token: 'ms-overflow-style', value: '-ms-overflow-style' });
         expect(issues[1]!.suggest).toEqual({ token: 'webkit-appearance', value: '-webkit-appearance' });
+        // a kebab-authored key is told the literal spelling, not a capitalised hybrid
+        const kebab = propertyIssues(tabsWith({ 'ms-overflow-style': 'none' } as CssProps));
+        expect(kebab[0]!.message).toContain('write "-ms-overflow-style" so it emits as "-ms-overflow-style"');
     });
 
     it('reaches states, variants, conditions and keyframe-free nested styles', () => {

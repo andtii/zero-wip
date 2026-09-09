@@ -381,7 +381,9 @@ export function validateRecipes(
             // `msOverflowStyle` → `ms-overflow-style`: the hyphen the prefix
             // needs never appears, because only a capital opens with one.
             const fixed = `-${name}`;
-            const spelled = prop.startsWith('-') ? fixed : prop[0]!.toUpperCase() + prop.slice(1);
+            // A camelCase key gets the capital that opens the hyphen; a kebab
+            // key already spells itself and only lacks the hyphen.
+            const spelled = prop.includes('-') ? fixed : prop[0]!.toUpperCase() + prop.slice(1);
             issues.push({
                 level: 'error',
                 where: at,
