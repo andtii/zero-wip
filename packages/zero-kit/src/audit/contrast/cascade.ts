@@ -35,7 +35,7 @@
  * the app surface the browser spec stages — `base-100` under `base-content`.
  */
 import { RUNTIME_PROPERTIES } from '../../contract.js';
-import { tryBakeColorValue } from '../../resolve/color-bake.js';
+import { foldConstantCalc, tryBakeColorValue } from '../../resolve/color-bake.js';
 import type { CssRule } from '../css-rules.js';
 import type { ParsedColor } from './color.js';
 import { parseColor } from './color.js';
@@ -130,6 +130,27 @@ function lengthPx(text: string): number | undefined {
     if (!Number.isFinite(n)) return undefined;
     if (m[2] === undefined) return n === 0 ? 0 : undefined;
     return m[2]!.toLowerCase() === 'px' ? n : n * 16;
+}
+
+/**
+ * A `<length>` in px on the reference page, `calc()` included — `calc(1px * 2)`
+ * after `var(--border)` substituted, `calc(0.5rem + 1px)` — with `rem`/`em`
+ * at the page's 16px. `undefined` for anything else (`%`, `min()`, a unit
+ * the page does not fix): the caller decides whether that is "unknown".
+ */
+function lengthValuePx(text: string): number | undefined {
+    const direct = lengthPx(text);
+    if (direct !== undefined) return direct;
+    const t = text.trim().toLowerCase();
+    if (!t.startsWith('calc(')) return undefined;
+    // Every length inside becomes a px number; a stray unit or function is
+    // left in place, which makes the fold refuse and the caller report it.
+    let folded = t.replace(/(-?\d*\.?\d+)(px|rem|em)\b/g, (_, n: string, unit: string) => String(unit === 'px' ? Number(n) : Number(n) * 16));
+    // Innermost first: the folder takes one paren-free `calc()` at a time,
+    // so `calc(calc(0.25rem * 3) / 2)` needs two passes.
+    for (let prev = ''; prev !== folded;) { prev = folded; folded = foldConstantCalc(folded); }
+    const n = /^(-?\d*\.?\d+)$/.exec(folded.trim());
+    return n ? Number(n[1]) : undefined;
 }
 
 /** One parenthesised media feature against the reference page. */
@@ -315,6 +336,14 @@ function computeNode(node: StyleNode, rules: readonly CssRule[], env: ThemeEnv, 
             boxes[c.box].decls.set(d.prop, { value: d.value, important: d.important, order: order++ });
         }
     }
+    // The user agent's own stylesheet, for the elements whose defaults
+    // paint: a real `<button>` that no recipe colours renders `buttontext`,
+    // not its parent's ink, and the browser probe builds real elements. Seeded
+    // BELOW every author declaration (order -1), so `border: none` on the
+    // recipe still wins over the UA's 2px outset.
+    for (const [prop, value] of Object.entries(uaDefaults(node.element, env.colorScheme))) {
+        if (!boxes.self.decls.has(prop)) boxes.self.decls.set(prop, { value, important: false, order: -1 });
+    }
     const computed: ComputedNode = { node, boxes, ...(parent ? { parent } : {}) };
     // Custom properties resolve at the declaring element; children inherit
     // the resolved value. A pseudo-element inherits its host's customs.
@@ -324,6 +353,42 @@ function computeNode(node: StyleNode, rules: readonly CssRule[], env: ThemeEnv, 
         resolveCustoms(boxes[box], boxes[box].custom, env);
     }
     return computed;
+}
+
+/**
+ * What Chromium's UA stylesheet paints on the elements the anatomy uses,
+ * per colour scheme — measured on the reference page (#403, slice D):
+ * `buttontext`/`buttonface` on a button, `fieldtext`/`field` on the form
+ * controls, `linktext` on an anchor, `canvastext`/`canvas` on a dialog, and
+ * the borders those elements draw when a recipe leaves them alone. Anything
+ * not listed inherits, which is what every other element does.
+ */
+export function uaDefaults(element: string, scheme: 'light' | 'dark'): Record<string, string> {
+    const dark = scheme === 'dark';
+    switch (element) {
+        case 'button':
+            return {
+                color: dark ? '#ffffff' : '#000000',
+                'background-color': dark ? '#6b6b6b' : '#efefef',
+                'border-width': '2px', 'border-style': 'outset', 'border-color': dark ? '#ffffff' : '#000000',
+            };
+        case 'input': case 'textarea': case 'select':
+            return {
+                color: dark ? '#ffffff' : '#000000',
+                'background-color': dark ? '#3b3b3b' : '#ffffff',
+                'border-width': '2px', 'border-style': 'inset', 'border-color': dark ? '#858585' : '#767676',
+            };
+        case 'a':
+            return { color: dark ? '#9e9eff' : '#0000ee' };
+        case 'dialog':
+            return {
+                color: dark ? '#ffffff' : '#000000',
+                'background-color': dark ? '#121212' : '#ffffff',
+                'border-width': '3px', 'border-style': 'solid', 'border-color': dark ? '#ffffff' : '#000000',
+            };
+        default:
+            return {};
+    }
 }
 
 function taintAll(box: BoxStyle, rule: CssRule, reason: UnmeasuredReason): void {
@@ -821,7 +886,11 @@ export function borderInk(c: ComputedNode, box: Box, env: ThemeEnv): ParsedColor
         const style = (borderSubprop(c, box, env, side, 'style') ?? 'none').toLowerCase();
         if (style === 'none' || style === 'hidden') continue;
         const widthText = (borderSubprop(c, box, env, side, 'width') ?? 'medium').toLowerCase();
-        const width = widthText in WIDTH_KEYWORDS ? WIDTH_KEYWORDS[widthText]! : parseFloat(widthText);
+        const width = widthText in WIDTH_KEYWORDS ? WIDTH_KEYWORDS[widthText]! : lengthValuePx(widthText);
+        // A width the reader cannot evaluate is not a width of zero: a
+        // `calc()` in units it does not fold, a `%`, a `max()` — the border
+        // may well paint, so the cell is unmeasured rather than unpainted.
+        if (width === undefined) throw new Unmeasured('unknown-geometry', `border-${side}-width: ${widthText}`);
         if (!(width > 0)) continue;
         const colorText = borderSubprop(c, box, env, side, 'color') ?? 'currentcolor';
         const color = evaluateColor(c, box, colorText, env, () => colorOf(c, box, env));

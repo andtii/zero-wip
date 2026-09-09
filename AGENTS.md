@@ -140,7 +140,10 @@ the state-matrix contrast audit — two matrices over every state combination ×
 design system × theme, hard-fail below 3:1, chromium-only: **text legibility**
 for every text-bearing part, and **indicator paint** for every part whose job
 is paint rather than text, measured inside its real ancestor chain — the tick,
-the dot, the thumb, the range, the chevrons, the star. The text matrix also
+the dot, the thumb, the range, the chevrons, the star — and, since #403, a
+**parity block** in every one of those tests holding the kit's static contrast
+matrix (`auditDesignSystem`'s `contrast/*` rules) to the browser's reading on
+every cell it claims, with each skin's measured share pinned from both ends. The text matrix also
 carries each design system's own **axis surface**: every wired `data-variant`
 value (crossed with `data-color` where both exist) and each declared
 `data-mod-*`, for the scopes that wire a variant — reaching text that sits

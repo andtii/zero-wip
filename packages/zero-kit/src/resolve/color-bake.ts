@@ -19,7 +19,8 @@
  * the right verdict for an auditor: a cell it cannot judge is reported as
  * `unmeasured`, never as a pass and never as a crash.
  */
-import { formatHex, formatHex8, interpolate, interpolateWithPremultipliedAlpha, parse } from 'culori';
+import type { Color } from 'culori';
+import { converter, formatHex, formatHex8, interpolate, interpolateWithPremultipliedAlpha, parse } from 'culori';
 
 /**
  * Fold `calc()` of NUMERIC LITERALS to the number it computes —
@@ -109,8 +110,32 @@ export function bakeSoft(role: string, base: string, mix: number, where: string)
     return formatHex(mixer(mix));
 }
 
+/**
+ * Two colours converted to `space` with each one's missing components
+ * (`undefined` in culori) taken from the other, so the interpolation never
+ * invents a hue for an achromatic endpoint. Exported for the test that pins
+ * the carry-over against the browser's reading.
+ */
+export function carryMissingComponents(a: string, b: string, space: MixSpace): [Color, Color] {
+    const to = converter(space);
+    const pa = parse(a);
+    const pb = parse(b);
+    if (!pa || !pb) throw new Error(`[zero-kit] carryMissingComponents: cannot parse "${pa ? b : a}" as a colour`);
+    const ca = { ...to(pa) } as Record<string, unknown>;
+    const cb = { ...to(pb) } as Record<string, unknown>;
+    for (const k of new Set([...Object.keys(ca), ...Object.keys(cb)])) {
+        if (k === 'mode' || k === 'alpha') continue;
+        if (ca[k] === undefined && cb[k] !== undefined) ca[k] = cb[k];
+        else if (cb[k] === undefined && ca[k] !== undefined) cb[k] = ca[k];
+    }
+    return [ca as unknown as Color, cb as unknown as Color];
+}
+
+/** An interpolation space the baker mixes in — the values of `MIX_SPACES`. */
+export type MixSpace = 'oklab' | 'oklch' | 'rgb' | 'hsl' | 'lab' | 'lch';
+
 /** The interpolation spaces `color-mix(in <space>, …)` may name here. */
-export const MIX_SPACES: Record<string, 'oklab' | 'oklch' | 'rgb' | 'hsl' | 'lab' | 'lch'> = {
+export const MIX_SPACES: Record<string, MixSpace> = {
     oklab: 'oklab', oklch: 'oklch', srgb: 'rgb', hsl: 'hsl', lab: 'lab', lch: 'lch',
 };
 
@@ -220,7 +245,17 @@ export function bakeColorValue(
             // black — `color-mix(in oklch, #e8e9ea 70%, transparent)` came
             // out `#909091b3` instead of `#e8e9eab3`, a dark-shifted ink on
             // lynx that the static contrast matrix was the first to notice.
-            const mixer = interpolateWithPremultipliedAlpha([bakeOne(a.color), bakeOne(b.color)], space);
+            // MISSING COMPONENTS carried over, as CSS Color 4 §12.3 specifies
+            // for interpolation: an achromatic colour has no hue in a polar
+            // space (`black`, `white`, `transparent`, any grey), and the mix
+            // takes the OTHER colour's hue rather than interpolating toward
+            // an arbitrary one. culori marks a missing component `undefined`
+            // and, left alone, drifted the hue — `color-mix(in oklch,
+            // #0087a0 86%, black)` baked to `#00716a` where Chrome paints
+            // `#006d82`; the browser parity gate (#403, slice D) is what
+            // noticed. `alpha` is not carried: an absent alpha means opaque.
+            const carried = carryMissingComponents(bakeOne(a.color), bakeOne(b.color), space);
+            const mixer = interpolateWithPremultipliedAlpha(carried, space);
             const mixed = mixer(t);
             const alpha = mixed.alpha ?? 1;
             return alpha >= 1 ? formatHex(mixed) : formatHex8(mixed);
