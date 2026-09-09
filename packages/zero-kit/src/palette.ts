@@ -475,13 +475,16 @@ export function derivePalette<R extends RolesDecl = RolesDecl>(opts: DerivePalet
         for (let i = 0; i < 4; i++) {
             const printed = quantize(role);
             const soft = mixOklab(printed, base100, softMix);
-            const against = contrastRatio(printed, soft) < contrastRatio(printed, base200) ? soft : base200;
+            const softLimits = contrastRatio(printed, soft) < contrastRatio(printed, base200);
+            const against = softLimits ? soft : base200;
             if (contrastRatio(printed, against) >= inkFloor + inkMargin) { role = printed; break; }
             const inked = solveContentLightness(role, against, inkFloor + inkMargin * 1.5);
             if (!inked) {
                 throw new Error(
-                    `[zero-kit] derivePalette: no ${name} lightness reaches ${inkFloor}:1 against the page surfaces ` +
-                    `(${formatOklch(base200)}) — lower floors.ink or change base.chroma`,
+                    `[zero-kit] derivePalette: no ${name} lightness reaches ${inkFloor}:1 against ` +
+                    (softLimits
+                        ? `its own soft surface ${formatOklch(soft)} (softMix ${softMix}) — lower floors.ink, lower softMix, or change base.chroma`
+                        : `base-200 ${formatOklch(base200)} — lower floors.ink or change base.chroma`),
                 );
             }
             role = inked;
