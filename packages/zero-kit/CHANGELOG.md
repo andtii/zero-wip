@@ -9,7 +9,7 @@
   any grey's, `transparent`'s — is carried over from the other colour before
   interpolating. culori marks it `undefined` and, left alone, drifted the
   hue: `color-mix(in oklch, #0087a0 86%, black)` baked to `#00716a` where
-  Chrome paints `#006d82`. `carryMissingComponents` (exported) now runs
+  Chrome paints `#006d82`. `carryMissingComponents` (internal to the baker) now runs
   before the premultiplied mix in the shared baker, so the static contrast
   matrix reads what the browser paints — **and the lynx artifacts of every
   recipe that mixes toward black/white/grey in a polar space change to the
@@ -25,7 +25,7 @@
   `<button>` that no recipe colours renders `buttontext` (black on a light
   scheme, white on dark), not its parent's ink — the browser chain builds
   real elements, and steps/item measured 20:1 there against the reader's
-  inherited 14.9:1. `uaDefaults(element, scheme)` (exported) seeds Chromium's
+  inherited 14.9:1. `uaDefaults(element, scheme)` (internal to the cascade) seeds Chromium's
   colour, background and border for `button`, `input`/`textarea`/`select`,
   `a` and `dialog` below every author declaration.
 

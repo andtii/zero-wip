@@ -116,10 +116,13 @@ export function bakeSoft(role: string, base: string, mix: number, where: string)
  * invents a hue for an achromatic endpoint. Exported for the test that pins
  * the carry-over against the browser's reading.
  */
-export function carryMissingComponents(a: string, b: string, space: string): [Color, Color] {
-    const to = converter(space as 'oklch');
-    const ca = { ...to(parse(a)!) } as Record<string, unknown>;
-    const cb = { ...to(parse(b)!) } as Record<string, unknown>;
+export function carryMissingComponents(a: string, b: string, space: MixSpace): [Color, Color] {
+    const to = converter(space);
+    const pa = parse(a);
+    const pb = parse(b);
+    if (!pa || !pb) throw new Error(`[zero-kit] carryMissingComponents: cannot parse "${pa ? b : a}" as a colour`);
+    const ca = { ...to(pa) } as Record<string, unknown>;
+    const cb = { ...to(pb) } as Record<string, unknown>;
     for (const k of new Set([...Object.keys(ca), ...Object.keys(cb)])) {
         if (k === 'mode' || k === 'alpha') continue;
         if (ca[k] === undefined && cb[k] !== undefined) ca[k] = cb[k];
@@ -128,8 +131,11 @@ export function carryMissingComponents(a: string, b: string, space: string): [Co
     return [ca as unknown as Color, cb as unknown as Color];
 }
 
+/** An interpolation space the baker mixes in — the values of `MIX_SPACES`. */
+export type MixSpace = 'oklab' | 'oklch' | 'rgb' | 'hsl' | 'lab' | 'lch';
+
 /** The interpolation spaces `color-mix(in <space>, …)` may name here. */
-export const MIX_SPACES: Record<string, 'oklab' | 'oklch' | 'rgb' | 'hsl' | 'lab' | 'lch'> = {
+export const MIX_SPACES: Record<string, MixSpace> = {
     oklab: 'oklab', oklch: 'oklch', srgb: 'rgb', hsl: 'hsl', lab: 'lab', lch: 'lch',
 };
 
