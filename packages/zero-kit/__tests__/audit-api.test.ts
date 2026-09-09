@@ -361,7 +361,7 @@ describe('the aggregate', () => {
             '  no findings',
             // The contrast line is a count, not a finding: cells it measured,
             // and — were there any — cells it could not.
-            expect.stringMatching(/^ {2}contrast day: \d+ cells, \d+ measured, 0 below floor, 0 below AA$/),
+            expect.stringMatching(/^ {2}contrast day: \d+ cells, \d+ measured, 0 below floor, 0 below 4.5:1$/),
             '  0 error(s), 0 warning(s), 0 info',
         ]);
     });

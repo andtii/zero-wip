@@ -241,7 +241,7 @@ export function formatAudit(result: AuditResult): string[] {
         const unmeasured = count('unmeasured');
         lines.push(
             `  contrast ${theme.name}: ${theme.cells.length} cells, ${measured} measured, `
-            + `${count('fail') + count('disabled-fail')} below floor, ${count('warn')} below AA`
+            + `${count('fail') + count('disabled-fail')} below floor, ${count('warn')} below 4.5:1`
             + (unmeasured > 0 ? `, ${unmeasured} unmeasured` : ''),
         );
     }
