@@ -18,7 +18,16 @@
  * `aria-activedescendant` and `data-highlighted`. Keyboard: ArrowDown/Up
  * open and move the highlight, Home/End jump, typeahead works closed
  * (selects directly) and open (moves the highlight), Enter/Space select,
- * Escape closes. A hidden input carries the value for form posts.
+ * Escape closes.
+ *
+ * FORM PARTICIPATION is a real, visually-hidden `<select>` (`hidden-input`),
+ * rendered only while `name` is set: a placeholder `<option value="">` plus
+ * one option for the current value. That is what makes `required` a
+ * platform constraint (a `type="hidden"` input is barred from validation),
+ * lets a form `reset()` restore the default, and posts through `form=`
+ * from outside the form's subtree. The browser's invalid focus lands on the
+ * trigger. Until the collection lands (#438), the option list is the value
+ * alone — enough to post and validate, not yet enough to autofill.
  *
  * THE OPTIONS SUGAR (#333): with no children, an `options` array renders the
  * full default composition — Trigger(Value, Indicator) + Popup(Item per
@@ -44,23 +53,19 @@ import { component, compound, defineInjectable, defineProvide, effect, watch } f
 import type { Define } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
+import { createFormControl } from '../../behaviors/form-control.js';
+import { onFormReset } from '../../behaviors/form-reset.js';
+import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
 import { createListController, moveHighlight, optionText, type ListController, type ListItem } from '../../behaviors/list.js';
 import { createTypeahead } from '../../behaviors/typeahead.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
-import { useFieldContext } from '../../behaviors/field.js';
 import { segmentOptions, type OptionInput } from '../../behaviors/options.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { variantAttrs } from '../../contract/props.js';
-import type {
-    PartProps,
-    WithAsChild,
-    WithClass,
-    WithDisabled,
-    WithVariantAxes,
-} from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithFormControl, WithVariantAxes } from '../../contract/props.js';
 import { selectAnatomy } from './anatomy.js';
 
 const SCOPE = selectAnatomy.scope;
@@ -116,9 +121,7 @@ export type SelectRootProps =
     & Define.Event<'valueChange', string>
     & Define.Event<'openChange', boolean>
     & Define.Prop<'placeholder', string, false>
-    & Define.Prop<'name', string, false>
-    & Define.Prop<'required', boolean, false>
-    & Define.Prop<'invalid', boolean, false>
+    & WithFormControl
     & Define.Prop<'placement', Placement, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     /**
@@ -128,24 +131,45 @@ export type SelectRootProps =
      * when both are given — see the component doc.
      */
     & Define.Prop<'options', ReadonlyArray<OptionInput>, false>
-    & WithDisabled
     & WithVariantAxes<'select'>
     & WithClass
     & Define.Slot<'default'>;
 
-const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal }) => {
+const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
     const state = createControllableState<string>(
         () => props.model,
         props.defaultValue ?? '',
         (v) => emit('valueChange', v),
     );
-    const field = useFieldContext();
+    const fc = createFormControl({ props: () => props, idBase: 'zx-select', controlPart: 'trigger' });
+    const baseId = fc.baseId;
     const list = createListController();
-    const baseId = createId('zx-select');
     const open = signal({ value: false });
     const highlighted = signal({ value: null as string | null });
     let trigger: HTMLElement | null = null;
     let popup: HTMLElement | null = null;
+    let hidden: HTMLSelectElement | null = null;
+
+    // The hidden select's value follows the model — including on a form
+    // reset, when the model may already hold the default and nothing
+    // re-renders while the platform has just selected the placeholder.
+    // Deferred a microtask: the option for a new value is inserted by the
+    // render that follows the write, and a select cannot hold a value it has
+    // no option for.
+    const syncHidden = (value: string = state.value): void => {
+        queueMicrotask(() => { if (hidden && hidden.value !== value) hidden.value = value; });
+    };
+    let detachReset = (): void => {};
+    onMounted(() => {
+        effect(() => { syncHidden(state.value); });
+        // Without a name there is no hidden select — the trigger is a
+        // <button>, form-associated like any control, so reset still restores.
+        detachReset = onFormReset(() => hidden ?? (trigger as HTMLButtonElement | null), () => {
+            state.value = props.defaultValue ?? '';
+            syncHidden();
+        });
+    });
+    onUnmounted(() => detachReset());
 
     const setOpen = (v: boolean) => {
         if (open.value === v) return;
@@ -177,12 +201,12 @@ const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal }) =
         ids: { popup: `${baseId}-popup` },
         // Adopting the field's control id is what lets Field.Label name the
         // trigger through `for` — a button is a labelable element.
-        triggerId: () => (field.inert ? `${baseId}-trigger` : field.ids.control),
+        triggerId: fc.controlId,
         placeholder: () => props.placeholder,
-        disabled: () => !!props.disabled || field.disabled(),
-        invalid: () => !!props.invalid || field.invalid(),
-        required: () => !!props.required || field.required(),
-        describedBy: () => field.describedBy(),
+        disabled: fc.disabled,
+        invalid: fc.invalid,
+        required: fc.required,
+        describedBy: fc.describedBy,
         selectValue(value) {
             state.value = value;
             setOpen(false);
@@ -267,21 +291,34 @@ const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal }) =
         <div
             data-scope={SCOPE}
             data-part="root"
-            data-disabled={dataAttr(ctx.disabled())}
-            data-invalid={dataAttr(ctx.invalid())}
-            data-required={dataAttr(ctx.required())}
+            {...fc.flags()}
             {...variantAttrs(props)}
             class={props.class}
         >
             {/* Slot children win ENTIRELY over `options` — no merging. */}
             {slots.default ? slots.default() : props.options ? optionsContent() : null}
-            <input
-                type="hidden"
-                data-scope={SCOPE}
-                data-part="hidden-input"
-                name={props.name}
-                value={state.value}
-            />
+            {fc.hasName()
+                ? (
+                    <select
+                        data-scope={SCOPE}
+                        data-part="hidden-input"
+                        style={VISUALLY_HIDDEN_STYLE}
+                        {...fc.hiddenAttrs()}
+                        required={ctx.required()}
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        ref={(node: HTMLSelectElement | null) => { hidden = node; }}
+                        // The platform's bubble would anchor to a 1px element:
+                        // cancel it and land focus where the user can act.
+                        onInvalid={(e: Event) => { e.preventDefault(); trigger?.focus(); }}
+                    >
+                        <option value="" selected={!state.value}>{props.placeholder ?? ''}</option>
+                        {state.value
+                            ? <option value={state.value} selected>{list.find(state.value)?.textValue() ?? state.value}</option>
+                            : null}
+                    </select>
+                )
+                : null}
         </div>
     );
 }, { name: 'Select.Root' });

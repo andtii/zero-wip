@@ -4,7 +4,7 @@ import { PLACEMENT_VOCABULARY } from '../../contract/data-attrs.js';
 export const comboboxAnatomy = defineAnatomy('combobox', {
     root: {
         element: 'div',
-        flags: ['disabled', 'invalid', 'required'],
+        flags: ['disabled', 'invalid', 'required', 'readonly'],
         tokens: ['color'],
     },
     // The bordered "field chrome" wrapping input + trigger. It mirrors the
@@ -70,8 +70,11 @@ export const comboboxAnatomy = defineAnatomy('combobox', {
         parent: 'popup',
         tokens: ['color', 'text'],
     },
+    // A real <select>, visually hidden: the form control the platform
+    // validates (required), resets, autofills and posts. Rendered only
+    // while the root carries a name.
     'hidden-input': {
-        element: 'input',
+        element: 'select',
         parent: 'root',
     },
 });

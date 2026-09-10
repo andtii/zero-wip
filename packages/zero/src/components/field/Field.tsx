@@ -19,15 +19,16 @@ import { createId } from '../../behaviors/create-id.js';
 import { provideFieldContext, useFieldContext, type FieldContext } from '../../behaviors/field.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithInvalid, WithReadonly, WithRequired, WithVariantAxes } from '../../contract/props.js';
 import { fieldAnatomy } from './anatomy.js';
 
 const SCOPE = fieldAnatomy.scope;
 
 export type FieldRootProps =
     & WithDisabled
-    & Define.Prop<'invalid', boolean, false>
-    & Define.Prop<'required', boolean, false>
+    & WithInvalid
+    & WithRequired
+    & WithReadonly
     & WithVariantAxes<'field'>
     & WithClass
     & Define.Slot<'default'>;
@@ -45,6 +46,7 @@ const FieldRoot = component<FieldRootProps>(({ props, slots }) => {
         disabled: () => !!props.disabled,
         invalid: () => !!props.invalid,
         required: () => !!props.required,
+        readonly: () => !!props.readonly,
         describedBy: () => `${baseId}-desc ${baseId}-error`,
     };
     provideFieldContext(ctx);
@@ -56,6 +58,7 @@ const FieldRoot = component<FieldRootProps>(({ props, slots }) => {
             data-disabled={dataAttr(props.disabled)}
             data-invalid={dataAttr(props.invalid)}
             data-required={dataAttr(props.required)}
+            data-readonly={dataAttr(props.readonly)}
             {...variantAttrs(props)}
             class={props.class}
         >

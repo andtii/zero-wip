@@ -18,45 +18,32 @@
 import { component, compound, effect } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState } from '../../behaviors/controllable.js';
-import { useFieldContext } from '../../behaviors/field.js';
+import { createFormControl } from '../../behaviors/form-control.js';
+import { onFormReset } from '../../behaviors/form-reset.js';
 import { timingModifiers } from '../../behaviors/model-modifiers.js';
+import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithFormControl, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
 import { checkboxAnatomy } from './anatomy.js';
 
 const SCOPE = checkboxAnatomy.scope;
-
-const HIDDEN_INPUT_STYLE = {
-    position: 'absolute',
-    width: '1px',
-    height: '1px',
-    margin: '-1px',
-    padding: '0',
-    border: '0',
-    clip: 'rect(0 0 0 0)',
-    overflow: 'hidden',
-    whiteSpace: 'nowrap',
-} as const;
 
 export type CheckboxRootProps =
     & Define.Model<boolean | string[]>
     & Define.Prop<'defaultChecked', boolean, false>
     & Define.Event<'checkedChange', boolean>
     & Define.Prop<'indeterminate', boolean, false>
-    & Define.Prop<'name', string, false>
     & Define.Prop<'value', string, false>
-    & Define.Prop<'required', boolean, false>
-    & Define.Prop<'invalid', boolean, false>
-    & WithDisabled
+    & WithFormControl
     & WithModelModifiers
     & WithVariantAxes<'checkbox'>
     & WithClass
     & Define.Slot<'default'>;
 
-const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal, onMounted }) => {
+const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
     // The posted value; also the membership key in array mode.
     const itemValue = (): string => props.value ?? 'on';
     const checkedOf = (v: boolean | string[]): boolean => (Array.isArray(v) ? v.includes(itemValue()) : v);
@@ -65,20 +52,31 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
         props.defaultChecked ?? false,
         (v) => emit('checkedChange', checkedOf(v)),
     );
-    const field = useFieldContext();
+    const fc = createFormControl({ props: () => props, idBase: 'zx-checkbox' });
     let inputEl: HTMLInputElement | null = null;
     const focus = signal({ visible: false });
 
+    let detachReset = (): void => {};
     onMounted(() => {
         effect(() => {
             const indeterminate = !!props.indeterminate;
             if (inputEl) inputEl.indeterminate = indeterminate;
         });
+        detachReset = onFormReset(() => inputEl, () => {
+            const def = props.defaultChecked ?? false;
+            const current = state.value;
+            // Array mode: this box restores its OWN membership, not the array.
+            state.value = Array.isArray(current)
+                ? (def ? (current.includes(itemValue()) ? current : [...current, itemValue()]) : current.filter((v) => v !== itemValue()))
+                : def;
+            if (inputEl) inputEl.checked = checkedOf(state.value);
+        });
     });
+    onUnmounted(() => detachReset());
 
-    const disabled = (): boolean => !!props.disabled || field.disabled();
-    const invalid = (): boolean => !!props.invalid || field.invalid();
-    const required = (): boolean => !!props.required || field.required();
+    const disabled = fc.disabled;
+    const invalid = fc.invalid;
+    const required = fc.required;
     const checkedState = (): string =>
         props.indeterminate ? 'indeterminate' : checkedOf(state.value) ? 'checked' : 'unchecked';
 
@@ -108,18 +106,19 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
         >
             <input
                 type="checkbox"
-                id={field.inert ? undefined : field.ids.control}
+                id={fc.field.inert ? undefined : fc.controlId()}
                 data-scope={SCOPE}
                 data-part="hidden-input"
-                style={HIDDEN_INPUT_STYLE}
+                style={VISUALLY_HIDDEN_STYLE}
                 model={state}
                 modelModifiers={timingModifiers(props.modelModifiers)}
                 disabled={disabled()}
                 required={required()}
-                name={props.name}
+                name={fc.name()}
+                form={fc.form()}
                 value={itemValue()}
                 aria-invalid={invalid() ? 'true' : undefined}
-                aria-describedby={field.inert ? undefined : field.describedBy()}
+                aria-describedby={fc.describedBy()}
                 ref={(node: HTMLInputElement | null) => { inputEl = node; }}
                 onFocus={() => { focus.visible = isFocusVisible(inputEl); }}
                 onBlur={(e: FocusEvent) => {

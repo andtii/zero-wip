@@ -52,23 +52,19 @@ import { component, compound, defineInjectable, defineProvide, effect, watch } f
 import type { Define, Model } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
+import { createFormControl } from '../../behaviors/form-control.js';
+import { onFormReset } from '../../behaviors/form-reset.js';
+import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
 import { createListController, moveHighlight, optionText, type HighlightStep, type ListController, type ListItem } from '../../behaviors/list.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { createDismissable } from '../../behaviors/dismiss.js';
-import { useFieldContext } from '../../behaviors/field.js';
 import { segmentOptions, type OptionInput } from '../../behaviors/options.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { variantAttrs } from '../../contract/props.js';
-import type {
-    PartProps,
-    WithAsChild,
-    WithClass,
-    WithDisabled,
-    WithVariantAxes,
-} from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithFormControl, WithReadonly, WithVariantAxes } from '../../contract/props.js';
 import { comboboxAnatomy } from './anatomy.js';
 
 const SCOPE = comboboxAnatomy.scope;
@@ -148,10 +144,8 @@ export type ComboboxRootProps =
     & Define.Prop<'defaultOpen', boolean, false>
     & Define.Event<'openChange', boolean>
     & Define.Prop<'placeholder', string, false>
-    & Define.Prop<'name', string, false>
-    & Define.Prop<'required', boolean, false>
-    & Define.Prop<'invalid', boolean, false>
-    & Define.Prop<'readonly', boolean, false>
+    & WithFormControl
+    & WithReadonly
     & Define.Prop<'placement', Placement, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
     /**
@@ -162,12 +156,11 @@ export type ComboboxRootProps =
      * entirely when both are given — see the component doc.
      */
     & Define.Prop<'options', ReadonlyArray<OptionInput>, false>
-    & WithDisabled
     & WithVariantAxes<'combobox'>
     & WithClass
     & Define.Slot<'default'>;
 
-const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal }) => {
+const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
     const state = createControllableState<string>(
         () => props.model,
         props.defaultValue ?? '',
@@ -185,15 +178,37 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal 
         props.defaultOpen ?? false,
         (v) => emit('openChange', v),
     );
-    const field = useFieldContext();
+    const fc = createFormControl({ props: () => props, idBase: 'zx-combobox', controlPart: 'input' });
+    const baseId = fc.baseId;
     const list = createListController();
-    const baseId = createId('zx-combobox');
     const highlighted = signal({ value: null as string | null });
     const inputFocusVisible = signal({ value: false });
     let control: HTMLElement | null = null;
     let input: HTMLElement | null = null;
     let trigger: HTMLElement | null = null;
     let popup: HTMLElement | null = null;
+    let hidden: HTMLSelectElement | null = null;
+
+    // See Select: the hidden select follows the model, reset included.
+    // Deferred a microtask: the option for a new value is inserted by the
+    // render that follows the write, and a select cannot hold a value it has
+    // no option for.
+    const syncHidden = (value: string = state.value): void => {
+        queueMicrotask(() => { if (hidden && hidden.value !== value) hidden.value = value; });
+    };
+    let detachReset = (): void => {};
+    onMounted(() => {
+        effect(() => { syncHidden(state.value); });
+        // Without a name there is no hidden select — the input itself is
+        // form-associated, so reset still restores.
+        detachReset = onFormReset(() => hidden ?? (input as HTMLInputElement | null), () => {
+            state.value = props.defaultValue ?? '';
+            inputValue.value = props.defaultInputValue ?? (state.value ? list.find(state.value)?.textValue() ?? state.value : '');
+            syncHidden();
+            if (input) (input as HTMLInputElement).value = inputValue.value;
+        });
+    });
+    onUnmounted(() => detachReset());
 
     const setOpen = (v: boolean): void => {
         if (openState.value === v) return;
@@ -214,13 +229,13 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal 
         list,
         ids: { trigger: `${baseId}-trigger`, popup: `${baseId}-popup` },
         placeholder: () => props.placeholder,
-        disabled: () => !!props.disabled || field.disabled(),
-        invalid: () => !!props.invalid || field.invalid(),
-        required: () => !!props.required || field.required(),
-        readonly: () => !!props.readonly,
-        name: () => props.name,
-        describedBy: () => field.describedBy(),
-        inputId: () => (field.inert ? `${baseId}-input` : field.ids.control),
+        disabled: fc.disabled,
+        invalid: fc.invalid,
+        required: fc.required,
+        readonly: fc.readonly,
+        name: fc.name,
+        describedBy: fc.describedBy,
+        inputId: fc.controlId,
         inputFocusVisible,
         selectValue(value) {
             state.value = value;
@@ -350,21 +365,35 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal 
         <div
             data-scope={SCOPE}
             data-part="root"
-            data-disabled={dataAttr(ctx.disabled())}
-            data-invalid={dataAttr(ctx.invalid())}
-            data-required={dataAttr(ctx.required())}
+            {...fc.flags()}
+            data-readonly={dataAttr(ctx.readonly())}
             {...variantAttrs(props)}
             class={props.class}
         >
             {/* Slot children win ENTIRELY over `options` — no merging. */}
             {slots.default ? slots.default() : props.options ? optionsContent() : null}
-            <input
-                type="hidden"
-                data-scope={SCOPE}
-                data-part="hidden-input"
-                name={props.name}
-                value={state.value}
-            />
+            {fc.hasName()
+                ? (
+                    <select
+                        data-scope={SCOPE}
+                        data-part="hidden-input"
+                        style={VISUALLY_HIDDEN_STYLE}
+                        {...fc.hiddenAttrs()}
+                        required={ctx.required()}
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        ref={(node: HTMLSelectElement | null) => { hidden = node; }}
+                        // The platform's bubble would anchor to a 1px element:
+                        // cancel it and land focus where the user can act.
+                        onInvalid={(e: Event) => { e.preventDefault(); ctx.focusInput(); }}
+                    >
+                        <option value="" selected={!state.value}>{props.placeholder ?? ''}</option>
+                        {state.value
+                            ? <option value={state.value} selected>{list.find(state.value)?.textValue() ?? state.value}</option>
+                            : null}
+                    </select>
+                )
+                : null}
         </div>
     );
 }, { name: 'Combobox.Root' });

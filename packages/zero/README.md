@@ -48,6 +48,18 @@ membership), and a `RadioGroup.Item` is a real radio bound to the group's
 model. Value transforms run once at the component boundary; timing reaches
 the element. `createControllableState` (public, `@sigx/zero/behaviors`)
 returns that Model, and `createInertState` seeds a part's fallback context.
+
+**The form contract.** Every posting control takes the same five props
+(`name`, `form`, `disabled`, `invalid`, `required` — `WithFormControl`, plus
+`readonly` where the platform has it) and answers to a `Field.Root` for all
+of them. A control posts only while it carries a `name`; a disabled control
+never posts; `form="id"` associates it from outside the form's subtree; and
+the owning form's `reset()` restores the component default into the model
+and the DOM. Select and Combobox post through a real, visually-hidden
+`<select>`, so `required` is a platform constraint (the invalid focus lands
+on the trigger / input) rather than an `aria-required` hint. The runtime
+half is `createFormControl` + `onFormReset` (`@sigx/zero/behaviors`), the
+one `VISUALLY_HIDDEN_STYLE` beside them.
 Native-platform first: `<dialog>` +
 top layer (no Portal), the `popover` attribute, `<details>`, real form
 inputs. SSR-safe ids via `app.use(zeroPlugin())` per request.

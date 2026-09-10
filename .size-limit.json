@@ -2,7 +2,7 @@
     {
         "name": "@sigx/zero (full barrel)",
         "path": "packages/zero/dist/index.js",
-        "limit": "34 kB",
+        "limit": "34.5 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -62,7 +62,7 @@
     {
         "name": "@sigx/zero/select",
         "path": "packages/zero/dist/components/select/index.js",
-        "limit": "5.5 kB",
+        "limit": "6 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -74,7 +74,7 @@
     {
         "name": "@sigx/zero/native-select",
         "path": "packages/zero/dist/components/native-select/index.js",
-        "limit": "2.5 kB",
+        "limit": "2.6 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -132,7 +132,7 @@
     {
         "name": "@sigx/zero/combobox",
         "path": "packages/zero/dist/components/combobox/index.js",
-        "limit": "6 kB",
+        "limit": "6.5 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -168,7 +168,7 @@
     {
         "name": "@sigx/zero/number-input",
         "path": "packages/zero/dist/components/number-input/index.js",
-        "limit": "4.1 kB",
+        "limit": "4.5 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -180,7 +180,7 @@
     {
         "name": "@sigx/zero/rating-group",
         "path": "packages/zero/dist/components/rating-group/index.js",
-        "limit": "3 kB",
+        "limit": "3.2 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -396,7 +396,7 @@
     {
         "name": "@sigx/zero/file-upload",
         "path": "packages/zero/dist/components/file-upload/index.js",
-        "limit": "4 kB",
+        "limit": "4.1 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

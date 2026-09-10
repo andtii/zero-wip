@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### Changed — the form contract (#441, part of #438)
+
+- One form-participation regime for every posting control: `createFormControl`
+  (Field adoption, ids, `flags()`, `hiddenAttrs()`) and
+  `onFormReset` in `@sigx/zero/behaviors`, `VISUALLY_HIDDEN_STYLE` beside
+  them, and the `WithName`/`WithForm`/`WithInvalid`/`WithRequired`/
+  `WithReadonly`/`WithFormControl` prop fragments in the contract. Every
+  posting control gains `form`; `Field.Root` gains `readonly` and controls
+  adopt it like the other three flags.
+- A hidden control renders only while `name` is set and carries `disabled`
+  and `form` — a disabled Select, Combobox or range Slider no longer posts.
+- **Breaking:** Select and Combobox post through a real, visually-hidden
+  `<select>` (`hidden-input` is now `element: 'select'`): `required` is a
+  platform constraint, the invalid focus lands on the trigger/input, and a
+  form `reset()` restores the default. Anything that selected
+  `input[type=hidden]` inside them selects `select[data-part=hidden-input]`.
+- The owning form's `reset()` restores every control's component default
+  into the model and the DOM (sigx sets `value`/`checked` as properties, so
+  the platform's own reset landed on the empty attribute default before).
+
 ### Changed — the binding law (#439, part of #438)
 
 - `createControllableState` returns a real sigx `Model<T>` (built on a

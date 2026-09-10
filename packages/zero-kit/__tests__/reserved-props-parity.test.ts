@@ -34,6 +34,20 @@ function rootPropsOf(scope: string): string[] {
         ?? '';
     const props = new Set<string>();
     for (const match of block.matchAll(/Define\.Prop<'([^']+)'/g)) props.add(match[1]!);
+    // The form vocabulary is spelled through contract/props.ts fragments
+    // (one spelling per prop, #441); each expands to the props it carries.
+    // `WithDisabled` is contract-owned and deliberately absent.
+    const FRAGMENTS: Record<string, readonly string[]> = {
+        WithName: ['name'],
+        WithForm: ['form'],
+        WithInvalid: ['invalid'],
+        WithRequired: ['required'],
+        WithReadonly: ['readonly'],
+        WithFormControl: ['name', 'form', 'invalid', 'required'],
+    };
+    for (const [fragment, names] of Object.entries(FRAGMENTS)) {
+        if (new RegExp(`\\b${fragment}\\b`).test(block)) for (const n of names) props.add(n);
+    }
     if (block.includes('Define.Model')) props.add('value');
     return [...props].sort();
 }

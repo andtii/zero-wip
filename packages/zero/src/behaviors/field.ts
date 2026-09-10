@@ -16,6 +16,7 @@ export interface FieldContext {
     disabled(): boolean;
     invalid(): boolean;
     required(): boolean;
+    readonly(): boolean;
     /** Space-separated description/error ids for `aria-describedby`. */
     describedBy(): string | undefined;
 }
@@ -26,6 +27,7 @@ const INERT_FIELD: FieldContext = {
     disabled: () => false,
     invalid: () => false,
     required: () => false,
+    readonly: () => false,
     describedBy: () => undefined,
 };
 

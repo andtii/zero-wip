@@ -16,32 +16,23 @@
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
-import { createId } from '../../behaviors/create-id.js';
-import { useFieldContext } from '../../behaviors/field.js';
+import { createFormControl } from '../../behaviors/form-control.js';
+import { onFormReset } from '../../behaviors/form-reset.js';
+import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr, type Orientation } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithOrientation, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithFormControl, WithOrientation, WithVariantAxes } from '../../contract/props.js';
 import { radioGroupAnatomy } from './anatomy.js';
 
 const SCOPE = radioGroupAnatomy.scope;
 
-const HIDDEN_INPUT_STYLE = {
-    position: 'absolute',
-    width: '1px',
-    height: '1px',
-    margin: '-1px',
-    padding: '0',
-    border: '0',
-    clip: 'rect(0 0 0 0)',
-    overflow: 'hidden',
-    whiteSpace: 'nowrap',
-} as const;
-
 interface RadioGroupContext {
     state: ControllableState<string>;
     name: string;
+    form(): string | undefined;
+    defaultValue(): string;
     disabled(): boolean;
     invalid(): boolean;
     required(): boolean;
@@ -51,6 +42,8 @@ function makeInert(): RadioGroupContext {
     return {
         state: createInertState<string>(''),
         name: 'zx-radio-inert',
+        form: () => undefined,
+        defaultValue: () => '',
         disabled: () => false,
         invalid: () => false,
         required: () => false,
@@ -65,10 +58,7 @@ export type RadioGroupRootProps =
     & Define.Model<string>
     & Define.Prop<'defaultValue', string, false>
     & Define.Event<'valueChange', string>
-    & Define.Prop<'name', string, false>
-    & Define.Prop<'required', boolean, false>
-    & Define.Prop<'invalid', boolean, false>
-    & WithDisabled
+    & WithFormControl
     & WithOrientation
     & WithVariantAxes<'radio-group'>
     & WithClass
@@ -80,15 +70,20 @@ const RadioGroupRoot = component<RadioGroupRootProps>(({ props, slots, emit }) =
         props.defaultValue ?? '',
         (v) => emit('valueChange', v),
     );
-    const field = useFieldContext();
-    const generatedName = createId('zx-radio');
+    const fc = createFormControl({ props: () => props, idBase: 'zx-radio' });
 
     const ctx: RadioGroupContext = {
         state,
-        get name() { return props.name ?? generatedName; },
-        disabled: () => !!props.disabled || field.disabled(),
-        invalid: () => !!props.invalid || field.invalid(),
-        required: () => !!props.required || field.required(),
+        // The generated name is the platform's own roving: same-name radios.
+        get name() { return props.name ?? fc.baseId; },
+        // An UNNAMED group must not post under that generated name: an empty
+        // `form` attribute matches no id, which leaves the radios owned by no
+        // form (the platform's own rule) while the grouping name stays.
+        form: () => (props.name === undefined ? '' : fc.form()),
+        defaultValue: () => props.defaultValue ?? '',
+        disabled: fc.disabled,
+        invalid: fc.invalid,
+        required: fc.required,
     };
     defineProvide(useRadioGroupContext, () => ctx);
 
@@ -103,8 +98,8 @@ const RadioGroupRoot = component<RadioGroupRootProps>(({ props, slots, emit }) =
             data-disabled={dataAttr(ctx.disabled())}
             data-invalid={dataAttr(ctx.invalid())}
             data-required={dataAttr(ctx.required())}
-            aria-labelledby={field.inert ? undefined : field.ids.label}
-            aria-describedby={field.inert ? undefined : field.describedBy()}
+            aria-labelledby={fc.field.inert ? undefined : fc.labelId()}
+            aria-describedby={fc.describedBy()}
             {...variantAttrs(props)}
             class={props.class}
         >
@@ -121,10 +116,21 @@ export type RadioGroupItemProps =
     & WithClass
     & Define.Slot<'default'>;
 
-const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal }) => {
+const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal, onMounted, onUnmounted }) => {
     const group = useRadioGroupContext();
     let inputEl: HTMLInputElement | null = null;
     const focus = signal({ visible: false });
+
+    // Every item restores the same group default — the same-value guard
+    // makes the N writes one — and re-syncs its own radio.
+    let detachReset = (): void => {};
+    onMounted(() => {
+        detachReset = onFormReset(() => inputEl, () => {
+            group.state.value = group.defaultValue();
+            if (inputEl) inputEl.checked = group.state.value === props.value;
+        });
+    });
+    onUnmounted(() => detachReset());
 
     const disabled = (): boolean => !!props.disabled || group.disabled();
     const isChecked = (): boolean => group.state.value === props.value;
@@ -155,8 +161,9 @@ const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal })
                 type="radio"
                 data-scope={SCOPE}
                 data-part="hidden-input"
-                style={HIDDEN_INPUT_STYLE}
+                style={VISUALLY_HIDDEN_STYLE}
                 name={group.name}
+                form={group.form()}
                 value={props.value}
                 model={group.state}
                 disabled={disabled()}
