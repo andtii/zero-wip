@@ -141,7 +141,9 @@ export function createCollection<T, V = T>(opts: CollectionOptions<T, V> = {}): 
     const registry = signal({ entries: [] as { id: number; entry: CollectionEntry }[] });
 
     const items = (): ReadonlyArray<T> => opts.items?.() ?? [];
-    const mode = (): 'data' | 'jsx' => (opts.items?.() ? 'data' : 'jsx');
+    // The ACCESSOR decides the mode, not what it returns right now: a data
+    // list that is still loading (undefined) is still a data list.
+    const mode = (): 'data' | 'jsx' => (opts.items ? 'data' : 'jsx');
     const byKey = (key: string): T | undefined => items().find((item) => keyOf(item) === key);
     const entryFor = (key: string): CollectionEntry | undefined => registry.entries.find((e) => e.entry.key === key)?.entry;
 

@@ -79,6 +79,15 @@ describe('createCollection — data mode', () => {
         expect(c.label('nope')).toBe('nope');
     });
 
+    it('a data list that is still loading is still a data list', () => {
+        const state = signal({ list: undefined as string[] | undefined });
+        const c = createCollection<string>({ items: () => state.list });
+        expect(c.mode()).toBe('data');
+        expect(c.keys()).toEqual([]);
+        state.list = ['a'];
+        expect(c.keys()).toEqual(['a']);
+    });
+
     it('items are read reactively', () => {
         const state = signal({ list: ['a'] as string[] });
         const c = createCollection<string>({ items: () => state.list });

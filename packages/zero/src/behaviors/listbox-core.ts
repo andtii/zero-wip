@@ -151,6 +151,12 @@ export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
         },
         pruneHighlight: (key) => { if (highlighted.value === key) highlighted.value = null; },
         optionId: (key) => `${opts.idBase}-option-${key}`,
-        activeDescendant: (open) => (open && highlighted.value !== null ? `${opts.idBase}-option-${highlighted.value}` : undefined),
+        // Never name a key that filtering has hidden — a dangling reference is
+        // invalid ARIA (the item's unmount prunes it, but a data-mode filter
+        // change can precede the unmount).
+        activeDescendant: (open) => {
+            const key = highlighted.value;
+            return open && key !== null && visibleKeys().includes(key) ? `${opts.idBase}-option-${key}` : undefined;
+        },
     };
 }

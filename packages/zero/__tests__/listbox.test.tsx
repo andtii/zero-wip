@@ -172,6 +172,13 @@ describe('createListboxCore — highlight', () => {
         q.q = 'd';
         lb.highlightSelectedOrFirst();
         expect(lb.highlighted.value).toBe('date');
+        // A filter change that hides the highlighted key drops the reference
+        // before any item unmounts.
+        q.q = 'apple';
+        expect(lb.highlighted.value).toBe('date');
+        expect(lb.activeDescendant(true)).toBeUndefined();
+        q.q = 'd';
+        expect(lb.activeDescendant(true)).toBe('x-option-date');
         lb.pruneHighlight('date');
         expect(lb.highlighted.value).toBeNull();
         expect(lb.activeDescendant(true)).toBeUndefined();
