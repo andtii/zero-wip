@@ -88,6 +88,8 @@ describe('the binding law: createControllableState returns a real sigx Model', (
         expect(timingModifiers({ trim: true, lazy: true, debounce: 200 })).toEqual({ lazy: true, debounce: 200 });
         expect(timingModifiers({ trim: true, number: true })).toBeUndefined();
         expect(timingModifiers({ lazy: false })).toBeUndefined();
+        // `0` is a value, not absence — the same test sigx applies.
+        expect(timingModifiers({ debounce: 0 })).toEqual({ debounce: 0 });
         expect(timingModifiers(undefined)).toBeUndefined();
     });
 });

@@ -21,7 +21,9 @@ export function timingModifiers(modifiers: ModelModifiers | undefined): ModelMod
     let out: Record<string, unknown> | undefined;
     for (const key of Object.keys(modifiers)) {
         const option = (modifiers as Record<string, unknown>)[key];
-        if (!option) continue;
+        // sigx's own absence test (resolveTiming / applyModelTransforms):
+        // `false` and nullish mean unset; `0` is a real zero-millisecond debounce.
+        if (option === false || option == null) continue;
         if (getModelModifier(key)?.timing) (out ??= {})[key] = option;
     }
     return out as ModelModifiers | undefined;

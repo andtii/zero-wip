@@ -38,11 +38,12 @@ import type { Define } from 'sigx';
 import { createControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { useFieldContext } from '../../behaviors/field.js';
+import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { segmentOptions, type OptionInput } from '../../behaviors/options.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
 import { nativeSelectAnatomy } from './anatomy.js';
 
 const SCOPE = nativeSelectAnatomy.scope;
@@ -63,6 +64,7 @@ export type NativeSelectRootProps =
     & Define.Prop<'required', boolean, false>
     & Define.Prop<'invalid', boolean, false>
     & WithDisabled
+    & WithModelModifiers
     & WithVariantAxes<'native-select'>
     & WithClass
     & Define.Slot<'default'>;
@@ -72,6 +74,7 @@ const NativeSelectRoot = component<NativeSelectRootProps>(({ props, slots, emit,
         () => props.model,
         props.defaultValue ?? '',
         (v) => emit('valueChange', v),
+        { modifiers: () => props.modelModifiers },
     );
     const field = useFieldContext();
     const baseId = createId('zx-native-select');
@@ -166,6 +169,7 @@ const NativeSelectRoot = component<NativeSelectRootProps>(({ props, slots, emit,
                 aria-invalid={invalid() ? 'true' : undefined}
                 aria-describedby={field.describedBy()}
                 model={state}
+                modelModifiers={timingModifiers(props.modelModifiers)}
                 ref={(node: HTMLSelectElement | null) => { el = node; }}
                 onFocus={() => { focus.visible = isFocusVisible(el); }}
                 onBlur={() => { focus.visible = false; }}

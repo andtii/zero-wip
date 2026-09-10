@@ -34,7 +34,7 @@ const SCOPE = textareaAnatomy.scope;
 
 interface TextareaContext {
     state: ControllableState<string>;
-    /** Timing modifiers for the native textarea (transforms ran at the boundary). */
+    /** Timing modifiers for the native textarea (transforms are applied at the boundary). */
     modifiers(): ModelModifiers | undefined;
     name(): string | undefined;
     autocomplete(): string | undefined;

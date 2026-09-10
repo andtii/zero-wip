@@ -47,7 +47,7 @@ export type InputType = 'text' | 'email' | 'password' | 'search' | 'tel' | 'url'
 interface InputContext {
     state: ControllableState<string>;
     type(): InputType;
-    /** Timing modifiers for the native input (transforms ran at the boundary). */
+    /** Timing modifiers for the native input (transforms are applied at the boundary). */
     modifiers(): ModelModifiers | undefined;
     name(): string | undefined;
     autocomplete(): string | undefined;
