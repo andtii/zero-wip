@@ -18,6 +18,9 @@
  * export const Select = compound(SelectRootImpl as unknown as Root, { … });
  * ```
  */
+// Type-only on purpose: `typeof component` below is a type QUERY, which
+// TypeScript permits on a type-only import — and this module must add no
+// runtime edge to sigx (it is on the DOM-free contract barrel).
 import type { AnyComponentFactory, component } from 'sigx';
 
 /**

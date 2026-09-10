@@ -117,6 +117,16 @@ describe('createListboxCore — selection', () => {
         expect(lb.displayText()).toBe('X');
     });
 
+    it('a disabled key is never selected, however the call arrived', () => {
+        const { backing, m } = model('');
+        const onSelect = vi.fn();
+        const lb = createListboxCore({ collection: fruits(), selection: m, idBase: 'x', onSelect });
+        lb.select('cherry');
+        expect(backing.v).toBe('');
+        expect(lb.selectedKeys()).toEqual([]);
+        expect(onSelect).not.toHaveBeenCalled();
+    });
+
     it('emptyValue is the single-select sentinel: read as empty, written by clear()', () => {
         const { backing, m } = model<unknown>(null);
         const lb = createListboxCore({ collection: fruits(), selection: m, idBase: 'x', emptyValue: null });

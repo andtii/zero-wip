@@ -118,6 +118,9 @@ export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
     };
 
     const select = (key: string): void => {
+        // The core keeps the invariant the bag and the highlight step keep:
+        // a disabled option is never selected, however the call arrived.
+        if (collection.isDisabled(key)) return;
         if (multiple()) {
             const keys = selectedKeys();
             const next = keys.includes(key) ? keys.filter((k) => k !== key) : [...keys, key];
