@@ -149,6 +149,17 @@ describe('createListboxCore — selection', () => {
         expect(lb.selectedKeys()).toEqual([]);
     });
 
+    it('under a null sentinel, an empty-string value is a legitimate selection', () => {
+        const { m } = model<unknown>('');
+        const c = createCollection<{ value: string; label: string }, string>({
+            items: () => [{ value: '', label: 'None' }, { value: 'a', label: 'A' }],
+            itemValue: (i) => i.value,
+        });
+        const lb = createListboxCore({ collection: c, selection: m, idBase: 'x', emptyValue: null });
+        expect(lb.selectedKeys()).toEqual(['']);
+        expect(lb.displayText()).toBe('None');
+    });
+
     it('a preset object model resolves its key before anything mounts', () => {
         const { m } = model<unknown>(FRUITS[3]);
         const lb = createListboxCore({ collection: fruits(), selection: m, idBase: 'x' });

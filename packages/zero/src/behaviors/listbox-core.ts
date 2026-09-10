@@ -37,7 +37,11 @@ export interface ListboxOptions<T> {
      * rendered is what is visible.
      */
     filter?: false | ((item: T, query: string) => boolean);
-    /** The single-select "nothing chosen" value (`''` for key models, `null` for object models). */
+    /**
+     * The single-select "nothing chosen" value: `''` by default (key models),
+     * `null` for object models. Only this value and nullish read as empty,
+     * so a different sentinel makes `''` a legitimate item value.
+     */
     emptyValue?: unknown;
     /** After a selection lands (Select closes; Combobox closes and fills its input). */
     onSelect?: (key: string) => void;
@@ -112,8 +116,9 @@ export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
     const selectedKeys = (): string[] => {
         const v = selection.value;
         if (multiple()) return Array.isArray(v) ? v.map((x) => collection.keyForValue(x)) : [];
-        // Empty is nullish, '', or the configured sentinel (an object model's null).
-        if (v === undefined || v === null || v === '' || Object.is(v, emptyValue)) return [];
+        // Empty is nullish or the configured sentinel — '' only because it is
+        // the default sentinel; under `emptyValue: null` an item may hold ''.
+        if (v === undefined || v === null || Object.is(v, emptyValue)) return [];
         return [collection.keyForValue(v)];
     };
 
