@@ -107,6 +107,16 @@ describe('createListboxCore — selection', () => {
         expect(backing.v).toEqual([]);
     });
 
+    it('multiple: toggling one key leaves values the collection cannot resolve untouched', () => {
+        const paged = { value: 'zeta', label: 'Zeta (not loaded)' };
+        const { backing, m } = model<unknown[]>([paged]);
+        const lb = createListboxCore({ collection: fruits(), selection: m, idBase: 'x', multiple: () => true });
+        lb.select('apple');
+        expect(backing.v).toEqual([paged, FRUITS[0]]);
+        lb.select('apple');
+        expect(backing.v).toEqual([paged]);
+    });
+
     it('JSX mode with no items: the value is the key', () => {
         const { backing, m } = model('');
         const c = createCollection<string>();

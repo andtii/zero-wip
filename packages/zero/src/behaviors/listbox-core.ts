@@ -122,9 +122,14 @@ export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
         // a disabled option is never selected, however the call arrived.
         if (collection.isDisabled(key)) return;
         if (multiple()) {
-            const keys = selectedKeys();
-            const next = keys.includes(key) ? keys.filter((k) => k !== key) : [...keys, key];
-            selection.value = next.map((k) => collection.valueForKey(k));
+            // Toggle ONE entry and keep the rest as they are: a value whose
+            // item is not in the collection right now (paged or async data)
+            // must not be round-tripped into a key string.
+            const current = Array.isArray(selection.value) ? selection.value : [];
+            const keys = current.map((x) => collection.keyForValue(x));
+            selection.value = keys.includes(key)
+                ? current.filter((_, i) => keys[i] !== key)
+                : [...current, collection.valueForKey(key)];
         } else {
             selection.value = collection.valueForKey(key);
         }
