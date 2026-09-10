@@ -14,9 +14,9 @@ export function syncPopover(getEl: () => HTMLElement | null, isOpen: () => boole
     effect(() => {
         const open = isOpen();
         const node = getEl() as PopoverElement | null;
-        if (!node || typeof node.showPopover !== 'function') return;
+        if (!node || typeof node.showPopover !== 'function' || typeof node.hidePopover !== 'function') return;
         const showing = node.matches(':popover-open');
         if (open && !showing) node.showPopover();
-        else if (!open && showing) node.hidePopover!();
+        else if (!open && showing) node.hidePopover();
     });
 }

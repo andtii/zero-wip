@@ -28,7 +28,13 @@ export interface CollectionOptions<T, V = T> {
     itemKey?: (item: T) => string;
     /** Display text and typeahead text. */
     itemLabel?: (item: T) => string;
-    /** What the model holds for this item (default: the item). */
+    /**
+     * What the model holds for this item (default: the item). Return a
+     * PRIMITIVE (a code, an id): a value is matched back to its item with
+     * `Object.is`, and an object's identity does not survive a sigx model
+     * (signals deep-proxy what they store). For an object model omit it —
+     * the item itself is matched by KEY, which does survive.
+     */
     itemValue?: (item: T) => V;
     itemDisabled?: (item: T) => boolean;
     /** Group heading; items sharing one render together, first-appearance order. */
@@ -156,14 +162,19 @@ export function createCollection<T, V = T>(opts: CollectionOptions<T, V> = {}): 
         isItemDisabled,
         byKey,
         byValue: (value) => {
-            if (opts.itemValue) return items().find((item) => Object.is(valueOf(item), value));
+            if (opts.itemValue) {
+                // Identity for primitives; a proxied object falls back to its key.
+                return items().find((item) => Object.is(valueOf(item), value))
+                    ?? (isRecord(value) ? byKey(keyOf(value as unknown as T)) : undefined);
+            }
             // The value IS an item (or its key form); match on identity.
             const key = keyOf(value as unknown as T);
             return byKey(key);
         },
         keyForValue: (value) => {
             if (opts.itemValue) {
-                const item = items().find((i) => Object.is(valueOf(i), value));
+                const item = items().find((i) => Object.is(valueOf(i), value))
+                    ?? (isRecord(value) ? byKey(keyOf(value as unknown as T)) : undefined);
                 return item !== undefined ? keyOf(item) : String(value);
             }
             return keyOf(value as unknown as T);

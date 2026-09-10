@@ -114,7 +114,7 @@ export function createListboxItem<T>(opts: ListboxItemOptions<T>): ListboxItem {
     const entry: CollectionEntry = { get key() { return key(); }, label, disabled: opts.disabled };
     const unregisterCollection = collection.register(entry);
     const item: ListItem = {
-        id: `option-${key()}`,
+        id: listbox.optionId(key()),
         get value() { return key(); },
         disabled: opts.disabled,
         el: opts.getEl,
