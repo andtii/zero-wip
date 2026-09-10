@@ -68,8 +68,11 @@ export function createListbox<T>(opts: WebListboxOptions<T>): Listbox<T> {
         ...core,
         typeahead: (e, current, onMatch) => {
             relay = onMatch;
-            run(e, current);
-            relay = null;
+            try {
+                run(e, current);
+            } finally {
+                relay = null;
+            }
         },
     };
 }
