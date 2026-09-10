@@ -99,8 +99,10 @@ export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
         // JSX mode: the rendered items, in DOM order when the registry knows it.
         const registered = collection.keys();
         if (!opts.list) return registered;
-        const ordered = opts.list.items().map((i) => i.value).filter((k) => registered.includes(k));
-        for (const k of registered) if (!ordered.includes(k)) ordered.push(k);
+        const known = new Set(registered);
+        const ordered = opts.list.items().map((i) => i.value).filter((k) => known.has(k));
+        const placed = new Set(ordered);
+        for (const k of registered) if (!placed.has(k)) ordered.push(k);
         return ordered;
     };
 
@@ -109,7 +111,8 @@ export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
     const selectedKeys = (): string[] => {
         const v = selection.value;
         if (multiple()) return Array.isArray(v) ? v.map((x) => collection.keyForValue(x)) : [];
-        if (v === undefined || v === null || v === '') return [];
+        // Empty is nullish, '', or the configured sentinel (an object model's null).
+        if (v === undefined || v === null || v === '' || Object.is(v, emptyValue)) return [];
         return [collection.keyForValue(v)];
     };
 

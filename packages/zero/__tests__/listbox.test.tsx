@@ -117,6 +117,18 @@ describe('createListboxCore — selection', () => {
         expect(lb.displayText()).toBe('X');
     });
 
+    it('emptyValue is the single-select sentinel: read as empty, written by clear()', () => {
+        const { backing, m } = model<unknown>(null);
+        const lb = createListboxCore({ collection: fruits(), selection: m, idBase: 'x', emptyValue: null });
+        expect(lb.selectedKeys()).toEqual([]);
+        expect(lb.displayText()).toBe('');
+        lb.select('apple');
+        expect(lb.selectedKeys()).toEqual(['apple']);
+        lb.clear();
+        expect(backing.v).toBeNull();
+        expect(lb.selectedKeys()).toEqual([]);
+    });
+
     it('a preset object model resolves its key before anything mounts', () => {
         const { m } = model<unknown>(FRUITS[3]);
         const lb = createListboxCore({ collection: fruits(), selection: m, idBase: 'x' });
