@@ -36,6 +36,18 @@ Navbar · Breadcrumbs · Pagination · Steps · Drawer · Table · FileUpload ·
 All state is one two-way `model` prop (sigx `Define.Model`) — bind a signal
 property with `model={() => state.open}`, or leave it uncontrolled with
 `defaultOpen` / `defaultValue`. No controlled/uncontrolled prop triplets.
+
+**The binding law.** Every zero model *is* a sigx `Model`, and every native
+control zero renders binds to it with `model=` — never a hand-wired
+`value=`/`onInput` pair. sigx's platform processor owns the write-back, so a
+zero wrapper does everything the raw element does: `modelModifiers`
+(`trim`, `number`, `lazy`, `debounce`, custom) work on `Input.Root` and
+`Textarea.Root` exactly as on a bare `<input>`, a `Checkbox.Root` bound to a
+`string[]` is sigx's array mode (several boxes toggling their own `value`'s
+membership), and a `RadioGroup.Item` is a real radio bound to the group's
+model. Value transforms run once at the component boundary; timing reaches
+the element. `createControllableState` (public, `@sigx/zero/behaviors`)
+returns that Model, and `createInertState` seeds a part's fallback context.
 Native-platform first: `<dialog>` +
 top layer (no Portal), the `popover` attribute, `<details>`, real form
 inputs. SSR-safe ids via `app.use(zeroPlugin())` per request.

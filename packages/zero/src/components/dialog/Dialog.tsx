@@ -19,7 +19,7 @@
  */
 import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
 import type { Define } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { createDismissable } from '../../behaviors/dismiss.js';
 import { createFocusRestore } from '../../behaviors/focus.js';
@@ -48,12 +48,8 @@ interface DialogContext {
 }
 
 function makeInert(): DialogContext {
-    let open = false;
     return {
-        state: {
-            get value() { return open; },
-            set value(v: boolean) { open = v; },
-        },
+        state: createInertState<boolean>(false),
         modal: () => true,
         dismissible: () => true,
         role: () => 'dialog',

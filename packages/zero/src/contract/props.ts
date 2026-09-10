@@ -2,7 +2,7 @@
  * Common prop fragments — component props intersect these instead of
  * redeclaring the conventions, so the vocabulary can't drift.
  */
-import type { Define } from 'sigx';
+import type { Define, ModelModifiers } from 'sigx';
 import type { AxesFor, ColorValueFor, ModsFor, SizeScaleFor, VariantValueFor } from './vocabulary.js';
 // Type-only, and acyclic: the anatomy registry imports per-component
 // anatomy.ts data modules, none of which reach back into contract/props.
@@ -19,6 +19,15 @@ export type WithClass = Define.Prop<'class', string, false>;
 
 /** Disabled: non-interactive + `data-disabled` on every part. */
 export type WithDisabled = Define.Prop<'disabled', boolean, false>;
+
+/**
+ * sigx's `modelModifiers` (`trim`, `number`, `lazy`, `debounce`, custom) on a
+ * component that renders a native control. sigx reads the prop on any
+ * component but types it only on intrinsic elements, so a Root that forwards
+ * timing to its element declares it here. Value transforms apply once at the
+ * component boundary; timing reaches the element via `timingModifiers()`.
+ */
+export type WithModelModifiers = Define.Prop<'modelModifiers', ModelModifiers, false>;
 
 /**
  * Semantic color of the component — passes through as `data-color`.

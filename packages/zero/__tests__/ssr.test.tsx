@@ -273,6 +273,10 @@ describe('SSR', () => {
         // The toast viewport server-renders as an empty top-layer region.
         expect(html).toMatch(/<ol[^>]*data-scope="toast"[^>]*popover="manual"/);
         expect(html).not.toMatch(/data-scope="toast"[^>]*data-part="root"/);
+        // Native controls bound with model= carry their resting value on the
+        // server — sigx's processor runs there too, so no hand-wired value=.
+        expect(html).toMatch(/<input[^>]*data-scope="input"[^>]*data-part="input"[^>]*value="a@b.c"/);
+        expect(html).toMatch(/<input[^>]*data-scope="switch"[^>]*data-part="hidden-input"[^>]*checked/);
         // The combobox posts pre-hydration and renders its popup closed.
         expect(html).toMatch(/data-scope="combobox"[^>]*data-part="hidden-input"[^>]*value="apple"/);
         // The select posts pre-hydration too, and its listbox renders closed.

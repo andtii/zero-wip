@@ -42,7 +42,7 @@
  */
 import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { createListController, moveHighlight, optionText, type ListController, type ListItem } from '../../behaviors/list.js';
 import { createTypeahead } from '../../behaviors/typeahead.js';
@@ -86,12 +86,8 @@ interface SelectContext {
 }
 
 function makeInert(): SelectContext {
-    let value = '';
     return {
-        state: {
-            get value() { return value; },
-            set value(v: string) { value = v; },
-        },
+        state: createInertState<string>(''),
         open: { value: false },
         highlighted: { value: null },
         list: createListController(),

@@ -34,7 +34,7 @@
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define, Model } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { createRovingKeydown } from '../../behaviors/roving.js';
 import { createTypeahead } from '../../behaviors/typeahead.js';
@@ -98,12 +98,8 @@ interface TreeBranchContext {
 }
 
 function makeInert(): TreeViewContext {
-    let value = '';
     return {
-        selected: {
-            get value() { return value; },
-            set value(v: string) { value = v; },
-        },
+        selected: createInertState<string>(''),
         tree: createTreeController({ isExpanded: () => true }),
         labelId: () => 'zx-tree-inert',
         disabled: () => false,

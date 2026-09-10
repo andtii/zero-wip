@@ -27,7 +27,7 @@
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { useFieldContext } from '../../behaviors/field.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
@@ -75,12 +75,8 @@ interface NumberInputContext {
 }
 
 function makeInert(): NumberInputContext {
-    let value: number | null = null;
     return {
-        state: {
-            get value() { return value; },
-            set value(v: number | null) { value = v; },
-        },
+        state: createInertState<number | null>(null),
         draft: { current: null },
         inputId: () => 'zx-number-inert',
         disabled: () => false,

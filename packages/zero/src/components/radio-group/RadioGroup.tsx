@@ -9,11 +9,13 @@
  * ```
  *
  * Arrow-key roving comes from the platform (same-name radios); the group id
- * comes from `createId`, never a module counter.
+ * comes from `createId`, never a module counter. Each radio binds the group's
+ * model with `model=` — sigx's radio processor checks the one whose `value`
+ * matches and writes that value back, exactly as it would for a raw radio.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { useFieldContext } from '../../behaviors/field.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
@@ -46,12 +48,8 @@ interface RadioGroupContext {
 }
 
 function makeInert(): RadioGroupContext {
-    let value = '';
     return {
-        state: {
-            get value() { return value; },
-            set value(v: string) { value = v; },
-        },
+        state: createInertState<string>(''),
         name: 'zx-radio-inert',
         disabled: () => false,
         invalid: () => false,
@@ -160,14 +158,11 @@ const RadioGroupItem = component<RadioGroupItemProps>(({ props, slots, signal })
                 style={HIDDEN_INPUT_STYLE}
                 name={group.name}
                 value={props.value}
-                checked={isChecked()}
+                model={group.state}
                 disabled={disabled()}
                 required={group.required()}
                 aria-invalid={group.invalid() ? 'true' : undefined}
                 ref={(node: HTMLInputElement | null) => { inputEl = node; }}
-                onChange={(e: Event) => {
-                    if ((e.target as HTMLInputElement).checked) group.state.value = props.value;
-                }}
                 onFocus={() => { focus.visible = isFocusVisible(inputEl); }}
                 onBlur={(e: FocusEvent) => {
                     press.onBlur(e);

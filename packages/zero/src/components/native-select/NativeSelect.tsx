@@ -165,10 +165,8 @@ const NativeSelectRoot = component<NativeSelectRootProps>(({ props, slots, emit,
                 required={required()}
                 aria-invalid={invalid() ? 'true' : undefined}
                 aria-describedby={field.describedBy()}
+                model={state}
                 ref={(node: HTMLSelectElement | null) => { el = node; }}
-                onChange={(e: Event) => {
-                    state.value = (e.target as HTMLSelectElement).value;
-                }}
                 onFocus={() => { focus.visible = isFocusVisible(el); }}
                 onBlur={() => { focus.visible = false; }}
             >

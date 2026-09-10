@@ -19,7 +19,7 @@
  */
 import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
 import type { Define } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { createFocusRestore, focusFirst } from '../../behaviors/focus.js';
@@ -46,12 +46,8 @@ interface PopoverContext {
 }
 
 function makeInert(): PopoverContext {
-    let open = false;
     return {
-        state: {
-            get value() { return open; },
-            set value(v: boolean) { open = v; },
-        },
+        state: createInertState<boolean>(false),
         ids: { popup: 'zx-popover-inert', title: 'zx-popover-inert-title' },
         titlePresent: () => false,
         setTitlePresent: () => {},

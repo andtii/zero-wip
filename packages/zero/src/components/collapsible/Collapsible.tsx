@@ -14,7 +14,7 @@
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
@@ -32,12 +32,8 @@ interface CollapsibleContext {
 }
 
 function makeInert(): CollapsibleContext {
-    let open = false;
     return {
-        state: {
-            get value() { return open; },
-            set value(v: boolean) { open = v; },
-        },
+        state: createInertState<boolean>(false),
         disabled: () => false,
         ids: { panel: 'zx-collapsible-inert-panel' },
     };
