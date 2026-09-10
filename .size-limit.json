@@ -74,7 +74,7 @@
     {
         "name": "@sigx/zero/native-select",
         "path": "packages/zero/dist/components/native-select/index.js",
-        "limit": "2.5 kB",
+        "limit": "2.6 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

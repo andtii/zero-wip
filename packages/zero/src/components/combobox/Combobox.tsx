@@ -366,6 +366,7 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal,
             data-scope={SCOPE}
             data-part="root"
             {...fc.flags()}
+            data-readonly={dataAttr(ctx.readonly())}
             {...variantAttrs(props)}
             class={props.class}
         >

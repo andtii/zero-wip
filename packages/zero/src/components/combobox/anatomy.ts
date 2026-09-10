@@ -4,7 +4,7 @@ import { PLACEMENT_VOCABULARY } from '../../contract/data-attrs.js';
 export const comboboxAnatomy = defineAnatomy('combobox', {
     root: {
         element: 'div',
-        flags: ['disabled', 'invalid', 'required'],
+        flags: ['disabled', 'invalid', 'required', 'readonly'],
         tokens: ['color'],
     },
     // The bordered "field chrome" wrapping input + trigger. It mirrors the
