@@ -3,7 +3,7 @@ import { defineAnatomy } from '../../contract/anatomy.js';
 export const fieldAnatomy = defineAnatomy('field', {
     root: {
         element: 'div',
-        flags: ['disabled', 'invalid', 'required'],
+        flags: ['disabled', 'invalid', 'required', 'readonly'],
         tokens: ['color'],
     },
     label: {

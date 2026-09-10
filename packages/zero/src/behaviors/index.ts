@@ -39,5 +39,11 @@ export type {
 export { useFieldContext, provideFieldContext } from './field.js';
 export type { FieldContext } from './field.js';
 
+export { createFormControl } from './form-control.js';
+export type { FormControl, FormControlOptions, FormControlProps, FormControlFlags } from './form-control.js';
+export { onFormReset } from './form-reset.js';
+export type { FormOwned } from './form-reset.js';
+export { VISUALLY_HIDDEN_STYLE } from './visually-hidden.js';
+
 export { segmentOptions } from './options.js';
 export type { OptionInput, OptionSegment } from './options.js';

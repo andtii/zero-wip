@@ -24,13 +24,13 @@
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define, ModelModifiers } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
-import { createId } from '../../behaviors/create-id.js';
-import { useFieldContext } from '../../behaviors/field.js';
+import { createFormControl } from '../../behaviors/form-control.js';
+import { onFormReset } from '../../behaviors/form-reset.js';
 import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithFormControl, WithModelModifiers, WithReadonly, WithVariantAxes } from '../../contract/props.js';
 import { inputAnatomy } from './anatomy.js';
 
 const SCOPE = inputAnatomy.scope;
@@ -50,6 +50,8 @@ interface InputContext {
     /** Timing modifiers for the native input (transforms are applied at the boundary). */
     modifiers(): ModelModifiers | undefined;
     name(): string | undefined;
+    form(): string | undefined;
+    defaultValue(): string;
     autocomplete(): string | undefined;
     maxlength(): number | undefined;
     inputId(): string;
@@ -68,6 +70,8 @@ function makeInert(): InputContext {
         type: () => 'text',
         modifiers: () => undefined,
         name: () => undefined,
+        form: () => undefined,
+        defaultValue: () => '',
         autocomplete: () => undefined,
         maxlength: () => undefined,
         inputId: () => 'zx-input-inert',
@@ -90,14 +94,11 @@ export type InputRootProps =
     & Define.Prop<'defaultValue', string, false>
     & Define.Event<'valueChange', string>
     & Define.Prop<'type', InputType, false>
-    & Define.Prop<'name', string, false>
     /** Native autofill hint — `email`, `current-password`, `off`, … */
     & Define.Prop<'autocomplete', string, false>
     & Define.Prop<'maxlength', number, false>
-    & Define.Prop<'required', boolean, false>
-    & Define.Prop<'invalid', boolean, false>
-    & Define.Prop<'readonly', boolean, false>
-    & WithDisabled
+    & WithFormControl
+    & WithReadonly
     & WithModelModifiers
     & WithVariantAxes<'input'>
     & WithClass
@@ -110,31 +111,27 @@ const InputRoot = component<InputRootProps>(({ props, slots, emit, signal }) => 
         (v) => emit('valueChange', v),
         { modifiers: () => props.modelModifiers },
     );
-    const field = useFieldContext();
-    const baseId = createId('zx-input');
+    const fc = createFormControl({ props: () => props, idBase: 'zx-input', controlPart: 'input' });
     const focusVisible = signal({ value: false });
-
-    const disabled = (): boolean => !!props.disabled || field.disabled();
-    const invalid = (): boolean => !!props.invalid || field.invalid();
-    const required = (): boolean => !!props.required || field.required();
-    const readonly = (): boolean => !!props.readonly;
 
     const ctx: InputContext = {
         state,
         type: () => props.type ?? 'text',
         modifiers: () => timingModifiers(props.modelModifiers),
-        name: () => props.name,
+        name: fc.name,
+        form: fc.form,
+        defaultValue: () => props.defaultValue ?? '',
         autocomplete: () => props.autocomplete,
         maxlength: () => props.maxlength,
         // Inside a Field the field owns the id, so its `<label for>` lands on
         // this input; standalone we mint our own.
-        inputId: () => (field.inert ? `${baseId}-input` : field.ids.control),
-        labelId: () => (field.inert ? `${baseId}-label` : field.ids.label),
-        describedBy: () => (field.inert ? undefined : field.describedBy()),
-        disabled,
-        invalid,
-        required,
-        readonly,
+        inputId: fc.controlId,
+        labelId: fc.labelId,
+        describedBy: fc.describedBy,
+        disabled: fc.disabled,
+        invalid: fc.invalid,
+        required: fc.required,
+        readonly: fc.readonly,
         focusVisible,
     };
     defineProvide(useInputContext, () => ctx);
@@ -143,10 +140,8 @@ const InputRoot = component<InputRootProps>(({ props, slots, emit, signal }) => 
         <div
             data-scope={SCOPE}
             data-part="root"
-            data-disabled={dataAttr(disabled())}
-            data-invalid={dataAttr(invalid())}
-            data-required={dataAttr(required())}
-            data-readonly={dataAttr(readonly())}
+            {...fc.flags()}
+            data-readonly={dataAttr(fc.readonly())}
             {...variantAttrs(props)}
             class={props.class}
         >
@@ -204,15 +199,27 @@ export type InputInputProps =
     & Define.Prop<'placeholder', string, false>
     & WithClass;
 
-const InputInput = component<InputInputProps>(({ props }) => {
+const InputInput = component<InputInputProps>(({ props, onMounted, onUnmounted }) => {
     const ctx = useInputContext();
     let el: HTMLInputElement | null = null;
+
+    // Reset restores the default into the model, then the element — see
+    // onFormReset for why the element needs it too.
+    let detachReset = (): void => {};
+    onMounted(() => {
+        detachReset = onFormReset(() => el, () => {
+            ctx.state.value = ctx.defaultValue();
+            if (el) el.value = ctx.state.value;
+        });
+    });
+    onUnmounted(() => detachReset());
 
     return () => (
         <input
             id={ctx.inputId()}
             type={ctx.type()}
             name={ctx.name()}
+            form={ctx.form()}
             autoComplete={ctx.autocomplete()}
             maxLength={ctx.maxlength()}
             data-scope={SCOPE}

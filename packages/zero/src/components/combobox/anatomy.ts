@@ -70,8 +70,11 @@ export const comboboxAnatomy = defineAnatomy('combobox', {
         parent: 'popup',
         tokens: ['color', 'text'],
     },
+    // A real <select>, visually hidden: the form control the platform
+    // validates (required), resets, autofills and posts. Rendered only
+    // while the root carries a name.
     'hidden-input': {
-        element: 'input',
+        element: 'select',
         parent: 'root',
     },
 });

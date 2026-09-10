@@ -29,6 +29,24 @@ export type WithDisabled = Define.Prop<'disabled', boolean, false>;
  */
 export type WithModelModifiers = Define.Prop<'modelModifiers', ModelModifiers, false>;
 
+// ── The form vocabulary ──
+// One spelling per prop, so thirteen components cannot drift on what
+// `name`/`form`/`invalid`/`required`/`readonly` mean. The runtime half is
+// `createFormControl` (behaviors/form-control.ts).
+
+/** The field name the control posts under. Absent → the control does not post. */
+export type WithName = Define.Prop<'name', string, false>;
+/** The `form` attribute: associate with a form by id from outside its subtree. */
+export type WithForm = Define.Prop<'form', string, false>;
+/** Invalid: `aria-invalid` + `data-invalid`. The prop OR the Field's. */
+export type WithInvalid = Define.Prop<'invalid', boolean, false>;
+/** Required: the native attribute + `data-required`. The prop OR the Field's. */
+export type WithRequired = Define.Prop<'required', boolean, false>;
+/** Read-only: the native attribute + `data-readonly`. The prop OR the Field's. */
+export type WithReadonly = Define.Prop<'readonly', boolean, false>;
+/** What every posting control takes: name, form, disabled, invalid, required. */
+export type WithFormControl = WithName & WithForm & WithDisabled & WithInvalid & WithRequired;
+
 /**
  * Semantic color of the component — passes through as `data-color`.
  * Recommended roles autocomplete; any DS-declared role name is valid. Generic

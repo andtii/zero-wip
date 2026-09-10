@@ -277,10 +277,12 @@ describe('SSR', () => {
         // server — sigx's processor runs there too, so no hand-wired value=.
         expect(html).toMatch(/<input[^>]*data-scope="input"[^>]*data-part="input"[^>]*value="a@b.c"/);
         expect(html).toMatch(/<input[^>]*data-scope="switch"[^>]*data-part="hidden-input"[^>]*checked/);
-        // The combobox posts pre-hydration and renders its popup closed.
-        expect(html).toMatch(/data-scope="combobox"[^>]*data-part="hidden-input"[^>]*value="apple"/);
+        // The combobox posts pre-hydration through a real hidden <select>:
+        // the selection is `selected` on its option, since a <select> has no
+        // value attribute of its own (#441).
+        expect(html).toMatch(/<select[^>]*data-scope="combobox"[^>]*data-part="hidden-input"[^>]*>[\s\S]*?<option value="apple"[^>]*selected/);
         // The select posts pre-hydration too, and its listbox renders closed.
-        expect(html).toMatch(/data-scope="select"[^>]*data-part="hidden-input"[^>]*value="cat"/);
+        expect(html).toMatch(/<select[^>]*data-scope="select"[^>]*data-part="hidden-input"[^>]*>[\s\S]*?<option value="cat"[^>]*selected/);
         expect(html).toMatch(/data-scope="select"[^>]*data-part="popup"[^>]*data-state="closed"/);
         expect(html).toMatch(/data-scope="combobox"[^>]*data-part="popup"[^>]*data-state="closed"/);
         // The native select posts pre-hydration — server markup carries the

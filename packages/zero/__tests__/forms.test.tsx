@@ -5,6 +5,7 @@ import {
     Accordion,
     Checkbox,
     Field,
+    Input,
     Progress,
     RadioGroup,
     Slider,
@@ -60,6 +61,23 @@ describe('Checkbox', () => {
 });
 
 describe('Field', () => {
+    it('readonly is the fourth flag a control adopts from its Field (#441)', () => {
+        render(
+            <Field.Root readonly>
+                <Field.Label>Email</Field.Label>
+                <Input.Root name="email" defaultValue="a@b.c">
+                    <Input.Control><Input.Input /></Input.Control>
+                </Input.Root>
+            </Field.Root>,
+            container,
+        );
+        expectAnatomy(container, fieldAnatomy);
+        expect(container.querySelector('[data-scope="field"][data-part="root"]')!.hasAttribute('data-readonly')).toBe(true);
+        const input = container.querySelector<HTMLInputElement>('[data-scope="input"][data-part="input"]')!;
+        expect(input.readOnly).toBe(true);
+        expect(container.querySelector('[data-scope="input"][data-part="root"]')!.hasAttribute('data-readonly')).toBe(true);
+    });
+
     it('wires label/description/error to the control', () => {
         render(
             <Field.Root invalid required>

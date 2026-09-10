@@ -21,13 +21,13 @@
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define, ModelModifiers } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
-import { createId } from '../../behaviors/create-id.js';
-import { useFieldContext } from '../../behaviors/field.js';
+import { createFormControl } from '../../behaviors/form-control.js';
+import { onFormReset } from '../../behaviors/form-reset.js';
 import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithFormControl, WithModelModifiers, WithReadonly, WithVariantAxes } from '../../contract/props.js';
 import { textareaAnatomy } from './anatomy.js';
 
 const SCOPE = textareaAnatomy.scope;
@@ -37,6 +37,8 @@ interface TextareaContext {
     /** Timing modifiers for the native textarea (transforms are applied at the boundary). */
     modifiers(): ModelModifiers | undefined;
     name(): string | undefined;
+    form(): string | undefined;
+    defaultValue(): string;
     autocomplete(): string | undefined;
     maxlength(): number | undefined;
     rows(): number | undefined;
@@ -55,6 +57,8 @@ function makeInert(): TextareaContext {
         state: createInertState<string>(''),
         modifiers: () => undefined,
         name: () => undefined,
+        form: () => undefined,
+        defaultValue: () => '',
         autocomplete: () => undefined,
         maxlength: () => undefined,
         rows: () => undefined,
@@ -77,15 +81,12 @@ export type TextareaRootProps =
     & Define.Model<string>
     & Define.Prop<'defaultValue', string, false>
     & Define.Event<'valueChange', string>
-    & Define.Prop<'name', string, false>
     /** Native autofill hint — `street-address`, `off`, … */
     & Define.Prop<'autocomplete', string, false>
     & Define.Prop<'maxlength', number, false>
     & Define.Prop<'rows', number, false>
-    & Define.Prop<'required', boolean, false>
-    & Define.Prop<'invalid', boolean, false>
-    & Define.Prop<'readonly', boolean, false>
-    & WithDisabled
+    & WithFormControl
+    & WithReadonly
     & WithModelModifiers
     & WithVariantAxes<'textarea'>
     & WithClass
@@ -98,29 +99,25 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
         (v) => emit('valueChange', v),
         { modifiers: () => props.modelModifiers },
     );
-    const field = useFieldContext();
-    const baseId = createId('zx-textarea');
+    const fc = createFormControl({ props: () => props, idBase: 'zx-textarea' });
     const focusVisible = signal({ value: false });
-
-    const disabled = (): boolean => !!props.disabled || field.disabled();
-    const invalid = (): boolean => !!props.invalid || field.invalid();
-    const required = (): boolean => !!props.required || field.required();
-    const readonly = (): boolean => !!props.readonly;
 
     const ctx: TextareaContext = {
         state,
         modifiers: () => timingModifiers(props.modelModifiers),
-        name: () => props.name,
+        name: fc.name,
+        form: fc.form,
+        defaultValue: () => props.defaultValue ?? '',
         autocomplete: () => props.autocomplete,
         maxlength: () => props.maxlength,
         rows: () => props.rows,
-        controlId: () => (field.inert ? `${baseId}-control` : field.ids.control),
-        labelId: () => (field.inert ? `${baseId}-label` : field.ids.label),
-        describedBy: () => (field.inert ? undefined : field.describedBy()),
-        disabled,
-        invalid,
-        required,
-        readonly,
+        controlId: fc.controlId,
+        labelId: fc.labelId,
+        describedBy: fc.describedBy,
+        disabled: fc.disabled,
+        invalid: fc.invalid,
+        required: fc.required,
+        readonly: fc.readonly,
         focusVisible,
     };
     defineProvide(useTextareaContext, () => ctx);
@@ -129,10 +126,8 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
         <div
             data-scope={SCOPE}
             data-part="root"
-            data-disabled={dataAttr(disabled())}
-            data-invalid={dataAttr(invalid())}
-            data-required={dataAttr(required())}
-            data-readonly={dataAttr(readonly())}
+            {...fc.flags()}
+            data-readonly={dataAttr(fc.readonly())}
             {...variantAttrs(props)}
             class={props.class}
         >
@@ -169,14 +164,24 @@ export type TextareaTextareaProps =
     & Define.Prop<'placeholder', string, false>
     & WithClass;
 
-const TextareaTextarea = component<TextareaTextareaProps>(({ props }) => {
+const TextareaTextarea = component<TextareaTextareaProps>(({ props, onMounted, onUnmounted }) => {
     const ctx = useTextareaContext();
     let el: HTMLTextAreaElement | null = null;
+
+    let detachReset = (): void => {};
+    onMounted(() => {
+        detachReset = onFormReset(() => el, () => {
+            ctx.state.value = ctx.defaultValue();
+            if (el) el.value = ctx.state.value;
+        });
+    });
+    onUnmounted(() => detachReset());
 
     return () => (
         <textarea
             id={ctx.controlId()}
             name={ctx.name()}
+            form={ctx.form()}
             autoComplete={ctx.autocomplete()}
             maxLength={ctx.maxlength()}
             rows={ctx.rows()}

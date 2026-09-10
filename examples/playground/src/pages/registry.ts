@@ -14,6 +14,7 @@ import { togglePage } from './toggle';
 import { toggleGroupPage } from './toggle-group';
 import { swapPage } from './swap';
 import { fieldPage } from './field';
+import { formsPage } from './forms';
 import { inputPage } from './input';
 import { textareaPage } from './textarea';
 import { fileUploadPage } from './file-upload';
@@ -95,6 +96,7 @@ export const pages: PageEntry[] = [
     swapPage,
     joinPage,
     fieldPage,
+    formsPage,
     inputPage,
     textareaPage,
     fileUploadPage,

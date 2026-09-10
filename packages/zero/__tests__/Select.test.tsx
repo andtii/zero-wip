@@ -31,7 +31,7 @@ describe('Select', () => {
         );
     }
 
-    it('renders anatomy with combobox/listbox semantics and a hidden form input', () => {
+    it('renders anatomy with combobox/listbox semantics and a hidden form select', () => {
         mount(signal({ fruit: '' }));
         expectAnatomy(container, selectAnatomy);
         const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
@@ -39,7 +39,7 @@ describe('Select', () => {
         expect(trigger.getAttribute('aria-haspopup')).toBe('listbox');
         expect(container.querySelector('[data-part="popup"]')!.getAttribute('role')).toBe('listbox');
         expect(container.querySelectorAll('[role="option"]').length).toBe(3);
-        const hidden = container.querySelector<HTMLInputElement>('input[type="hidden"]')!;
+        const hidden = container.querySelector<HTMLSelectElement>('select[data-part="hidden-input"]')!;
         expect(hidden.name).toBe('fruit');
         expect(trigger.getAttribute('data-placeholder')).toBe('');
         expect(container.querySelector('[data-part="value"]')!.textContent).toBe('Pick a fruit…');
@@ -57,7 +57,7 @@ describe('Select', () => {
         expect(state.fruit).toBe('banana');
         expect(trigger.getAttribute('aria-expanded')).toBe('false');
         expect(container.querySelector('[data-part="value"]')!.textContent).toBe('Banana');
-        expect(container.querySelector<HTMLInputElement>('input[type="hidden"]')!.value).toBe('banana');
+        expect(container.querySelector<HTMLSelectElement>('select[data-part="hidden-input"]')!.value).toBe('banana');
     });
 
     it('full keyboard flow: open, arrow, select via activedescendant', () => {
@@ -300,8 +300,8 @@ describe('Select', () => {
             // `disabled` flows onto the generated item.
             expect(items[2]!.getAttribute('data-disabled')).toBe('');
             expect(items[2]!.getAttribute('aria-disabled')).toBe('true');
-            // The hidden input still posts.
-            expect(container.querySelector<HTMLInputElement>('input[type="hidden"]')!.name).toBe('fruit');
+            // The hidden select still posts.
+            expect(container.querySelector<HTMLSelectElement>('select[data-part="hidden-input"]')!.name).toBe('fruit');
         });
 
         it('groups render per distinct `group` in first-appearance order, ungrouped stay in place', async () => {

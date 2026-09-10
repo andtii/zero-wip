@@ -36,14 +36,14 @@
 import { component, compound, effect } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState } from '../../behaviors/controllable.js';
-import { createId } from '../../behaviors/create-id.js';
-import { useFieldContext } from '../../behaviors/field.js';
+import { createFormControl } from '../../behaviors/form-control.js';
+import { onFormReset } from '../../behaviors/form-reset.js';
 import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { segmentOptions, type OptionInput } from '../../behaviors/options.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithFormControl, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
 import { nativeSelectAnatomy } from './anatomy.js';
 
 const SCOPE = nativeSelectAnatomy.scope;
@@ -60,31 +60,27 @@ export type NativeSelectRootProps =
     & Define.Prop<'options', ReadonlyArray<OptionInput>, false>
     /** Rendered as the conventional disabled empty first option. */
     & Define.Prop<'placeholder', string, false>
-    & Define.Prop<'name', string, false>
-    & Define.Prop<'required', boolean, false>
-    & Define.Prop<'invalid', boolean, false>
-    & WithDisabled
+    & WithFormControl
     & WithModelModifiers
     & WithVariantAxes<'native-select'>
     & WithClass
     & Define.Slot<'default'>;
 
-const NativeSelectRoot = component<NativeSelectRootProps>(({ props, slots, emit, signal, onMounted }) => {
+const NativeSelectRoot = component<NativeSelectRootProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
     const state = createControllableState<string>(
         () => props.model,
         props.defaultValue ?? '',
         (v) => emit('valueChange', v),
         { modifiers: () => props.modelModifiers },
     );
-    const field = useFieldContext();
-    const baseId = createId('zx-native-select');
+    const fc = createFormControl({ props: () => props, idBase: 'zx-native-select' });
     const focus = signal({ visible: false });
     let el: HTMLSelectElement | null = null;
 
-    const controlId = (): string => (field.inert ? `${baseId}-control` : field.ids.control);
-    const disabled = (): boolean => !!props.disabled || field.disabled();
-    const invalid = (): boolean => !!props.invalid || field.invalid();
-    const required = (): boolean => !!props.required || field.required();
+    const controlId = fc.controlId;
+    const disabled = fc.disabled;
+    const invalid = fc.invalid;
+    const required = fc.required;
     // A fact about the RESTING DISPLAY, not the value alone: without a
     // placeholder option an empty model shows the first real option, and
     // graying that would gray a legitimate choice.
@@ -114,6 +110,15 @@ const NativeSelectRoot = component<NativeSelectRootProps>(({ props, slots, emit,
             el.value = value;
         });
     });
+    let detachReset = (): void => {};
+    onMounted(() => {
+        detachReset = onFormReset(() => el, () => {
+            state.value = props.defaultValue ?? '';
+            if (el && props.placeholder !== undefined) el.value = state.value;
+            else if (el) el.value = state.value || el.options[0]?.value || '';
+        });
+    });
+    onUnmounted(() => detachReset());
 
     const flags = () => ({
         'data-disabled': dataAttr(disabled()),
@@ -163,11 +168,12 @@ const NativeSelectRoot = component<NativeSelectRootProps>(({ props, slots, emit,
                 data-scope={SCOPE}
                 data-part="control"
                 {...flags()}
-                name={props.name}
+                name={fc.name()}
+                form={fc.form()}
                 disabled={disabled()}
                 required={required()}
                 aria-invalid={invalid() ? 'true' : undefined}
-                aria-describedby={field.describedBy()}
+                aria-describedby={fc.describedBy()}
                 model={state}
                 modelModifiers={timingModifiers(props.modelModifiers)}
                 ref={(node: HTMLSelectElement | null) => { el = node; }}

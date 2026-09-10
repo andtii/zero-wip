@@ -28,21 +28,15 @@
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
-import { createId } from '../../behaviors/create-id.js';
-import { useFieldContext } from '../../behaviors/field.js';
+import { createFormControl } from '../../behaviors/form-control.js';
+import { onFormReset } from '../../behaviors/form-reset.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { createSpinPress } from '../../behaviors/spin.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
 import { variantAttrs } from '../../contract/props.js';
-import type {
-    PartProps,
-    WithAsChild,
-    WithClass,
-    WithDisabled,
-    WithVariantAxes,
-} from '../../contract/props.js';
+import type { PartProps, WithAsChild, WithClass, WithDisabled, WithFormControl, WithReadonly, WithVariantAxes } from '../../contract/props.js';
 import { clamp, snapToStep } from './number.js';
 import { numberInputAnatomy } from './anatomy.js';
 
@@ -120,10 +114,8 @@ export type NumberInputRootProps =
     & Define.Prop<'format', (value: number) => string, false>
     /** Parse typed text; return null for "not a number" (default lenient decimal). */
     & Define.Prop<'parse', (text: string) => number | null, false>
-    & Define.Prop<'name', string, false>
-    & Define.Prop<'required', boolean, false>
-    & Define.Prop<'invalid', boolean, false>
-    & Define.Prop<'readonly', boolean, false>
+    & WithFormControl
+    & WithReadonly
     & WithDisabled
     & WithVariantAxes<'number-input'>
     & WithClass
@@ -140,20 +132,25 @@ const defaultParse = (text: string): number | null => {
     return Number.isFinite(n) ? n : null;
 };
 
-const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, signal }) => {
+const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
     const state = createControllableState<number | null>(
         () => props.model,
         props.defaultValue ?? null,
         (v) => emit('valueChange', v),
     );
-    const field = useFieldContext();
-    const baseId = createId('zx-number');
     const draft = signal({ current: null as string | null });
     const focusVisible = signal({ value: false });
     let inputEl: HTMLInputElement | null = null;
+    let hiddenEl: HTMLInputElement | null = null;
 
-    const disabled = (): boolean => !!props.disabled || field.disabled();
-    const readonly = (): boolean => !!props.readonly;
+    const outOfRange = (): boolean => {
+        const v = state.value;
+        if (v == null) return false;
+        return (props.min !== undefined && v < props.min) || (props.max !== undefined && v > props.max);
+    };
+    const fc = createFormControl({ props: () => props, idBase: 'zx-number', controlPart: 'input', invalid: outOfRange });
+    const disabled = fc.disabled;
+    const readonly = fc.readonly;
     // Coerced, not trusted: snapToStep divides by this, so step={0} (or a
     // non-finite value) would poison the model and ARIA with NaN/Infinity.
     const step = (): number => {
@@ -163,12 +160,7 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
     const format = (v: number): string => (props.format ? props.format(v) : String(v));
     const parse = (t: string): number | null => (props.parse ? props.parse(t) : defaultParse(t));
 
-    const outOfRange = (): boolean => {
-        const v = state.value;
-        if (v == null) return false;
-        return (props.min !== undefined && v < props.min) || (props.max !== undefined && v > props.max);
-    };
-    const invalid = (): boolean => !!props.invalid || field.invalid() || outOfRange();
+    const invalid = fc.invalid;
 
     const settle = (v: number): number => clamp(snapToStep(v, step(), props.min), props.min, props.max);
 
@@ -221,10 +213,10 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
     const ctx: NumberInputContext = {
         state,
         draft,
-        inputId: () => (field.inert ? `${baseId}-input` : field.ids.control),
+        inputId: fc.controlId,
         disabled,
         invalid,
-        required: () => !!props.required || field.required(),
+        required: fc.required,
         readonly,
         min: () => props.min,
         max: () => props.max,
@@ -235,8 +227,8 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
             const v = state.value;
             return v == null ? '' : format(v);
         },
-        describedBy: () => (field.inert ? undefined : field.describedBy()),
-        labelId: () => (field.inert ? `${baseId}-label` : field.ids.label),
+        describedBy: fc.describedBy,
+        labelId: fc.labelId,
         focusVisible,
         canStep,
         stepBy,
@@ -282,6 +274,17 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
     };
     defineProvide(useNumberInputContext, () => ctx);
 
+    let detachReset = (): void => {};
+    onMounted(() => {
+        detachReset = onFormReset(() => hiddenEl ?? inputEl, () => {
+            draft.current = null;
+            state.value = props.defaultValue ?? null;
+            if (hiddenEl) hiddenEl.value = state.value == null ? '' : String(state.value);
+            if (inputEl) inputEl.value = ctx.displayValue();
+        });
+    });
+    onUnmounted(() => detachReset());
+
     return () => (
         <div
             data-scope={SCOPE}
@@ -294,15 +297,15 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
             class={props.class}
         >
             {slots.default?.()}
-            {props.name !== undefined
+            {fc.hasName()
                 ? (
                     <input
                         type="hidden"
                         data-scope={SCOPE}
                         data-part="hidden-input"
-                        name={props.name}
+                        {...fc.hiddenAttrs()}
                         value={state.value == null ? '' : String(state.value)}
-                        disabled={disabled()}
+                        ref={(node: HTMLInputElement | null) => { hiddenEl = node; }}
                     />
                 )
                 : null}

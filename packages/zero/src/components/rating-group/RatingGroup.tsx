@@ -29,16 +29,12 @@
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
-import { createId } from '../../behaviors/create-id.js';
-import { useFieldContext } from '../../behaviors/field.js';
+import { createFormControl } from '../../behaviors/form-control.js';
+import { onFormReset } from '../../behaviors/form-reset.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type {
-    WithClass,
-    WithDisabled,
-    WithVariantAxes,
-} from '../../contract/props.js';
+import type { WithClass, WithFormControl, WithReadonly, WithVariantAxes } from '../../contract/props.js';
 import { ratingGroupAnatomy } from './anatomy.js';
 
 const SCOPE = ratingGroupAnatomy.scope;
@@ -109,32 +105,38 @@ export type RatingGroupRootProps =
     & Define.Prop<'allowHalf', boolean, false>
     /** Clicking the current value clears to 0 (default false). */
     & Define.Prop<'deselectable', boolean, false>
-    & Define.Prop<'name', string, false>
-    & Define.Prop<'required', boolean, false>
-    & Define.Prop<'invalid', boolean, false>
-    & Define.Prop<'readonly', boolean, false>
+    & WithFormControl
+    & WithReadonly
     /** Per-item accessible name (default `${index} of ${count}`) — the localization seam. */
     & Define.Prop<'itemLabel', (index: number, count: number) => string, false>
-    & WithDisabled
     & WithVariantAxes<'rating-group'>
     & WithClass
     & Define.Slot<'default'>;
 
-const RatingGroupRoot = component<RatingGroupRootProps>(({ props, slots, emit, signal }) => {
+const RatingGroupRoot = component<RatingGroupRootProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
     const state = createControllableState<number>(
         () => props.model,
         props.defaultValue ?? 0,
         (v) => emit('valueChange', v),
     );
-    const field = useFieldContext();
-    const baseId = createId('zx-rating');
+    const fc = createFormControl({ props: () => props, idBase: 'zx-rating' });
     const hover = signal({ current: null as number | null });
     const focus = signal({ visible: false });
     let controlEl: HTMLElement | null = null;
+    let hiddenEl: HTMLInputElement | null = null;
     const items = new Map<number, HTMLElement>();
 
-    const disabled = (): boolean => !!props.disabled || field.disabled();
-    const readonly = (): boolean => !!props.readonly;
+    let detachReset = (): void => {};
+    onMounted(() => {
+        detachReset = onFormReset(() => hiddenEl, () => {
+            state.value = props.defaultValue ?? 0;
+            if (hiddenEl) hiddenEl.value = state.value === 0 ? '' : String(state.value);
+        });
+    });
+    onUnmounted(() => detachReset());
+
+    const disabled = fc.disabled;
+    const readonly = fc.readonly;
     const count = (): number => props.count ?? 5;
     const step = (): number => (props.allowHalf ? 0.5 : 1);
 
@@ -174,12 +176,12 @@ const RatingGroupRoot = component<RatingGroupRootProps>(({ props, slots, emit, s
         step,
         displayed: () => hover.current ?? state.value,
         disabled,
-        invalid: () => !!props.invalid || field.invalid(),
-        required: () => !!props.required || field.required(),
+        invalid: fc.invalid,
+        required: fc.required,
         readonly,
-        labelId: () => (field.inert ? `${baseId}-label` : field.ids.label),
-        controlId: () => (field.inert ? `${baseId}-control` : field.ids.control),
-        describedBy: () => (field.inert ? undefined : field.describedBy()),
+        labelId: fc.labelId,
+        controlId: fc.controlId,
+        describedBy: fc.describedBy,
         itemLabel: (index) => (props.itemLabel ?? ((i, c) => `${i} of ${c}`))(index, count()),
         isRtl,
         setControl: (el) => { controlEl = el; },
@@ -237,15 +239,15 @@ const RatingGroupRoot = component<RatingGroupRootProps>(({ props, slots, emit, s
             class={props.class}
         >
             {slots.default?.()}
-            {props.name !== undefined
+            {fc.hasName()
                 ? (
                     <input
                         type="hidden"
                         data-scope={SCOPE}
                         data-part="hidden-input"
-                        name={props.name}
+                        {...fc.hiddenAttrs()}
                         value={state.value === 0 ? '' : String(state.value)}
-                        disabled={disabled()}
+                        ref={(node: HTMLInputElement | null) => { hiddenEl = node; }}
                     />
                 )
                 : null}

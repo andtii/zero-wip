@@ -44,13 +44,13 @@
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
-import { createId } from '../../behaviors/create-id.js';
-import { useFieldContext } from '../../behaviors/field.js';
+import { createFormControl } from '../../behaviors/form-control.js';
+import { onFormReset } from '../../behaviors/form-reset.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithForm, WithInvalid, WithName, WithVariantAxes } from '../../contract/props.js';
 import { sliderAnatomy } from './anatomy.js';
 
 const SCOPE = sliderAnatomy.scope;
@@ -79,6 +79,9 @@ interface SliderContext {
     disabled(): boolean;
     invalid(): boolean;
     name(): string | undefined;
+    form(): string | undefined;
+    /** The scalar projection's default; null under a range model. */
+    defaultScalar(): number | null;
     percent(): number;
     percentOf(value: number): number;
     valueTextFor(value: number, index: number): string | undefined;
@@ -106,6 +109,8 @@ function makeInert(): SliderContext {
         disabled: () => false,
         invalid: () => false,
         name: () => undefined,
+        form: () => undefined,
+        defaultScalar: () => null,
         percent: () => 0,
         percentOf: () => 0,
         valueTextFor: () => undefined,
@@ -148,8 +153,9 @@ export type SliderRootProps =
     & Define.Prop<'min', number, false>
     & Define.Prop<'max', number, false>
     & Define.Prop<'step', number, false>
-    & Define.Prop<'name', string, false>
-    & Define.Prop<'invalid', boolean, false>
+    & WithName
+    & WithForm
+    & WithInvalid
     /** Ticks rendered as `mark` parts inside `Slider.Track`. */
     & Define.Prop<'marks', readonly SliderMark[], false>
     /** Per-thumb `aria-valuetext` — "$40", "40 percent". */
@@ -159,7 +165,7 @@ export type SliderRootProps =
     & WithClass
     & Define.Slot<'default'>;
 
-const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onUnmounted }) => {
+const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
     const min = () => props.min ?? 0;
     const max = () => props.max ?? 100;
     const step = () => props.step ?? 1;
@@ -168,13 +174,27 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onU
         props.defaultValue ?? min(),
         (v) => emit('valueChange', v),
     );
-    const field = useFieldContext();
-    const baseId = createId('zx-slider');
+    const fc = createFormControl({ props: () => props, idBase: 'zx-slider' });
     const focusVisible = signal({ visible: false });
     const thumbs: ThumbEntry[] = [];
     let track: HTMLElement | null = null;
     let dragIndex: number | null = null;
     let detachDrag: (() => void) | null = null;
+    const hiddenEls: (HTMLInputElement | null)[] = [];
+
+    // The range projection posts through hidden inputs; reset restores the
+    // default array and re-syncs them (the scalar projection's native range
+    // handles its own reset in Slider.Control).
+    let detachReset = (): void => {};
+    onMounted(() => {
+        detachReset = onFormReset(() => hiddenEls[0] ?? null, () => {
+            const def = props.defaultValue ?? min();
+            if (!Array.isArray(def)) return;
+            state.value = def;
+            def.forEach((v, i) => { const el = hiddenEls[i]; if (el) el.value = String(v); });
+        });
+    });
+    onUnmounted(() => detachReset());
 
     const values = (): number[] => (Array.isArray(state.value) ? state.value : [state.value]);
 
@@ -225,17 +245,19 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onU
         min,
         max,
         step,
-        disabled: () => !!props.disabled || field.disabled(),
-        invalid: () => !!props.invalid || field.invalid(),
-        name: () => props.name,
+        disabled: fc.disabled,
+        invalid: fc.invalid,
+        name: fc.name,
+        form: fc.form,
+        defaultScalar: () => (Array.isArray(props.defaultValue) ? null : props.defaultValue ?? min()),
         // The highest value's fraction — identical to v1 for a scalar model.
         percent: () => percentOf(Math.max(...values())),
         percentOf,
         valueTextFor: (v, i) => props.getValueText?.(v, i),
         marks: () => props.marks ?? [],
         ids: {
-            control: field.inert ? `${baseId}-control` : field.ids.control,
-            label: field.inert ? `${baseId}-label` : field.ids.label,
+            control: fc.controlId(),
+            label: fc.labelId(),
         },
         focusVisible,
         registerThumb(entry) {
@@ -294,15 +316,16 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onU
               * widget, so the composed projection posts through hidden inputs —
               * one per value, sharing the name (how multi-value fields post).
               */}
-            {Array.isArray(state.value) && props.name
+            {Array.isArray(state.value) && fc.hasName()
                 ? values().map((v, i) => (
                     <input
                         type="hidden"
                         data-scope={SCOPE}
                         data-part="hidden-input"
                         key={`v${i}`}
-                        name={props.name}
+                        {...fc.hiddenAttrs()}
                         value={String(v)}
+                        ref={(node: HTMLInputElement | null) => { hiddenEls[i] = node; }}
                     />
                 ))
                 : null}
@@ -331,9 +354,22 @@ const SliderLabel = component<SliderLabelProps>(({ props, slots }) => {
 export type SliderControlProps = WithClass;
 
 /** The single-value native projection — an `<input type="range">`. */
-const SliderControl = component<SliderControlProps>(({ props }) => {
+const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmounted }) => {
     const slider = useSliderContext();
     let el: HTMLInputElement | null = null;
+
+    // The native range resets to its attribute default (the midpoint when
+    // none) — restore the component default into the model and the element.
+    let detachReset = (): void => {};
+    onMounted(() => {
+        detachReset = onFormReset(() => el, () => {
+            const def = slider.defaultScalar();
+            if (def == null) return;
+            slider.state.value = def;
+            if (el) el.value = String(def);
+        });
+    });
+    onUnmounted(() => detachReset());
     // A drag is a long press, so the press must survive leaving the box:
     // no pointerleave handler is spread below, and the behavior's window
     // release listener ends the press wherever the pointer lets go. No key
@@ -360,6 +396,7 @@ const SliderControl = component<SliderControlProps>(({ props }) => {
             value={slider.values()[0]}
             disabled={slider.disabled()}
             name={slider.name()}
+            form={slider.form()}
             aria-invalid={slider.invalid() ? 'true' : undefined}
             class={props.class}
             ref={(node: HTMLInputElement | null) => { el = node; }}
