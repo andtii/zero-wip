@@ -83,7 +83,8 @@ export function stepKeys(keys: readonly string[], current: string | null, step: 
 export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
     const { collection, selection } = opts;
     const multiple = (): boolean => opts.multiple?.() ?? false;
-    const emptyValue = opts.emptyValue ?? '';
+    // `undefined` means the default; `null` is a real sentinel, so no `??`.
+    const emptyValue = opts.emptyValue === undefined ? '' : opts.emptyValue;
     const highlighted = signal({ value: null as string | null });
 
     const visibleItems = (): T[] => {
