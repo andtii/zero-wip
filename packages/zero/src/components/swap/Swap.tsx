@@ -21,7 +21,7 @@
  */
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { defineInjectable, defineProvide } from 'sigx';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
@@ -36,15 +36,9 @@ interface SwapContext {
     state: ControllableState<boolean>;
 }
 
-export const useSwapContext = defineInjectable<SwapContext>(() => {
-    let value = false;
-    return {
-        state: {
-            get value() { return value; },
-            set value(v: boolean) { value = v; },
-        },
-    };
-});
+export const useSwapContext = defineInjectable<SwapContext>(() => ({
+    state: createInertState<boolean>(false),
+}));
 
 export type SwapRootProps =
     & Define.Model<boolean>

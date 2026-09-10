@@ -20,6 +20,7 @@ import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import {
     createControllableState,
+    createInertState,
     createListController,
     createPressFeedback,
     createRovingKeydown,
@@ -52,12 +53,8 @@ interface StepperContext {
 }
 
 function makeInert(): StepperContext {
-    let value = '';
     return {
-        state: {
-            get value() { return value; },
-            set value(v: string) { value = v; },
-        },
+        state: createInertState<string>(''),
         list: createListController(),
         disabled: () => false,
         select: () => {},

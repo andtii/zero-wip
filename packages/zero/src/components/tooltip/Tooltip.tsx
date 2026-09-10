@@ -17,7 +17,7 @@
  */
 import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
 import type { Define } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { createDismissable } from '../../behaviors/dismiss.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
@@ -41,12 +41,8 @@ interface TooltipContext {
 }
 
 function makeInert(): TooltipContext {
-    let open = false;
     return {
-        state: {
-            get value() { return open; },
-            set value(v: boolean) { open = v; },
-        },
+        state: createInertState<boolean>(false),
         ids: { popup: 'zx-tooltip-inert' },
         show: () => {},
         hide: () => {},

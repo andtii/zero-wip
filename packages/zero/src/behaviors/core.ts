@@ -19,8 +19,9 @@
 export type { IdGenerator } from './create-id.js';
 export { createId, useIdGenerator, zeroPlugin } from './create-id.js';
 
-export type { ControllableState } from './controllable.js';
-export { createControllableState } from './controllable.js';
+export type { ControllableState, ControllableOptions } from './controllable.js';
+export { createControllableState, createInertState, namedModel } from './controllable.js';
+export { timingModifiers } from './model-modifiers.js';
 
 export type { HighlightStep, ItemElement, ListController, ListItem } from './list-core.js';
 export { createListController, moveHighlight, sortByDomOrder } from './list-core.js';

@@ -13,21 +13,24 @@
  * The model is a plain `string` and it writes through on every keystroke —
  * there is no draft/commit split. NumberInput needs one because half-typed
  * text (`-`, `1e`) is not a number; a string always is itself, so deferring
- * the write would only make the model lag the field for no gain.
+ * the write would only make the model lag the field for no gain. When an app
+ * does want to defer, that is sigx's `modelModifiers` (`lazy`, `debounce`,
+ * `trim`), which reach the native input exactly as they would without zero.
  *
  * Inside a `Field.Root` the control adopts the field's id, its
  * disabled/invalid/required flags and its `aria-describedby`, so `Input.Label`
  * becomes optional there. Standalone it wires its own label.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
-import type { Define } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import type { Define, ModelModifiers } from 'sigx';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { useFieldContext } from '../../behaviors/field.js';
+import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
 import { inputAnatomy } from './anatomy.js';
 
 const SCOPE = inputAnatomy.scope;
@@ -44,6 +47,8 @@ export type InputType = 'text' | 'email' | 'password' | 'search' | 'tel' | 'url'
 interface InputContext {
     state: ControllableState<string>;
     type(): InputType;
+    /** Timing modifiers for the native input (transforms are applied at the boundary). */
+    modifiers(): ModelModifiers | undefined;
     name(): string | undefined;
     autocomplete(): string | undefined;
     maxlength(): number | undefined;
@@ -58,13 +63,10 @@ interface InputContext {
 }
 
 function makeInert(): InputContext {
-    let value = '';
     return {
-        state: {
-            get value() { return value; },
-            set value(v: string) { value = v; },
-        },
+        state: createInertState<string>(''),
         type: () => 'text',
+        modifiers: () => undefined,
         name: () => undefined,
         autocomplete: () => undefined,
         maxlength: () => undefined,
@@ -96,6 +98,7 @@ export type InputRootProps =
     & Define.Prop<'invalid', boolean, false>
     & Define.Prop<'readonly', boolean, false>
     & WithDisabled
+    & WithModelModifiers
     & WithVariantAxes<'input'>
     & WithClass
     & Define.Slot<'default'>;
@@ -105,6 +108,7 @@ const InputRoot = component<InputRootProps>(({ props, slots, emit, signal }) => 
         () => props.model,
         props.defaultValue ?? '',
         (v) => emit('valueChange', v),
+        { modifiers: () => props.modelModifiers },
     );
     const field = useFieldContext();
     const baseId = createId('zx-input');
@@ -118,6 +122,7 @@ const InputRoot = component<InputRootProps>(({ props, slots, emit, signal }) => 
     const ctx: InputContext = {
         state,
         type: () => props.type ?? 'text',
+        modifiers: () => timingModifiers(props.modelModifiers),
         name: () => props.name,
         autocomplete: () => props.autocomplete,
         maxlength: () => props.maxlength,
@@ -217,7 +222,8 @@ const InputInput = component<InputInputProps>(({ props }) => {
             data-required={dataAttr(ctx.required())}
             data-readonly={dataAttr(ctx.readonly())}
             data-focus-visible={dataAttr(ctx.focusVisible.value)}
-            value={ctx.state.value}
+            model={ctx.state}
+            modelModifiers={ctx.modifiers()}
             placeholder={props.placeholder}
             disabled={ctx.disabled()}
             readOnly={ctx.readonly()}
@@ -226,9 +232,6 @@ const InputInput = component<InputInputProps>(({ props }) => {
             aria-describedby={ctx.describedBy()}
             class={props.class}
             ref={(node: HTMLInputElement | null) => { el = node; }}
-            onInput={(e: Event) => {
-                ctx.state.value = (e.target as HTMLInputElement).value;
-            }}
             onFocus={() => { ctx.focusVisible.value = isFocusVisible(el); }}
             onBlur={() => { ctx.focusVisible.value = false; }}
         />

@@ -94,6 +94,15 @@ the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
 
+THE BINDING LAW: a zero model IS a sigx `Model`, and the native control a
+component renders binds to it with `model=` — sigx's platform processor owns
+write-back, so the wrapper is a superset of the raw element, never a subset.
+`modelModifiers` (`trim`/`number`/`lazy`/`debounce`) on Input.Root and
+Textarea.Root reach the native input; Checkbox bound to a `string[]` is
+sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
+model. Transforms apply once at the component boundary, timing on the
+element.
+
 51 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
@@ -197,8 +206,10 @@ component renders; the root is called out separately where it carries props.
   element IS the form control and carries `name`. Field-context aware
   exactly like Input (adopts the control id, flags, aria-describedby).
 - Switch: Root(model=checked)/Control/Thumb/Label/HiddenInput, role=switch.
-- Checkbox: Root(model=checked)/Control/Indicator/Label/HiddenInput; supports
-  `indeterminate`.
+- Checkbox: Root(model=checked | string[])/Control/Indicator/Label/HiddenInput;
+  supports `indeterminate`. A `string[]` model is sigx's array mode: boxes
+  sharing it toggle their own `value`'s membership; `checkedChange` reports
+  THIS box's boolean.
 - RadioGroup: Root(model=value)/Label/Item/ItemControl/ItemIndicator/
   ItemLabel/HiddenInput; orientation.
 - Slider: Root(model=number|number[], min, max, step, name, invalid, marks,
@@ -236,9 +247,11 @@ component renders; the root is called out separately where it carries props.
 - Input: Root(model=string)/Label/Control/Input, a single-line text field.
   `type` is text|email|password|search|tel|url only (number is NumberInput;
   the selection and date/time types are not text fields). The model writes
-  through on every keystroke — no draft/commit split. `control` is the field
-  chrome (border/ring/invalid tint), the <input> inside it is transparent.
-  NO hidden input: the visible <input> IS the form control and carries `name`.
+  through on every keystroke — no draft/commit split; `modelModifiers`
+  (`lazy`, `debounce`, `trim`) defer or shape it exactly as on a bare
+  <input>. `control` is the field chrome (border/ring/invalid tint), the
+  <input> inside it is transparent. NO hidden input: the visible <input> IS
+  the form control and carries `name`.
 - Card: Root/Header/Title/Description/Body/Footer. No state, no context, no
   ids — a styling container. Title renders <h3> so a page of cards is
   navigable from a heading list. Every part below Root is optional.
@@ -429,6 +442,7 @@ component renders; the root is called out separately where it carries props.
   — nothing sits inside a textarea for a wrapper to hold, so the chrome draws
   on the element. `rows` passes through; auto-sizing is not zero's job and
   `resize` is the design system's call. No hidden input, same reason.
+  `modelModifiers` reach the textarea as on Input.
 - Avatar: Root/Image(src, alt, asChild)/Fallback. Display-only; every part
   mirrors the load status as data-state="loading|loaded|error" (no src →
   error). Zero toggles `hidden` (fallback while loaded, image while error), so

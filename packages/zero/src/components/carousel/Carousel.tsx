@@ -23,7 +23,7 @@
  */
 import { component, compound, defineInjectable, defineProvide, watch } from 'sigx';
 import type { Define } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
@@ -59,12 +59,8 @@ interface CarouselContext {
 }
 
 function makeInert(): CarouselContext {
-    let value = 0;
     return {
-        state: {
-            get value() { return value; },
-            set value(v: number) { value = v; },
-        },
+        state: createInertState<number>(0),
         observeEl: () => {},
         unobserveEl: () => {},
         setObserverHooks: () => {},

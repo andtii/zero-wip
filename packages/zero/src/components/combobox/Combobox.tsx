@@ -50,7 +50,7 @@
  */
 import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define, Model } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { createListController, moveHighlight, optionText, type HighlightStep, type ListController, type ListItem } from '../../behaviors/list.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
@@ -104,17 +104,9 @@ interface ComboboxContext {
 }
 
 function makeInert(): ComboboxContext {
-    let value = '';
-    let input = '';
     return {
-        state: {
-            get value() { return value; },
-            set value(v: string) { value = v; },
-        },
-        inputValue: {
-            get value() { return input; },
-            set value(v: string) { input = v; },
-        },
+        state: createInertState<string>(''),
+        inputValue: createInertState<string>(''),
         open: { value: false },
         highlighted: { value: null },
         list: createListController(),

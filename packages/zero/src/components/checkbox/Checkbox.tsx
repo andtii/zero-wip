@@ -5,6 +5,13 @@
  * <Checkbox.Root model={() => state.agreed} color="primary">Accept the terms</Checkbox.Root>
  * ```
  *
+ * The model is the native checkbox's: a `boolean`, or — bound to a `string[]`
+ * — sigx's ARRAY MODE, where several boxes sharing one model toggle their
+ * own `value`'s membership (`<Checkbox.Root model={() => state.tags}
+ * value="news">`). Zero adds nothing here; the hidden input binds with
+ * `model=` and the platform processor does what it does for a raw checkbox.
+ * `checkedChange` always reports THIS box's state.
+ *
  * Inside a `Field.Root`, the input adopts the field's control id and
  * disabled/invalid/required flags automatically.
  */
@@ -12,11 +19,12 @@ import { component, compound, effect } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState } from '../../behaviors/controllable.js';
 import { useFieldContext } from '../../behaviors/field.js';
+import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
 import { checkboxAnatomy } from './anatomy.js';
 
 const SCOPE = checkboxAnatomy.scope;
@@ -34,7 +42,7 @@ const HIDDEN_INPUT_STYLE = {
 } as const;
 
 export type CheckboxRootProps =
-    & Define.Model<boolean>
+    & Define.Model<boolean | string[]>
     & Define.Prop<'defaultChecked', boolean, false>
     & Define.Event<'checkedChange', boolean>
     & Define.Prop<'indeterminate', boolean, false>
@@ -43,15 +51,19 @@ export type CheckboxRootProps =
     & Define.Prop<'required', boolean, false>
     & Define.Prop<'invalid', boolean, false>
     & WithDisabled
+    & WithModelModifiers
     & WithVariantAxes<'checkbox'>
     & WithClass
     & Define.Slot<'default'>;
 
 const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal, onMounted }) => {
-    const state = createControllableState<boolean>(
+    // The posted value; also the membership key in array mode.
+    const itemValue = (): string => props.value ?? 'on';
+    const checkedOf = (v: boolean | string[]): boolean => (Array.isArray(v) ? v.includes(itemValue()) : v);
+    const state = createControllableState<boolean | string[]>(
         () => props.model,
         props.defaultChecked ?? false,
-        (v) => emit('checkedChange', v),
+        (v) => emit('checkedChange', checkedOf(v)),
     );
     const field = useFieldContext();
     let inputEl: HTMLInputElement | null = null;
@@ -68,7 +80,7 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
     const invalid = (): boolean => !!props.invalid || field.invalid();
     const required = (): boolean => !!props.required || field.required();
     const checkedState = (): string =>
-        props.indeterminate ? 'indeterminate' : state.value ? 'checked' : 'unchecked';
+        props.indeterminate ? 'indeterminate' : checkedOf(state.value) ? 'checked' : 'unchecked';
 
     let controlEl: HTMLElement | null = null;
     // Cross-element press: pointer on the row, keyboard on the hidden input,
@@ -100,17 +112,15 @@ const CheckboxRoot = component<CheckboxRootProps>(({ props, slots, emit, signal,
                 data-scope={SCOPE}
                 data-part="hidden-input"
                 style={HIDDEN_INPUT_STYLE}
-                checked={state.value}
+                model={state}
+                modelModifiers={timingModifiers(props.modelModifiers)}
                 disabled={disabled()}
                 required={required()}
                 name={props.name}
-                value={props.value ?? 'on'}
+                value={itemValue()}
                 aria-invalid={invalid() ? 'true' : undefined}
                 aria-describedby={field.inert ? undefined : field.describedBy()}
                 ref={(node: HTMLInputElement | null) => { inputEl = node; }}
-                onChange={(e: Event) => {
-                    state.value = (e.target as HTMLInputElement).checked;
-                }}
                 onFocus={() => { focus.visible = isFocusVisible(inputEl); }}
                 onBlur={(e: FocusEvent) => {
                     press.onBlur(e);

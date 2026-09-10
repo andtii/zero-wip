@@ -28,7 +28,7 @@
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { useFieldContext } from '../../behaviors/field.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
@@ -72,12 +72,8 @@ interface RatingGroupContext {
 }
 
 function makeInert(): RatingGroupContext {
-    let value = 0;
     return {
-        state: {
-            get value() { return value; },
-            set value(v: number) { value = v; },
-        },
+        state: createInertState<number>(0),
         hover: { current: null },
         focus: { visible: false },
         count: () => 5,

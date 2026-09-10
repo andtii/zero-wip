@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
-    createAnchorPosition, createControllableState, createListController, createRovingKeydown,
-    fixedPositionStrategy, focusFirst, getTabbables, moveHighlight, pointAnchor,
+    createAnchorPosition, createControllableState, createInertState, createListController, createRovingKeydown,
+    fixedPositionStrategy, focusFirst, getTabbables, moveHighlight, pointAnchor, timingModifiers,
 } from '@sigx/zero';
 import type { ListItem, PositionAnchor } from '@sigx/zero';
-import { signal } from 'sigx';
+import { isModel, signal } from 'sigx';
 import { createModel } from '@sigx/runtime-core';
 
 describe('createControllableState', () => {
@@ -37,6 +37,60 @@ describe('createControllableState', () => {
 
         backing.open = false;
         expect(state.value).toBe(false);
+    });
+});
+
+describe('the binding law: createControllableState returns a real sigx Model', () => {
+    it('is a Model — forwardable to a native control with model=', () => {
+        const state = createControllableState<string>(() => undefined, 'a');
+        expect(isModel(state)).toBe(true);
+        // The platform processor writes the binding tuple directly
+        // (obj[key] = v, never the handler); that path must be the same
+        // write as the handler's, or a forwarded state would split in two.
+        const [obj, key] = state.binding;
+        (obj as Record<string, string>)[key] = 'b';
+        expect(state.value).toBe('b');
+    });
+
+    it('controlled: the tuple write reaches the parent model and fires onChange once', () => {
+        const backing = signal({ v: 'a' });
+        const model = createModel<string>([backing, 'v'], (v) => { backing.v = v; });
+        const onChange = vi.fn();
+        const state = createControllableState<string>(() => model, '', onChange);
+        const [obj, key] = state.binding;
+        (obj as Record<string, string>)[key] = 'z';
+        expect(backing.v).toBe('z');
+        expect(onChange).toHaveBeenCalledTimes(1);
+        expect(onChange).toHaveBeenCalledWith('z');
+    });
+
+    it('uncontrolled: value transforms from modelModifiers apply once, and onChange sees the result', () => {
+        const onChange = vi.fn();
+        const state = createControllableState<string>(() => undefined, '', onChange, {
+            modifiers: () => ({ trim: true }),
+        });
+        state.value = '  hi  ';
+        expect(state.value).toBe('hi');
+        expect(onChange).toHaveBeenCalledWith('hi');
+        // Trimmed equals trimmed — the same-value guard sees post-transform.
+        state.value = ' hi ';
+        expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('createInertState is a standalone Model', () => {
+        const inert = createInertState<number>(3);
+        expect(isModel(inert)).toBe(true);
+        inert.value = 4;
+        expect(inert.value).toBe(4);
+    });
+
+    it('timingModifiers forwards only the timing keys, by registry lookup', () => {
+        expect(timingModifiers({ trim: true, lazy: true, debounce: 200 })).toEqual({ lazy: true, debounce: 200 });
+        expect(timingModifiers({ trim: true, number: true })).toBeUndefined();
+        expect(timingModifiers({ lazy: false })).toBeUndefined();
+        // `0` is a value, not absence — the same test sigx applies.
+        expect(timingModifiers({ debounce: 0 })).toEqual({ debounce: 0 });
+        expect(timingModifiers(undefined)).toBeUndefined();
     });
 });
 

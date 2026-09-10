@@ -1,5 +1,5 @@
 import { defineInjectable, defineProvide } from 'sigx';
-import type { ControllableState } from '../../behaviors/controllable.js';
+import { createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import type { ListController } from '../../behaviors/list.js';
 import { createListController } from '../../behaviors/list.js';
 import type { Orientation } from '../../contract/data-attrs.js';
@@ -18,12 +18,8 @@ export interface TabsContext {
 }
 
 function makeInertTabs(): TabsContext {
-    let value = '';
     return {
-        state: {
-            get value() { return value; },
-            set value(v: string) { value = v; },
-        },
+        state: createInertState<string>(''),
         list: createListController(),
         orientation: () => 'horizontal',
         activationMode: () => 'automatic',

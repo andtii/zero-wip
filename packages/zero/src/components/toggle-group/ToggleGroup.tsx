@@ -20,7 +20,7 @@
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createListController, type ListController, type ListItem } from '../../behaviors/list.js';
 import { createRovingKeydown } from '../../behaviors/roving.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
@@ -50,12 +50,8 @@ interface ToggleGroupContext {
 }
 
 function makeInert(): ToggleGroupContext {
-    let value: string[] = [];
     return {
-        state: {
-            get value() { return value; },
-            set value(v: string[]) { value = v; },
-        },
+        state: createInertState<string[]>([]),
         list: createListController(),
         orientation: () => 'horizontal',
         disabled: () => false,

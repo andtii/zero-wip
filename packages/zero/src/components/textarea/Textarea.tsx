@@ -19,20 +19,23 @@
  * behavior, not an anatomy one.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
-import type { Define } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import type { Define, ModelModifiers } from 'sigx';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { useFieldContext } from '../../behaviors/field.js';
+import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { dataAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
 import { textareaAnatomy } from './anatomy.js';
 
 const SCOPE = textareaAnatomy.scope;
 
 interface TextareaContext {
     state: ControllableState<string>;
+    /** Timing modifiers for the native textarea (transforms are applied at the boundary). */
+    modifiers(): ModelModifiers | undefined;
     name(): string | undefined;
     autocomplete(): string | undefined;
     maxlength(): number | undefined;
@@ -48,12 +51,9 @@ interface TextareaContext {
 }
 
 function makeInert(): TextareaContext {
-    let value = '';
     return {
-        state: {
-            get value() { return value; },
-            set value(v: string) { value = v; },
-        },
+        state: createInertState<string>(''),
+        modifiers: () => undefined,
         name: () => undefined,
         autocomplete: () => undefined,
         maxlength: () => undefined,
@@ -86,6 +86,7 @@ export type TextareaRootProps =
     & Define.Prop<'invalid', boolean, false>
     & Define.Prop<'readonly', boolean, false>
     & WithDisabled
+    & WithModelModifiers
     & WithVariantAxes<'textarea'>
     & WithClass
     & Define.Slot<'default'>;
@@ -95,6 +96,7 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
         () => props.model,
         props.defaultValue ?? '',
         (v) => emit('valueChange', v),
+        { modifiers: () => props.modelModifiers },
     );
     const field = useFieldContext();
     const baseId = createId('zx-textarea');
@@ -107,6 +109,7 @@ const TextareaRoot = component<TextareaRootProps>(({ props, slots, emit, signal 
 
     const ctx: TextareaContext = {
         state,
+        modifiers: () => timingModifiers(props.modelModifiers),
         name: () => props.name,
         autocomplete: () => props.autocomplete,
         maxlength: () => props.maxlength,
@@ -184,7 +187,8 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props }) => {
             data-required={dataAttr(ctx.required())}
             data-readonly={dataAttr(ctx.readonly())}
             data-focus-visible={dataAttr(ctx.focusVisible.value)}
-            value={ctx.state.value}
+            model={ctx.state}
+            modelModifiers={ctx.modifiers()}
             placeholder={props.placeholder}
             disabled={ctx.disabled()}
             readOnly={ctx.readonly()}
@@ -193,9 +197,6 @@ const TextareaTextarea = component<TextareaTextareaProps>(({ props }) => {
             aria-describedby={ctx.describedBy()}
             class={props.class}
             ref={(node: HTMLTextAreaElement | null) => { el = node; }}
-            onInput={(e: Event) => {
-                ctx.state.value = (e.target as HTMLTextAreaElement).value;
-            }}
             onFocus={() => { ctx.focusVisible.value = isFocusVisible(el); }}
             onBlur={() => { ctx.focusVisible.value = false; }}
         />

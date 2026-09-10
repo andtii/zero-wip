@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### Changed — the binding law (#439, part of #438)
+
+- `createControllableState` returns a real sigx `Model<T>` (built on a
+  holder whose setter is the model's own handler, so a processor's direct
+  tuple write and the handler are one write path). `ControllableState<T>` is
+  now an alias of `Model<T>`; hand-written `{ get value, set value }`
+  literals no longer type — use the new `createInertState(initial)`.
+  `namedModel()` collapses the named-model type distribution.
+- Input, Textarea, Checkbox, Switch, RadioGroup and NativeSelect bind their
+  native control with `model=` instead of hand-wired `value=`/`onInput` and
+  `checked=`/`onChange` pairs. Consequences: `modelModifiers` (`trim`,
+  `number`, `lazy`, `debounce`, custom) work through `Input.Root` and
+  `Textarea.Root` (new `WithModelModifiers` prop fragment; transforms apply
+  once at the boundary, timing is forwarded to the element by the new
+  `timingModifiers()`), and `Checkbox.Root`'s model widens to
+  `boolean | string[]` — sigx's array mode.
+- Breaking for ecosystem components that built an inert context by hand:
+  replace the literal with `createInertState`.
+
 ## [0.2.0-beta.6] - 2026-08-22
 
 No changes — lockstep version bump.

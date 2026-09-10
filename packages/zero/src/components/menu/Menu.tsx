@@ -55,7 +55,7 @@
  */
 import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
 import { createListController, type ListItem } from '../../behaviors/list.js';
 import { createRovingKeydown } from '../../behaviors/roving.js';
@@ -102,12 +102,8 @@ interface MenuContext {
 }
 
 function makeInert(): MenuContext {
-    let open = false;
     return {
-        state: {
-            get value() { return open; },
-            set value(v: boolean) { open = v; },
-        },
+        state: createInertState<boolean>(false),
         list: createListController(),
         ids: { trigger: 'zx-menu-inert-trigger', popup: 'zx-menu-inert' },
         triggerPresent: () => false,
@@ -605,12 +601,8 @@ interface MenuRadioGroupContext {
 }
 
 function makeInertRadioGroup(): MenuRadioGroupContext {
-    let value = '';
     return {
-        state: {
-            get value() { return value; },
-            set value(v: string) { value = v; },
-        },
+        state: createInertState<string>(''),
     };
 }
 
@@ -709,13 +701,9 @@ interface MenuSubContext {
 }
 
 function makeInertSub(): MenuSubContext {
-    let open = false;
     return {
         parent: makeInert(),
-        state: {
-            get value() { return open; },
-            set value(v: boolean) { open = v; },
-        },
+        state: createInertState<boolean>(false),
         ids: { trigger: 'zx-menu-sub-inert-trigger', popup: 'zx-menu-sub-inert-popup' },
         open: () => {},
         close: () => {},

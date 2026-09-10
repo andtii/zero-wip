@@ -18,7 +18,7 @@
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
-import { createControllableState, type ControllableState } from '../../behaviors/controllable.js';
+import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr } from '../../contract/data-attrs.js';
@@ -41,12 +41,8 @@ interface DiffContext {
 }
 
 function makeInert(): DiffContext {
-    let value = 50;
     return {
-        state: {
-            get value() { return value; },
-            set value(v: number) { value = v; },
-        },
+        state: createInertState<number>(50),
         value: () => 50,
         set: () => {},
         rootToValue: () => 0,

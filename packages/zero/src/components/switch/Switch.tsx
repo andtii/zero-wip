@@ -12,11 +12,12 @@ import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState } from '../../behaviors/controllable.js';
 import { useFieldContext } from '../../behaviors/field.js';
+import { timingModifiers } from '../../behaviors/model-modifiers.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { WithClass, WithDisabled, WithVariantAxes } from '../../contract/props.js';
+import type { WithClass, WithDisabled, WithModelModifiers, WithVariantAxes } from '../../contract/props.js';
 import { switchAnatomy } from './anatomy.js';
 
 const SCOPE = switchAnatomy.scope;
@@ -44,6 +45,7 @@ export type SwitchRootProps =
     & Define.Prop<'required', boolean, false>
     & Define.Prop<'invalid', boolean, false>
     & WithDisabled
+    & WithModelModifiers
     & WithVariantAxes<'switch'>
     & WithClass
     & Define.Slot<'default'>;
@@ -98,7 +100,8 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal }) =
                 data-scope={SCOPE}
                 data-part="hidden-input"
                 style={HIDDEN_INPUT_STYLE}
-                checked={state.value}
+                model={state}
+                modelModifiers={timingModifiers(props.modelModifiers)}
                 disabled={disabled()}
                 required={required()}
                 name={props.name}
@@ -106,9 +109,6 @@ const SwitchRoot = component<SwitchRootProps>(({ props, slots, emit, signal }) =
                 aria-invalid={invalid() ? 'true' : undefined}
                 aria-describedby={field.inert ? undefined : field.describedBy()}
                 ref={(node: HTMLInputElement | null) => { inputEl = node; }}
-                onChange={(e: Event) => {
-                    state.value = (e.target as HTMLInputElement).checked;
-                }}
                 onFocus={() => { focus.visible = isFocusVisible(inputEl); }}
                 onBlur={(e: FocusEvent) => {
                     press.onBlur(e);
