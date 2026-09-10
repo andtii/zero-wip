@@ -13,6 +13,23 @@ export interface FormOwned {
     readonly form: HTMLFormElement | null;
 }
 
+interface Entry {
+    getEl: () => FormOwned | null;
+    restore: () => void;
+}
+
+// One document listener for every mounted control (a forms-heavy page
+// mounts hundreds), attached on the first registration, removed on the last.
+const entries = new Set<Entry>();
+let listening = false;
+
+function onReset(e: Event): void {
+    for (const entry of entries) {
+        const form = entry.getEl()?.form ?? null;
+        if (form && form === e.target) setTimeout(entry.restore, 0);
+    }
+}
+
 /**
  * Run `restore` after the owning form resets. Call from `onMounted`, keep
  * the returned detach for `onUnmounted`.
@@ -20,14 +37,14 @@ export interface FormOwned {
  * The owning form is resolved at EVENT time, not at mount: a leaf part's
  * `onMounted` runs before its element is inside the form (the parent
  * inserts the subtree afterwards), so `el.form` is null exactly when a
- * mount-time lookup would read it. `reset` bubbles, so one document
+ * mount-time lookup would read it. `reset` bubbles, so the one document
  * listener sees every form's reset and matches on the element's `form` —
  * which also honours the `form="id"` association.
  *
  * The restore runs one TASK after the event, not a microtask: the platform
  * resets its controls synchronously AFTER dispatching, and when the event
  * comes from the platform itself (a reset button) the JS stack is empty when
- * our listener returns, so a microtask checkpoint runs right there — before
+ * the listener returns, so a microtask checkpoint runs right there — before
  * the reset — and the restore would be overwritten. (Script-driven
  * `form.reset()` orders it the other way, which is why only a real browser
  * showed this.) A restore writes the component default into the model AND
@@ -37,10 +54,17 @@ export interface FormOwned {
  */
 export function onFormReset(getEl: () => FormOwned | null, restore: () => void): () => void {
     if (typeof document === 'undefined') return () => {};
-    const handler = (e: Event): void => {
-        const form = getEl()?.form ?? null;
-        if (form && form === e.target) setTimeout(restore, 0);
+    const entry: Entry = { getEl, restore };
+    entries.add(entry);
+    if (!listening) {
+        document.addEventListener('reset', onReset);
+        listening = true;
+    }
+    return () => {
+        entries.delete(entry);
+        if (entries.size === 0 && listening) {
+            document.removeEventListener('reset', onReset);
+            listening = false;
+        }
     };
-    document.addEventListener('reset', handler);
-    return () => document.removeEventListener('reset', handler);
 }

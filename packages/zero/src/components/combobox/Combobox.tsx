@@ -199,7 +199,9 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal,
     let detachReset = (): void => {};
     onMounted(() => {
         effect(() => { syncHidden(state.value); });
-        detachReset = onFormReset(() => hidden, () => {
+        // Without a name there is no hidden select — the input itself is
+        // form-associated, so reset still restores.
+        detachReset = onFormReset(() => hidden ?? (input as HTMLInputElement | null), () => {
             state.value = props.defaultValue ?? '';
             inputValue.value = props.defaultInputValue ?? (state.value ? list.find(state.value)?.textValue() ?? state.value : '');
             syncHidden();

@@ -5,7 +5,7 @@
 ### Changed — the form contract (#441, part of #438)
 
 - One form-participation regime for every posting control: `createFormControl`
-  (Field adoption, ids, `flags()`, `nativeAttrs()`, `hiddenAttrs()`) and
+  (Field adoption, ids, `flags()`, `hiddenAttrs()`) and
   `onFormReset` in `@sigx/zero/behaviors`, `VISUALLY_HIDDEN_STYLE` beside
   them, and the `WithName`/`WithForm`/`WithInvalid`/`WithRequired`/
   `WithReadonly`/`WithFormControl` prop fragments in the contract. Every

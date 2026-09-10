@@ -26,7 +26,7 @@ const CITIES = [
  * constraint validation blocks, what `reset` restores, what `form="id"`
  * pulls in from outside. The e2e forms spec drives this page in three
  * engines; the unit table (`form-participation.test.tsx`) proves the same
- * five claims per scope in happy-dom.
+ * six claims per scope in happy-dom.
  */
 const FormsDemos = component(() => {
     const state = signal({ posted: '' });
@@ -87,6 +87,12 @@ const FormsDemos = component(() => {
                         <RadioGroup.Item value="team">Team</RadioGroup.Item>
                     </RadioGroup.Root>
                 </Field.Root>
+                {/* Unnamed: the radios share a generated name for the platform's
+                  * arrow-key roving, but an unnamed group must not post under it. */}
+                <RadioGroup.Root defaultValue="a">
+                    <RadioGroup.Item value="a">Unnamed A</RadioGroup.Item>
+                    <RadioGroup.Item value="b">Unnamed B</RadioGroup.Item>
+                </RadioGroup.Root>
                 <Checkbox.Root name="form-terms" value="yes">Agree to the form terms</Checkbox.Root>
                 {' '}
                 <Switch.Root name="form-notify" defaultChecked>Email me</Switch.Root>

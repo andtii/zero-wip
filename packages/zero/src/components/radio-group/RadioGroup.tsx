@@ -76,7 +76,10 @@ const RadioGroupRoot = component<RadioGroupRootProps>(({ props, slots, emit }) =
         state,
         // The generated name is the platform's own roving: same-name radios.
         get name() { return props.name ?? fc.baseId; },
-        form: fc.form,
+        // An UNNAMED group must not post under that generated name: an empty
+        // `form` attribute matches no id, which leaves the radios owned by no
+        // form (the platform's own rule) while the grouping name stays.
+        form: () => (props.name === undefined ? '' : fc.form()),
         defaultValue: () => props.defaultValue ?? '',
         disabled: fc.disabled,
         invalid: fc.invalid,

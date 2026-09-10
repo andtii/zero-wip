@@ -162,7 +162,9 @@ const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal, onM
     let detachReset = (): void => {};
     onMounted(() => {
         effect(() => { syncHidden(state.value); });
-        detachReset = onFormReset(() => hidden, () => {
+        // Without a name there is no hidden select — the trigger is a
+        // <button>, form-associated like any control, so reset still restores.
+        detachReset = onFormReset(() => hidden ?? (trigger as HTMLButtonElement | null), () => {
             state.value = props.defaultValue ?? '';
             syncHidden();
         });

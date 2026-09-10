@@ -1,11 +1,12 @@
 /**
  * The form-participation contract (#441) — one table, every posting scope.
  *
- * Five claims per row, the ones four different hidden-input regimes used to
- * answer four different ways: the committed value posts; a disabled control
- * never posts; a required, empty control fails constraint validation; the
- * owning form's reset restores the default in the DOM AND the model; and
- * `form="id"` associates a control from outside the form's subtree.
+ * Six claims per row, the ones four different hidden-input regimes used to
+ * answer four different ways: the committed value posts; nothing posts
+ * without a `name`; a disabled control never posts; a required, empty
+ * control fails constraint validation; the owning form's reset restores the
+ * default in the DOM AND the model; and `form="id"` associates a control
+ * from outside the form's subtree.
  *
  * FormData is read from a real `<form>` — that is the platform's answer, not
  * an attribute check. A row that cannot validate (`type="hidden"` inputs are
@@ -298,6 +299,18 @@ describe.each(rows)('$scope participates in forms', (row) => {
         if (!row.commit) return;
         row.commit(form);
         expectEntries(form, name, row.committed);
+    });
+
+    it('posts nothing without a name', () => {
+        const form = mountForm(row.mount({ name: undefined as unknown as string, withDefault: true }));
+        // A control that keeps a generated name for the platform's sake
+        // (RadioGroup: same-name radios are the arrow-key roving) detaches
+        // from the form with an empty `form` attribute instead. Browsers
+        // honour that (the forms e2e spec proves it in three engines);
+        // happy-dom does not, so the attribute is the assertion there.
+        const named = Array.from(form.querySelectorAll('[name]'));
+        if (named.length > 0 && named.every((el) => el.getAttribute('form') === '')) return;
+        expect([...new FormData(form).keys()]).toEqual([]);
     });
 
     it('is omitted from FormData while disabled', () => {

@@ -55,6 +55,9 @@ test('a real FormData carries every control, omits the disabled one, includes fo
     // Unchecked and disabled controls never post.
     expect(data).not.toHaveProperty('form-terms');
     expect(data).not.toHaveProperty('form-skipped');
+    // An unnamed RadioGroup keeps a generated grouping name for arrow-key
+    // roving but is owned by no form (form=""), so nothing posts under it.
+    expect(Object.keys(data).filter((k) => k.startsWith('zx-'))).toEqual([]);
 });
 
 test('reset restores every default the user can see, styled parts included', async ({ page }) => {
