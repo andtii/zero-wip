@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### Added — the collection and listbox core (#443, part of #438)
+
+- `createCollection` (`@sigx/zero/behaviors`, DOM-free): items as data with
+  two identities kept apart — the KEY (`itemKey`: DOM id, typeahead target,
+  posted value) and the VALUE (`itemValue`: what the model holds, default the
+  item) — plus `itemLabel`, `itemDisabled`, `itemGroup`; labels, values and
+  groups resolve before anything mounts; JSX-written items register into
+  the same list. `segmentBy` is the grouping walk; `segmentOptions` is now
+  an alias over it.
+- `createListboxCore` / `createListbox`: visibility (default contains-match
+  on the label, a custom `filter`, or `filter: false`), single and
+  `multiple` selection over a model, highlight stepping over enabled
+  visible keys, `pruneHighlight`, option ids and `activeDescendant`,
+  `displayText()`, typeahead over the visible labels, scroll-into-view.
+- `createListboxItem` (the `role="option"` bag and both registrations),
+  `createGroupPresence` + `announceGroupLabel` (the presence-tracked group
+  label), `syncPopover` (the native popover ↔ model effect).
+- `JsxProps` and `FactoryBrands` (`@sigx/zero/contract`): the typed cast that
+  makes a root generic at the JSX level, pinned by a type test.
+
 ### Changed — the form contract (#441, part of #438)
 
 - One form-participation regime for every posting control: `createFormControl`

@@ -220,7 +220,18 @@ same behaviors, held to the same conformance assertion:
   dismissal, focus management (`createFocusRestore`, `focusFirst`,
   `getTabbables`), list/tree registration with listbox-highlight stepping
   (`moveHighlight`, `optionText`), typeahead, anchor positioning, press
-  feedback.
+  feedback, the form contract (`createFormControl`, `onFormReset`), and the
+  listbox layer: `createCollection` (items as data — `itemKey` /
+  `itemLabel` / `itemValue` / `itemDisabled` / `itemGroup`, with JSX items
+  registering into the same list), `createListbox` (visibility with a
+  default contains-filter, single/multiple selection over the model,
+  highlight stepping, typeahead over the visible labels, option ids),
+  `createListboxItem` (the `role="option"` bag), `createGroupPresence` and
+  `syncPopover`.
+- `@sigx/zero/contract` also carries `JsxProps` and `FactoryBrands`: a root
+  written once against `unknown` is exported through a cast to a generic call
+  signature, so `items` infers `T` at the JSX level (the mechanism behind the
+  typed Select of #438).
 - The contract helpers — `dataAttr`, `stateAttr`, `variantAttrs`,
   `renderAsChild`, and `synthesizesClickFrom` for parts that combine
   `asChild` with keyboard activation (skip the keys the platform already

@@ -1,6 +1,8 @@
 // The shared contract: anatomy machinery, data-attribute spec, token
 // vocabulary and common prop fragments.
 
+export type { JsxProps, FactoryBrands } from './generic.js';
+
 export type {
     SizeScale,
     RecommendedSize,

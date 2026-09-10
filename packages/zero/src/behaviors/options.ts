@@ -4,9 +4,11 @@
  * A flat `options` array is the one-liner most form pages want; the
  * components render it through their EXISTING anatomy (Item, and
  * Group/GroupLabel per distinct `group` — or `<option>`/`<optgroup>` for
- * NativeSelect). This module owns the one non-trivial part, the grouping
- * walk, so three components cannot drift on its semantics.
+ * NativeSelect). The grouping walk itself now lives with the collection
+ * (`segmentBy`, #443); this is the `OptionInput`-shaped alias the sugar
+ * keeps until it becomes `items` (#438).
  */
+import { segmentBy } from './collection.js';
 
 /** One entry of an `options` array. `label` defaults to `value`. */
 export interface OptionInput {
@@ -33,20 +35,5 @@ export interface OptionSegment {
  * ungrouped options keep their own positions as single-option segments.
  */
 export function segmentOptions(options: ReadonlyArray<OptionInput>): OptionSegment[] {
-    const segments: OptionSegment[] = [];
-    const byGroup = new Map<string, OptionSegment>();
-    for (const option of options) {
-        if (option.group === undefined) {
-            segments.push({ options: [option] });
-            continue;
-        }
-        let segment = byGroup.get(option.group);
-        if (!segment) {
-            segment = { group: option.group, options: [] };
-            byGroup.set(option.group, segment);
-            segments.push(segment);
-        }
-        segment.options.push(option);
-    }
-    return segments;
+    return segmentBy(options, (o) => o.group).map((s) => (s.group === undefined ? { options: s.items } : { group: s.group, options: s.items }));
 }
