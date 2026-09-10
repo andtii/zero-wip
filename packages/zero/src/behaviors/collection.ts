@@ -164,19 +164,15 @@ export function createCollection<T, V = T>(opts: CollectionOptions<T, V> = {}): 
         isItemDisabled,
         byKey,
         byValue: (value) => {
-            if (opts.itemValue) {
-                // Identity for primitives; a proxied object falls back to its key.
-                return items().find((item) => Object.is(valueOf(item), value))
-                    ?? (isRecord(value) ? byKey(keyOf(value as unknown as T)) : undefined);
-            }
+            // itemValue returns a primitive (see its doc), so identity is the match.
+            if (opts.itemValue) return items().find((item) => Object.is(valueOf(item), value));
             // The value IS an item (or its key form); match on identity.
             const key = keyOf(value as unknown as T);
             return byKey(key);
         },
         keyForValue: (value) => {
             if (opts.itemValue) {
-                const item = items().find((i) => Object.is(valueOf(i), value))
-                    ?? (isRecord(value) ? byKey(keyOf(value as unknown as T)) : undefined);
+                const item = items().find((i) => Object.is(valueOf(i), value));
                 // No item: a primitive is its own key; an object keys by
                 // value/id rather than degrading to '[object Object]'.
                 return item !== undefined ? keyOf(item) : defaultItemKey(value);
