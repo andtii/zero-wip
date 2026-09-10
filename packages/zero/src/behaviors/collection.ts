@@ -177,7 +177,9 @@ export function createCollection<T, V = T>(opts: CollectionOptions<T, V> = {}): 
             if (opts.itemValue) {
                 const item = items().find((i) => Object.is(valueOf(i), value))
                     ?? (isRecord(value) ? byKey(keyOf(value as unknown as T)) : undefined);
-                return item !== undefined ? keyOf(item) : String(value);
+                // No item: a primitive is its own key; an object keys by
+                // value/id rather than degrading to '[object Object]'.
+                return item !== undefined ? keyOf(item) : defaultItemKey(value);
             }
             return keyOf(value as unknown as T);
         },

@@ -69,8 +69,10 @@ describe('createCollection — data mode', () => {
         expect(c.valueForKey('SE')).toBe('se');
         expect(c.keyForValue('jp')).toBe('JP');
         expect(c.byValue('no')?.name).toBe('Norway');
-        // A value with no item posts as itself.
+        // A value with no item posts as itself; an object with no item keys
+        // by its value/id rather than '[object Object]'.
         expect(c.keyForValue('zz')).toBe('zz');
+        expect(c.keyForValue({ id: 7 } as unknown as string)).toBe('7');
     });
 
     it('labels resolve from data before anything mounts — no microtask', () => {
