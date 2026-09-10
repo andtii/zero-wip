@@ -51,5 +51,5 @@ export type { OptionInput, OptionSegment } from './options.js';
 export { createCollection, defaultItemKey, defaultItemLabel, segmentBy } from './collection.js';
 export type { Collection, CollectionEntry, CollectionOptions, CollectionSegment } from './collection.js';
 export { createListbox, createListboxCore, createListboxItem, createGroupPresence, announceGroupLabel, defaultFilter, stepKeys } from './listbox.js';
-export type { Listbox, ListboxCore, ListboxOptions, ListboxItem, ListboxItemOptions, GroupPresence } from './listbox.js';
+export type { Listbox, ListboxCore, ListboxOptions, WebListboxOptions, ListboxItem, ListboxItemOptions, GroupPresence } from './listbox.js';
 export { syncPopover } from './popover-sync.js';

@@ -38,9 +38,10 @@ export interface ListboxOptions<T> {
      */
     filter?: false | ((item: T, query: string) => boolean);
     /**
-     * The single-select "nothing chosen" value: `''` by default (key models),
-     * `null` for object models. Only this value and nullish read as empty,
-     * so a different sentinel makes `''` a legitimate item value.
+     * The single-select "nothing chosen" value, written by `clear()` and
+     * read as empty. Defaults to `''` (a key model's empty); an object model
+     * PASSES `null` — nothing infers it. Only this value and nullish read as
+     * empty, so a different sentinel makes `''` a legitimate item value.
      */
     emptyValue?: unknown;
     /** After a selection lands (Select closes; Combobox closes and fills its input). */
