@@ -172,10 +172,13 @@ type SelectRootImplProps = SelectRootProps & Define.Prop<'itemValue', (item: unk
 
 const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onMounted, onUnmounted }) => {
     const multiple = (): boolean => !!props.multiple;
-    // The single-select "nothing chosen" is null for a data-driven root —
-    // an item or a value model alike (V may be a number; no member of it can
-    // stand for nothing) — and '' for hand-written items, whose keys are
-    // their values and whose model is the <select>'s string.
+    // What the runtime WRITES for "nothing chosen": null for a data-driven
+    // root — an item or a value model alike (V may be a number, so no member
+    // of it is asked to stand for nothing) — and '' for hand-written items,
+    // whose keys are their values and whose model is the <select>'s string.
+    // What it READS as nothing: null, that sentinel, and '' under any shape
+    // (the core reserves '' as the single-select empty sentinel; the guard
+    // below refuses it as a key).
     // Explicit children win ENTIRELY over `items`: with a default slot the
     // data is not rendered, so the collection must not hold it either — the
     // highlight, the typeahead and the hidden select follow what is rendered.
@@ -415,7 +418,7 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
                     >
                         {multiple() ? null : <option value="" selected={listbox.selectedKeys().length === 0}>{props.placeholder ?? ''}</option>}
                         {hiddenKeys().map((k) => (
-                            <option value={k} selected={listbox.isSelected(k)} key={k}>{collection.label(k)}</option>
+                            <option value={k} selected={listbox.isSelected(k)} disabled={collection.isDisabled(k)} key={k}>{collection.label(k)}</option>
                         ))}
                     </select>
                 )

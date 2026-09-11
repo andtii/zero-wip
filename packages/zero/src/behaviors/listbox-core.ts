@@ -118,8 +118,9 @@ export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
         const v = selection.value;
         if (multiple()) return Array.isArray(v) ? v.map((x) => collection.keyForValue(x)) : [];
         // Empty is nullish, the configured sentinel, or '' under any sentinel:
-        // '' is the reserved single-mode key (a placeholder's), so a model
-        // holding it — a `signal({ code: '' })` — has nothing selected.
+        // '' is reserved as the single-select empty sentinel for every model
+        // shape, a string value model included (no item may carry the '' key
+        // in single mode), so a `signal({ code: '' })` has nothing selected.
         if (v === undefined || v === null || v === '' || Object.is(v, emptyValue)) return [];
         return [collection.keyForValue(v)];
     };

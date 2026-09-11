@@ -447,8 +447,10 @@ describe('Combobox over the collection (#445)', () => {
 
     it("the platform's write to the hidden select (autofill, restoration) flows back into the model and the input", () => {
         const state = signal({ value: '' });
-        render(<Combobox.Root items={FRUITS} itemValue={(f) => f.value} model={[state, 'value']} name="fruit" />, container);
+        render(<Combobox.Root items={FRUITS} itemValue={(f) => f.value} itemDisabled={(f) => f.value === 'cherry'} model={[state, 'value']} name="fruit" />, container);
         const hidden = container.querySelector<HTMLSelectElement>('[data-part="hidden-input"]')!;
+        // A disabled item is a disabled option: the platform cannot pick it either.
+        expect([...hidden.options].find((o) => o.value === 'cherry')!.disabled).toBe(true);
         hidden.value = 'banana';
         hidden.dispatchEvent(new Event('change', { bubbles: true }));
         expect(state.value).toBe('banana');

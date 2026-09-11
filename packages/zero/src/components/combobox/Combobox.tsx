@@ -488,7 +488,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
                     >
                         {multiple() ? null : <option value="" selected={listbox.selectedKeys().length === 0}>{props.placeholder ?? ''}</option>}
                         {hiddenKeys().map((k) => (
-                            <option value={k} selected={listbox.isSelected(k)} key={k}>{collection.label(k)}</option>
+                            <option value={k} selected={listbox.isSelected(k)} disabled={collection.isDisabled(k)} key={k}>{collection.label(k)}</option>
                         ))}
                     </select>
                 )

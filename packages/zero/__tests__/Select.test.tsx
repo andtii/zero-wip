@@ -454,13 +454,16 @@ describe('Select over the collection (#445)', () => {
         const state = signal({ country: null as Country | null, codes: [] as string[], code: '' as string | null });
         render(
             <>
-                <Select.Root items={COUNTRIES} itemKey={(c) => c.code} itemLabel={(c) => c.name} model={[state, 'country']} name="country" />
+                <Select.Root items={COUNTRIES} itemKey={(c) => c.code} itemLabel={(c) => c.name} itemDisabled={(c) => !!c.off} model={[state, 'country']} name="country" />
                 <Select.Root items={COUNTRIES} itemValue={(c) => c.code} itemLabel={(c) => c.name} model={[state, 'code']} name="code" />
                 <Select.Root items={COUNTRIES} itemValue={(c) => c.code} itemLabel={(c) => c.name} multiple model={[state, 'codes']} name="codes" />
             </>,
             container,
         );
         const [single, value, multi] = Array.from(container.querySelectorAll<HTMLSelectElement>('[data-part="hidden-input"]'));
+        // A disabled item is a disabled option: the platform cannot pick it either.
+        expect([...single!.options].find((o) => o.value === 'no')!.disabled).toBe(true);
+        expect([...single!.options].find((o) => o.value === 'jp')!.disabled).toBe(false);
         platformWrites(single!, 'jp');
         expect(state.country).toEqual(COUNTRIES[1]);
         expect(container.querySelector('[data-part="value"]')!.textContent).toBe('Japan');
