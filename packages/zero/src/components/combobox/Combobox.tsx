@@ -194,7 +194,10 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     // Explicit children win ENTIRELY over `items`: with a default slot the
     // data is not rendered, so the collection must not hold it either — the
     // highlight, the typeahead and the hidden select follow what is rendered.
-    const items = (): ReadonlyArray<unknown> | undefined => (slots.default ? undefined : props.items);
+    // Without children the root is data-driven, its list possibly empty for
+    // now (`items` arriving later): the mode is decided by the children, not
+    // by what `items` holds at setup, so it can never lock into JSX mode.
+    const items = (): ReadonlyArray<unknown> | undefined => (slots.default ? undefined : props.items ?? []);
     const emptyValue = (): unknown => (items() ? null : '');
     // The seed is exactly what the consumer provided — an explicit
     // `defaultValue={null}` included — and the empty shape otherwise.

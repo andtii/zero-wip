@@ -413,6 +413,18 @@ describe('Select over the collection (#445)', () => {
         hidden.dispatchEvent(new Event('change', { bubbles: true }));
     };
 
+    it('a root without children is data-driven even while its items are still to come', () => {
+        const state = signal({ list: [] as string[] });
+        render(<Select.Root items={state.list} name="later" placeholder="Loading…" />, container);
+        const hidden = container.querySelector<HTMLSelectElement>('[data-part="hidden-input"]')!;
+        expect([...hidden.options].map((o) => o.value)).toEqual(['']);
+        expect(container.querySelector('[data-part="value"]')!.textContent).toBe('Loading…');
+        // Plain props are values in sigx: the list arrives INTO the proxied array.
+        state.list.push('a', 'b');
+        expect([...hidden.options].map((o) => o.value)).toEqual(['', 'a', 'b']);
+        expect(container.querySelectorAll('[data-part="item"]').length).toBe(2);
+    });
+
     it('explicit children win over items ENTIRELY: the collection and the hidden select hold only what is rendered', () => {
         render(
             <Select.Root items={COUNTRIES} itemKey={(c) => c.code} itemLabel={(c) => c.name} name="country">
