@@ -275,17 +275,17 @@ describe('Select', () => {
         expect(trigger.getAttribute('aria-required')).toBe('true');
     });
 
-    describe('options prop (sugar tier, #333)', () => {
+    describe('items (the data expansion)', () => {
         const OPTIONS = [
             { value: 'apple' },
             { value: 'banana', label: 'Banana' },
             { value: 'cherry', label: 'Cherry', disabled: true },
         ] as const;
 
-        it('with no children, renders the full default composition from options', () => {
+        it('with no children, renders the full default composition from items', () => {
             const state = signal({ fruit: '' });
             render(
-                <Select.Root model={[state, 'fruit']} name="fruit" placeholder="Pick a fruit…" options={OPTIONS} />,
+                <Select.Root model={[state, 'fruit']} name="fruit" placeholder="Pick a fruit…" items={OPTIONS} />,
                 container,
             );
             expectAnatomy(container, selectAnatomy);
@@ -307,7 +307,7 @@ describe('Select', () => {
         it('groups render per distinct `group` in first-appearance order, ungrouped stay in place', async () => {
             render(
                 <Select.Root
-                    options={[
+                    items={[
                         { value: 'lemon', group: 'Citrus' },
                         { value: 'peach', group: 'Stone' },
                         { value: 'salt' },
@@ -336,7 +336,7 @@ describe('Select', () => {
 
         it('explicit slot children win entirely — no merging', () => {
             render(
-                <Select.Root options={OPTIONS} placeholder="Pick a fruit…">
+                <Select.Root items={OPTIONS} placeholder="Pick a fruit…">
                     <Select.Trigger label="Fruit">
                         <Select.Value />
                     </Select.Trigger>
@@ -354,7 +354,7 @@ describe('Select', () => {
         it('keyboard highlight, selection and closed typeahead work exactly as with hand-written items', () => {
             const state = signal({ fruit: '' });
             render(
-                <Select.Root model={[state, 'fruit']} options={OPTIONS} placeholder="Pick a fruit…" />,
+                <Select.Root model={[state, 'fruit']} items={OPTIONS} itemValue={(o) => o.value} placeholder="Pick a fruit…" />,
                 container,
             );
             const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
@@ -391,5 +391,110 @@ describe('Select', () => {
         await tick();
         // block:'nearest' — never yank the page, just keep the option visible.
         expect(scrolled).toHaveBeenCalledWith({ block: 'nearest' });
+    });
+});
+
+describe('Select over the collection (#445)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    interface Country { code: string; name: string; region?: string; off?: boolean }
+    const COUNTRIES: Country[] = [
+        { code: 'se', name: 'Sweden', region: 'Nordics' },
+        { code: 'jp', name: 'Japan', region: 'Asia' },
+        { code: 'no', name: 'Norway', region: 'Nordics', off: true },
+    ];
+    const key = (el: Element, k: string) => el.dispatchEvent(new KeyboardEvent('keydown', { key: k, cancelable: true, bubbles: true }));
+
+    it('object model: the model holds the item, and a preset item shows its label on the FIRST render', () => {
+        const state = signal({ country: COUNTRIES[1] as Country | null });
+        render(
+            <Select.Root items={COUNTRIES} itemKey={(c) => c.code} itemLabel={(c) => c.name} model={[state, 'country']} name="country" />,
+            container,
+        );
+        // No tick: the label comes from data, not from a mounted element.
+        expect(container.querySelector('[data-part="value"]')!.textContent).toBe('Japan');
+        container.querySelectorAll<HTMLElement>('[data-part="item"]')[0]!.click();
+        expect(state.country).toEqual(COUNTRIES[0]);
+        // The hidden select posts the KEY, with every item as an option.
+        const hidden = container.querySelector<HTMLSelectElement>('select[data-part="hidden-input"]')!;
+        expect([...hidden.options].map((o) => o.value)).toEqual(['', 'se', 'jp', 'no']);
+    });
+
+    it('key model: itemValue decides what the model holds', () => {
+        const state = signal({ code: 'se' });
+        render(
+            <Select.Root items={COUNTRIES} itemValue={(c) => c.code} itemLabel={(c) => c.name} model={[state, 'code']} />,
+            container,
+        );
+        expect(container.querySelector('[data-part="value"]')!.textContent).toBe('Sweden');
+        container.querySelectorAll<HTMLElement>('[data-part="item"]')[1]!.click();
+        expect(state.code).toBe('jp');
+    });
+
+    it('itemDisabled and itemGroup flow into the generated parts', async () => {
+        render(
+            <Select.Root items={COUNTRIES} itemKey={(c) => c.code} itemLabel={(c) => c.name} itemDisabled={(c) => !!c.off} itemGroup={(c) => c.region} />,
+            container,
+        );
+        await tick();
+        // Grouped rendering reorders the DOM (Nordics collects Norway), so find
+        // the item by its label rather than its data index.
+        const norway = [...container.querySelectorAll<HTMLElement>('[data-part="item"]')].find((i) => i.textContent === 'Norway')!;
+        expect(norway.getAttribute('aria-disabled')).toBe('true');
+        expect([...container.querySelectorAll('[data-part="group-label"]')].map((l) => l.textContent)).toEqual(['Nordics', 'Asia']);
+    });
+
+    it('multiple: selections toggle, the popup stays open, the hidden select is multiple and posts each', async () => {
+        const state = signal({ codes: [] as string[] });
+        render(
+            <form>
+                <Select.Root items={COUNTRIES} multiple itemValue={(c) => c.code} itemLabel={(c) => c.name} model={[state, 'codes']} name="c" />
+            </form>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.click();
+        expect(container.querySelector('[data-part="popup"]')!.getAttribute('data-state')).toBe('open');
+        expect(container.querySelector('[data-part="popup"]')!.getAttribute('aria-multiselectable')).toBe('true');
+        const items = container.querySelectorAll<HTMLElement>('[data-part="item"]');
+        items[0]!.click();
+        items[1]!.click();
+        expect(state.codes).toEqual(['se', 'jp']);
+        expect(container.querySelector('[data-part="popup"]')!.getAttribute('data-state')).toBe('open');
+        expect(container.querySelector('[data-part="value"]')!.textContent).toBe('Sweden, Japan');
+        await tick();
+        const hidden = container.querySelector<HTMLSelectElement>('select[data-part="hidden-input"]')!;
+        expect(hidden.multiple).toBe(true);
+        expect([...hidden.selectedOptions].map((o) => o.value)).toEqual(['se', 'jp']);
+        // Enter on the highlighted item toggles it off.
+        key(trigger, 'Home');
+        key(trigger, 'Enter');
+        expect(state.codes).toEqual(['jp']);
+    });
+
+    it('model:open is a named model (closes #104)', () => {
+        const state = signal({ open: false, fruit: '' });
+        render(
+            <Select.Root model={[state, 'fruit']} model:open={[state, 'open']}>
+                <Select.Trigger label="Fruit"><Select.Value /></Select.Trigger>
+                <Select.Popup><Select.Item value="apple">Apple</Select.Item></Select.Popup>
+            </Select.Root>,
+            container,
+        );
+        container.querySelector<HTMLElement>('[data-part="trigger"]')!.click();
+        expect(state.open).toBe(true);
+        state.open = false;
+        expect(container.querySelector('[data-part="popup"]')!.getAttribute('data-state')).toBe('closed');
+    });
+
+    it('the item slot customises a generated option', () => {
+        render(
+            <Select.Root items={COUNTRIES} itemKey={(c) => c.code} slots={{ item: ({ item }) => <em>{(item as Country).code.toUpperCase()}</em> }} />,
+            container,
+        );
+        expect(container.querySelector('[data-part="item"] em')!.textContent).toBe('SE');
     });
 });

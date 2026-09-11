@@ -41,7 +41,6 @@ import { Input } from '@sigx/zero/input';
 import { Join } from '@sigx/zero/join';
 import { Kbd } from '@sigx/zero/kbd';
 import { Menu } from '@sigx/zero/menu';
-import { NativeSelect } from '@sigx/zero/native-select';
 import { Navbar } from '@sigx/zero/navbar';
 import { NumberInput } from '@sigx/zero/number-input';
 import { Pagination } from '@sigx/zero/pagination';
@@ -120,7 +119,6 @@ export type _numberInput = MustBeTrue<CheckColorSize<PropsOf<typeof NumberInput.
 export type _ratingGroup = MustBeTrue<CheckColorSize<PropsOf<typeof RatingGroup.Root>>>;
 export type _treeView = MustBeTrue<CheckColorSize<PropsOf<typeof TreeView.Root>>>;
 export type _input = MustBeTrue<CheckColorSize<PropsOf<typeof Input.Root>>>;
-export type _nativeSelect = MustBeTrue<CheckColorSize<PropsOf<typeof NativeSelect.Root>>>;
 export type _textarea = MustBeTrue<CheckColorSize<PropsOf<typeof Textarea.Root>>>;
 export type _card = MustBeTrue<CheckColorSize<PropsOf<typeof Card.Root>>>;
 export type _alert = MustBeTrue<CheckColorSize<PropsOf<typeof Alert.Root>>>;

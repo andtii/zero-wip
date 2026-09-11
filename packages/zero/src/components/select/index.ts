@@ -1,5 +1,6 @@
 export { Select, useSelectContext, useSelectGroupContext } from './Select.js';
 export type {
+    SelectRoot,
     SelectRootProps,
     SelectTriggerProps,
     SelectValueProps,

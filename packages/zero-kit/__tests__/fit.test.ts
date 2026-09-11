@@ -9,7 +9,7 @@
  *    generated `recipes.ts` makes at module scope.
  * 2. **zero-basic's recipes fit riso's tokens.** The one brief in the pack
  *    that declines the colour and size axes and fuses `variant` is the
- *    shape the fit exists for: basic's 51 recipes plus riso's Button must
+ *    shape the fit exists for: basic's 50 recipes plus riso's Button must
  *    validate with zero errors under riso's tokens.
  *
  * Shown red first: with the size rule stubbed out, the riso case reports
@@ -89,15 +89,15 @@ describe("zero-basic's recipes fit riso's tokens (roles: {}, sizes: [], fused va
           {
             "collapsedCategoryRefs": 11,
             "droppedAxisValues": 0,
-            "droppedColorValues": 408,
+            "droppedColorValues": 400,
             "droppedCompounds": 0,
             "droppedDefaults": 9,
             "droppedModifiers": 2,
-            "droppedSizeValues": 263,
+            "droppedSizeValues": 254,
             "droppedVariantBlocks": 3,
             "droppedVariantValues": 5,
             "identity": false,
-            "rewrittenRoleRefs": 155,
+            "rewrittenRoleRefs": 150,
           }
         `);
     });

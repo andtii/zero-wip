@@ -44,7 +44,6 @@ test('a real FormData carries every control, omits the disabled one, includes fo
     expect(data).toMatchObject({
         'form-fruit': 'banana',
         'form-email': 'me@example.com',
-        'form-city': 'berlin',
         'form-plan': 'starter',
         'form-notify': 'on',
         'form-qty': '1',

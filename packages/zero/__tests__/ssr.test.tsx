@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderToString } from '@sigx/server-renderer';
 import { defineApp } from 'sigx';
-import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, FileUpload, Indicator, Input, Join, Kbd, NativeSelect, Navbar, NumberInput, Pagination, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
+import { Alert, Avatar, Badge, Breadcrumbs, Card, Carousel, Chat, Collapsible, Combobox, Countdown, Dialog, Diff, Divider, Drawer, FileUpload, Indicator, Input, Join, Kbd, Navbar, NumberInput, Pagination, RadialProgress, RatingGroup, Select, Skeleton, Spinner, Stats, Status, Steps, Swap, Switch, Table, Tabs, Textarea, Timeline, Toast, ToggleGroup, TreeView, createToaster, zeroPlugin } from '@sigx/zero';
 
 function page() {
     return (
@@ -50,15 +50,6 @@ function page() {
                     <Select.Item value="dog">Dog</Select.Item>
                 </Select.Popup>
             </Select.Root>
-            <NativeSelect
-                name="city"
-                defaultValue="berlin"
-                placeholder="Pick a city…"
-                options={[
-                    { value: 'berlin', label: 'Berlin', group: 'Europe' },
-                    { value: 'tokyo', label: 'Tokyo', group: 'Asia' },
-                ]}
-            />
             <ToggleGroup.Root defaultValue={['b']}>
                 <ToggleGroup.Item value="a">A</ToggleGroup.Item>
                 <ToggleGroup.Item value="b">B</ToggleGroup.Item>
@@ -285,12 +276,6 @@ describe('SSR', () => {
         expect(html).toMatch(/<select[^>]*data-scope="select"[^>]*data-part="hidden-input"[^>]*>[\s\S]*?<option value="cat"[^>]*selected/);
         expect(html).toMatch(/data-scope="select"[^>]*data-part="popup"[^>]*data-state="closed"/);
         expect(html).toMatch(/data-scope="combobox"[^>]*data-part="popup"[^>]*data-state="closed"/);
-        // The native select posts pre-hydration — server markup carries the
-        // selection as `selected` on the real <option>, since a <select>'s
-        // value attribute means nothing before its options exist.
-        expect(html).toMatch(/data-scope="native-select"[^>]*data-part="control"/);
-        expect(html).toMatch(/<optgroup[^>]*label="Europe"/);
-        expect(html).toMatch(/value="berlin"[^>]*selected/);
         // The toggle group's single tab stop resolves server-side from the
         // model (registration order stands in for DOM order).
         expect(html).toMatch(/data-scope="toggle-group"[^>]*data-part="item"[^>]*data-state="off"[^>]*tabindex="-1"/i);

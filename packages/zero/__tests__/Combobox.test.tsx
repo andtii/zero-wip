@@ -319,15 +319,15 @@ describe('Combobox', () => {
         expect(container.querySelector<HTMLElement>('[data-part="group"]')!.hasAttribute('aria-labelledby')).toBe(false);
     });
 
-    describe('options prop (sugar tier, #333)', () => {
-        it('with no children, renders the full default composition from options', () => {
+    describe('items (the data expansion)', () => {
+        it('with no children, renders the full default composition from items', () => {
             const state = signal({ value: '' });
             render(
                 <Combobox.Root
                     model={[state, 'value']}
                     name="fruit"
                     placeholder="Search fruit…"
-                    options={[
+                    items={[
                         { value: 'apple' },
                         { value: 'banana', label: 'Banana' },
                         { value: 'cherry', label: 'Cherry', disabled: true },
@@ -350,7 +350,7 @@ describe('Combobox', () => {
         it('groups render per distinct `group` in first-appearance order', async () => {
             render(
                 <Combobox.Root
-                    options={[
+                    items={[
                         { value: 'lemon', group: 'Citrus' },
                         { value: 'peach', group: 'Stone' },
                         { value: 'lime', group: 'Citrus' },
@@ -369,7 +369,7 @@ describe('Combobox', () => {
 
         it('explicit slot children win entirely — no merging', () => {
             render(
-                <Combobox.Root options={[{ value: 'apple' }]}>
+                <Combobox.Root items={[{ value: 'apple' }]}>
                     <Combobox.Control><Combobox.Input /></Combobox.Control>
                     <Combobox.Popup>
                         <Combobox.Item value="mango">Mango</Combobox.Item>
@@ -382,18 +382,16 @@ describe('Combobox', () => {
             expect(items[0]!.textContent).toBe('Mango');
         });
 
-        it('highlight and selection behave exactly as with hand-written items — filtering stays the consumer\'s', () => {
-            // `options` is rendering sugar only: to filter, bind
-            // `model:inputValue` and pass a narrowed array — the combobox law
-            // ("filtering is the consumer's") is unchanged.
+        it('highlight and selection behave exactly as with hand-written items', () => {
             const state = signal({ value: '' });
             render(
                 <Combobox.Root
                     model={[state, 'value']}
-                    options={[
+                    items={[
                         { value: 'apple', label: 'Apple' },
                         { value: 'banana', label: 'Banana' },
                     ]}
+                    itemValue={(o) => o.value}
                 />,
                 container,
             );
@@ -408,5 +406,84 @@ describe('Combobox', () => {
             // for a hand-written item.
             expect(input.value).toBe('Banana');
         });
+    });
+});
+
+describe('Combobox over the collection (#445)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    const FRUITS = [
+        { value: 'apple', label: 'Apple' },
+        { value: 'banana', label: 'Banana' },
+        { value: 'cherry', label: 'Cherry' },
+    ];
+    const type = (el: HTMLInputElement, text: string) => { el.value = text; el.dispatchEvent(new Event('input', { bubbles: true })); };
+
+    it('data mode filters by default: a contains-match on the label as you type', () => {
+        const state = signal({ value: '', query: '' });
+        render(
+            <Combobox.Root items={FRUITS} itemValue={(f) => f.value} model={[state, 'value']} model:inputValue={[state, 'query']} emptyText="No fruit" />,
+            container,
+        );
+        const input = container.querySelector<HTMLInputElement>('[data-part="input"]')!;
+        expect(container.querySelectorAll('[data-part="item"]').length).toBe(3);
+        type(input, 'AN');
+        expect([...container.querySelectorAll('[data-part="item"]')].map((i) => i.textContent)).toEqual(['Banana']);
+        expect(container.querySelector('[data-part="empty"]')).toBeNull();
+        type(input, 'zzz');
+        expect(container.querySelectorAll('[data-part="item"]').length).toBe(0);
+        expect(container.querySelector('[data-part="empty"]')!.textContent).toBe('No fruit');
+    });
+
+    it('filter={false} shows everything (a server-filtered list); a function replaces the default', () => {
+        const state = signal({ query: 'x' });
+        render(
+            <div>
+                <Combobox.Root items={FRUITS} filter={false} model:inputValue={[state, 'query']} />
+                <Combobox.Root items={FRUITS} filter={(f, q) => f.label.startsWith(q)} model:inputValue={[state, 'query']} />
+            </div>,
+            container,
+        );
+        const roots = container.querySelectorAll('[data-scope="combobox"][data-part="root"]');
+        expect(roots[0]!.querySelectorAll('[data-part="item"]').length).toBe(3);
+        expect(roots[1]!.querySelectorAll('[data-part="item"]').length).toBe(0);
+        state.query = 'C';
+        expect([...roots[1]!.querySelectorAll('[data-part="item"]')].map((i) => i.textContent)).toEqual(['Cherry']);
+    });
+
+    it('a preset value reaches the input from data, before any item mounts', () => {
+        const state = signal({ value: 'cherry', query: '' });
+        render(
+            <Combobox.Root items={FRUITS} itemValue={(f) => f.value} model={[state, 'value']} model:inputValue={[state, 'query']} />,
+            container,
+        );
+        // The render pass: the input already shows the label.
+        expect(container.querySelector<HTMLInputElement>('[data-part="input"]')!.value).toBe('Cherry');
+    });
+
+    it('object model by default: selecting fills the input and the model holds the item', () => {
+        const state = signal({ fruit: null as unknown });
+        render(<Combobox.Root items={FRUITS} model={[state, 'fruit']} />, container);
+        container.querySelectorAll<HTMLElement>('[data-part="item"]')[1]!.click();
+        expect(state.fruit).toEqual(FRUITS[1]);
+        expect(container.querySelector<HTMLInputElement>('[data-part="input"]')!.value).toBe('Banana');
+    });
+
+    it('multiple: a selection toggles, clears the query and keeps the popup open', () => {
+        const state = signal({ values: [] as string[], query: 'a' });
+        render(
+            <Combobox.Root items={FRUITS} multiple itemValue={(f) => f.value} model={[state, 'values']} model:inputValue={[state, 'query']} defaultOpen />,
+            container,
+        );
+        const items = container.querySelectorAll<HTMLElement>('[data-part="item"]');
+        items[0]!.click();
+        expect(state.values).toEqual(['apple']);
+        expect(state.query).toBe('');
+        expect(container.querySelector('[data-part="popup"]')!.getAttribute('data-state')).toBe('open');
+        container.querySelectorAll<HTMLElement>('[data-part="item"]')[0]!.click();
+        expect(state.values).toEqual([]);
     });
 });

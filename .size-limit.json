@@ -62,19 +62,7 @@
     {
         "name": "@sigx/zero/select",
         "path": "packages/zero/dist/components/select/index.js",
-        "limit": "6 kB",
-        "ignore": [
-            "sigx",
-            "sigx/jsx-runtime",
-            "sigx/jsx-dev-runtime",
-            "@sigx/runtime-core",
-            "@sigx/runtime-core/internals"
-        ]
-    },
-    {
-        "name": "@sigx/zero/native-select",
-        "path": "packages/zero/dist/components/native-select/index.js",
-        "limit": "2.6 kB",
+        "limit": "8 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
@@ -132,7 +120,7 @@
     {
         "name": "@sigx/zero/combobox",
         "path": "packages/zero/dist/components/combobox/index.js",
-        "limit": "6.5 kB",
+        "limit": "8.5 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",

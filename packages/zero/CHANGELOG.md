@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+### Changed — Select and Combobox over the collection core (#445, part of #438)
+
+- **Breaking:** `options` is `items`, and the roots are typed generic at the
+  JSX level: `T` infers from `items`, the model holds the item unless
+  `itemValue` says what it holds (a `{ value, label }` list with a string
+  model now takes `itemValue={(o) => o.value}`), `multiple` makes it an
+  array. `itemKey` / `itemLabel` / `itemDisabled` / `itemGroup` are the
+  accessors; the `item` slot customises a generated option. Labels resolve
+  from data before anything mounts.
+- **Breaking:** Combobox with `items` filters by default (contains-match on
+  the label); `filter` replaces the rule, `filter={false}` opts out.
+  Hand-written items stay consumer-filtered. `Combobox.Empty` renders only
+  while the visible list is empty; `emptyText` renders it from the data
+  expansion. Under `multiple` a selection toggles, clears the query and keeps
+  the popup open.
+- Select gains `model:open` + `defaultOpen` (closes #104) and `multiple`
+  (the hidden `<select>` is `multiple`, `Value` joins the labels, the popup
+  is `aria-multiselectable`). The hidden select carries every item as an
+  option in data mode.
+- **Breaking:** `NativeSelect` is removed (decision in #438: one Select; the
+  real hidden `<select>` is the form control). `segmentOptions` /
+  `OptionInput` are removed with the `options` sugar (`segmentBy` on the
+  collection is the walk).
+- Select.tsx and Combobox.tsx are thin shells over `createCollection` /
+  `createListbox` / `createListboxItem` / `createGroupPresence` /
+  `syncPopover`: the 426 duplicated lines are gone.
+
 ### Added — the collection and listbox core (#443, part of #438)
 
 - `createCollection` (`@sigx/zero/behaviors`, DOM-free): items as data with

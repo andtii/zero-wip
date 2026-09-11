@@ -1,110 +1,119 @@
 /**
- * Select — a single-value listbox (WAI-ARIA select-only combobox pattern).
+ * Select — a listbox picker (WAI-ARIA select-only combobox pattern), typed
+ * generic at the JSX level over a collection of items.
  *
  * ```tsx
+ * // Items as data: T infers from `items`; the model holds the ITEM …
+ * <Select.Root items={countries} itemKey={(c) => c.code} itemLabel={(c) => c.name}
+ *     model={() => state.country} name="country" placeholder="Pick a country…" />
+ *
+ * // … unless `itemValue` says what it holds (a key model) …
+ * <Select.Root items={countries} itemValue={(c) => c.code} itemLabel={(c) => c.name}
+ *     model={() => state.code} />
+ *
+ * // … and `multiple` makes it an array, posted as a real <select multiple>.
+ * <Select.Root items={countries} multiple model={() => state.selected} />
+ *
+ * // Hand-written items register into the same collection.
  * <Select.Root model={() => state.fruit} placeholder="Pick a fruit…">
- *     <Select.Trigger>
- *         <Select.Value />
- *         <Select.Indicator>▾</Select.Indicator>
- *     </Select.Trigger>
+ *     <Select.Trigger><Select.Value /><Select.Indicator /></Select.Trigger>
  *     <Select.Popup>
  *         <Select.Item value="apple">Apple</Select.Item>
- *         <Select.Item value="banana">Banana</Select.Item>
  *     </Select.Popup>
  * </Select.Root>
  * ```
  *
+ * THE COLLECTION IS THE TRUTH (#438): keys, labels and groups resolve from
+ * `items` before anything mounts, so a preset value shows its label on the
+ * first render and typeahead works before the popup has ever opened. With
+ * `items` and no children the Root renders the default composition —
+ * Trigger(Value, Indicator) + Popup(Item per item, Group/GroupLabel per
+ * distinct group in first-appearance order) — through the same anatomy, the
+ * `item` slot customising each option's content. Explicit children win
+ * entirely when both are given.
+ *
  * Focus stays on the trigger; the highlighted option is conveyed via
  * `aria-activedescendant` and `data-highlighted`. Keyboard: ArrowDown/Up
- * open and move the highlight, Home/End jump, typeahead works closed
- * (selects directly) and open (moves the highlight), Enter/Space select,
- * Escape closes.
+ * open and move, Home/End jump, typeahead works closed (selects) and open
+ * (moves the highlight), Enter/Space select, Escape closes. Under `multiple`
+ * a selection toggles and the popup stays open.
  *
- * FORM PARTICIPATION is a real, visually-hidden `<select>` (`hidden-input`),
- * rendered only while `name` is set: a placeholder `<option value="">` plus
- * one option for the current value. That is what makes `required` a
- * platform constraint (a `type="hidden"` input is barred from validation),
- * lets a form `reset()` restore the default, and posts through `form=`
- * from outside the form's subtree. The browser's invalid focus lands on the
- * trigger. Until the collection lands (#438), the option list is the value
- * alone — enough to post and validate, not yet enough to autofill.
- *
- * THE OPTIONS SUGAR (#333): with no children, an `options` array renders the
- * full default composition — Trigger(Value, Indicator) + Popup(Item per
- * option, Group/GroupLabel per distinct `group` in first-appearance order,
- * label defaulting to value) — through the existing anatomy, so recipes,
- * typeahead and the highlight see exactly what hand-written items produce.
- *
- * ```tsx
- * <Field.Root>
- *     <Field.Label>Fruit</Field.Label>
- *     <Select.Root model={() => state.fruit} placeholder="Pick a fruit…"
- *         options={[{ value: 'apple', label: 'Apple' }, { value: 'lime', group: 'Citrus' }]} />
- * </Field.Root>
- * ```
- *
- * Precedence: explicit slot children win ENTIRELY — when both are given the
- * options array is ignored, never merged. A custom trigger therefore means
- * hand-writing the popup too. The generated trigger carries no `aria-label`;
- * name an options-driven Select through a `Field` (its label lands on the
- * trigger via the field's control id) or write the trigger yourself.
+ * FORM PARTICIPATION is a real, visually-hidden `<select>` (`hidden-input`)
+ * with an option per key, rendered only while `name` is set: `required` is a
+ * platform constraint, autofill sees the options, a form `reset()` restores
+ * the default, `form="id"` associates from outside. The invalid focus lands
+ * on the trigger.
  */
-import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
-import type { Define } from 'sigx';
-import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
+import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
+import type { Define, JSXElement } from 'sigx';
+import { createControllableState, createInertState, namedModel, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
+import { createCollection, type Collection } from '../../behaviors/collection.js';
 import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
-import { createListController, moveHighlight, optionText, type ListController, type ListItem } from '../../behaviors/list.js';
-import { createTypeahead } from '../../behaviors/typeahead.js';
+import { createListController, type ListController } from '../../behaviors/list.js';
+import {
+    announceGroupLabel, createGroupPresence, createListbox, createListboxItem, type GroupPresence, type Listbox,
+} from '../../behaviors/listbox.js';
+import { syncPopover } from '../../behaviors/popover-sync.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
-import { segmentOptions, type OptionInput } from '../../behaviors/options.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
+import type { FactoryBrands, JsxProps } from '../../contract/generic.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithFormControl, WithVariantAxes } from '../../contract/props.js';
+import type {
+    PartProps,
+    WithAsChild,
+    WithClass,
+    WithDisabled,
+    WithFormControl,
+    WithVariantAxes,
+} from '../../contract/props.js';
 import { selectAnatomy } from './anatomy.js';
 
 const SCOPE = selectAnatomy.scope;
 
 interface SelectContext {
-    state: ControllableState<string>;
-    open: { value: boolean };
-    highlighted: { value: string | null };
+    state: ControllableState<unknown>;
+    collection: Collection<unknown, unknown>;
+    listbox: Listbox<unknown>;
     list: ListController;
+    open: { value: boolean };
     ids: { popup: string };
     /** The trigger's rendered id — the field's control id when wrapped in a Field. */
     triggerId(): string;
     placeholder(): string | undefined;
+    multiple(): boolean;
     disabled(): boolean;
     invalid(): boolean;
     required(): boolean;
     describedBy(): string | undefined;
-    selectValue(value: string): void;
-    optionId(value: string): string;
     setTrigger(el: HTMLElement | null): void;
     setPopup(el: HTMLElement | null): void;
     triggerKeydown(e: KeyboardEvent): void;
 }
 
 function makeInert(): SelectContext {
+    const state = createInertState<unknown>('');
+    const collection = createCollection<unknown, unknown>();
+    const list = createListController();
     return {
-        state: createInertState<string>(''),
+        state,
+        collection,
+        listbox: createListbox({ collection, selection: state, list, idBase: 'zx-select-inert' }),
+        list,
         open: { value: false },
-        highlighted: { value: null },
-        list: createListController(),
         ids: { popup: 'zx-select-inert-popup' },
         triggerId: () => 'zx-select-inert-trigger',
         placeholder: () => undefined,
+        multiple: () => false,
         disabled: () => false,
         invalid: () => false,
         required: () => false,
         describedBy: () => undefined,
-        selectValue: () => {},
-        optionId: (v) => `zx-select-inert-option-${v}`,
         setTrigger: () => {},
         setPopup: () => {},
         triggerKeydown: () => {},
@@ -115,129 +124,179 @@ export const useSelectContext = defineInjectable<SelectContext>(() => makeInert(
 
 // ── Root ──
 
-export type SelectRootProps =
-    & Define.Model<string>
-    & Define.Prop<'defaultValue', string, false>
-    & Define.Event<'valueChange', string>
+/**
+ * The props, generic over the item `T` and the model `M`. The exported
+ * `Select.Root` narrows `M` from the props: `T` (object model), `V` when
+ * `itemValue` returns `V`, and arrays of either under `multiple`.
+ */
+export type SelectRootProps<T = unknown, M = unknown> =
+    & Define.Model<M>
+    /** Typed per overload on the exported root (see below); `unknown` here. */
+    & Define.Prop<'defaultValue', unknown, false>
+    & Define.Event<'valueChange', M>
+    & Define.Model<'open', boolean>
+    & Define.Prop<'defaultOpen', boolean, false>
     & Define.Event<'openChange', boolean>
+    /** The items as data. Absent → hand-written `Select.Item` children. */
+    & Define.Prop<'items', ReadonlyArray<T>, false>
+    /** String identity: DOM id, typeahead target, posted value (default: `value` / `id` / the primitive). */
+    & Define.Prop<'itemKey', (item: T) => string, false>
+    /** Display and typeahead text (default: `label` / the key). */
+    & Define.Prop<'itemLabel', (item: T) => string, false>
+    & Define.Prop<'itemDisabled', (item: T) => boolean, false>
+    & Define.Prop<'itemGroup', (item: T) => string | undefined, false>
+    /** Several selections: the model is an array, the hidden select `multiple`. */
+    & Define.Prop<'multiple', boolean, false>
     & Define.Prop<'placeholder', string, false>
     & WithFormControl
     & Define.Prop<'placement', Placement, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
-    /**
-     * One-liner sugar: with no slot children, renders the default
-     * Trigger/Value/Indicator/Popup composition with an Item per entry
-     * (Group + GroupLabel per distinct `group`). Slot children win entirely
-     * when both are given — see the component doc.
-     */
-    & Define.Prop<'options', ReadonlyArray<OptionInput>, false>
     & WithVariantAxes<'select'>
     & WithClass
+    /** Custom content for a generated option (data mode). */
+    & Define.Slot<'item', { item: T }>
     & Define.Slot<'default'>;
 
-const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
-    const state = createControllableState<string>(
+/**
+ * The implementation's props: the public type plus `itemValue`, which the
+ * public type deliberately omits — declared there AND on the overloads, the
+ * arrow's parameter would face an intersection of two signatures and lose
+ * its contextual type, taking `T`'s inference with it. The overloads are
+ * the one place it is typed.
+ */
+type SelectRootImplProps = SelectRootProps & Define.Prop<'itemValue', (item: unknown) => unknown, false>;
+
+const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onMounted, onUnmounted }) => {
+    const multiple = (): boolean => !!props.multiple;
+    // The single-select "nothing chosen": '' for key models and JSX items,
+    // null for an object model (the model holds items, and '' is not one).
+    const emptyValue = (): unknown => (props.itemValue || !props.items ? '' : null);
+    const state = createControllableState<unknown>(
         () => props.model,
-        props.defaultValue ?? '',
+        props.defaultValue ?? (multiple() ? [] : emptyValue()),
         (v) => emit('valueChange', v),
+    );
+    const openState = createControllableState<boolean>(
+        () => namedModel<boolean>(props.open),
+        props.defaultOpen ?? false,
+        (v) => emit('openChange', v),
     );
     const fc = createFormControl({ props: () => props, idBase: 'zx-select', controlPart: 'trigger' });
     const baseId = fc.baseId;
+    const collection = createCollection<unknown, unknown>({
+        items: props.items ? () => props.items : undefined,
+        itemKey: props.itemKey,
+        itemLabel: props.itemLabel,
+        itemValue: props.itemValue,
+        itemDisabled: props.itemDisabled,
+        itemGroup: props.itemGroup,
+    });
     const list = createListController();
-    const open = signal({ value: false });
-    const highlighted = signal({ value: null as string | null });
     let trigger: HTMLElement | null = null;
     let popup: HTMLElement | null = null;
     let hidden: HTMLSelectElement | null = null;
 
-    // The hidden select's value follows the model — including on a form
-    // reset, when the model may already hold the default and nothing
-    // re-renders while the platform has just selected the placeholder.
-    // Deferred a microtask: the option for a new value is inserted by the
-    // render that follows the write, and a select cannot hold a value it has
-    // no option for.
-    const syncHidden = (value: string = state.value): void => {
-        queueMicrotask(() => { if (hidden && hidden.value !== value) hidden.value = value; });
+    const setOpen = (v: boolean): void => {
+        if (openState.value === v) return;
+        openState.value = v;
+        if (v) listbox.highlightSelectedOrFirst();
+        else listbox.highlighted.value = null;
+    };
+
+    const listbox = createListbox<unknown>({
+        collection,
+        selection: state,
+        multiple,
+        list,
+        idBase: baseId,
+        emptyValue: emptyValue(),
+        // A single selection closes; a multiple one toggles and stays open.
+        onSelect: () => { if (!multiple()) setOpen(false); },
+    });
+
+    // The hidden select follows the model — a microtask later, so the
+    // options the render inserts exist, and on a form reset, when the
+    // platform has just selected the placeholder.
+    // The hidden select's options: every item in data mode (autofill sees
+    // the list), the selected keys alone in JSX mode — hand-written items
+    // register during their own setup, after this root has rendered, so a
+    // registry read here would be stale until an unrelated re-render.
+    const hiddenKeys = (): string[] => (collection.mode() === 'data' ? collection.keys() : listbox.selectedKeys());
+
+    const syncHidden = (): void => {
+        queueMicrotask(() => {
+            if (!hidden) return;
+            const keys = listbox.selectedKeys();
+            if (multiple()) {
+                for (const o of Array.from(hidden.options)) o.selected = keys.includes(o.value);
+            } else if (hidden.value !== (keys[0] ?? '')) {
+                hidden.value = keys[0] ?? '';
+            }
+        });
     };
     let detachReset = (): void => {};
     onMounted(() => {
-        effect(() => { syncHidden(state.value); });
+        effect(() => { listbox.selectedKeys(); syncHidden(); });
         // Without a name there is no hidden select — the trigger is a
         // <button>, form-associated like any control, so reset still restores.
         detachReset = onFormReset(() => hidden ?? (trigger as HTMLButtonElement | null), () => {
-            state.value = props.defaultValue ?? '';
+            state.value = props.defaultValue ?? (multiple() ? [] : emptyValue());
             syncHidden();
         });
     });
     onUnmounted(() => detachReset());
 
-    const setOpen = (v: boolean) => {
-        if (open.value === v) return;
-        open.value = v;
-        emit('openChange', v);
-        if (v) {
-            highlighted.value = state.value || list.enabledItems()[0]?.value || null;
-        } else {
-            highlighted.value = null;
-        }
-    };
-
-    const typeahead = createTypeahead({
-        list,
-        onMatch(item: ListItem) {
-            if (open.value) highlighted.value = item.value;
-            else ctx.selectValue(item.value);
-        },
-    });
-
     const ctx: SelectContext = {
         state,
+        collection,
+        listbox,
+        list,
         open: {
-            get value() { return open.value; },
+            get value() { return openState.value; },
             set value(v: boolean) { setOpen(v); },
         },
-        highlighted,
-        list,
         ids: { popup: `${baseId}-popup` },
         // Adopting the field's control id is what lets Field.Label name the
         // trigger through `for` — a button is a labelable element.
         triggerId: fc.controlId,
         placeholder: () => props.placeholder,
+        multiple,
         disabled: fc.disabled,
         invalid: fc.invalid,
         required: fc.required,
         describedBy: fc.describedBy,
-        selectValue(value) {
-            state.value = value;
-            setOpen(false);
-        },
-        optionId: (value) => `${baseId}-option-${value}`,
         setTrigger: (el) => { trigger = el; },
         setPopup: (el) => { popup = el; },
         triggerKeydown(e) {
             if (ctx.disabled()) return;
             const key = e.key;
-            if (!open.value) {
+            if (!openState.value) {
                 if (key === 'ArrowDown' || key === 'ArrowUp' || key === 'Enter' || key === ' ') {
                     e.preventDefault();
                     setOpen(true);
                     return;
                 }
-                typeahead(e, state.value || null);
+                // Closed typeahead: a single select picks directly; a multiple
+                // one opens on the match, since picking would toggle blind.
+                listbox.typeahead(e, listbox.selectedKeys()[0] ?? null, (k) => {
+                    if (multiple()) { setOpen(true); listbox.highlighted.value = k; }
+                    else listbox.select(k);
+                });
                 return;
             }
-            if (key === 'ArrowDown') { e.preventDefault(); moveHighlight(list, highlighted, 1); return; }
-            if (key === 'ArrowUp') { e.preventDefault(); moveHighlight(list, highlighted, -1); return; }
-            if (key === 'Home') { e.preventDefault(); moveHighlight(list, highlighted, 'first'); return; }
-            if (key === 'End') { e.preventDefault(); moveHighlight(list, highlighted, 'last'); return; }
+            if (key === 'ArrowDown') { e.preventDefault(); listbox.move(1); return; }
+            if (key === 'ArrowUp') { e.preventDefault(); listbox.move(-1); return; }
+            if (key === 'Home') { e.preventDefault(); listbox.move('first'); return; }
+            if (key === 'End') { e.preventDefault(); listbox.move('last'); return; }
             if (key === 'Enter' || key === ' ') {
                 e.preventDefault();
-                if (highlighted.value != null) ctx.selectValue(highlighted.value);
+                const h = listbox.highlighted.value;
+                if (h != null) listbox.select(h);
                 return;
             }
             if (key === 'Escape') { e.preventDefault(); setOpen(false); return; }
             if (key === 'Tab') { setOpen(false); return; }
-            typeahead(e, highlighted.value);
+            listbox.typeahead(e, listbox.highlighted.value, (k) => { listbox.highlighted.value = k; });
         },
     };
     defineProvide(useSelectContext, () => ctx);
@@ -245,42 +304,33 @@ const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal, onM
     createAnchorPosition({
         getAnchor: () => trigger,
         getFloating: () => popup,
-        isOpen: () => open.value,
+        isOpen: () => openState.value,
         placement: () => props.placement ?? 'bottom-start',
         offset: () => 4,
         strategy: props.positionStrategy,
     });
 
-    // Keyboard highlight can walk below a scrolled listbox's fold —
-    // aria-activedescendant moves no real focus, so nothing scrolls natively.
-    watch(
-        () => highlighted.value,
-        (value) => {
-            if (value == null) return;
-            list.find(value)?.el()?.scrollIntoView?.({ block: 'nearest' });
-        },
+    // The data expansion: the default composition, built from the same
+    // compound parts a consumer would write — sugar over the anatomy, never
+    // a parallel render path.
+    const dataItem = (item: unknown): JSXElement => (
+        <SelectItem value={collection.keyOf(item)} textValue={collection.labelOf(item)} disabled={collection.isItemDisabled(item)} key={collection.keyOf(item)}>
+            {slots.item ? slots.item({ item }) : collection.labelOf(item)}
+        </SelectItem>
     );
-
-    // The options expansion (#333): the default composition, built from the
-    // same compound parts a consumer would write — sugar over the anatomy,
-    // never a parallel render path.
-    const optionsContent = () => (
+    const dataContent = (): JSXElement => (
         <>
             <SelectTrigger>
                 <SelectValue />
                 <SelectIndicator />
             </SelectTrigger>
             <SelectPopup>
-                {segmentOptions(props.options ?? []).map((segment) => segment.group === undefined
-                    ? segment.options.map((o) => (
-                        <SelectItem value={o.value} disabled={o.disabled} key={o.value}>{o.label ?? o.value}</SelectItem>
-                    ))
+                {collection.segments().map((segment) => segment.group === undefined
+                    ? segment.items.map(dataItem)
                     : (
                         <SelectGroup key={`group:${segment.group}`}>
                             <SelectGroupLabel>{segment.group}</SelectGroupLabel>
-                            {segment.options.map((o) => (
-                                <SelectItem value={o.value} disabled={o.disabled} key={o.value}>{o.label ?? o.value}</SelectItem>
-                            ))}
+                            {segment.items.map(dataItem)}
                         </SelectGroup>
                     ))}
             </SelectPopup>
@@ -295,8 +345,8 @@ const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal, onM
             {...variantAttrs(props)}
             class={props.class}
         >
-            {/* Slot children win ENTIRELY over `options` — no merging. */}
-            {slots.default ? slots.default() : props.options ? optionsContent() : null}
+            {/* Explicit children win ENTIRELY over `items` — no merging. */}
+            {slots.default ? slots.default() : props.items ? dataContent() : null}
             {fc.hasName()
                 ? (
                     <select
@@ -304,6 +354,7 @@ const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal, onM
                         data-part="hidden-input"
                         style={VISUALLY_HIDDEN_STYLE}
                         {...fc.hiddenAttrs()}
+                        multiple={multiple()}
                         required={ctx.required()}
                         tabIndex={-1}
                         aria-hidden="true"
@@ -312,16 +363,32 @@ const SelectRoot = component<SelectRootProps>(({ props, slots, emit, signal, onM
                         // cancel it and land focus where the user can act.
                         onInvalid={(e: Event) => { e.preventDefault(); trigger?.focus(); }}
                     >
-                        <option value="" selected={!state.value}>{props.placeholder ?? ''}</option>
-                        {state.value
-                            ? <option value={state.value} selected>{list.find(state.value)?.textValue() ?? state.value}</option>
-                            : null}
+                        {multiple() ? null : <option value="" selected={listbox.selectedKeys().length === 0}>{props.placeholder ?? ''}</option>}
+                        {hiddenKeys().map((k) => (
+                            <option value={k} selected={listbox.isSelected(k)} key={k}>{collection.label(k)}</option>
+                        ))}
                     </select>
                 )
                 : null}
         </div>
     );
 }, { name: 'Select.Root' });
+
+/**
+ * The generic root: `T` infers from `items`; the model is `T` unless
+ * `itemValue` returns `V`; `multiple` makes it an array of either.
+ */
+export type SelectRoot = {
+    // `defaultValue` is typed here rather than on the shared props: declared
+    // there as `M`, TypeScript stops inferring `T` for the `itemValue`
+    // overload (an inference-priority quirk the type test pins).
+    <T>(props: JsxProps<SelectRootProps<T, T>> & { defaultValue?: T; itemValue?: undefined; multiple?: false }): JSXElement;
+    <T>(props: JsxProps<SelectRootProps<T, T[]>> & { defaultValue?: T[]; itemValue?: undefined; multiple: true }): JSXElement;
+    <T, V>(props: JsxProps<SelectRootProps<T, V>> & { defaultValue?: V; itemValue: (item: T) => V; multiple?: false }): JSXElement;
+    <T, V>(props: JsxProps<SelectRootProps<T, V[]>> & { defaultValue?: V[]; itemValue: (item: T) => V; multiple: true }): JSXElement;
+} & FactoryBrands;
+
+const SelectRoot = SelectRootImpl as unknown as SelectRoot;
 
 // ── Trigger ──
 
@@ -356,7 +423,7 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
         'data-state': stateAttr(select.open.value, 'open', 'closed'),
         'data-disabled': dataAttr(select.disabled()),
         'data-invalid': dataAttr(select.invalid()),
-        'data-placeholder': dataAttr(!select.state.value),
+        'data-placeholder': dataAttr(select.listbox.selectedKeys().length === 0),
         'data-focus-visible': dataAttr(focus.visible),
         role: 'combobox',
         'aria-label': props.label,
@@ -366,9 +433,7 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
         'aria-invalid': select.invalid() ? 'true' : undefined,
         'aria-required': select.required() ? 'true' : undefined,
         'aria-describedby': select.describedBy(),
-        'aria-activedescendant': select.open.value && select.highlighted.value != null
-            ? select.optionId(select.highlighted.value)
-            : undefined,
+        'aria-activedescendant': select.listbox.activeDescendant(select.open.value),
         onClick: () => {
             if (!select.disabled()) select.open.value = !select.open.value;
         },
@@ -402,14 +467,14 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
 
 // ── Value ──
 
-export type SelectValueProps = WithClass & Define.Slot<'default', { value: string }>;
+export type SelectValueProps = WithClass & Define.Slot<'default', { value: unknown; items: unknown[] }>;
 
+/** The selected labels (joined under `multiple`), or the placeholder. */
 const SelectValue = component<SelectValueProps>(({ props, slots }) => {
     const select = useSelectContext();
     return () => {
-        const value = select.state.value;
-        const selected = value ? select.list.find(value) : undefined;
-        const isPlaceholder = !value;
+        const keys = select.listbox.selectedKeys();
+        const isPlaceholder = keys.length === 0;
         return (
             <span
                 data-scope={SCOPE}
@@ -417,8 +482,8 @@ const SelectValue = component<SelectValueProps>(({ props, slots }) => {
                 data-placeholder={dataAttr(isPlaceholder)}
                 class={props.class}
             >
-                {slots.default?.({ value })
-                    ?? (isPlaceholder ? select.placeholder() ?? '' : selected?.textValue() ?? value)}
+                {slots.default?.({ value: select.state.value, items: keys.map((k) => select.collection.byKey(k)).filter((i) => i !== undefined) })
+                    ?? (isPlaceholder ? select.placeholder() ?? '' : select.listbox.displayText())}
             </span>
         );
     };
@@ -451,16 +516,7 @@ const SelectPopup = component<SelectPopupProps>(({ props, slots, onMounted }) =>
     const select = useSelectContext();
     let el: HTMLElement | null = null;
 
-    onMounted(() => {
-        effect(() => {
-            const open = select.open.value;
-            const node = el as (HTMLElement & { showPopover?(): void; hidePopover?(): void; matches(s: string): boolean }) | null;
-            if (!node || typeof node.showPopover !== 'function') return;
-            const showing = node.matches(':popover-open');
-            if (open && !showing) node.showPopover();
-            else if (!open && showing) node.hidePopover!();
-        });
-    });
+    onMounted(() => { syncPopover(() => el, () => select.open.value); });
 
     return () => (
         <div
@@ -470,6 +526,7 @@ const SelectPopup = component<SelectPopupProps>(({ props, slots, onMounted }) =>
             data-state={stateAttr(select.open.value, 'open', 'closed')}
             popover="auto"
             role="listbox"
+            aria-multiselectable={select.multiple() ? 'true' : undefined}
             aria-labelledby={select.triggerId()}
             class={props.class}
             ref={(node: HTMLElement | null) => { el = node; select.setPopup(node); }}
@@ -504,35 +561,20 @@ const SelectItem = component<SelectItemProps>(({ props, slots, onUnmounted }) =>
         isDisabled: () => !!props.disabled,
     });
 
-    const item: ListItem = {
-        id: `option-${props.value}`,
-        get value() { return props.value; },
+    const item = createListboxItem({
+        listbox: select.listbox,
+        collection: select.collection,
+        list: select.list,
+        scope: SCOPE,
+        key: () => props.value,
+        textValue: () => props.textValue,
         disabled: () => !!props.disabled,
-        el: () => el,
-        textValue: () => props.textValue ?? optionText(el) ?? props.value,
-    };
-    const unregister = select.list.register(item);
-    onUnmounted(() => unregister());
-
-    const isSelected = (): boolean => select.state.value === props.value;
-    const isHighlighted = (): boolean => select.highlighted.value === props.value;
+        getEl: () => el,
+    });
+    onUnmounted(() => item.unregister());
 
     const bag = (): PartProps => ({
-        id: select.optionId(props.value),
-        'data-scope': SCOPE,
-        'data-part': 'item',
-        'data-selected': dataAttr(isSelected()),
-        'data-highlighted': dataAttr(isHighlighted()),
-        'data-disabled': dataAttr(props.disabled),
-        role: 'option',
-        'aria-selected': isSelected() ? 'true' : 'false',
-        'aria-disabled': props.disabled ? 'true' : undefined,
-        onClick: () => {
-            if (!props.disabled) select.selectValue(props.value);
-        },
-        onPointerenter: () => {
-            if (!props.disabled) select.highlighted.value = props.value;
-        },
+        ...item.bag(),
         onPointerdown: press.onPointerdown,
         onPointerup: press.onPointerup,
         onPointercancel: press.onPointercancel,
@@ -546,7 +588,7 @@ const SelectItem = component<SelectItemProps>(({ props, slots, onUnmounted }) =>
         return (
             <div class={props.class} {...b}>
                 {slots.default?.(b)}
-                {isSelected()
+                {item.isSelected()
                     ? (
                         <span data-scope={SCOPE} data-part="item-indicator" data-selected="" aria-hidden="true">
                             ✓
@@ -558,42 +600,22 @@ const SelectItem = component<SelectItemProps>(({ props, slots, onUnmounted }) =>
     };
 }, { name: 'Select.Item' });
 
-
 // ── Group / GroupLabel ──
 
-interface SelectGroupContext {
-    labelId: string;
-    labelPresent(): boolean;
-    setLabelPresent(present: boolean): void;
-}
-
-function makeInertGroup(): SelectGroupContext {
-    return {
-        labelId: 'zx-select-group-inert-label',
-        labelPresent: () => false,
-        setLabelPresent: () => {},
-    };
-}
-
-export const useSelectGroupContext = defineInjectable<SelectGroupContext>(() => makeInertGroup());
+export const useSelectGroupContext = defineInjectable<GroupPresence>(
+    () => createGroupPresence('zx-select-group-inert-label', { label: false }),
+);
 
 export type SelectGroupProps = WithClass & Define.Slot<'default'>;
 
 /**
  * The optgroup equivalent — `role="group"` inside the listbox, named by its
- * `GroupLabel` while one is rendered (Menu.Group's presence-tracked shape:
- * an unlabelled group stays anonymous rather than dangling a reference).
+ * `GroupLabel` while one is rendered (an unlabelled group stays anonymous
+ * rather than dangling a reference).
  */
 const SelectGroup = component<SelectGroupProps>(({ props, slots, signal }) => {
     const baseId = createId('zx-select-group');
-    // Written from GroupLabel one microtask after its setup — a write made
-    // during the render pass is invisible to the already-rendered group.
-    const present = signal({ label: false });
-    const ctx: SelectGroupContext = {
-        labelId: `${baseId}-label`,
-        labelPresent: () => present.label,
-        setLabelPresent: (p) => { present.label = p; },
-    };
+    const ctx = createGroupPresence(`${baseId}-label`, signal({ label: false }));
     defineProvide(useSelectGroupContext, () => ctx);
     return () => (
         <div
@@ -612,13 +634,7 @@ export type SelectGroupLabelProps = WithClass & Define.Slot<'default'>;
 
 const SelectGroupLabel = component<SelectGroupLabelProps>(({ props, slots, onUnmounted }) => {
     const group = useSelectGroupContext();
-    // Deferred past the render pass — see the note on `present` in Group.
-    let alive = true;
-    queueMicrotask(() => { if (alive) group.setLabelPresent(true); });
-    onUnmounted(() => {
-        alive = false;
-        group.setLabelPresent(false);
-    });
+    onUnmounted(announceGroupLabel(group));
     // No role: the label must stay in the accessibility tree for the group's
     // aria-labelledby to compute a name from it.
     return () => (

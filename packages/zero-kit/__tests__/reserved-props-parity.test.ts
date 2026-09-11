@@ -29,7 +29,9 @@ function rootPropsOf(scope: string): string[] {
         .sort()
         .map((f) => readFileSync(resolve(dir, f), 'utf8'))
         .join('\n');
-    const block = /export type \w+RootProps =([\s\S]*?)\n(?:const|export const|function)/.exec(source)?.[1]
+    // A generic root (`SelectRootProps<T, M> =`) declares type parameters
+    // between the name and the `=` (#445).
+    const block = /export type \w+RootProps(?:<[^>]*>)? =([\s\S]*?)\n(?:const|export const|function)/.exec(source)?.[1]
         ?? /export type \w+Props =([\s\S]*?)\n(?:const|export const|function)/.exec(source)?.[1]
         ?? '';
     const props = new Set<string>();

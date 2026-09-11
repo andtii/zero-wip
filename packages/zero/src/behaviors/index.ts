@@ -45,9 +45,6 @@ export { onFormReset } from './form-reset.js';
 export type { FormOwned } from './form-reset.js';
 export { VISUALLY_HIDDEN_STYLE } from './visually-hidden.js';
 
-export { segmentOptions } from './options.js';
-export type { OptionInput, OptionSegment } from './options.js';
-
 export { createCollection, defaultItemKey, defaultItemLabel, segmentBy } from './collection.js';
 export type { Collection, CollectionEntry, CollectionOptions, CollectionSegment } from './collection.js';
 export { createListbox, createListboxCore, createListboxItem, createGroupPresence, announceGroupLabel, defaultFilter, stepKeys } from './listbox.js';

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { signal } from 'sigx';
-import { createCollection, segmentBy, segmentOptions } from '@sigx/zero';
+import { createCollection, segmentBy } from '@sigx/zero';
 
 interface Country { code: string; name: string; region?: string; off?: boolean }
 const COUNTRIES: Country[] = [
@@ -22,7 +22,7 @@ describe('createCollection — data mode', () => {
         expect(c.byValue('apple')).toBe('apple');
     });
 
-    it('the OptionInput shape works untouched: value, label, disabled, group', () => {
+    it('the { value, label?, disabled?, group? } shape works untouched', () => {
         const c = createCollection({ items: () => [
             { value: 'lemon', label: 'Lemon', group: 'Citrus' },
             { value: 'durian', label: 'Durian', disabled: true },
@@ -124,16 +124,11 @@ describe('createCollection — JSX mode', () => {
     });
 });
 
-describe('segmentBy / segmentOptions parity', () => {
-    it('segmentOptions is segmentBy over the group field', () => {
+describe('segmentBy', () => {
+    it('folds by first appearance, collecting later members of a group', () => {
         const options = [
             { value: 'a', group: 'G' }, { value: 'b' }, { value: 'c', group: 'G' }, { value: 'd', group: 'H' },
         ];
-        expect(segmentOptions(options)).toEqual([
-            { group: 'G', options: [options[0], options[2]] },
-            { options: [options[1]] },
-            { group: 'H', options: [options[3]] },
-        ]);
-        expect(segmentBy(options, (o) => o.group).map((s) => s.items.map((o) => o.value))).toEqual([['a', 'c'], ['b'], ['d']]);
+        expect(segmentBy(options, (o) => o.group).map((s) => [s.group, s.items.map((o) => o.value)])).toEqual([['G', ['a', 'c']], [undefined, ['b']], ['H', ['d']]]);
     });
 });

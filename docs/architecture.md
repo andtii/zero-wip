@@ -136,7 +136,7 @@ would render it as an element.
 
 **The registry is typed closed.** `anatomies` in
 `packages/zero/src/anatomy.ts` is declared `as const satisfies
-Record<string, Anatomy>` — 51 components — so `ZeroScope` is a closed literal
+Record<string, Anatomy>` — 50 components — so `ZeroScope` is a closed literal
 union. That closure is load-bearing: the generated register artifact asserts
 its scope keys against it at compile time ([§3.5](#35-the-register-artifact)),
 which is what makes a typo'd or version-skewed scope a compile error instead
@@ -490,7 +490,7 @@ axis values are skipped *before* the guards (a narrowed bag has optional
 members); falsy mods are skipped (presence-only — `false` and `undefined`
 both mean absent).
 
-All **51 components** compose `WithVariantAxes<'<scope>'>` — the scope
+All **50 components** compose `WithVariantAxes<'<scope>'>` — the scope
 literal is constrained to `ZeroScope`, so a typo'd literal
 (`WithVariantAxes<'buton'>`) is a compile error rather than a silently
 *different* type taking the open fallback. Ecosystem components use
@@ -776,7 +776,7 @@ Node-only bin with no runtime dependencies, templates embedded at build time
 with the lockstep ranges — lockstep is what makes embedding and reading the
 installed packages content-identical, and neither source file is reachable
 through an `exports` map anyway). The generated package is the brief's tokens
-and worked Button over **zero-basic's 51 recipes as the baseline**, composed
+and worked Button over **zero-basic's 50 recipes as the baseline**, composed
 in `src/recipes.ts` through `fitRecipesToVocabulary` — the kit's one
 non-`define*` export on `/define`, a pure function that keeps exactly what
 the tokens declare (roles, the size ramp, the variant vocabulary, custom
@@ -906,7 +906,7 @@ checking a fraction of what it claimed.)
 | Parity family (6) | `contract-parity`, `registry-parity`, `reserved-props-parity`, `schemas`, `llms-doc`, `type-test-paths` | Every deliberately duplicated surface (kit↔zero contract copies, manifest↔registry, api reserved props↔real Root props, schemas↔reality, llms.txt claims↔source, type-test paths↔package exports) is pinned from both sides. |
 | Audit rules (in-kit) | `zero-kit/src/audit/rules/` via `auditDesignSystem`; the six skins through the thin callers `state-legibility.test.ts`, `button-affordance.test.ts`, `axis-value-coverage.test.ts`, `axis-coverage.test.ts`; `audit-api.test.ts` + `reduced-motion-loop.test.ts` hold every rule's red fixture | Every declared state is visually distinct (component / indicator / in-flow disclosure, honoring `hiddenIn` and per-part `skipStates`); every real `<button>` part resets `appearance`; no declared axis step goes unhonored by the recipes that claim it, and at most one claims the base; no styled scope accepts a declared `color`/`size` axis and wires nothing (ledgered, [§3.8](#38-the-ledgers)); every infinite animation stops under `prefers-reduced-motion` on the same selector. All read from **compiled CSS**, and — since #403 — reachable by a design system built outside this repo. |
 | Audit command + artifact | `zero-kit/src/commands/audit.ts` (`sigx zero:audit`), `build.ts` → `dist/audit.json` + `report.audit`; `audit-cli.test.ts`, `audit-artifacts.test.ts`, `schemas.test.ts` (`audit.schema.json`, and the rule enum pinned to `AUDIT_RULES` in both schemas) | The exit-code contract (errors fail, `--strict` adds warnings, `info` never; `--json -` owns stdout; a non-compiling DS is refused in the validator's words); the build never fails on a finding but writes, summarises and scores every one; `zero:validate --report` and `dist/report.json` are the same document. |
-| Type tests (6 isolated projects) | `packages/zero/type-tests/` — `open`, `augmented`, `generated`, `components`, `registered-components`, `ecosystem` | Each proves one narrowing regime in its own program (augmentation leaks program-wide, so isolation is the point): the unaugmented open fallback; a hand-written augmentation (a `.ts`, so `skipLibCheck` cannot skip it); the real emitted material golden; the emitted `components.d.ts` goldens with the vocabulary untouched, two design systems coexisting; **all 51 scopes' real prop surfaces** under the emitted zero-basic golden; and the ecosystem `Exclude`-gate round trip. |
+| Type tests (6 isolated projects) | `packages/zero/type-tests/` — `open`, `augmented`, `generated`, `components`, `registered-components`, `ecosystem` | Each proves one narrowing regime in its own program (augmentation leaks program-wide, so isolation is the point): the unaugmented open fallback; a hand-written augmentation (a `.ts`, so `skipLibCheck` cannot skip it); the real emitted material golden; the emitted `components.d.ts` goldens with the vocabulary untouched, two design systems coexisting; **all 50 scopes' real prop surfaces** under the emitted zero-basic golden; and the ecosystem `Exclude`-gate round trip. |
 | Register compile gate | `zero-kit/__tests__/register-dts-compile.test.ts` | Every skin's emitted `register.d.ts` compiles with `skipLibCheck: false` against a generated stub of `@sigx/zero`, so the artifact's self-assertions actually execute ([§3.5](#35-the-register-artifact)). |
 | Typed-app capstone | `examples/typed-app` (CI, after build) | The consumer side: three isolated programs against **emitted `dist/`** through real package exports — register narrowing, the no-register components surface, and carbon's values remap. |
 | Interaction e2e (22 specs) | `examples/playground/e2e/` — press-feedback, dialog, drawer, popover, tooltip, menu-submenu, context-menu, combobox, select, toast-presence, tabs, tree-view, slider, number-input, rating-group, carousel, diff | Real-browser contracts (chromium/firefox/webkit, plus reduced-motion and forced-colors projects), under the **locator law** (`e2e/demo.ts`): a part is located through a named root, never page-wide selectors or cross-demo positional indexing. |
@@ -916,7 +916,7 @@ checking a fraction of what it claimed.)
 | DS smoke | `e2e/ds-smoke.spec.ts` | All six skins: `hidden` computes `display: none`, no undeclared axis/mod value renders, the runtime swap leaves one live stylesheet and re-seeds vocabulary + themes, boot logs no console error. |
 | Reduced motion / RTL | `e2e/reduced-motion.spec.ts`, `e2e/rtl.spec.ts` | The two loops (Skeleton, Spinner) assert `animation-name` running under chromium **and** `none` under reduced-motion — both directions, or a never-animating recipe passes; RTL measures rendered boxes across all six skins, complementing the physical-direction lint's `transform` blind spot ([§5](#5-the-compiler-and-css-architecture)). |
 | Axe audit | `e2e/axe-audit.spec.ts` | axe-core over every playground page, hard-failing serious/critical WCAG A/AA, with an **empty allowlist** (`axe-allowlist.json` — stale entries fail; a real bug gets fixed in `packages/zero`, never allowlisted). |
-| Scaffold e2e | `create-zero-ds/__tests__/scaffold.test.ts`, `zero-kit/__tests__/fit.test.ts`, `scripts/verify-pack.js` | Every brief scaffolds in-process into a package that validates with **zero errors and zero warnings**, styles all 51 scopes and builds; `fitRecipesToVocabulary` is the identity for all six skins and fits basic's recipes to riso's tokens (counts pinned); verify-pack scaffolds riso and glass(lynx) from the **packed** tarballs and compiles + builds them, so the templates ship and the generated code holds against the published kit types. |
+| Scaffold e2e | `create-zero-ds/__tests__/scaffold.test.ts`, `zero-kit/__tests__/fit.test.ts`, `scripts/verify-pack.js` | Every brief scaffolds in-process into a package that validates with **zero errors and zero warnings**, styles all 50 scopes and builds; `fitRecipesToVocabulary` is the identity for all six skins and fits basic's recipes to riso's tokens (counts pinned); verify-pack scaffolds riso and glass(lynx) from the **packed** tarballs and compiles + builds them, so the templates ship and the generated code holds against the published kit types. |
 | CI ordering | `.github/workflows/ci.yml` | lint → catalog → typecheck → build → **type tests after build** (so unmapped subpaths cannot fall through to an absent `dist/`) → test; the e2e job adds playground typecheck + typed-app + Playwright. Bundle-size budgets run as their own workflow; `verify-pack` dry-runs publishing. |
 
 ## 10. Known limitations and open directions
@@ -951,7 +951,7 @@ Honesty section. These are the edges the tree knows about today:
 - **The dual-controller theme desync** ([§6](#6-the-theme-model)) is known
   and deliberately unfixed; consumers that swap design systems at runtime
   carry the playground's capture/re-apply pattern.
-- **The component surface is finite.** Fifty-one components, skewed to
+- **The component surface is finite.** Fifty components, skewed to
   primitives plus the content, navigation and behavior tiers; there is no
   DatePicker and no data grid (Table ships the semantic anatomy, not
   sorting or virtualization). The ecosystem path

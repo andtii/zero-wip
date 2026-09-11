@@ -18,7 +18,7 @@ import { render } from '@sigx/runtime-dom';
 import { signal } from 'sigx';
 import type { JSXElement } from 'sigx';
 import {
-    Checkbox, Combobox, FileUpload, Input, NativeSelect, NumberInput,
+    Checkbox, Combobox, FileUpload, Input, NumberInput,
     RadioGroup, RatingGroup, Select, Slider, Switch, Textarea,
 } from '@sigx/zero';
 
@@ -126,26 +126,6 @@ const rows: Row[] = [
         committed: 'b',
         defaultEntry: 'a',
         model: { initial: 'a', committed: 'b' },
-        validates: true,
-    },
-    {
-        scope: 'native-select',
-        mount: (o) => (
-            <NativeSelect
-                name={o.name}
-                form={o.form}
-                disabled={o.disabled}
-                required={o.required}
-                placeholder="Pick a city…"
-                defaultValue={o.withDefault ? 'berlin' : undefined}
-                model={o.model as never}
-                options={[{ value: 'berlin', label: 'Berlin' }, { value: 'tokyo', label: 'Tokyo' }]}
-            />
-        ),
-        commit: (root) => { const el = q<HTMLSelectElement>(root, '[data-scope="native-select"] select'); el.value = 'tokyo'; change(el); },
-        committed: 'tokyo',
-        defaultEntry: 'berlin',
-        model: { initial: 'berlin', committed: 'tokyo' },
         validates: true,
     },
     {

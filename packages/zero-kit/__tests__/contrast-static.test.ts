@@ -112,7 +112,6 @@ describe('the cell product is the browser spec\'s', () => {
             'slider/thumb': ['root', 'track'],
             'menu/item-indicator': ['popup=open', 'checkbox-item'],
             'select/indicator': ['root', 'trigger'],
-            'native-select/indicator': ['root'],
             'select/item-indicator': ['root', 'popup=open', 'item'],
             'combobox/item-indicator': ['root', 'popup=open', 'item'],
             'tree-view/branch-indicator': ['root', 'tree', 'branch', 'branch-trigger'],

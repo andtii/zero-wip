@@ -14,6 +14,9 @@ import type { FactoryBrands, JsxProps } from '@sigx/zero/contract';
 
 type RootProps<T, M> =
     & Define.Model<M>
+    // As on the real roots: typed per overload, `unknown` here — declared as
+    // `M` it silently stops T's inference for the itemValue overload.
+    & Define.Prop<'defaultValue', unknown, false>
     & Define.Prop<'items', ReadonlyArray<T>, true>
     & Define.Prop<'itemKey', (item: T) => string, false>
     & Define.Event<'valueChange', M>
@@ -23,10 +26,10 @@ type RootProps<T, M> =
 const Impl = component<RootProps<unknown, unknown>>(() => () => null as unknown as JSXElement);
 
 type GenericRoot = {
-    <T>(props: JsxProps<RootProps<T, T>> & { itemValue?: undefined; multiple?: false }): JSXElement;
-    <T>(props: JsxProps<RootProps<T, T[]>> & { itemValue?: undefined; multiple: true }): JSXElement;
-    <T, V>(props: JsxProps<RootProps<T, V>> & { itemValue: (item: T) => V; multiple?: false }): JSXElement;
-    <T, V>(props: JsxProps<RootProps<T, V[]>> & { itemValue: (item: T) => V; multiple: true }): JSXElement;
+    <T>(props: JsxProps<RootProps<T, T>> & { defaultValue?: T; itemValue?: undefined; multiple?: false }): JSXElement;
+    <T>(props: JsxProps<RootProps<T, T[]>> & { defaultValue?: T[]; itemValue?: undefined; multiple: true }): JSXElement;
+    <T, V>(props: JsxProps<RootProps<T, V>> & { defaultValue?: V; itemValue: (item: T) => V; multiple?: false }): JSXElement;
+    <T, V>(props: JsxProps<RootProps<T, V[]>> & { defaultValue?: V[]; itemValue: (item: T) => V; multiple: true }): JSXElement;
 } & FactoryBrands;
 
 const Root = Impl as unknown as GenericRoot;
@@ -44,6 +47,7 @@ export const multipleObjects = <Root items={countries} multiple model={() => sta
 export const multipleKeys = <Root items={countries} multiple itemValue={(i) => i.code} model={() => state.codes} />;
 export const scopedSlot = <Select.Root items={countries} model={() => state.c} slots={{ item: ({ item }) => <span>{item.name}</span> }} />;
 export const tupleForm = <Root items={countries} model={[state, 'c']} />;
+export const withDefault = <Root items={countries} itemValue={(i) => i.code} defaultValue="se" model={() => state.code} />;
 
 // ── invalid ──
 // @ts-expect-error — the model is the item unless itemValue says otherwise
@@ -56,5 +60,7 @@ export const e3 = <Root items={countries} multiple model={() => state.c} />;
 export const e4 = <Root items={countries} model={() => state.cs} />;
 // @ts-expect-error — itemKey's parameter is the item
 export const e5 = <Root items={countries} model={() => state.c} itemKey={(i: number) => String(i)} />;
+// @ts-expect-error — defaultValue follows the model
+export const e7 = <Root items={countries} itemValue={(i) => i.code} defaultValue={3} />;
 // @ts-expect-error — the change event carries the item
 export const e6 = <Root items={countries} model={() => state.c} onValueChange={(v: string) => v} />;

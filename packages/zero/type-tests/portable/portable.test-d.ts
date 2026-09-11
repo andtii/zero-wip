@@ -13,10 +13,10 @@
  */
 import {
     createControllableState,
+    segmentBy,
     createId,
     createListController,
     moveHighlight,
-    segmentOptions,
     sortByDomOrder,
     type ItemElement,
     type ListController,
@@ -117,7 +117,7 @@ const ordered: ListItem[] = sortByDomOrder(list.items());
 // A structural element satisfies ItemElement without lib.dom.
 const fakeEl: ItemElement = { isConnected: true, compareDocumentPosition: () => 4 };
 
-const segments = segmentOptions([{ value: 'a' }, { value: 'b', label: 'B' }]);
+const segments = segmentBy([{ value: 'a' }, { value: 'b', label: 'B' }], () => undefined);
 
 // ---- theme registry --------------------------------------------------------
 

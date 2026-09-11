@@ -1,6 +1,6 @@
 import { component, signal } from 'sigx';
 import {
-    Button, Checkbox, Combobox, Field, Input, NativeSelect, NumberInput,
+    Button, Checkbox, Combobox, Field, Input, NumberInput,
     RadioGroup, RatingGroup, Select, Slider, Switch, Textarea,
 } from '@sigx/zero';
 import type { PageEntry } from './registry';
@@ -14,10 +14,6 @@ const COUNTRIES = [
     { value: 'sweden', label: 'Sweden' },
     { value: 'norway', label: 'Norway' },
     { value: 'finland', label: 'Finland' },
-];
-const CITIES = [
-    { value: 'berlin', label: 'Berlin' },
-    { value: 'tokyo', label: 'Tokyo' },
 ];
 
 /**
@@ -74,11 +70,7 @@ const FormsDemos = component(() => {
                 </Field.Root>
                 <Field.Root>
                     <Field.Label>Country</Field.Label>
-                    <Combobox.Root name="form-country" placeholder="Search countries…" options={COUNTRIES} />
-                </Field.Root>
-                <Field.Root>
-                    <Field.Label>City</Field.Label>
-                    <NativeSelect name="form-city" placeholder="Pick a city…" defaultValue="berlin" options={CITIES} />
+                    <Combobox.Root name="form-country" placeholder="Search countries…" items={COUNTRIES} />
                 </Field.Root>
                 <Field.Root>
                     <Field.Label>Plan</Field.Label>

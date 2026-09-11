@@ -1,5 +1,6 @@
 export { Combobox, useComboboxContext, useComboboxGroupContext } from './Combobox.js';
 export type {
+    ComboboxRoot,
     ComboboxRootProps,
     ComboboxControlProps,
     ComboboxInputProps,
