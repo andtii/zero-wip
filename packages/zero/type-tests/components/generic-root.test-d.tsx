@@ -17,7 +17,7 @@ type RootProps<T, M> =
     // As on the real roots: typed per overload, `unknown` here — declared as
     // `M` it silently stops T's inference for the itemValue overload.
     & Define.Prop<'defaultValue', unknown, false>
-    & Define.Prop<'items', ReadonlyArray<T>, true>
+    & Define.Prop<'items', ReadonlyArray<T>, false>
     & Define.Prop<'itemKey', (item: T) => string, false>
     & Define.Event<'valueChange', M>
     & Define.Slot<'item', { item: T }>
@@ -26,7 +26,9 @@ type RootProps<T, M> =
 const Impl = component<RootProps<unknown, unknown>>(() => () => null as unknown as JSXElement);
 
 type GenericRoot = {
-    <T>(props: JsxProps<RootProps<T, T | null>> & { defaultValue?: T | null; itemValue?: undefined; multiple?: false }): JSXElement;
+    (props: JsxProps<RootProps<unknown, string>> & { items?: undefined; defaultValue?: string; itemValue?: undefined; multiple?: false }): JSXElement;
+    (props: JsxProps<RootProps<unknown, string[]>> & { items?: undefined; defaultValue?: string[]; itemValue?: undefined; multiple: true }): JSXElement;
+    <T>(props: JsxProps<RootProps<T, T | null>> & { items: ReadonlyArray<T>; defaultValue?: T | null; itemValue?: undefined; multiple?: false }): JSXElement;
     <T>(props: JsxProps<RootProps<T, T[]>> & { defaultValue?: T[]; itemValue?: undefined; multiple: true }): JSXElement;
     <T, V>(props: JsxProps<RootProps<T, V | null>> & { defaultValue?: V | null; itemValue: (item: T) => V; multiple?: false }): JSXElement;
     <T, V>(props: JsxProps<RootProps<T, V[]>> & { defaultValue?: V[]; itemValue: (item: T) => V; multiple: true }): JSXElement;
@@ -37,7 +39,7 @@ const Select = compound(Root, { Root });
 
 interface Country { code: string; name: string }
 const countries: Country[] = [];
-const state = signal({ c: null as Country | null, cs: [] as Country[], code: '' as string | null, codes: [] as string[], n: 0 as number | null });
+const state = signal({ c: null as Country | null, cs: [] as Country[], code: '' as string | null, codes: [] as string[], n: 0 as number | null, s: '', ss: [] as string[] });
 
 // ── valid ──
 // The item model is `T | null` — nothing selected is null, so the change
@@ -53,6 +55,9 @@ export const multipleKeys = <Root items={countries} multiple itemValue={(i) => i
 export const scopedSlot = <Select.Root items={countries} model={() => state.c} slots={{ item: ({ item }) => <span>{item.name}</span> }} />;
 export const tupleForm = <Root items={countries} model={[state, 'c']} />;
 export const withDefault = <Root items={countries} itemValue={(i) => i.code} defaultValue="se" model={() => state.code} />;
+// Hand-written items: the model is the <select>'s string, or string[] under multiple.
+export const jsxMode = <Root model={() => state.s} defaultValue="a" onValueChange={(v) => v.toUpperCase()} />;
+export const jsxMultiple = <Root multiple model={() => state.ss} />;
 
 // ── invalid ──
 // @ts-expect-error — the model is the item unless itemValue says otherwise
@@ -73,3 +78,7 @@ export const e6 = <Root items={countries} model={() => state.c} onValueChange={(
 export const e8 = <Root items={countries} model={() => state.c} onValueChange={(v: Country) => v.name} />;
 // @ts-expect-error — so is a value model
 export const e9 = <Root items={countries} itemValue={(i) => i.code} model={() => state.code} onValueChange={(v: string) => v} />;
+// @ts-expect-error — without items the model is a string key, not a number
+export const e10 = <Root model={() => state.n} />;
+// @ts-expect-error — nor an object
+export const e11 = <Root model={() => state.c} />;

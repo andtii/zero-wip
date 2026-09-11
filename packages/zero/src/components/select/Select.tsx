@@ -432,9 +432,13 @@ export type SelectRoot = {
     // `defaultValue` is typed here rather than on the shared props: declared
     // there as `M`, TypeScript stops inferring `T` for the `itemValue`
     // overload (an inference-priority quirk the type test pins).
+    // Hand-written items (no `items`): a key IS its value, so the model is
+    // the <select>'s string — '' for nothing selected — or string[].
+    (props: JsxProps<SelectRootProps<unknown, string>> & { items?: undefined; defaultValue?: string; itemValue?: undefined; multiple?: false }): JSXElement;
+    (props: JsxProps<SelectRootProps<unknown, string[]>> & { items?: undefined; defaultValue?: string[]; itemValue?: undefined; multiple: true }): JSXElement;
     // An item model is `T | null`: nothing selected is `null` (the runtime
     // writes it on clear, reset and a platform write), never a fake item.
-    <T>(props: JsxProps<SelectRootProps<T, T | null>> & { defaultValue?: T | null; itemValue?: undefined; multiple?: false }): JSXElement;
+    <T>(props: JsxProps<SelectRootProps<T, T | null>> & { items: ReadonlyArray<T>; defaultValue?: T | null; itemValue?: undefined; multiple?: false }): JSXElement;
     <T>(props: JsxProps<SelectRootProps<T, T[]>> & { defaultValue?: T[]; itemValue?: undefined; multiple: true }): JSXElement;
     // A value model is `V | null` for the same reason — V is whatever
     // `itemValue` returns (a number as readily as a string), so no member of
