@@ -413,6 +413,11 @@ describe('Select over the collection (#445)', () => {
         hidden.dispatchEvent(new Event('change', { bubbles: true }));
     };
 
+    it('an item keyed "" is refused in single mode (it is the placeholder) and accepted under multiple', () => {
+        expect(() => render(<Select.Root items={['', 'a']} name="x" />, container)).toThrow(/reserved for the placeholder/);
+        expect(() => render(<Select.Root items={['', 'a']} multiple name="y" />, container)).not.toThrow();
+    });
+
     it("the platform's write to the hidden select (autofill, restoration) flows back into the model", () => {
         const state = signal({ country: null as Country | null, codes: [] as string[] });
         render(

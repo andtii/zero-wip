@@ -229,7 +229,16 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
     // the list), the selected keys alone in JSX mode — hand-written items
     // register during their own setup, after this root has rendered, so a
     // registry read here would be stale until an unrelated re-render.
-    const hiddenKeys = (): string[] => (collection.mode() === 'data' ? collection.keys() : listbox.selectedKeys());
+    // The empty key is the single-mode placeholder: an item keyed '' would be
+    // indistinguishable from "nothing selected" (it could neither post nor
+    // round-trip from a platform write) — fail fast instead.
+    const guardKeys = (keys: string[]): string[] => {
+        if (!multiple() && keys.includes('')) {
+            throw new Error('[zero] Select: an item keyed "" is reserved for the placeholder in single mode — give it a non-empty itemKey / itemValue');
+        }
+        return keys;
+    };
+    const hiddenKeys = (): string[] => guardKeys(collection.mode() === 'data' ? collection.keys() : listbox.selectedKeys());
 
     const syncHidden = (): void => {
         queueMicrotask(() => {
