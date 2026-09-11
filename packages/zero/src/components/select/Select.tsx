@@ -375,7 +375,11 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
                         // form restoration): its selection flows back into the model.
                         onChange={() => {
                             if (!hidden) return;
-                            const keys = Array.from(hidden.options).filter((o) => o.selected && o.value !== '').map((o) => o.value);
+                            // Only the single-mode placeholder carries the empty key;
+                            // under `multiple` an empty-string key is a real item.
+                            const keys = Array.from(hidden.options)
+                                .filter((o) => o.selected && (multiple() || o.value !== ''))
+                                .map((o) => o.value);
                             state.value = multiple()
                                 ? keys.map((k) => collection.valueForKey(k))
                                 : keys.length > 0 ? collection.valueForKey(keys[0]!) : emptyValue();
