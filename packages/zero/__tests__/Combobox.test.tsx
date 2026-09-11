@@ -422,6 +422,16 @@ describe('Combobox over the collection (#445)', () => {
     ];
     const type = (el: HTMLInputElement, text: string) => { el.value = text; el.dispatchEvent(new Event('input', { bubbles: true })); };
 
+    it("the platform's write to the hidden select (autofill, restoration) flows back into the model and the input", () => {
+        const state = signal({ value: '' });
+        render(<Combobox.Root items={FRUITS} itemValue={(f) => f.value} model={[state, 'value']} name="fruit" />, container);
+        const hidden = container.querySelector<HTMLSelectElement>('[data-part="hidden-input"]')!;
+        hidden.value = 'banana';
+        hidden.dispatchEvent(new Event('change', { bubbles: true }));
+        expect(state.value).toBe('banana');
+        expect(container.querySelector<HTMLInputElement>('[data-part="input"]')!.value).toBe('Banana');
+    });
+
     it('data mode filters by default: a contains-match on the label as you type', () => {
         const state = signal({ value: '', query: '' });
         render(

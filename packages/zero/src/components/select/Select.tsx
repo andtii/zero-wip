@@ -371,6 +371,15 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
                         // The platform's bubble would anchor to a 1px element:
                         // cancel it and land focus where the user can act.
                         onInvalid={(e: Event) => { e.preventDefault(); trigger?.focus(); }}
+                        // The platform writes the hidden select itself (autofill,
+                        // form restoration): its selection flows back into the model.
+                        onChange={() => {
+                            if (!hidden) return;
+                            const keys = Array.from(hidden.options).filter((o) => o.selected && o.value !== '').map((o) => o.value);
+                            state.value = multiple()
+                                ? keys.map((k) => collection.valueForKey(k))
+                                : keys.length > 0 ? collection.valueForKey(keys[0]!) : emptyValue();
+                        }}
                     >
                         {multiple() ? null : <option value="" selected={listbox.selectedKeys().length === 0}>{props.placeholder ?? ''}</option>}
                         {hiddenKeys().map((k) => (

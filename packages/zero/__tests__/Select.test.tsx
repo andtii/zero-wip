@@ -408,6 +408,30 @@ describe('Select over the collection (#445)', () => {
     ];
     const key = (el: Element, k: string) => el.dispatchEvent(new KeyboardEvent('keydown', { key: k, cancelable: true, bubbles: true }));
 
+    const platformWrites = (hidden: HTMLSelectElement, ...keys: string[]) => {
+        for (const o of Array.from(hidden.options)) o.selected = keys.includes(o.value);
+        hidden.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    it("the platform's write to the hidden select (autofill, restoration) flows back into the model", () => {
+        const state = signal({ country: null as Country | null, codes: [] as string[] });
+        render(
+            <>
+                <Select.Root items={COUNTRIES} itemKey={(c) => c.code} itemLabel={(c) => c.name} model={[state, 'country']} name="country" />
+                <Select.Root items={COUNTRIES} itemValue={(c) => c.code} itemLabel={(c) => c.name} multiple model={[state, 'codes']} name="codes" />
+            </>,
+            container,
+        );
+        const [single, multi] = Array.from(container.querySelectorAll<HTMLSelectElement>('[data-part="hidden-input"]'));
+        platformWrites(single!, 'jp');
+        expect(state.country).toEqual(COUNTRIES[1]);
+        expect(container.querySelector('[data-part="value"]')!.textContent).toBe('Japan');
+        platformWrites(single!);
+        expect(state.country).toBeNull();
+        platformWrites(multi!, 'se', 'no');
+        expect(state.codes).toEqual(['se', 'no']);
+    });
+
     it('object model: the model holds the item, and a preset item shows its label on the FIRST render', () => {
         const state = signal({ country: COUNTRIES[1] as Country | null });
         render(
