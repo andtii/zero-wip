@@ -76,9 +76,10 @@ their neighbors, `marks` renders ticks) while a scalar model keeps the native
 (`Group`/`GroupLabel`, the optgroup equivalent).
 
 **Select and Combobox are typed generic over their items.** `items` is
-the data; `T` infers from it, and the model holds the item unless
-`itemValue` says what it holds (`itemValue={(c) => c.code}` makes a key
-model), `multiple` making it an array either way. `itemKey` is the string
+the data; `T` infers from it, and the model holds the item (`null` while
+nothing is selected) unless `itemValue` says what it holds
+(`itemValue={(c) => c.code}` makes a key model, `''` when empty),
+`multiple` making it an array either way. `itemKey` is the string
 identity (the DOM id, the typeahead target, the posted value), `itemLabel`
 the display text, `itemDisabled` and `itemGroup` complete the accessors;
 the defaults read an object's `value` / `label` / `disabled` / `group` or

@@ -190,8 +190,9 @@ component renders; the root is called out separately where it carries props.
   itemValue, itemDisabled, itemGroup, multiple, name, form, required,
   placeholder)/Trigger/Value/Indicator/Popup/Group/GroupLabel/Item/
   ItemIndicator/HiddenInput. TYPED GENERIC ROOT: T infers from `items`; the
-  model holds the ITEM unless `itemValue` says what it holds (a key model:
-  `itemValue={(c) => c.code}` → model string); `multiple` makes it an array.
+  model holds the ITEM (`T | null`) unless `itemValue` says what it holds
+  (a key model: `itemValue={(c) => c.code}` → model string); `multiple`
+  makes it an array.
   itemKey is the string identity (DOM id, typeahead, the posted value —
   default: an object's value/id or the primitive), itemLabel the display
   text (default: label or the key). THE COLLECTION IS THE TRUTH: labels and

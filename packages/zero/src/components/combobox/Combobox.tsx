@@ -495,7 +495,9 @@ export type ComboboxRoot = {
     // `defaultValue` is typed here rather than on the shared props: declared
     // there as `M`, TypeScript stops inferring `T` for the `itemValue`
     // overload (an inference-priority quirk the type test pins).
-    <T>(props: JsxProps<ComboboxRootProps<T, T>> & { defaultValue?: T; itemValue?: undefined; multiple?: false }): JSXElement;
+    // An item model is `T | null`: nothing selected is `null` (the runtime
+    // writes it on clear, reset and a platform write), never a fake item.
+    <T>(props: JsxProps<ComboboxRootProps<T, T | null>> & { defaultValue?: T | null; itemValue?: undefined; multiple?: false }): JSXElement;
     <T>(props: JsxProps<ComboboxRootProps<T, T[]>> & { defaultValue?: T[]; itemValue?: undefined; multiple: true }): JSXElement;
     <T, V>(props: JsxProps<ComboboxRootProps<T, V>> & { defaultValue?: V; itemValue: (item: T) => V; multiple?: false }): JSXElement;
     <T, V>(props: JsxProps<ComboboxRootProps<T, V[]>> & { defaultValue?: V[]; itemValue: (item: T) => V; multiple: true }): JSXElement;

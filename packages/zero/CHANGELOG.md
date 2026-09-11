@@ -5,8 +5,8 @@
 ### Changed — Select and Combobox over the collection core (#445, part of #438)
 
 - **Breaking:** `options` is `items`, and the roots are typed generic at the
-  JSX level: `T` infers from `items`, the model holds the item unless
-  `itemValue` says what it holds (a `{ value, label }` list with a string
+  JSX level: `T` infers from `items`, the model holds the item (`T | null`)
+  unless `itemValue` says what it holds (a `{ value, label }` list with a string
   model now takes `itemValue={(o) => o.value}`), `multiple` makes it an
   array. `itemKey` / `itemLabel` / `itemDisabled` / `itemGroup` are the
   accessors; the `item` slot customises a generated option. Labels resolve
@@ -36,8 +36,8 @@
   posted value) and the VALUE (`itemValue`: what the model holds, default the
   item) — plus `itemLabel`, `itemDisabled`, `itemGroup`; labels, values and
   groups resolve before anything mounts; JSX-written items register into
-  the same list. `segmentBy` is the grouping walk; `segmentOptions` is now
-  an alias over it.
+  the same list. `segmentBy` is the grouping walk (`segmentOptions` was an
+  alias over it until the `options` sugar went, above).
 - `createListboxCore` / `createListbox`: visibility (default contains-match
   on the label, a custom `filter`, or `filter: false`), single and
   `multiple` selection over a model, highlight stepping over enabled
