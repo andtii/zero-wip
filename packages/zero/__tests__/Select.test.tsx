@@ -415,6 +415,9 @@ describe('Select over the collection (#445)', () => {
 
     it('an item keyed "" is refused in single mode (it is the placeholder) and accepted under multiple', () => {
         expect(() => render(<Select.Root items={['', 'a']} name="x" />, container)).toThrow(/reserved for the placeholder/);
+        // With or without a name, data or hand-written items: the key is the sentinel either way.
+        expect(() => render(<Select.Root items={['', 'a']} />, container)).toThrow(/reserved for the placeholder/);
+        expect(() => render(<Select.Root><Select.Popup><Select.Item value="">None</Select.Item></Select.Popup></Select.Root>, container)).toThrow(/reserved for the placeholder/);
         expect(() => render(<Select.Root items={['', 'a']} multiple name="y" />, container)).not.toThrow();
     });
 

@@ -88,6 +88,8 @@ interface ComboboxContext {
     ids: { trigger: string; popup: string };
     placeholder(): string | undefined;
     multiple(): boolean;
+    /** Refuses the empty key in single mode — it is the placeholder's. */
+    guardKey(key: string): void;
     disabled(): boolean;
     invalid(): boolean;
     required(): boolean;
@@ -119,6 +121,7 @@ function makeInert(): ComboboxContext {
         ids: { trigger: 'zx-combobox-inert-trigger', popup: 'zx-combobox-inert-popup' },
         placeholder: () => undefined,
         multiple: () => false,
+        guardKey: () => {},
         disabled: () => false,
         invalid: () => false,
         required: () => false,
@@ -248,9 +251,11 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     // the list), the selected keys alone in JSX mode — hand-written items
     // register during their own setup, after this root has rendered, so a
     // registry read here would be stale until an unrelated re-render.
-    // The empty key is the single-mode placeholder: an item keyed '' would be
-    // indistinguishable from "nothing selected" (it could neither post nor
-    // round-trip from a platform write) — fail fast instead.
+    // The empty key is the single-mode placeholder AND the key model's empty
+    // sentinel: an item keyed '' would be indistinguishable from "nothing
+    // selected" (selecting it clears; it could neither post nor round-trip
+    // from a platform write) — fail fast at every entry: the data expansion,
+    // a hand-written item, the hidden select.
     const guardKeys = (keys: string[]): string[] => {
         if (!multiple() && keys.includes('')) {
             throw new Error('[zero] Combobox: an item keyed "" is reserved for the placeholder in single mode — give it a non-empty itemKey / itemValue');
@@ -305,6 +310,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         ids: { trigger: `${baseId}-trigger`, popup: `${baseId}-popup` },
         placeholder: () => props.placeholder,
         multiple,
+        guardKey: (key) => { guardKeys([key]); },
         disabled: fc.disabled,
         invalid: fc.invalid,
         required: fc.required,
@@ -404,7 +410,9 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             {slots.item ? slots.item({ item }) : collection.labelOf(item)}
         </ComboboxItem>
     );
-    const dataContent = (): JSXElement => (
+    const dataContent = (): JSXElement => {
+        guardKeys(collection.keys());
+        return (
         <>
             <ComboboxControl>
                 <ComboboxInput />
@@ -428,7 +436,8 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
                 })}
             </ComboboxPopup>
         </>
-    );
+        );
+    };
 
     return () => (
         <div
@@ -668,6 +677,7 @@ const ComboboxItem = component<ComboboxItemProps>(({ props, slots, onMounted, on
         isDisabled: () => !!props.disabled,
     });
 
+    combobox.guardKey(props.value);
     const item = createListboxItem({
         listbox: combobox.listbox,
         collection: combobox.collection,

@@ -424,6 +424,9 @@ describe('Combobox over the collection (#445)', () => {
 
     it('an item keyed "" is refused in single mode (it is the placeholder) and accepted under multiple', () => {
         expect(() => render(<Combobox.Root items={['', 'a']} name="x" />, container)).toThrow(/reserved for the placeholder/);
+        // With or without a name, data or hand-written items: the key is the sentinel either way.
+        expect(() => render(<Combobox.Root items={['', 'a']} />, container)).toThrow(/reserved for the placeholder/);
+        expect(() => render(<Combobox.Root><Combobox.Popup><Combobox.Item value="">None</Combobox.Item></Combobox.Popup></Combobox.Root>, container)).toThrow(/reserved for the placeholder/);
         expect(() => render(<Combobox.Root items={['', 'a']} multiple name="y" />, container)).not.toThrow();
     });
 
