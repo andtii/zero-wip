@@ -29,9 +29,9 @@ type GenericRoot = {
     (props: JsxProps<RootProps<unknown, string>> & { items?: undefined; defaultValue?: string; itemValue?: undefined; multiple?: false }): JSXElement;
     (props: JsxProps<RootProps<unknown, string[]>> & { items?: undefined; defaultValue?: string[]; itemValue?: undefined; multiple: true }): JSXElement;
     <T>(props: JsxProps<RootProps<T, T | null>> & { items: ReadonlyArray<T>; defaultValue?: T | null; itemValue?: undefined; multiple?: false }): JSXElement;
-    <T>(props: JsxProps<RootProps<T, T[]>> & { defaultValue?: T[]; itemValue?: undefined; multiple: true }): JSXElement;
-    <T, V>(props: JsxProps<RootProps<T, V | null>> & { defaultValue?: V | null; itemValue: (item: T) => V; multiple?: false }): JSXElement;
-    <T, V>(props: JsxProps<RootProps<T, V[]>> & { defaultValue?: V[]; itemValue: (item: T) => V; multiple: true }): JSXElement;
+    <T>(props: JsxProps<RootProps<T, T[]>> & { items: ReadonlyArray<T>; defaultValue?: T[]; itemValue?: undefined; multiple: true }): JSXElement;
+    <T, V>(props: JsxProps<RootProps<T, V | null>> & { items: ReadonlyArray<T>; defaultValue?: V | null; itemValue: (item: T) => V; multiple?: false }): JSXElement;
+    <T, V>(props: JsxProps<RootProps<T, V[]>> & { items: ReadonlyArray<T>; defaultValue?: V[]; itemValue: (item: T) => V; multiple: true }): JSXElement;
 } & FactoryBrands;
 
 const Root = Impl as unknown as GenericRoot;
@@ -82,3 +82,7 @@ export const e9 = <Root items={countries} itemValue={(i) => i.code} model={() =>
 export const e10 = <Root model={() => state.n} />;
 // @ts-expect-error — nor an object
 export const e11 = <Root model={() => state.c} />;
+// @ts-expect-error — nor an object array under multiple
+export const e12 = <Root multiple model={() => state.cs} />;
+// @ts-expect-error — itemValue has nothing to read without items
+export const e13 = <Root itemValue={(i: Country) => i.code} model={() => state.code} />;
