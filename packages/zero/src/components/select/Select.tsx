@@ -44,7 +44,7 @@
  * the default, `form="id"` associates from outside. The invalid focus lands
  * on the trigger.
  */
-import { component, compound, defineInjectable, defineProvide, effect } from 'sigx';
+import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
 import type { Define, JSXElement } from 'sigx';
 import { createControllableState, createInertState, namedModel, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
@@ -197,10 +197,7 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
     let hidden: HTMLSelectElement | null = null;
 
     const setOpen = (v: boolean): void => {
-        if (openState.value === v) return;
-        openState.value = v;
-        if (v) listbox.highlightSelectedOrFirst();
-        else listbox.highlighted.value = null;
+        if (openState.value !== v) openState.value = v;
     };
 
     const listbox = createListbox<unknown>({
@@ -213,6 +210,17 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
         // A single selection closes; a multiple one toggles and stays open.
         onSelect: () => { if (!multiple()) setOpen(false); },
     });
+
+    // The highlight follows the OPEN state however it was written — a
+    // consumer's `model:open` write included, so aria-activedescendant is
+    // never unset on open or stale after close.
+    watch(
+        () => openState.value,
+        (open) => {
+            if (open) listbox.highlightSelectedOrFirst();
+            else listbox.highlighted.value = null;
+        },
+    );
 
     // The hidden select follows the model — a microtask later, so the
     // options the render inserts exist, and on a form reset, when the
@@ -228,7 +236,8 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
             if (!hidden) return;
             const keys = listbox.selectedKeys();
             if (multiple()) {
-                for (const o of Array.from(hidden.options)) o.selected = keys.includes(o.value);
+                const selected = new Set(keys);
+                for (const o of Array.from(hidden.options)) o.selected = selected.has(o.value);
             } else if (hidden.value !== (keys[0] ?? '')) {
                 hidden.value = keys[0] ?? '';
             }

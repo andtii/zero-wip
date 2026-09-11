@@ -488,6 +488,14 @@ describe('Select over the collection (#445)', () => {
         expect(state.open).toBe(true);
         state.open = false;
         expect(container.querySelector('[data-part="popup"]')!.getAttribute('data-state')).toBe('closed');
+        // A consumer's write to the open model initialises and clears the
+        // highlight exactly as the trigger does.
+        state.open = true;
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        expect(trigger.getAttribute('aria-activedescendant')).toBeTruthy();
+        expect(container.querySelector('[data-part="item"]')!.hasAttribute('data-highlighted')).toBe(true);
+        state.open = false;
+        expect(trigger.hasAttribute('aria-activedescendant')).toBe(false);
     });
 
     it('the item slot customises a generated option', () => {

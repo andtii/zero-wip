@@ -223,9 +223,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     let hidden: HTMLSelectElement | null = null;
 
     const setOpen = (v: boolean): void => {
-        if (openState.value === v) return;
-        openState.value = v;
-        if (!v) listbox.highlighted.value = null;
+        if (openState.value !== v) openState.value = v;
     };
 
     const listbox = createListbox<unknown>({
@@ -252,12 +250,20 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     // registry read here would be stale until an unrelated re-render.
     const hiddenKeys = (): string[] => (collection.mode() === 'data' ? collection.keys() : listbox.selectedKeys());
 
+    // A close clears the highlight however the open state was written (a
+    // consumer's `model:open` included); an open leaves it to the arrows.
+    watch(
+        () => openState.value,
+        (open) => { if (!open) listbox.highlighted.value = null; },
+    );
+
     const syncHidden = (): void => {
         queueMicrotask(() => {
             if (!hidden) return;
             const keys = listbox.selectedKeys();
             if (multiple()) {
-                for (const o of Array.from(hidden.options)) o.selected = keys.includes(o.value);
+                const selected = new Set(keys);
+                for (const o of Array.from(hidden.options)) o.selected = selected.has(o.value);
             } else if (hidden.value !== (keys[0] ?? '')) {
                 hidden.value = keys[0] ?? '';
             }
