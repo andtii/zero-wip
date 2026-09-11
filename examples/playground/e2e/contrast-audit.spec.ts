@@ -553,7 +553,9 @@ const STATIC_COVERAGE: Record<(typeof DESIGN_SYSTEMS)[number], number> = {
     basic: 100,
     // `+active` is `filter: brightness()`; the control fills carry daisy's
     // noise texture as a second background layer; the star preview brightens.
-    daisyui: 89.7,
+    // 89.7 → 89.6 with #446: NativeSelect's cells, every one of them
+    // measured, left the denominator; the 206 unmeasured are unchanged.
+    daisyui: 89.6,
     material: 100,
     brutalist: 100,
     // The half star is a hard-stop gradient on `::before`.
