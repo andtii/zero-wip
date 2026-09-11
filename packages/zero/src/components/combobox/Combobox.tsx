@@ -269,8 +269,10 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     // from a platform write) — fail fast at every entry: the data expansion,
     // a hand-written item, the hidden select.
     const guardKeys = (keys: string[]): string[] => {
-        if (!multiple() && keys.includes('')) {
-            throw new Error('[zero] Combobox: an item keyed "" is reserved for the placeholder in single mode — give it a non-empty itemKey / itemValue');
+        // The key AND the value: an explicit itemKey can hide an itemValue of
+        // '' — which the core reads as nothing selected, so it never selects.
+        if (!multiple() && keys.some((k) => k === '' || collection.valueForKey(k) === '')) {
+            throw new Error('[zero] Combobox: an item keyed or valued "" is reserved for the placeholder in single mode — give it a non-empty itemKey / itemValue');
         }
         return keys;
     };

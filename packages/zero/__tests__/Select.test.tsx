@@ -460,6 +460,10 @@ describe('Select over the collection (#445)', () => {
         expect(() => render(<Select.Root items={['', 'a']} />, container)).toThrow(/reserved for the placeholder/);
         expect(() => render(<Select.Root><Select.Popup><Select.Item value="">None</Select.Item></Select.Popup></Select.Root>, container)).toThrow(/reserved for the placeholder/);
         expect(() => render(<Select.Root items={['', 'a']} multiple name="y" />, container)).not.toThrow();
+        // A value of '' behind a non-empty key is refused too: the core reads '' as nothing
+        // selected. (A fresh container: a render over a mounted app reports rather than throws.)
+        const fresh = document.body.appendChild(document.createElement('div'));
+        expect(() => render(<Select.Root items={[{ id: 'none', v: '' }]} itemKey={(i) => i.id} itemValue={(i) => i.v} />, fresh)).toThrow(/keyed or valued ""/);
     });
 
     it("the platform's write to the hidden select (autofill, restoration) flows back into the model", () => {
