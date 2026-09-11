@@ -173,7 +173,11 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
     const multiple = (): boolean => !!props.multiple;
     // The single-select "nothing chosen": '' for key models and JSX items,
     // null for an object model (the model holds items, and '' is not one).
-    const emptyValue = (): unknown => (props.itemValue || !props.items ? '' : null);
+    // Explicit children win ENTIRELY over `items`: with a default slot the
+    // data is not rendered, so the collection must not hold it either — the
+    // highlight, the typeahead and the hidden select follow what is rendered.
+    const items = (): ReadonlyArray<unknown> | undefined => (slots.default ? undefined : props.items);
+    const emptyValue = (): unknown => (props.itemValue || !items() ? '' : null);
     const state = createControllableState<unknown>(
         () => props.model,
         props.defaultValue ?? (multiple() ? [] : emptyValue()),
@@ -187,7 +191,7 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
     const fc = createFormControl({ props: () => props, idBase: 'zx-select', controlPart: 'trigger' });
     const baseId = fc.baseId;
     const collection = createCollection<unknown, unknown>({
-        items: props.items ? () => props.items : undefined,
+        items: items() ? items : undefined,
         itemKey: props.itemKey,
         itemLabel: props.itemLabel,
         itemValue: props.itemValue,
@@ -373,7 +377,7 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
             class={props.class}
         >
             {/* Explicit children win ENTIRELY over `items` — no merging. */}
-            {slots.default ? slots.default() : props.items ? dataContent() : null}
+            {slots.default ? slots.default() : items() ? dataContent() : null}
             {fc.hasName()
                 ? (
                     <select
@@ -509,6 +513,11 @@ const SelectTrigger = component<SelectTriggerProps>(({ props, slots, signal }) =
 
 // ── Value ──
 
+/**
+ * The slot sees the model value and the selected ITEMS — the item behind
+ * each key, or the key itself for a hand-written `Select.Item` (no data
+ * stands behind it, and its key is its value).
+ */
 export type SelectValueProps = WithClass & Define.Slot<'default', { value: unknown; items: unknown[] }>;
 
 /** The selected labels (joined under `multiple`), or the placeholder. */
@@ -524,7 +533,7 @@ const SelectValue = component<SelectValueProps>(({ props, slots }) => {
                 data-placeholder={dataAttr(isPlaceholder)}
                 class={props.class}
             >
-                {slots.default?.({ value: select.state.value, items: keys.map((k) => select.collection.byKey(k)).filter((i) => i !== undefined) })
+                {slots.default?.({ value: select.state.value, items: keys.map((k) => select.collection.byKey(k) ?? select.collection.valueForKey(k)) })
                     ?? (isPlaceholder ? select.placeholder() ?? '' : select.listbox.displayText())}
             </span>
         );

@@ -413,6 +413,35 @@ describe('Select over the collection (#445)', () => {
         hidden.dispatchEvent(new Event('change', { bubbles: true }));
     };
 
+    it('explicit children win over items ENTIRELY: the collection and the hidden select hold only what is rendered', () => {
+        render(
+            <Select.Root items={COUNTRIES} itemKey={(c) => c.code} itemLabel={(c) => c.name} name="country">
+                <Select.Trigger label="Country"><Select.Value /></Select.Trigger>
+                <Select.Popup><Select.Item value="x">Only</Select.Item></Select.Popup>
+            </Select.Root>,
+            container,
+        );
+        const items = container.querySelectorAll('[data-part="item"]');
+        expect(items.length).toBe(1);
+        expect(items[0]!.textContent).toContain('Only');
+        const hidden = container.querySelector<HTMLSelectElement>('[data-part="hidden-input"]')!;
+        expect([...hidden.options].map((o) => o.value)).toEqual(['']);
+        // The typeahead sees the rendered item, not the data (in data mode 's' would select Sweden).
+        key(container.querySelector<HTMLElement>('[data-part="trigger"]')!, 's');
+        expect(container.querySelector('[data-part="value"]')!.textContent).toBe('');
+    });
+
+    it('Select.Value slot: the items behind the keys, or the keys themselves for hand-written items', () => {
+        render(
+            <Select.Root defaultValue="a">
+                <Select.Trigger label="L"><Select.Value slots={{ default: ({ items }) => <b>{(items as string[]).join('+')}</b> }} /></Select.Trigger>
+                <Select.Popup><Select.Item value="a">A</Select.Item></Select.Popup>
+            </Select.Root>,
+            container,
+        );
+        expect(container.querySelector('[data-part="value"]')!.textContent).toBe('a');
+    });
+
     it('an item keyed "" is refused in single mode (it is the placeholder) and accepted under multiple', () => {
         expect(() => render(<Select.Root items={['', 'a']} name="x" />, container)).toThrow(/reserved for the placeholder/);
         // With or without a name, data or hand-written items: the key is the sentinel either way.

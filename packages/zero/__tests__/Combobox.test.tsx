@@ -422,6 +422,21 @@ describe('Combobox over the collection (#445)', () => {
     ];
     const type = (el: HTMLInputElement, text: string) => { el.value = text; el.dispatchEvent(new Event('input', { bubbles: true })); };
 
+    it('explicit children win over items ENTIRELY: the collection and the hidden select hold only what is rendered', () => {
+        render(
+            <Combobox.Root items={FRUITS} itemValue={(f) => f.value} name="fruit" defaultValue="x">
+                <Combobox.Control><Combobox.Input aria-label="Fruit" /></Combobox.Control>
+                <Combobox.Popup><Combobox.Item value="x">Only</Combobox.Item></Combobox.Popup>
+            </Combobox.Root>,
+            container,
+        );
+        const items = container.querySelectorAll('[data-part="item"]');
+        expect(items.length).toBe(1);
+        expect(items[0]!.textContent).toContain('Only');
+        const hidden = container.querySelector<HTMLSelectElement>('[data-part="hidden-input"]')!;
+        expect([...hidden.options].map((o) => o.value)).toEqual(['', 'x']);
+    });
+
     it('an item keyed "" is refused in single mode (it is the placeholder) and accepted under multiple', () => {
         expect(() => render(<Combobox.Root items={['', 'a']} name="x" />, container)).toThrow(/reserved for the placeholder/);
         // With or without a name, data or hand-written items: the key is the sentinel either way.

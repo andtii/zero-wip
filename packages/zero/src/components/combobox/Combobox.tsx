@@ -191,7 +191,11 @@ type ComboboxRootImplProps = ComboboxRootProps & Define.Prop<'itemValue', (item:
 
 const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
     const multiple = (): boolean => !!props.multiple;
-    const emptyValue = (): unknown => (props.itemValue || !props.items ? '' : null);
+    // Explicit children win ENTIRELY over `items`: with a default slot the
+    // data is not rendered, so the collection must not hold it either — the
+    // highlight, the typeahead and the hidden select follow what is rendered.
+    const items = (): ReadonlyArray<unknown> | undefined => (slots.default ? undefined : props.items);
+    const emptyValue = (): unknown => (props.itemValue || !items() ? '' : null);
     const state = createControllableState<unknown>(
         () => props.model,
         props.defaultValue ?? (multiple() ? [] : emptyValue()),
@@ -210,7 +214,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     const fc = createFormControl({ props: () => props, idBase: 'zx-combobox', controlPart: 'input' });
     const baseId = fc.baseId;
     const collection = createCollection<unknown, unknown>({
-        items: props.items ? () => props.items : undefined,
+        items: items() ? items : undefined,
         itemKey: props.itemKey,
         itemLabel: props.itemLabel,
         itemValue: props.itemValue,
@@ -449,7 +453,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
             class={props.class}
         >
             {/* Explicit children win ENTIRELY over `items` — no merging. */}
-            {slots.default ? slots.default() : props.items ? dataContent() : null}
+            {slots.default ? slots.default() : items() ? dataContent() : null}
             {fc.hasName()
                 ? (
                     <select
