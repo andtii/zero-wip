@@ -5,11 +5,11 @@
 ### Changed — Select and Combobox over the collection core (#445, part of #438)
 
 - **Breaking:** `options` is `items`, and the roots are typed generic at the
-  JSX level: `T` infers from `items`, the model holds the item unless
-  `itemValue` says what it holds — `T | null` / `V | null`, nothing
-  selected being `null` for a data-driven root — (a `{ value, label }` list with a string
-  model now takes `itemValue={(o) => o.value}`), `multiple` makes it an
-  array. `itemKey` / `itemLabel` / `itemDisabled` / `itemGroup` are the
+  JSX level: `T` infers from `items`; the model holds the item unless
+  `itemValue` says what it holds (a `{ value, label }` list with a string
+  model now takes `itemValue={(o) => o.value}`), typed `T | null` /
+  `V | null` since nothing selected is `null` for a data-driven root;
+  `multiple` makes it an array. `itemKey` / `itemLabel` / `itemDisabled` / `itemGroup` are the
   accessors; the `item` slot customises a generated option. Labels resolve
   from data before anything mounts.
 - **Breaking:** Combobox with `items` filters by default (contains-match on
