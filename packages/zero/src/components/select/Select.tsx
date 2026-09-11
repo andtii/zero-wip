@@ -129,8 +129,9 @@ export const useSelectContext = defineInjectable<SelectContext>(() => makeInert(
 
 /**
  * The props, generic over the item `T` and the model `M`. The exported
- * `Select.Root` narrows `M` from the props: `T | null` (item model), `V`
- * when `itemValue` returns `V`, and arrays of either under `multiple`.
+ * `Select.Root` narrows `M` from the props: `T | null` (item model),
+ * `V | null` when `itemValue` returns `V`, and arrays of either under
+ * `multiple`.
  */
 export type SelectRootProps<T = unknown, M = unknown> =
     & Define.Model<M>
@@ -171,13 +172,15 @@ type SelectRootImplProps = SelectRootProps & Define.Prop<'itemValue', (item: unk
 
 const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onMounted, onUnmounted }) => {
     const multiple = (): boolean => !!props.multiple;
-    // The single-select "nothing chosen": '' for key models and JSX items,
-    // null for an object model (the model holds items, and '' is not one).
+    // The single-select "nothing chosen" is null for a data-driven root —
+    // an item or a value model alike (V may be a number; no member of it can
+    // stand for nothing) — and '' for hand-written items, whose keys are
+    // their values and whose model is the <select>'s string.
     // Explicit children win ENTIRELY over `items`: with a default slot the
     // data is not rendered, so the collection must not hold it either — the
     // highlight, the typeahead and the hidden select follow what is rendered.
     const items = (): ReadonlyArray<unknown> | undefined => (slots.default ? undefined : props.items);
-    const emptyValue = (): unknown => (props.itemValue || !items() ? '' : null);
+    const emptyValue = (): unknown => (items() ? null : '');
     const state = createControllableState<unknown>(
         () => props.model,
         props.defaultValue ?? (multiple() ? [] : emptyValue()),
@@ -430,7 +433,10 @@ export type SelectRoot = {
     // writes it on clear, reset and a platform write), never a fake item.
     <T>(props: JsxProps<SelectRootProps<T, T | null>> & { defaultValue?: T | null; itemValue?: undefined; multiple?: false }): JSXElement;
     <T>(props: JsxProps<SelectRootProps<T, T[]>> & { defaultValue?: T[]; itemValue?: undefined; multiple: true }): JSXElement;
-    <T, V>(props: JsxProps<SelectRootProps<T, V>> & { defaultValue?: V; itemValue: (item: T) => V; multiple?: false }): JSXElement;
+    // A value model is `V | null` for the same reason — V is whatever
+    // `itemValue` returns (a number as readily as a string), so no member of
+    // it can stand for "nothing selected".
+    <T, V>(props: JsxProps<SelectRootProps<T, V | null>> & { defaultValue?: V | null; itemValue: (item: T) => V; multiple?: false }): JSXElement;
     <T, V>(props: JsxProps<SelectRootProps<T, V[]>> & { defaultValue?: V[]; itemValue: (item: T) => V; multiple: true }): JSXElement;
 } & FactoryBrands;
 

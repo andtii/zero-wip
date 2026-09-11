@@ -28,7 +28,7 @@ const Impl = component<RootProps<unknown, unknown>>(() => () => null as unknown 
 type GenericRoot = {
     <T>(props: JsxProps<RootProps<T, T | null>> & { defaultValue?: T | null; itemValue?: undefined; multiple?: false }): JSXElement;
     <T>(props: JsxProps<RootProps<T, T[]>> & { defaultValue?: T[]; itemValue?: undefined; multiple: true }): JSXElement;
-    <T, V>(props: JsxProps<RootProps<T, V>> & { defaultValue?: V; itemValue: (item: T) => V; multiple?: false }): JSXElement;
+    <T, V>(props: JsxProps<RootProps<T, V | null>> & { defaultValue?: V | null; itemValue: (item: T) => V; multiple?: false }): JSXElement;
     <T, V>(props: JsxProps<RootProps<T, V[]>> & { defaultValue?: V[]; itemValue: (item: T) => V; multiple: true }): JSXElement;
 } & FactoryBrands;
 
@@ -37,14 +37,16 @@ const Select = compound(Root, { Root });
 
 interface Country { code: string; name: string }
 const countries: Country[] = [];
-const state = signal({ c: null as Country | null, cs: [] as Country[], code: '', codes: [] as string[] });
+const state = signal({ c: null as Country | null, cs: [] as Country[], code: '' as string | null, codes: [] as string[], n: 0 as number | null });
 
 // ── valid ──
 // The item model is `T | null` — nothing selected is null, so the change
 // event's payload must be narrowed.
 export const objectModel = <Root items={countries} model={() => state.c} itemKey={(i) => i.code} onValueChange={(v) => v?.name} />;
 export const nullDefault = <Root items={countries} model={() => state.c} defaultValue={null} />;
-export const keyModel = <Root items={countries} itemValue={(i) => i.code} model={() => state.code} onValueChange={(v) => v.toUpperCase()} />;
+export const keyModel = <Root items={countries} itemValue={(i) => i.code} model={() => state.code} onValueChange={(v) => v?.toUpperCase()} />;
+// V is whatever itemValue returns — a number model, nullable like every single-select model.
+export const numberModel = <Root items={[1, 2, 3]} itemValue={(n) => n * 10} model={() => state.n} onValueChange={(v) => v?.toFixed(1)} />;
 export const primitives = <Root items={['a', 'b']} model={() => state.code} />;
 export const multipleObjects = <Root items={countries} multiple model={() => state.cs} onValueChange={(v) => v[0]?.name} />;
 export const multipleKeys = <Root items={countries} multiple itemValue={(i) => i.code} model={() => state.codes} />;
@@ -69,3 +71,5 @@ export const e7 = <Root items={countries} itemValue={(i) => i.code} defaultValue
 export const e6 = <Root items={countries} model={() => state.c} onValueChange={(v: string) => v} />;
 // @ts-expect-error — the item model is nullable: nothing selected is null
 export const e8 = <Root items={countries} model={() => state.c} onValueChange={(v: Country) => v.name} />;
+// @ts-expect-error — so is a value model
+export const e9 = <Root items={countries} itemValue={(i) => i.code} model={() => state.code} onValueChange={(v: string) => v} />;

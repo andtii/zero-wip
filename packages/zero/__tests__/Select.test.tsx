@@ -451,15 +451,16 @@ describe('Select over the collection (#445)', () => {
     });
 
     it("the platform's write to the hidden select (autofill, restoration) flows back into the model", () => {
-        const state = signal({ country: null as Country | null, codes: [] as string[] });
+        const state = signal({ country: null as Country | null, codes: [] as string[], code: '' as string | null });
         render(
             <>
                 <Select.Root items={COUNTRIES} itemKey={(c) => c.code} itemLabel={(c) => c.name} model={[state, 'country']} name="country" />
+                <Select.Root items={COUNTRIES} itemValue={(c) => c.code} itemLabel={(c) => c.name} model={[state, 'code']} name="code" />
                 <Select.Root items={COUNTRIES} itemValue={(c) => c.code} itemLabel={(c) => c.name} multiple model={[state, 'codes']} name="codes" />
             </>,
             container,
         );
-        const [single, multi] = Array.from(container.querySelectorAll<HTMLSelectElement>('[data-part="hidden-input"]'));
+        const [single, value, multi] = Array.from(container.querySelectorAll<HTMLSelectElement>('[data-part="hidden-input"]'));
         platformWrites(single!, 'jp');
         expect(state.country).toEqual(COUNTRIES[1]);
         expect(container.querySelector('[data-part="value"]')!.textContent).toBe('Japan');
@@ -467,6 +468,12 @@ describe('Select over the collection (#445)', () => {
         expect(state.country).toBeNull();
         platformWrites(multi!, 'se', 'no');
         expect(state.codes).toEqual(['se', 'no']);
+        // A value model: '' reads as nothing selected, and nothing selected is written as null.
+        expect(container.querySelectorAll('[data-part="value"]')[1]!.hasAttribute('data-placeholder')).toBe(true);
+        platformWrites(value!, 'jp');
+        expect(state.code).toBe('jp');
+        platformWrites(value!);
+        expect(state.code).toBeNull();
     });
 
     it('object model: the model holds the item, and a preset item shows its label on the FIRST render', () => {

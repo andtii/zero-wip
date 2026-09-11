@@ -117,9 +117,10 @@ export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
     const selectedKeys = (): string[] => {
         const v = selection.value;
         if (multiple()) return Array.isArray(v) ? v.map((x) => collection.keyForValue(x)) : [];
-        // Empty is nullish or the configured sentinel — '' only because it is
-        // the default sentinel; under `emptyValue: null` an item may hold ''.
-        if (v === undefined || v === null || Object.is(v, emptyValue)) return [];
+        // Empty is nullish, the configured sentinel, or '' under any sentinel:
+        // '' is the reserved single-mode key (a placeholder's), so a model
+        // holding it — a `signal({ code: '' })` — has nothing selected.
+        if (v === undefined || v === null || v === '' || Object.is(v, emptyValue)) return [];
         return [collection.keyForValue(v)];
     };
 

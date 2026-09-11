@@ -149,15 +149,17 @@ describe('createListboxCore — selection', () => {
         expect(lb.selectedKeys()).toEqual([]);
     });
 
-    it('under a null sentinel, an empty-string value is a legitimate selection', () => {
-        const { m } = model<unknown>('');
+    it("'' reads as empty under ANY single-select sentinel (it is the reserved key); under multiple it is a real key", () => {
         const c = createCollection<{ value: string; label: string }, string>({
             items: () => [{ value: '', label: 'None' }, { value: 'a', label: 'A' }],
             itemValue: (i) => i.value,
         });
-        const lb = createListboxCore({ collection: c, selection: m, idBase: 'x', emptyValue: null });
-        expect(lb.selectedKeys()).toEqual(['']);
-        expect(lb.displayText()).toBe('None');
+        const single = createListboxCore({ collection: c, selection: model<unknown>('').m, idBase: 'x', emptyValue: null });
+        expect(single.selectedKeys()).toEqual([]);
+        expect(single.displayText()).toBe('');
+        const multi = createListboxCore({ collection: c, selection: model<unknown>(['']).m, idBase: 'y', multiple: () => true });
+        expect(multi.selectedKeys()).toEqual(['']);
+        expect(multi.displayText()).toBe('None');
     });
 
     it('a preset object model resolves its key before anything mounts', () => {

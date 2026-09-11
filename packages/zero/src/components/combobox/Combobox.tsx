@@ -195,7 +195,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     // data is not rendered, so the collection must not hold it either — the
     // highlight, the typeahead and the hidden select follow what is rendered.
     const items = (): ReadonlyArray<unknown> | undefined => (slots.default ? undefined : props.items);
-    const emptyValue = (): unknown => (props.itemValue || !items() ? '' : null);
+    const emptyValue = (): unknown => (items() ? null : '');
     const state = createControllableState<unknown>(
         () => props.model,
         props.defaultValue ?? (multiple() ? [] : emptyValue()),
@@ -503,7 +503,10 @@ export type ComboboxRoot = {
     // writes it on clear, reset and a platform write), never a fake item.
     <T>(props: JsxProps<ComboboxRootProps<T, T | null>> & { defaultValue?: T | null; itemValue?: undefined; multiple?: false }): JSXElement;
     <T>(props: JsxProps<ComboboxRootProps<T, T[]>> & { defaultValue?: T[]; itemValue?: undefined; multiple: true }): JSXElement;
-    <T, V>(props: JsxProps<ComboboxRootProps<T, V>> & { defaultValue?: V; itemValue: (item: T) => V; multiple?: false }): JSXElement;
+    // A value model is `V | null` for the same reason — V is whatever
+    // `itemValue` returns (a number as readily as a string), so no member of
+    // it can stand for "nothing selected".
+    <T, V>(props: JsxProps<ComboboxRootProps<T, V | null>> & { defaultValue?: V | null; itemValue: (item: T) => V; multiple?: false }): JSXElement;
     <T, V>(props: JsxProps<ComboboxRootProps<T, V[]>> & { defaultValue?: V[]; itemValue: (item: T) => V; multiple: true }): JSXElement;
 } & FactoryBrands;
 
