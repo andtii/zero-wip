@@ -196,9 +196,12 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
     // highlight, the typeahead and the hidden select follow what is rendered.
     const items = (): ReadonlyArray<unknown> | undefined => (slots.default ? undefined : props.items);
     const emptyValue = (): unknown => (items() ? null : '');
+    // The seed is exactly what the consumer provided — an explicit
+    // `defaultValue={null}` included — and the empty shape otherwise.
+    const seed = (): unknown => (props.defaultValue !== undefined ? props.defaultValue : multiple() ? [] : emptyValue());
     const state = createControllableState<unknown>(
         () => props.model,
-        props.defaultValue ?? (multiple() ? [] : emptyValue()),
+        seed(),
         (v) => emit('valueChange', v),
     );
     const inputValue = createControllableState<string>(
@@ -293,7 +296,7 @@ const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit,
         // Without a name there is no hidden select — the input itself is
         // form-associated, so reset still restores.
         detachReset = onFormReset(() => hidden ?? (input as HTMLInputElement | null), () => {
-            state.value = props.defaultValue ?? (multiple() ? [] : emptyValue());
+            state.value = seed();
             inputValue.value = props.defaultInputValue ?? (multiple() ? '' : listbox.displayText());
             syncHidden();
             if (input) (input as HTMLInputElement).value = inputValue.value;

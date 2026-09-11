@@ -181,9 +181,12 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
     // highlight, the typeahead and the hidden select follow what is rendered.
     const items = (): ReadonlyArray<unknown> | undefined => (slots.default ? undefined : props.items);
     const emptyValue = (): unknown => (items() ? null : '');
+    // The seed is exactly what the consumer provided — an explicit
+    // `defaultValue={null}` included — and the empty shape otherwise.
+    const seed = (): unknown => (props.defaultValue !== undefined ? props.defaultValue : multiple() ? [] : emptyValue());
     const state = createControllableState<unknown>(
         () => props.model,
-        props.defaultValue ?? (multiple() ? [] : emptyValue()),
+        seed(),
         (v) => emit('valueChange', v),
     );
     const openState = createControllableState<boolean>(
@@ -270,7 +273,7 @@ const SelectRootImpl = component<SelectRootImplProps>(({ props, slots, emit, onM
         // Without a name there is no hidden select — the trigger is a
         // <button>, form-associated like any control, so reset still restores.
         detachReset = onFormReset(() => hidden ?? (trigger as HTMLButtonElement | null), () => {
-            state.value = props.defaultValue ?? (multiple() ? [] : emptyValue());
+            state.value = seed();
             syncHidden();
         });
     });
