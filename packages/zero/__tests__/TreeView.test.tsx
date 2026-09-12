@@ -72,14 +72,14 @@ function mountTree(container: HTMLElement, extra: {
     model?: unknown;
     defaultValue?: string;
     defaultExpandedValues?: string[];
-    onExpandedChange?: (v: string[]) => void;
+    onExpandedValuesChange?: (v: string[]) => void;
 } = {}) {
     render(
         <TreeView.Root
             model={extra.model as never}
             defaultValue={extra.defaultValue}
             defaultExpandedValues={extra.defaultExpandedValues ?? []}
-            onExpandedChange={extra.onExpandedChange}
+            onExpandedValuesChange={extra.onExpandedValuesChange}
         >
             <TreeView.Label>Files</TreeView.Label>
             <TreeView.Tree>
@@ -158,12 +158,12 @@ describe('TreeView', () => {
         expect(document.activeElement).toBe(byValue(container, 'README.md'));
     });
 
-    it('trigger click toggles and emits expandedChange; focus parks on the branch', () => {
-        const onExpandedChange = vi.fn();
-        mountTree(container, { onExpandedChange });
+    it('trigger click toggles and emits expandedValuesChange; focus parks on the branch', () => {
+        const onExpandedValuesChange = vi.fn();
+        mountTree(container, { onExpandedValuesChange });
         const trigger = container.querySelector<HTMLElement>('[data-part="branch-trigger"]')!;
         trigger.click();
-        expect(onExpandedChange).toHaveBeenCalledWith(['src']);
+        expect(onExpandedValuesChange).toHaveBeenCalledWith(['src']);
         expect(byValue(container, 'src').getAttribute('data-state')).toBe('open');
         expect(document.activeElement).toBe(byValue(container, 'src'));
         trigger.click();

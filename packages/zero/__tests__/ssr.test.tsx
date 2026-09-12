@@ -164,7 +164,7 @@ function page() {
                 :
                 <Countdown.Value value={4} digits={2} />
             </Countdown.Root>
-            <Swap.Root interactive label="Toggle theme" defaultOn>
+            <Swap.Root interactive label="Toggle theme" defaultActive>
                 <Swap.On>On</Swap.On>
                 <Swap.Off>Off</Swap.Off>
             </Swap.Root>

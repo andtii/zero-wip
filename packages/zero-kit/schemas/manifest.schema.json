@@ -132,6 +132,11 @@
         }
     },
     "$defs": {
+        "camelIdentifier": {
+            "description": "A camelCase identifier — the grammar for a model's name, concept and companion prop names (they become JSX prop keys).",
+            "type": "string",
+            "pattern": "^[a-z][A-Za-z0-9]*$"
+        },
         "kebabToken": {
             "description": "A kebab-case identifier that may start with a digit — the grammar for state, flag, part and token-key names (they end up inside attribute selectors and custom-property names).",
             "type": "string",
@@ -187,6 +192,53 @@
                     "type": "array",
                     "items": { "$ref": "#/$defs/part" },
                     "minItems": 1
+                },
+                "models": {
+                    "description": "The models the component's API carries — present only when there is at least one. What each binds, seeds, emits and whether it posts to a form; the two companion names are derived from the concept by one rule.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/model" },
+                    "minItems": 1
+                }
+            }
+        },
+        "model": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["concept", "type", "default", "change"],
+            "properties": {
+                "name": {
+                    "description": "The model:<name> key of a named model (model:open, model:inputValue). Absent for the unnamed model prop. A named model's concept is its name.",
+                    "$ref": "#/$defs/camelIdentifier"
+                },
+                "concept": {
+                    "description": "What the model holds, and the stem of both companions: open → defaultOpen + openChange.",
+                    "$ref": "#/$defs/camelIdentifier"
+                },
+                "type": {
+                    "description": "The value type as a TypeScript type expression; on a generic root T is the item type and V what itemValue returns.",
+                    "type": "string",
+                    "minLength": 1
+                },
+                "member": {
+                    "description": "The compound member whose props carry the model when it is not Root (Menu.CheckboxItem → \"CheckboxItem\").",
+                    "type": "string",
+                    "pattern": "^[A-Z][A-Za-z0-9]*$"
+                },
+                "multiple": {
+                    "description": "Present (and true) only when the multiple prop makes the model an array of type.",
+                    "const": true
+                },
+                "formControl": {
+                    "description": "Present (and true) only when the model posts to the enclosing form under name.",
+                    "const": true
+                },
+                "default": {
+                    "description": "The seed prop: default + the capitalised concept.",
+                    "$ref": "#/$defs/camelIdentifier"
+                },
+                "change": {
+                    "description": "The change event: the concept + Change (handler on<Concept>Change).",
+                    "$ref": "#/$defs/camelIdentifier"
                 }
             }
         },

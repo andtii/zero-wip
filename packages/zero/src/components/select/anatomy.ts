@@ -67,4 +67,9 @@ export const selectAnatomy = defineAnatomy('select', {
         element: 'select',
         parent: 'root',
     },
+}, {
+    models: [
+        { concept: 'value', type: 'T | null', multiple: true, formControl: true },
+        { name: 'open', concept: 'open', type: 'boolean' },
+    ],
 });

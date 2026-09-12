@@ -77,4 +77,10 @@ export const comboboxAnatomy = defineAnatomy('combobox', {
         element: 'select',
         parent: 'root',
     },
+}, {
+    models: [
+        { concept: 'value', type: 'T | null', multiple: true, formControl: true },
+        { name: 'open', concept: 'open', type: 'boolean' },
+        { name: 'inputValue', concept: 'inputValue', type: 'string' },
+    ],
 });

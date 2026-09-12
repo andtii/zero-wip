@@ -20,7 +20,7 @@
  *
  * Named-models convention: the unnamed `model` is the selected value (the
  * essential state); `model:expandedValues` is the branch expansion set,
- * with the standard `defaultExpandedValues` + `expandedChange` companions.
+ * with the standard `defaultExpandedValues` + `expandedValuesChange` companions.
  * Single selection in v1.
  *
  * The keyboard walks VISIBLE nodes — the tree controller implements the
@@ -125,7 +125,7 @@ export type TreeViewRootProps =
     & Define.Event<'valueChange', string>
     & Define.Model<'expandedValues', string[]>
     & Define.Prop<'defaultExpandedValues', string[], false>
-    & Define.Event<'expandedChange', string[]>
+    & Define.Event<'expandedValuesChange', string[]>
     & WithDisabled
     & WithVariantAxes<'tree-view'>
     & WithClass
@@ -140,7 +140,7 @@ const TreeViewRoot = component<TreeViewRootProps>(({ props, slots, emit }) => {
     const expanded = createControllableState<string[]>(
         () => props.expandedValues as Model<string[]> | undefined,
         props.defaultExpandedValues ?? [],
-        (v) => emit('expandedChange', v),
+        (v) => emit('expandedValuesChange', v),
     );
     const baseId = createId('zx-tree');
     let rootEl: HTMLElement | null = null;

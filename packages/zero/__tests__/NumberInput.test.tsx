@@ -7,7 +7,7 @@ import { expectAnatomy } from './helpers';
 
 function mount(container: HTMLElement, extra: {
     model?: unknown;
-    defaultValue?: number;
+    defaultValue?: number | null;
     min?: number;
     max?: number;
     step?: number;
@@ -83,6 +83,11 @@ describe('NumberInput', () => {
     });
     afterEach(() => {
         vi.useRealTimers();
+    });
+
+    it('defaultValue is typed as the model — null is an explicit empty seed', () => {
+        mount(container, { name: 'qty', defaultValue: null });
+        expect(container.querySelector<HTMLInputElement>('[data-part="hidden-input"]')!.value).toBe('');
     });
 
     it('renders a valid anatomy including the hidden input', () => {

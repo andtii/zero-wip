@@ -57,4 +57,8 @@ export const paginationAnatomy = defineAnatomy('pagination', {
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-field', 'size'],
     },
+}, {
+    models: [
+        { concept: 'page', type: 'number' },
+    ],
 });

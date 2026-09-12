@@ -122,6 +122,7 @@ export const useMenuContext = defineInjectable<MenuContext>(() => makeInert());
 
 export type MenuRootProps =
     & Define.Model<boolean>
+    & Define.Prop<'defaultOpen', boolean, false>
     & Define.Event<'openChange', boolean>
     & Define.Event<'select', string>
     & Define.Prop<'closeOnSelect', boolean, false>
@@ -133,7 +134,7 @@ export type MenuRootProps =
 const MenuRoot = component<MenuRootProps>(({ props, slots, emit, signal }) => {
     const state = createControllableState<boolean>(
         () => props.model,
-        false,
+        props.defaultOpen ?? false,
         (v) => emit('openChange', v),
     );
     const list = createListController();
@@ -722,6 +723,7 @@ export const useMenuSubContext = defineInjectable<MenuSubContext>(() => makeIner
 
 export type MenuSubProps =
     & Define.Model<boolean>
+    & Define.Prop<'defaultOpen', boolean, false>
     & Define.Event<'openChange', boolean>
     & Define.Prop<'placement', Placement, false>
     & Define.Prop<'offset', number, false>
@@ -736,7 +738,7 @@ const MenuSub = component<MenuSubProps>(({ props, slots, emit, onUnmounted }) =>
     const parent = useMenuContext();
     const state = createControllableState<boolean>(
         () => props.model,
-        false,
+        props.defaultOpen ?? false,
         (v) => emit('openChange', v),
     );
     const list = createListController();

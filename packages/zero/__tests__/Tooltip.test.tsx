@@ -24,6 +24,17 @@ describe('Tooltip', () => {
         );
     }
 
+    it('defaultOpen seeds the open model', () => {
+        render(
+            <Tooltip.Root defaultOpen>
+                <Tooltip.Trigger>Save</Tooltip.Trigger>
+                <Tooltip.Popup>Save the document</Tooltip.Popup>
+            </Tooltip.Root>,
+            container,
+        );
+        expect(container.querySelector('[data-part="popup"]')!.getAttribute('data-state')).toBe('open');
+    });
+
     it('renders a valid anatomy with popover=manual and role=tooltip', () => {
         mount();
         expectAnatomy(container, tooltipAnatomy);

@@ -41,9 +41,10 @@ export const useSwapContext = defineInjectable<SwapContext>(() => ({
 }));
 
 export type SwapRootProps =
+    /** Active shows the `on` face. The concept is daisy's own (`swap-active`); the faces keep `data-state on|off`. */
     & Define.Model<boolean>
-    & Define.Prop<'defaultOn', boolean, false>
-    & Define.Event<'change', boolean>
+    & Define.Prop<'defaultActive', boolean, false>
+    & Define.Event<'activeChange', boolean>
     /**
      * Make the swap a control: renders a `<button aria-pressed>` that
      * toggles on click (the platform supplies Enter/Space). Off by
@@ -60,8 +61,8 @@ export type SwapRootProps =
 const SwapRoot = component<SwapRootProps>(({ props, slots, emit, signal }) => {
     const state = createControllableState<boolean>(
         () => props.model,
-        props.defaultOn ?? false,
-        (v) => emit('change', v),
+        props.defaultActive ?? false,
+        (v) => emit('activeChange', v),
     );
     defineProvide(useSwapContext, () => ({ state }));
     let el: HTMLElement | null = null;

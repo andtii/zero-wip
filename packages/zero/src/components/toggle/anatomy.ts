@@ -14,4 +14,8 @@ export const toggleAnatomy = defineAnatomy('toggle', {
         tokens: ['color', 'radius-field', 'size', 'text'],
         asChild: true,
     },
+}, {
+    models: [
+        { concept: 'pressed', type: 'boolean' },
+    ],
 });

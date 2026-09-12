@@ -50,4 +50,8 @@ export const alertAnatomy = defineAnatomy('alert', {
         tokens: ['color'],
         asChild: true,
     },
+}, {
+    models: [
+        { concept: 'open', type: 'boolean' },
+    ],
 });

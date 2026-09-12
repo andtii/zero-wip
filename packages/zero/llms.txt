@@ -39,7 +39,10 @@
   size = xs|sm|md|lg|xl, variant = design-system-defined).
 - The full machine-readable registry ships as `@sigx/zero/manifest.json`:
   every component, part, state (as a ready-made CSS selector), flag and
-  token hint.
+  token hint — and per component a `models` block: what its API binds
+  (`name` absent = the `model` prop, else `model:<name>`), the `concept`,
+  the value `type`, the derived `default`/`change` companions, the compound
+  `member` when not Root, `multiple`, `formControl`.
 
 ## The token contract
 
@@ -93,6 +96,13 @@ Bind a signal property with a getter: `model={() => state.open}` (sigx tracks
 the read to write back — two-way, no onChange needed). Or stay uncontrolled
 with `defaultOpen` / `defaultValue` / `defaultChecked`. The getter must read a
 signal property directly, not a transformed expression.
+
+THE NAMING RULE (every model, no exceptions): a model concept N has exactly
+`default<N>` (the uncontrolled seed) and `<n>Change` (the change event,
+handler `on<N>Change`). A named model's concept is its name
+(`model:expandedValues` → `defaultExpandedValues` + `expandedValuesChange`).
+The anatomy declares each model and manifest.json carries it; a parity test
+holds the sources to it.
 
 THE BINDING LAW: a zero model IS a sigx `Model`, and the native control a
 component renders binds to it with `model=` — sigx's platform processor owns
@@ -153,9 +163,9 @@ component renders; the root is called out separately where it carries props.
 - Popover: Root(model=open, placement, offset, positionStrategy — renders no
   element) then Trigger/Popup/Title/Close, on the popover attribute + anchor
   positioning.
-- Tooltip: Root(model=open, openDelay, closeDelay, placement — renders no
+- Tooltip: Root(model=open, defaultOpen, openDelay, closeDelay, placement — renders no
   element) then Trigger/Popup.
-- Menu: Root(model=open, closeOnSelect, placement — renders no element) then
+- Menu: Root(model=open, defaultOpen, closeOnSelect, placement — renders no element) then
   Trigger/Popup/Item(asChild)/CheckboxItem/RadioGroup/RadioItem/Group/
   GroupLabel/Separator; `select` event.
   Stateful items (APG menuitemcheckbox/menuitemradio): CheckboxItem(value,
@@ -335,7 +345,7 @@ component renders; the root is called out separately where it carries props.
   physical result is measured in e2e/diff.spec.ts. Size pane content to
   the ROOT, not the pane: the after pane clips by width. The handle is a
   paint part graded by the contrast audit's indicator matrix.
-- FileUpload: Root(model=File[])/Label/Trigger/Input/Dropzone/ItemGroup/
+- FileUpload: Root(model=File[], defaultFiles)/Label/Trigger/Input/Dropzone/ItemGroup/
   Item(file)/ItemName/ItemSize/ItemRemove. The INPUT IS THE CONTROL — a
   real <input type=file> holding name/accept/multiple/required and posting
   its FileList natively — visually hidden and out of the tab order; the
@@ -360,7 +370,9 @@ component renders; the root is called out separately where it carries props.
   and clamped at 0. The digits element is KEYED by its text, so each tick
   replaces it and a recipe's enter animation (translate/fade) plays once —
   collapsed to a cut under reduced motion. No states, no flags.
-- Swap: Root(model=boolean)/On/Off — two faces over one boolean. BOTH
+- Swap: Root(model=boolean — concept `active`: defaultActive + activeChange,
+  daisy's own word; the faces keep data-state on|off)/On/Off — two faces
+  over one boolean. BOTH
   faces stay rendered (the component exists for the CSS transition between
   them; `hidden` computes display:none and would kill it) and the inactive
   one is aria-hidden. All three parts ride data-state on|off. DISPLAY by
@@ -486,7 +498,7 @@ component renders; the root is called out separately where it carries props.
   dismiss layer (native auto light dismiss would close on a caret click).
   No data-placeholder on the input — use :placeholder-shown. Home/End stay
   with the text caret; no typeahead (typing IS the filter).
-- NumberInput: Root(model=number|null, min, max, step, allowWheel,
+- NumberInput: Root(model=number|null, defaultValue: number|null, min, max, step, allowWheel,
   clampOnBlur, format, parse, name)/Label/Control/Input/IncrementTrigger/
   DecrementTrigger/HiddenInput. APG spinbutton on a real text input
   (inputmode=decimal): typing is an UNCOMMITTED draft, committed on
@@ -514,7 +526,8 @@ component renders; the root is called out separately where it carries props.
   halves; tap commits with the same math; pointerleave on control clears
   the preview.
 - TreeView: Root(model=selected value, model:expandedValues=string[] —
-  named-models convention)/Label/Tree(role=tree)/Item(value, asChild,
+  named-models convention: defaultExpandedValues + expandedValuesChange)/
+  Label/Tree(role=tree)/Item(value, asChild,
   role=treeitem leaf)/Branch(value — the treeitem ELEMENT wrapping its
   group: aria-expanded+aria-level live here, it owns focus)/
   BranchTrigger(the clickable row — mirrors branch state + focus so

@@ -14,4 +14,8 @@ export const tooltipAnatomy = defineAnatomy('tooltip', {
         placements: [...PLACEMENT_VOCABULARY],
         tokens: ['color', 'radius-field', 'text'],
     },
+}, {
+    models: [
+        { concept: 'open', type: 'boolean' },
+    ],
 });

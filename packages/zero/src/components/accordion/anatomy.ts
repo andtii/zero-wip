@@ -25,4 +25,8 @@ export const accordionAnatomy = defineAnatomy('accordion', {
         states: ['open', 'closed'],
         tokens: ['color', 'text'],
     },
+}, {
+    models: [
+        { concept: 'value', type: 'string[]' },
+    ],
 });

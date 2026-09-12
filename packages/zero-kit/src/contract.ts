@@ -537,10 +537,38 @@ export interface ManifestPart {
     selectors: Record<string, string>;
 }
 
+/**
+ * One model a component's API carries (zero's `ModelJSON`): what it binds
+ * (`model`, or `model:<name>`), what seeds it (`default`), what it emits
+ * (`change`), and whether it posts to a form. The two companion names follow
+ * one rule — `default<Concept>` and `<concept>Change` — which
+ * `mergeManifests` enforces on ecosystem fragments.
+ */
+export interface ManifestModel {
+    /** The `model:<name>` key of a named model; absent for the unnamed `model`. */
+    name?: string;
+    /** The stem of both companions; a named model's concept is its name. */
+    concept: string;
+    /** A TypeScript type expression (`T` the item type on a generic root). */
+    type: string;
+    /** The compound member carrying it when not Root. */
+    member?: string;
+    /** The `multiple` prop makes it an array of `type`. */
+    multiple?: true;
+    /** Posts under `name` (the form contract). */
+    formControl?: true;
+    /** `default<Concept>`. */
+    default: string;
+    /** `<concept>Change`. */
+    change: string;
+}
+
 export interface ManifestComponent {
     scope: string;
     orientation?: boolean;
     parts: ManifestPart[];
+    /** The models the API carries; absent when there are none (Card, Badge, …). */
+    models?: ManifestModel[];
     /**
      * Present exactly on components merged from an ecosystem manifest
      * fragment (`mergeManifests`): the package that owns the scope. Zero's

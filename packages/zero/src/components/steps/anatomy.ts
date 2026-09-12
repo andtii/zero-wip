@@ -62,4 +62,9 @@ export const stepsAnatomy = defineAnatomy('steps', {
         parent: 'item',
         tokens: ['color', 'text'],
     },
-}, { orientation: true });
+}, {
+    orientation: true,
+    models: [
+        { concept: 'step', type: 'string' },
+    ],
+});

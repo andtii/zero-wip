@@ -21,4 +21,8 @@ export const skeletonAnatomy = defineAnatomy('skeleton', {
         states: ['loading', 'loaded'],
         tokens: ['color', 'radius-box', 'size'],
     },
+}, {
+    models: [
+        { concept: 'loading', type: 'boolean' },
+    ],
 });

@@ -19,4 +19,8 @@ export const stepperAnatomy = defineAnatomy('ext-stepper', {
         tokens: ['color', 'radius-selector', 'text'],
         asChild: true,
     },
+}, {
+    // What the API binds (#451): the manifest says so, and mergeManifests
+    // holds the companions to the naming rule.
+    models: [{ concept: 'step', type: 'string' }],
 });

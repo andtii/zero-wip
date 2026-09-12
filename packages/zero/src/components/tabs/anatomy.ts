@@ -27,4 +27,9 @@ export const tabsAnatomy = defineAnatomy('tabs', {
         hiddenIn: ['inactive'],
         tokens: ['color', 'radius-box', 'text'],
     },
-}, { orientation: true });
+}, {
+    orientation: true,
+    models: [
+        { concept: 'value', type: 'string' },
+    ],
+});

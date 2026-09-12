@@ -58,4 +58,8 @@ export const dialogAnatomy = defineAnatomy('dialog', {
         tokens: ['color', 'radius-field', 'size'],
         asChild: true,
     },
+}, {
+    models: [
+        { concept: 'open', type: 'boolean' },
+    ],
 });

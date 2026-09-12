@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+### Changed — the naming rule for models, and a `ModelSpec` in the anatomy (#451, part of #438)
+
+- **The naming rule is law.** Every model has a concept `N` and exactly two
+  companions, `default<N>` and `<n>Change`; a named model's concept is its
+  name. Five outliers now follow it — **Breaking:**
+  - Swap: `defaultOn` → `defaultActive`, the `change` event → `activeChange`
+    (handler `onActiveChange`); the faces keep `data-state on|off`.
+  - TreeView: `expandedChange` → `expandedValuesChange`.
+  - NumberInput: `defaultValue` is `number | null`, the model's type (`null`
+    is an explicit empty seed).
+- **Added:** `defaultFiles` on FileUpload (the seed, and what a form reset
+  restores); `defaultOpen` on Tooltip, Menu.Root and Menu.Sub.
+- **`ModelSpec` in the anatomy.** `defineAnatomy(scope, parts, { models })`
+  declares each model the API carries — `name` (the `model:<name>` key,
+  absent for the unnamed `model`), `concept`, `type`, `member` (the compound
+  member when not Root), `multiple`, `formControl` — and `toJSON()` emits
+  `models` into `manifest.json` with the companions `default` and `change`
+  DERIVED from the concept (`defaultPropOf` / `changeEventOf` are exported).
+  A parity test holds every component source to its anatomy, both ways, and
+  a type test holds each seed's type and change payload to the model's value
+  type. `MenuSubProps` / `MenuSubTriggerProps` / `MenuSubPopupProps` are
+  exported from the barrel.
+
 ### Changed — Select and Combobox over the collection core (#445, part of #438)
 
 - **Breaking:** `options` is `items`, and the roots are typed generic at the

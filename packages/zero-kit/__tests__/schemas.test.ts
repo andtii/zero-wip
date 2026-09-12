@@ -145,6 +145,23 @@ describe('manifest.schema.json', () => {
         expect(validateManifest(bad)).toBe(false);
     });
 
+    it('carries the models block, and rejects a model without its change event or with a stray key', () => {
+        const select = (asJson(manifest) as typeof manifest).components.find((c) => c.scope === 'select')!;
+        expect(select.models).toEqual([
+            { concept: 'value', type: 'T | null', multiple: true, formControl: true, default: 'defaultValue', change: 'valueChange' },
+            { name: 'open', concept: 'open', type: 'boolean', default: 'defaultOpen', change: 'openChange' },
+        ]);
+        const noChange = asJson(manifest) as typeof manifest;
+        delete (noChange.components.find((c) => c.scope === 'select')!.models![0] as Partial<{ change: string }>).change;
+        expect(validateManifest(noChange)).toBe(false);
+        const stray = asJson(manifest) as typeof manifest;
+        (stray.components.find((c) => c.scope === 'select')!.models![0] as { event: string }).event = 'valueChange';
+        expect(validateManifest(stray)).toBe(false);
+        const empty = asJson(manifest) as typeof manifest;
+        (empty.components.find((c) => c.scope === 'badge') as { models?: unknown[] }).models = [];
+        expect(validateManifest(empty)).toBe(false);
+    });
+
     it('rejects a non-kebab flag name', () => {
         const bad = asJson(manifest) as typeof manifest;
         (bad.attributeSpec.flagVocabulary as string[]).push('Focus_Visible');

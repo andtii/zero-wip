@@ -20,4 +20,8 @@ export const collapsibleAnatomy = defineAnatomy('collapsible', {
         states: ['open', 'closed'],
         tokens: ['color', 'text'],
     },
+}, {
+    models: [
+        { concept: 'open', type: 'boolean' },
+    ],
 });

@@ -62,4 +62,9 @@ export const treeViewAnatomy = defineAnatomy('tree-view', {
         // `[data-state="closed"]` on branch-content can never paint.
         hiddenIn: ['closed'],
     },
+}, {
+    models: [
+        { concept: 'value', type: 'string' },
+        { name: 'expandedValues', concept: 'expandedValues', type: 'string[]' },
+    ],
 });
