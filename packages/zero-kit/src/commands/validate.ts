@@ -11,7 +11,7 @@ import { auditDesignSystem } from '../audit/index.js';
 import { iterationEntryFrom } from '../resolve/iteration.js';
 import type { ValidationResult } from '../resolve/validate.js';
 import type { CommandEnv } from './shared.js';
-import { loadInputs } from './shared.js';
+import { ecosystemOptionsFrom, loadInputs } from './shared.js';
 import { recordIteration, resolveIterationLogPath } from './iteration-log.js';
 
 export interface ValidateOptions {
@@ -19,6 +19,10 @@ export interface ValidateOptions {
     manifest?: string;
     /** Ecosystem manifest fragments to merge into the base manifest. */
     extraManifest?: string[];
+    /** Adopt dependencies that declare a `"sigx-zero"` field. */
+    ecosystem?: boolean;
+    /** Package names to leave out of that adoption. */
+    ecosystemExclude?: string[];
     /** Treat warnings as failures. */
     strict: boolean;
     /** Print the human-readable coverage report. */
@@ -114,7 +118,13 @@ export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promi
     const started = performance.now();
     const logPath = resolveIterationLogPath(env.cwd, opts.log, process.env);
 
-    const { ds, manifest, result } = await loadInputs(env, opts.entry, opts.manifest, opts.extraManifest ?? []);
+    const { ds, manifest, result } = await loadInputs(
+        env,
+        opts.entry,
+        opts.manifest,
+        opts.extraManifest ?? [],
+        ecosystemOptionsFrom(env, opts),
+    );
 
     // `--report-json -` makes stdout the JSON and nothing else, so it can be
     // piped straight into a tool. The CLI logger's `log` goes to stdout (its

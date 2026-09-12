@@ -881,6 +881,34 @@ the architecture facts, briefly:
   against the recommended token grammar, from an entry whose module graph
   stays free of component imports — a design system's Node build script
   imports it.
+- **Discovery is a package.json field**, `"sigx-zero"`, shaped like the
+  `"sigx-cli"` field the sigx CLI is itself discovered through: a
+  package-relative path to that data entry, and an optional `requires`
+  range. A design system opts in per build (`ecosystem: true`, or
+  `--ecosystem`), and every dependency declaring the field contributes its
+  fragment. The field carries a *path* rather than an exports subpath
+  because none of the resolver spellings work from the kit's position —
+  `require.resolve('<pkg>/package.json')` is not exported,
+  `require.resolve('<pkg>/fragment')` fails the `require` condition, and
+  `import.meta.resolve` resolves against the kit rather than the consuming
+  project (`packages/zero-kit/src/discover.ts` records the whole dead end).
+  Off by default while the mechanism settles; `ZERO_ECOSYSTEM=0` overrides
+  any build.
+- Discovery is **loud and ordered**. The CLI's plugin walk ends in
+  `catch {}`; this one does not — a dependency that declares the field and
+  then cannot deliver (unbuilt fragment, stale contract version, a scope
+  another package already claims) is reported by name and skipped, because
+  silence there means a design system ships without a component it believed
+  it had covered. `strict: true` turns those back into build failures.
+  Packs are adopted in package-name order, so CSS, manifest key order and
+  report do not depend on dependency-declaration order. Explicit
+  `fragments:` merge first and win a collision.
+- **One resolve path, two callers.** `zero:build` reaches a design system
+  through `runStandardBuild`, while `zero:validate` and `zero:audit` reach
+  it through `commands/shared.ts`'s `loadInputs`. Both call
+  `resolveEcosystem`. Wiring only one would make a build and a validate of
+  the same directory disagree about which components exist — the spurious
+  report diff `resolve/report-diff.ts` documents, made permanent.
 - The **export-name convention** is load-bearing: the package's root export
   carries `componentExportName(scope)` (`ext-stepper` → `ExtStepper`),
   because an api-declaring design system's generated `./components` module

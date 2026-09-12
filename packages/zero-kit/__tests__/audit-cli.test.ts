@@ -55,7 +55,7 @@ const fixture = (recipes: RecipeInput[], over: Partial<TokensInput> = {}): Desig
 });
 
 /** What `loadInputs` would have returned for this design system. */
-const inputsFor = (ds: DesignSystemInput): LoadedInputs => ({ ds, manifest, result: validateDesignSystem(ds, manifest) });
+const inputsFor = (ds: DesignSystemInput): LoadedInputs => ({ ds, manifest, result: validateDesignSystem(ds, manifest), packs: [] });
 
 const logger = () => ({ log: vi.fn<(m: string) => void>(), warn: vi.fn<(m: string) => void>(), error: vi.fn<(m: string) => void>() });
 

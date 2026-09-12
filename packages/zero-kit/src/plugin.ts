@@ -34,6 +34,19 @@ const extraManifestArg = a
     .multiple()
     .describe('Ecosystem manifest fragment ({ package, components }) merged into the base manifest — repeatable');
 
+// Discovery is opt-in while the mechanism settles, so the flag is positive.
+// `ZERO_ECOSYSTEM=0` is the off switch that survives the default flip.
+const ecosystemArg = a
+    .boolean()
+    .default(false)
+    .describe('Adopt every dependency declaring a "sigx-zero" field (its anatomy fragment)');
+
+const ecosystemExcludeArg = a
+    .string()
+    .valueHint('package')
+    .multiple()
+    .describe('Package to leave out of --ecosystem adoption — repeatable');
+
 /**
  * A design-system package is one that pulls in the kit.
  *
@@ -70,6 +83,8 @@ export default definePlugin({
                 entry: entryArg,
                 manifest: manifestArg,
                 extraManifest: extraManifestArg,
+                ecosystem: ecosystemArg,
+                ecosystemExclude: ecosystemExcludeArg,
                 out: a.string().valueHint('dir').default('./dist').describe('Output directory'),
             },
             async run(ctx) {
@@ -78,6 +93,8 @@ export default definePlugin({
                     entry: ctx.args.entry,
                     manifest: ctx.args.manifest,
                     extraManifest: ctx.args.extraManifest,
+                    ecosystem: ctx.args.ecosystem,
+                    ecosystemExclude: ctx.args.ecosystemExclude,
                     out: ctx.args.out,
                 });
             },
@@ -89,6 +106,8 @@ export default definePlugin({
                 entry: entryArg,
                 manifest: manifestArg,
                 extraManifest: extraManifestArg,
+                ecosystem: ecosystemArg,
+                ecosystemExclude: ecosystemExcludeArg,
                 strict: a.boolean().default(false).describe('Fail on warnings, not just errors'),
                 // Two flags for one concept, because @sigx/args has no
                 // optional-value form: a value flag given no value is a
@@ -116,6 +135,8 @@ export default definePlugin({
                     entry: ctx.args.entry,
                     manifest: ctx.args.manifest,
                     extraManifest: ctx.args.extraManifest,
+                    ecosystem: ctx.args.ecosystem,
+                    ecosystemExclude: ctx.args.ecosystemExclude,
                     strict: ctx.args.strict,
                     report: ctx.args.report,
                     reportJson: ctx.args.reportJson,
@@ -136,6 +157,8 @@ export default definePlugin({
                 entry: entryArg,
                 manifest: manifestArg,
                 extraManifest: extraManifestArg,
+                ecosystem: ecosystemArg,
+                ecosystemExclude: ecosystemExcludeArg,
                 strict: a.boolean().default(false).describe('Fail on warning findings, not just errors'),
                 rule: a
                     .string()
@@ -154,6 +177,8 @@ export default definePlugin({
                     entry: ctx.args.entry,
                     manifest: ctx.args.manifest,
                     extraManifest: ctx.args.extraManifest,
+                    ecosystem: ctx.args.ecosystem,
+                    ecosystemExclude: ctx.args.ecosystemExclude,
                     strict: ctx.args.strict,
                     rule: ctx.args.rule,
                     json: ctx.args.json,

@@ -2,13 +2,17 @@
 import { resolve } from 'node:path';
 import { runStandardBuild } from '../build.js';
 import type { CommandEnv } from './shared.js';
-import { loadDesignSystem, loadManifest } from './shared.js';
+import { ecosystemOptionsFrom, loadDesignSystem, loadManifest } from './shared.js';
 
 export interface BuildOptions {
     entry: string;
     manifest?: string;
     /** Ecosystem manifest fragments to merge into the base manifest. */
     extraManifest?: string[];
+    /** Adopt dependencies that declare a `"sigx-zero"` field. */
+    ecosystem?: boolean;
+    /** Package names to leave out of that adoption. */
+    ecosystemExclude?: string[];
     out: string;
 }
 
@@ -24,6 +28,9 @@ export async function runBuild(env: CommandEnv, opts: BuildOptions): Promise<voi
     await runStandardBuild({
         designSystem: ds,
         manifest,
+        // The command knows the project directory; the harness would otherwise
+        // have to infer it from outDir.
+        ecosystem: ecosystemOptionsFrom(env, opts),
         outDir: resolve(env.cwd, opts.out),
         logger: env.logger,
     });

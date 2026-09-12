@@ -70,6 +70,55 @@
 
 ### Added
 
+- **Ecosystem components are discovered, not hand-wired: the `"sigx-zero"`
+  package.json field** (#449). A component package — one shipping a component
+  zero itself does not — declares `"sigx-zero": { "fragment":
+  "./dist/fragment.js", "requires": ">=0.2.0" }`, and a design system adopts
+  every dependency that declares one — `ecosystem: true` on
+  `runStandardBuild`, or `--ecosystem` on
+  `zero:build` / `zero:validate` / `zero:audit`. Adoption used to be two
+  hand-edits in a `build.mjs` (merge the fragment *and* spread the recipes),
+  which is one edit per skin per component package, and a release-order
+  problem waiting for the first cross-repo consumer.
+
+  **Off by default** for now: turning it on changes what an unchanged design
+  system emits, because a package devDepended for tests would begin shipping
+  its scopes and moving the report score. `ZERO_ECOSYSTEM=0` disables it for
+  a single run whatever the build asks for.
+
+  The field carries a package-relative **path**, like `"sigx-cli".plugin`,
+  and not an exports subpath — every tidier spelling is a dead end from the
+  kit's position: `require.resolve('<pkg>/package.json')` throws
+  `ERR_PACKAGE_PATH_NOT_EXPORTED`, `require.resolve('<pkg>/fragment')` fails
+  the CJS `require` condition, and `import.meta.resolve` resolves against
+  the kit's own module, which under pnpm's isolated store cannot see the
+  consuming project's graph at all. The loader treats the path as hostile
+  input the way `mergeManifests` already treats fragment content: absolute
+  paths and anything escaping the package directory are refused.
+
+  Three properties worth relying on. Discovery is **loud** — unlike the sigx
+  CLI's plugin walk, which ends in `catch {}`, a dependency that declares the
+  field and then cannot deliver is reported by name and skipped, never
+  swallowed, because silence means a design system ships without a component
+  it believed it had covered (`strict: true` makes it fatal). It is
+  **ordered** — packs are adopted in package-name order, so CSS, manifest key
+  order and the report do not depend on how dependencies happen to be written
+  down. And it runs on **one path with two callers**: `runStandardBuild` and
+  the CLI's `loadInputs` both call `resolveEcosystem`, so a build and a
+  validate of the same directory can never disagree about which components
+  exist.
+
+  `include` is a mode rather than a filter (it means *only* these), passing it
+  with `exclude` is an error, and naming a package that is not a dependency is
+  an error in either list — a typo'd exclusion that silently does nothing is
+  how "we disabled that pack" survives as a belief. The same rule reaches the
+  flag boundary: `--ecosystem-exclude` without `--ecosystem` is refused rather
+  than quietly excluding packages from a discovery that never runs. (Narrowing
+  is otherwise programmatic — the CLI surfaces only the exclusion half.)
+
+  Recipe packs are loaded onto the discovered pack but not yet composed into
+  the design system; that, the vocabulary fit and de-dup precedence follow.
+
 - **`sigx zero:validate --log <path>` / `ZERO_ITERATION_LOG=<path>` — an
   iteration log for the generate → validate → fix loop** (#426). Opt-in,
   local, append-only JSONL: every run appends one line (timestamp, error and
