@@ -474,7 +474,6 @@ export async function discoverEcosystem(
     return packs;
 }
 
-/** The non-zero counts of a fit, as one readable clause. */
 /**
  * A pack styles the components it declares, and no others.
  *
@@ -492,6 +491,7 @@ function refuseOverreach(pack: EcosystemPack): void {
     );
 }
 
+/** The non-zero counts of a fit, as one readable clause. */
 function fitSummary(report: FitReport): string {
     const parts: string[] = [];
     const say = (n: number, what: string) => { if (n > 0) parts.push(`${n} ${what}`); };
