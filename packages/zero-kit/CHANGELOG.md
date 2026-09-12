@@ -11,6 +11,10 @@
   `mergeManifests` holds an ecosystem fragment's models to the naming rule
   (`default<Concept>` + `<concept>Change`, a named model's concept its name,
   a camelCase concept, a non-empty type), failing by name.
+  It holds the block to the schema's shape as well (#453): no empty
+  `models`, a camelCase `name`, a PascalCase `member`, and `multiple` /
+  `formControl` presence-only `true` — so a merged manifest never fails
+  validation downstream.
 
 ### Fixed
 

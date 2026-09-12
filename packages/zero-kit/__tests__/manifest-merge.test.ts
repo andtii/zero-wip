@@ -203,7 +203,17 @@ describe('mergeManifests', () => {
         expect(() => mergeManifests(baseManifest(), withModels([{ name: 'open', concept: 'expanded', type: 'boolean', default: 'defaultExpanded', change: 'expandedChange' }])))
             .toThrow(/a named model's concept IS its name/);
         expect(() => mergeManifests(baseManifest(), withModels({ concept: 'step' })))
-            .toThrow(/"models" that is not an array/);
+            .toThrow(/"models" that is not a non-empty array/);
+    });
+
+    it("holds a fragment model to the schema's shape: no empty block, camelCase name, PascalCase member, presence-only flags", () => {
+        const ok = { concept: 'step', type: 'string', default: 'defaultStep', change: 'stepChange' };
+        expect(() => mergeManifests(baseManifest(), withModels([]))).toThrow(/not a non-empty array — omit the key/);
+        expect(() => mergeManifests(baseManifest(), withModels([{ ...ok, name: 'Step' }]))).toThrow(/"name" is the camelCase model:<name> key/);
+        expect(() => mergeManifests(baseManifest(), withModels([{ ...ok, member: 'checkbox-item' }]))).toThrow(/"member" is a PascalCase compound member/);
+        expect(() => mergeManifests(baseManifest(), withModels([{ ...ok, multiple: false }]))).toThrow(/"multiple" is presence-only/);
+        expect(() => mergeManifests(baseManifest(), withModels([{ ...ok, formControl: 'yes' }]))).toThrow(/"formControl" is presence-only/);
+        expect(() => mergeManifests(baseManifest(), withModels([{ ...ok, member: 'Track', multiple: true, formControl: true }]))).not.toThrow();
     });
 
     it('rejects a dangling or self-referential parent', () => {
