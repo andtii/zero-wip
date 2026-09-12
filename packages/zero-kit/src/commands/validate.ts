@@ -11,7 +11,7 @@ import { auditDesignSystem } from '../audit/index.js';
 import { iterationEntryFrom } from '../resolve/iteration.js';
 import type { ValidationResult } from '../resolve/validate.js';
 import type { CommandEnv } from './shared.js';
-import { loadInputs } from './shared.js';
+import { ecosystemOptionsFrom, loadInputs } from './shared.js';
 import { recordIteration, resolveIterationLogPath } from './iteration-log.js';
 
 export interface ValidateOptions {
@@ -123,9 +123,7 @@ export async function runValidate(env: CommandEnv, opts: ValidateOptions): Promi
         opts.entry,
         opts.manifest,
         opts.extraManifest ?? [],
-        opts.ecosystem
-            ? { cwd: env.cwd, ...(opts.ecosystemExclude?.length ? { exclude: opts.ecosystemExclude } : {}) }
-            : false,
+        ecosystemOptionsFrom(env, opts),
     );
 
     // `--report-json -` makes stdout the JSON and nothing else, so it can be

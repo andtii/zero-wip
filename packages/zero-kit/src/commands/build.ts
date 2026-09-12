@@ -2,7 +2,7 @@
 import { resolve } from 'node:path';
 import { runStandardBuild } from '../build.js';
 import type { CommandEnv } from './shared.js';
-import { loadDesignSystem, loadManifest } from './shared.js';
+import { ecosystemOptionsFrom, loadDesignSystem, loadManifest } from './shared.js';
 
 export interface BuildOptions {
     entry: string;
@@ -30,9 +30,7 @@ export async function runBuild(env: CommandEnv, opts: BuildOptions): Promise<voi
         manifest,
         // The command knows the project directory; the harness would otherwise
         // have to infer it from outDir.
-        ecosystem: opts.ecosystem
-            ? { cwd: env.cwd, ...(opts.ecosystemExclude?.length ? { exclude: opts.ecosystemExclude } : {}) }
-            : false,
+        ecosystem: ecosystemOptionsFrom(env, opts),
         outDir: resolve(env.cwd, opts.out),
         logger: env.logger,
     });

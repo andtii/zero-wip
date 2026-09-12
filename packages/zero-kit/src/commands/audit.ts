@@ -19,7 +19,7 @@ import { auditDesignSystem, buildAuditArtifact, formatAudit } from '../audit/ind
 import type { AuditRuleId } from '../audit/index.js';
 import { compileDesignSystem } from '../design-system.js';
 import type { CommandEnv, LoadedInputs } from './shared.js';
-import { loadInputs } from './shared.js';
+import { ecosystemOptionsFrom, loadInputs } from './shared.js';
 
 export interface AuditCommandOptions {
     entry: string;
@@ -44,9 +44,7 @@ export async function runAudit(env: CommandEnv, opts: AuditCommandOptions): Prom
         opts.entry,
         opts.manifest,
         opts.extraManifest ?? [],
-        opts.ecosystem
-            ? { cwd: env.cwd, ...(opts.ecosystemExclude?.length ? { exclude: opts.ecosystemExclude } : {}) }
-            : false,
+        ecosystemOptionsFrom(env, opts),
     );
     await auditInputs(env, inputs, opts);
 }

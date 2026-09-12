@@ -28,8 +28,10 @@ import {
     nearestPackageDir,
     packFromModule,
     resolveEcosystem,
+    satisfiesKitRange,
     selectDependencies,
 } from '@sigx/zero-kit';
+import { ecosystemOptionsFrom } from '../src/commands/shared.js';
 import type { DesignSystemInput, EcosystemDeclaration, EcosystemPack, ManifestComponent, ManifestFragment } from '@sigx/zero-kit';
 import { anatomies, defineAnatomy } from '@sigx/zero/anatomy';
 
@@ -355,6 +357,44 @@ describe('resolveEcosystem', () => {
         });
         expect(out.manifest.components.find((c) => c.scope === 'acme-stepper')?.package).toBe('@hand/wired');
         expect(log.error).toHaveBeenCalledWith(expect.stringContaining('@auto/discovered not adopted'));
+    });
+});
+
+describe('satisfiesKitRange', () => {
+    it('reads a caret the way npm does, one boundary level per leading zero', () => {
+        expect(satisfiesKitRange('1.4.0', '^1.2.0')).toBe(true);
+        expect(satisfiesKitRange('2.0.0', '^1.2.0')).toBe(false);
+        expect(satisfiesKitRange('0.2.9', '^0.2.3')).toBe(true);
+        expect(satisfiesKitRange('0.3.0', '^0.2.3')).toBe(false);
+        // ^0.0.3 admits only 0.0.3 — treating 0.0.99 as compatible would
+        // suppress the very warning the field exists to raise.
+        expect(satisfiesKitRange('0.0.3', '^0.0.3')).toBe(true);
+        expect(satisfiesKitRange('0.0.99', '^0.0.3')).toBe(false);
+    });
+
+    it('handles >= and exact, and never blocks on a range it cannot parse', () => {
+        expect(satisfiesKitRange('0.2.0', '>=0.2.0')).toBe(true);
+        expect(satisfiesKitRange('0.1.9', '>=0.2.0')).toBe(false);
+        expect(satisfiesKitRange('0.2.0', '0.2.0')).toBe(true);
+        expect(satisfiesKitRange('0.2.0', 'whatever the author typed')).toBe(true);
+    });
+});
+
+describe('ecosystemOptionsFrom', () => {
+    const env = { cwd: '/project', logger: logger() };
+
+    it('refuses an exclusion that would exclude nothing', () => {
+        // The same silent no-op discovery already refuses inside include/exclude,
+        // caught one level earlier at the flag boundary.
+        expect(() => ecosystemOptionsFrom(env, { ecosystemExclude: ['@acme/stepper'] }))
+            .toThrow(/--ecosystem-exclude was given without --ecosystem/);
+    });
+
+    it('is off when the flag is absent, and carries cwd when it is not', () => {
+        expect(ecosystemOptionsFrom(env, {})).toBe(false);
+        expect(ecosystemOptionsFrom(env, { ecosystem: true })).toEqual({ cwd: '/project' });
+        expect(ecosystemOptionsFrom(env, { ecosystem: true, ecosystemExclude: ['a'] }))
+            .toEqual({ cwd: '/project', exclude: ['a'] });
     });
 });
 

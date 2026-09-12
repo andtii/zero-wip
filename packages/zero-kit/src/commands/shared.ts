@@ -133,6 +133,32 @@ export async function loadDesignSystem(cwd: string, entry: string): Promise<Desi
     return ds;
 }
 
+/** The two ecosystem flags every command shares, as `resolveEcosystem` options. */
+export interface EcosystemFlags {
+    ecosystem?: boolean;
+    ecosystemExclude?: string[];
+}
+
+/**
+ * Turn the flags into options, refusing the combination that would do
+ * nothing. `--ecosystem-exclude` without `--ecosystem` excludes packages from
+ * a discovery that never runs — the same silent no-op the `include`/`exclude`
+ * rules already refuse inside discovery, and worth refusing at the flag
+ * boundary for the same reason.
+ */
+export function ecosystemOptionsFrom(env: CommandEnv, opts: EcosystemFlags): boolean | EcosystemOptions {
+    const exclude = opts.ecosystemExclude ?? [];
+    if (!opts.ecosystem) {
+        if (exclude.length > 0) {
+            throw new Error(
+                '--ecosystem-exclude was given without --ecosystem, so it would exclude packages from a discovery that never runs',
+            );
+        }
+        return false;
+    }
+    return { cwd: env.cwd, ...(exclude.length > 0 ? { exclude } : {}) };
+}
+
 export interface LoadedInputs {
     ds: DesignSystemInput;
     manifest: ZeroManifest;

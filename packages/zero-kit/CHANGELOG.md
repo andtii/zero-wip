@@ -97,7 +97,10 @@
   `include` is a mode rather than a filter (it means *only* these), passing it
   with `exclude` is an error, and naming a package that is not a dependency is
   an error in either list — a typo'd exclusion that silently does nothing is
-  how "we disabled that pack" survives as a belief.
+  how "we disabled that pack" survives as a belief. The same rule reaches the
+  flag boundary: `--ecosystem-exclude` without `--ecosystem` is refused rather
+  than quietly excluding packages from a discovery that never runs. (Narrowing
+  is otherwise programmatic — the CLI surfaces only the exclusion half.)
 
   Recipe packs are loaded onto the discovered pack but not yet composed into
   the design system; that, the vocabulary fit and de-dup precedence follow.

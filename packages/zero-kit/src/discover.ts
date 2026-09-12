@@ -139,11 +139,17 @@ function compareVersions(a: Version, b: Version): number {
 
 /**
  * Minimal range check covering the forms this field actually carries —
- * `^x.y.z` (0.x caret = same minor, as npm reads it), `>=x.y.z`, and exact —
- * matching what the sigx CLI applies to `"sigx-cli".requires`. A range it
- * cannot parse is satisfied: a malformed field must never block a build.
+ * `^x.y.z`, `>=x.y.z`, and exact — modelled on what the sigx CLI applies to
+ * `"sigx-cli".requires`. A range it cannot parse is satisfied: a malformed
+ * field must never block a build.
+ *
+ * The caret follows npm's real 0.x rule, where the compatibility boundary
+ * moves down one level per leading zero: `^0.2.3` admits `0.2.x` but `^0.0.3`
+ * admits only `0.0.3`. Treating `0.0.99` as compatible with `^0.0.3` would
+ * suppress exactly the "built for a different kit" warning the field exists
+ * to raise.
  */
-function satisfies(version: string, range: string): boolean {
+export function satisfiesKitRange(version: string, range: string): boolean {
     const v = parseVersion(version);
     if (!v) return true;
     const r = range.trim();
@@ -153,6 +159,7 @@ function satisfies(version: string, range: string): boolean {
         if (compareVersions(v, want) < 0) return false;
         if (v.major !== want.major) return false;
         if (want.major === 0 && v.minor !== want.minor) return false;
+        if (want.major === 0 && want.minor === 0 && v.patch !== want.patch) return false;
         return true;
     }
     if (r.startsWith('>=')) {
@@ -272,7 +279,7 @@ export function declarationFor(cwd: string, name: string, logger: EcosystemLogge
     // longer speaks should be reported as such, not explode somewhere inside
     // its own module body.
     const kit = kitVersion();
-    if (field.requires && kit && !satisfies(kit, field.requires)) {
+    if (field.requires && kit && !satisfiesKitRange(kit, field.requires)) {
         logger.warn(
             `[zero-kit] ${name} requires @sigx/zero-kit ${field.requires} but this build runs ${kit} — its component may not compile`,
         );
