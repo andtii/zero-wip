@@ -228,6 +228,23 @@ describe('the lynx target', () => {
         expect(readFileSync(join(dir, 'lynx/index.css'), 'utf8')).not.toContain('acme-stepper');
     });
 
+    it('still fails when the AUTHORED recipe for a pack-declared scope is the web-only one', async () => {
+        // The trap: the pack declares this scope, so attributing by fragment
+        // would degrade the design system's OWN recipe on the pack's behalf.
+        // De-dup kept the authored recipe, so it must fail the build like any
+        // other first-party recipe — attribution follows what a pack actually
+        // contributed, not what its fragment declares.
+        await expect(runStandardBuild({
+            designSystem: ds(bareTokens, [pressy]),
+            manifest: baseManifest(),
+            ecosystem: { packs: [packOf('@acme/stepper', [packRecipe])] },
+            targets: ['web', 'lynx'],
+            audit: false,
+            outDir: outDir(),
+            logger: logger(),
+        })).rejects.toThrow(/--press-x/);
+    });
+
     it('still fails the build for a first-party recipe in the same position', async () => {
         await expect(runStandardBuild({
             designSystem: ds(bareTokens, [pressy]),

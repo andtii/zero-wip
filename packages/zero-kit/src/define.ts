@@ -40,7 +40,7 @@ export type { CssProps, PartStyles, RecipeContext, RecipeInput } from './recipes
 export { defineRecipe } from './recipes.js';
 
 export type { FitReport } from './fit.js';
-export { explainFit, fitRecipesToVocabulary } from './fit.js';
+export { explainFit, fitRecipes, fitRecipesToVocabulary } from './fit.js';
 
 export type { DesignSystemInput } from './design-system.js';
 export { defineDesignSystem } from './design-system.js';

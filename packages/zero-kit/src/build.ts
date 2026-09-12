@@ -28,7 +28,6 @@ export { AUDIT_SCHEMA_URL, auditDesignSystem, buildAuditArtifact, formatAudit } 
 export { ECOSYSTEM_ENV, ECOSYSTEM_FIELD, declarationFor, discoverEcosystem, nearestPackageDir, packFromModule, resolveEcosystem, satisfiesKitRange, selectDependencies } from './discover.js';
 export type { EcosystemDeclaration, EcosystemLogger, EcosystemOptions, EcosystemPack, ResolvedEcosystem, ResolveEcosystemInput } from './discover.js';
 export type { AuditArtifact, AuditFinding, AuditOptions, AuditResult, AuditRuleId } from './audit/index.js';
-import type { EcosystemPack } from './discover.js';
 import type { CompiledLynxTarget } from './targets/lynx/compile.js';
 import { compileDesignSystemLynx, writeLynxArtifacts } from './targets/lynx/compile.js';
 
@@ -136,7 +135,7 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
     // path uses — one derivation of "which components exist here".
     // The resolved design system carries every adopted pack's recipes, fitted
     // to this vocabulary; `authored` is what the package itself wrote.
-    const { manifest, designSystem: ds, packs } = await resolveEcosystem({
+    const { manifest, designSystem: ds, contributed } = await resolveEcosystem({
         manifest: explicit,
         designSystem: authored,
         ecosystem: options.ecosystem,
@@ -188,7 +187,7 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
         // write. Drop that scope from the lynx target instead: a scope with no
         // lynx CSS is the documented unstyled-but-accessible fallback, while a
         // failed build is nothing. First-party recipes keep throwing.
-        const webOnly = lynxIncapable(ds, manifest, packs, logger);
+        const webOnly = lynxIncapable(ds, manifest, contributed, logger);
         const lynxDs = webOnly.length > 0
             ? { ...ds, recipes: ds.recipes.filter((r) => !webOnly.some((w) => w.scope === r.component)) }
             : ds;
@@ -223,18 +222,19 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
 function lynxIncapable(
     ds: DesignSystemInput,
     manifest: Pick<ZeroManifest, 'components'>,
-    packs: readonly EcosystemPack[],
+    contributed: Record<string, string>,
     logger: StandardBuildLogger,
 ): { scope: string; package: string; reason: string }[] {
-    const owner = new Map<string, string>();
-    for (const pack of packs) {
-        for (const component of pack.fragment.components) owner.set(component.scope, pack.package);
-    }
-    if (owner.size === 0) return [];
+    // `contributed` names the scopes a pack's recipe actually styles, not the
+    // scopes its fragment declares. The two differ exactly where it matters:
+    // when the design system writes its own recipe for a pack-declared scope,
+    // the pack's is dropped and the authored one must keep failing the build
+    // rather than being degraded on the pack's behalf.
+    if (Object.keys(contributed).length === 0) return [];
 
     const webOnly: { scope: string; package: string; reason: string }[] = [];
     for (const recipe of ds.recipes) {
-        const from = owner.get(recipe.component);
+        const from = contributed[recipe.component];
         if (!from) continue;
         try {
             compileDesignSystemLynx({ ...ds, recipes: [recipe] }, manifest);

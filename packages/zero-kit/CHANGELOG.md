@@ -150,6 +150,15 @@
   scope with no lynx CSS is the documented unstyled-but-accessible fallback
   while a failed build is nothing.
 
+  `resolveEcosystem` returns a `contributed` map (scope → the package whose
+  recipe styles it) so callers that must treat pack recipes differently do
+  not have to infer ownership from the fragments. The two differ exactly
+  where it matters: when a design system writes its own recipe for a
+  pack-declared scope, the pack's is dropped, and the authored one has to
+  keep failing the lynx build rather than being degraded on the pack's
+  behalf. `fitRecipes` (on `/define`) returns the fitted recipes and the
+  `FitReport` from one walk, which composition needs for every pack.
+
   Also corrects `audit/context.ts`, which claimed its first-recipe-wins map
   matched `compileDesignSystem`'s behaviour. It never did — the compiler
   throws — and two derivations of "what happens on a duplicate", one of them
