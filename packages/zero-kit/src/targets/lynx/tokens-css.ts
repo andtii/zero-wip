@@ -40,7 +40,7 @@ import { STRUCTURAL_FALLBACKS, resolveSystemTokens } from '../shared.js';
  */
 export { STRUCTURAL_FALLBACKS };
 import type { LynxCapabilityReport } from './capabilities.js';
-import { bakeColor, bakeColorValue, bakeSoft, hasComparisonFunction, hasUnsupportedColorFunction, runtimePropertyIn } from './capabilities.js';
+import { bakeColor, bakeColorValue, bakeSoft, hasComparisonFunction, hasUnsupportedColorFunction, LynxRuntimePropertyError, runtimePropertyIn } from './capabilities.js';
 import { HOST_CLASS, themeClass } from './class-names.js';
 import type { LynxThemeColors } from './recipe-css.js';
 
@@ -173,8 +173,9 @@ function bakedNonColor(
     for (const [prop, value] of Object.entries(inlined)) {
         const runtime = runtimePropertyIn(`${prop} ${value}`);
         if (runtime) {
-            throw new Error(
+            throw new LynxRuntimePropertyError(
                 `[zero-kit] ${where}: "${prop}" references ${runtime}, a web-runtime-published property with no lynx equivalent — move it into a web-only section`,
+                runtime,
             );
         }
         if (hasComparisonFunction(value)) {

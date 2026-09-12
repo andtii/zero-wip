@@ -139,6 +139,23 @@ export function runtimePropertyIn(text: string): string | undefined {
 }
 
 /**
+ * The lynx emitter's refusal of a web-runtime property, as a type.
+ *
+ * It is the one lynx rejection a caller may legitimately treat as "this scope
+ * is web-only" rather than "this build is broken" — ecosystem composition
+ * degrades a discovered pack on it. Distinguishing it by class rather than by
+ * matching the message keeps that decision from silently widening to every
+ * lynx failure (an unknown component, a dangling var) the moment a message is
+ * reworded.
+ */
+export class LynxRuntimePropertyError extends Error {
+    override readonly name = 'LynxRuntimePropertyError';
+    constructor(message: string, readonly property: string) {
+        super(message);
+    }
+}
+
+/**
  * Color functions lynx cannot parse; every occurrence must bake or reject.
  * Kept in lockstep with `COLOR_FN_START` below — a function only one of the
  * two knows either bypasses baking (leaks into emitted CSS) or bakes without

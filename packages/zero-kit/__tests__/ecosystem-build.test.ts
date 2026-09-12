@@ -21,6 +21,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { compileDesignSystem, resolveEcosystem, runStandardBuild } from '@sigx/zero-kit';
+import { compileDesignSystemLynx, LynxRuntimePropertyError } from '../src/targets/lynx/index.js';
 import type {
     DesignSystemInput,
     EcosystemPack,
@@ -226,6 +227,20 @@ describe('the lynx target', () => {
         // The web target still carries it — only lynx lost the scope.
         expect(readFileSync(join(dir, 'css/components/acme-stepper.css'), 'utf8')).toContain('--press-x');
         expect(readFileSync(join(dir, 'lynx/index.css'), 'utf8')).not.toContain('acme-stepper');
+    });
+
+    it('degrades on the runtime-property refusal specifically, by type', () => {
+        // The degradation is gated on `instanceof LynxRuntimePropertyError`,
+        // not on matching a message, so that it cannot silently widen to every
+        // lynx failure the next time one is reworded. This pins the other half
+        // of that contract: the emitter really does throw that class.
+        //
+        // There is no companion test driving a DIFFERENT lynx error through a
+        // whole build, because one is not constructible today — validation and
+        // the web compile reject everything else first, which is itself why
+        // the narrow gate costs nothing.
+        expect(() => compileDesignSystemLynx(ds(bareTokens, [pressy]), withStepper()))
+            .toThrow(LynxRuntimePropertyError);
     });
 
     it('still fails when the AUTHORED recipe for a pack-declared scope is the web-only one', async () => {

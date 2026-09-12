@@ -30,6 +30,7 @@ export type { EcosystemDeclaration, EcosystemLogger, EcosystemOptions, Ecosystem
 export type { AuditArtifact, AuditFinding, AuditOptions, AuditResult, AuditRuleId } from './audit/index.js';
 import type { CompiledLynxTarget } from './targets/lynx/compile.js';
 import { compileDesignSystemLynx, writeLynxArtifacts } from './targets/lynx/compile.js';
+import { LynxRuntimePropertyError } from './targets/lynx/capabilities.js';
 
 /** The logging surface the build reports through — `console` by default. */
 export interface StandardBuildLogger {
@@ -239,11 +240,16 @@ function lynxIncapable(
         try {
             compileDesignSystemLynx({ ...ds, recipes: [recipe] }, manifest);
         } catch (err) {
-            const reason = err instanceof Error ? err.message : String(err);
-            webOnly.push({ scope: recipe.component, package: from, reason });
+            // ONLY the runtime-property refusal degrades. Every other lynx
+            // rejection — an unknown component, a dangling var — is a real
+            // failure that must keep failing the build, whoever wrote the
+            // recipe; swallowing those as "web-only" would hide them behind a
+            // report entry that claims something else entirely.
+            if (!(err instanceof LynxRuntimePropertyError)) throw err;
+            webOnly.push({ scope: recipe.component, package: from, reason: err.message });
             logger.error(
                 `[${ds.name}] ecosystem: ${from}'s "${recipe.component}" is web-only — `
-                + `excluded from the lynx target (${reason})`,
+                + `excluded from the lynx target (${err.message})`,
             );
         }
     }

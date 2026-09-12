@@ -150,6 +150,12 @@
   scope with no lynx CSS is the documented unstyled-but-accessible fallback
   while a failed build is nothing.
 
+  The degradation is gated on a **type**, not a message: the lynx emitter's
+  three runtime-property refusals now throw `LynxRuntimePropertyError`, and
+  only that class degrades. Every other lynx rejection — an unknown state, a
+  scope mismatch — keeps failing the build, whoever wrote the recipe, rather
+  than being filed under `webOnly` as something it is not.
+
   `resolveEcosystem` returns a `contributed` map (scope → the package whose
   recipe styles it) so callers that must treat pack recipes differently do
   not have to infer ownership from the fragments. The two differ exactly

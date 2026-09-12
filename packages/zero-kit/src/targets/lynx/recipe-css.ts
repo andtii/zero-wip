@@ -54,6 +54,7 @@ import {
     bakeColorValue,
     hasComparisonFunction,
     hasUnsupportedColorFunction,
+    LynxRuntimePropertyError,
     runtimePropertyIn,
 } from './capabilities.js';
 import { HOST_CLASS, axisClass, flagClass, modClass, orientationClass, partClass, placementClass, stateClass, themeClass } from './class-names.js';
@@ -177,8 +178,9 @@ function checkedProps(
         const value = String(raw);
         const runtime = runtimePropertyIn(`${prop} ${value}`);
         if (runtime) {
-            throw new Error(
+            throw new LynxRuntimePropertyError(
                 `[zero-kit] ${where}: "${prop}" references ${runtime}, a web-runtime-published property with no lynx equivalent — move the declaration into the recipe's web target section`,
+                runtime,
             );
         }
         const kebabProp = kebab(prop);
@@ -525,8 +527,9 @@ export function compileLynxRecipeCss(
         const where = `lynx recipe for "${scope}" keyframes "${name}"`;
         const runtime = runtimePropertyIn(body);
         if (runtime) {
-            throw new Error(
+            throw new LynxRuntimePropertyError(
                 `[zero-kit] ${where}: references ${runtime}, a web-runtime-published property with no lynx equivalent — move the keyframes into the recipe's web target section`,
+                runtime,
             );
         }
         if (CURRENT_COLOR.test(body)) {
