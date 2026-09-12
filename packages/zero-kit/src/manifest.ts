@@ -208,7 +208,7 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                     if (typeof model.type !== 'string' || model.type.length === 0) {
                         throw new Error(`[zero-kit] ${label} needs a "type" (a TypeScript type expression)`);
                     }
-                    const expectedDefault = `default${model.concept[0]!.toUpperCase()}${model.concept.slice(1)}`;
+                    const expectedDefault = `default${model.concept.charAt(0).toUpperCase()}${model.concept.slice(1)}`;
                     const expectedChange = `${model.concept}Change`;
                     if (model.default !== expectedDefault) {
                         throw new Error(`[zero-kit] ${label}: the seed prop of concept "${model.concept}" is "${expectedDefault}", not "${String(model.default)}"`);

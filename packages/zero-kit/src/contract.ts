@@ -553,7 +553,7 @@ export interface ManifestModel {
     type: string;
     /** The compound member carrying it when not Root. */
     member?: string;
-    /** The `multiple` prop makes it an array of `type`. */
+    /** The `multiple` prop makes it an array of the selectable value instead (`type` is the single-select shape; `T | null` → `T[]`). */
     multiple?: true;
     /** Posts under `name` (the form contract). */
     formControl?: true;

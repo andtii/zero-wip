@@ -151,7 +151,12 @@ export interface ModelSpec {
      * Root.
      */
     member?: string;
-    /** The `multiple` prop makes the model an array of `type`. */
+    /**
+     * The `multiple` prop makes the model an array instead. `type` describes
+     * the single-select shape; under `multiple` the model is an array of the
+     * selectable value alone — the empty sentinel (`null`, `''`) has no
+     * element form, the empty array is it (`T | null` → `T[]`).
+     */
     multiple?: true;
     /** Posts to the enclosing form under `name` (the form contract, #441). */
     formControl?: true;
@@ -165,7 +170,7 @@ export interface ModelJSON extends ModelSpec {
 }
 
 /** `open` → `defaultOpen`: the seed prop of a model concept. */
-export const defaultPropOf = (concept: string): string => `default${concept[0]!.toUpperCase()}${concept.slice(1)}`;
+export const defaultPropOf = (concept: string): string => `default${concept.charAt(0).toUpperCase()}${concept.slice(1)}`;
 /** `open` → `openChange`: the change event of a model concept. */
 export const changeEventOf = (concept: string): string => `${concept}Change`;
 

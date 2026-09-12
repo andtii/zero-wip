@@ -225,7 +225,7 @@
                     "pattern": "^[A-Z][A-Za-z0-9]*$"
                 },
                 "multiple": {
-                    "description": "Present (and true) only when the multiple prop makes the model an array of type.",
+                    "description": "Present (and true) only when the multiple prop makes the model an array instead: type is the single-select shape, and under multiple the model is an array of the selectable value alone — the empty sentinel (null, '') has no element form, the empty array is it (T | null → T[]).",
                     "const": true
                 },
                 "formControl": {
