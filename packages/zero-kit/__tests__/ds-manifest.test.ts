@@ -79,6 +79,16 @@ describe('the emitted design-system manifest', () => {
         await expect(writeArtifacts(corrupted, dir)).rejects.toThrow(/manifest.*schema|schema.*manifest/i);
     });
 
+    it('the schema refuses a provenance entry that says nothing', async () => {
+        // `externalScopes` is documented as absent when nothing was adopted,
+        // so an empty map — or an empty package name in one — is a malformed
+        // claim rather than a harmless one.
+        const emitted = await emit(systems.basic);
+        expect(validate({ ...emitted, externalScopes: {} })).toBe(false);
+        expect(validate({ ...emitted, externalScopes: { 'acme-stepper': '' } })).toBe(false);
+        expect(validate({ ...emitted, externalScopes: { 'acme-stepper': '@acme/stepper' } })).toBe(true);
+    });
+
     it('the schema itself rejects a version it does not know', () => {
         // The consumer contract: check manifestVersion, not key-sniffing.
         expect(validate({ manifestVersion: 2 })).toBe(false);
