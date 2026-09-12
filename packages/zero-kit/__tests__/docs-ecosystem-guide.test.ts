@@ -32,10 +32,19 @@ function snippetExpression(name: string): string {
     const start = guide().indexOf(marker);
     expect(start, `${GUIDE} declares no \`${marker.trim()}\``).toBeGreaterThan(-1);
     const rest = guide().slice(start + marker.length);
-    const end = rest.indexOf('\n});') >= 0 && rest.indexOf('\n});') < rest.indexOf('\n};')
-        ? rest.indexOf('\n});') + '\n});'.length
-        : rest.indexOf('\n};') + '\n};'.length;
-    return rest.slice(0, end).replace(/;\s*$/, '');
+
+    // Whichever terminator comes first: a call expression closes with `});`,
+    // a plain object literal with `};`. Both absent means the snippet was
+    // reshaped — say so, rather than slicing to a nonsense offset and letting
+    // `new Function` report a syntax error about a fragment nobody wrote.
+    const ends = ['\n});', '\n};']
+        .map((t) => ({ t, at: rest.indexOf(t) }))
+        .filter(({ at }) => at >= 0)
+        .sort((a, b) => a.at - b.at);
+    expect(ends.length, `\`${marker.trim()}\` in ${GUIDE} has no \`});\` or \`};\` terminator`).toBeGreaterThan(0);
+
+    const { t, at } = ends[0]!;
+    return rest.slice(0, at + t.length).replace(/;\s*$/, '');
 }
 
 /** Evaluate a snippet expression with the guide's own imports in scope. */
