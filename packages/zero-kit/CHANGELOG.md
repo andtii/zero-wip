@@ -138,7 +138,9 @@
 
   A pack may style only the scopes its own fragment declares. Shipping a
   recipe for `button` would let an installed dependency restyle its host's
-  own components; the pack is refused by name.
+  own components; the pack is refused by name, and refused *before* its
+  fragment is merged — dropping only its recipes would leave its scopes in
+  the manifest styled by nobody.
 
   **The lynx target degrades for packs and still fails for first parties.**
   The lynx emitter rejects references to `RUNTIME_PROPERTIES` (`var(--press-x)`

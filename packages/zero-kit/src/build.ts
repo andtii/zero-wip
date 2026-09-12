@@ -241,12 +241,15 @@ function lynxIncapable(
         try {
             compileDesignSystemLynx({ ...ds, recipes: [recipe] }, manifest);
         } catch (err) {
-            // ONLY the runtime-property refusal degrades. Every other lynx
-            // rejection — an unknown component, a dangling var — is a real
-            // failure that must keep failing the build, whoever wrote the
-            // recipe; swallowing those as "web-only" would hide them behind a
-            // report entry that claims something else entirely.
-            if (!(err instanceof LynxRuntimePropertyError)) throw err;
+            // The probe answers ONE question: does this recipe reference a
+            // web-runtime property? Nothing else it reports is authoritative,
+            // because it compiles a partial stylesheet — tokens plus this one
+            // component — and the whole-index assertions (dangling vars, calc
+            // var chains) can fail on a recipe that reads a custom property
+            // another component's lynx CSS defines. So any other rejection is
+            // left for the real compile below, which sees the whole thing and
+            // fails the build with the accurate message.
+            if (!(err instanceof LynxRuntimePropertyError)) continue;
             webOnly.push({ scope: recipe.component, package: from, reason: err.message });
             logger.error(
                 `[${ds.name}] ecosystem: ${from}'s "${recipe.component}" is web-only — `

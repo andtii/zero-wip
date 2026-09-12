@@ -147,14 +147,19 @@ describe('recipe precedence', () => {
         expect(Object.keys(compiled.components)).toEqual(['button', 'acme-stepper']);
     });
 
-    it('refuses a pack that ships recipes for scopes it does not declare', async () => {
+    it('refuses a pack that ships recipes for scopes it does not declare — entirely', async () => {
         // Otherwise an installed dependency could restyle the design system's
-        // own button — a different product from the one this protocol is for.
+        // own button. Refused BEFORE the merge, so the pack contributes
+        // nothing: dropping only its recipes would leave its scopes in the
+        // manifest styled by nobody, which is a half-adoption of a package
+        // that just tried to restyle its host.
         const log = logger();
         const foreign: RecipeInput = { component: 'button', parts: { root: { base: { appearance: 'none' } } } };
         const out = await resolve(ds(recommendedTokens), [packOf('@acme/stepper', [packRecipe, foreign])], log);
 
         expect(out.designSystem.recipes).toEqual([]);
+        expect(out.packs).toEqual([]);
+        expect(out.manifest.components.some((c) => c.scope === 'acme-stepper')).toBe(false);
         expect(log.error).toHaveBeenCalledWith(expect.stringMatching(/ships recipes for scopes it does not declare.*"button"/s));
     });
 });

@@ -475,6 +475,23 @@ export async function discoverEcosystem(
 }
 
 /** The non-zero counts of a fit, as one readable clause. */
+/**
+ * A pack styles the components it declares, and no others.
+ *
+ * Shipping a recipe for `button` would let an installed dependency restyle
+ * its host's own components — a different product from the one this protocol
+ * is for, and not one anybody opted into by adding a dependency.
+ */
+function refuseOverreach(pack: EcosystemPack): void {
+    const owned = new Set(pack.fragment.components.map((c) => c.scope));
+    const foreign = pack.recipes.filter((r) => !owned.has(r.component));
+    if (foreign.length === 0) return;
+    throw new Error(
+        `[zero-kit] ${pack.package} ships recipes for scopes it does not declare `
+        + `(${foreign.map((r) => `"${r.component}"`).join(', ')}) — a pack may only style its own components`,
+    );
+}
+
 function fitSummary(report: FitReport): string {
     const parts: string[] = [];
     const say = (n: number, what: string) => { if (n > 0) parts.push(`${n} ${what}`); };
@@ -554,6 +571,11 @@ export async function resolveEcosystem<M extends Pick<ZeroManifest, 'components'
     const adopted: EcosystemPack[] = [];
     for (const pack of packs) {
         try {
+            // Checked BEFORE the merge, so a refused pack contributes nothing
+            // at all. Refusing only its recipes would leave its scopes in the
+            // manifest, styled by nobody — a half-adoption of a package that
+            // just tried to restyle its host.
+            refuseOverreach(pack);
             merged = mergeManifests(merged, pack.fragment);
         } catch (err) {
             if (options.strict) throw err;
@@ -564,7 +586,7 @@ export async function resolveEcosystem<M extends Pick<ZeroManifest, 'components'
         const scopes = pack.fragment.components.length;
         logger.log(`[${label}] ecosystem: ${pack.package} — ${scopes} scope(s)`);
     }
-    const composed = compose(designSystem, adopted, label, logger, options);
+    const composed = compose(designSystem, adopted, label, logger);
     return { manifest: merged, designSystem: composed.designSystem, packs: adopted, contributed: composed.contributed };
 }
 
@@ -588,7 +610,6 @@ function compose(
     packs: readonly EcosystemPack[],
     label: string,
     logger: EcosystemLogger,
-    options: EcosystemOptions,
 ): { designSystem: DesignSystemInput; contributed: Record<string, string> } {
     const styled = new Set(ds.recipes.map((r) => r.component));
     const added: RecipeInput[] = [];
@@ -596,22 +617,6 @@ function compose(
 
     for (const pack of packs) {
         if (pack.recipes.length === 0) continue;
-
-        // A pack styles the components it declares, and no others. Shipping a
-        // recipe for someone else's scope would let an installed dependency
-        // restyle the design system's own button — a different product from
-        // the one this protocol is for.
-        const owned = new Set(pack.fragment.components.map((c) => c.scope));
-        const foreign = pack.recipes.filter((r) => !owned.has(r.component));
-        if (foreign.length > 0) {
-            const err = new Error(
-                `[zero-kit] ${pack.package} ships recipes for scopes it does not declare `
-                + `(${foreign.map((r) => `"${r.component}"`).join(', ')}) — a pack may only style its own components`,
-            );
-            if (options.strict) throw err;
-            logger.error(err.message);
-            continue;
-        }
 
         // Fitted to whatever vocabulary this skin actually has: a pack written
         // against the recommended grammar still compiles under a design system

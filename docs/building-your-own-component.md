@@ -186,8 +186,9 @@ and costs you nothing. Anything it had to change is logged once, named.
 
 **It may only style the scopes your fragment declares.** A pack shipping a
 recipe for `button` would let an installed dependency restyle its host's own
-components — a different product from this one. The whole pack is refused,
-by name.
+components — a different product from this one. The whole pack is refused by
+name, before its fragment is merged: dropping only the recipes would leave
+your scopes in the manifest styled by nobody.
 
 **A scope the design system already styles keeps the design system's
 recipe.** Precedence is de-dup, not ordering, because two recipes for one
