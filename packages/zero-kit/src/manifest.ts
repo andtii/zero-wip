@@ -53,6 +53,10 @@ export const FRAGMENT_VERSION = 1;
 
 /** A model concept: a camelCase identifier (it becomes the stem of two prop names). */
 const MODEL_CONCEPT_PATTERN = /^[a-z][A-Za-z0-9]*$/;
+/** A compound member: PascalCase (`CheckboxItem`). */
+const MODEL_MEMBER_PATTERN = /^[A-Z][A-Za-z0-9]*$/;
+/** The closed key set of a model entry (the schema's `$defs/model`). */
+const MODEL_KEYS = new Set(['name', 'concept', 'type', 'member', 'multiple', 'formControl', 'default', 'change']);
 
 export interface ManifestFragment {
     /**
@@ -194,13 +198,16 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
             // them differently is describing an API zero's tooling would
             // misread.
             if (component.models !== undefined) {
-                if (!Array.isArray(component.models)) {
-                    throw new Error(`[zero-kit] ${where}: component "${component.scope}" has a "models" that is not an array`);
+                if (!Array.isArray(component.models) || component.models.length === 0) {
+                    throw new Error(`[zero-kit] ${where}: component "${component.scope}" has a "models" that is not a non-empty array — omit the key when there are none`);
                 }
                 for (const model of component.models) {
                     const label = `${where}: "${component.scope}" model${model?.name ? `:${model.name}` : ''}`;
                     if (typeof model?.concept !== 'string' || !MODEL_CONCEPT_PATTERN.test(model.concept)) {
                         throw new Error(`[zero-kit] ${label} needs a camelCase "concept" — the stem of default<Concept> and <concept>Change`);
+                    }
+                    if (model.name !== undefined && (typeof model.name !== 'string' || !MODEL_CONCEPT_PATTERN.test(model.name))) {
+                        throw new Error(`[zero-kit] ${label}: "name" is the camelCase model:<name> key`);
                     }
                     if (model.name !== undefined && model.name !== model.concept) {
                         throw new Error(`[zero-kit] ${label}: a named model's concept IS its name — "${model.concept}" does not match`);
@@ -215,6 +222,21 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                     }
                     if (model.change !== expectedChange) {
                         throw new Error(`[zero-kit] ${label}: the change event of concept "${model.concept}" is "${expectedChange}", not "${String(model.change)}"`);
+                    }
+                    // The schema's shape for the optional fields, so a merged
+                    // manifest never fails validation downstream.
+                    if (model.member !== undefined && (typeof model.member !== 'string' || !MODEL_MEMBER_PATTERN.test(model.member))) {
+                        throw new Error(`[zero-kit] ${label}: "member" is a PascalCase compound member (CheckboxItem), or omitted for Root`);
+                    }
+                    for (const key of Object.keys(model)) {
+                        if (!MODEL_KEYS.has(key)) {
+                            throw new Error(`[zero-kit] ${label}: unknown key "${key}" — a model entry is closed to [${[...MODEL_KEYS].join(', ')}]`);
+                        }
+                    }
+                    for (const flag of ['multiple', 'formControl'] as const) {
+                        if (model[flag] !== undefined && model[flag] !== true) {
+                            throw new Error(`[zero-kit] ${label}: "${flag}" is presence-only — true or omitted, never ${String(model[flag])}`);
+                        }
                     }
                 }
             }
