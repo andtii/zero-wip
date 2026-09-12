@@ -454,6 +454,13 @@ loaded or merged is named and skipped rather than swallowed — `strict: true`
 makes it fatal — and packs are adopted in package-name order so the emitted
 artifacts do not depend on how dependencies were written down.
 
+Diagnostics about an adopted scope name their owner — validation issues,
+audit findings and lynx capability findings all carry an optional `package`,
+and the printed line reads `recipes.acme-stepper (from @acme/zero-stepper)`.
+The emitted `dist/manifest.json` carries a top-level `externalScopes`
+(scope → owning package) for the same reason: a consumer must be able to tell
+a foreign scope from one of the design system's own.
+
 An adopted pack's recipes are fitted to the adopting vocabulary
 (`fitRecipesToVocabulary`), restricted to the scopes the pack's own fragment
 declares, de-duplicated against scopes the design system already styles (the

@@ -339,8 +339,14 @@ export function validateRecipes(
     vocabulary: TokenVocabulary,
 ): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
-    const error = (where: string, message: string) => issues.push({ level: 'error', where, message });
-    const warn = (where: string, message: string) => issues.push({ level: 'warning', where, message });
+    // Every per-scope finding below originates inside the recipe loop, so one
+    // variable is enough to tag them — and tagging beats having a reader
+    // recover the scope from `where`, which is a display string.
+    let scope: string | undefined;
+    const error = (where: string, message: string) =>
+        issues.push({ level: 'error', where, message, ...(scope ? { scope } : {}) });
+    const warn = (where: string, message: string) =>
+        issues.push({ level: 'warning', where, message, ...(scope ? { scope } : {}) });
 
     // Axis names and values are interpolated into `[data-<axis>="<value>"]`
     // (and, on lynx, into `.zx-a-<axis>-<value>`). The vocabularies are open
@@ -455,6 +461,7 @@ export function validateRecipes(
     }
 
     for (const recipe of recipes) {
+        scope = recipe.component;
         const component = byScope.get(recipe.component);
         if (!component) continue; // already an error elsewhere
         const where = `recipes.${recipe.component}`;

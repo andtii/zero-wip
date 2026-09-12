@@ -169,6 +169,16 @@
                 "type": "object"
             }
         },
+        "externalScopes": {
+            "description": "Scope \u2192 the ecosystem package that ships it, for every component adopted from outside @sigx/zero. Absent when the design system adopted none. A top-level key rather than a field on componentAxes, which holds what a recipe WIRES \u2014 an owning package is not an axis fact.",
+            "type": "object",
+            "propertyNames": {
+                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            },
+            "additionalProperties": {
+                "type": "string"
+            }
+        },
         "target": {
             "description": "The emit target this copy was compiled for.",
             "const": "lynx"

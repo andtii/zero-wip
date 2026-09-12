@@ -116,6 +116,29 @@
   than quietly excluding packages from a discovery that never runs. (Narrowing
   is otherwise programmatic — the CLI surfaces only the exclusion half.)
 
+- **Diagnostics name the ecosystem package they are about, and the emitted
+  manifest records who owns what** (#460). A design system that adopts a pack
+  compiles its recipes as its own — including into its diagnostics, so a
+  warning about someone else's recipe read exactly like a warning about the
+  author's, with nothing saying whose it was or where to report it.
+  `ValidationIssue` now carries a structured `scope` (set once in the recipe
+  loop, where every per-scope finding originates), `AuditFinding` and
+  `LynxFinding` carry `package`, and one annotation pass fills it from the
+  merged manifest's provenance. Printed lines read
+  `recipes.acme-stepper (from @acme/zero-stepper)`; a first-party scope stays
+  unannotated, which is what makes the annotation mean something. `where`
+  stays a display string throughout — nothing parses it.
+
+  `dist/manifest.json` gains an optional top-level `externalScopes`
+  (scope → owning package). Previously provenance reached `register.d.ts` as
+  comments and an `Exclude<>` gate and stopped there, so a consumer reading
+  the manifest could not tell which scopes were foreign. A top-level key
+  rather than a field on each component's axis entry: `componentAxes` holds
+  what a recipe *wires*, and an owning package is not an axis fact. Additive
+  and optional, so no `manifestVersion` bump. The lynx manifest carries it by
+  construction — and the mechanical schema-parity gate promptly required the
+  two descriptions to match to the character, which is the gate working.
+
 - **An adopted pack's recipes are composed, fitted and de-duplicated** (#457).
   Discovery merged a fragment and left its recipes on the shelf; a scope
   arrived styled by nobody. Now each pack's recipes are run through

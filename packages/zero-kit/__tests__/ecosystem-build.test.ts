@@ -21,6 +21,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { compileDesignSystem, resolveEcosystem, runStandardBuild } from '@sigx/zero-kit';
+import { attributeFindings, packagesByScope, whereWithOwner } from '@sigx/zero-kit';
 import { compileDesignSystemLynx, LynxRuntimePropertyError } from '../src/targets/lynx/index.js';
 import type {
     DesignSystemInput,
@@ -28,6 +29,7 @@ import type {
     ManifestComponent,
     RecipeInput,
     TokensInput,
+    ValidationIssue,
     ZeroManifest,
 } from '@sigx/zero-kit';
 import { anatomies, defineAnatomy } from '@sigx/zero/anatomy';
@@ -274,5 +276,74 @@ describe('the lynx target', () => {
             outDir: outDir(),
             logger: logger(),
         })).rejects.toThrow(/--press-x/);
+    });
+});
+
+describe('attribution and provenance', () => {
+    /** A pack recipe that draws a warning the design system's author did not cause. */
+    const unstyled: RecipeInput = {
+        component: 'acme-stepper',
+        parts: {
+            root: { base: { display: 'flex' } },
+            // Three declared states, nothing drawn — the state-legibility rule
+            // fires, and it must not read as the adopter's own mistake.
+            item: { base: { color: 'var(--color-base-content)' }, states: { active: {}, inactive: {} } },
+        },
+    };
+
+    it('names the owning package on a finding about a pack scope', async () => {
+        const out = await resolve(ds(bareTokens), [packOf('@acme/stepper', [unstyled])]);
+        const owners = packagesByScope(out.manifest);
+        expect(owners).toEqual({ 'acme-stepper': '@acme/stepper' });
+
+        const issues: ValidationIssue[] = [
+            { level: 'warning', where: 'recipes.acme-stepper', message: 'x', scope: 'acme-stepper' },
+            { level: 'warning', where: 'recipes.button', message: 'y', scope: 'button' },
+        ];
+        attributeFindings(issues, owners);
+
+        expect(issues[0]!.package).toBe('@acme/stepper');
+        expect(whereWithOwner(issues[0]!)).toBe('recipes.acme-stepper (from @acme/stepper)');
+        // A first-party scope stays unannotated — silence is the signal that
+        // this one IS yours.
+        expect(issues[1]!.package).toBeUndefined();
+        expect(whereWithOwner(issues[1]!)).toBe('recipes.button');
+    });
+
+    it('records who owns what in the emitted manifest', async () => {
+        const dir = outDir();
+        await runStandardBuild({
+            designSystem: ds(bareTokens, [{
+                component: 'button',
+                parts: { root: { base: { appearance: 'none' }, states: { 'focus-visible': { outline: '2px solid black' } } } },
+            }]),
+            manifest: baseManifest(),
+            ecosystem: { packs: [packOf('@acme/stepper', [packRecipe])] },
+            audit: false,
+            outDir: dir,
+            logger: logger(),
+        });
+
+        // A consumer reading dist/manifest.json can tell a foreign scope from
+        // one of the design system's own, and name who ships it.
+        const emitted = JSON.parse(readFileSync(join(dir, 'manifest.json'), 'utf8')) as {
+            externalScopes?: Record<string, string>;
+        };
+        expect(emitted.externalScopes).toEqual({ 'acme-stepper': '@acme/stepper' });
+    });
+
+    it('emits no provenance key at all when nothing was adopted', async () => {
+        const dir = outDir();
+        await runStandardBuild({
+            designSystem: ds(bareTokens, [{
+                component: 'button',
+                parts: { root: { base: { appearance: 'none' }, states: { 'focus-visible': { outline: '2px solid black' } } } },
+            }]),
+            manifest: baseManifest(),
+            audit: false,
+            outDir: dir,
+            logger: logger(),
+        });
+        expect(JSON.parse(readFileSync(join(dir, 'manifest.json'), 'utf8'))).not.toHaveProperty('externalScopes');
     });
 });

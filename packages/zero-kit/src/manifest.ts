@@ -253,3 +253,42 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
     // is exactly what the merge produced — `M` only ever narrows other keys.
     return { ...base, components: merged } as M;
 }
+
+/**
+ * Scope → the ecosystem package that owns it, for every merged component.
+ * Empty for a design system that adopted nothing: a zero-origin component
+ * carries no `package`, and that absence is what marks it zero's own.
+ */
+export function packagesByScope(manifest: Pick<ZeroManifest, 'components'>): Record<string, string> {
+    const owners: Record<string, string> = {};
+    for (const component of manifest.components) {
+        if (component.package) owners[component.scope] = component.package;
+    }
+    return owners;
+}
+
+/**
+ * Stamp `package` onto every finding about a scope an ecosystem pack owns.
+ *
+ * A design system that adopts a pack compiles its recipes as its own, so
+ * without this a warning about someone else's recipe reads exactly like a
+ * warning about the author's — with nothing saying whose it is or where to
+ * report it. Mutates in place: the findings are freshly built by the pass
+ * that produced them, and copying them would fork the arrays the report and
+ * the audit artifact already hold.
+ */
+export function attributeFindings<T extends { scope?: string; package?: string }>(
+    findings: readonly T[],
+    owners: Record<string, string>,
+): void {
+    if (Object.keys(owners).length === 0) return;
+    for (const finding of findings) {
+        const from = finding.scope ? owners[finding.scope] : undefined;
+        if (from) finding.package = from;
+    }
+}
+
+/** `<where>` for a human, with the owning package when a pack owns it. */
+export function whereWithOwner(finding: { where: string; package?: string }): string {
+    return finding.package ? `${finding.where} (from ${finding.package})` : finding.where;
+}
