@@ -87,8 +87,14 @@ export function compileDesignSystemLynx(
         // while compiling this recipe belongs to this recipe.
         const before = { translated: report.translated.length, dropped: report.dropped.length };
         const css = compileLynxRecipeCss(resolveRecipeForTarget(recipe, 'lynx'), component, report, themes);
-        for (const finding of report.translated.slice(before.translated)) finding.scope = recipe.component;
-        for (const finding of report.dropped.slice(before.dropped)) finding.scope = recipe.component;
+        // By index: `slice` would allocate a copy per recipe, and the work
+        // should be proportional to the findings added, not to the report.
+        for (let i = before.translated; i < report.translated.length; i++) {
+            report.translated[i]!.scope = recipe.component;
+        }
+        for (let i = before.dropped; i < report.dropped.length; i++) {
+            report.dropped[i]!.scope = recipe.component;
+        }
         if (css) componentCss[recipe.component] = css;
     }
 

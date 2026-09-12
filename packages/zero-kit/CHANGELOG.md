@@ -118,9 +118,9 @@
 
 - **Diagnostics name the ecosystem package they are about, and the emitted
   manifest records who owns what** (#460). A design system that adopts a pack
-  compiles its recipes as its own — including into its diagnostics, so a
-  warning about someone else's recipe read exactly like a warning about the
-  author's, with nothing saying whose it was or where to report it.
+  compiles its recipes as its own — including into its diagnostics. So a
+  warning about someone else's recipe used to read exactly like a warning
+  about the author's, with nothing saying whose it was or where to report it.
   `ValidationIssue` now carries a structured `scope` (set once in the recipe
   loop, where every per-scope finding originates), `AuditFinding` and
   `LynxFinding` carry `package`, and one annotation pass fills it from the
