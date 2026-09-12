@@ -356,6 +356,18 @@ export function packFromModule(declaration: EcosystemDeclaration, mod: Record<st
     return { package: name, source, fragment: fragment as ManifestFragment, recipes: recipes as RecipeInput[] };
 }
 
+/**
+ * The one ordering used for both discovered and directly supplied packs.
+ *
+ * Code-unit order, not `localeCompare`: collation depends on the machine's
+ * locale, so it is the wrong tool for deciding the byte order of a build
+ * artifact. Plain `<`/`>` is what `Array#sort` already does to strings, and
+ * it is the same everywhere.
+ */
+function byName(a: string, b: string): number {
+    return a < b ? -1 : a > b ? 1 : 0;
+}
+
 /** Whether this run has been switched off wholesale. */
 function ecosystemDisabled(): boolean {
     return process.env[ECOSYSTEM_ENV] === '0';
@@ -399,7 +411,7 @@ export function selectDependencies(
     const names = [...new Set([
         ...dependencyNames(pkg, 'dependencies', pkgPath),
         ...dependencyNames(pkg, 'devDependencies', pkgPath),
-    ])].sort();
+    ])].sort(byName);
 
     if (options.include && options.exclude) {
         throw new Error(
@@ -505,7 +517,7 @@ export async function resolveEcosystem<M extends Pick<ZeroManifest, 'components'
     const options: EcosystemOptions = ecosystem === true ? {} : ecosystem;
     const label = input.label ?? designSystem.name;
     const packs = options.packs
-        ? [...options.packs].sort((a, b) => a.package.localeCompare(b.package))
+        ? [...options.packs].sort((a, b) => byName(a.package, b.package))
         : await discoverEcosystem({ ...options, cwd: options.cwd ?? nearestPackageDir(defaultCwd), logger });
 
     // Merged one at a time rather than in one variadic call: a single stale

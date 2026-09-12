@@ -87,6 +87,12 @@ describe('selectDependencies', () => {
         expect(selectDependencies(root, {}, logger())).toEqual(['alpha', 'mid', 'zeta']);
     });
 
+    it('orders scoped names by code unit', () => {
+        const root = tree();
+        project(root, { '@acme/zeta': '1', '@zz/early': '1', '@acme/alpha': '1' });
+        expect(selectDependencies(root, {}, logger())).toEqual(['@acme/alpha', '@acme/zeta', '@zz/early']);
+    });
+
     it('returns nothing, loudly, when there is no package.json to read', () => {
         const root = tree();
         const log = logger();
@@ -340,15 +346,24 @@ describe('resolveEcosystem', () => {
         expect(out.manifest.components.some((c) => c.scope === 'acme-stepper')).toBe(false);
     });
 
-    it('sorts supplied packs by name, so the emitted order does not depend on the caller', async () => {
+    it('sorts supplied packs by the same comparator discovery uses', async () => {
+        // One ordering for both paths, and it is code-unit rather than
+        // `localeCompare`, whose collation depends on the machine's locale —
+        // the wrong tool for deciding the byte order of a build artifact.
+        const names = ['@acme/zeta', '@zz/early', '@acme/alpha'];
+        const scopes = ['zeta-thing', 'early-thing', 'alpha-thing'];
         const out = await resolveEcosystem({
             manifest: baseManifest(),
             designSystem: ds,
-            ecosystem: { packs: [pack('@z/last', 'z-thing'), pack('@a/first')] },
+            ecosystem: { packs: names.map((n, i) => pack(n, scopes[i]!)) },
             defaultCwd: tree(),
             logger: logger(),
         });
-        expect(out.packs.map((p) => p.package)).toEqual(['@a/first', '@z/last']);
+
+        const root = tree();
+        project(root, Object.fromEntries(names.map((n) => [n, '1'])));
+        expect(out.packs.map((p) => p.package)).toEqual(selectDependencies(root, {}, logger()));
+        expect(out.packs.map((p) => p.package)).toEqual(['@acme/alpha', '@acme/zeta', '@zz/early']);
     });
 
     it('skips a pack that cannot merge, names it, and keeps the rest', async () => {
