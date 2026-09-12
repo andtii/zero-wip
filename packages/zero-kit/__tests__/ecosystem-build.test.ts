@@ -360,6 +360,27 @@ describe('attribution and provenance', () => {
         expect(typo?.suggest).toBeDefined();
     });
 
+    it('does not attribute a scope to Object.prototype', () => {
+        // `constructor` is a legal kebab scope name, so on a plain object map
+        // the lookup returns something inherited and truthy — and the finding
+        // gets attributed to a function.
+        // At least one real owner, or `attributeFindings` returns before the
+        // lookup and the test proves nothing.
+        const owners = packagesByScope({
+            components: [
+                { scope: 'button', parts: [] },
+                { scope: 'acme-stepper', parts: [], package: '@acme/stepper' },
+            ] as unknown as ManifestComponent[],
+        });
+        const issues: ValidationIssue[] = [
+            { level: 'warning', where: 'recipes.constructor', message: 'x', scope: 'constructor' },
+        ];
+        attributeFindings(issues, owners);
+
+        expect(issues[0]!.package).toBeUndefined();
+        expect(whereWithOwner(issues[0]!)).toBe('recipes.constructor');
+    });
+
     it('records who owns what in the emitted manifest', async () => {
         const dir = outDir();
         await runStandardBuild({

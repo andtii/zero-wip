@@ -260,7 +260,11 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
  * carries no `package`, and that absence is what marks it zero's own.
  */
 export function packagesByScope(manifest: Pick<ZeroManifest, 'components'>): Record<string, string> {
-    const owners: Record<string, string> = {};
+    // Null prototype: scope names take the kebab grammar, and `constructor`,
+    // `toString` and `valueOf` are all legal kebab identifiers. On a plain
+    // object a lookup for one of those returns something inherited and
+    // truthy, and the finding would be attributed to a function.
+    const owners: Record<string, string> = Object.create(null) as Record<string, string>;
     for (const component of manifest.components) {
         if (component.package) owners[component.scope] = component.package;
     }
@@ -283,7 +287,9 @@ export function attributeFindings<T extends { scope?: string; package?: string }
 ): void {
     if (Object.keys(owners).length === 0) return;
     for (const finding of findings) {
-        const from = finding.scope ? owners[finding.scope] : undefined;
+        // `hasOwn` as well as the null prototype above, because the map may
+        // reach here from a caller that built it as a plain object.
+        const from = finding.scope && Object.hasOwn(owners, finding.scope) ? owners[finding.scope] : undefined;
         if (from) finding.package = from;
     }
 }

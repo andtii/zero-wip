@@ -245,8 +245,8 @@ function lynxIncapable(
 
     const webOnly: { scope: string; package: string; reason: string }[] = [];
     for (const recipe of ds.recipes) {
-        const from = contributed[recipe.component];
-        if (!from) continue;
+        if (!Object.hasOwn(contributed, recipe.component)) continue;
+        const from = contributed[recipe.component]!;
         try {
             compileDesignSystemLynx({ ...ds, recipes: [recipe] }, manifest);
         } catch (err) {
