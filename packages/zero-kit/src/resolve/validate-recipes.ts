@@ -1106,7 +1106,8 @@ export function validateRecipes(
             const expected = [...wiredAnywhere].filter((role) => offered.has(role));
             const missing = expected.filter((role) => !wired.has(role));
             if (missing.length > 0) {
-                warn(
+                warnFor(
+                    scope,
                     `recipes.${scope}.variants.color`,
                     `wires ${wired.size} of the ${expected.length} roles other components style — `
                     + `color="${missing[0]}" renders as the default here but not elsewhere `

@@ -337,6 +337,51 @@ describe('attribution and provenance', () => {
         }
     });
 
+    it('tags a finding raised after the recipe loop with the scope it names', () => {
+        // The cross-component colour-axis warning is raised once per scope
+        // AFTER the loop, so it has no ambient tag to inherit — it names its
+        // own scope, rather than the scope being recovered from `where`.
+        const tokens: TokensInput = {
+            ...recommendedTokens,
+            roles: { primary: {}, secondary: {} },
+            themes: {
+                day: {
+                    colorScheme: 'light',
+                    colors: {
+                        'base-100': 'white', 'base-200': 'white', 'base-300': 'white', 'base-content': 'black',
+                        'primary': 'blue', 'primary-content': 'white',
+                        'secondary': 'green', 'secondary-content': 'white',
+                    },
+                },
+            },
+        };
+        const ring = { 'focus-visible': { outline: '2px solid black' } };
+        const recipes: RecipeInput[] = [
+            {
+                component: 'button',
+                parts: { root: { base: { appearance: 'none' }, states: ring } },
+                variants: {
+                    color: {
+                        primary: { root: { base: { background: 'blue' } } },
+                        secondary: { root: { base: { background: 'green' } } },
+                    },
+                },
+            },
+            {
+                // Wires one of the two roles button wires — the inconsistency
+                // the cross-component check exists to catch.
+                component: 'badge',
+                parts: { root: { base: { display: 'inline-flex' } } },
+                variants: { color: { primary: { root: { base: { background: 'blue' } } } } },
+            },
+        ];
+        const { errors, warnings } = validateDesignSystem(ds(tokens, recipes), baseManifest());
+        const cross = [...errors, ...warnings].find((i) => i.where === 'recipes.badge.variants.color');
+
+        expect(cross, 'expected the cross-component colour-axis warning').toBeDefined();
+        expect(cross?.scope).toBe('badge');
+    });
+
     it('tags a rule-bearing finding too — no push may skip the tag', () => {
         // The css-property findings carry `rule` and `suggest` and were pushed
         // directly, bypassing the tagging helper. Every finding now goes

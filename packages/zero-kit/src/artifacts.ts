@@ -128,7 +128,9 @@ export function buildDsManifest(compiled: CompiledDesignSystem): DesignSystemMan
         // what a recipe WIRES, and an owning package is not an axis fact.
         // Without it a consumer reading this file — the app-side tooling
         // included — cannot tell which scopes are foreign or who ships them.
-        ...(compiled.externalScopes ? { externalScopes: compiled.externalScopes } : {}),
+        ...(compiled.externalScopes && Object.keys(compiled.externalScopes).length > 0
+            ? { externalScopes: compiled.externalScopes }
+            : {}),
     };
 }
 
