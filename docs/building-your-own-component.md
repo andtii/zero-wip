@@ -91,12 +91,20 @@ and presence-only, `hidden` exactly where `hiddenIn` says. Runner-agnostic.
 
 ```ts
 export const fragment = {
+    version: 1,                           // the contract version — required
     package: '@acme/zero-stepper',        // your npm specifier — required
     components: [stepperAnatomy.toJSON()],
 };
 
 export const recipes: RecipeInput[] = [{ component: 'acme-stepper', /* … */ }];
 ```
+
+`version` is a **literal, not an import**. `FRAGMENT_VERSION` lives in
+`@sigx/zero-kit`, and this entry must stay importable from a design system's
+Node build script without dragging the kit into your runtime graph — so the
+number is written out and checked at the boundary instead: `mergeManifests`
+rejects a fragment that declares none, and rejects one built against a
+version it no longer speaks, rather than merging a stale anatomy silently.
 
 The recipe pack targets the **recommended token grammar** — role names from
 `RECOMMENDED_ROLE_LIST` (`var(--color-primary)` …), the recommended sizes —
