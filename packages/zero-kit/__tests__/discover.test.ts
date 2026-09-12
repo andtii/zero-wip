@@ -195,6 +195,20 @@ describe('declarationFor', () => {
         expect(() => declarationFor(root, 'bad', logger())).toThrow(/escapes its own package directory/);
     });
 
+    it('refuses a fragment reached through a symlink out of the package', () => {
+        // Lexical containment cannot see this one: the path stays inside the
+        // package, the symlink does not.
+        const root = tree();
+        const outside = tree();
+        writeFileSync(join(outside, 'elsewhere.js'), 'export const fragment = {};\n');
+        const dir = install(root, 'sneaky', { field: { fragment: './dist/fragment.js' }, fragmentFile: false });
+        mkdirSync(join(dir, 'dist'), { recursive: true });
+        symlinkSync(join(outside, 'elsewhere.js'), join(dir, 'dist/fragment.js'));
+
+        expect(() => declarationFor(root, 'sneaky', logger()))
+            .toThrow(/resolves outside its own package directory/);
+    });
+
     it('refuses a field that declares no fragment', () => {
         const root = tree();
         install(root, 'bad', { field: { requires: '>=0.1.0' } });

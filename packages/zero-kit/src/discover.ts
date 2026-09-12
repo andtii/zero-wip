@@ -28,7 +28,7 @@
  *
  * Node-only. Nothing in a browser graph imports this.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -231,6 +231,10 @@ export function nearestPackageDir(from: string): string {
     }
 }
 
+function contains(dir: string, target: string): boolean {
+    return target === dir || target.startsWith(dir + sep);
+}
+
 /** Resolve the declared fragment path, refusing anything outside the package. */
 function fragmentPath(pkgDir: string, name: string, declared: string): string {
     if (isAbsolute(declared)) {
@@ -239,12 +243,28 @@ function fragmentPath(pkgDir: string, name: string, declared: string): string {
         );
     }
     const target = resolve(pkgDir, declared);
-    if (target !== resolve(pkgDir) && !target.startsWith(resolve(pkgDir) + sep)) {
+    if (!contains(resolve(pkgDir), target)) {
         throw new Error(
             `[zero-kit] ${name}'s "${ECOSYSTEM_FIELD}".fragment "${declared}" escapes its own package directory`,
         );
     }
     return target;
+}
+
+/**
+ * The containment check again, this time on real paths — a symlink inside the
+ * package pointing out of it satisfies the lexical check.
+ *
+ * BOTH sides are resolved, not just the target: under pnpm the package
+ * directory is itself a symlink into the store, so comparing a real target
+ * against a symlinked directory would reject every pnpm install.
+ */
+function assertRealContainment(pkgDir: string, name: string, declared: string, source: string): void {
+    if (!contains(realpathSync(pkgDir), realpathSync(source))) {
+        throw new Error(
+            `[zero-kit] ${name}'s "${ECOSYSTEM_FIELD}".fragment "${declared}" resolves outside its own package directory`,
+        );
+    }
 }
 
 function readField(pkg: Record<string, unknown>, name: string): EcosystemField | undefined {
@@ -299,6 +319,7 @@ export function declarationFor(cwd: string, name: string, logger: EcosystemLogge
             + ' — is the package built, and is that path inside its "files" list?',
         );
     }
+    assertRealContainment(pkgDir, name, field.fragment, source);
     return { package: name, dir: pkgDir, source };
 }
 
