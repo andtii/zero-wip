@@ -64,6 +64,13 @@ export interface DesignSystemManifest {
     manifestVersion: typeof DS_MANIFEST_VERSION;
     /** The @sigx/zero contract version compiled against (lockstep with the kit). */
     zeroVersion: string;
+    /**
+     * Scope → the ecosystem package that owns it, for every component this
+     * design system adopted from outside `@sigx/zero`. Absent when it adopted
+     * none. Additive and optional, so it is not a `manifestVersion` bump —
+     * that version is for changes a reader cannot ignore.
+     */
+    externalScopes?: Record<string, string>;
     name: string;
     themes: CompiledTheme[];
     tokens: CompiledDesignSystem['tokens'];
@@ -116,6 +123,14 @@ export function buildDsManifest(compiled: CompiledDesignSystem): DesignSystemMan
         // Scope → the vendor-named API surface, for tooling and the
         // conformance matrix's generated rows (issue #179).
         ...(compiled.componentApi ? { api: compiled.componentApi } : {}),
+        // Scope → the ecosystem package that owns it. A TOP-LEVEL key rather
+        // than a field on each component's axis entry: `componentAxes` holds
+        // what a recipe WIRES, and an owning package is not an axis fact.
+        // Without it a consumer reading this file — the app-side tooling
+        // included — cannot tell which scopes are foreign or who ships them.
+        ...(compiled.externalScopes && Object.keys(compiled.externalScopes).length > 0
+            ? { externalScopes: compiled.externalScopes }
+            : {}),
     };
 }
 

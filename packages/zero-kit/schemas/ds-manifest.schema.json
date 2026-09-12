@@ -112,6 +112,13 @@
             "type": "object",
             "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
             "additionalProperties": { "type": "object" }
+        },
+        "externalScopes": {
+            "description": "Scope → the ecosystem package that ships it, for every component adopted from outside @sigx/zero. Absent when the design system adopted none. A top-level key rather than a field on componentAxes, which holds what a recipe WIRES — an owning package is not an axis fact.",
+            "type": "object",
+            "minProperties": 1,
+            "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+            "additionalProperties": { "type": "string", "minLength": 1 }
         }
     },
     "$defs": {

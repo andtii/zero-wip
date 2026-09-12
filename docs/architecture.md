@@ -924,6 +924,21 @@ the architecture facts, briefly:
   design system's author neither wrote that recipe nor can fix it, and a
   scope with no lynx CSS is the documented unstyled-but-accessible fallback
   while a failed build is nothing.
+- **A diagnostic about someone else's recipe says so.** An adopted pack's
+  recipes are compiled as the design system's own, which means its
+  diagnostics are too. `ValidationIssue` carries a structured `scope`
+  (`AuditFinding` and `LynxFinding` already do, or now do), and one
+  annotation pass stamps `package` from the merged manifest's provenance, so
+  every printed line and every written artifact can say which dependency to
+  report against. `where` stays a display string — nothing parses it.
+- **Provenance is in the emitted manifest.** `dist/manifest.json` carries an
+  optional top-level `externalScopes` (scope → owning package), the same
+  shape `CompiledDesignSystem` already tracks. Not a field on each
+  component's axis entry: `componentAxes` holds what a recipe *wires*, and an
+  owning package is not an axis fact. Additive and optional, so no
+  `manifestVersion` bump; the lynx manifest carries it by construction, and
+  the mechanical schema-parity gate requires the two descriptions to match
+  exactly.
 - **One resolve path, two callers.** `zero:build` reaches a design system
   through `runStandardBuild`, while `zero:validate` and `zero:audit` reach
   it through `commands/shared.ts`'s `loadInputs`. Both call

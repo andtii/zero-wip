@@ -15,7 +15,7 @@ import type { ZeroManifest } from './contract.js';
 import type { DesignSystemInput } from './design-system.js';
 import { compileDesignSystem } from './design-system.js';
 import type { ManifestFragment } from './manifest.js';
-import { mergeManifests } from './manifest.js';
+import { attributeFindings, mergeManifests, packagesByScope, whereWithOwner } from './manifest.js';
 import type { EcosystemOptions } from './discover.js';
 import { resolveEcosystem } from './discover.js';
 import type { ValidationResult } from './resolve/validate.js';
@@ -144,9 +144,15 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
         logger,
     });
 
+    // Whose scope is whose, for every diagnostic printed or written below.
+    const owners = packagesByScope(manifest);
+
     const result = validateDesignSystem(ds, manifest);
+    attributeFindings([...result.errors, ...result.warnings], owners);
     for (const issue of [...result.errors, ...result.warnings]) {
-        logger[issue.level === 'error' ? 'error' : 'warn'](`[${issue.level}] ${issue.where}: ${issue.message}`);
+        logger[issue.level === 'error' ? 'error' : 'warn'](
+            `[${issue.level}] ${whereWithOwner(issue)}: ${issue.message}`,
+        );
     }
     if (!result.ok) {
         throw new Error(`[zero-kit] "${ds.name}" failed validation (${result.errors.length} errors) — nothing written`);
@@ -159,6 +165,7 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
     let audit: AuditResult | undefined;
     if (options.audit !== false) {
         audit = auditDesignSystem(ds, manifest, { compiled });
+        attributeFindings(audit.findings, owners);
         const { errors, warnings, info } = audit.summary;
         logger.log(
             `[${ds.name}] audit: ${errors} error(s), ${warnings} warning(s), ${info} info`
@@ -166,7 +173,7 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
         );
         for (const finding of audit.findings) {
             if (finding.severity === 'error') {
-                logger.warn(`[${ds.name}] audit ${finding.rule}: ${finding.where} — ${finding.message}`);
+                logger.warn(`[${ds.name}] audit ${finding.rule}: ${whereWithOwner(finding)} — ${finding.message}`);
             }
         }
     }
@@ -194,6 +201,8 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
             ? { ...ds, recipes: ds.recipes.filter((r) => !excluded.has(r.component)) }
             : ds;
         lynx = compileDesignSystemLynx(lynxDs, manifest);
+        attributeFindings(lynx.report.translated, owners);
+        attributeFindings(lynx.report.dropped, owners);
         report.lynx = {
             translated: lynx.report.translated,
             dropped: lynx.report.dropped,
@@ -236,8 +245,8 @@ function lynxIncapable(
 
     const webOnly: { scope: string; package: string; reason: string }[] = [];
     for (const recipe of ds.recipes) {
-        const from = contributed[recipe.component];
-        if (!from) continue;
+        if (!Object.hasOwn(contributed, recipe.component)) continue;
+        const from = contributed[recipe.component]!;
         try {
             compileDesignSystemLynx({ ...ds, recipes: [recipe] }, manifest);
         } catch (err) {

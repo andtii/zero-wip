@@ -80,7 +80,7 @@ export {
     componentExportName,
 } from './targets/web/components-dts.js';
 export { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
-export { axisClaims, defineDesignSystem, compileDesignSystem, offeredFor, undeclaredAxes } from './design-system.js';
+export { axisClaims, defineDesignSystem, compileDesignSystem, externalPackage, offeredFor, undeclaredAxes } from './design-system.js';
 
 export type {
     AuditContext,
@@ -198,7 +198,7 @@ export type { StandardBuildLogger, StandardBuildOptions, StandardBuildResult } f
 export { runStandardBuild } from './build.js';
 
 export type { ManifestFragment } from './manifest.js';
-export { mergeManifests, FRAGMENT_VERSION } from './manifest.js';
+export { attributeFindings, mergeManifests, packagesByScope, whereWithOwner, FRAGMENT_VERSION } from './manifest.js';
 
 export { ECOSYSTEM_ENV, ECOSYSTEM_FIELD, declarationFor, discoverEcosystem, nearestPackageDir, packFromModule, resolveEcosystem, satisfiesKitRange, selectDependencies } from './discover.js';
 export type { EcosystemDeclaration, EcosystemLogger, EcosystemOptions, EcosystemPack, ResolvedEcosystem, ResolveEcosystemInput } from './discover.js';

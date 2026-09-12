@@ -339,8 +339,27 @@ export function validateRecipes(
     vocabulary: TokenVocabulary,
 ): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
-    const error = (where: string, message: string) => issues.push({ level: 'error', where, message });
-    const warn = (where: string, message: string) => issues.push({ level: 'warning', where, message });
+    // Findings carry the scope they are about as a field, so a reader never
+    // has to recover it from `where` (a display string). Most originate
+    // inside the recipe loop, which sets `currentScope`; the design-system
+    // level checks that run after it clear the variable, and the per-scope
+    // coverage checks pass their scope explicitly through `warnFor` — they
+    // iterate scopes of their own, and an inner binding named `scope` does
+    // NOT reach a closure defined out here.
+    let currentScope: string | undefined;
+    /**
+     * The ONE place an issue is pushed. Every finding goes through here so
+     * none can quietly miss the scope tag — the `css-property` findings, which
+     * carry a `rule` and a `suggest`, were exactly that leak.
+     */
+    const push = (issue: Omit<ValidationIssue, 'scope'> & { scope?: string }): void => {
+        const scope = issue.scope ?? currentScope;
+        issues.push({ ...issue, ...(scope ? { scope } : {}) });
+    };
+    const error = (where: string, message: string) => push({ level: 'error', where, message });
+    const warn = (where: string, message: string) => push({ level: 'warning', where, message });
+    const warnFor = (scope: string, where: string, message: string) =>
+        push({ level: 'warning', where, message, scope });
 
     // Axis names and values are interpolated into `[data-<axis>="<value>"]`
     // (and, on lynx, into `.zx-a-<axis>-<value>`). The vocabularies are open
@@ -384,7 +403,7 @@ export function validateRecipes(
             // A camelCase key gets the capital that opens the hyphen; a kebab
             // key already spells itself and only lacks the hyphen.
             const spelled = prop.includes('-') ? fixed : prop[0]!.toUpperCase() + prop.slice(1);
-            issues.push({
+            push({
                 level: 'error',
                 where: at,
                 rule: 'css-property',
@@ -395,7 +414,7 @@ export function validateRecipes(
         }
         const near = name.length >= 4 ? nearestOf(name, CSS_PROPERTIES, 3) : undefined; // within two edits
         if (near && near.length >= 4) {
-            issues.push({
+            push({
                 level: 'error',
                 where: at,
                 rule: 'css-property',
@@ -403,7 +422,7 @@ export function validateRecipes(
                 message: `"${name}" is not a CSS property — did you mean "${near}"? The browser drops the declaration silently`,
             });
         } else {
-            issues.push({
+            push({
                 level: 'warning',
                 where: at,
                 rule: 'css-property',
@@ -455,6 +474,7 @@ export function validateRecipes(
     }
 
     for (const recipe of recipes) {
+        currentScope = recipe.component;
         const component = byScope.get(recipe.component);
         if (!component) continue; // already an error elsewhere
         const where = `recipes.${recipe.component}`;
@@ -1057,6 +1077,9 @@ export function validateRecipes(
             }
         }
     }
+    // Everything from here down speaks at design-system level, or names its
+    // own scope: leaving the last recipe's tag in place would misattribute it.
+    currentScope = undefined;
 
     // ── the colour axis should mean the same thing on every component ──
     //
@@ -1083,7 +1106,8 @@ export function validateRecipes(
             const expected = [...wiredAnywhere].filter((role) => offered.has(role));
             const missing = expected.filter((role) => !wired.has(role));
             if (missing.length > 0) {
-                warn(
+                warnFor(
+                    scope,
                     `recipes.${scope}.variants.color`,
                     `wires ${wired.size} of the ${expected.length} roles other components style — `
                     + `color="${missing[0]}" renders as the default here but not elsewhere `
@@ -1123,7 +1147,8 @@ export function validateRecipes(
             const wired = wiredByScope.get(`${scope}/${axis}`) ?? new Set();
             for (const value of declared ?? []) {
                 if (!wired.has(value)) {
-                    warn(
+                    warnFor(
+                        scope,
                         `tokens.scopes.${scope}.${site}`,
                         `"${value}" is in ${scope}'s vocabulary but its recipe wires no rule for it — ${use(value)} on a ${scope} selects nothing`,
                     );

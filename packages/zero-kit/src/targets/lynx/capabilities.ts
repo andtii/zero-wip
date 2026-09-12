@@ -98,6 +98,10 @@ export interface LynxFinding {
     what: string;
     /** What happened to it, in one sentence. */
     detail: string;
+    /** The anatomy scope, when the finding is about a recipe. */
+    scope?: string;
+    /** The ecosystem package owning `scope`, when a discovered pack does. */
+    package?: string;
 }
 
 /** The capability report the lynx target folds into `report.json`. */

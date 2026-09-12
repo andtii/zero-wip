@@ -17,7 +17,7 @@ import type { Logger } from '@sigx/cli/plugin';
 import type { ZeroManifest } from '../contract.js';
 import type { DesignSystemInput } from '../design-system.js';
 import type { ManifestFragment } from '../manifest.js';
-import { mergeManifests } from '../manifest.js';
+import { attributeFindings, mergeManifests, packagesByScope, whereWithOwner } from '../manifest.js';
 import type { EcosystemOptions, EcosystemPack } from '../discover.js';
 import { resolveEcosystem } from '../discover.js';
 import type { ValidationResult } from '../resolve/validate.js';
@@ -200,8 +200,9 @@ export async function loadInputs(
     const { designSystem: ds, packs } = resolved;
     const mergedManifest = resolved.manifest;
     const result = validateDesignSystem(ds, mergedManifest);
+    attributeFindings([...result.errors, ...result.warnings], packagesByScope(mergedManifest));
     for (const issue of [...result.errors, ...result.warnings]) {
-        env.logger[issue.level === 'error' ? 'error' : 'warn'](`${issue.where}: ${issue.message}`);
+        env.logger[issue.level === 'error' ? 'error' : 'warn'](`${whereWithOwner(issue)}: ${issue.message}`);
     }
     return { ds, manifest: mergedManifest, result, packs };
 }

@@ -21,7 +21,7 @@ import type { CompiledComponentAxes, CompiledDesignSystem } from '../../design-s
 // The "declared out of existence" predicate is shared with the coverage report,
 // so the two artifacts name the same axes by construction (see
 // docs/architecture.md, "Harvest").
-import { offeredFor, undeclaredAxes } from '../../design-system.js';
+import { offeredFor, undeclaredAxes, externalPackage } from '../../design-system.js';
 
 const union = (values: readonly string[]): string =>
     values.length === 0 ? 'never' : values.map((v) => `'${v}'`).join(' | ');
@@ -112,7 +112,7 @@ function componentEntry(
  */
 function scopesValid(compiled: CompiledDesignSystem): string[] {
     const external = Object.keys(compiled.components)
-        .filter((scope) => compiled.externalScopes?.[scope])
+        .filter((scope) => externalPackage(compiled, scope) !== undefined)
         .sort();
     const scopesExpr = external.length > 0
         ? `Exclude<keyof import('@sigx/zero').ZeroVocabulary['components'], ${union(external)}>`
@@ -124,7 +124,7 @@ function scopesValid(compiled: CompiledDesignSystem): string[] {
         ...(external.length > 0 ? [
             '// Ecosystem scopes are excluded from the gate by name — their anatomy',
             '// was merged from a manifest fragment, not zero\'s registry:',
-            ...external.map((scope) => `//   ${scope} — ${compiled.externalScopes![scope]}`),
+            ...external.map((scope) => `//   ${scope} — ${externalPackage(compiled, scope)!}`),
         ] : []),
         'type _MustBeTrue<T extends true> = T;',
         'type _ScopesValid = _MustBeTrue<',

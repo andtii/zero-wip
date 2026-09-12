@@ -613,7 +613,9 @@ function compose(
 ): { designSystem: DesignSystemInput; contributed: Record<string, string> } {
     const styled = new Set(ds.recipes.map((r) => r.component));
     const added: RecipeInput[] = [];
-    const contributed: Record<string, string> = {};
+    // Null prototype, for the same reason `packagesByScope` uses one:
+    // `constructor` passes the scope grammar.
+    const contributed: Record<string, string> = Object.create(null) as Record<string, string>;
 
     for (const pack of packs) {
         if (pack.recipes.length === 0) continue;

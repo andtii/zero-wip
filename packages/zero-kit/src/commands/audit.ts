@@ -16,6 +16,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { auditDesignSystem, buildAuditArtifact, formatAudit } from '../audit/index.js';
+import { attributeFindings, packagesByScope } from '../manifest.js';
 import type { AuditRuleId } from '../audit/index.js';
 import { compileDesignSystem } from '../design-system.js';
 import type { CommandEnv, LoadedInputs } from './shared.js';
@@ -74,6 +75,7 @@ export async function auditInputs(
     // known ones; the string[] from the CLI is narrowed there, not here.
     const rules = opts.rule && opts.rule.length > 0 ? (opts.rule as AuditRuleId[]) : undefined;
     const audit = auditDesignSystem(ds, manifest, { compiled, ...(rules ? { rules } : {}) });
+    attributeFindings(audit.findings, packagesByScope(manifest));
 
     // `--json -` makes stdout the artifact and nothing else — the same rule
     // `zero:validate --report-json -` follows, for the same pipe.

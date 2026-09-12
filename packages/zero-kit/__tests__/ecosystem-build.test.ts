@@ -20,7 +20,8 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { compileDesignSystem, resolveEcosystem, runStandardBuild } from '@sigx/zero-kit';
+import { compileDesignSystem, resolveEcosystem, runStandardBuild, validateDesignSystem } from '@sigx/zero-kit';
+import { attributeFindings, externalPackage, packagesByScope, whereWithOwner } from '@sigx/zero-kit';
 import { compileDesignSystemLynx, LynxRuntimePropertyError } from '../src/targets/lynx/index.js';
 import type {
     DesignSystemInput,
@@ -28,6 +29,7 @@ import type {
     ManifestComponent,
     RecipeInput,
     TokensInput,
+    ValidationIssue,
     ZeroManifest,
 } from '@sigx/zero-kit';
 import { anatomies, defineAnatomy } from '@sigx/zero/anatomy';
@@ -274,5 +276,212 @@ describe('the lynx target', () => {
             outDir: outDir(),
             logger: logger(),
         })).rejects.toThrow(/--press-x/);
+    });
+});
+
+describe('attribution and provenance', () => {
+    /** A pack recipe that draws a warning the design system's author did not cause. */
+    const unstyled: RecipeInput = {
+        component: 'acme-stepper',
+        parts: {
+            root: { base: { display: 'flex' } },
+            // Three declared states, nothing drawn — the state-legibility rule
+            // fires, and it must not read as the adopter's own mistake.
+            item: { base: { color: 'var(--color-base-content)' }, states: { active: {}, inactive: {} } },
+        },
+    };
+
+    it('names the owning package on a finding about a pack scope', async () => {
+        const out = await resolve(ds(bareTokens), [packOf('@acme/stepper', [unstyled])]);
+        const owners = packagesByScope(out.manifest);
+        expect(owners).toEqual({ 'acme-stepper': '@acme/stepper' });
+
+        const issues: ValidationIssue[] = [
+            { level: 'warning', where: 'recipes.acme-stepper', message: 'x', scope: 'acme-stepper' },
+            { level: 'warning', where: 'recipes.button', message: 'y', scope: 'button' },
+        ];
+        attributeFindings(issues, owners);
+
+        expect(issues[0]!.package).toBe('@acme/stepper');
+        expect(whereWithOwner(issues[0]!)).toBe('recipes.acme-stepper (from @acme/stepper)');
+        // A first-party scope stays unannotated — silence is the signal that
+        // this one IS yours.
+        expect(issues[1]!.package).toBeUndefined();
+        expect(whereWithOwner(issues[1]!)).toBe('recipes.button');
+    });
+
+    it('tags a finding with the scope it is about, and nothing else', () => {
+        // The tag is a mutable variable threaded through the recipe loop, so
+        // the failure mode is silent misattribution: a design-system-level
+        // warning inheriting the last recipe's scope, or a per-scope coverage
+        // warning inheriting it in place of its own.
+        const tokens: TokensInput = {
+            ...bareTokens,
+            // Declared and wired by nobody — a design-system-level warning
+            // that must carry no scope at all.
+            modifiers: ['loud'],
+        };
+        const recipes: RecipeInput[] = [{
+            component: 'button',
+            parts: { root: { base: { appearance: 'none' }, states: { 'focus-visible': { outline: '2px solid black' } } } },
+        }];
+        const issues = validateDesignSystem(ds(tokens, recipes), baseManifest());
+        const all = [...issues.errors, ...issues.warnings];
+
+        const unwired = all.find((i) => i.where === 'tokens.modifiers');
+        expect(unwired, 'expected the unwired-modifier warning').toBeDefined();
+        expect(unwired?.scope).toBeUndefined();
+
+        for (const issue of all.filter((i) => i.where.startsWith('recipes.'))) {
+            expect(issue.scope).toBe('button');
+        }
+    });
+
+    it('tags a finding raised after the recipe loop with the scope it names', () => {
+        // The cross-component colour-axis warning is raised once per scope
+        // AFTER the loop, so it has no ambient tag to inherit — it names its
+        // own scope, rather than the scope being recovered from `where`.
+        const tokens: TokensInput = {
+            ...recommendedTokens,
+            roles: { primary: {}, secondary: {} },
+            themes: {
+                day: {
+                    colorScheme: 'light',
+                    colors: {
+                        'base-100': 'white', 'base-200': 'white', 'base-300': 'white', 'base-content': 'black',
+                        'primary': 'blue', 'primary-content': 'white',
+                        'secondary': 'green', 'secondary-content': 'white',
+                    },
+                },
+            },
+        };
+        const ring = { 'focus-visible': { outline: '2px solid black' } };
+        const recipes: RecipeInput[] = [
+            {
+                component: 'button',
+                parts: { root: { base: { appearance: 'none' }, states: ring } },
+                variants: {
+                    color: {
+                        primary: { root: { base: { background: 'blue' } } },
+                        secondary: { root: { base: { background: 'green' } } },
+                    },
+                },
+            },
+            {
+                // Wires one of the two roles button wires — the inconsistency
+                // the cross-component check exists to catch.
+                component: 'badge',
+                parts: { root: { base: { display: 'inline-flex' } } },
+                variants: { color: { primary: { root: { base: { background: 'blue' } } } } },
+            },
+        ];
+        const { errors, warnings } = validateDesignSystem(ds(tokens, recipes), baseManifest());
+        const cross = [...errors, ...warnings].find((i) => i.where === 'recipes.badge.variants.color');
+
+        expect(cross, 'expected the cross-component colour-axis warning').toBeDefined();
+        expect(cross?.scope).toBe('badge');
+    });
+
+    it('tags a rule-bearing finding too — no push may skip the tag', () => {
+        // The css-property findings carry `rule` and `suggest` and were pushed
+        // directly, bypassing the tagging helper. Every finding now goes
+        // through one place, and this pins that: a scope-less diagnostic about
+        // a pack's recipe is one nobody can attribute.
+        const recipes: RecipeInput[] = [{
+            component: 'button',
+            parts: {
+                root: {
+                    base: { appearance: 'none', bakcgroundColor: 'red' },
+                    states: { 'focus-visible': { outline: '2px solid black' } },
+                },
+            },
+        }];
+        const { errors, warnings } = validateDesignSystem(ds(bareTokens, recipes), baseManifest());
+        const typo = [...errors, ...warnings].find((i) => i.rule === 'css-property');
+
+        expect(typo, 'expected the misspelled-property finding').toBeDefined();
+        expect(typo?.scope).toBe('button');
+        // …and it kept everything it carried before.
+        expect(typo?.suggest).toBeDefined();
+    });
+
+    it('does not attribute a scope to Object.prototype', () => {
+        // The scope grammar is lowercase, so `toString` and friends cannot be
+        // scope names — but `constructor` can, and on a plain object map the
+        // lookup for it returns something inherited and truthy, attributing
+        // the finding to a function.
+        // At least one real owner, or `attributeFindings` returns before the
+        // lookup and the test proves nothing.
+        const owners = packagesByScope({
+            components: [
+                { scope: 'button', parts: [] },
+                { scope: 'acme-stepper', parts: [], package: '@acme/stepper' },
+            ] as unknown as ManifestComponent[],
+        });
+        const issues: ValidationIssue[] = [
+            { level: 'warning', where: 'recipes.constructor', message: 'x', scope: 'constructor' },
+        ];
+        attributeFindings(issues, owners);
+
+        expect(issues[0]!.package).toBeUndefined();
+        expect(whereWithOwner(issues[0]!)).toBe('recipes.constructor');
+    });
+
+    it('never reports a zero-shipped scope as foreign, whatever it is called', () => {
+        // The compiled map is read by the register and components emitters as
+        // well; `constructor` there would emit an import from a function.
+        const compiled = compileDesignSystem(
+            ds(bareTokens, [{
+                component: 'button',
+                parts: { root: { base: { appearance: 'none' }, states: { 'focus-visible': { outline: '2px solid black' } } } },
+            }]),
+            baseManifest(),
+        );
+        expect(externalPackage(compiled, 'button')).toBeUndefined();
+        expect(externalPackage(compiled, 'constructor')).toBeUndefined();
+
+        // And with a populated map handed in as a PLAIN object, which the type
+        // permits and a caller may well build: the compiled form uses a null
+        // prototype, but the helper is the read path either way.
+        const plain = { externalScopes: { 'acme-stepper': '@acme/stepper' } };
+        expect(externalPackage(plain, 'acme-stepper')).toBe('@acme/stepper');
+        expect(externalPackage(plain, 'constructor')).toBeUndefined();
+    });
+
+    it('records who owns what in the emitted manifest', async () => {
+        const dir = outDir();
+        await runStandardBuild({
+            designSystem: ds(bareTokens, [{
+                component: 'button',
+                parts: { root: { base: { appearance: 'none' }, states: { 'focus-visible': { outline: '2px solid black' } } } },
+            }]),
+            manifest: baseManifest(),
+            ecosystem: { packs: [packOf('@acme/stepper', [packRecipe])] },
+            audit: false,
+            outDir: dir,
+            logger: logger(),
+        });
+
+        // A consumer reading dist/manifest.json can tell a foreign scope from
+        // one of the design system's own, and name who ships it.
+        const emitted = JSON.parse(readFileSync(join(dir, 'manifest.json'), 'utf8')) as {
+            externalScopes?: Record<string, string>;
+        };
+        expect(emitted.externalScopes).toEqual({ 'acme-stepper': '@acme/stepper' });
+    });
+
+    it('emits no provenance key at all when nothing was adopted', async () => {
+        const dir = outDir();
+        await runStandardBuild({
+            designSystem: ds(bareTokens, [{
+                component: 'button',
+                parts: { root: { base: { appearance: 'none' }, states: { 'focus-visible': { outline: '2px solid black' } } } },
+            }]),
+            manifest: baseManifest(),
+            audit: false,
+            outDir: dir,
+            logger: logger(),
+        });
+        expect(JSON.parse(readFileSync(join(dir, 'manifest.json'), 'utf8'))).not.toHaveProperty('externalScopes');
     });
 });

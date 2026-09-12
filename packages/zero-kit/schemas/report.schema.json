@@ -237,10 +237,20 @@
                 "type": "object",
                 "additionalProperties": false,
                 "required": ["where", "what", "detail"],
+                "dependentRequired": { "package": ["scope"] },
                 "properties": {
                     "where": { "type": "string", "minLength": 1 },
                     "what": { "type": "string", "minLength": 1 },
-                    "detail": { "type": "string", "minLength": 1 }
+                    "detail": { "type": "string", "minLength": 1 },
+                    "scope": {
+                        "description": "The anatomy scope, when the finding is about a recipe.",
+                        "$ref": "#/$defs/kebabToken"
+                    },
+                    "package": {
+                        "description": "The ecosystem package owning `scope`, when a discovered pack does — so a finding about a recipe the design system did not write says whose it is.",
+                        "type": "string",
+                        "minLength": 1
+                    }
                 }
             }
         },

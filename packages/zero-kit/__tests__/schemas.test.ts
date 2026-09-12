@@ -32,6 +32,7 @@ import {
 } from '@sigx/zero/contract';
 import { AUDIT_RULES, auditDesignSystem, buildAuditArtifact, buildDsManifest, buildReport, compileDesignSystem } from '@sigx/zero-kit';
 import type { DesignSystemInput, ManifestComponent } from '@sigx/zero-kit';
+import { compileDesignSystemLynx } from '../src/targets/lynx/index.js';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import { designSystem as materialDS } from '@sigx/zero-material';
@@ -193,6 +194,42 @@ describe('report.schema.json', () => {
         expectValid(validateReport, asJson(report), `${name} report`);
     });
 
+    it('accepts a report carrying the lynx section, findings and all', () => {
+        // The reports above are built without one, which is how `scope` and
+        // `package` reached LynxFinding without reaching the schema: nothing
+        // validated a report that actually had lynx findings in it.
+        const ds = basicDS as DesignSystemInput;
+        const report = buildReport(compileDesignSystem(ds, reportManifest), ds, reportManifest);
+        const lynx = compileDesignSystemLynx(ds, reportManifest);
+        expect(lynx.report.dropped.length, 'expected zero-basic to drop something on lynx').toBeGreaterThan(0);
+
+        report.lynx = {
+            translated: lynx.report.translated,
+            dropped: lynx.report.dropped.map((f) => ({ ...f, scope: 'acme-stepper', package: '@acme/stepper' })),
+            webOnly: [{ scope: 'acme-stepper', package: '@acme/stepper', reason: 'references --press-x' }],
+        };
+        expectValid(validateReport, asJson(report), 'basic report with lynx');
+    });
+
+
+    it('rejects a lynx finding that attributes a package to no scope', () => {
+        const report = reportNamed('basic') as Record<string, unknown>;
+        const orphaned = {
+            ...report,
+            lynx: { translated: [], dropped: [{ where: 'w', what: 'x', detail: 'y', package: '@acme/stepper' }] },
+        };
+        expect(validateReport(asJson(orphaned))).toBe(false);
+    });
+
+    it('rejects a lynx finding whose scope is not a kebab token', () => {
+        const report = reportNamed('basic') as Record<string, unknown>;
+        const withLynx = {
+            ...report,
+            lynx: { translated: [], dropped: [{ where: 'w', what: 'x', detail: 'y', scope: 'Not Kebab' }] },
+        };
+        expect(validateReport(asJson(withLynx))).toBe(false);
+    });
+
     it('rejects an unknown top-level key (the emitter is closed)', () => {
         expect(validateReport(asJson({ ...(reportNamed('basic') as object), vendor: 'acme' }))).toBe(false);
     });
@@ -296,6 +333,24 @@ describe('audit.schema.json', () => {
 
     it.each(audits)('accepts the audit emitted for %s', (name, audit) => {
         expectValid(validateAudit, asJson(audit), `${name} audit`);
+    });
+
+    it('accepts an attributed finding, and refuses a package with nothing to attribute', () => {
+        // `package` reached AuditFinding with the ecosystem attribution but
+        // the schema knew nothing about it, so an audit.json from a build that
+        // adopted a pack no longer matched its own schema. And a package
+        // without a scope is an attribution to nowhere.
+        const artifact = basic() as { findings: unknown[] };
+        const attributed = { ...artifact, findings: [
+            { rule: 'contrast/text', severity: 'error', where: 'acme-stepper.item', message: 'm',
+              scope: 'acme-stepper', package: '@acme/stepper' },
+        ] };
+        expectValid(validateAudit, asJson(attributed), 'attributed audit');
+
+        const orphaned = { ...artifact, findings: [
+            { rule: 'contrast/text', severity: 'error', where: 'x', message: 'm', package: '@acme/stepper' },
+        ] };
+        expect(validateAudit(asJson(orphaned))).toBe(false);
     });
 
     it('accepts findings and waivers of every shape the rules produce', () => {

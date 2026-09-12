@@ -77,11 +77,24 @@ export function compileDesignSystemLynx(
         if (recipe.css?.trim()) {
             report.dropped.push({
                 where: `lynx recipe for "${recipe.component}"`,
+                scope: recipe.component,
                 what: 'css (raw stylesheet escape hatch)',
                 detail: 'shared raw CSS is web spelling and is not emitted on this target — move it into targets.web (or author a lynx counterpart in targets.lynx.css)',
             });
         }
+        // Tagged here rather than threaded through a dozen push sites: the
+        // scope is only known at this level, and everything the emitter adds
+        // while compiling this recipe belongs to this recipe.
+        const before = { translated: report.translated.length, dropped: report.dropped.length };
         const css = compileLynxRecipeCss(resolveRecipeForTarget(recipe, 'lynx'), component, report, themes);
+        // By index: `slice` would allocate a copy per recipe, and the work
+        // should be proportional to the findings added, not to the report.
+        for (let i = before.translated; i < report.translated.length; i++) {
+            report.translated[i]!.scope = recipe.component;
+        }
+        for (let i = before.dropped; i < report.dropped.length; i++) {
+            report.dropped[i]!.scope = recipe.component;
+        }
         if (css) componentCss[recipe.component] = css;
     }
 

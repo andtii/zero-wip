@@ -233,7 +233,10 @@ export function formatAudit(result: AuditResult): string[] {
             current = f.rule;
             lines.push(`  ${f.rule} (${f.severity}) ×${result.summary.byRule[f.rule] ?? 0}`);
         }
-        lines.push(`    ${f.message}`);
+        // The owning package, when a discovered ecosystem pack owns the scope:
+        // a reader must be able to tell "fix my recipe" from "report this
+        // upstream" without cross-referencing the manifest.
+        lines.push(`    ${f.message}${f.package ? ` [${f.package}]` : ''}`);
     }
     for (const theme of result.contrast.themes) {
         const count = (verdict: string): number => theme.cells.filter((c) => c.verdict === verdict).length;

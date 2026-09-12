@@ -78,6 +78,12 @@ export interface AuditFinding {
     where: string;
     /** Absent only for a design-system-level finding (a declared value no scope uses). */
     scope?: string;
+    /**
+     * The ecosystem package that owns `scope`, when a discovered pack does —
+     * filled in from the merged manifest's provenance, so a finding about a
+     * recipe the design system did not write says whose it is.
+     */
+    package?: string;
     part?: string;
     /** The states a legibility finding is about, when it is about a pair. */
     states?: readonly string[];

@@ -58,6 +58,19 @@ export interface ValidationIssue {
      */
     rule?: string;
     /**
+     * The anatomy scope the issue is about, when it is about one. A
+     * structured field rather than something to be recovered from `where`,
+     * which stays a display string.
+     */
+    scope?: string;
+    /**
+     * The ecosystem package that owns `scope`, when a discovered pack does.
+     * Filled in after the fact by `attributeIssues`, from the merged
+     * manifest's provenance — so a design-system author reading a diagnostic
+     * about a recipe they did not write can see whose it is.
+     */
+    package?: string;
+    /**
      * A concrete replacement the rule can vouch for: paste `value` in as
      * the theme's `token` and this issue goes away. Only rules that can
      * compute a fix carry it; the message repeats it in prose.
