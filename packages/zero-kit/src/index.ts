@@ -80,7 +80,7 @@ export {
     componentExportName,
 } from './targets/web/components-dts.js';
 export { compileRegisterDts, compileRegisterJs } from './targets/web/register-dts.js';
-export { axisClaims, defineDesignSystem, compileDesignSystem, offeredFor, undeclaredAxes } from './design-system.js';
+export { axisClaims, defineDesignSystem, compileDesignSystem, externalPackage, offeredFor, undeclaredAxes } from './design-system.js';
 
 export type {
     AuditContext,

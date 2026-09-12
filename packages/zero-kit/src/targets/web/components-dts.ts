@@ -26,6 +26,7 @@
  */
 import type { CompiledComponentApi } from '../../api.js';
 import type { CompiledComponentAxes, CompiledDesignSystem } from '../../design-system.js';
+import { externalPackage } from '../../design-system.js';
 
 const union = (values: readonly string[]): string => {
     // Defense in depth behind the validator's empty-axis rule: an empty
@@ -145,7 +146,7 @@ function componentApiOf(compiled: CompiledDesignSystem): Record<string, Compiled
  * root export carries `componentExportName(scope)`.
  */
 function moduleSpecifierFor(compiled: CompiledDesignSystem, scope: string): string {
-    return compiled.externalScopes?.[scope] ?? `@sigx/zero/${scope}`;
+    return externalPackage(compiled, scope) ?? `@sigx/zero/${scope}`;
 }
 
 export function compileComponentsDts(compiled: CompiledDesignSystem): string {

@@ -21,7 +21,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { compileDesignSystem, resolveEcosystem, runStandardBuild, validateDesignSystem } from '@sigx/zero-kit';
-import { attributeFindings, packagesByScope, whereWithOwner } from '@sigx/zero-kit';
+import { attributeFindings, externalPackage, packagesByScope, whereWithOwner } from '@sigx/zero-kit';
 import { compileDesignSystemLynx, LynxRuntimePropertyError } from '../src/targets/lynx/index.js';
 import type {
     DesignSystemInput,
@@ -424,6 +424,28 @@ describe('attribution and provenance', () => {
 
         expect(issues[0]!.package).toBeUndefined();
         expect(whereWithOwner(issues[0]!)).toBe('recipes.constructor');
+    });
+
+    it('never reports a zero-shipped scope as foreign, whatever it is called', () => {
+        // The compiled map is read by the register and components emitters as
+        // well; `constructor` there would emit an import from a function.
+        const compiled = compileDesignSystem(
+            ds(bareTokens, [{
+                component: 'button',
+                parts: { root: { base: { appearance: 'none' }, states: { 'focus-visible': { outline: '2px solid black' } } } },
+            }]),
+            baseManifest(),
+        );
+        expect(externalPackage(compiled, 'button')).toBeUndefined();
+        expect(externalPackage(compiled, 'constructor')).toBeUndefined();
+
+        // And with a populated map handed in as a PLAIN object, which the type
+        // permits and a caller may well build: the compiled form uses a null
+        // prototype, but the helper is the read path either way.
+        const plain = { externalScopes: { 'acme-stepper': '@acme/stepper' } };
+        expect(externalPackage(plain, 'acme-stepper')).toBe('@acme/stepper');
+        expect(externalPackage(plain, 'constructor')).toBeUndefined();
+        expect(externalPackage(plain, 'toString')).toBeUndefined();
     });
 
     it('records who owns what in the emitted manifest', async () => {
