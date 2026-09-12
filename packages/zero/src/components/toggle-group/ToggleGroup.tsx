@@ -44,7 +44,8 @@ import { toggleGroupAnatomy } from './anatomy.js';
 const SCOPE = toggleGroupAnatomy.scope;
 
 interface ToggleGroupContext {
-    state: ControllableState<unknown>;
+    /** The model: a `string` in single mode, a `string[]` under `multiple`. */
+    state: ControllableState<string | string[]>;
     /** The pressed values, whatever the model's shape. */
     selected(): string[];
     list: ListController;
@@ -56,7 +57,7 @@ interface ToggleGroupContext {
 
 function makeInert(): ToggleGroupContext {
     return {
-        state: createInertState<unknown>(''),
+        state: createInertState<string | string[]>(''),
         selected: () => [],
         list: createListController(),
         orientation: () => 'horizontal',
@@ -92,8 +93,8 @@ export type ToggleGroupRootProps<M = string | string[]> =
     & WithClass
     & Define.Slot<'default'>;
 
-const ToggleGroupRootImpl = component<ToggleGroupRootProps<unknown>>(({ props, slots, emit }) => {
-    const state = createControllableState<unknown>(
+const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emit }) => {
+    const state = createControllableState<string | string[]>(
         () => props.model,
         props.defaultValue !== undefined ? props.defaultValue : props.multiple ? [] : '',
         (v) => emit('valueChange', v),
@@ -102,8 +103,8 @@ const ToggleGroupRootImpl = component<ToggleGroupRootProps<unknown>>(({ props, s
     // one-element list (empty when '').
     const selected = (): string[] => {
         const v = state.value;
-        if (Array.isArray(v)) return v as string[];
-        return typeof v === 'string' && v !== '' ? [v] : [];
+        if (Array.isArray(v)) return v;
+        return v !== '' ? [v] : [];
     };
     const list = createListController();
     let rootEl: HTMLElement | null = null;
