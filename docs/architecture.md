@@ -903,6 +903,27 @@ the architecture facts, briefly:
   Packs are adopted in package-name order, so CSS, manifest key order and
   report do not depend on dependency-declaration order. Explicit
   `fragments:` merge first and win a collision.
+- **Composition is fit, then de-dup, then append.** A discovered pack's
+  recipes are run through `fitRecipesToVocabulary` against the adopting
+  design system's tokens, so a pack written to the recommended grammar
+  compiles under a skin with no colour axis or a fused variant; the fit is
+  the identity for a recommended vocabulary and is logged only when it is
+  not. A pack may style only the scopes its own fragment declares — otherwise
+  an installed dependency could restyle its host's `button`. Precedence is
+  **de-dup, not ordering**: `compileDesignSystem` throws on a second recipe
+  for one scope in either order, so a discovered recipe for a scope the
+  design system already styles is dropped with a log line naming the loser,
+  rather than shadowed. What remains is **appended**, because recipe order is
+  the key order of `compiled.components` and therefore of `manifest.json`,
+  `register.d.ts` and `report.json`.
+- **The lynx target degrades for packs and fails for first parties.** The
+  lynx emitter rejects references to `RUNTIME_PROPERTIES` (`var(--press-x)`
+  and the rest of the web press-feedback surface). A first-party recipe in
+  that position fails the build, as it should; a discovered pack's loses only
+  the lynx target, recorded in `report.json` under `lynx.webOnly` — the
+  design system's author neither wrote that recipe nor can fix it, and a
+  scope with no lynx CSS is the documented unstyled-but-accessible fallback
+  while a failed build is nothing.
 - **One resolve path, two callers.** `zero:build` reaches a design system
   through `runStandardBuild`, while `zero:validate` and `zero:audit` reach
   it through `commands/shared.ts`'s `loadInputs`. Both call

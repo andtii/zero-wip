@@ -37,6 +37,8 @@ import type { DesignSystemInput } from './design-system.js';
 import type { ManifestFragment } from './manifest.js';
 import { mergeManifests } from './manifest.js';
 import type { RecipeInput } from './recipes.js';
+import type { FitReport } from './fit.js';
+import { fitRecipes } from './fit.js';
 
 const require = createRequire(import.meta.url);
 
@@ -472,6 +474,40 @@ export async function discoverEcosystem(
     return packs;
 }
 
+/**
+ * A pack styles the components it declares, and no others.
+ *
+ * Shipping a recipe for `button` would let an installed dependency restyle
+ * its host's own components — a different product from the one this protocol
+ * is for, and not one anybody opted into by adding a dependency.
+ */
+function refuseOverreach(pack: EcosystemPack): void {
+    const owned = new Set(pack.fragment.components.map((c) => c.scope));
+    const foreign = pack.recipes.filter((r) => !owned.has(r.component));
+    if (foreign.length === 0) return;
+    throw new Error(
+        `[zero-kit] ${pack.package} ships recipes for scopes it does not declare `
+        + `(${foreign.map((r) => `"${r.component}"`).join(', ')}) — a pack may only style its own components`,
+    );
+}
+
+/** The non-zero counts of a fit, as one readable clause. */
+function fitSummary(report: FitReport): string {
+    const parts: string[] = [];
+    const say = (n: number, what: string) => { if (n > 0) parts.push(`${n} ${what}`); };
+    say(report.droppedColorValues, 'colour value(s)');
+    say(report.droppedSizeValues, 'size value(s)');
+    say(report.droppedVariantValues, 'variant value(s)');
+    say(report.droppedAxisValues, 'axis value(s)');
+    say(report.droppedVariantBlocks, 'variant block(s)');
+    say(report.droppedModifiers, 'modifier(s)');
+    say(report.droppedDefaults, 'default(s)');
+    say(report.droppedCompounds, 'compound(s)');
+    say(report.rewrittenRoleRefs, 'role reference(s) rewritten');
+    say(report.collapsedCategoryRefs, 'scale reference(s) collapsed');
+    return parts.join(', ');
+}
+
 export interface ResolveEcosystemInput<M extends Pick<ZeroManifest, 'components'>> {
     manifest: M;
     designSystem: DesignSystemInput;
@@ -489,6 +525,14 @@ export interface ResolvedEcosystem<M extends Pick<ZeroManifest, 'components'>> {
     designSystem: DesignSystemInput;
     /** The packs that were actually adopted, in package-name order. */
     packs: EcosystemPack[];
+    /**
+     * Scope → the package whose recipe now styles it. Only scopes a pack
+     * actually contributed: a scope the design system styles itself is
+     * absent, even when a pack declares it. Callers that must treat pack
+     * recipes differently from authored ones read this rather than inferring
+     * ownership from the fragments, which cannot tell the two apart.
+     */
+    contributed: Record<string, string>;
 }
 
 /**
@@ -505,13 +549,13 @@ export async function resolveEcosystem<M extends Pick<ZeroManifest, 'components'
     input: ResolveEcosystemInput<M>,
 ): Promise<ResolvedEcosystem<M>> {
     const { manifest, designSystem, ecosystem, defaultCwd, logger } = input;
-    if (!ecosystem) return { manifest, designSystem, packs: [] };
+    if (!ecosystem) return { manifest, designSystem, packs: [], contributed: {} };
     // Checked here rather than only inside the walk: `packs` supplies packs
     // directly and never reaches it, and the switch is documented as turning
     // adoption off whatever the build asks for.
     if (ecosystemDisabled()) {
         logger.log(`[zero-kit] ecosystem discovery disabled by ${ECOSYSTEM_ENV}=0`);
-        return { manifest, designSystem, packs: [] };
+        return { manifest, designSystem, packs: [], contributed: {} };
     }
 
     const options: EcosystemOptions = ecosystem === true ? {} : ecosystem;
@@ -527,6 +571,11 @@ export async function resolveEcosystem<M extends Pick<ZeroManifest, 'components'
     const adopted: EcosystemPack[] = [];
     for (const pack of packs) {
         try {
+            // Checked BEFORE the merge, so a refused pack contributes nothing
+            // at all. Refusing only its recipes would leave its scopes in the
+            // manifest, styled by nobody — a half-adoption of a package that
+            // just tried to restyle its host.
+            refuseOverreach(pack);
             merged = mergeManifests(merged, pack.fragment);
         } catch (err) {
             if (options.strict) throw err;
@@ -537,5 +586,61 @@ export async function resolveEcosystem<M extends Pick<ZeroManifest, 'components'
         const scopes = pack.fragment.components.length;
         logger.log(`[${label}] ecosystem: ${pack.package} — ${scopes} scope(s)`);
     }
-    return { manifest: merged, designSystem, packs: adopted };
+    const composed = compose(designSystem, adopted, label, logger);
+    return { manifest: merged, designSystem: composed.designSystem, packs: adopted, contributed: composed.contributed };
+}
+
+/**
+ * Fold every adopted pack's recipes into the design system.
+ *
+ * **Precedence is de-dup, not ordering.** `compileDesignSystem` throws on a
+ * second recipe for one scope, in either order, so "spread the pack's first
+ * and let the design system's win" cannot work — it fails the build with a
+ * message naming neither package. A discovered recipe for a scope the design
+ * system already styles is dropped instead, and the log says who lost.
+ *
+ * With that explicit, the order is free, and appending is the cheap choice:
+ * recipe order is the key order of `compiled.components`, which flows into
+ * `dist/manifest.json`, `register.d.ts` and `report.json`. Prepending would
+ * churn all three (and `examples/typed-app`'s byte-stability) for no cascade
+ * benefit, since selectors for different scopes cannot collide.
+ */
+function compose(
+    ds: DesignSystemInput,
+    packs: readonly EcosystemPack[],
+    label: string,
+    logger: EcosystemLogger,
+): { designSystem: DesignSystemInput; contributed: Record<string, string> } {
+    const styled = new Set(ds.recipes.map((r) => r.component));
+    const added: RecipeInput[] = [];
+    const contributed: Record<string, string> = {};
+
+    for (const pack of packs) {
+        if (pack.recipes.length === 0) continue;
+
+        // Fitted to whatever vocabulary this skin actually has: a pack written
+        // against the recommended grammar still compiles under a design system
+        // with no colour axis, a fused variant or its own size ramp.
+        const { recipes: fitted, report } = fitRecipes(pack.recipes, ds.tokens);
+        if (!report.identity) {
+            logger.log(`[${label}] ecosystem: ${pack.package} fitted to ${label}'s vocabulary — ${fitSummary(report)}`);
+        }
+
+        for (const recipe of fitted) {
+            if (styled.has(recipe.component)) {
+                logger.log(
+                    `[${label}] ecosystem: ${pack.package}'s recipe for "${recipe.component}" skipped — already styled here`,
+                );
+                continue;
+            }
+            styled.add(recipe.component);
+            contributed[recipe.component] = pack.package;
+            added.push(recipe);
+        }
+    }
+
+    return {
+        designSystem: added.length > 0 ? { ...ds, recipes: [...ds.recipes, ...added] } : ds,
+        contributed,
+    };
 }

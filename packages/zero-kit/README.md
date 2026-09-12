@@ -454,6 +454,15 @@ loaded or merged is named and skipped rather than swallowed — `strict: true`
 makes it fatal — and packs are adopted in package-name order so the emitted
 artifacts do not depend on how dependencies were written down.
 
+An adopted pack's recipes are fitted to the adopting vocabulary
+(`fitRecipesToVocabulary`), restricted to the scopes the pack's own fragment
+declares, de-duplicated against scopes the design system already styles (the
+design system's recipe wins; two recipes for one scope is a hard compile
+error, so this is a drop rather than a shadow) and then appended. A pack
+recipe the lynx emitter refuses costs that scope the lynx target — recorded
+in `report.json` under `lynx.webOnly` — where a first-party recipe would fail
+the build.
+
 A design system can also merge the fragment by hand — `--extra-manifest` on
 the CLI, or `mergeManifests(base, fragment)` in a `build.mjs`-style script —
 and write (or import) a recipe for the scope like any other. Hand-passed

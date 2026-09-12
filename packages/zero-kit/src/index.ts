@@ -38,7 +38,7 @@ export type { DerivePaletteOptions, DeriveThemePairOptions, Harmony, Oklch, Role
 export { clampChroma, contrastRatio, derivePalette, deriveThemePair, formatOklch, solveContentLightness } from './palette.js';
 
 export type { FitReport } from './fit.js';
-export { explainFit, fitRecipesToVocabulary } from './fit.js';
+export { explainFit, fitRecipes, fitRecipesToVocabulary } from './fit.js';
 
 export type { CssProps, PartStyles, RecipeContext, RecipeInput } from './recipes.js';
 export { defineRecipe, BUILTIN_CONDITIONS } from './recipes.js';

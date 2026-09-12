@@ -116,8 +116,61 @@
   than quietly excluding packages from a discovery that never runs. (Narrowing
   is otherwise programmatic — the CLI surfaces only the exclusion half.)
 
-  Recipe packs are loaded onto the discovered pack but not yet composed into
-  the design system; that, the vocabulary fit and de-dup precedence follow.
+- **An adopted pack's recipes are composed, fitted and de-duplicated** (#457).
+  Discovery merged a fragment and left its recipes on the shelf; a scope
+  arrived styled by nobody. Now each pack's recipes are run through
+  `fitRecipesToVocabulary` against the adopting design system's tokens — so a
+  pack written to the recommended grammar compiles under a skin with no
+  colour axis, a fused variant or its own size ramp — and folded in. The fit
+  is the identity for a recommended vocabulary and is logged only when it
+  actually changed something.
+
+  **Precedence is de-dup, not ordering.** The obvious design — spread the
+  pack's recipes first so the design system's own wins — cannot work:
+  `compileDesignSystem` throws on a second recipe for one scope in *either*
+  order, so "I like the pack but my stepper is square" would have failed the
+  build with a message naming neither package. A discovered recipe for a
+  scope the design system already styles is dropped, and the log says who
+  lost. What remains is **appended**, because recipe order is the key order
+  of `compiled.components` and therefore of `manifest.json`, `register.d.ts`
+  and `report.json` — prepending would churn all three for no cascade
+  benefit, since selectors for different scopes cannot collide.
+
+  A pack may style only the scopes its own fragment declares. Shipping a
+  recipe for `button` would let an installed dependency restyle its host's
+  own components; the pack is refused by name, and refused *before* its
+  fragment is merged — dropping only its recipes would leave its scopes in
+  the manifest styled by nobody.
+
+  **The lynx target degrades for packs and still fails for first parties.**
+  The lynx emitter rejects references to `RUNTIME_PROPERTIES` (`var(--press-x)`
+  and the rest of zero's web press-feedback surface), which a perfectly
+  reasonable pack can carry. A first-party recipe in that position keeps
+  failing the build; a discovered pack's now loses only the lynx target and
+  is recorded in `report.json` under a new optional `lynx.webOnly`. The
+  design system's author neither wrote that recipe nor can fix it, and a
+  scope with no lynx CSS is the documented unstyled-but-accessible fallback
+  while a failed build is nothing.
+
+  The degradation is gated on a **type**, not a message: the lynx emitter's
+  three runtime-property refusals now throw `LynxRuntimePropertyError`, and
+  only that class degrades. Every other lynx rejection — an unknown state, a
+  scope mismatch — keeps failing the build, whoever wrote the recipe, rather
+  than being filed under `webOnly` as something it is not.
+
+  `resolveEcosystem` returns a `contributed` map (scope → the package whose
+  recipe styles it) so callers that must treat pack recipes differently do
+  not have to infer ownership from the fragments. The two differ exactly
+  where it matters: when a design system writes its own recipe for a
+  pack-declared scope, the pack's is dropped, and the authored one has to
+  keep failing the lynx build rather than being degraded on the pack's
+  behalf. `fitRecipes` (on `/define`) returns the fitted recipes and the
+  `FitReport` from one walk, which composition needs for every pack.
+
+  Also corrects `audit/context.ts`, which claimed its first-recipe-wins map
+  matched `compileDesignSystem`'s behaviour. It never did — the compiler
+  throws — and two derivations of "what happens on a duplicate", one of them
+  false, is exactly the drift this feature exercises.
 
 - **`sigx zero:validate --log <path>` / `ZERO_ITERATION_LOG=<path>` — an
   iteration log for the generate → validate → fix loop** (#426). Opt-in,

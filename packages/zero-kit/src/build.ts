@@ -30,6 +30,7 @@ export type { EcosystemDeclaration, EcosystemLogger, EcosystemOptions, Ecosystem
 export type { AuditArtifact, AuditFinding, AuditOptions, AuditResult, AuditRuleId } from './audit/index.js';
 import type { CompiledLynxTarget } from './targets/lynx/compile.js';
 import { compileDesignSystemLynx, writeLynxArtifacts } from './targets/lynx/compile.js';
+import { LynxRuntimePropertyError } from './targets/lynx/capabilities.js';
 
 /** The logging surface the build reports through — `console` by default. */
 export interface StandardBuildLogger {
@@ -109,7 +110,7 @@ export interface StandardBuildResult {
  * what fails a build script and the CLI alike.
  */
 export async function runStandardBuild(options: StandardBuildOptions): Promise<StandardBuildResult> {
-    const { designSystem: ds, fragments = [], outDir, targets = ['web'] } = options;
+    const { designSystem: authored, fragments = [], outDir, targets = ['web'] } = options;
     const logger = options.logger ?? console;
 
     // Unknown names are misconfiguration, not future-proofing — fail before
@@ -133,9 +134,11 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
     // Discovery runs after the explicit fragments so a hand-passed one wins a
     // scope collision, and through the same helper the CLI's validate/audit
     // path uses — one derivation of "which components exist here".
-    const { manifest } = await resolveEcosystem({
+    // The resolved design system carries every adopted pack's recipes, fitted
+    // to this vocabulary; `authored` is what the package itself wrote.
+    const { manifest, designSystem: ds, contributed } = await resolveEcosystem({
         manifest: explicit,
-        designSystem: ds,
+        designSystem: authored,
         ecosystem: options.ecosystem,
         defaultCwd: outDir,
         logger,
@@ -178,8 +181,24 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
     // before anything lands on disk — same all-or-nothing rule validation has.
     let lynx: CompiledLynxTarget | undefined;
     if (targets.includes('lynx')) {
-        lynx = compileDesignSystemLynx(ds, manifest);
-        report.lynx = { translated: lynx.report.translated, dropped: lynx.report.dropped };
+        // A DISCOVERED pack's recipe that the lynx emitter rejects — a
+        // reference to `var(--press-x)` and friends, properties zero itself
+        // publishes for web press feedback — would otherwise fail a build the
+        // design system's author did not cause, over a recipe they did not
+        // write. Drop that scope from the lynx target instead: a scope with no
+        // lynx CSS is the documented unstyled-but-accessible fallback, while a
+        // failed build is nothing. First-party recipes keep throwing.
+        const webOnly = lynxIncapable(ds, manifest, contributed, logger);
+        const excluded = new Set(webOnly.map((w) => w.scope));
+        const lynxDs = excluded.size > 0
+            ? { ...ds, recipes: ds.recipes.filter((r) => !excluded.has(r.component)) }
+            : ds;
+        lynx = compileDesignSystemLynx(lynxDs, manifest);
+        report.lynx = {
+            translated: lynx.report.translated,
+            dropped: lynx.report.dropped,
+            ...(webOnly.length > 0 ? { webOnly } : {}),
+        };
         if (lynx.report.dropped.length > 0) {
             logger.warn(
                 `[${ds.name}] lynx target: ${lynx.report.dropped.length} declaration(s) dropped `
@@ -194,4 +213,49 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
     }
     logger.log(`[${ds.name}] built ${written.length} artifacts`);
     return { result, written };
+}
+
+/**
+ * Which discovered pack scopes the lynx emitter refuses, compiled one recipe
+ * at a time so the rejection can be attributed. Only pack recipes are probed:
+ * a first-party recipe that cannot cross to lynx is the design system author's
+ * own bug, and must keep failing the build.
+ */
+function lynxIncapable(
+    ds: DesignSystemInput,
+    manifest: Pick<ZeroManifest, 'components'>,
+    contributed: Record<string, string>,
+    logger: StandardBuildLogger,
+): { scope: string; package: string; reason: string }[] {
+    // `contributed` names the scopes a pack's recipe actually styles, not the
+    // scopes its fragment declares. The two differ exactly where it matters:
+    // when the design system writes its own recipe for a pack-declared scope,
+    // the pack's is dropped and the authored one must keep failing the build
+    // rather than being degraded on the pack's behalf.
+    if (Object.keys(contributed).length === 0) return [];
+
+    const webOnly: { scope: string; package: string; reason: string }[] = [];
+    for (const recipe of ds.recipes) {
+        const from = contributed[recipe.component];
+        if (!from) continue;
+        try {
+            compileDesignSystemLynx({ ...ds, recipes: [recipe] }, manifest);
+        } catch (err) {
+            // The probe answers ONE question: does this recipe reference a
+            // web-runtime property? Nothing else it reports is authoritative,
+            // because it compiles a partial stylesheet — tokens plus this one
+            // component — and the whole-index assertions (dangling vars, calc
+            // var chains) can fail on a recipe that reads a custom property
+            // another component's lynx CSS defines. So any other rejection is
+            // left for the real compile below, which sees the whole thing and
+            // fails the build with the accurate message.
+            if (!(err instanceof LynxRuntimePropertyError)) continue;
+            webOnly.push({ scope: recipe.component, package: from, reason: err.message });
+            logger.error(
+                `[${ds.name}] ecosystem: ${from}'s "${recipe.component}" is web-only — `
+                + `excluded from the lynx target (${err.message})`,
+            );
+        }
+    }
+    return webOnly;
 }

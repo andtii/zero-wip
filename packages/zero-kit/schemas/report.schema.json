@@ -28,7 +28,21 @@
             "required": ["translated", "dropped"],
             "properties": {
                 "translated": { "$ref": "#/$defs/lynxFindings" },
-                "dropped": { "$ref": "#/$defs/lynxFindings" }
+                "dropped": { "$ref": "#/$defs/lynxFindings" },
+                "webOnly": {
+                    "description": "Ecosystem scopes excluded from the lynx target because a discovered pack's recipe references a web-runtime mechanism the lynx emitter refuses. A first-party recipe in the same position fails the build; a discovered pack's is dropped instead, because the design system's author neither wrote it nor can fix it.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["scope", "package", "reason"],
+                        "properties": {
+                            "scope": { "type": "string" },
+                            "package": { "type": "string" },
+                            "reason": { "type": "string" }
+                        }
+                    }
+                }
             }
         },
         "coverage": {

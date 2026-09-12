@@ -171,6 +171,40 @@ turns those back into build failures). And packs are adopted in package-name
 order, so the emitted CSS, manifest key order and report do not depend on how
 your dependencies happen to be written down.
 
+### What happens to your recipe pack
+
+Four things, in this order.
+
+**It is fitted to the adopting skin's vocabulary.** Your pack is written to
+the recommended token grammar; the design system adopting it may have no
+colour axis at all, a fused `variant`, its own size ramp. The kit runs your
+recipes through `fitRecipesToVocabulary` before composing: undeclared role
+values are dropped from the axis and their `var(--color-<role>)` references
+redrawn on the base surfaces, off-ramp sizes go, undeclared modifiers go. For
+a design system that keeps the recommended vocabulary the fit is the identity
+and costs you nothing. Anything it had to change is logged once, named.
+
+**It may only style the scopes your fragment declares.** A pack shipping a
+recipe for `button` would let an installed dependency restyle its host's own
+components — a different product from this one. The whole pack is refused by
+name, before its fragment is merged: dropping only the recipes would leave
+your scopes in the manifest styled by nobody.
+
+**A scope the design system already styles keeps the design system's
+recipe.** Precedence is de-dup, not ordering, because two recipes for one
+scope is a hard compile error in *either* order — so "I like your stepper but
+mine is square" has to be a drop, not a shadow. The build says which package
+lost. Everything else is appended, which is why your scope lands last in
+`manifest.json`, `register.d.ts` and `report.json`.
+
+**A recipe lynx cannot express costs you that target, not the build.** The
+lynx emitter refuses references to web-runtime properties — `var(--press-x)`
+and the rest of zero's press-feedback surface. In a first-party recipe that
+fails the build; in a discovered pack it drops your scope from the lynx target
+and records it in `report.json` under `lynx.webOnly`, because the design
+system's author neither wrote your recipe nor can fix it. If you want lynx,
+put those declarations in your recipe's `targets.web` section.
+
 Composing by hand still works, and still wins:
 
 ```js

@@ -348,6 +348,21 @@ export function fitRecipesToVocabulary<R extends RolesDecl, S extends SystemToke
     return run(recipes, tokens as AnyTokens).recipes;
 }
 
+/**
+ * The fitted recipes AND what the fit cost, in one walk.
+ *
+ * `fitRecipesToVocabulary` and `explainFit` each throw away half of what the
+ * same pass already computed, which is fine for a caller that wants one of
+ * them and wasteful for ecosystem composition, which wants both for every
+ * adopted pack.
+ */
+export function fitRecipes<R extends RolesDecl, S extends SystemTokens>(
+    recipes: readonly RecipeInput[],
+    tokens: TokensInput<R, S>,
+): { recipes: RecipeInput[]; report: FitReport } {
+    return run(recipes, tokens as AnyTokens);
+}
+
 /** What `fitRecipesToVocabulary` would change, without the recipes. */
 export function explainFit<R extends RolesDecl, S extends SystemTokens>(
     recipes: readonly RecipeInput[],
