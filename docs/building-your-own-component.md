@@ -145,11 +145,15 @@ sigx zero:validate --ecosystem --ecosystem-exclude @acme/zero-stepper
 ```
 
 Discovery is off by default while the mechanism settles; `ZERO_ECOSYSTEM=0`
-turns it off for one run whatever the build asks for. `include` is a mode
-rather than a filter — it means *only* these — so passing it alongside
-`exclude` is an error, and so is naming a package that is not a dependency: a
-typo'd exclusion that silently does nothing is how "we disabled that pack"
-survives as a belief.
+turns it off for one run whatever the build asks for.
+
+Narrowing lives on the programmatic options — `ecosystem: { include: [...] }`
+or `{ exclude: [...] }` passed to `runStandardBuild`; the CLI surfaces the
+exclusion half as `--ecosystem-exclude` and has no `include` flag. `include`
+is a mode rather than a filter — it means *only* these — so passing it
+alongside `exclude` is an error, and so is naming a package that is not a
+dependency: a typo'd exclusion that silently does nothing is how "we disabled
+that pack" survives as a belief.
 
 Two properties worth relying on. A pack that fails — an unbuilt fragment, a
 stale contract version, a scope another package already claims — is reported

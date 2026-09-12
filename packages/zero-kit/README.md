@@ -445,9 +445,11 @@ the `"sigx-cli"` field this plugin is itself discovered through:
 
 A design system then adopts every dependency that declares one, with
 `ecosystem: true` on `runStandardBuild` or `--ecosystem` on
-`zero:build`/`zero:validate`/`zero:audit` (off by default for now;
-`ZERO_ECOSYSTEM=0` overrides any build; `--ecosystem-exclude` drops a
-package, and an `include` list means *only* those). A pack that cannot be
+`zero:build`/`zero:validate`/`zero:audit` — off by default for now, and
+`ZERO_ECOSYSTEM=0` overrides any build. Narrowing is programmatic:
+`ecosystem: { exclude: [...] }` or `{ include: [...] }`, where `include`
+means *only* those; the CLI surfaces the exclusion half as
+`--ecosystem-exclude` and has no `include` flag. A pack that cannot be
 loaded or merged is named and skipped rather than swallowed — `strict: true`
 makes it fatal — and packs are adopted in package-name order so the emitted
 artifacts do not depend on how dependencies were written down.

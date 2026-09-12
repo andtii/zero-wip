@@ -101,6 +101,22 @@ describe('selectDependencies', () => {
         expect(log.log).toHaveBeenCalledWith(expect.stringContaining(`${ECOSYSTEM_ENV}=0`));
     });
 
+    it('names a malformed dependency map instead of throwing a bare TypeError', () => {
+        // This walk reads other people's package.json files, so every shape it
+        // depends on is checked — an object spread over `null` would surface as
+        // "Cannot convert undefined or null to object".
+        const root = tree();
+        writeJson(join(root, 'package.json'), { name: 'ds', dependencies: ['alpha'] });
+        expect(() => selectDependencies(root, {}, logger()))
+            .toThrow(/has a "dependencies" that is not an object/);
+    });
+
+    it('tolerates a null dependency map', () => {
+        const root = tree();
+        writeJson(join(root, 'package.json'), { name: 'ds', dependencies: null, devDependencies: { alpha: '1' } });
+        expect(selectDependencies(root, {}, logger())).toEqual(['alpha']);
+    });
+
     it('include means "only these", and exclude removes', () => {
         const root = tree();
         project(root, { alpha: '1', beta: '1', gamma: '1' });

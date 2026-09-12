@@ -318,6 +318,20 @@ export function packFromModule(declaration: EcosystemDeclaration, mod: Record<st
 }
 
 /**
+ * One dependency map's keys. A malformed map is named rather than left to
+ * throw a bare `TypeError` out of an object spread: this walk reads other
+ * people's package.json files, so every shape it depends on is checked.
+ */
+function dependencyNames(pkg: Record<string, unknown>, key: string, pkgPath: string): string[] {
+    const map = pkg[key];
+    if (map === undefined || map === null) return [];
+    if (typeof map !== 'object' || Array.isArray(map)) {
+        throw new Error(`[zero-kit] ${pkgPath} has a "${key}" that is not an object`);
+    }
+    return Object.keys(map);
+}
+
+/**
  * The dependency names discovery will look at, sorted so the emitted CSS,
  * manifest key order and report are stable across machines. Pure: no module
  * is imported, so the selection rules are testable on their own.
@@ -338,11 +352,10 @@ export function selectDependencies(
         return [];
     }
     const pkg = readJsonFile(pkgPath, 'package.json');
-    const deps = {
-        ...(pkg['dependencies'] as Record<string, string> | undefined),
-        ...(pkg['devDependencies'] as Record<string, string> | undefined),
-    };
-    const names = Object.keys(deps).sort();
+    const names = [...new Set([
+        ...dependencyNames(pkg, 'dependencies', pkgPath),
+        ...dependencyNames(pkg, 'devDependencies', pkgPath),
+    ])].sort();
 
     if (options.include && options.exclude) {
         throw new Error(

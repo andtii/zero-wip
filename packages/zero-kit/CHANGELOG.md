@@ -57,10 +57,11 @@
 ### Added
 
 - **Ecosystem components are discovered, not hand-wired: the `"sigx-zero"`
-  package.json field** (#449). A package that ships a component zero doesn't
-  declares `"sigx-zero": { "fragment": "./dist/fragment.js", "requires":
-  ">=0.2.0" }`, and a design system adopts every dependency that declares one
-  — `ecosystem: true` on `runStandardBuild`, or `--ecosystem` on
+  package.json field** (#449). A component package — one shipping a component
+  zero itself does not — declares `"sigx-zero": { "fragment":
+  "./dist/fragment.js", "requires": ">=0.2.0" }`, and a design system adopts
+  every dependency that declares one — `ecosystem: true` on
+  `runStandardBuild`, or `--ecosystem` on
   `zero:build` / `zero:validate` / `zero:audit`. Adoption used to be two
   hand-edits in a `build.mjs` (merge the fragment *and* spread the recipes),
   which is one edit per skin per component package, and a release-order
