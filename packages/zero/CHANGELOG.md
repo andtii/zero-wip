@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### Changed — the remaining value shapes, and the last two bound controls (#455, part of #438)
+
+- **Breaking: ToggleGroup's model follows `multiple`.** Single mode holds
+  the pressed value as a `string` (`''` when none); `multiple` holds a
+  `string[]` — Select's rule, typed through the overload cast so a string
+  signal binds a single-select group and an array a multiple one. Was always
+  `string[]`. Its `ModelSpec` is `{ concept: 'value', type: 'string', multiple: true }`.
+- **Added: RadioGroup `items`** — `itemKey` (the posted value; defaults
+  `value` / `id` / the primitive), `itemLabel`, `itemDisabled` and the
+  `item` slot, over the collection's accessors; `T` infers from `items`
+  through `RadioGroupRoot`; the model stays the posted string. Explicit
+  children win entirely. An item keyed `''` is refused.
+- **Slider.Control and NumberInput.Input bind with `model=`.** The range
+  binds a derived scalar Model (write → `setValueAt(0, …)`, so quantizing
+  and clamping hold for the platform's write; `modelModifiers={{ number }}`
+  hands it a number), the number input binds a derived draft Model (write
+  → the draft; commit unchanged). The binding law's exemptions are now
+  exactly Slider's range projection and FileUpload's `FileList`.
+- **Added: `derivedModel(read, write)`** in `@sigx/zero/behaviors` — a
+  Model over a read/write pair, the mechanism under both and under
+  `createControllableState` itself.
+
 ### Changed — the naming rule for models, and a `ModelSpec` in the anatomy (#451, part of #438)
 
 - **The naming rule is law.** Every model has a concept `N` and exactly two

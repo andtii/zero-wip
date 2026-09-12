@@ -6,7 +6,15 @@
  *     <RadioGroup.Item value="free">Free</RadioGroup.Item>
  *     <RadioGroup.Item value="pro">Pro</RadioGroup.Item>
  * </RadioGroup.Root>
+ * // … or from data — `T` infers from `items`, the model is the posted key:
+ * <RadioGroup.Root items={plans} itemKey={(p) => p.id} itemLabel={(p) => p.name} model={() => state.plan} />
  * ```
+ *
+ * The model is a `string` either way — what a native radio group posts —
+ * so `items` needs only the KEY (the posted value, `itemKey`; defaults read
+ * `value` / `id` or the primitive), the label and the disabled flag; the
+ * `item` slot renders a custom label. Explicit children win entirely over
+ * `items`, as on Select.
  *
  * Arrow-key roving comes from the platform (same-name radios); the group id
  * comes from `createId`, never a module counter. Each radio binds the group's
@@ -14,8 +22,10 @@
  * matches and writes that value back, exactly as it would for a raw radio.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
-import type { Define } from 'sigx';
+import type { Define, JSXElement } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
+import { createCollection } from '../../behaviors/collection.js';
+import type { FactoryBrands, JsxProps } from '../../contract/generic.js';
 import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
@@ -54,23 +64,43 @@ export const useRadioGroupContext = defineInjectable<RadioGroupContext>(() => ma
 
 // ── Root ──
 
-export type RadioGroupRootProps =
+/** The props, generic over the item `T` (inferred from `items` by the exported root). */
+export type RadioGroupRootProps<T = unknown> =
     & Define.Model<string>
     & Define.Prop<'defaultValue', string, false>
     & Define.Event<'valueChange', string>
+    /** The data: one radio per item, in order. Explicit children win entirely. */
+    & Define.Prop<'items', ReadonlyArray<T>, false>
+    /** The posted value (the model's string). Default: `value` / `id`, or the primitive. */
+    & Define.Prop<'itemKey', (item: T) => string, false>
+    /** The label text. Default: `label`, or the key. */
+    & Define.Prop<'itemLabel', (item: T) => string, false>
+    /** Default: `disabled === true`. */
+    & Define.Prop<'itemDisabled', (item: T) => boolean, false>
+    /** A custom label for a generated item. */
+    & Define.Slot<'item', { item: T }>
     & WithFormControl
     & WithOrientation
     & WithVariantAxes<'radio-group'>
     & WithClass
     & Define.Slot<'default'>;
 
-const RadioGroupRoot = component<RadioGroupRootProps>(({ props, slots, emit }) => {
+const RadioGroupRootImpl = component<RadioGroupRootProps>(({ props, slots, emit }) => {
     const state = createControllableState<string>(
         () => props.model,
         props.defaultValue ?? '',
         (v) => emit('valueChange', v),
     );
     const fc = createFormControl({ props: () => props, idBase: 'zx-radio' });
+    // Data mode exactly when `items` is given and no children are — the
+    // accessors and their defaults are the collection's (Select's).
+    const items = (): ReadonlyArray<unknown> | undefined => (slots.default || props.items === undefined ? undefined : props.items);
+    const collection = createCollection<unknown, string>({
+        items: items() ? items : undefined,
+        itemKey: props.itemKey,
+        itemLabel: props.itemLabel,
+        itemDisabled: props.itemDisabled,
+    });
 
     const ctx: RadioGroupContext = {
         state,
@@ -89,6 +119,18 @@ const RadioGroupRoot = component<RadioGroupRootProps>(({ props, slots, emit }) =
 
     const orientation = (): Orientation => props.orientation ?? 'vertical';
 
+    const dataContent = (): JSXElement[] => collection.items().map((item) => {
+        const key = collection.keyOf(item);
+        // '' is the model's "nothing chosen": an item posting it could never
+        // be told from no selection.
+        if (key === '') throw new Error('[zero] RadioGroup: an item keyed "" cannot be selected — give it a non-empty itemKey');
+        return (
+            <RadioGroupItem value={key} disabled={collection.isItemDisabled(item)} key={key}>
+                {slots.item ? slots.item({ item }) : collection.labelOf(item)}
+            </RadioGroupItem>
+        );
+    });
+
     return () => (
         <div
             role="radiogroup"
@@ -103,10 +145,17 @@ const RadioGroupRoot = component<RadioGroupRootProps>(({ props, slots, emit }) =
             {...variantAttrs(props)}
             class={props.class}
         >
-            {slots.default?.()}
+            {slots.default ? slots.default() : items() ? dataContent() : null}
         </div>
     );
 }, { name: 'RadioGroup.Root' });
+
+/** The exported root: `T` infers from `items`; the model stays the posted string. */
+export type RadioGroupRoot = {
+    <T>(props: JsxProps<RadioGroupRootProps<T>>): JSXElement;
+} & FactoryBrands;
+
+const RadioGroupRoot = RadioGroupRootImpl as unknown as RadioGroupRoot;
 
 // ── Item ──
 

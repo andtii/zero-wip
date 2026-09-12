@@ -5,20 +5,23 @@ import { Toggle, ToggleGroup, toggleAnatomy, toggleGroupAnatomy, type PartProps 
 import { expectAnatomy } from './helpers';
 
 function mountGroup(container: HTMLElement, extra: {
-    defaultValue?: string[];
+    defaultValue?: string | string[];
     multiple?: boolean;
     deselectable?: boolean;
 } = {}) {
-    render(
-        <ToggleGroup.Root
-            defaultValue={extra.defaultValue ?? []}
-            multiple={extra.multiple}
-            deselectable={extra.deselectable}
-        >
+    const items = (
+        <>
             <ToggleGroup.Item value="left">Left</ToggleGroup.Item>
             <ToggleGroup.Item value="center">Center</ToggleGroup.Item>
             <ToggleGroup.Item value="right" disabled>Right</ToggleGroup.Item>
-        </ToggleGroup.Root>,
+        </>
+    );
+    // The shape follows `multiple` (a string, or a string[]) — the two
+    // overloads are spelled out so the test compiles against the real root.
+    render(
+        extra.multiple
+            ? <ToggleGroup.Root multiple defaultValue={extra.defaultValue as string[] | undefined} deselectable={extra.deselectable}>{items}</ToggleGroup.Root>
+            : <ToggleGroup.Root defaultValue={extra.defaultValue as string | undefined} deselectable={extra.deselectable}>{items}</ToggleGroup.Root>,
         container,
     );
 }
@@ -193,7 +196,7 @@ describe('ToggleGroup', () => {
     });
 
     it('single mode replaces the selection', () => {
-        mountGroup(container, { defaultValue: ['left'] });
+        mountGroup(container, { defaultValue: 'left' });
         const [left, center] = items(container);
         center!.click();
         expect(center!.getAttribute('data-state')).toBe('on');
@@ -201,14 +204,14 @@ describe('ToggleGroup', () => {
     });
 
     it('single mode deselects the on item by default', () => {
-        mountGroup(container, { defaultValue: ['left'] });
+        mountGroup(container, { defaultValue: 'left' });
         const [left] = items(container);
         left!.click();
         expect(left!.getAttribute('data-state')).toBe('off');
     });
 
     it('deselectable=false keeps the on item on', () => {
-        mountGroup(container, { defaultValue: ['left'], deselectable: false });
+        mountGroup(container, { defaultValue: 'left', deselectable: false });
         const [left] = items(container);
         left!.click();
         expect(left!.getAttribute('data-state')).toBe('on');
@@ -270,7 +273,27 @@ describe('ToggleGroup', () => {
         expect(document.activeElement).toBe(all[0]);
     });
 
-    it('two-way model binding with string[]', () => {
+    it('single mode: the model is the pressed value as a string, \'\' when none', () => {
+        const state = signal({ align: 'left' });
+        render(
+            <ToggleGroup.Root model={[state, 'align']}>
+                <ToggleGroup.Item value="left">L</ToggleGroup.Item>
+                <ToggleGroup.Item value="right">R</ToggleGroup.Item>
+            </ToggleGroup.Root>,
+            container,
+        );
+        const all = items(container);
+        expect(all[0]!.getAttribute('data-state')).toBe('on');
+        all[1]!.click();
+        expect(state.align).toBe('right');
+        all[1]!.click();
+        expect(state.align).toBe('');
+        expect([...all].every((i) => i.getAttribute('data-state') === 'off')).toBe(true);
+        state.align = 'left';
+        expect(all[0]!.getAttribute('data-state')).toBe('on');
+    });
+
+    it('two-way model binding with string[] under multiple', () => {
         const state = signal({ marks: [] as string[] });
         render(
             <ToggleGroup.Root multiple model={[state, 'marks']}>
@@ -312,7 +335,7 @@ describe('ToggleGroup', () => {
 
     it('asChild renders the caller element with the spread bag', () => {
         render(
-            <ToggleGroup.Root defaultValue={['a']}>
+            <ToggleGroup.Root defaultValue="a">
                 <ToggleGroup.Item value="a" asChild>
                     {(p: PartProps) => <span {...p}>A</span>}
                 </ToggleGroup.Item>

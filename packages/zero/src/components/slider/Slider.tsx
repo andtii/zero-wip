@@ -44,6 +44,7 @@
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
+import { derivedModel } from '../../behaviors/derived-model.js';
 import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
@@ -67,6 +68,12 @@ interface SliderContext {
     state: ControllableState<number | number[]>;
     /** The model, normalized to an array (a scalar model is `[value]`). */
     values(): number[];
+    /**
+     * The first value as a Model — what the native range binds (the binding
+     * law): reads `values()[0]`, writes through `setValueAt(0, …)` so the
+     * quantizing and clamping hold for a platform write too.
+     */
+    scalar: ControllableState<number>;
     /**
      * Write one value: quantized to `step`, clamped to `[min, max]` AND at
      * the neighboring thumbs (thumbs cannot cross). Emission preserves the
@@ -102,6 +109,7 @@ function makeInert(): SliderContext {
     return {
         state: createInertState<number | number[]>(0),
         values: () => [0],
+        scalar: createInertState<number>(0),
         setValueAt: () => {},
         min: () => 0,
         max: () => 100,
@@ -241,6 +249,7 @@ const SliderRoot = component<SliderRootProps>(({ props, slots, emit, signal, onM
     const ctx: SliderContext = {
         state,
         values,
+        scalar: derivedModel<number>(() => values()[0]!, (v) => setValueAt(0, v)),
         setValueAt,
         min,
         max,
@@ -393,16 +402,16 @@ const SliderControl = component<SliderControlProps>(({ props, onMounted, onUnmou
             min={slider.min()}
             max={slider.max()}
             step={slider.step()}
-            value={slider.values()[0]}
+            model={slider.scalar}
+            // The range reports a string; the number transform hands the
+            // scalar model a number (the processor owns `value` itself).
+            modelModifiers={{ number: true }}
             disabled={slider.disabled()}
             name={slider.name()}
             form={slider.form()}
             aria-invalid={slider.invalid() ? 'true' : undefined}
             class={props.class}
             ref={(node: HTMLInputElement | null) => { el = node; }}
-            onInput={(e: Event) => {
-                slider.setValueAt(0, (e.target as HTMLInputElement).valueAsNumber);
-            }}
             onPointerdown={press.onPointerdown}
             onPointerup={press.onPointerup}
             onPointercancel={press.onPointercancel}

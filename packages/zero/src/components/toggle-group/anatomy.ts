@@ -27,6 +27,6 @@ export const toggleGroupAnatomy = defineAnatomy('toggle-group', {
 }, {
     orientation: true,
     models: [
-        { concept: 'value', type: 'string[]' },
+        { concept: 'value', type: 'string', multiple: true },
     ],
 });

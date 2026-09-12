@@ -225,12 +225,17 @@ component renders; the root is called out separately where it carries props.
   supports `indeterminate`. A `string[]` model is sigx's array mode: boxes
   sharing it toggle their own `value`'s membership; `checkedChange` reports
   THIS box's boolean.
-- RadioGroup: Root(model=value)/Label/Item/ItemControl/ItemIndicator/
-  ItemLabel/HiddenInput; orientation.
+- RadioGroup: Root(model=value, items, itemKey, itemLabel, itemDisabled, slot
+  item)/Label/Item/ItemControl/ItemIndicator/ItemLabel/HiddenInput;
+  orientation. `items` renders one radio per item (explicit children win
+  entirely); the model stays the STRING a native radio group posts, so
+  itemKey IS the posted value (defaults: value / id / the primitive).
 - Slider: Root(model=number|number[], min, max, step, name, invalid, marks,
   getValueText)/Label/Control/Track/Range/Thumb/Mark/ValueText/HiddenInput.
   Two projections over one anatomy. Scalar model: render Slider.Control — a
-  native <input type=range>, single thumb, platform keyboard/forms/a11y.
+  native <input type=range> bound with model= to the first value (a derived
+  Model whose write quantizes and clamps), single thumb, platform
+  keyboard/forms/a11y.
   Range model (number[]): compose the real parts — Slider.Track wrapping
   Slider.Range and one Slider.Thumb(label, index?) per value, in order.
   Each thumb is an APG role=slider tab stop: arrows/PageUp/PageDown step
@@ -501,7 +506,9 @@ component renders; the root is called out separately where it carries props.
 - NumberInput: Root(model=number|null, defaultValue: number|null, min, max, step, allowWheel,
   clampOnBlur, format, parse, name)/Label/Control/Input/IncrementTrigger/
   DecrementTrigger/HiddenInput. APG spinbutton on a real text input
-  (inputmode=decimal): typing is an UNCOMMITTED draft, committed on
+  (inputmode=decimal): the input binds the DRAFT with model= (a derived
+  Model: reads the display text, writes the draft); typing is an
+  UNCOMMITTED draft, committed on
   blur/Enter (parse → clamp → step-snap anchored at min); stepping commits
   immediately (arrows ±step, PageUp/Down ±10 steps, Home/End → min/max,
   triggers hold-to-repeat, wheel only when allowWheel AND focused).
@@ -545,11 +552,12 @@ component renders; the root is called out separately where it carries props.
   two-state <button> (aria-pressed, data-state on|off; `label` →
   aria-label for icon-only toggles). A mode you flip, not a form value
   (Switch keeps the form case). No hidden input.
-- ToggleGroup: Root(model=string[], multiple, deselectable, loop, label,
-  orientation)/Item(value, asChild). role=group of aria-pressed buttons
-  (`label` names the group);
-  model is ALWAYS string[] — `multiple` changes the setter (append vs
-  replace), not the shape. Single mode deselects on re-click unless
+- ToggleGroup: Root(model=string | string[], multiple, deselectable, loop,
+  label, orientation)/Item(value, asChild). role=group of aria-pressed
+  buttons (`label` names the group); the model FOLLOWS `multiple` (Select's
+  rule): single mode holds the pressed value as a string ('' = none),
+  `multiple` holds string[] — typed through overloads, so a string signal
+  never binds a multiple group. Single mode deselects on re-click unless
   deselectable=false. Arrow keys rove focus (orientation- and RTL-aware,
   one tab stop: first enabled on item, else first enabled) WITHOUT changing
   selection; click/Space/Enter toggle. Item mirrors toggle's on|off and

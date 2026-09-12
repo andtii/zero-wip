@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
-    createAnchorPosition, createControllableState, createInertState, createListController, createRovingKeydown,
+    createAnchorPosition, createControllableState, createInertState, createListController, createRovingKeydown, derivedModel,
     fixedPositionStrategy, focusFirst, getTabbables, moveHighlight, pointAnchor, timingModifiers,
 } from '@sigx/zero';
 import type { ListItem, PositionAnchor } from '@sigx/zero';
@@ -37,6 +37,24 @@ describe('createControllableState', () => {
 
         backing.open = false;
         expect(state.value).toBe(false);
+    });
+});
+
+describe('the binding law: derivedModel is a Model over a read/write pair', () => {
+    it('reads through read, writes through write on both of sigx\'s routes', () => {
+        let backing = 10;
+        const writes: number[] = [];
+        const m = derivedModel<number>(() => backing, (v) => { writes.push(v); backing = Math.min(v, 100); });
+        expect(isModel(m)).toBe(true);
+        expect(m.value).toBe(10);
+        // The handler route (a component boundary) …
+        m.value = 150;
+        expect(backing).toBe(100);
+        // … and the processor's direct tuple write (an intrinsic element).
+        const [obj, key] = m.binding;
+        (obj as Record<string, number>)[key] = 42;
+        expect(backing).toBe(42);
+        expect(writes).toEqual([150, 42]);
     });
 });
 

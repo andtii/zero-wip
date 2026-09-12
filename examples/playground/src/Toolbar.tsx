@@ -16,8 +16,8 @@ import {
 } from './design-systems';
 
 /**
- * A `string[]` model over a single-valued source — ToggleGroup's model is
- * always an array, in both selection modes.
+ * A `string` model over a single-valued source — ToggleGroup's single-mode
+ * model is the pressed value, `''` when none (#455).
  *
  * Bound as a tuple (`model={[m, 'value']}`) rather than the `() => state.x`
  * sugar because neither selection the toolbar renders lives in a signal shaped
@@ -29,22 +29,17 @@ import {
  * `null` means "nothing selected" — the theme row's honest state while
  * following the system.
  */
-const singleSelection = (read: () => string | null, write: (value: string) => void): { value: string[] } => ({
-    get value(): string[] {
-        const current = read();
-        return current === null ? [] : [current];
+const singleSelection = (read: () => string | null, write: (value: string) => void): { value: string } => ({
+    get value(): string {
+        return read() ?? '';
     },
-    set value(next: string[]) {
-        // Empty is meaningful on the way OUT — the getter answers `[]` for "no
+    set value(next: string) {
+        // Empty is meaningful on the way OUT — the getter answers `''` for "no
         // selection", which is the Theme row's honest state while following the
         // system — but there is nothing to write for it, and `write` takes a
-        // name. ToggleGroup in single mode only ever sends `[value]` (turning
-        // an off item on), and with `deselectable={false}` sends nothing at all
-        // when the on item is re-clicked, so `[]` does not arrive here today;
-        // the guard keeps a caller that does send it a no-op rather than
-        // `write(undefined)`.
-        const [value] = next;
-        if (value !== undefined) write(value);
+        // name. With `deselectable={false}` the group never sends `''`; the
+        // guard keeps a caller that does a no-op rather than `write('')`.
+        if (next !== '') write(next);
     },
 });
 

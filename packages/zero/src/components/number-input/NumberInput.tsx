@@ -28,6 +28,7 @@
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
 import type { Define } from 'sigx';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
+import { derivedModel } from '../../behaviors/derived-model.js';
 import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
@@ -46,6 +47,12 @@ interface NumberInputContext {
     state: ControllableState<number | null>;
     /** Uncommitted text while typing; null = mirror the model. */
     draft: { current: string | null };
+    /**
+     * The text the input binds (the binding law): reads the display value
+     * (the draft while typing, the formatted model otherwise) and writes the
+     * draft — the model is not touched until `commit()`.
+     */
+    text: ControllableState<string>;
     inputId(): string;
     disabled(): boolean;
     invalid(): boolean;
@@ -72,6 +79,7 @@ function makeInert(): NumberInputContext {
     return {
         state: createInertState<number | null>(null),
         draft: { current: null },
+        text: createInertState<string>(''),
         inputId: () => 'zx-number-inert',
         disabled: () => false,
         invalid: () => false,
@@ -210,9 +218,16 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
         return true;
     };
 
+    const displayValue = (): string => {
+        if (draft.current !== null) return draft.current;
+        const v = state.value;
+        return v == null ? '' : format(v);
+    };
+
     const ctx: NumberInputContext = {
         state,
         draft,
+        text: derivedModel<string>(displayValue, (v) => { draft.current = v; }),
         inputId: fc.controlId,
         disabled,
         invalid,
@@ -222,11 +237,7 @@ const NumberInputRoot = component<NumberInputRootProps>(({ props, slots, emit, s
         max: () => props.max,
         step,
         allowWheel: () => props.allowWheel ?? false,
-        displayValue: () => {
-            if (draft.current !== null) return draft.current;
-            const v = state.value;
-            return v == null ? '' : format(v);
-        },
+        displayValue,
         describedBy: fc.describedBy,
         labelId: fc.labelId,
         focusVisible,
@@ -380,7 +391,7 @@ const NumberInputInput = component<NumberInputInputProps>(({ props }) => {
             data-required={dataAttr(ctx.required())}
             data-readonly={dataAttr(ctx.readonly())}
             data-focus-visible={dataAttr(ctx.focusVisible.value)}
-            value={ctx.displayValue()}
+            model={ctx.text}
             placeholder={props.placeholder}
             disabled={ctx.disabled()}
             readOnly={ctx.readonly()}
@@ -400,9 +411,6 @@ const NumberInputInput = component<NumberInputInputProps>(({ props }) => {
             ref={(node: HTMLInputElement | null) => {
                 el = node;
                 ctx.setInput(node);
-            }}
-            onInput={(e: Event) => {
-                ctx.draft.current = (e.target as HTMLInputElement).value;
             }}
             onKeydown={(e: KeyboardEvent) => ctx.inputKeydown(e)}
             onWheel={(e: WheelEvent) => {
