@@ -37,7 +37,11 @@ export function buildAuditContext(
 ): AuditContext {
     const components = new Map(manifest.components.map((c) => [c.scope, c]));
     const recipes = new Map<string, RecipeInput>();
-    // First recipe per scope wins, matching `compileDesignSystem`'s `find`.
+    // First recipe per scope wins here. `compileDesignSystem` never faces the
+    // question — it THROWS on a duplicate (`design-system.ts`) — so this map
+    // is defensive rather than a mirror of it. Ecosystem composition is what
+    // keeps a duplicate from reaching either: a discovered recipe for a scope
+    // the design system already styles is dropped before the build sees it.
     for (const recipe of ds.recipes) {
         if (!recipes.has(recipe.component)) recipes.set(recipe.component, recipe);
     }

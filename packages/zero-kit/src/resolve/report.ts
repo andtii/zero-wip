@@ -227,6 +227,13 @@ export interface DesignSystemReport {
     lynx?: {
         translated: { where: string; what: string; detail: string }[];
         dropped: { where: string; what: string; detail: string }[];
+        /**
+         * Ecosystem scopes excluded from the lynx target because their pack's
+         * recipe references a web-runtime mechanism the emitter refuses.
+         * Present only when a discovered pack hit that: a first-party recipe
+         * in the same position fails the build instead.
+         */
+        webOnly?: { scope: string; package: string; reason: string }[];
     };
     coverage: {
         componentsStyled: number;

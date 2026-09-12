@@ -28,6 +28,7 @@ export { AUDIT_SCHEMA_URL, auditDesignSystem, buildAuditArtifact, formatAudit } 
 export { ECOSYSTEM_ENV, ECOSYSTEM_FIELD, declarationFor, discoverEcosystem, nearestPackageDir, packFromModule, resolveEcosystem, satisfiesKitRange, selectDependencies } from './discover.js';
 export type { EcosystemDeclaration, EcosystemLogger, EcosystemOptions, EcosystemPack, ResolvedEcosystem, ResolveEcosystemInput } from './discover.js';
 export type { AuditArtifact, AuditFinding, AuditOptions, AuditResult, AuditRuleId } from './audit/index.js';
+import type { EcosystemPack } from './discover.js';
 import type { CompiledLynxTarget } from './targets/lynx/compile.js';
 import { compileDesignSystemLynx, writeLynxArtifacts } from './targets/lynx/compile.js';
 
@@ -109,7 +110,7 @@ export interface StandardBuildResult {
  * what fails a build script and the CLI alike.
  */
 export async function runStandardBuild(options: StandardBuildOptions): Promise<StandardBuildResult> {
-    const { designSystem: ds, fragments = [], outDir, targets = ['web'] } = options;
+    const { designSystem: authored, fragments = [], outDir, targets = ['web'] } = options;
     const logger = options.logger ?? console;
 
     // Unknown names are misconfiguration, not future-proofing — fail before
@@ -133,9 +134,11 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
     // Discovery runs after the explicit fragments so a hand-passed one wins a
     // scope collision, and through the same helper the CLI's validate/audit
     // path uses — one derivation of "which components exist here".
-    const { manifest } = await resolveEcosystem({
+    // The resolved design system carries every adopted pack's recipes, fitted
+    // to this vocabulary; `authored` is what the package itself wrote.
+    const { manifest, designSystem: ds, packs } = await resolveEcosystem({
         manifest: explicit,
-        designSystem: ds,
+        designSystem: authored,
         ecosystem: options.ecosystem,
         defaultCwd: outDir,
         logger,
@@ -178,8 +181,23 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
     // before anything lands on disk — same all-or-nothing rule validation has.
     let lynx: CompiledLynxTarget | undefined;
     if (targets.includes('lynx')) {
-        lynx = compileDesignSystemLynx(ds, manifest);
-        report.lynx = { translated: lynx.report.translated, dropped: lynx.report.dropped };
+        // A DISCOVERED pack's recipe that the lynx emitter rejects — a
+        // reference to `var(--press-x)` and friends, properties zero itself
+        // publishes for web press feedback — would otherwise fail a build the
+        // design system's author did not cause, over a recipe they did not
+        // write. Drop that scope from the lynx target instead: a scope with no
+        // lynx CSS is the documented unstyled-but-accessible fallback, while a
+        // failed build is nothing. First-party recipes keep throwing.
+        const webOnly = lynxIncapable(ds, manifest, packs, logger);
+        const lynxDs = webOnly.length > 0
+            ? { ...ds, recipes: ds.recipes.filter((r) => !webOnly.some((w) => w.scope === r.component)) }
+            : ds;
+        lynx = compileDesignSystemLynx(lynxDs, manifest);
+        report.lynx = {
+            translated: lynx.report.translated,
+            dropped: lynx.report.dropped,
+            ...(webOnly.length > 0 ? { webOnly } : {}),
+        };
         if (lynx.report.dropped.length > 0) {
             logger.warn(
                 `[${ds.name}] lynx target: ${lynx.report.dropped.length} declaration(s) dropped `
@@ -194,4 +212,40 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
     }
     logger.log(`[${ds.name}] built ${written.length} artifacts`);
     return { result, written };
+}
+
+/**
+ * Which discovered pack scopes the lynx emitter refuses, compiled one recipe
+ * at a time so the rejection can be attributed. Only pack recipes are probed:
+ * a first-party recipe that cannot cross to lynx is the design system author's
+ * own bug, and must keep failing the build.
+ */
+function lynxIncapable(
+    ds: DesignSystemInput,
+    manifest: Pick<ZeroManifest, 'components'>,
+    packs: readonly EcosystemPack[],
+    logger: StandardBuildLogger,
+): { scope: string; package: string; reason: string }[] {
+    const owner = new Map<string, string>();
+    for (const pack of packs) {
+        for (const component of pack.fragment.components) owner.set(component.scope, pack.package);
+    }
+    if (owner.size === 0) return [];
+
+    const webOnly: { scope: string; package: string; reason: string }[] = [];
+    for (const recipe of ds.recipes) {
+        const from = owner.get(recipe.component);
+        if (!from) continue;
+        try {
+            compileDesignSystemLynx({ ...ds, recipes: [recipe] }, manifest);
+        } catch (err) {
+            const reason = err instanceof Error ? err.message : String(err);
+            webOnly.push({ scope: recipe.component, package: from, reason });
+            logger.error(
+                `[${ds.name}] ecosystem: ${from}'s "${recipe.component}" is web-only — `
+                + `excluded from the lynx target (${reason})`,
+            );
+        }
+    }
+    return webOnly;
 }

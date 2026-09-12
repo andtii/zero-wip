@@ -37,6 +37,8 @@ import type { DesignSystemInput } from './design-system.js';
 import type { ManifestFragment } from './manifest.js';
 import { mergeManifests } from './manifest.js';
 import type { RecipeInput } from './recipes.js';
+import type { FitReport } from './fit.js';
+import { explainFit, fitRecipesToVocabulary } from './fit.js';
 
 const require = createRequire(import.meta.url);
 
@@ -472,6 +474,23 @@ export async function discoverEcosystem(
     return packs;
 }
 
+/** The non-zero counts of a fit, as one readable clause. */
+function fitSummary(report: FitReport): string {
+    const parts: string[] = [];
+    const say = (n: number, what: string) => { if (n > 0) parts.push(`${n} ${what}`); };
+    say(report.droppedColorValues, 'colour value(s)');
+    say(report.droppedSizeValues, 'size value(s)');
+    say(report.droppedVariantValues, 'variant value(s)');
+    say(report.droppedAxisValues, 'axis value(s)');
+    say(report.droppedVariantBlocks, 'variant block(s)');
+    say(report.droppedModifiers, 'modifier(s)');
+    say(report.droppedDefaults, 'default(s)');
+    say(report.droppedCompounds, 'compound(s)');
+    say(report.rewrittenRoleRefs, 'role reference(s) rewritten');
+    say(report.collapsedCategoryRefs, 'scale reference(s) collapsed');
+    return parts.join(', ');
+}
+
 export interface ResolveEcosystemInput<M extends Pick<ZeroManifest, 'components'>> {
     manifest: M;
     designSystem: DesignSystemInput;
@@ -537,5 +556,73 @@ export async function resolveEcosystem<M extends Pick<ZeroManifest, 'components'
         const scopes = pack.fragment.components.length;
         logger.log(`[${label}] ecosystem: ${pack.package} — ${scopes} scope(s)`);
     }
-    return { manifest: merged, designSystem, packs: adopted };
+    return { manifest: merged, designSystem: compose(designSystem, adopted, label, logger, options), packs: adopted };
+}
+
+/**
+ * Fold every adopted pack's recipes into the design system.
+ *
+ * **Precedence is de-dup, not ordering.** `compileDesignSystem` throws on a
+ * second recipe for one scope, in either order, so "spread the pack's first
+ * and let the design system's win" cannot work — it fails the build with a
+ * message naming neither package. A discovered recipe for a scope the design
+ * system already styles is dropped instead, and the log says who lost.
+ *
+ * With that explicit, the order is free, and appending is the cheap choice:
+ * recipe order is the key order of `compiled.components`, which flows into
+ * `dist/manifest.json`, `register.d.ts` and `report.json`. Prepending would
+ * churn all three (and `examples/typed-app`'s byte-stability) for no cascade
+ * benefit, since selectors for different scopes cannot collide.
+ */
+function compose(
+    ds: DesignSystemInput,
+    packs: readonly EcosystemPack[],
+    label: string,
+    logger: EcosystemLogger,
+    options: EcosystemOptions,
+): DesignSystemInput {
+    const styled = new Set(ds.recipes.map((r) => r.component));
+    const added: RecipeInput[] = [];
+
+    for (const pack of packs) {
+        if (pack.recipes.length === 0) continue;
+
+        // A pack styles the components it declares, and no others. Shipping a
+        // recipe for someone else's scope would let an installed dependency
+        // restyle the design system's own button — a different product from
+        // the one this protocol is for.
+        const owned = new Set(pack.fragment.components.map((c) => c.scope));
+        const foreign = pack.recipes.filter((r) => !owned.has(r.component));
+        if (foreign.length > 0) {
+            const err = new Error(
+                `[zero-kit] ${pack.package} ships recipes for scopes it does not declare `
+                + `(${foreign.map((r) => `"${r.component}"`).join(', ')}) — a pack may only style its own components`,
+            );
+            if (options.strict) throw err;
+            logger.error(err.message);
+            continue;
+        }
+
+        // Fitted to whatever vocabulary this skin actually has: a pack written
+        // against the recommended grammar still compiles under a design system
+        // with no colour axis, a fused variant or its own size ramp.
+        const fitted = fitRecipesToVocabulary(pack.recipes as RecipeInput[], ds.tokens);
+        const report = explainFit(pack.recipes as RecipeInput[], ds.tokens);
+        if (!report.identity) {
+            logger.log(`[${label}] ecosystem: ${pack.package} fitted to ${label}'s vocabulary — ${fitSummary(report)}`);
+        }
+
+        for (const recipe of fitted) {
+            if (styled.has(recipe.component)) {
+                logger.log(
+                    `[${label}] ecosystem: ${pack.package}'s recipe for "${recipe.component}" skipped — already styled here`,
+                );
+                continue;
+            }
+            styled.add(recipe.component);
+            added.push(recipe);
+        }
+    }
+
+    return added.length > 0 ? { ...ds, recipes: [...ds.recipes, ...added] } : ds;
 }
