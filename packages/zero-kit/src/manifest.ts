@@ -55,6 +55,8 @@ export const FRAGMENT_VERSION = 1;
 const MODEL_CONCEPT_PATTERN = /^[a-z][A-Za-z0-9]*$/;
 /** A compound member: PascalCase (`CheckboxItem`). */
 const MODEL_MEMBER_PATTERN = /^[A-Z][A-Za-z0-9]*$/;
+/** The closed key set of a model entry (the schema's `$defs/model`). */
+const MODEL_KEYS = new Set(['name', 'concept', 'type', 'member', 'multiple', 'formControl', 'default', 'change']);
 
 export interface ManifestFragment {
     /**
@@ -225,6 +227,11 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                     // manifest never fails validation downstream.
                     if (model.member !== undefined && (typeof model.member !== 'string' || !MODEL_MEMBER_PATTERN.test(model.member))) {
                         throw new Error(`[zero-kit] ${label}: "member" is a PascalCase compound member (CheckboxItem), or omitted for Root`);
+                    }
+                    for (const key of Object.keys(model)) {
+                        if (!MODEL_KEYS.has(key)) {
+                            throw new Error(`[zero-kit] ${label}: unknown key "${key}" — a model entry is closed to [${[...MODEL_KEYS].join(', ')}]`);
+                        }
                     }
                     for (const flag of ['multiple', 'formControl'] as const) {
                         if (model[flag] !== undefined && model[flag] !== true) {

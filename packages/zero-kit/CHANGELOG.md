@@ -13,7 +13,7 @@
   a camelCase concept, a non-empty type), failing by name.
   It holds the block to the schema's shape as well (#453): no empty
   `models`, a camelCase `name`, a PascalCase `member`, and `multiple` /
-  `formControl` presence-only `true` — so a merged manifest never fails
+  `formControl` presence-only `true`, no unknown key — so a merged manifest never fails
   validation downstream.
 
 ### Fixed

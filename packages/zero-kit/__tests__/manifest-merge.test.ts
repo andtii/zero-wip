@@ -213,6 +213,8 @@ describe('mergeManifests', () => {
         expect(() => mergeManifests(baseManifest(), withModels([{ ...ok, member: 'checkbox-item' }]))).toThrow(/"member" is a PascalCase compound member/);
         expect(() => mergeManifests(baseManifest(), withModels([{ ...ok, multiple: false }]))).toThrow(/"multiple" is presence-only/);
         expect(() => mergeManifests(baseManifest(), withModels([{ ...ok, formControl: 'yes' }]))).toThrow(/"formControl" is presence-only/);
+        // The entry is closed, as the schema's $defs/model is.
+        expect(() => mergeManifests(baseManifest(), withModels([{ ...ok, event: 'stepChange' }]))).toThrow(/unknown key "event"/);
         expect(() => mergeManifests(baseManifest(), withModels([{ ...ok, member: 'Track', multiple: true, formControl: true }]))).not.toThrow();
     });
 
