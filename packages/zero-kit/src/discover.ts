@@ -616,7 +616,7 @@ function compose(
         // Fitted to whatever vocabulary this skin actually has: a pack written
         // against the recommended grammar still compiles under a design system
         // with no colour axis, a fused variant or its own size ramp.
-        const { recipes: fitted, report } = fitRecipes(pack.recipes as RecipeInput[], ds.tokens);
+        const { recipes: fitted, report } = fitRecipes(pack.recipes, ds.tokens);
         if (!report.identity) {
             logger.log(`[${label}] ecosystem: ${pack.package} fitted to ${label}'s vocabulary — ${fitSummary(report)}`);
         }

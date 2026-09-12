@@ -189,8 +189,9 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
         // lynx CSS is the documented unstyled-but-accessible fallback, while a
         // failed build is nothing. First-party recipes keep throwing.
         const webOnly = lynxIncapable(ds, manifest, contributed, logger);
-        const lynxDs = webOnly.length > 0
-            ? { ...ds, recipes: ds.recipes.filter((r) => !webOnly.some((w) => w.scope === r.component)) }
+        const excluded = new Set(webOnly.map((w) => w.scope));
+        const lynxDs = excluded.size > 0
+            ? { ...ds, recipes: ds.recipes.filter((r) => !excluded.has(r.component)) }
             : ds;
         lynx = compileDesignSystemLynx(lynxDs, manifest);
         report.lynx = {
