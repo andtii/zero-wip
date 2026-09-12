@@ -1,0 +1,465 @@
+/**
+ * Ecosystem-component discovery — the `"sigx-zero"` package.json field.
+ *
+ * A component package that zero doesn't ship (see
+ * `docs/building-your-own-component.md`) publishes a data-only entry
+ * exporting a manifest `fragment` and, usually, a `recipes` pack. Adopting it
+ * used to mean hand-editing a design system's `build.mjs`. Here the design
+ * system's own dependency graph is the declaration instead: a package says
+ *
+ * ```json
+ * "sigx-zero": { "fragment": "./dist/fragment.js", "requires": ">=0.2.0" }
+ * ```
+ *
+ * and every zero build finds it. The shape deliberately mirrors the
+ * `"sigx-cli"` plugin field the sigx CLI already discovers this way.
+ *
+ * **Why `fragment` is a package-relative path and not an exports subpath.**
+ * All three tidier-looking resolutions are dead ends. `require.resolve(
+ * '<pkg>/package.json')` throws ERR_PACKAGE_PATH_NOT_EXPORTED, because an
+ * ecosystem package's exports map declares `.` and `./fragment` and nothing
+ * else. `require.resolve('<pkg>/fragment')` fails too: that subpath declares
+ * only `types` and `import`, and the CJS resolver asks for `require`. And
+ * `import.meta.resolve` resolves against *this* module, which under pnpm's
+ * isolated store cannot see the consuming project's dependency graph at all.
+ * So the field carries a path, and the loader joins it — exactly like
+ * `"sigx-cli".plugin`, and with the same paranoia `mergeManifests` already
+ * applies to fragment content applied to the path itself.
+ *
+ * Node-only. Nothing in a browser graph imports this.
+ */
+import { existsSync, readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { dirname, isAbsolute, join, resolve, sep } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import type { ZeroManifest } from './contract.js';
+import type { DesignSystemInput } from './design-system.js';
+import type { ManifestFragment } from './manifest.js';
+import { mergeManifests } from './manifest.js';
+import type { RecipeInput } from './recipes.js';
+
+const require = createRequire(import.meta.url);
+
+/** The package.json field an ecosystem component package declares. */
+export const ECOSYSTEM_FIELD = 'sigx-zero';
+
+/**
+ * Set `ZERO_ECOSYSTEM=0` to turn discovery off for one run — the escape hatch
+ * when bisecting a build, without editing six build scripts.
+ */
+export const ECOSYSTEM_ENV = 'ZERO_ECOSYSTEM';
+
+/** The logging surface discovery reports through (`console` satisfies it). */
+export interface EcosystemLogger {
+    log(message: string): void;
+    warn(message: string): void;
+    error(message: string): void;
+}
+
+/**
+ * A dependency that declares the field, located and validated but not yet
+ * loaded. The walk stops here so it can be tested against real directory
+ * trees: `loadDesignSystem` already records that a dynamic `import()` of a
+ * file written outside the project cannot run under vite's module runner, so
+ * the filesystem half and the module half are separate functions rather than
+ * one untestable block.
+ */
+export interface EcosystemDeclaration {
+    /** The dependency name the field was found under. */
+    package: string;
+    /** Absolute path of the installed package. */
+    dir: string;
+    /** Absolute path of the fragment module to import. */
+    source: string;
+}
+
+/** One discovered ecosystem component package. */
+export interface EcosystemPack {
+    /** The npm specifier that owns the fragment's scopes. */
+    package: string;
+    /** Absolute path of the fragment module that was loaded. */
+    source: string;
+    fragment: ManifestFragment;
+    /**
+     * The pack's default recipes, written against the recommended token
+     * grammar. Loaded here; composed into the design system by the caller.
+     */
+    recipes: readonly RecipeInput[];
+}
+
+export interface EcosystemOptions {
+    /**
+     * The project whose dependencies are searched. Defaults to the package
+     * that owns the build's `outDir` — never `process.cwd()`, which would
+     * make `node packages/zero-basic/build.mjs` from a repo root discover the
+     * root's dependencies instead of the design system's.
+     */
+    cwd?: string;
+    /**
+     * Adopt *only* these packages. This is a mode, not a filter: passing it
+     * alongside `exclude` is an error rather than a composition, and a name
+     * in either list that is not a dependency is an error too — a typo'd
+     * exclusion that silently does nothing is how "we disabled that pack"
+     * survives as a belief.
+     */
+    include?: readonly string[];
+    /** Adopt everything except these. */
+    exclude?: readonly string[];
+    /**
+     * Fail the build on a pack that cannot be loaded or merged, instead of
+     * skipping it with an error-level log. Off by default: one stale
+     * transitive dependency should not be able to stop a design system from
+     * building the 51 components it owns.
+     */
+    strict?: boolean;
+    /** Supply packs directly and skip the filesystem walk (tests, tooling). */
+    packs?: readonly EcosystemPack[];
+}
+
+/** The `"sigx-zero"` field's shape. */
+interface EcosystemField {
+    fragment: string;
+    requires?: string;
+}
+
+interface Version {
+    major: number;
+    minor: number;
+    patch: number;
+}
+
+function parseVersion(value: string): Version | null {
+    const m = /^v?(\d+)\.(\d+)\.(\d+)/.exec(value.trim());
+    return m ? { major: Number(m[1]), minor: Number(m[2]), patch: Number(m[3]) } : null;
+}
+
+function compareVersions(a: Version, b: Version): number {
+    return a.major - b.major || a.minor - b.minor || a.patch - b.patch;
+}
+
+/**
+ * Minimal range check covering the forms this field actually carries —
+ * `^x.y.z` (0.x caret = same minor, as npm reads it), `>=x.y.z`, and exact —
+ * matching what the sigx CLI applies to `"sigx-cli".requires`. A range it
+ * cannot parse is satisfied: a malformed field must never block a build.
+ */
+function satisfies(version: string, range: string): boolean {
+    const v = parseVersion(version);
+    if (!v) return true;
+    const r = range.trim();
+    if (r.startsWith('^')) {
+        const want = parseVersion(r.slice(1));
+        if (!want) return true;
+        if (compareVersions(v, want) < 0) return false;
+        if (v.major !== want.major) return false;
+        if (want.major === 0 && v.minor !== want.minor) return false;
+        return true;
+    }
+    if (r.startsWith('>=')) {
+        const want = parseVersion(r.slice(2));
+        return !want || compareVersions(v, want) >= 0;
+    }
+    const want = parseVersion(r);
+    return !want || compareVersions(v, want) === 0;
+}
+
+/** This kit's own version — lockstep with the zero contract it speaks. */
+function kitVersion(): string | undefined {
+    try {
+        return (require('../package.json') as { version?: string }).version;
+    } catch {
+        return undefined;
+    }
+}
+
+function readJsonFile(path: string, what: string): Record<string, unknown> {
+    let source: string;
+    try {
+        source = readFileSync(path, 'utf8');
+    } catch {
+        throw new Error(`[zero-kit] cannot read ${what} at ${path}`);
+    }
+    try {
+        return JSON.parse(source) as Record<string, unknown>;
+    } catch (err) {
+        throw new Error(`[zero-kit] ${what} at ${path} is not valid JSON: ${err instanceof Error ? err.message : String(err)}`);
+    }
+}
+
+/**
+ * Locate an installed dependency by walking `node_modules` upward.
+ *
+ * pnpm symlinks a direct dependency into the depending package's own
+ * `node_modules`, and `import()` of a file URL realpaths, so the pack's own
+ * dependencies still resolve from its real location in the store. The upward
+ * walk is what covers npm and yarn, where a workspace package's dependency is
+ * hoisted to the workspace root instead.
+ */
+function findPackageDir(fromDir: string, name: string): string | undefined {
+    let dir = resolve(fromDir);
+    for (;;) {
+        const candidate = join(dir, 'node_modules', ...name.split('/'));
+        if (existsSync(join(candidate, 'package.json'))) return candidate;
+        const parent = dirname(dir);
+        if (parent === dir) return undefined;
+        dir = parent;
+    }
+}
+
+/** The nearest ancestor directory holding a package.json, `from` included. */
+export function nearestPackageDir(from: string): string {
+    let dir = resolve(from);
+    for (;;) {
+        if (existsSync(join(dir, 'package.json'))) return dir;
+        const parent = dirname(dir);
+        if (parent === dir) return resolve(from);
+        dir = parent;
+    }
+}
+
+/** Resolve the declared fragment path, refusing anything outside the package. */
+function fragmentPath(pkgDir: string, name: string, declared: string): string {
+    if (isAbsolute(declared)) {
+        throw new Error(
+            `[zero-kit] ${name}'s "${ECOSYSTEM_FIELD}".fragment must be a package-relative path, but "${declared}" is absolute`,
+        );
+    }
+    const target = resolve(pkgDir, declared);
+    if (target !== resolve(pkgDir) && !target.startsWith(resolve(pkgDir) + sep)) {
+        throw new Error(
+            `[zero-kit] ${name}'s "${ECOSYSTEM_FIELD}".fragment "${declared}" escapes its own package directory`,
+        );
+    }
+    return target;
+}
+
+function readField(pkg: Record<string, unknown>, name: string): EcosystemField | undefined {
+    const raw = pkg[ECOSYSTEM_FIELD];
+    if (raw === undefined) return undefined;
+    if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+        throw new Error(`[zero-kit] ${name}'s "${ECOSYSTEM_FIELD}" field is not an object`);
+    }
+    const field = raw as Record<string, unknown>;
+    const fragment = field['fragment'];
+    if (typeof fragment !== 'string' || fragment.length === 0) {
+        throw new Error(
+            `[zero-kit] ${name}'s "${ECOSYSTEM_FIELD}" field declares no "fragment" path — expected { "fragment": "./dist/fragment.js" }`,
+        );
+    }
+    const requires = field['requires'];
+    if (requires !== undefined && typeof requires !== 'string') {
+        throw new Error(`[zero-kit] ${name}'s "${ECOSYSTEM_FIELD}".requires is not a string`);
+    }
+    return { fragment, requires };
+}
+
+/**
+ * Locate one dependency's declaration. Returns `undefined` when the package
+ * declares no `"sigx-zero"` field or is not installed — neither is an error,
+ * they are the overwhelmingly common case. Everything past the field's
+ * presence throws: a package that says it ships a zero component and then
+ * cannot deliver one is a problem the design system's author has to see.
+ */
+export function declarationFor(cwd: string, name: string, logger: EcosystemLogger): EcosystemDeclaration | undefined {
+    const pkgDir = findPackageDir(cwd, name);
+    if (!pkgDir) return undefined;
+
+    const pkg = readJsonFile(join(pkgDir, 'package.json'), `${name}'s package.json`);
+    const field = readField(pkg, name);
+    if (!field) return undefined;
+
+    // Checked BEFORE the import: a pack built against a contract this kit no
+    // longer speaks should be reported as such, not explode somewhere inside
+    // its own module body.
+    const kit = kitVersion();
+    if (field.requires && kit && !satisfies(kit, field.requires)) {
+        logger.warn(
+            `[zero-kit] ${name} requires @sigx/zero-kit ${field.requires} but this build runs ${kit} — its component may not compile`,
+        );
+    }
+
+    const source = fragmentPath(pkgDir, name, field.fragment);
+    if (!existsSync(source)) {
+        throw new Error(
+            `[zero-kit] ${name} declares "${ECOSYSTEM_FIELD}".fragment "${field.fragment}", but ${source} does not exist`
+            + ' — is the package built, and is that path inside its "files" list?',
+        );
+    }
+    return { package: name, dir: pkgDir, source };
+}
+
+/**
+ * Validate what a fragment module exported and turn it into a pack. Split out
+ * from the import so the contract is testable without writing modules to disk.
+ */
+export function packFromModule(declaration: EcosystemDeclaration, mod: Record<string, unknown>): EcosystemPack {
+    const { package: name, source } = declaration;
+    const fragment = mod['fragment'];
+    if (typeof fragment !== 'object' || fragment === null || Array.isArray(fragment)) {
+        throw new Error(`[zero-kit] ${name}'s fragment entry ${source} exports no "fragment" object`);
+    }
+    const declared = (fragment as ManifestFragment).package;
+    // Provenance is not decorative: it is stamped onto every merged component
+    // and becomes an import specifier in the generated `./components` module.
+    // A fragment claiming a name other than the package it shipped in would
+    // emit imports that resolve to someone else, or to nothing.
+    if (declared !== name) {
+        throw new Error(
+            `[zero-kit] ${name}'s fragment declares package "${String(declared)}" — a fragment must name the package it ships in`,
+        );
+    }
+
+    const recipes = mod['recipes'] ?? [];
+    if (!Array.isArray(recipes)) {
+        throw new Error(`[zero-kit] ${name}'s fragment entry ${source} exports a "recipes" that is not an array`);
+    }
+
+    return { package: name, source, fragment: fragment as ManifestFragment, recipes: recipes as RecipeInput[] };
+}
+
+/**
+ * The dependency names discovery will look at, sorted so the emitted CSS,
+ * manifest key order and report are stable across machines. Pure: no module
+ * is imported, so the selection rules are testable on their own.
+ */
+export function selectDependencies(
+    cwd: string,
+    options: Pick<EcosystemOptions, 'include' | 'exclude'>,
+    logger: EcosystemLogger,
+): string[] {
+    if (process.env[ECOSYSTEM_ENV] === '0') {
+        logger.log(`[zero-kit] ecosystem discovery disabled by ${ECOSYSTEM_ENV}=0`);
+        return [];
+    }
+
+    const pkgPath = join(cwd, 'package.json');
+    if (!existsSync(pkgPath)) {
+        logger.warn(`[zero-kit] ecosystem discovery found no package.json at ${cwd} — nothing to discover`);
+        return [];
+    }
+    const pkg = readJsonFile(pkgPath, 'package.json');
+    const deps = {
+        ...(pkg['dependencies'] as Record<string, string> | undefined),
+        ...(pkg['devDependencies'] as Record<string, string> | undefined),
+    };
+    const names = Object.keys(deps).sort();
+
+    if (options.include && options.exclude) {
+        throw new Error(
+            '[zero-kit] ecosystem: pass include or exclude, not both — include already means "only these"',
+        );
+    }
+    // A name in either list that is not a dependency is a mistake, not a
+    // no-op: a typo'd exclusion that silently does nothing is how "we
+    // disabled that pack" survives as a belief for a year.
+    const unknown = [...(options.include ?? []), ...(options.exclude ?? [])].filter((n) => !names.includes(n));
+    if (unknown.length > 0) {
+        throw new Error(
+            `[zero-kit] ecosystem: ${unknown.join(', ')} ${unknown.length === 1 ? 'is' : 'are'} not a dependency of ${cwd}`,
+        );
+    }
+    return options.include
+        ? names.filter((n) => options.include?.includes(n))
+        : names.filter((n) => !options.exclude?.includes(n));
+}
+
+/**
+ * Walk the project's dependencies and load every pack they declare.
+ *
+ * Deliberately unlike the CLI's plugin discovery, which ends in `catch {}`: a
+ * dependency that declares the field and then fails is logged at error level
+ * (or rethrown under `strict`), never skipped in silence. Silence here means a
+ * design system ships without a component it believed it had covered.
+ *
+ * The `await import()` below is the one line no unit test reaches — vite's
+ * module runner cannot load a file written outside the project, the same
+ * limit `commands/audit.ts` is split around. Everything either side of it is
+ * a separately exported pure function, and the real path is exercised by the
+ * in-repo design-system builds.
+ */
+export async function discoverEcosystem(
+    options: EcosystemOptions & { cwd: string; logger: EcosystemLogger },
+): Promise<EcosystemPack[]> {
+    const { cwd, logger } = options;
+    const packs: EcosystemPack[] = [];
+    for (const name of selectDependencies(cwd, options, logger)) {
+        try {
+            const declaration = declarationFor(cwd, name, logger);
+            if (!declaration) continue;
+            let mod: Record<string, unknown>;
+            try {
+                mod = (await import(pathToFileURL(declaration.source).href)) as Record<string, unknown>;
+            } catch (err) {
+                throw new Error(
+                    `[zero-kit] ${name}'s fragment entry ${declaration.source} failed to load: ${err instanceof Error ? err.message : String(err)}`,
+                );
+            }
+            packs.push(packFromModule(declaration, mod));
+        } catch (err) {
+            if (options.strict) throw err;
+            logger.error(err instanceof Error ? err.message : String(err));
+        }
+    }
+    return packs;
+}
+
+export interface ResolveEcosystemInput<M extends Pick<ZeroManifest, 'components'>> {
+    manifest: M;
+    designSystem: DesignSystemInput;
+    /** `false`/absent disables discovery; `true` takes the defaults. */
+    ecosystem?: boolean | EcosystemOptions;
+    /** Discovery root when the options name none. */
+    defaultCwd: string;
+    logger: EcosystemLogger;
+    /** Prefix for the adoption log lines — the design system's name. */
+    label?: string;
+}
+
+export interface ResolvedEcosystem<M extends Pick<ZeroManifest, 'components'>> {
+    manifest: M;
+    designSystem: DesignSystemInput;
+    /** The packs that were actually adopted, in package-name order. */
+    packs: EcosystemPack[];
+}
+
+/**
+ * Discover, then merge — the single path both entry points take.
+ *
+ * `zero:build` reaches a design system through `runStandardBuild` while
+ * `zero:validate` and `zero:audit` reach it through `loadInputs`. Wiring
+ * discovery into only one of them would make a build and a validate of the
+ * same directory disagree about which components exist, which is exactly the
+ * spurious-diff trap `resolve/report-diff.ts` documents — permanent, and
+ * automatic, instead of occasional.
+ */
+export async function resolveEcosystem<M extends Pick<ZeroManifest, 'components'>>(
+    input: ResolveEcosystemInput<M>,
+): Promise<ResolvedEcosystem<M>> {
+    const { manifest, designSystem, ecosystem, defaultCwd, logger } = input;
+    if (!ecosystem) return { manifest, designSystem, packs: [] };
+
+    const options: EcosystemOptions = ecosystem === true ? {} : ecosystem;
+    const label = input.label ?? designSystem.name;
+    const packs = options.packs
+        ? [...options.packs].sort((a, b) => a.package.localeCompare(b.package))
+        : await discoverEcosystem({ ...options, cwd: options.cwd ?? nearestPackageDir(defaultCwd), logger });
+
+    // Merged one at a time rather than in one variadic call: a single stale
+    // pack must not take the whole design system's build with it, and the
+    // error has to name which package failed.
+    let merged = manifest;
+    const adopted: EcosystemPack[] = [];
+    for (const pack of packs) {
+        try {
+            merged = mergeManifests(merged, pack.fragment);
+        } catch (err) {
+            if (options.strict) throw err;
+            logger.error(`[${label}] ecosystem: ${pack.package} not adopted — ${err instanceof Error ? err.message : String(err)}`);
+            continue;
+        }
+        adopted.push(pack);
+        const scopes = pack.fragment.components.length;
+        logger.log(`[${label}] ecosystem: ${pack.package} — ${scopes} scope(s)`);
+    }
+    return { manifest: merged, designSystem, packs: adopted };
+}

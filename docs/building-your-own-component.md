@@ -108,10 +108,61 @@ declared state distinctly — the state-legibility tooling measures ink.
 JSON form of the fragment validates against the kit's
 `schemas/fragment.schema.json`.
 
-## 5. A design system opts in
+## 5. A design system adopts you
+
+Declare one field, and every zero build finds the package:
+
+```json
+"sigx-zero": {
+    "fragment": "./dist/fragment.js",
+    "requires": ">=0.2.0"
+}
+```
+
+`fragment` is a **package-relative path**, like the `"sigx-cli"` field the
+sigx CLI is discovered through — not an exports subpath. The tidier-looking
+spellings are all dead ends: `require.resolve('<pkg>/package.json')` throws
+`ERR_PACKAGE_PATH_NOT_EXPORTED` because your exports map declares `.` and
+`./fragment` and nothing else; `require.resolve('<pkg>/fragment')` fails
+because that subpath declares only `types` and `import` while the CJS
+resolver asks for `require`; and `import.meta.resolve` resolves against the
+kit's own module, which under pnpm's isolated store cannot see the consuming
+project's dependency graph. Point it at the built file, and keep that path
+inside your `"files"` list — otherwise the fragment is missing for consumers
+and present for you.
+
+A design system opts in per build:
 
 ```js
-// build.mjs — build-time composition, the whole adoption
+await runStandardBuild({ designSystem, manifest, outDir, ecosystem: true });
+```
+
+or on the CLI:
+
+```sh
+sigx zero:build --ecosystem
+sigx zero:validate --ecosystem --ecosystem-exclude @acme/zero-stepper
+```
+
+Discovery is off by default while the mechanism settles; `ZERO_ECOSYSTEM=0`
+turns it off for one run whatever the build asks for. `include` is a mode
+rather than a filter — it means *only* these — so passing it alongside
+`exclude` is an error, and so is naming a package that is not a dependency: a
+typo'd exclusion that silently does nothing is how "we disabled that pack"
+survives as a belief.
+
+Two properties worth relying on. A pack that fails — an unbuilt fragment, a
+stale contract version, a scope another package already claims — is reported
+by name and skipped, not swallowed: one stale transitive dependency cannot
+stop a design system from building the components it owns (`strict: true`
+turns those back into build failures). And packs are adopted in package-name
+order, so the emitted CSS, manifest key order and report do not depend on how
+your dependencies happen to be written down.
+
+Composing by hand still works, and still wins:
+
+```js
+// build.mjs — the explicit form; `fragments` merge before discovery
 import { mergeManifests } from '@sigx/zero-kit';
 import { fragment, recipes as stepperRecipes } from '@acme/zero-stepper/fragment';
 
@@ -119,17 +170,15 @@ const manifest = mergeManifests(zeroManifest, fragment);
 const ds = { ...designSystem, recipes: [...designSystem.recipes, ...stepperRecipes] };
 ```
 
-or on the CLI, with the fragment as JSON:
+or with the fragment as JSON, for a pack that ships no module entry:
 
 ```sh
 sigx zero:validate --extra-manifest ./node_modules/@acme/zero-stepper/dist/fragment.json
-sigx zero:build    --extra-manifest ./node_modules/@acme/zero-stepper/dist/fragment.json
 ```
 
-Merging is a statement of intent: a merged scope with no recipe draws the
-ordinary `N component(s) have no recipe` warning — that is validate telling
-you the adoption is half done (merge the fragment *and* spread the pack, or
-write a recipe), not a false positive to suppress.
+Either way, merging is a statement of intent: a merged scope with no recipe
+draws the ordinary `N component(s) have no recipe` warning — that is validate
+telling you the adoption is half done, not a false positive to suppress.
 
 Everything downstream is automatic: validation, recipe compilation and the
 coverage report treat the merged scope like any other; provenance is stamped

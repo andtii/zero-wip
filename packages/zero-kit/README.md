@@ -436,10 +436,26 @@ contract helpers — see zero's "Building your own components") and publishes a
 required — the merge hard-errors on a missing or unknown one, so a fragment
 built against an older contract fails by name instead of merging silently.
 
-A design system that wants to cover it merges the fragment —
-`--extra-manifest` on the CLI, or `mergeManifests(base, fragment)` in a
-`build.mjs`-style script — and writes (or imports) a recipe for the scope like
-any other. Everything downstream is scope-agnostic, so validation, recipe
+The package points at that data entry with a `"sigx-zero"` field, shaped like
+the `"sigx-cli"` field this plugin is itself discovered through:
+
+```json
+"sigx-zero": { "fragment": "./dist/fragment.js", "requires": ">=0.2.0" }
+```
+
+A design system then adopts every dependency that declares one, with
+`ecosystem: true` on `runStandardBuild` or `--ecosystem` on
+`zero:build`/`zero:validate`/`zero:audit` (off by default for now;
+`ZERO_ECOSYSTEM=0` overrides any build; `--ecosystem-exclude` drops a
+package, and an `include` list means *only* those). A pack that cannot be
+loaded or merged is named and skipped rather than swallowed — `strict: true`
+makes it fatal — and packs are adopted in package-name order so the emitted
+artifacts do not depend on how dependencies were written down.
+
+A design system can also merge the fragment by hand — `--extra-manifest` on
+the CLI, or `mergeManifests(base, fragment)` in a `build.mjs`-style script —
+and write (or import) a recipe for the scope like any other. Hand-passed
+`fragments:` merge before discovery and win a scope collision. Everything downstream is scope-agnostic, so validation, recipe
 compilation, the vocabulary system and the coverage report all just work; the
 merge hard-errors on a scope collision, which is why fragment scopes should
 carry a vendor prefix (`acme-stepper`). It also holds the fragment to the

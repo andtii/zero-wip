@@ -17,6 +17,10 @@
         }
     },
     "sideEffects": false,
+    "sigx-zero": {
+        "fragment": "./dist/fragment.js",
+        "requires": ">=0.2.0"
+    },
     "scripts": {
         "build": "vite build && tsgo --emitDeclarationOnly && node scripts/emit-fragment.mjs",
         "typecheck": "tsgo --noEmit"

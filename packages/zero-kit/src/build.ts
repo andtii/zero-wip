@@ -16,6 +16,8 @@ import type { DesignSystemInput } from './design-system.js';
 import { compileDesignSystem } from './design-system.js';
 import type { ManifestFragment } from './manifest.js';
 import { mergeManifests } from './manifest.js';
+import type { EcosystemOptions } from './discover.js';
+import { resolveEcosystem } from './discover.js';
 import type { ValidationResult } from './resolve/validate.js';
 import { validateDesignSystem } from './resolve/validate.js';
 import { buildReport } from './resolve/report.js';
@@ -23,6 +25,8 @@ import { buildDsManifest, writeArtifacts } from './artifacts.js';
 import { auditDesignSystem } from './audit/index.js';
 import type { AuditResult } from './audit/index.js';
 export { AUDIT_SCHEMA_URL, auditDesignSystem, buildAuditArtifact, formatAudit } from './audit/index.js';
+export { ECOSYSTEM_ENV, ECOSYSTEM_FIELD, declarationFor, discoverEcosystem, nearestPackageDir, packFromModule, resolveEcosystem, selectDependencies } from './discover.js';
+export type { EcosystemDeclaration, EcosystemLogger, EcosystemOptions, EcosystemPack, ResolvedEcosystem, ResolveEcosystemInput } from './discover.js';
 export type { AuditArtifact, AuditFinding, AuditOptions, AuditResult, AuditRuleId } from './audit/index.js';
 import type { CompiledLynxTarget } from './targets/lynx/compile.js';
 import { compileDesignSystemLynx, writeLynxArtifacts } from './targets/lynx/compile.js';
@@ -59,6 +63,18 @@ export interface StandardBuildOptions {
      * `designSystem.recipes` by the caller — spread order is precedence.
      */
     fragments?: readonly ManifestFragment[];
+    /**
+     * Adopt ecosystem component packages automatically — every dependency
+     * declaring a `"sigx-zero"` field contributes its manifest fragment (see
+     * `discover.ts`). `true` takes the defaults; an object narrows the search
+     * or makes a failing pack fatal.
+     *
+     * Default `false` while the mechanism settles: turning it on changes what
+     * an unchanged design system emits, because a package devDepended for
+     * tests would begin shipping its scopes. Explicit `fragments` above are
+     * merged first and always win a scope collision.
+     */
+    ecosystem?: boolean | EcosystemOptions;
     /** Absolute output directory (the package's `dist`). */
     outDir: string;
     /**
@@ -111,9 +127,19 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
         // instead of them.
         throw new Error('[zero-kit] the "web" target is not optional — pass targets: [\'web\', …]');
     }
-    const manifest = fragments.length > 0
+    const explicit = fragments.length > 0
         ? mergeManifests(options.manifest, ...fragments)
         : options.manifest;
+    // Discovery runs after the explicit fragments so a hand-passed one wins a
+    // scope collision, and through the same helper the CLI's validate/audit
+    // path uses — one derivation of "which components exist here".
+    const { manifest } = await resolveEcosystem({
+        manifest: explicit,
+        designSystem: ds,
+        ecosystem: options.ecosystem,
+        defaultCwd: outDir,
+        logger,
+    });
 
     const result = validateDesignSystem(ds, manifest);
     for (const issue of [...result.errors, ...result.warnings]) {

@@ -26,6 +26,10 @@ export interface AuditCommandOptions {
     manifest?: string;
     /** Ecosystem manifest fragments to merge into the base manifest. */
     extraManifest?: string[];
+    /** Adopt dependencies that declare a `"sigx-zero"` field. */
+    ecosystem?: boolean;
+    /** Package names to leave out of that adoption. */
+    ecosystemExclude?: string[];
     /** Treat warning findings as failures too. */
     strict: boolean;
     /** Run only these rules (repeatable); default every rule. */
@@ -35,7 +39,15 @@ export interface AuditCommandOptions {
 }
 
 export async function runAudit(env: CommandEnv, opts: AuditCommandOptions): Promise<void> {
-    const inputs = await loadInputs(env, opts.entry, opts.manifest, opts.extraManifest ?? []);
+    const inputs = await loadInputs(
+        env,
+        opts.entry,
+        opts.manifest,
+        opts.extraManifest ?? [],
+        opts.ecosystem
+            ? { cwd: env.cwd, ...(opts.ecosystemExclude?.length ? { exclude: opts.ecosystemExclude } : {}) }
+            : false,
+    );
     await auditInputs(env, inputs, opts);
 }
 

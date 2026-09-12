@@ -18,6 +18,8 @@ import type { ZeroManifest } from '../contract.js';
 import type { DesignSystemInput } from '../design-system.js';
 import type { ManifestFragment } from '../manifest.js';
 import { mergeManifests } from '../manifest.js';
+import type { EcosystemOptions, EcosystemPack } from '../discover.js';
+import { resolveEcosystem } from '../discover.js';
 import type { ValidationResult } from '../resolve/validate.js';
 import { validateDesignSystem } from '../resolve/validate.js';
 
@@ -135,6 +137,8 @@ export interface LoadedInputs {
     ds: DesignSystemInput;
     manifest: ZeroManifest;
     result: ValidationResult;
+    /** Ecosystem packages adopted by discovery, in package-name order. */
+    packs: EcosystemPack[];
 }
 
 /**
@@ -142,15 +146,36 @@ export interface LoadedInputs {
  * Returns the validation result rather than throwing on failure — `build` and
  * `validate` treat a failing result differently (`--strict` also fails on
  * warnings), so the decision stays with the caller.
+ *
+ * Ecosystem discovery happens here, and NOT only in `runStandardBuild`:
+ * `zero:validate` and `zero:audit` reach a design system through this
+ * function while `zero:build` reaches it through the harness. If only one
+ * path adopted the packs, a build and a validate of the same directory would
+ * disagree about which components exist.
  */
-export async function loadInputs(env: CommandEnv, entry: string, manifest?: string, extraManifests: string[] = []): Promise<LoadedInputs> {
-    const [ds, loadedManifest] = await Promise.all([
+export async function loadInputs(
+    env: CommandEnv,
+    entry: string,
+    manifest?: string,
+    extraManifests: string[] = [],
+    ecosystem?: boolean | EcosystemOptions,
+): Promise<LoadedInputs> {
+    const [loadedDs, loadedManifest] = await Promise.all([
         loadDesignSystem(env.cwd, entry),
         loadManifest(env.cwd, manifest, extraManifests),
     ]);
-    const result = validateDesignSystem(ds, loadedManifest);
+    const resolved = await resolveEcosystem({
+        manifest: loadedManifest,
+        designSystem: loadedDs,
+        ecosystem,
+        defaultCwd: env.cwd,
+        logger: env.logger,
+    });
+    const { designSystem: ds, packs } = resolved;
+    const mergedManifest = resolved.manifest;
+    const result = validateDesignSystem(ds, mergedManifest);
     for (const issue of [...result.errors, ...result.warnings]) {
         env.logger[issue.level === 'error' ? 'error' : 'warn'](`${issue.where}: ${issue.message}`);
     }
-    return { ds, manifest: loadedManifest, result };
+    return { ds, manifest: mergedManifest, result, packs };
 }

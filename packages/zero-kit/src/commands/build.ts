@@ -9,6 +9,10 @@ export interface BuildOptions {
     manifest?: string;
     /** Ecosystem manifest fragments to merge into the base manifest. */
     extraManifest?: string[];
+    /** Adopt dependencies that declare a `"sigx-zero"` field. */
+    ecosystem?: boolean;
+    /** Package names to leave out of that adoption. */
+    ecosystemExclude?: string[];
     out: string;
 }
 
@@ -24,6 +28,11 @@ export async function runBuild(env: CommandEnv, opts: BuildOptions): Promise<voi
     await runStandardBuild({
         designSystem: ds,
         manifest,
+        // The command knows the project directory; the harness would otherwise
+        // have to infer it from outDir.
+        ecosystem: opts.ecosystem
+            ? { cwd: env.cwd, ...(opts.ecosystemExclude?.length ? { exclude: opts.ecosystemExclude } : {}) }
+            : false,
         outDir: resolve(env.cwd, opts.out),
         logger: env.logger,
     });
