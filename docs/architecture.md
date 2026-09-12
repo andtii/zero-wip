@@ -541,7 +541,15 @@ token grammar (`colors`, `categories`, recommended ramps), and `components`
 — an **array** of `anatomy.toJSON()` snapshots, each part with its
 `parent`, `states`, `flags`, `placements`, `hiddenIn`, `pseudo`, hints, and
 ready-made per-state selector fragments (what the recipe compiler
-consumes). There is no `manifestVersion`: a contract change ships a new
+consumes), and — for a component whose API carries state — `models`: one
+entry per model with what it binds (`name`, absent for the unnamed `model`
+prop), its `concept`, its value `type`, the compound `member` that carries
+it when not Root, `multiple` / `formControl`, and the two companion names
+`default` and `change`, *derived* from the concept by the naming rule
+(`default<N>` + `<n>Change`) rather than declared, so the manifest cannot
+spell them differently from the components (a parity test holds the
+sources to the anatomy; `mergeManifests` holds ecosystem fragments to the
+same rule). There is no `manifestVersion`: a contract change ships a new
 zero version and a new schema.
 
 **A design system's artifact manifest** — emitted by `writeArtifacts` into

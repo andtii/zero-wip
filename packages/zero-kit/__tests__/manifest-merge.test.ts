@@ -171,6 +171,41 @@ describe('mergeManifests', () => {
             .toThrow(/hiddenIn "inactive"/);
     });
 
+    // ── The naming rule on the ecosystem surface (#451) ──
+    const withModels = (models: unknown): ManifestFragment => ({
+        version: 1,
+        package: '@acme/zero-stepper',
+        components: [{
+            scope: 'acme-stepper',
+            parts: [{ name: 'root', element: 'div', selectors: {} }],
+            models: models as ManifestComponent['models'],
+        }],
+    });
+
+    it('accepts a fragment model that follows the naming rule, and carries it through', () => {
+        const model = { concept: 'step', type: 'string', default: 'defaultStep', change: 'stepChange' };
+        const merged = mergeManifests(baseManifest(), withModels([model]));
+        expect(merged.components.find((c) => c.scope === 'acme-stepper')!.models).toEqual([model]);
+    });
+
+    it('rejects a fragment model whose companions do not derive from its concept', () => {
+        expect(() => mergeManifests(baseManifest(), withModels([{ concept: 'step', type: 'string', default: 'defaultStep', change: 'change' }])))
+            .toThrow(/the change event of concept "step" is "stepChange", not "change"/);
+        expect(() => mergeManifests(baseManifest(), withModels([{ concept: 'step', type: 'string', default: 'initialStep', change: 'stepChange' }])))
+            .toThrow(/the seed prop of concept "step" is "defaultStep", not "initialStep"/);
+    });
+
+    it('rejects a fragment model without a camelCase concept or a type, and a named model whose concept is not its name', () => {
+        expect(() => mergeManifests(baseManifest(), withModels([{ concept: 'active-step', type: 'string', default: 'defaultActive-step', change: 'active-stepChange' }])))
+            .toThrow(/needs a camelCase "concept"/);
+        expect(() => mergeManifests(baseManifest(), withModels([{ concept: 'step', default: 'defaultStep', change: 'stepChange' }])))
+            .toThrow(/needs a "type"/);
+        expect(() => mergeManifests(baseManifest(), withModels([{ name: 'open', concept: 'expanded', type: 'boolean', default: 'defaultExpanded', change: 'expandedChange' }])))
+            .toThrow(/a named model's concept IS its name/);
+        expect(() => mergeManifests(baseManifest(), withModels({ concept: 'step' })))
+            .toThrow(/"models" that is not an array/);
+    });
+
     it('rejects a dangling or self-referential parent', () => {
         expect(() => mergeManifests(baseManifest(), withPart({ parent: 'ghost' })))
             .toThrow(/parent "ghost"/);

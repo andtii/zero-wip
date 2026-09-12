@@ -30,4 +30,8 @@ export const textareaAnatomy = defineAnatomy('textarea', {
         flags: ['disabled', 'invalid', 'required', 'readonly', 'focus-visible'],
         tokens: ['color', 'text', 'size', 'radius-field'],
     },
+}, {
+    models: [
+        { concept: 'value', type: 'string', formControl: true },
+    ],
 });

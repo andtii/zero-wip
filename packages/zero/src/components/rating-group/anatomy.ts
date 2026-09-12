@@ -39,4 +39,8 @@ export const ratingGroupAnatomy = defineAnatomy('rating-group', {
         element: 'input',
         parent: 'root',
     },
+}, {
+    models: [
+        { concept: 'value', type: 'number', formControl: true },
+    ],
 });

@@ -18,8 +18,8 @@
  *   vocabulary already has the word for "the pointer is over this and it
  *   will act" (menu items under the pointer), so inventing a
  *   `dragging|idle` state pair would be a synonym with a contract cost.
- * - The model is `File[]` — files are runtime objects, so there is no
- *   serializable default beyond empty.
+ * - The model is `File[]`; `defaultFiles` seeds it (a preloaded draft) and
+ *   is what a form reset restores.
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render } from '@sigx/runtime-dom';
@@ -69,6 +69,33 @@ describe('FileUpload', () => {
     beforeEach(() => {
         container = document.createElement('div');
         document.body.appendChild(container);
+    });
+
+    it('defaultFiles seeds the model and is what a form reset restores', () => {
+        const seed = [file('draft.txt')];
+        const form = document.createElement('form');
+        container.appendChild(form);
+        render(
+            <FileUpload.Root name="docs" defaultFiles={seed} slots={{ default: () => (
+                <FileUpload.ItemGroup>
+                    {(files: File[]) => files.map((f) => <FileUpload.Item file={f}><FileUpload.ItemName /></FileUpload.Item>)}
+                </FileUpload.ItemGroup>
+            ) }} />,
+            form,
+        );
+        expect(parts(form, 'item').map((i) => i.textContent)).toEqual(['draft.txt']);
+        const input = part(form, 'input') as HTMLInputElement;
+        const dt = new DataTransfer();
+        dt.items.add(file('more.txt'));
+        input.files = dt.files;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        // Single mode replaces; the seed is gone until the reset brings it back.
+        expect(parts(form, 'item').map((i) => i.textContent)).toEqual(['more.txt']);
+        form.reset();
+        return new Promise<void>((resolve) => setTimeout(() => {
+            expect(parts(form, 'item').map((i) => i.textContent)).toEqual(['draft.txt']);
+            resolve();
+        }, 0));
     });
 
     it('renders a valid anatomy; the input is a real file input and IS the control', () => {

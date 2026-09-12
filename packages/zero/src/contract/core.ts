@@ -65,8 +65,8 @@ export {
 } from './data-attrs.js';
 
 export type { JsxProps, FactoryBrands } from './generic.js';
-export type { Anatomy, AnatomyJSON, PartSpec, PartJSON, PartPseudo, TokenHint } from './anatomy.js';
-export { defineAnatomy } from './anatomy.js';
+export type { Anatomy, AnatomyJSON, PartSpec, PartJSON, PartPseudo, TokenHint, ModelSpec, ModelJSON } from './anatomy.js';
+export { defineAnatomy, defaultPropOf, changeEventOf } from './anatomy.js';
 
 export { variantAttrs, RESERVED_AXES, VARIANT_AXES, MOD_ATTR_PREFIX } from './variant-attrs.js';
 

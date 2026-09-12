@@ -392,6 +392,11 @@ Publishing is handled by `scripts/publish.js` in topological order.
 - Each component's `anatomy.ts` is the source of truth — the component imports
   part names from it, tests assert against it, and the build emits it into
   `manifest.json` for tooling/AI. Changing an anatomy is a breaking change.
+- Every model a component's API carries is declared there too (`models` on
+  `defineAnatomy`), and follows one naming rule: concept `N` binds through
+  `model` (or `model:<name>`), seeds through `default<N>` and emits
+  `<n>Change`. `model-parity.test.ts` holds the sources to the anatomy; a
+  new model is a `ModelSpec` first.
 - Setup functions never touch the DOM; DOM work lives in context-bound
   `onMounted`/effects. No module-global mutable state that could leak across
   SSR requests (client-only state like the dismiss layer stack is exempt).

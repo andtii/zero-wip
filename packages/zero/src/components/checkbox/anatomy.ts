@@ -31,4 +31,8 @@ export const checkboxAnatomy = defineAnatomy('checkbox', {
         element: 'input',
         parent: 'root',
     },
+}, {
+    models: [
+        { concept: 'checked', type: 'boolean | string[]', formControl: true },
+    ],
 });

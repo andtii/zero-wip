@@ -118,6 +118,62 @@ export interface PartSpec {
     pseudo?: PartPseudo;
 }
 
+/**
+ * One model the component's API carries — the machine-readable half of the
+ * naming rule every zero model follows: a concept `N` binds through
+ * `model` (or `model:<name>`), seeds through `default<N>` and emits
+ * `<n>Change`. The anatomy declares the concept; `toJSON()` derives the
+ * two companion names, so tooling reads them by name and the parity tests
+ * hold the component sources to them.
+ */
+export interface ModelSpec {
+    /**
+     * The `model:<name>` key of a NAMED model (`model:open`,
+     * `model:inputValue`). Omitted for the unnamed `model` prop. A named
+     * model's concept IS its name.
+     */
+    name?: string;
+    /**
+     * What the model holds, and the stem of both companions: `open` →
+     * `defaultOpen` + `openChange`; `expandedValues` →
+     * `defaultExpandedValues` + `expandedValuesChange`. camelCase.
+     */
+    concept: string;
+    /**
+     * The value type as a TypeScript type expression — `boolean`,
+     * `number | null`, `string[]`; on a generic root `T` is the item type
+     * and `V` what `itemValue` returns.
+     */
+    type: string;
+    /**
+     * The compound member whose props carry the model when it is not
+     * `Root` (`CheckboxItem`, `RadioGroup`, `Sub` on Menu). Omitted for
+     * Root.
+     */
+    member?: string;
+    /**
+     * The `multiple` prop makes the model an array instead. `type` describes
+     * the single-select shape; under `multiple` the model is an array of the
+     * selectable value alone — the empty sentinel (`null`, `''`) has no
+     * element form, the empty array is it (`T | null` → `T[]`).
+     */
+    multiple?: true;
+    /** Posts to the enclosing form under `name` (the form contract, #441). */
+    formControl?: true;
+}
+
+export interface ModelJSON extends ModelSpec {
+    /** The seed prop: `default` + the capitalised concept. */
+    default: string;
+    /** The change event: the concept + `Change` (handler `on<Concept>Change`). */
+    change: string;
+}
+
+/** `open` → `defaultOpen`: the seed prop of a model concept. */
+export const defaultPropOf = (concept: string): string => `default${concept.charAt(0).toUpperCase()}${concept.slice(1)}`;
+/** `open` → `openChange`: the change event of a model concept. */
+export const changeEventOf = (concept: string): string => `${concept}Change`;
+
 export interface PartJSON extends PartSpec {
     name: string;
     /**
@@ -132,12 +188,16 @@ export interface AnatomyJSON {
     scope: string;
     orientation?: boolean;
     parts: PartJSON[];
+    /** The models the API carries, companions derived — absent when there are none. */
+    models?: ModelJSON[];
 }
 
 export interface Anatomy<S extends string = string, P extends string = string> {
     scope: S;
     parts: Record<P, PartSpec>;
     orientation?: boolean;
+    /** The models the API carries, as declared (see `ModelSpec`). */
+    models?: readonly ModelSpec[];
     /** All part names, in declaration order. */
     partNames(): P[];
     /**
@@ -154,7 +214,7 @@ export interface Anatomy<S extends string = string, P extends string = string> {
 export function defineAnatomy<S extends string, P extends string>(
     scope: S,
     parts: Record<P, PartSpec>,
-    opts?: { orientation?: boolean },
+    opts?: { orientation?: boolean; models?: readonly ModelSpec[] },
 ): Anatomy<S, P> {
     // No runtime guard that `pseudo.of` names a real part — defineAnatomy is
     // on every component's size budget, and zero's own anatomies (the only
@@ -171,6 +231,7 @@ export function defineAnatomy<S extends string, P extends string>(
         scope,
         parts,
         orientation: opts?.orientation,
+        models: opts?.models,
         partNames: () => Object.keys(parts) as P[],
         selector,
         toJSON: (): AnatomyJSON => ({
@@ -187,6 +248,9 @@ export function defineAnatomy<S extends string, P extends string>(
                 }
                 return { name, ...spec, selectors };
             }),
+            ...(opts?.models?.length
+                ? { models: opts.models.map((m) => ({ ...m, default: defaultPropOf(m.concept), change: changeEventOf(m.concept) })) }
+                : {}),
         }),
     };
 }

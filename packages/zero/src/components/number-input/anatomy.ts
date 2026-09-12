@@ -51,4 +51,8 @@ export const numberInputAnatomy = defineAnatomy('number-input', {
         element: 'input',
         parent: 'root',
     },
+}, {
+    models: [
+        { concept: 'value', type: 'number | null', formControl: true },
+    ],
 });

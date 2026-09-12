@@ -57,8 +57,8 @@ export {
     stateAttr,
 } from './data-attrs.js';
 
-export type { Anatomy, AnatomyJSON, PartSpec, PartJSON, PartPseudo, TokenHint } from './anatomy.js';
-export { defineAnatomy } from './anatomy.js';
+export type { Anatomy, AnatomyJSON, PartSpec, PartJSON, PartPseudo, TokenHint, ModelSpec, ModelJSON } from './anatomy.js';
+export { defineAnatomy, defaultPropOf, changeEventOf } from './anatomy.js';
 
 export {
     CLASS_GRAMMAR_VERSION,

@@ -32,6 +32,23 @@ describe('Menu', () => {
         );
     }
 
+    it('defaultOpen seeds the open model on Root and on Sub', () => {
+        render(
+            <Menu.Root defaultOpen>
+                <Menu.Trigger>Actions</Menu.Trigger>
+                <Menu.Popup>
+                    <Menu.Sub defaultOpen>
+                        <Menu.SubTrigger>More</Menu.SubTrigger>
+                        <Menu.SubPopup><Menu.Item value="a">A</Menu.Item></Menu.SubPopup>
+                    </Menu.Sub>
+                </Menu.Popup>
+            </Menu.Root>,
+            container,
+        );
+        expect(container.querySelector('[data-part="popup"]')!.getAttribute('data-state')).toBe('open');
+        expect(container.querySelector('[data-part="sub-popup"]')!.getAttribute('data-state')).toBe('open');
+    });
+
     it('renders a valid anatomy with APG roles', () => {
         mount();
         expectAnatomy(container, menuAnatomy);

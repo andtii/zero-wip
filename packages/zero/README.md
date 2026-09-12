@@ -37,6 +37,16 @@ All state is one two-way `model` prop (sigx `Define.Model`) — bind a signal
 property with `model={() => state.open}`, or leave it uncontrolled with
 `defaultOpen` / `defaultValue`. No controlled/uncontrolled prop triplets.
 
+**The naming rule.** Every model has a concept `N` and exactly two
+companions: `default<N>` seeds it uncontrolled and `<n>Change` reports a
+write (`onOpenChange`, `onValueChange`, `onActiveChange`). A named model
+(`model:open`, `model:expandedValues`) has its name for a concept. The
+anatomy declares each model (`models` on `defineAnatomy`, emitted into
+`manifest.json` with the derived companion names, the value type, the
+compound member that carries it, and whether it posts to a form), and a
+parity test holds every component source to it — so a tool can tell a
+Select from a Card without reading component code.
+
 **The binding law.** Every zero model *is* a sigx `Model`, and every native
 control zero renders binds to it with `model=` — never a hand-wired
 `value=`/`onInput` pair. sigx's platform processor owns the write-back, so a

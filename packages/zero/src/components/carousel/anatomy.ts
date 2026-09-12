@@ -64,4 +64,8 @@ export const carouselAnatomy = defineAnatomy('carousel', {
         flags: ['disabled', 'focus-visible', 'pressed'],
         tokens: ['color', 'radius-selector', 'size'],
     },
+}, {
+    models: [
+        { concept: 'index', type: 'number' },
+    ],
 });

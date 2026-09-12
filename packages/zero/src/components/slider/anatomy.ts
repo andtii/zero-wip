@@ -65,4 +65,9 @@ export const sliderAnatomy = defineAnatomy('slider', {
         element: 'input',
         parent: 'root',
     },
-}, { orientation: true });
+}, {
+    orientation: true,
+    models: [
+        { concept: 'value', type: 'number | number[]', formControl: true },
+    ],
+});

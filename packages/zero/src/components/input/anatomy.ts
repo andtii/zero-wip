@@ -39,4 +39,8 @@ export const inputAnatomy = defineAnatomy('input', {
         flags: ['disabled', 'invalid', 'required', 'readonly', 'focus-visible'],
         tokens: ['color', 'text', 'size'],
     },
+}, {
+    models: [
+        { concept: 'value', type: 'string', formControl: true },
+    ],
 });

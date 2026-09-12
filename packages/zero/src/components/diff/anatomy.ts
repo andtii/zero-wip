@@ -43,4 +43,8 @@ export const diffAnatomy = defineAnatomy('diff', {
         flags: ['focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'size'],
     },
+}, {
+    models: [
+        { concept: 'value', type: 'number' },
+    ],
 });

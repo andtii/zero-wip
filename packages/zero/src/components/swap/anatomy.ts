@@ -42,4 +42,8 @@ export const swapAnatomy = defineAnatomy('swap', {
         states: ['on', 'off'],
         tokens: ['color'],
     },
+}, {
+    models: [
+        { concept: 'active', type: 'boolean' },
+    ],
 });

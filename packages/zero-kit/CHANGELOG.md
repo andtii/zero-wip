@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+
+- **The manifest's `models` block** (#451). `ManifestComponent.models` /
+  `ManifestModel` type the entries zero's anatomies now emit; the manifest
+  schema declares `$defs/model` (`concept`, `type`, `default`, `change`
+  required; `name`, `member`, `multiple`, `formControl` optional; closed);
+  `mergeManifests` holds an ecosystem fragment's models to the naming rule
+  (`default<Concept>` + `<concept>Change`, a named model's concept its name,
+  a camelCase concept, a non-empty type), failing by name.
+
 ### Fixed
 
 - **`color-mix()` toward an achromatic colour invented a hue** (#403,

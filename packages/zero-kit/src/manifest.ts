@@ -51,6 +51,9 @@ const CSS_BREAKOUT = /[{};\n\r]/;
  */
 export const FRAGMENT_VERSION = 1;
 
+/** A model concept: a camelCase identifier (it becomes the stem of two prop names). */
+const MODEL_CONCEPT_PATTERN = /^[a-z][A-Za-z0-9]*$/;
+
 export interface ManifestFragment {
     /**
      * The fragment contract version this fragment was built against —
@@ -184,6 +187,35 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                         throw new Error(`[zero-kit] ${at(part.name)}: parent chain does not terminate (cycle)`);
                     }
                     cursor = byName.get(cursor)?.parent;
+                }
+            }
+            // The models a fragment claims follow zero's naming rule — the
+            // companions are DERIVED from the concept, so a fragment spelling
+            // them differently is describing an API zero's tooling would
+            // misread.
+            if (component.models !== undefined) {
+                if (!Array.isArray(component.models)) {
+                    throw new Error(`[zero-kit] ${where}: component "${component.scope}" has a "models" that is not an array`);
+                }
+                for (const model of component.models) {
+                    const label = `${where}: "${component.scope}" model${model?.name ? `:${model.name}` : ''}`;
+                    if (typeof model?.concept !== 'string' || !MODEL_CONCEPT_PATTERN.test(model.concept)) {
+                        throw new Error(`[zero-kit] ${label} needs a camelCase "concept" — the stem of default<Concept> and <concept>Change`);
+                    }
+                    if (model.name !== undefined && model.name !== model.concept) {
+                        throw new Error(`[zero-kit] ${label}: a named model's concept IS its name — "${model.concept}" does not match`);
+                    }
+                    if (typeof model.type !== 'string' || model.type.length === 0) {
+                        throw new Error(`[zero-kit] ${label} needs a "type" (a TypeScript type expression)`);
+                    }
+                    const expectedDefault = `default${model.concept.charAt(0).toUpperCase()}${model.concept.slice(1)}`;
+                    const expectedChange = `${model.concept}Change`;
+                    if (model.default !== expectedDefault) {
+                        throw new Error(`[zero-kit] ${label}: the seed prop of concept "${model.concept}" is "${expectedDefault}", not "${String(model.default)}"`);
+                    }
+                    if (model.change !== expectedChange) {
+                        throw new Error(`[zero-kit] ${label}: the change event of concept "${model.concept}" is "${expectedChange}", not "${String(model.change)}"`);
+                    }
                 }
             }
             const owner = owners.get(component.scope);

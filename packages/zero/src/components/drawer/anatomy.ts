@@ -54,4 +54,8 @@ export const drawerAnatomy = defineAnatomy('drawer', {
         tokens: ['color', 'radius-field', 'size'],
         asChild: true,
     },
+}, {
+    models: [
+        { concept: 'open', type: 'boolean' },
+    ],
 });

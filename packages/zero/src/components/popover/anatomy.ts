@@ -27,4 +27,8 @@ export const popoverAnatomy = defineAnatomy('popover', {
         tokens: ['color', 'radius-field', 'size'],
         asChild: true,
     },
+}, {
+    models: [
+        { concept: 'open', type: 'boolean' },
+    ],
 });

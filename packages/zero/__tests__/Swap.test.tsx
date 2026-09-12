@@ -54,7 +54,7 @@ describe('Swap', () => {
 
     it('both faces stay rendered; the inactive one is aria-hidden', () => {
         render(
-            <Swap.Root defaultOn>
+            <Swap.Root defaultActive>
                 <Swap.On>🌙</Swap.On>
                 <Swap.Off>☀️</Swap.Off>
             </Swap.Root>,
@@ -78,7 +78,7 @@ describe('Swap', () => {
     it('interactive renders a real toggle button', () => {
         const changes: boolean[] = [];
         render(
-            <Swap.Root interactive label="Toggle theme" onChange={(v: boolean) => changes.push(v)}>
+            <Swap.Root interactive label="Toggle theme" onActiveChange={(v: boolean) => changes.push(v)}>
                 <Swap.On>🌙</Swap.On>
                 <Swap.Off>☀️</Swap.Off>
             </Swap.Root>,
@@ -105,7 +105,7 @@ describe('Swap', () => {
     it('a non-interactive swap ignores clicks — display only', () => {
         const changes: boolean[] = [];
         render(
-            <Swap.Root onChange={(v: boolean) => changes.push(v)}>
+            <Swap.Root onActiveChange={(v: boolean) => changes.push(v)}>
                 <Swap.On>🌙</Swap.On>
                 <Swap.Off>☀️</Swap.Off>
             </Swap.Root>,
@@ -119,7 +119,7 @@ describe('Swap', () => {
     it('interactive + disabled is inert and conveyed', () => {
         const changes: boolean[] = [];
         render(
-            <Swap.Root interactive disabled label="Toggle" onChange={(v: boolean) => changes.push(v)}>
+            <Swap.Root interactive disabled label="Toggle" onActiveChange={(v: boolean) => changes.push(v)}>
                 <Swap.On>on</Swap.On>
                 <Swap.Off>off</Swap.Off>
             </Swap.Root>,

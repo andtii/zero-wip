@@ -99,4 +99,11 @@ export const menuAnatomy = defineAnatomy('menu', {
         parent: 'popup',
         tokens: ['color'],
     },
+}, {
+    models: [
+        { concept: 'open', type: 'boolean' },
+        { concept: 'checked', type: 'boolean', member: 'CheckboxItem' },
+        { concept: 'value', type: 'string', member: 'RadioGroup' },
+        { concept: 'open', type: 'boolean', member: 'Sub' },
+    ],
 });

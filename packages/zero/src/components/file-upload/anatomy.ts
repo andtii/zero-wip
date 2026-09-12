@@ -77,4 +77,8 @@ export const fileUploadAnatomy = defineAnatomy('file-upload', {
         flags: ['disabled', 'focus-visible', 'pressed', 'press-animating'],
         tokens: ['color', 'radius-selector', 'text'],
     },
+}, {
+    models: [
+        { concept: 'files', type: 'File[]', formControl: true },
+    ],
 });

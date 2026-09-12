@@ -43,4 +43,9 @@ export const radioGroupAnatomy = defineAnatomy('radio-group', {
         element: 'input',
         parent: 'item',
     },
-}, { orientation: true });
+}, {
+    orientation: true,
+    models: [
+        { concept: 'value', type: 'string', formControl: true },
+    ],
+});

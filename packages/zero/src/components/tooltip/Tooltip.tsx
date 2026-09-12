@@ -59,6 +59,7 @@ export const useTooltipContext = defineInjectable<TooltipContext>(() => makeIner
 
 export type TooltipRootProps =
     & Define.Model<boolean>
+    & Define.Prop<'defaultOpen', boolean, false>
     & Define.Event<'openChange', boolean>
     & Define.Prop<'openDelay', number, false>
     & Define.Prop<'closeDelay', number, false>
@@ -70,7 +71,7 @@ export type TooltipRootProps =
 const TooltipRoot = component<TooltipRootProps>(({ props, slots, emit, onUnmounted }) => {
     const state = createControllableState<boolean>(
         () => props.model,
-        false,
+        props.defaultOpen ?? false,
         (v) => emit('openChange', v),
     );
     const baseId = createId('zx-tooltip');

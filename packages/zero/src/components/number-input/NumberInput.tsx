@@ -101,7 +101,7 @@ export const useNumberInputContext = defineInjectable<NumberInputContext>(() => 
 
 export type NumberInputRootProps =
     & Define.Model<number | null>
-    & Define.Prop<'defaultValue', number, false>
+    & Define.Prop<'defaultValue', number | null, false>
     & Define.Event<'valueChange', number | null>
     & Define.Prop<'min', number, false>
     & Define.Prop<'max', number, false>

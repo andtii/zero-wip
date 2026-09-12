@@ -35,4 +35,8 @@ export const switchAnatomy = defineAnatomy('switch', {
         element: 'input',
         parent: 'root',
     },
+}, {
+    models: [
+        { concept: 'checked', type: 'boolean', formControl: true },
+    ],
 });
