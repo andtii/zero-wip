@@ -212,6 +212,15 @@ describe('report.schema.json', () => {
     });
 
 
+    it('rejects a lynx finding whose scope is not a kebab token', () => {
+        const report = reportNamed('basic') as Record<string, unknown>;
+        const withLynx = {
+            ...report,
+            lynx: { translated: [], dropped: [{ where: 'w', what: 'x', detail: 'y', scope: 'Not Kebab' }] },
+        };
+        expect(validateReport(asJson(withLynx))).toBe(false);
+    });
+
     it('rejects an unknown top-level key (the emitter is closed)', () => {
         expect(validateReport(asJson({ ...(reportNamed('basic') as object), vendor: 'acme' }))).toBe(false);
     });
