@@ -106,6 +106,38 @@ number is written out and checked at the boundary instead: `mergeManifests`
 rejects a fragment that declares none, and rejects one built against a
 version it no longer speaks, rather than merging a stale anatomy silently.
 
+## 4a. Check it before you publish
+
+`sigx zero:fragment`, run in your package, emits `dist/fragment.json` beside
+the module and checks the things that otherwise fail in *someone else's*
+build:
+
+- the `version` literal still matches the kit's `FRAGMENT_VERSION` — this
+  check is what makes hand-writing it safe;
+- the JSON validates against `schemas/fragment.schema.json`, and
+  `mergeManifests` accepts it against the installed `@sigx/zero`: flags,
+  governed states, placements, `hiddenIn`, the part tree, and a scope nobody
+  else claims;
+- the declared fragment path is inside your `"files"` — present locally and
+  missing for every consumer is the failure you cannot see from your own
+  checkout;
+- every part your recipes style is one your anatomy declares, and every scope
+  they style is one your fragment declares;
+- your package root exports `componentExportName(scope)` — the name an
+  api-declaring adopter's generated `./components` module imports;
+- and a **hostile-vocabulary probe**: your pack, fitted to a design system
+  with no colour roles and no size ramp, still compiles — and still paints. A
+  scope that draws only through the colour axis renders as nothing there, and
+  you should hear that from this command rather than from an adopter.
+
+It warns rather than fails on an unprefixed scope (what counts as a vendor is
+not checkable; the collision it invites later is), and on a pack that is not
+lynx-clean (that costs adopters one target, not the build).
+
+This is the one place the kit becomes a devDependency of a component package.
+
+## 4b. The pack
+
 The recipe pack targets the **recommended token grammar** — role names from
 `RECOMMENDED_ROLE_LIST` (`var(--color-primary)` …), the recommended sizes —
 so it styles itself under any design system that keeps the recommended

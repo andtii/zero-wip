@@ -436,6 +436,16 @@ contract helpers — see zero's "Building your own components") and publishes a
 required — the merge hard-errors on a missing or unknown one, so a fragment
 built against an older contract fails by name instead of merging silently.
 
+`sigx zero:fragment`, run inside the component package, emits
+`dist/fragment.json` and checks what would otherwise fail in an adopter's
+build: the `version` literal against `FRAGMENT_VERSION`, the schema, the
+merge against the installed `@sigx/zero`, that the declared path is inside
+`"files"`, that recipes style only parts and scopes the fragment declares,
+that the root exports `componentExportName(scope)`, and that the pack still
+compiles *and paints* when fitted to a vocabulary with no colour roles and no
+size ramp. An unprefixed scope and a pack that is not lynx-clean are warnings,
+not failures. No bare alias — `fragment` is a word other plugins may want.
+
 The package points at that data entry with a `"sigx-zero"` field, shaped like
 the `"sigx-cli"` field this plugin is itself discovered through:
 

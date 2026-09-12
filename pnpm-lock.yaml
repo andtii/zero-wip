@@ -241,6 +241,9 @@ importers:
 
   packages/zero-ext-example:
     devDependencies:
+      '@sigx/cli':
+        specifier: ^0.10.0
+        version: 0.10.0
       '@sigx/reactivity':
         specifier: 'catalog:'
         version: 0.15.3

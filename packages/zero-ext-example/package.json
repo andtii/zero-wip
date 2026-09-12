@@ -22,7 +22,7 @@
         "requires": ">=0.2.0"
     },
     "scripts": {
-        "build": "vite build && tsgo --emitDeclarationOnly && node scripts/emit-fragment.mjs",
+        "build": "vite build && tsgo --emitDeclarationOnly && sigx zero:fragment",
         "typecheck": "tsgo --noEmit"
     },
     "author": "Andreas Ekdahl",
@@ -32,6 +32,7 @@
         "@sigx/zero": "workspace:^"
     },
     "devDependencies": {
+        "@sigx/cli": "^0.10.0",
         "@sigx/reactivity": "catalog:",
         "@sigx/runtime-core": "catalog:",
         "@sigx/runtime-dom": "catalog:",

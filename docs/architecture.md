@@ -924,6 +924,16 @@ the architecture facts, briefly:
   design system's author neither wrote that recipe nor can fix it, and a
   scope with no lynx CSS is the documented unstyled-but-accessible fallback
   while a failed build is nothing.
+- **The authoring side has a gate of its own.** `sigx zero:fragment`, run in
+  a component package, emits `dist/fragment.json` and checks what would
+  otherwise surface in an adopter's build: the `version` literal against
+  `FRAGMENT_VERSION`, the schema, the merge, `"files"` coverage of the
+  declared path, recipes confined to declared parts and scopes, the
+  `componentExportName` root export, and a hostile-vocabulary probe (fitted
+  to no colour roles and no size ramp, does the pack still compile — and
+  still paint). It is the reason the `version` literal is safe to
+  hand-write, and the reason the kit is a devDependency of every component
+  package.
 - **A diagnostic about someone else's recipe says so.** An adopted pack's
   recipes are compiled as the design system's own, which means its
   diagnostics are too. `ValidationIssue` carries a structured `scope`
