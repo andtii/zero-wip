@@ -260,10 +260,10 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
  * carries no `package`, and that absence is what marks it zero's own.
  */
 export function packagesByScope(manifest: Pick<ZeroManifest, 'components'>): Record<string, string> {
-    // Null prototype: scope names take the kebab grammar, and `constructor`,
-    // `toString` and `valueOf` are all legal kebab identifiers. On a plain
-    // object a lookup for one of those returns something inherited and
-    // truthy, and the finding would be attributed to a function.
+    // Null prototype. Scope names take the kebab grammar, which is lowercase
+    // — so not `toString`, but `constructor` passes it, and on a plain object
+    // a lookup for that one returns something inherited and truthy: the
+    // finding would be attributed to a function.
     const owners: Record<string, string> = Object.create(null) as Record<string, string>;
     for (const component of manifest.components) {
         if (component.package) owners[component.scope] = component.package;

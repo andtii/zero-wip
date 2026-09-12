@@ -92,9 +92,8 @@ export interface CompiledComponentAxes {
  * The ecosystem package owning `scope`, or `undefined` when zero ships it.
  *
  * The one read path for `externalScopes`, so no caller has to remember that
- * a scope may legally be called `constructor` — a plain index lookup for one
- * of those returns an inherited value and reports a first-party scope as
- * foreign.
+ * `constructor` passes the scope grammar — a plain index lookup for it
+ * returns an inherited value and reports a first-party scope as foreign.
  */
 export function externalPackage(compiled: Pick<CompiledDesignSystem, 'externalScopes'>, scope: string): string | undefined {
     const owners = compiled.externalScopes;
@@ -392,10 +391,10 @@ export function compileDesignSystem<R extends RolesDecl, T extends SystemTokens>
     // Provenance survives compilation: a styled scope whose manifest entry
     // names an owning package is external, and downstream emitters read the
     // fact from the compiled form rather than re-consulting the manifest.
-    // Null prototype: `constructor`, `toString` and `valueOf` are all legal
-    // kebab scope names, and on a plain object a lookup for one of those
-    // returns something inherited and truthy — a scope zero ships would be
-    // reported as owned by a function.
+    // Null prototype. The scope grammar is lowercase, which rules out
+    // `toString` and the rest — but `constructor` passes it, and on a plain
+    // object a lookup for that one returns something inherited and truthy, so
+    // a scope zero ships would be reported as owned by a function.
     const externalScopes: Record<string, string> = Object.create(null) as Record<string, string>;
     for (const scope of Object.keys(components)) {
         const pkg = byScope.get(scope)?.package;

@@ -406,9 +406,10 @@ describe('attribution and provenance', () => {
     });
 
     it('does not attribute a scope to Object.prototype', () => {
-        // `constructor` is a legal kebab scope name, so on a plain object map
-        // the lookup returns something inherited and truthy — and the finding
-        // gets attributed to a function.
+        // The scope grammar is lowercase, so `toString` and friends cannot be
+        // scope names — but `constructor` can, and on a plain object map the
+        // lookup for it returns something inherited and truthy, attributing
+        // the finding to a function.
         // At least one real owner, or `attributeFindings` returns before the
         // lookup and the test proves nothing.
         const owners = packagesByScope({
@@ -445,7 +446,6 @@ describe('attribution and provenance', () => {
         const plain = { externalScopes: { 'acme-stepper': '@acme/stepper' } };
         expect(externalPackage(plain, 'acme-stepper')).toBe('@acme/stepper');
         expect(externalPackage(plain, 'constructor')).toBeUndefined();
-        expect(externalPackage(plain, 'toString')).toBeUndefined();
     });
 
     it('records who owns what in the emitted manifest', async () => {
