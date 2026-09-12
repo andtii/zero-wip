@@ -326,6 +326,24 @@ describe('audit.schema.json', () => {
         expectValid(validateAudit, asJson(audit), `${name} audit`);
     });
 
+    it('accepts an attributed finding, and refuses a package with nothing to attribute', () => {
+        // `package` reached AuditFinding with the ecosystem attribution but
+        // the schema knew nothing about it, so an audit.json from a build that
+        // adopted a pack no longer matched its own schema. And a package
+        // without a scope is an attribution to nowhere.
+        const artifact = basic() as { findings: unknown[] };
+        const attributed = { ...artifact, findings: [
+            { rule: 'contrast/text', severity: 'error', where: 'acme-stepper.item', message: 'm',
+              scope: 'acme-stepper', package: '@acme/stepper' },
+        ] };
+        expectValid(validateAudit, asJson(attributed), 'attributed audit');
+
+        const orphaned = { ...artifact, findings: [
+            { rule: 'contrast/text', severity: 'error', where: 'x', message: 'm', package: '@acme/stepper' },
+        ] };
+        expect(validateAudit(asJson(orphaned))).toBe(false);
+    });
+
     it('accepts findings and waivers of every shape the rules produce', () => {
         // A synthetic design system that trips several rules at once, so the
         // finding and waiver item shapes are exercised, not just the empty list.

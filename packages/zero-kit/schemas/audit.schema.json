@@ -147,6 +147,7 @@
             "description": "A verdict about one place. `where` is the `ValidationIssue` spelling (`scope`, `scope.part`, `scope.axis`, or `axis.value` for a design-system-level finding); the structured fields beside it are what a tool reads.",
             "type": "object",
             "additionalProperties": false,
+            "dependentRequired": { "package": ["scope"] },
             "required": [
                 "rule",
                 "severity",
@@ -166,6 +167,11 @@
                 },
                 "scope": {
                     "$ref": "#/$defs/kebabToken"
+                },
+                "package": {
+                    "description": "The ecosystem package owning `scope`, when a discovered pack does \u2014 so a finding about a recipe the design system did not write says whose it is. Never present without `scope`.",
+                    "type": "string",
+                    "minLength": 1
                 },
                 "part": {
                     "$ref": "#/$defs/kebabToken"
@@ -233,6 +239,7 @@
             "description": "A finding plus the mechanism that excused it. Mirrors `finding` property for property \u2014 2020-12 composition with `additionalProperties: false` would otherwise need `unevaluatedProperties`.",
             "type": "object",
             "additionalProperties": false,
+            "dependentRequired": { "package": ["scope"] },
             "required": [
                 "rule",
                 "severity",
@@ -253,6 +260,11 @@
                 },
                 "scope": {
                     "$ref": "#/$defs/kebabToken"
+                },
+                "package": {
+                    "description": "The ecosystem package owning `scope`, when a discovered pack does \u2014 so a finding about a recipe the design system did not write says whose it is. Never present without `scope`.",
+                    "type": "string",
+                    "minLength": 1
                 },
                 "part": {
                     "$ref": "#/$defs/kebabToken"
