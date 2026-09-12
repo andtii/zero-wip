@@ -372,10 +372,20 @@ describe('satisfiesKitRange', () => {
         expect(satisfiesKitRange('0.0.99', '^0.0.3')).toBe(false);
     });
 
-    it('handles >= and exact, and never blocks on a range it cannot parse', () => {
+    it('handles >= and exact, and reads a prerelease as its release', () => {
         expect(satisfiesKitRange('0.2.0', '>=0.2.0')).toBe(true);
         expect(satisfiesKitRange('0.1.9', '>=0.2.0')).toBe(false);
         expect(satisfiesKitRange('0.2.0', '0.2.0')).toBe(true);
+        expect(satisfiesKitRange('0.2.0-beta.6', '>=0.2.0')).toBe(true);
+    });
+
+    it('never blocks on a range it does not implement', () => {
+        // Unanchored, the parse would read this as ">=0.2.0" and answer
+        // confidently about a range it cannot evaluate. Unsupported spellings
+        // belong in the "unparseable, therefore satisfied" bucket: this check
+        // can only warn, so a wrong warning is the only thing it can get wrong.
+        expect(satisfiesKitRange('0.1.0', '>=0.2.0 || >=0.3.0')).toBe(true);
+        expect(satisfiesKitRange('0.1.0', '~0.2.0')).toBe(true);
         expect(satisfiesKitRange('0.2.0', 'whatever the author typed')).toBe(true);
     });
 });

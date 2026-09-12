@@ -128,8 +128,15 @@ interface Version {
     patch: number;
 }
 
+/**
+ * Anchored on purpose, prerelease and build metadata included. An unanchored
+ * match would read `">=0.2.0 || >=0.3.0"` as `>=0.2.0` and answer confidently
+ * about a range it does not actually implement; anchoring drops every
+ * unsupported spelling into the "unparseable, therefore satisfied" bucket,
+ * which is the only safe default for a check that can only warn.
+ */
 function parseVersion(value: string): Version | null {
-    const m = /^v?(\d+)\.(\d+)\.(\d+)/.exec(value.trim());
+    const m = /^v?(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.exec(value.trim());
     return m ? { major: Number(m[1]), minor: Number(m[2]), patch: Number(m[3]) } : null;
 }
 
