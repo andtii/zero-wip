@@ -347,11 +347,19 @@ export function validateRecipes(
     // iterate scopes of their own, and an inner binding named `scope` does
     // NOT reach a closure defined out here.
     let currentScope: string | undefined;
-    const push = (level: ValidationIssue['level'], where: string, message: string, scope = currentScope) =>
-        issues.push({ level, where, message, ...(scope ? { scope } : {}) });
-    const error = (where: string, message: string) => push('error', where, message);
-    const warn = (where: string, message: string) => push('warning', where, message);
-    const warnFor = (scope: string, where: string, message: string) => push('warning', where, message, scope);
+    /**
+     * The ONE place an issue is pushed. Every finding goes through here so
+     * none can quietly miss the scope tag — the `css-property` findings, which
+     * carry a `rule` and a `suggest`, were exactly that leak.
+     */
+    const push = (issue: Omit<ValidationIssue, 'scope'> & { scope?: string }): void => {
+        const scope = issue.scope ?? currentScope;
+        issues.push({ ...issue, ...(scope ? { scope } : {}) });
+    };
+    const error = (where: string, message: string) => push({ level: 'error', where, message });
+    const warn = (where: string, message: string) => push({ level: 'warning', where, message });
+    const warnFor = (scope: string, where: string, message: string) =>
+        push({ level: 'warning', where, message, scope });
 
     // Axis names and values are interpolated into `[data-<axis>="<value>"]`
     // (and, on lynx, into `.zx-a-<axis>-<value>`). The vocabularies are open
@@ -395,7 +403,7 @@ export function validateRecipes(
             // A camelCase key gets the capital that opens the hyphen; a kebab
             // key already spells itself and only lacks the hyphen.
             const spelled = prop.includes('-') ? fixed : prop[0]!.toUpperCase() + prop.slice(1);
-            issues.push({
+            push({
                 level: 'error',
                 where: at,
                 rule: 'css-property',
@@ -406,7 +414,7 @@ export function validateRecipes(
         }
         const near = name.length >= 4 ? nearestOf(name, CSS_PROPERTIES, 3) : undefined; // within two edits
         if (near && near.length >= 4) {
-            issues.push({
+            push({
                 level: 'error',
                 where: at,
                 rule: 'css-property',
@@ -414,7 +422,7 @@ export function validateRecipes(
                 message: `"${name}" is not a CSS property — did you mean "${near}"? The browser drops the declaration silently`,
             });
         } else {
-            issues.push({
+            push({
                 level: 'warning',
                 where: at,
                 rule: 'css-property',

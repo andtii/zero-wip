@@ -337,6 +337,29 @@ describe('attribution and provenance', () => {
         }
     });
 
+    it('tags a rule-bearing finding too — no push may skip the tag', () => {
+        // The css-property findings carry `rule` and `suggest` and were pushed
+        // directly, bypassing the tagging helper. Every finding now goes
+        // through one place, and this pins that: a scope-less diagnostic about
+        // a pack's recipe is one nobody can attribute.
+        const recipes: RecipeInput[] = [{
+            component: 'button',
+            parts: {
+                root: {
+                    base: { appearance: 'none', bakcgroundColor: 'red' },
+                    states: { 'focus-visible': { outline: '2px solid black' } },
+                },
+            },
+        }];
+        const { errors, warnings } = validateDesignSystem(ds(bareTokens, recipes), baseManifest());
+        const typo = [...errors, ...warnings].find((i) => i.rule === 'css-property');
+
+        expect(typo, 'expected the misspelled-property finding').toBeDefined();
+        expect(typo?.scope).toBe('button');
+        // …and it kept everything it carried before.
+        expect(typo?.suggest).toBeDefined();
+    });
+
     it('records who owns what in the emitted manifest', async () => {
         const dir = outDir();
         await runStandardBuild({
