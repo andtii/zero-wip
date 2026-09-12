@@ -323,7 +323,11 @@ export function packFromModule(declaration: EcosystemDeclaration, mod: Record<st
         );
     }
 
-    const recipes = mod['recipes'] ?? [];
+    // Only an absent export means "no recipes". An explicit null is a
+    // malformed one, and gets the same error a malformed object would —
+    // `?? []` would have quietly accepted it.
+    const declaredRecipes = mod['recipes'];
+    const recipes = declaredRecipes === undefined ? [] : declaredRecipes;
     if (!Array.isArray(recipes)) {
         throw new Error(`[zero-kit] ${name}'s fragment entry ${source} exports a "recipes" that is not an array`);
     }

@@ -258,8 +258,11 @@ describe('packFromModule', () => {
             .toThrow(/declares package "@other\/pack"/);
     });
 
-    it('refuses a recipes export that is not an array', () => {
+    it('refuses a recipes export that is not an array, an explicit null included', () => {
         expect(() => packFromModule(declaration, { fragment, recipes: { component: 'x' } }))
+            .toThrow(/"recipes" that is not an array/);
+        // Absent means none; null means malformed. `?? []` conflated them.
+        expect(() => packFromModule(declaration, { fragment, recipes: null }))
             .toThrow(/"recipes" that is not an array/);
     });
 });
