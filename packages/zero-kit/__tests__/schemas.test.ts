@@ -32,6 +32,7 @@ import {
 } from '@sigx/zero/contract';
 import { AUDIT_RULES, auditDesignSystem, buildAuditArtifact, buildDsManifest, buildReport, compileDesignSystem } from '@sigx/zero-kit';
 import type { DesignSystemInput, ManifestComponent } from '@sigx/zero-kit';
+import { compileDesignSystemLynx } from '../src/targets/lynx/index.js';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
 import { designSystem as materialDS } from '@sigx/zero-material';
@@ -192,6 +193,24 @@ describe('report.schema.json', () => {
     it.each(reports)('accepts the report emitted for %s', (name, report) => {
         expectValid(validateReport, asJson(report), `${name} report`);
     });
+
+    it('accepts a report carrying the lynx section, findings and all', () => {
+        // The reports above are built without one, which is how `scope` and
+        // `package` reached LynxFinding without reaching the schema: nothing
+        // validated a report that actually had lynx findings in it.
+        const ds = basicDS as DesignSystemInput;
+        const report = buildReport(compileDesignSystem(ds, reportManifest), ds, reportManifest);
+        const lynx = compileDesignSystemLynx(ds, reportManifest);
+        expect(lynx.report.dropped.length, 'expected zero-basic to drop something on lynx').toBeGreaterThan(0);
+
+        report.lynx = {
+            translated: lynx.report.translated,
+            dropped: lynx.report.dropped.map((f) => ({ ...f, scope: 'acme-stepper', package: '@acme/stepper' })),
+            webOnly: [{ scope: 'acme-stepper', package: '@acme/stepper', reason: 'references --press-x' }],
+        };
+        expectValid(validateReport, asJson(report), 'basic report with lynx');
+    });
+
 
     it('rejects an unknown top-level key (the emitter is closed)', () => {
         expect(validateReport(asJson({ ...(reportNamed('basic') as object), vendor: 'acme' }))).toBe(false);
