@@ -178,7 +178,11 @@ or with the fragment as JSON, for a pack that ships no module entry:
 
 ```sh
 sigx zero:validate --extra-manifest ./node_modules/@acme/zero-stepper/dist/fragment.json
+sigx zero:build    --extra-manifest ./node_modules/@acme/zero-stepper/dist/fragment.json
 ```
+
+`--extra-manifest` is repeatable and takes a path or a module specifier; it
+is accepted by `zero:build`, `zero:validate` and `zero:audit` alike.
 
 Either way, merging is a statement of intent: a merged scope with no recipe
 draws the ordinary `N component(s) have no recipe` warning — that is validate
