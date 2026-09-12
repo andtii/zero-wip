@@ -275,17 +275,17 @@ describe('Select', () => {
         expect(trigger.getAttribute('aria-required')).toBe('true');
     });
 
-    describe('options prop (sugar tier, #333)', () => {
+    describe('items (the data expansion)', () => {
         const OPTIONS = [
             { value: 'apple' },
             { value: 'banana', label: 'Banana' },
             { value: 'cherry', label: 'Cherry', disabled: true },
         ] as const;
 
-        it('with no children, renders the full default composition from options', () => {
+        it('with no children, renders the full default composition from items', () => {
             const state = signal({ fruit: '' });
             render(
-                <Select.Root model={[state, 'fruit']} name="fruit" placeholder="Pick a fruit…" options={OPTIONS} />,
+                <Select.Root model={[state, 'fruit']} name="fruit" placeholder="Pick a fruit…" items={OPTIONS} />,
                 container,
             );
             expectAnatomy(container, selectAnatomy);
@@ -307,7 +307,7 @@ describe('Select', () => {
         it('groups render per distinct `group` in first-appearance order, ungrouped stay in place', async () => {
             render(
                 <Select.Root
-                    options={[
+                    items={[
                         { value: 'lemon', group: 'Citrus' },
                         { value: 'peach', group: 'Stone' },
                         { value: 'salt' },
@@ -336,7 +336,7 @@ describe('Select', () => {
 
         it('explicit slot children win entirely — no merging', () => {
             render(
-                <Select.Root options={OPTIONS} placeholder="Pick a fruit…">
+                <Select.Root items={OPTIONS} placeholder="Pick a fruit…">
                     <Select.Trigger label="Fruit">
                         <Select.Value />
                     </Select.Trigger>
@@ -354,7 +354,7 @@ describe('Select', () => {
         it('keyboard highlight, selection and closed typeahead work exactly as with hand-written items', () => {
             const state = signal({ fruit: '' });
             render(
-                <Select.Root model={[state, 'fruit']} options={OPTIONS} placeholder="Pick a fruit…" />,
+                <Select.Root model={[state, 'fruit']} items={OPTIONS} itemValue={(o) => o.value} placeholder="Pick a fruit…" />,
                 container,
             );
             const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
@@ -391,5 +391,205 @@ describe('Select', () => {
         await tick();
         // block:'nearest' — never yank the page, just keep the option visible.
         expect(scrolled).toHaveBeenCalledWith({ block: 'nearest' });
+    });
+});
+
+describe('Select over the collection (#445)', () => {
+    let container: HTMLElement;
+    beforeEach(() => {
+        container = document.createElement('div');
+        document.body.appendChild(container);
+    });
+    interface Country { code: string; name: string; region?: string; off?: boolean }
+    const COUNTRIES: Country[] = [
+        { code: 'se', name: 'Sweden', region: 'Nordics' },
+        { code: 'jp', name: 'Japan', region: 'Asia' },
+        { code: 'no', name: 'Norway', region: 'Nordics', off: true },
+    ];
+    const key = (el: Element, k: string) => el.dispatchEvent(new KeyboardEvent('keydown', { key: k, cancelable: true, bubbles: true }));
+
+    const platformWrites = (hidden: HTMLSelectElement, ...keys: string[]) => {
+        for (const o of Array.from(hidden.options)) o.selected = keys.includes(o.value);
+        hidden.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    it('a root without children is data-driven even while its items are still to come', () => {
+        const state = signal({ list: [] as string[] });
+        render(<Select.Root items={state.list} name="later" placeholder="Loading…" />, container);
+        const hidden = container.querySelector<HTMLSelectElement>('[data-part="hidden-input"]')!;
+        expect([...hidden.options].map((o) => o.value)).toEqual(['']);
+        expect(container.querySelector('[data-part="value"]')!.textContent).toBe('Loading…');
+        // Plain props are values in sigx: the list arrives INTO the proxied array.
+        state.list.push('a', 'b');
+        expect([...hidden.options].map((o) => o.value)).toEqual(['', 'a', 'b']);
+        expect(container.querySelectorAll('[data-part="item"]').length).toBe(2);
+    });
+
+    it('explicit children win over items ENTIRELY: the collection and the hidden select hold only what is rendered', () => {
+        render(
+            <Select.Root items={COUNTRIES} itemKey={(c) => c.code} itemLabel={(c) => c.name} name="country">
+                <Select.Trigger label="Country"><Select.Value /></Select.Trigger>
+                <Select.Popup><Select.Item value="x">Only</Select.Item></Select.Popup>
+            </Select.Root>,
+            container,
+        );
+        const items = container.querySelectorAll('[data-part="item"]');
+        expect(items.length).toBe(1);
+        expect(items[0]!.textContent).toContain('Only');
+        const hidden = container.querySelector<HTMLSelectElement>('[data-part="hidden-input"]')!;
+        expect([...hidden.options].map((o) => o.value)).toEqual(['']);
+        // The typeahead sees the rendered item, not the data (in data mode 's' would select Sweden).
+        key(container.querySelector<HTMLElement>('[data-part="trigger"]')!, 's');
+        expect(container.querySelector('[data-part="value"]')!.textContent).toBe('');
+    });
+
+    it('Select.Value slot: the items behind the keys, or the keys themselves for hand-written items', () => {
+        render(
+            <Select.Root defaultValue="a">
+                <Select.Trigger label="L"><Select.Value slots={{ default: ({ items }) => <b>{(items as string[]).join('+')}</b> }} /></Select.Trigger>
+                <Select.Popup><Select.Item value="a">A</Select.Item></Select.Popup>
+            </Select.Root>,
+            container,
+        );
+        expect(container.querySelector('[data-part="value"]')!.textContent).toBe('a');
+    });
+
+    it('an item keyed "" is refused in single mode (it is the placeholder) and accepted under multiple', () => {
+        expect(() => render(<Select.Root items={['', 'a']} name="x" />, container)).toThrow(/reserved for the placeholder/);
+        // With or without a name, data or hand-written items: the key is the sentinel either way.
+        expect(() => render(<Select.Root items={['', 'a']} />, container)).toThrow(/reserved for the placeholder/);
+        expect(() => render(<Select.Root><Select.Popup><Select.Item value="">None</Select.Item></Select.Popup></Select.Root>, container)).toThrow(/reserved for the placeholder/);
+        expect(() => render(<Select.Root items={['', 'a']} multiple name="y" />, container)).not.toThrow();
+        // A value of '' behind a non-empty key is refused too: the core reads '' as nothing
+        // selected. (A fresh container: a render over a mounted app reports rather than throws.)
+        const fresh = document.body.appendChild(document.createElement('div'));
+        expect(() => render(<Select.Root items={[{ id: 'none', v: '' }]} itemKey={(i) => i.id} itemValue={(i) => i.v} />, fresh)).toThrow(/keyed or valued ""/);
+    });
+
+    it("the platform's write to the hidden select (autofill, restoration) flows back into the model", () => {
+        const state = signal({ country: null as Country | null, codes: [] as string[], code: '' as string | null });
+        render(
+            <>
+                <Select.Root items={COUNTRIES} itemKey={(c) => c.code} itemLabel={(c) => c.name} itemDisabled={(c) => !!c.off} model={[state, 'country']} name="country" />
+                <Select.Root items={COUNTRIES} itemValue={(c) => c.code} itemLabel={(c) => c.name} model={[state, 'code']} name="code" />
+                <Select.Root items={COUNTRIES} itemValue={(c) => c.code} itemLabel={(c) => c.name} multiple model={[state, 'codes']} name="codes" />
+            </>,
+            container,
+        );
+        const [single, value, multi] = Array.from(container.querySelectorAll<HTMLSelectElement>('[data-part="hidden-input"]'));
+        // A disabled item is a disabled option: the platform cannot pick it either.
+        expect([...single!.options].find((o) => o.value === 'no')!.disabled).toBe(true);
+        expect([...single!.options].find((o) => o.value === 'jp')!.disabled).toBe(false);
+        platformWrites(single!, 'jp');
+        expect(state.country).toEqual(COUNTRIES[1]);
+        expect(container.querySelector('[data-part="value"]')!.textContent).toBe('Japan');
+        platformWrites(single!);
+        expect(state.country).toBeNull();
+        platformWrites(multi!, 'se', 'no');
+        expect(state.codes).toEqual(['se', 'no']);
+        // A value model: '' reads as nothing selected, and nothing selected is written as null.
+        expect(container.querySelectorAll('[data-part="value"]')[1]!.hasAttribute('data-placeholder')).toBe(true);
+        platformWrites(value!, 'jp');
+        expect(state.code).toBe('jp');
+        platformWrites(value!);
+        expect(state.code).toBeNull();
+    });
+
+    it('object model: the model holds the item, and a preset item shows its label on the FIRST render', () => {
+        const state = signal({ country: COUNTRIES[1] as Country | null });
+        render(
+            <Select.Root items={COUNTRIES} itemKey={(c) => c.code} itemLabel={(c) => c.name} model={[state, 'country']} name="country" />,
+            container,
+        );
+        // No tick: the label comes from data, not from a mounted element.
+        expect(container.querySelector('[data-part="value"]')!.textContent).toBe('Japan');
+        container.querySelectorAll<HTMLElement>('[data-part="item"]')[0]!.click();
+        expect(state.country).toEqual(COUNTRIES[0]);
+        // The hidden select posts the KEY, with every item as an option.
+        const hidden = container.querySelector<HTMLSelectElement>('select[data-part="hidden-input"]')!;
+        expect([...hidden.options].map((o) => o.value)).toEqual(['', 'se', 'jp', 'no']);
+    });
+
+    it('key model: itemValue decides what the model holds', () => {
+        const state = signal({ code: 'se' });
+        render(
+            <Select.Root items={COUNTRIES} itemValue={(c) => c.code} itemLabel={(c) => c.name} model={[state, 'code']} />,
+            container,
+        );
+        expect(container.querySelector('[data-part="value"]')!.textContent).toBe('Sweden');
+        container.querySelectorAll<HTMLElement>('[data-part="item"]')[1]!.click();
+        expect(state.code).toBe('jp');
+    });
+
+    it('itemDisabled and itemGroup flow into the generated parts', async () => {
+        render(
+            <Select.Root items={COUNTRIES} itemKey={(c) => c.code} itemLabel={(c) => c.name} itemDisabled={(c) => !!c.off} itemGroup={(c) => c.region} />,
+            container,
+        );
+        await tick();
+        // Grouped rendering reorders the DOM (Nordics collects Norway), so find
+        // the item by its label rather than its data index.
+        const norway = [...container.querySelectorAll<HTMLElement>('[data-part="item"]')].find((i) => i.textContent === 'Norway')!;
+        expect(norway.getAttribute('aria-disabled')).toBe('true');
+        expect([...container.querySelectorAll('[data-part="group-label"]')].map((l) => l.textContent)).toEqual(['Nordics', 'Asia']);
+    });
+
+    it('multiple: selections toggle, the popup stays open, the hidden select is multiple and posts each', async () => {
+        const state = signal({ codes: [] as string[] });
+        render(
+            <form>
+                <Select.Root items={COUNTRIES} multiple itemValue={(c) => c.code} itemLabel={(c) => c.name} model={[state, 'codes']} name="c" />
+            </form>,
+            container,
+        );
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        trigger.click();
+        expect(container.querySelector('[data-part="popup"]')!.getAttribute('data-state')).toBe('open');
+        expect(container.querySelector('[data-part="popup"]')!.getAttribute('aria-multiselectable')).toBe('true');
+        const items = container.querySelectorAll<HTMLElement>('[data-part="item"]');
+        items[0]!.click();
+        items[1]!.click();
+        expect(state.codes).toEqual(['se', 'jp']);
+        expect(container.querySelector('[data-part="popup"]')!.getAttribute('data-state')).toBe('open');
+        expect(container.querySelector('[data-part="value"]')!.textContent).toBe('Sweden, Japan');
+        await tick();
+        const hidden = container.querySelector<HTMLSelectElement>('select[data-part="hidden-input"]')!;
+        expect(hidden.multiple).toBe(true);
+        expect([...hidden.selectedOptions].map((o) => o.value)).toEqual(['se', 'jp']);
+        // Enter on the highlighted item toggles it off.
+        key(trigger, 'Home');
+        key(trigger, 'Enter');
+        expect(state.codes).toEqual(['jp']);
+    });
+
+    it('model:open is a named model (closes #104)', () => {
+        const state = signal({ open: false, fruit: '' });
+        render(
+            <Select.Root model={[state, 'fruit']} model:open={[state, 'open']}>
+                <Select.Trigger label="Fruit"><Select.Value /></Select.Trigger>
+                <Select.Popup><Select.Item value="apple">Apple</Select.Item></Select.Popup>
+            </Select.Root>,
+            container,
+        );
+        container.querySelector<HTMLElement>('[data-part="trigger"]')!.click();
+        expect(state.open).toBe(true);
+        state.open = false;
+        expect(container.querySelector('[data-part="popup"]')!.getAttribute('data-state')).toBe('closed');
+        // A consumer's write to the open model initialises and clears the
+        // highlight exactly as the trigger does.
+        state.open = true;
+        const trigger = container.querySelector<HTMLElement>('[data-part="trigger"]')!;
+        expect(trigger.getAttribute('aria-activedescendant')).toBeTruthy();
+        expect(container.querySelector('[data-part="item"]')!.hasAttribute('data-highlighted')).toBe(true);
+        state.open = false;
+        expect(trigger.hasAttribute('aria-activedescendant')).toBe(false);
+    });
+
+    it('the item slot customises a generated option', () => {
+        render(
+            <Select.Root items={COUNTRIES} itemKey={(c) => c.code} slots={{ item: ({ item }) => <em>{(item as Country).code.toUpperCase()}</em> }} />,
+            container,
+        );
+        expect(container.querySelector('[data-part="item"] em')!.textContent).toBe('SE');
     });
 });

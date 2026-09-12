@@ -1,95 +1,103 @@
 /**
  * Combobox — an editable text input over a filtered listbox (WAI-ARIA
- * editable combobox pattern).
+ * editable combobox pattern), typed generic at the JSX level over a
+ * collection of items.
  *
  * ```tsx
- * <Combobox.Root model={[state, 'fruit']} model:inputValue={[state, 'query']}>
- *     <Combobox.Control>
- *         <Combobox.Input placeholder="Search fruit…" />
- *         <Combobox.Trigger />
- *     </Combobox.Control>
+ * // Items as data: zero filters (contains-match on the label) as you type.
+ * <Combobox.Root items={countries} itemKey={(c) => c.code} itemLabel={(c) => c.name}
+ *     model={() => state.country} model:inputValue={() => state.query}
+ *     placeholder="Search countries…" emptyText="No match" />
+ *
+ * // A server-filtered list: pass what came back, and no filter.
+ * <Combobox.Root items={results} filter={false} model={() => state.country}
+ *     model:inputValue={() => state.query} />
+ *
+ * // Hand-written items: what you render is what is visible — filter yourself.
+ * <Combobox.Root model={() => state.fruit} model:inputValue={() => state.query}>
+ *     <Combobox.Control><Combobox.Input /><Combobox.Trigger /></Combobox.Control>
  *     <Combobox.Popup>
  *         {fruits.filter((f) => f.includes(state.query)).map((f) => (
  *             <Combobox.Item value={f} key={f}>{f}</Combobox.Item>
  *         ))}
- *         {noMatches ? <Combobox.Empty>No fruit found</Combobox.Empty> : null}
+ *         <Combobox.Empty>No fruit found</Combobox.Empty>
  *     </Combobox.Popup>
  * </Combobox.Root>
  * ```
  *
- * THE NAMED-MODELS CONVENTION (first use — future multi-state components
- * follow it): every stateful component has exactly one unnamed `model`, its
- * essential value — what `hidden-input` posts. Every additional piece of
- * controllable state is a named model (`model:inputValue`, `model:open`),
- * wired through the same `createControllableState`, each keeping the
- * standard companions (`defaultInputValue` + `inputValueChange`).
+ * THE NAMED-MODELS CONVENTION: exactly one unnamed `model`, the essential
+ * value — what the hidden select posts. `model:inputValue` is the text,
+ * `model:open` the popup, each with `default<Name>` + `<name>Change`.
  *
- * FILTERING IS THE CONSUMER'S: items are JSX children zero does not own.
- * Bind `model:inputValue` (or listen to `inputValueChange`), render the
- * items that match, and render `<Combobox.Empty>` yourself when nothing
- * does. Zero manages registration, highlight and selection — including
- * pruning the highlight when the highlighted item unmounts mid-typing, so
- * `aria-activedescendant` never dangles.
- *
- * THE OPTIONS SUGAR (#333): with no children, an `options` array renders the
- * default composition — Control(Input, Trigger) + Popup(Item per option,
- * Group/GroupLabel per distinct `group` in first-appearance order, label
- * defaulting to value) — through the existing anatomy. It is RENDERING sugar
- * only: the filtering law above is unchanged, so to narrow the list bind
- * `model:inputValue` and pass an already-filtered array. Precedence:
- * explicit slot children win ENTIRELY when both are given — never merged.
- * Name an options-driven Combobox through a `Field` (the field's label lands
- * on the generated input via the control id).
+ * THE COLLECTION IS THE TRUTH (#438): with `items` the visible list is the
+ * items whose label contains the query (`filter` replaces the rule,
+ * `filter={false}` shows everything), and a preset value's label reaches the
+ * input before any item mounts. Hand-written items register into the same
+ * collection and stay consumer-filtered. `Combobox.Empty` renders only while
+ * the visible list is empty. Under `multiple` a selection toggles, clears
+ * the input and keeps the popup open.
  *
  * Focus stays in the input; the highlighted option is conveyed via
  * `aria-activedescendant` + `data-highlighted`. ArrowDown/Up open and move,
- * Enter selects (fills the input with the item's text), Escape closes, Tab
- * closes without being swallowed, Home/End stay with the text caret (APG).
- * The popup is `popover="manual"` + the dismiss layer: native `auto` light
- * dismiss would close the list on a caret click in the input.
+ * Enter selects, Escape closes, Tab closes without being swallowed, Home/End
+ * stay with the text caret (APG). The popup is `popover="manual"` + the
+ * dismiss layer: native `auto` light dismiss would close the list on a caret
+ * click in the input.
  */
 import { component, compound, defineInjectable, defineProvide, effect, watch } from 'sigx';
-import type { Define, Model } from 'sigx';
-import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
+import type { Define, JSXElement } from 'sigx';
+import { createControllableState, createInertState, namedModel, type ControllableState } from '../../behaviors/controllable.js';
 import { createId } from '../../behaviors/create-id.js';
+import { createCollection, type Collection } from '../../behaviors/collection.js';
 import { createFormControl } from '../../behaviors/form-control.js';
 import { onFormReset } from '../../behaviors/form-reset.js';
 import { VISUALLY_HIDDEN_STYLE } from '../../behaviors/visually-hidden.js';
-import { createListController, moveHighlight, optionText, type HighlightStep, type ListController, type ListItem } from '../../behaviors/list.js';
+import { createListController, type ListController } from '../../behaviors/list.js';
+import {
+    announceGroupLabel, createGroupPresence, createListbox, createListboxItem, type GroupPresence, type Listbox,
+} from '../../behaviors/listbox.js';
+import { syncPopover } from '../../behaviors/popover-sync.js';
 import { createAnchorPosition, type Placement, type PositionStrategy } from '../../behaviors/position.js';
 import { createDismissable } from '../../behaviors/dismiss.js';
-import { segmentOptions, type OptionInput } from '../../behaviors/options.js';
 import { isFocusVisible } from '../../behaviors/focus-visible.js';
 import { createPressFeedback } from '../../behaviors/press.js';
 import { dataAttr, stateAttr } from '../../contract/data-attrs.js';
 import { renderAsChild } from '../../contract/as-child.js';
+import type { FactoryBrands, JsxProps } from '../../contract/generic.js';
 import { variantAttrs } from '../../contract/props.js';
-import type { PartProps, WithAsChild, WithClass, WithDisabled, WithFormControl, WithReadonly, WithVariantAxes } from '../../contract/props.js';
+import type {
+    PartProps,
+    WithAsChild,
+    WithClass,
+    WithDisabled,
+    WithFormControl,
+    WithReadonly,
+    WithVariantAxes,
+} from '../../contract/props.js';
 import { comboboxAnatomy } from './anatomy.js';
 
 const SCOPE = comboboxAnatomy.scope;
 
 interface ComboboxContext {
-    state: ControllableState<string>;
+    state: ControllableState<unknown>;
     inputValue: ControllableState<string>;
-    open: { value: boolean };
-    highlighted: { value: string | null };
+    collection: Collection<unknown, unknown>;
+    listbox: Listbox<unknown>;
     list: ListController;
+    open: { value: boolean };
     ids: { trigger: string; popup: string };
     placeholder(): string | undefined;
+    multiple(): boolean;
+    /** Refuses the empty key in single mode — it is the placeholder's. */
+    guardKey(key: string): void;
     disabled(): boolean;
     invalid(): boolean;
     required(): boolean;
     readonly(): boolean;
-    name(): string | undefined;
     describedBy(): string | undefined;
     /** The input's rendered id — the field's control id when wrapped in a Field. */
     inputId(): string;
     inputFocusVisible: { value: boolean };
-    selectValue(value: string): void;
-    /** Clear the highlight when the highlighted item unmounts (filtering). */
-    pruneHighlight(value: string): void;
-    optionId(value: string): string;
     setControl(el: HTMLElement | null): void;
     setInput(el: HTMLElement | null): void;
     setTrigger(el: HTMLElement | null): void;
@@ -100,25 +108,27 @@ interface ComboboxContext {
 }
 
 function makeInert(): ComboboxContext {
+    const state = createInertState<unknown>('');
+    const collection = createCollection<unknown, unknown>();
+    const list = createListController();
     return {
-        state: createInertState<string>(''),
+        state,
         inputValue: createInertState<string>(''),
+        collection,
+        listbox: createListbox({ collection, selection: state, list, idBase: 'zx-combobox-inert' }),
+        list,
         open: { value: false },
-        highlighted: { value: null },
-        list: createListController(),
         ids: { trigger: 'zx-combobox-inert-trigger', popup: 'zx-combobox-inert-popup' },
         placeholder: () => undefined,
+        multiple: () => false,
+        guardKey: () => {},
         disabled: () => false,
         invalid: () => false,
         required: () => false,
         readonly: () => false,
-        name: () => undefined,
         describedBy: () => undefined,
         inputId: () => 'zx-combobox-inert-input',
         inputFocusVisible: { value: false },
-        selectValue: () => {},
-        pruneHighlight: () => {},
-        optionId: (v) => `zx-combobox-inert-option-${v}`,
         setControl: () => {},
         setInput: () => {},
         setTrigger: () => {},
@@ -133,37 +143,70 @@ export const useComboboxContext = defineInjectable<ComboboxContext>(() => makeIn
 
 // ── Root ──
 
-export type ComboboxRootProps =
-    & Define.Model<string>
-    & Define.Prop<'defaultValue', string, false>
-    & Define.Event<'valueChange', string>
+/** The props, generic over the item `T` and the model `M` (see `SelectRootProps`). */
+export type ComboboxRootProps<T = unknown, M = unknown> =
+    & Define.Model<M>
+    /** Typed per overload on the exported root (see below); `unknown` here. */
+    & Define.Prop<'defaultValue', unknown, false>
+    & Define.Event<'valueChange', M>
     & Define.Model<'inputValue', string>
     & Define.Prop<'defaultInputValue', string, false>
     & Define.Event<'inputValueChange', string>
     & Define.Model<'open', boolean>
     & Define.Prop<'defaultOpen', boolean, false>
     & Define.Event<'openChange', boolean>
+    /** The items as data. Absent → hand-written `Combobox.Item` children, consumer-filtered. */
+    & Define.Prop<'items', ReadonlyArray<T>, false>
+    & Define.Prop<'itemKey', (item: T) => string, false>
+    & Define.Prop<'itemLabel', (item: T) => string, false>
+    & Define.Prop<'itemDisabled', (item: T) => boolean, false>
+    & Define.Prop<'itemGroup', (item: T) => string | undefined, false>
+    /**
+     * Data-mode visibility: the default is a case-insensitive contains-match
+     * on the label; a function replaces it; `false` shows every item (a
+     * server-filtered list).
+     */
+    & Define.Prop<'filter', false | ((item: T, query: string) => boolean), false>
+    /** Rendered as `Combobox.Empty` by the data expansion while nothing is visible. */
+    & Define.Prop<'emptyText', string, false>
+    & Define.Prop<'multiple', boolean, false>
     & Define.Prop<'placeholder', string, false>
     & WithFormControl
     & WithReadonly
     & Define.Prop<'placement', Placement, false>
     & Define.Prop<'positionStrategy', PositionStrategy, false>
-    /**
-     * One-liner sugar: with no slot children, renders the default
-     * Control/Input/Trigger/Popup composition with an Item per entry
-     * (Group + GroupLabel per distinct `group`). Rendering only — filtering
-     * stays the consumer's (pass a narrowed array). Slot children win
-     * entirely when both are given — see the component doc.
-     */
-    & Define.Prop<'options', ReadonlyArray<OptionInput>, false>
     & WithVariantAxes<'combobox'>
     & WithClass
+    & Define.Slot<'item', { item: T }>
     & Define.Slot<'default'>;
 
-const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
-    const state = createControllableState<string>(
+/**
+ * The implementation's props: the public type plus `itemValue`, which the
+ * public type deliberately omits — declared there AND on the overloads, the
+ * arrow's parameter would face an intersection of two signatures and lose
+ * its contextual type, taking `T`'s inference with it. The overloads are
+ * the one place it is typed.
+ */
+type ComboboxRootImplProps = ComboboxRootProps & Define.Prop<'itemValue', (item: unknown) => unknown, false>;
+
+const ComboboxRootImpl = component<ComboboxRootImplProps>(({ props, slots, emit, signal, onMounted, onUnmounted }) => {
+    const multiple = (): boolean => !!props.multiple;
+    // Explicit children win ENTIRELY over `items`: with a default slot the
+    // data is not rendered, so the collection must not hold it either — the
+    // highlight, the typeahead and the hidden select follow what is rendered.
+    // Without children the root is data-driven exactly when `items` was
+    // given — an EMPTY list counts, sigx props being plain values that a
+    // later list arrives into — so the mode never flips on what the list
+    // holds, and an omitted `items` is the hand-written (string-model) shape
+    // the overloads promise.
+    const items = (): ReadonlyArray<unknown> | undefined => (slots.default || props.items === undefined ? undefined : props.items);
+    const emptyValue = (): unknown => (items() ? null : '');
+    // The seed is exactly what the consumer provided — an explicit
+    // `defaultValue={null}` included — and the empty shape otherwise.
+    const seed = (): unknown => (props.defaultValue !== undefined ? props.defaultValue : multiple() ? [] : emptyValue());
+    const state = createControllableState<unknown>(
         () => props.model,
-        props.defaultValue ?? '',
+        seed(),
         (v) => emit('valueChange', v),
     );
     const inputValue = createControllableState<string>(
@@ -172,16 +215,21 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal,
         (v) => emit('inputValueChange', v),
     );
     const openState = createControllableState<boolean>(
-        // The named-model conditional type distributes `boolean` into
-        // Model<true> | Model<false>; collapse it back.
-        () => props.open as Model<boolean> | undefined,
+        () => namedModel<boolean>(props.open),
         props.defaultOpen ?? false,
         (v) => emit('openChange', v),
     );
     const fc = createFormControl({ props: () => props, idBase: 'zx-combobox', controlPart: 'input' });
     const baseId = fc.baseId;
+    const collection = createCollection<unknown, unknown>({
+        items: items() ? items : undefined,
+        itemKey: props.itemKey,
+        itemLabel: props.itemLabel,
+        itemValue: props.itemValue,
+        itemDisabled: props.itemDisabled,
+        itemGroup: props.itemGroup,
+    });
     const list = createListController();
-    const highlighted = signal({ value: null as string | null });
     const inputFocusVisible = signal({ value: false });
     let control: HTMLElement | null = null;
     let input: HTMLElement | null = null;
@@ -189,63 +237,101 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal,
     let popup: HTMLElement | null = null;
     let hidden: HTMLSelectElement | null = null;
 
-    // See Select: the hidden select follows the model, reset included.
-    // Deferred a microtask: the option for a new value is inserted by the
-    // render that follows the write, and a select cannot hold a value it has
-    // no option for.
-    const syncHidden = (value: string = state.value): void => {
-        queueMicrotask(() => { if (hidden && hidden.value !== value) hidden.value = value; });
+    const setOpen = (v: boolean): void => {
+        if (openState.value !== v) openState.value = v;
+    };
+
+    const listbox = createListbox<unknown>({
+        collection,
+        selection: state,
+        multiple,
+        list,
+        idBase: baseId,
+        query: () => inputValue.value,
+        filter: props.filter,
+        emptyValue: emptyValue(),
+        // A single selection fills the input with the label and closes; a
+        // multiple one toggles, clears the query and stays open.
+        onSelect: (key) => {
+            if (multiple()) { inputValue.value = ''; return; }
+            inputValue.value = collection.label(key);
+            setOpen(false);
+        },
+    });
+
+    // The hidden select's options: every item in data mode (autofill sees
+    // the list), the selected keys alone in JSX mode — hand-written items
+    // register during their own setup, after this root has rendered, so a
+    // registry read here would be stale until an unrelated re-render.
+    // The empty key is the single-mode placeholder AND the key model's empty
+    // sentinel: an item keyed '' would be indistinguishable from "nothing
+    // selected" (selecting it clears; it could neither post nor round-trip
+    // from a platform write) — fail fast at every entry: the data expansion,
+    // a hand-written item, the hidden select.
+    const guardKeys = (keys: string[]): string[] => {
+        // The key AND the value: an explicit itemKey can hide an itemValue of
+        // '' — which the core reads as nothing selected, so it never selects.
+        if (!multiple() && keys.some((k) => k === '' || collection.valueForKey(k) === '')) {
+            throw new Error('[zero] Combobox: an item keyed or valued "" is reserved for the placeholder in single mode — give it a non-empty itemKey / itemValue');
+        }
+        return keys;
+    };
+    const hiddenKeys = (): string[] => guardKeys(collection.mode() === 'data' ? collection.keys() : listbox.selectedKeys());
+
+    // A close clears the highlight however the open state was written (a
+    // consumer's `model:open` included); an open leaves it to the arrows.
+    watch(
+        () => openState.value,
+        (open) => { if (!open) listbox.highlighted.value = null; },
+    );
+
+    const syncHidden = (): void => {
+        queueMicrotask(() => {
+            if (!hidden) return;
+            const keys = listbox.selectedKeys();
+            if (multiple()) {
+                const selected = new Set(keys);
+                for (const o of Array.from(hidden.options)) o.selected = selected.has(o.value);
+            } else if (hidden.value !== (keys[0] ?? '')) {
+                hidden.value = keys[0] ?? '';
+            }
+        });
     };
     let detachReset = (): void => {};
     onMounted(() => {
-        effect(() => { syncHidden(state.value); });
+        effect(() => { listbox.selectedKeys(); syncHidden(); });
         // Without a name there is no hidden select — the input itself is
         // form-associated, so reset still restores.
         detachReset = onFormReset(() => hidden ?? (input as HTMLInputElement | null), () => {
-            state.value = props.defaultValue ?? '';
-            inputValue.value = props.defaultInputValue ?? (state.value ? list.find(state.value)?.textValue() ?? state.value : '');
+            state.value = seed();
+            inputValue.value = props.defaultInputValue ?? (multiple() ? '' : listbox.displayText());
             syncHidden();
             if (input) (input as HTMLInputElement).value = inputValue.value;
         });
     });
     onUnmounted(() => detachReset());
 
-    const setOpen = (v: boolean): void => {
-        if (openState.value === v) return;
-        openState.value = v;
-        if (!v) highlighted.value = null;
-    };
-
-    const step = (delta: HighlightStep): void => moveHighlight(list, highlighted, delta);
-
     const ctx: ComboboxContext = {
         state,
         inputValue,
+        collection,
+        listbox,
+        list,
         open: {
             get value() { return openState.value; },
             set value(v: boolean) { setOpen(v); },
         },
-        highlighted,
-        list,
         ids: { trigger: `${baseId}-trigger`, popup: `${baseId}-popup` },
         placeholder: () => props.placeholder,
+        multiple,
+        guardKey: (key) => { guardKeys([key]); },
         disabled: fc.disabled,
         invalid: fc.invalid,
         required: fc.required,
         readonly: fc.readonly,
-        name: fc.name,
         describedBy: fc.describedBy,
         inputId: fc.controlId,
         inputFocusVisible,
-        selectValue(value) {
-            state.value = value;
-            inputValue.value = list.find(value)?.textValue() ?? value;
-            setOpen(false);
-        },
-        pruneHighlight(value) {
-            if (highlighted.value === value) highlighted.value = null;
-        },
-        optionId: (value) => `${baseId}-option-${value}`,
         setControl: (el) => { control = el; },
         setInput: (el) => { input = el; },
         setTrigger: (el) => { trigger = el; },
@@ -258,18 +344,19 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal,
                 e.preventDefault();
                 if (!openState.value) {
                     setOpen(true);
-                    step(key === 'ArrowDown' ? 'first' : 'last');
+                    listbox.move(key === 'ArrowDown' ? 'first' : 'last');
                     return;
                 }
-                step(key === 'ArrowDown' ? 1 : -1);
+                listbox.move(key === 'ArrowDown' ? 1 : -1);
                 return;
             }
             if (key === 'Enter') {
-                if (openState.value && highlighted.value != null) {
+                const h = listbox.highlighted.value;
+                if (openState.value && h != null) {
                     // Only swallow Enter while it means "pick the highlight" —
                     // otherwise the form submit proceeds.
                     e.preventDefault();
-                    ctx.selectValue(highlighted.value);
+                    listbox.select(h);
                 }
                 return;
             }
@@ -314,52 +401,57 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal,
         getExtraTargets: () => [control, input, trigger],
     });
 
-    // Keyboard highlight can walk below a scrolled listbox's fold —
-    // aria-activedescendant moves no real focus, so nothing scrolls natively.
-    watch(
-        () => highlighted.value,
-        (value) => {
-            if (value == null) return;
-            list.find(value)?.el()?.scrollIntoView?.({ block: 'nearest' });
-        },
-    );
+    // A preset value's label reaches the input at setup — from data, before
+    // any item mounts (hand-written items reflect on mount instead).
+    if (!multiple() && collection.mode() === 'data' && inputValue.value === '' && listbox.selectedKeys().length > 0) {
+        inputValue.value = listbox.displayText();
+    }
 
     // An external value write (form reset, server data) reflects into the
-    // input text once the matching item is known.
+    // input text — from the collection, so before any item mounts.
     watch(
         () => state.value,
         (value, prev) => {
-            if (value === prev) return;
-            const text = value ? list.find(value)?.textValue() ?? value : '';
+            if (value === prev || multiple()) return;
+            const text = listbox.displayText();
             if (inputValue.value !== text) inputValue.value = text;
         },
     );
 
-    // The options expansion (#333): the default composition, built from the
-    // same compound parts a consumer would write — sugar over the anatomy,
-    // never a parallel render path.
-    const optionsContent = () => (
+    // The data expansion: the default composition through the same parts.
+    const dataItem = (item: unknown): JSXElement => (
+        <ComboboxItem value={collection.keyOf(item)} textValue={collection.labelOf(item)} disabled={collection.isItemDisabled(item)} key={collection.keyOf(item)}>
+            {slots.item ? slots.item({ item }) : collection.labelOf(item)}
+        </ComboboxItem>
+    );
+    const dataContent = (): JSXElement => {
+        guardKeys(collection.keys());
+        return (
         <>
             <ComboboxControl>
                 <ComboboxInput />
                 <ComboboxTrigger />
             </ComboboxControl>
             <ComboboxPopup>
-                {segmentOptions(props.options ?? []).map((segment) => segment.group === undefined
-                    ? segment.options.map((o) => (
-                        <ComboboxItem value={o.value} disabled={o.disabled} key={o.value}>{o.label ?? o.value}</ComboboxItem>
-                    ))
-                    : (
-                        <ComboboxGroup key={`group:${segment.group}`}>
-                            <ComboboxGroupLabel>{segment.group}</ComboboxGroupLabel>
-                            {segment.options.map((o) => (
-                                <ComboboxItem value={o.value} disabled={o.disabled} key={o.value}>{o.label ?? o.value}</ComboboxItem>
-                            ))}
-                        </ComboboxGroup>
-                    ))}
+                {listbox.visibleItems().length === 0 && props.emptyText !== undefined
+                    ? <ComboboxEmpty>{props.emptyText}</ComboboxEmpty>
+                    : null}
+                {collection.segments().map((segment) => {
+                    const visible = segment.items.filter((i) => listbox.isVisible(collection.keyOf(i)));
+                    if (visible.length === 0) return null;
+                    return segment.group === undefined
+                        ? visible.map(dataItem)
+                        : (
+                            <ComboboxGroup key={`group:${segment.group}`}>
+                                <ComboboxGroupLabel>{segment.group}</ComboboxGroupLabel>
+                                {visible.map(dataItem)}
+                            </ComboboxGroup>
+                        );
+                })}
             </ComboboxPopup>
         </>
-    );
+        );
+    };
 
     return () => (
         <div
@@ -370,8 +462,8 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal,
             {...variantAttrs(props)}
             class={props.class}
         >
-            {/* Slot children win ENTIRELY over `options` — no merging. */}
-            {slots.default ? slots.default() : props.options ? optionsContent() : null}
+            {/* Explicit children win ENTIRELY over `items` — no merging. */}
+            {slots.default ? slots.default() : items() ? dataContent() : null}
             {fc.hasName()
                 ? (
                     <select
@@ -379,6 +471,7 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal,
                         data-part="hidden-input"
                         style={VISUALLY_HIDDEN_STYLE}
                         {...fc.hiddenAttrs()}
+                        multiple={multiple()}
                         required={ctx.required()}
                         tabIndex={-1}
                         aria-hidden="true"
@@ -386,17 +479,52 @@ const ComboboxRoot = component<ComboboxRootProps>(({ props, slots, emit, signal,
                         // The platform's bubble would anchor to a 1px element:
                         // cancel it and land focus where the user can act.
                         onInvalid={(e: Event) => { e.preventDefault(); ctx.focusInput(); }}
+                        // The platform writes the hidden select itself (autofill,
+                        // form restoration): its selection flows back into the model.
+                        onChange={() => {
+                            if (!hidden) return;
+                            // Only the single-mode placeholder carries the empty key;
+                            // under `multiple` an empty-string key is a real item.
+                            const keys = Array.from(hidden.options)
+                                .filter((o) => o.selected && (multiple() || o.value !== ''))
+                                .map((o) => o.value);
+                            state.value = multiple()
+                                ? keys.map((k) => collection.valueForKey(k))
+                                : keys.length > 0 ? collection.valueForKey(keys[0]!) : emptyValue();
+                        }}
                     >
-                        <option value="" selected={!state.value}>{props.placeholder ?? ''}</option>
-                        {state.value
-                            ? <option value={state.value} selected>{list.find(state.value)?.textValue() ?? state.value}</option>
-                            : null}
+                        {multiple() ? null : <option value="" selected={listbox.selectedKeys().length === 0}>{props.placeholder ?? ''}</option>}
+                        {hiddenKeys().map((k) => (
+                            <option value={k} selected={listbox.isSelected(k)} disabled={collection.isDisabled(k)} key={k}>{collection.label(k)}</option>
+                        ))}
                     </select>
                 )
                 : null}
         </div>
     );
 }, { name: 'Combobox.Root' });
+
+/** The generic root — the same narrowing as `Select.Root`. */
+export type ComboboxRoot = {
+    // `defaultValue` is typed here rather than on the shared props: declared
+    // there as `M`, TypeScript stops inferring `T` for the `itemValue`
+    // overload (an inference-priority quirk the type test pins).
+    // Hand-written items (no `items`): a key IS its value, so the model is
+    // the <select>'s string — '' for nothing selected — or string[].
+    (props: JsxProps<ComboboxRootProps<unknown, string>> & { items?: undefined; defaultValue?: string; itemValue?: undefined; multiple?: false }): JSXElement;
+    (props: JsxProps<ComboboxRootProps<unknown, string[]>> & { items?: undefined; defaultValue?: string[]; itemValue?: undefined; multiple: true }): JSXElement;
+    // An item model is `T | null`: nothing selected is `null` (the runtime
+    // writes it on clear, reset and a platform write), never a fake item.
+    <T>(props: JsxProps<ComboboxRootProps<T, T | null>> & { items: ReadonlyArray<T>; defaultValue?: T | null; itemValue?: undefined; multiple?: false }): JSXElement;
+    <T>(props: JsxProps<ComboboxRootProps<T, T[]>> & { items: ReadonlyArray<T>; defaultValue?: T[]; itemValue?: undefined; multiple: true }): JSXElement;
+    // A value model is `V | null` for the same reason — V is whatever
+    // `itemValue` returns (a number as readily as a string), so no member of
+    // it can stand for "nothing selected".
+    <T, V>(props: JsxProps<ComboboxRootProps<T, V | null>> & { items: ReadonlyArray<T>; defaultValue?: V | null; itemValue: (item: T) => V; multiple?: false }): JSXElement;
+    <T, V>(props: JsxProps<ComboboxRootProps<T, V[]>> & { items: ReadonlyArray<T>; defaultValue?: V[]; itemValue: (item: T) => V; multiple: true }): JSXElement;
+} & FactoryBrands;
+
+const ComboboxRoot = ComboboxRootImpl as unknown as ComboboxRoot;
 
 // ── Control ──
 
@@ -446,9 +574,7 @@ const ComboboxInput = component<ComboboxInputProps>(({ props }) => {
             aria-expanded={combobox.open.value ? 'true' : 'false'}
             aria-controls={combobox.ids.popup}
             aria-autocomplete="list"
-            aria-activedescendant={combobox.open.value && combobox.highlighted.value != null
-                ? combobox.optionId(combobox.highlighted.value)
-                : undefined}
+            aria-activedescendant={combobox.listbox.activeDescendant(combobox.open.value)}
             aria-invalid={combobox.invalid() ? 'true' : undefined}
             aria-describedby={combobox.describedBy()}
             placeholder={props.placeholder ?? combobox.placeholder()}
@@ -534,16 +660,7 @@ const ComboboxPopup = component<ComboboxPopupProps>(({ props, slots, onMounted }
     const combobox = useComboboxContext();
     let el: HTMLElement | null = null;
 
-    onMounted(() => {
-        effect(() => {
-            const open = combobox.open.value;
-            const node = el as (HTMLElement & { showPopover?(): void; hidePopover?(): void; matches(s: string): boolean }) | null;
-            if (!node || typeof node.showPopover !== 'function') return;
-            const showing = node.matches(':popover-open');
-            if (open && !showing) node.showPopover();
-            else if (!open && showing) node.hidePopover!();
-        });
-    });
+    onMounted(() => { syncPopover(() => el, () => combobox.open.value); });
 
     return () => (
         <div
@@ -553,6 +670,7 @@ const ComboboxPopup = component<ComboboxPopupProps>(({ props, slots, onMounted }
             data-state={stateAttr(combobox.open.value, 'open', 'closed')}
             popover="manual"
             role="listbox"
+            aria-multiselectable={combobox.multiple() ? 'true' : undefined}
             aria-labelledby={combobox.inputId()}
             class={props.class}
             ref={(node: HTMLElement | null) => { el = node; combobox.setPopup(node); }}
@@ -582,57 +700,37 @@ const ComboboxItem = component<ComboboxItemProps>(({ props, slots, onMounted, on
         isDisabled: () => !!props.disabled,
     });
 
-    const item: ListItem = {
-        id: `option-${props.value}`,
-        get value() { return props.value; },
+    combobox.guardKey(props.value);
+    const item = createListboxItem({
+        listbox: combobox.listbox,
+        collection: combobox.collection,
+        list: combobox.list,
+        scope: SCOPE,
+        key: () => props.value,
+        textValue: () => props.textValue,
         disabled: () => !!props.disabled,
-        el: () => el,
-        textValue: () => props.textValue ?? optionText(el) ?? props.value,
-    };
-    const unregister = combobox.list.register(item);
+        getEl: () => el,
+        afterSelect: () => combobox.focusInput(),
+    });
     onMounted(() => {
-        // A value set before this item existed (defaultValue, async data)
-        // could not reflect its label into the input. Deferred: a write
-        // during the mount pass is invisible to the already-rendered input.
+        // Hand-written items: a value set before this item existed could
+        // not reflect its label into the input (the collection only learns
+        // the label from the element). Deferred: a write during the mount
+        // pass is invisible to the already-rendered input.
         queueMicrotask(() => {
-            if (combobox.state.value !== props.value) return;
+            if (combobox.multiple() || !item.isSelected()) return;
             const current = combobox.inputValue.value;
             // Never clobber a user-typed query — only fill emptiness or the
-            // raw-value fallback.
+            // raw-key fallback.
             if (current === '' || current === props.value) {
-                combobox.inputValue.value = item.textValue();
+                combobox.inputValue.value = combobox.collection.label(props.value);
             }
         });
     });
-    onUnmounted(() => {
-        unregister();
-        // Typing filters items away — a dangling highlight would keep
-        // aria-activedescendant pointing at a removed id.
-        combobox.pruneHighlight(props.value);
-    });
-
-    const isSelected = (): boolean => combobox.state.value === props.value;
-    const isHighlighted = (): boolean => combobox.highlighted.value === props.value;
+    onUnmounted(() => item.unregister());
 
     const bag = (): PartProps => ({
-        id: combobox.optionId(props.value),
-        'data-scope': SCOPE,
-        'data-part': 'item',
-        'data-selected': dataAttr(isSelected()),
-        'data-highlighted': dataAttr(isHighlighted()),
-        'data-disabled': dataAttr(props.disabled),
-        role: 'option',
-        'aria-selected': isSelected() ? 'true' : 'false',
-        'aria-disabled': props.disabled ? 'true' : undefined,
-        onClick: () => {
-            if (!props.disabled) {
-                combobox.selectValue(props.value);
-                combobox.focusInput();
-            }
-        },
-        onPointerenter: () => {
-            if (!props.disabled) combobox.highlighted.value = props.value;
-        },
+        ...item.bag(),
         onPointerdown: press.onPointerdown,
         onPointerup: press.onPointerup,
         onPointercancel: press.onPointercancel,
@@ -646,7 +744,7 @@ const ComboboxItem = component<ComboboxItemProps>(({ props, slots, onMounted, on
         return (
             <div class={props.class} {...b}>
                 {slots.default?.(b)}
-                {isSelected()
+                {item.isSelected()
                     ? (
                         <span data-scope={SCOPE} data-part="item-indicator" data-selected="" aria-hidden="true">
                             ✓
@@ -662,50 +760,34 @@ const ComboboxItem = component<ComboboxItemProps>(({ props, slots, onMounted, on
 
 export type ComboboxEmptyProps = WithClass & Define.Slot<'default'>;
 
+/** Renders its content only while the visible list is empty. */
 const ComboboxEmpty = component<ComboboxEmptyProps>(({ props, slots }) => {
-    return () => (
-        <div data-scope={SCOPE} data-part="empty" role="presentation" class={props.class}>
-            {slots.default?.()}
-        </div>
-    );
+    const combobox = useComboboxContext();
+    return () => (combobox.listbox.isEmpty()
+        ? (
+            <div data-scope={SCOPE} data-part="empty" role="presentation" class={props.class}>
+                {slots.default?.()}
+            </div>
+        )
+        : null);
 }, { name: 'Combobox.Empty' });
-
 
 // ── Group / GroupLabel ──
 
-interface ComboboxGroupContext {
-    labelId: string;
-    labelPresent(): boolean;
-    setLabelPresent(present: boolean): void;
-}
-
-function makeInertGroup(): ComboboxGroupContext {
-    return {
-        labelId: 'zx-combobox-group-inert-label',
-        labelPresent: () => false,
-        setLabelPresent: () => {},
-    };
-}
-
-export const useComboboxGroupContext = defineInjectable<ComboboxGroupContext>(() => makeInertGroup());
+export const useComboboxGroupContext = defineInjectable<GroupPresence>(
+    () => createGroupPresence('zx-combobox-group-inert-label', { label: false }),
+);
 
 export type ComboboxGroupProps = WithClass & Define.Slot<'default'>;
 
 /**
  * The optgroup equivalent — `role="group"` inside the listbox, named by its
- * `GroupLabel` while one is rendered (Menu.Group's presence-tracked shape:
- * an unlabelled group stays anonymous rather than dangling a reference).
+ * `GroupLabel` while one is rendered (an unlabelled group stays anonymous
+ * rather than dangling a reference).
  */
 const ComboboxGroup = component<ComboboxGroupProps>(({ props, slots, signal }) => {
     const baseId = createId('zx-combobox-group');
-    // Written from GroupLabel one microtask after its setup — a write made
-    // during the render pass is invisible to the already-rendered group.
-    const present = signal({ label: false });
-    const ctx: ComboboxGroupContext = {
-        labelId: `${baseId}-label`,
-        labelPresent: () => present.label,
-        setLabelPresent: (p) => { present.label = p; },
-    };
+    const ctx = createGroupPresence(`${baseId}-label`, signal({ label: false }));
     defineProvide(useComboboxGroupContext, () => ctx);
     return () => (
         <div
@@ -724,13 +806,7 @@ export type ComboboxGroupLabelProps = WithClass & Define.Slot<'default'>;
 
 const ComboboxGroupLabel = component<ComboboxGroupLabelProps>(({ props, slots, onUnmounted }) => {
     const group = useComboboxGroupContext();
-    // Deferred past the render pass — see the note on `present` in Group.
-    let alive = true;
-    queueMicrotask(() => { if (alive) group.setLabelPresent(true); });
-    onUnmounted(() => {
-        alive = false;
-        group.setLabelPresent(false);
-    });
+    onUnmounted(announceGroupLabel(group));
     // No role: the label must stay in the accessibility tree for the group's
     // aria-labelledby to compute a name from it.
     return () => (

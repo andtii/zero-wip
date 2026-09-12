@@ -61,7 +61,7 @@ const SelectDemos = component(() => {
                 <Select.Root
                     name="sugar-fruit"
                     placeholder="Pick a fruit…"
-                    options={[
+                    items={[
                         { value: 'lemon', label: 'Lemon', group: 'Citrus' },
                         { value: 'lime', label: 'Lime', group: 'Citrus' },
                         { value: 'peach', label: 'Peach', group: 'Stone fruit' },

@@ -79,10 +79,6 @@ export const INDICATORS: readonly IndicatorSpec[] = [
     // grammar in all six design systems, so one host chain measures both.
     { scope: 'menu', part: 'item-indicator', ancestors: ['popup=open', 'checkbox-item'] },
     { scope: 'select', part: 'indicator', glyph: '▾' },
-    // NativeSelect's replacement chevron (#333): `appearance: none` removes
-    // the platform arrow, so this mark is the ONLY affordance saying the field
-    // is a picker — an invisible one is a real bug.
-    { scope: 'native-select', part: 'indicator', glyph: '▾' },
     { scope: 'select', part: 'item-indicator', glyph: '✓', only: 'selected' },
     { scope: 'combobox', part: 'item-indicator', glyph: '✓', only: 'selected' },
     { scope: 'tree-view', part: 'branch-indicator', glyph: '›' },

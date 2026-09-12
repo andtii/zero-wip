@@ -39,9 +39,11 @@ export interface ListboxOptions<T> {
     filter?: false | ((item: T, query: string) => boolean);
     /**
      * The single-select "nothing chosen" value, written by `clear()` and
-     * read as empty. Defaults to `''` (a key model's empty); an object model
-     * PASSES `null` — nothing infers it. Only this value and nullish read as
-     * empty, so a different sentinel makes `''` a legitimate item value.
+     * read as empty. Defaults to `''` (a key model's empty); a data-driven
+     * root PASSES `null` — nothing infers it. Nullish, this value AND `''`
+     * read as empty under any sentinel: `''` is reserved in single mode, so
+     * an item whose model value is `''` can never be selected there — the
+     * roots refuse such an item at render rather than let it sit unpickable.
      */
     emptyValue?: unknown;
     /** After a selection lands (Select closes; Combobox closes and fills its input). */
@@ -117,9 +119,11 @@ export function createListboxCore<T>(opts: ListboxOptions<T>): ListboxCore<T> {
     const selectedKeys = (): string[] => {
         const v = selection.value;
         if (multiple()) return Array.isArray(v) ? v.map((x) => collection.keyForValue(x)) : [];
-        // Empty is nullish or the configured sentinel — '' only because it is
-        // the default sentinel; under `emptyValue: null` an item may hold ''.
-        if (v === undefined || v === null || Object.is(v, emptyValue)) return [];
+        // Empty is nullish, the configured sentinel, or '' under any sentinel:
+        // '' is reserved as the single-select empty sentinel for every model
+        // shape, a string value model included (no item may carry the '' key
+        // in single mode), so a `signal({ code: '' })` has nothing selected.
+        if (v === undefined || v === null || v === '' || Object.is(v, emptyValue)) return [];
         return [collection.keyForValue(v)];
     };
 

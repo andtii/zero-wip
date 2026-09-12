@@ -10,8 +10,11 @@
  * The derivation is textual on purpose: the props are spelled as
  * `Define.Prop<'name', …>` intersections, so scraping the declaration is the
  * same fidelity a type-level walk would give, without needing the compiler.
- * `Define.Model` contributes `value`; events and slots are not props the
- * adapter's view could shadow, so they are excluded.
+ * `Define.Model` contributes `value`; a NAMED model (`Define.Model<'open',
+ * boolean>`, `model:inputValue`) contributes nothing, because it binds
+ * through a `model:<name>` key that `API_PROP_PATTERN` can never spell —
+ * no `as` can shadow it. Events and slots are not props the adapter's view
+ * could shadow, so they are excluded.
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -29,7 +32,9 @@ function rootPropsOf(scope: string): string[] {
         .sort()
         .map((f) => readFileSync(resolve(dir, f), 'utf8'))
         .join('\n');
-    const block = /export type \w+RootProps =([\s\S]*?)\n(?:const|export const|function)/.exec(source)?.[1]
+    // A generic root (`SelectRootProps<T, M> =`) declares type parameters
+    // between the name and the `=` (#445).
+    const block = /export type \w+RootProps(?:<[^>]*>)? =([\s\S]*?)\n(?:const|export const|function)/.exec(source)?.[1]
         ?? /export type \w+Props =([\s\S]*?)\n(?:const|export const|function)/.exec(source)?.[1]
         ?? '';
     const props = new Set<string>();

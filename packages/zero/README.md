@@ -27,7 +27,7 @@ import '@sigx/zero-basic/css';         // ← the design system (swappable)
 ## Components
 
 Button · Tabs · Collapsible · Accordion · Dialog · Popover · Tooltip · Menu ·
-Select · NativeSelect · Switch · Checkbox · RadioGroup · Slider · Progress ·
+Select · Switch · Checkbox · RadioGroup · Slider · Progress ·
 Field · Avatar · Toast · Combobox · Toggle · ToggleGroup · NumberInput ·
 RatingGroup · TreeView · Input · Textarea · Card · Alert · Badge · Divider ·
 Skeleton · Spinner · Kbd · Status · Indicator · Stats · Timeline · Chat · RadialProgress · Join ·
@@ -75,20 +75,25 @@ their neighbors, `marks` renders ticks) while a scalar model keeps the native
 `<input type=range>`; Select and Combobox group options
 (`Group`/`GroupLabel`, the optgroup equivalent).
 
-Select and Combobox also take an `options` array
-(`{ value, label?, disabled?, group? }[]`) as one-liner sugar: with no slot
-children the Root renders the full default composition — items through the
-same anatomy, plus `Group`/`GroupLabel` per distinct `group` in
-first-appearance order, `label` defaulting to `value`. Precedence is total:
-explicit slot children win entirely, never merged. For Combobox it is
-rendering sugar only — filtering stays yours (bind `model:inputValue`, pass a
-narrowed array). Name an options-driven instance through a `Field`.
-`NativeSelect` takes the same array and renders a real `<select>` with real
-`<option>`/`<optgroup>` elements — the form-heavy-page workhorse the custom
-listbox is too heavy for. The platform owns the popup and the keyboard;
-recipes own the well (`appearance: none`) and draw the replacement chevron
-(`indicator`). Field-context aware exactly like Input; no hidden input — the
-visible element is the form control.
+**Select and Combobox are typed generic over their items.** `items` is
+the data; `T` infers from it, and the model holds the item unless
+`itemValue` says what it holds (`itemValue={(c) => c.code}` makes a
+string model; a number is as welcome) — `null` while nothing is selected
+either way, `multiple` making it an array instead. `itemKey` is the string
+identity (the DOM id, the typeahead target, the posted value), `itemLabel`
+the display text, `itemDisabled` and `itemGroup` complete the accessors;
+the defaults read an object's `value` / `label` / `disabled` / `group` or
+the primitive itself. Labels resolve from data before anything mounts. With
+`items` and no slot children the Root renders the full default composition
+through the same anatomy (the `item` slot customises an option); explicit
+children win entirely, and hand-written `Select.Item` children register
+into the same collection. Combobox filters by default — a contains-match on
+the label — `filter` replaces the rule and `filter={false}` shows a
+server-filtered list as is; `Combobox.Empty` renders only while nothing is
+visible. Both post through a real hidden `<select>` (every item as an
+option in data mode, `multiple` under `multiple`). There is no separate
+native select: the hidden `<select>` is the form control, and a native
+projection would be a prop on this anatomy, never a second component.
 
 Interaction state is published as data for the design system to style:
 `data-focus-visible`, and press feedback on every interactive part —

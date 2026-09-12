@@ -33,9 +33,6 @@ export { createFormControl } from './form-control.js';
 export type { FormControl, FormControlOptions, FormControlProps, FormControlFlags } from './form-control.js';
 export { VISUALLY_HIDDEN_STYLE } from './visually-hidden.js';
 
-export { segmentOptions } from './options.js';
-export type { OptionInput, OptionSegment } from './options.js';
-
 export { createCollection, defaultItemKey, defaultItemLabel, segmentBy } from './collection.js';
 export type { Collection, CollectionEntry, CollectionOptions, CollectionSegment } from './collection.js';
 export { createListboxCore, defaultFilter, stepKeys } from './listbox-core.js';

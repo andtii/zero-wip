@@ -128,7 +128,10 @@ export function segmentBy<T>(items: ReadonlyArray<T>, groupOf: (item: T) => stri
 }
 
 export function createCollection<T, V = T>(opts: CollectionOptions<T, V> = {}): Collection<T, V> {
-    const keyOf = opts.itemKey ?? ((item: T) => defaultItemKey(item));
+    // A key model's value IS a string identity: without an explicit itemKey,
+    // the key is the value's string form rather than the object's fallback.
+    const itemValueOpt = opts.itemValue;
+    const keyOf = opts.itemKey ?? (itemValueOpt ? (item: T) => String(itemValueOpt(item)) : (item: T) => defaultItemKey(item));
     const labelOf = opts.itemLabel ?? ((item: T) => defaultItemLabel(item, keyOf(item)));
     const valueOf = opts.itemValue ?? ((item: T) => item as unknown as V);
     const isItemDisabled = opts.itemDisabled ?? ((item: T) => isRecord(item) && item.disabled === true);

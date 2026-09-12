@@ -103,7 +103,7 @@ sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
 model. Transforms apply once at the component boundary, timing on the
 element.
 
-51 components ship today. Every part each renders is listed below, in
+50 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -186,34 +186,30 @@ component renders; the root is called out separately where it carries props.
   Keyboard: ArrowRight/Enter/Space open + focus first item, ArrowLeft closes
   back (mirrored under RTL); Escape closes one level (native popover);
   hover opens without moving focus.
-- Select: Root(model=value, name, form, required)/Trigger/Value/Indicator/Popup/Group/GroupLabel/
-  Item/ItemIndicator/HiddenInput. Option groups are the optgroup equivalent:
-  Group renders role=group inside the listbox, named by its GroupLabel while
-  one is rendered (presence-tracked — an unlabelled group stays anonymous).
-  Labels never register as options, so typeahead and the highlight walk
-  straight through group boundaries.
-  OPTIONS SUGAR: Root takes `options` ({value, label?, disabled?, group?}[])
-  — with no slot children it renders the full default composition
-  (Trigger(Value, Indicator) + Popup with an Item per entry, Group/GroupLabel
-  per distinct `group` in first-appearance order, label defaulting to value)
-  through the SAME anatomy. Slot children win entirely when both are given —
-  never merged. The generated trigger has no aria-label: name an
-  options-driven Select through a Field.
-- NativeSelect: Root(model=value)/Control/Indicator — a real <select> in zero
-  anatomy, the form-heavy-page workhorse the custom listbox is too heavy for.
-  root is a span wrapper and the axis carrier; control is the <select> itself
-  (recipes set appearance:none and draw the well there — the platform owns
-  the popup, the keyboard and the a11y tree); indicator is the recipe-styled
-  replacement chevron (aria-hidden). `options` takes the same array as
-  Select's sugar and renders real <option>/<optgroup> elements (`group` →
-  optgroup per distinct value, first-appearance order; label defaults to
-  value); hand-written <option> slot children win entirely. `placeholder`
-  renders the conventional disabled empty option and drives a
-  data-placeholder flag while the value is empty. NO data-state anywhere
-  (open/closed never exists in this DOM) — flags only (disabled, invalid,
-  required, placeholder, focus-visible). No hidden-input: the visible
-  element IS the form control and carries `name`. Field-context aware
-  exactly like Input (adopts the control id, flags, aria-describedby).
+- Select: Root(model=value | value[], model:open, items, itemKey, itemLabel,
+  itemValue, itemDisabled, itemGroup, multiple, name, form, required,
+  placeholder)/Trigger/Value/Indicator/Popup/Group/GroupLabel/Item/
+  ItemIndicator/HiddenInput. TYPED GENERIC ROOT: T infers from `items`; the
+  model holds the ITEM unless `itemValue` says what it holds (a value
+  model: `itemValue={(c) => c.code}` → string; a number works too) — null
+  while nothing is selected, `T | null` / `V | null`; `multiple` makes it
+  an array.
+  itemKey is the string identity (DOM id, typeahead, the posted value —
+  default: an object's value/id or the primitive), itemLabel the display
+  text (default: label or the key). THE COLLECTION IS THE TRUTH: labels and
+  groups resolve from data before anything mounts. With `items` and no slot
+  children the Root renders Trigger(Value, Indicator) + Popup(Item per item,
+  Group/GroupLabel per distinct group in first-appearance order) through the
+  SAME anatomy; the `item` slot ({ item }) customises an option's content;
+  slot children win entirely when both are given. Hand-written Select.Item
+  children register into the same collection. Option groups are the
+  optgroup equivalent: role=group named by its GroupLabel while one is
+  rendered. Under `multiple` a selection toggles, the popup stays open,
+  Value joins the labels, the popup is aria-multiselectable. The hidden
+  <select> carries every item as an option in data mode (autofill), the
+  selection alone with hand-written items, and is `multiple` under multiple.
+  The generated trigger has no aria-label: name an items-driven Select
+  through a Field.
 - Switch: Root(model=checked)/Control/Thumb/Label/HiddenInput, role=switch.
 - Checkbox: Root(model=checked | string[])/Control/Indicator/Label/HiddenInput;
   supports `indeterminate`. A `string[]` model is sigx's array mode: boxes
@@ -469,25 +465,27 @@ component renders; the root is called out separately where it carries props.
   longest transition/animation ends. Style the plain two-state transition;
   never `@starting-style`/`allow-discrete` on toast parts, and gate any
   viewport `display` behind `&:popover-open`.
-- Combobox: Root(model=value, model:inputValue, model:open)/Control/Input/
+- Combobox: Root(model=value | value[], model:inputValue, model:open, items,
+  itemKey, itemLabel, itemValue, itemDisabled, itemGroup, filter, emptyText,
+  multiple, name, form, required, readonly, placeholder)/Control/Input/
   Trigger/Popup/Group/GroupLabel/Item(asChild)/ItemIndicator/Empty/
-  HiddenInput. Group/GroupLabel work exactly as Select's (role=group +
-  presence-tracked aria-labelledby); the consumer's filter renders or omits
-  whole groups. APG editable
-  combobox: focus stays in the real <input> (role=combobox,
+  HiddenInput. The same typed generic root and collection as Select. APG
+  editable combobox: focus stays in the real <input> (role=combobox,
   aria-autocomplete=list, aria-activedescendant); Control is the field
   chrome wrapping input + trigger and mirrors open/invalid/focus-visible so
-  the ring draws on the box. FILTERING IS THE CONSUMER'S: render only the
-  items matching `model:inputValue` and render Empty yourself — zero
-  registers/highlights/selects and prunes a highlight whose item unmounts.
-  The popup is popover="manual" + the dismiss layer (native auto light
-  dismiss would close on a caret click). No data-placeholder on the input —
-  use :placeholder-shown. Home/End stay with the text caret.
-  OPTIONS SUGAR: Root takes `options` (same shape as Select's) — with no
-  slot children it renders Control(Input, Trigger) + Popup(items/groups)
-  through the same anatomy. RENDERING only: filtering stays the consumer's —
-  bind model:inputValue and pass a narrowed array. Slot children win
-  entirely when both are given.
+  the ring draws on the box. FILTERING: with `items`, zero filters — the
+  default is a case-insensitive contains-match on the label as you type,
+  `filter={(item, query) => …}` replaces it, `filter={false}` shows every
+  item (a server-filtered list: pass what came back). Hand-written
+  Combobox.Item children stay consumer-filtered — what you render is what
+  is visible. Empty renders its content only while the visible list is
+  empty (the data expansion renders it from `emptyText`). A selection fills
+  the input with the item's label and closes; under `multiple` it toggles,
+  clears the query and stays open. A preset value's label reaches the input
+  from data before any item mounts. The popup is popover="manual" + the
+  dismiss layer (native auto light dismiss would close on a caret click).
+  No data-placeholder on the input — use :placeholder-shown. Home/End stay
+  with the text caret; no typeahead (typing IS the filter).
 - NumberInput: Root(model=number|null, min, max, step, allowWheel,
   clampOnBlur, format, parse, name)/Label/Control/Input/IncrementTrigger/
   DecrementTrigger/HiddenInput. APG spinbutton on a real text input
@@ -554,7 +552,7 @@ value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
 Avatar, Badge, Breadcrumbs, Button, Drawer, Card, Chat, Checkbox, Collapsible, Combobox, Dialog,
-Divider, Field, Indicator, Input, Join, Kbd, Menu, NativeSelect, NumberInput,
+Divider, Field, Indicator, Input, Join, Kbd, Menu, NumberInput,
 Navbar, Pagination, Popover, Progress, RadialProgress, RadioGroup,
 RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,
 Switch, Tabs, Textarea, Timeline, Toast, Toggle, ToggleGroup, Tooltip,

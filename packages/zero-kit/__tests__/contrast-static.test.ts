@@ -58,13 +58,18 @@ const skins: Array<[string, DesignSystemInput]> = [
     ['brutalist', brutalistDS], ['heroui', herouiDS], ['carbon', carbonDS],
 ];
 
+// A full static matrix (daisyui: five themes, the largest cell count) runs
+// past vitest's 5 s default under coverage instrumentation — the budget is
+// for the instrumented run, not a sign the audit is slow.
+const MATRIX_TIMEOUT = 30_000;
+
 describe('the six skins clear the floors statically', () => {
     it.each(skins)('%s: no cell below 3:1, no disabled pair below 2:1', (_name, ds) => {
         const result = auditDesignSystem(ds, manifest, { rules: CONTRAST });
         const errors = result.findings.filter((f) => f.severity === 'error').map((f) => f.message);
         expect(errors).toEqual([]);
         expect(result.contrast.themes.length).toBeGreaterThan(0);
-    });
+    }, MATRIX_TIMEOUT);
 
     it.each(skins)('%s: measures at least 85%% of its cells, and the rest for a named reason', (name, ds) => {
         const result = auditDesignSystem(ds, manifest, { rules: CONTRAST });
@@ -76,7 +81,7 @@ describe('the six skins clear the floors statically', () => {
             const reasons = [...new Set(unmeasured.map((c) => c.reason))].sort();
             expect(reasons, `${name}/${theme.name}`).toEqual([...ALLOWED_UNMEASURED[name]!].sort());
         }
-    });
+    }, MATRIX_TIMEOUT);
 
     it('the axis surface rides the matrix: a variant-wiring scope contributes axis cells through its chains', () => {
         const result = auditDesignSystem(basicDS, manifest, { rules: CONTRAST, themes: ['basic'] });
@@ -112,7 +117,6 @@ describe('the cell product is the browser spec\'s', () => {
             'slider/thumb': ['root', 'track'],
             'menu/item-indicator': ['popup=open', 'checkbox-item'],
             'select/indicator': ['root', 'trigger'],
-            'native-select/indicator': ['root'],
             'select/item-indicator': ['root', 'popup=open', 'item'],
             'combobox/item-indicator': ['root', 'popup=open', 'item'],
             'tree-view/branch-indicator': ['root', 'tree', 'branch', 'branch-trigger'],

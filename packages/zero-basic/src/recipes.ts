@@ -3576,112 +3576,6 @@ export const textarea: RecipeInput = {
     },
 };
 
-/**
- * NativeSelect (#333) — the platform's picker in the same well of paper as
- * every other field. The trigger grammar is select's, minus everything the
- * platform now owns: there is no open state (the popup never exists in this
- * DOM), so the accent surfaces only under focus. `appearance: none` removes
- * the native arrow; `indicator` paints the replacement chevron over the
- * control's inline-end padding — muted to the same 0.55 film as select's.
- */
-export const nativeSelect: RecipeInput = {
-    component: 'native-select',
-    // One custom property: the focus accent. Defaults to primary — the same
-    // ink the one-ink law gives every field — so the colour axis re-points
-    // the ring without the base ever looking different.
-    tokens: { '--native-select-accent': 'var(--color-primary)' },
-    parts: {
-        root: {
-            base: { position: 'relative', display: 'inline-flex', alignItems: 'center' },
-            states: { disabled: {}, invalid: {}, required: {}, placeholder: {} },
-        },
-        control: {
-            base: {
-                appearance: 'none',
-                width: '100%',
-                minWidth: '12rem',
-                padding: 'var(--space-md) var(--space-xl)',
-                // Room for the chevron the platform no longer draws.
-                paddingInlineEnd: 'calc(var(--space-xl) + 1.25em)',
-                fontSize: 'var(--text-sm)',
-                fontWeight: 'var(--weight-medium)',
-                fontVariantNumeric: 'tabular-nums',
-                color: 'var(--color-base-content)',
-                background: 'var(--color-base-100)',
-                border: hairline,
-                borderRadius: 'var(--radius-field)',
-                cursor: 'pointer',
-                transition: 'border-color var(--duration-fast) var(--ease-standard)',
-            },
-            states: {
-                hover: { borderColor: 'var(--color-secondary)' },
-                disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
-                invalid: { borderColor: 'var(--color-error)' },
-                required: {},
-                // The resting placeholder text, muted like select's value.
-                placeholder: { color: 'color-mix(in oklch, var(--color-base-content) 55%, transparent)' },
-                'focus-visible': {
-                    outline: '2px solid var(--native-select-accent)',
-                    outlineOffset: '2px',
-                    borderColor: 'var(--native-select-accent)',
-                },
-            },
-            selectors: {
-                // The one focus exception, as on every field: invalid rings
-                // in error because the error signal outranks one-ink.
-                '&[data-invalid][data-focus-visible]': {
-                    outline: '2px solid var(--color-error)',
-                    borderColor: 'var(--color-error)',
-                },
-            },
-        },
-        indicator: {
-            base: {
-                position: 'absolute',
-                insetInlineEnd: 'var(--space-md)',
-                pointerEvents: 'none',
-                opacity: '0.55',
-                fontSize: 'var(--text-sm)',
-            },
-        },
-    },
-    // The visible ring lives on the <select> itself; the wrapper delegates.
-    skipStates: { root: ['focus-visible'] },
-    variants: {
-        color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
-            '--native-select-accent': `var(--color-${c})`,
-        } } }])),
-        // Select's trigger ramp, so a row mixing the two pickers lines up.
-        size: {
-            xs: { control: { base: { padding: 'var(--space-2xs) var(--space-xs)', paddingInlineEnd: 'calc(var(--space-xs) + 1.25em)', fontSize: 'var(--text-xs)' } } },
-            sm: { control: { base: { padding: 'var(--space-xs) var(--space-sm)', paddingInlineEnd: 'calc(var(--space-sm) + 1.25em)', fontSize: 'var(--text-sm)' } } },
-            md: {},
-            lg: { control: { base: { padding: 'var(--space-lg) var(--space-xl)', paddingInlineEnd: 'calc(var(--space-xl) + 1.25em)', fontSize: 'var(--text-md)' } } },
-            xl: { control: { base: { padding: 'var(--space-xl) var(--space-2xl)', paddingInlineEnd: 'calc(var(--space-2xl) + 1.25em)', fontSize: 'var(--text-lg)' } } },
-        },
-    },
-    // The chevron gutter and the indicator anchor, restated physically:
-    // logical spellings resolve on iOS but not on Android (measured,
-    // signalxjs/lynx#1084), so the emitter refuses them. Physical is the
-    // lynx target's norm — no RTL flow there, so `end` IS right.
-    targets: {
-        lynx: {
-            parts: {
-                control: { base: { paddingRight: 'calc(var(--space-xl) + 1.25em)' } },
-                indicator: { base: { right: 'var(--space-md)' } },
-            },
-            variants: {
-                size: {
-                    xs: { control: { base: { paddingRight: 'calc(var(--space-xs) + 1.25em)' } } },
-                    sm: { control: { base: { paddingRight: 'calc(var(--space-sm) + 1.25em)' } } },
-                    lg: { control: { base: { paddingRight: 'calc(var(--space-xl) + 1.25em)' } } },
-                    xl: { control: { base: { paddingRight: 'calc(var(--space-2xl) + 1.25em)' } } },
-                },
-            },
-        },
-    },
-};
-
 // ── Content tier (#311) ───────────────────────────────────────────────────
 /**
  * Card — paper on paper. A hairline and a radius, no shadow: in this identity
@@ -6043,7 +5937,7 @@ export const diff: RecipeInput = {
 export const recipes: RecipeInput[] = [
     tabs, collapsible, switchRecipe, dialog, popover, tooltip, menu,
     field, checkbox, radioGroup, progress, slider, accordion, select, button, avatar, toast, combobox,
-    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea, nativeSelect,
+    toggle, toggleGroup, numberInput, ratingGroup, treeView, input, textarea,
     card, alert, badge, divider, skeleton, spinner,
     kbd, status, indicator, stats, timeline, chat, radialProgress, join,
     navbar, breadcrumbs, pagination, steps, drawer,

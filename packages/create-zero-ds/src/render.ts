@@ -134,7 +134,7 @@ export function renderRecipesTs(ctx: RenderContext): string {
             ' * The recipe list the design system compiles.',
             ' *',
             " * `baseline.ts` is @sigx/zero-basic's recipes, copied whole so every one of",
-            ' * the 51 components is styled from the first build. `fitRecipesToVocabulary`',
+            ' * the 50 components is styled from the first build. `fitRecipesToVocabulary`',
             " * keeps only what `tokens.ts` declares — for the recommended vocabulary it is",
             ' * the identity; for a brief that declines the colour or size axis, or fuses',
             ' * `variant`, it drops the blocks those axes would have wired and redraws every',

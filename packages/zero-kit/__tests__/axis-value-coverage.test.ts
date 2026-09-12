@@ -82,7 +82,7 @@ describe('every declared axis value is honoured or claimed', () => {
         expect(participatingCells(carbon).find((c) => c.scope === 'button' && c.axis === 'size')?.claims)
             .toEqual(['lg']);
         // 23 before #321; the eight Contract v1 carriers joined the axis,
-        // then native-select (#333) and the content-tier sweep (#334) grew
+        // then the content-tier sweep (#334) grew
         // it scope by scope — re-derived from the compiled scope count so
         // every carbon recipe keeps owing a full size ramp without a hand
         // bump per scope.

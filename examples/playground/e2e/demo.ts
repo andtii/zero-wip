@@ -48,7 +48,7 @@ export const rootLabelled = (page: Page, scope: string, text: string): Locator =
 /**
  * The one `scope` root that posts the field `name` — through whichever of
  * its parts carries the name: a hidden control, or the visible native
- * element itself (Input's `input`, NativeSelect's `control`).
+ * element itself (Input's `input`).
  */
 export const rootPosting = (page: Page, scope: string, name: string): Locator =>
     roots(page, scope).filter({
