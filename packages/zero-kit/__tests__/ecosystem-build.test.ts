@@ -20,7 +20,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { compileDesignSystem, resolveEcosystem, runStandardBuild } from '@sigx/zero-kit';
+import { compileDesignSystem, resolveEcosystem, runStandardBuild, validateDesignSystem } from '@sigx/zero-kit';
 import { attributeFindings, packagesByScope, whereWithOwner } from '@sigx/zero-kit';
 import { compileDesignSystemLynx, LynxRuntimePropertyError } from '../src/targets/lynx/index.js';
 import type {
@@ -308,6 +308,33 @@ describe('attribution and provenance', () => {
         // this one IS yours.
         expect(issues[1]!.package).toBeUndefined();
         expect(whereWithOwner(issues[1]!)).toBe('recipes.button');
+    });
+
+    it('tags a finding with the scope it is about, and nothing else', () => {
+        // The tag is a mutable variable threaded through the recipe loop, so
+        // the failure mode is silent misattribution: a design-system-level
+        // warning inheriting the last recipe's scope, or a per-scope coverage
+        // warning inheriting it in place of its own.
+        const tokens: TokensInput = {
+            ...bareTokens,
+            // Declared and wired by nobody — a design-system-level warning
+            // that must carry no scope at all.
+            modifiers: ['loud'],
+        };
+        const recipes: RecipeInput[] = [{
+            component: 'button',
+            parts: { root: { base: { appearance: 'none' }, states: { 'focus-visible': { outline: '2px solid black' } } } },
+        }];
+        const issues = validateDesignSystem(ds(tokens, recipes), baseManifest());
+        const all = [...issues.errors, ...issues.warnings];
+
+        const unwired = all.find((i) => i.where === 'tokens.modifiers');
+        expect(unwired, 'expected the unwired-modifier warning').toBeDefined();
+        expect(unwired?.scope).toBeUndefined();
+
+        for (const issue of all.filter((i) => i.where.startsWith('recipes.'))) {
+            expect(issue.scope).toBe('button');
+        }
     });
 
     it('records who owns what in the emitted manifest', async () => {

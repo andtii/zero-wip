@@ -339,14 +339,19 @@ export function validateRecipes(
     vocabulary: TokenVocabulary,
 ): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
-    // Every per-scope finding below originates inside the recipe loop, so one
-    // variable is enough to tag them — and tagging beats having a reader
-    // recover the scope from `where`, which is a display string.
-    let scope: string | undefined;
-    const error = (where: string, message: string) =>
-        issues.push({ level: 'error', where, message, ...(scope ? { scope } : {}) });
-    const warn = (where: string, message: string) =>
-        issues.push({ level: 'warning', where, message, ...(scope ? { scope } : {}) });
+    // Findings carry the scope they are about as a field, so a reader never
+    // has to recover it from `where` (a display string). Most originate
+    // inside the recipe loop, which sets `currentScope`; the design-system
+    // level checks that run after it clear the variable, and the per-scope
+    // coverage checks pass their scope explicitly through `warnFor` — they
+    // iterate scopes of their own, and an inner binding named `scope` does
+    // NOT reach a closure defined out here.
+    let currentScope: string | undefined;
+    const push = (level: ValidationIssue['level'], where: string, message: string, scope = currentScope) =>
+        issues.push({ level, where, message, ...(scope ? { scope } : {}) });
+    const error = (where: string, message: string) => push('error', where, message);
+    const warn = (where: string, message: string) => push('warning', where, message);
+    const warnFor = (scope: string, where: string, message: string) => push('warning', where, message, scope);
 
     // Axis names and values are interpolated into `[data-<axis>="<value>"]`
     // (and, on lynx, into `.zx-a-<axis>-<value>`). The vocabularies are open
@@ -461,7 +466,7 @@ export function validateRecipes(
     }
 
     for (const recipe of recipes) {
-        scope = recipe.component;
+        currentScope = recipe.component;
         const component = byScope.get(recipe.component);
         if (!component) continue; // already an error elsewhere
         const where = `recipes.${recipe.component}`;
@@ -1064,6 +1069,9 @@ export function validateRecipes(
             }
         }
     }
+    // Everything from here down speaks at design-system level, or names its
+    // own scope: leaving the last recipe's tag in place would misattribute it.
+    currentScope = undefined;
 
     // ── the colour axis should mean the same thing on every component ──
     //
@@ -1130,7 +1138,8 @@ export function validateRecipes(
             const wired = wiredByScope.get(`${scope}/${axis}`) ?? new Set();
             for (const value of declared ?? []) {
                 if (!wired.has(value)) {
-                    warn(
+                    warnFor(
+                        scope,
                         `tokens.scopes.${scope}.${site}`,
                         `"${value}" is in ${scope}'s vocabulary but its recipe wires no rule for it — ${use(value)} on a ${scope} selects nothing`,
                     );
