@@ -155,7 +155,7 @@ describe('manifest.schema.json', () => {
         delete (noChange.components.find((c) => c.scope === 'select')!.models![0] as Partial<{ change: string }>).change;
         expect(validateManifest(noChange)).toBe(false);
         const stray = asJson(manifest) as typeof manifest;
-        (stray.components.find((c) => c.scope === 'select')!.models![0] as { event: string }).event = 'valueChange';
+        (stray.components.find((c) => c.scope === 'select')!.models![0] as unknown as { event: string }).event = 'valueChange';
         expect(validateManifest(stray)).toBe(false);
         const empty = asJson(manifest) as typeof manifest;
         (empty.components.find((c) => c.scope === 'badge') as { models?: unknown[] }).models = [];
