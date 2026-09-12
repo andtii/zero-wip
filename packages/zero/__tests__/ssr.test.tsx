@@ -50,7 +50,7 @@ function page() {
                     <Select.Item value="dog">Dog</Select.Item>
                 </Select.Popup>
             </Select.Root>
-            <ToggleGroup.Root defaultValue={['b']}>
+            <ToggleGroup.Root defaultValue="b">
                 <ToggleGroup.Item value="a">A</ToggleGroup.Item>
                 <ToggleGroup.Item value="b">B</ToggleGroup.Item>
             </ToggleGroup.Root>
@@ -282,7 +282,8 @@ describe('SSR', () => {
         expect(html).toMatch(/data-scope="toggle-group"[^>]*data-part="item"[^>]*data-state="on"[^>]*tabindex="0"/i);
         // The number input posts pre-hydration and renders the committed value.
         expect(html).toMatch(/data-scope="number-input"[^>]*data-part="hidden-input"[^>]*value="3"/);
-        expect(html).toMatch(/role="spinbutton"[^>]*data-scope="number-input"[^>]*data-part="input"/);
+        // The draft binds with model= (#455): the server emits the resting value.
+        expect(html).toMatch(/role="spinbutton"[^>]*data-scope="number-input"[^>]*data-part="input"[^>]*value="3"/);
         // Rating renders the fractional display server-side and posts it.
         expect(html).toMatch(/data-scope="rating-group"[^>]*data-part="item"[^>]*data-state="half"/);
         expect(html).toMatch(/data-scope="rating-group"[^>]*data-part="hidden-input"[^>]*value="2.5"/);

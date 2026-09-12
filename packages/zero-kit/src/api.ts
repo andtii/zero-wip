@@ -280,7 +280,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     popover: ['defaultOpen', 'offset', 'placement', 'positionStrategy', 'value'],
     progress: ['max', 'min', 'value'],
     'radial-progress': ['max', 'min', 'value'],
-    'radio-group': ['defaultValue', 'form', 'invalid', 'name', 'required', 'value'],
+    'radio-group': ['defaultValue', 'form', 'invalid', 'itemDisabled', 'itemKey', 'itemLabel', 'items', 'name', 'required', 'value'],
     'rating-group': ['allowHalf', 'count', 'defaultValue', 'deselectable', 'form', 'invalid', 'itemLabel', 'name', 'readonly', 'required', 'value'],
     select: ['defaultOpen', 'defaultValue', 'form', 'invalid', 'itemDisabled', 'itemGroup', 'itemKey', 'itemLabel', 'itemValue', 'items', 'multiple', 'name', 'placeholder', 'placement', 'positionStrategy', 'required', 'value'],
     skeleton: ['defaultLoading', 'value'],

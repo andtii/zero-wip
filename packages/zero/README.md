@@ -55,9 +55,23 @@ zero wrapper does everything the raw element does: `modelModifiers`
 `Textarea.Root` exactly as on a bare `<input>`, a `Checkbox.Root` bound to a
 `string[]` is sigx's array mode (several boxes toggling their own `value`'s
 membership), and a `RadioGroup.Item` is a real radio bound to the group's
-model. Value transforms run once at the component boundary; timing reaches
-the element. `createControllableState` (public, `@sigx/zero/behaviors`)
-returns that Model, and `createInertState` seeds a part's fallback context.
+model. A native control that binds a *projection* of the state binds a
+`derivedModel(read, write)` — Slider's range binds the first value (its
+write quantizes and clamps), NumberInput's text input binds the draft (its
+write never touches the model; commit does). The only hand-wired controls
+left are the ones sigx has no processor for: Slider's range projection
+(hidden inputs, one per value) and FileUpload's `FileList`. Value transforms
+run once at the component boundary; timing reaches the element.
+`createControllableState` (public, `@sigx/zero/behaviors`) returns that
+Model, and `createInertState` seeds a part's fallback context.
+
+**Value shapes follow `multiple`.** Select, Combobox and ToggleGroup hold
+one value in single mode (`T | null` / `V | null` for a data-driven Select or
+Combobox, `string` for hand-written items and for ToggleGroup) and an array
+under `multiple` — typed through the overloads, so a string signal never
+binds a multiple group. RadioGroup takes `items` too (`itemKey` is the
+posted value, `itemLabel`, `itemDisabled`, the `item` slot); its model stays
+the string a native radio group posts.
 
 **The form contract.** Every posting control takes the same five props
 (`name`, `form`, `disabled`, `invalid`, `required` — `WithFormControl`, plus

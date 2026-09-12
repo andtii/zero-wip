@@ -9,17 +9,20 @@
  * </ToggleGroup.Root>
  * ```
  *
- * The model is always `string[]`, in both selection modes — `multiple`
- * changes the setter (append vs replace), not the shape, so switching modes
- * is not a type migration. Arrow keys rove focus (orientation-aware,
- * RTL-aware) without changing the selection; Space/Enter/click toggle.
+ * The model follows `multiple`, Select's rule: single mode holds the pressed
+ * value as a `string` (`''` when none), `multiple` holds a `string[]` — the
+ * exported root is typed through the overload cast (#443), so a string
+ * signal binds a single-select group and an array a multiple one, never
+ * the other way round. Arrow keys rove focus (orientation-aware, RTL-aware)
+ * without changing the selection; Space/Enter/click toggle.
  *
  * Items do not wrap the standalone Toggle: group items need list
  * registration and group value semantics Toggle doesn't have. They share the
  * `on|off` visual contract instead, so recipes can mirror styles.
  */
 import { component, compound, defineInjectable, defineProvide } from 'sigx';
-import type { Define } from 'sigx';
+import type { Define, JSXElement } from 'sigx';
+import type { FactoryBrands, JsxProps } from '../../contract/generic.js';
 import { createControllableState, createInertState, type ControllableState } from '../../behaviors/controllable.js';
 import { createListController, type ListController, type ListItem } from '../../behaviors/list.js';
 import { createRovingKeydown } from '../../behaviors/roving.js';
@@ -41,7 +44,10 @@ import { toggleGroupAnatomy } from './anatomy.js';
 const SCOPE = toggleGroupAnatomy.scope;
 
 interface ToggleGroupContext {
-    state: ControllableState<string[]>;
+    /** The model: a `string` in single mode, a `string[]` under `multiple`. */
+    state: ControllableState<string | string[]>;
+    /** The pressed values, whatever the model's shape. */
+    selected(): string[];
     list: ListController;
     orientation(): Orientation;
     disabled(): boolean;
@@ -51,7 +57,8 @@ interface ToggleGroupContext {
 
 function makeInert(): ToggleGroupContext {
     return {
-        state: createInertState<string[]>([]),
+        state: createInertState<string | string[]>(''),
+        selected: () => [],
         list: createListController(),
         orientation: () => 'horizontal',
         disabled: () => false,
@@ -64,10 +71,15 @@ export const useToggleGroupContext = defineInjectable<ToggleGroupContext>(() => 
 
 // ── Root ──
 
-export type ToggleGroupRootProps =
-    & Define.Model<string[]>
-    & Define.Prop<'defaultValue', string[], false>
-    & Define.Event<'valueChange', string[]>
+/**
+ * The props, generic over the model `M`: `string` in single mode, `string[]`
+ * under `multiple` — the exported `ToggleGroup.Root` narrows it from
+ * `multiple`.
+ */
+export type ToggleGroupRootProps<M = string | string[]> =
+    & Define.Model<M>
+    & Define.Prop<'defaultValue', M, false>
+    & Define.Event<'valueChange', M>
     /** Allow more than one item on at a time (default false). */
     & Define.Prop<'multiple', boolean, false>
     /** In single mode, clicking the on item turns it off (default true). */
@@ -81,12 +93,19 @@ export type ToggleGroupRootProps =
     & WithClass
     & Define.Slot<'default'>;
 
-const ToggleGroupRoot = component<ToggleGroupRootProps>(({ props, slots, emit }) => {
-    const state = createControllableState<string[]>(
+const ToggleGroupRootImpl = component<ToggleGroupRootProps>(({ props, slots, emit }) => {
+    const state = createControllableState<string | string[]>(
         () => props.model,
-        props.defaultValue ?? [],
+        props.defaultValue !== undefined ? props.defaultValue : props.multiple ? [] : '',
         (v) => emit('valueChange', v),
     );
+    // The pressed values under either shape — a string model reads as a
+    // one-element list (empty when '').
+    const selected = (): string[] => {
+        const v = state.value;
+        if (Array.isArray(v)) return v;
+        return v !== '' ? [v] : [];
+    };
     const list = createListController();
     let rootEl: HTMLElement | null = null;
     const orientation = (): Orientation => props.orientation ?? 'horizontal';
@@ -114,18 +133,19 @@ const ToggleGroupRoot = component<ToggleGroupRootProps>(({ props, slots, emit })
 
     const ctx: ToggleGroupContext = {
         state,
+        selected,
         list,
         orientation,
         disabled: () => !!props.disabled,
         toggle: (value) => {
-            const current = state.value;
+            const current = selected();
             const on = current.includes(value);
             if (props.multiple) {
                 state.value = on ? current.filter((v) => v !== value) : [...current, value];
             } else if (on) {
-                if (props.deselectable ?? true) state.value = [];
+                if (props.deselectable ?? true) state.value = '';
             } else {
-                state.value = [value];
+                state.value = value;
             }
         },
         keydown: roving,
@@ -148,6 +168,14 @@ const ToggleGroupRoot = component<ToggleGroupRootProps>(({ props, slots, emit })
         </div>
     );
 }, { name: 'ToggleGroup.Root' });
+
+/** The exported root: the model's shape follows `multiple`. */
+export type ToggleGroupRoot = {
+    (props: JsxProps<ToggleGroupRootProps<string>> & { multiple?: false }): JSXElement;
+    (props: JsxProps<ToggleGroupRootProps<string[]>> & { multiple: true }): JSXElement;
+} & FactoryBrands;
+
+const ToggleGroupRoot = ToggleGroupRootImpl as unknown as ToggleGroupRoot;
 
 // ── Item ──
 
@@ -179,7 +207,7 @@ const ToggleGroupItem = component<ToggleGroupItemProps>(({ props, slots, onUnmou
     const unregister = group.list.register(item);
     onUnmounted(() => unregister());
 
-    const isOn = (): boolean => group.state.value.includes(props.value);
+    const isOn = (): boolean => group.selected().includes(props.value);
 
     const isTabbable = (): boolean => {
         // One tab stop: the first enabled on item, else the first enabled
@@ -188,7 +216,7 @@ const ToggleGroupItem = component<ToggleGroupItemProps>(({ props, slots, onUnmou
         // item may only depend on items registered BEFORE it (render order),
         // which both list lookups below satisfy.
         if (disabled()) return false;
-        const selected = group.state.value;
+        const selected = group.selected();
         if (selected.includes(props.value)) {
             const firstOn = group.list.items().find((i) => selected.includes(i.value) && !i.disabled());
             return firstOn?.value === props.value;

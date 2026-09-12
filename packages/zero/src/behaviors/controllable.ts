@@ -34,9 +34,10 @@
  * (`lazy`/`debounce`) is an element concern; components forward it to the
  * element with `timingModifiers()` (`model-modifiers.ts`).
  */
-import { createModel, signal } from 'sigx';
+import { signal } from 'sigx';
 import type { Model, ModelModifiers } from 'sigx';
 import { applyModelTransforms } from '@sigx/runtime-core/internals';
+import { derivedModel } from './derived-model.js';
 
 /** Historical alias — every zero state is a real sigx `Model`. */
 export type ControllableState<T> = Model<T>;
@@ -77,12 +78,7 @@ export function createControllableState<T>(
         onChange?.(model ? model.value : v);
     };
 
-    const holder = {
-        get value(): T { return read(); },
-        set value(v: T) { write(v); },
-    };
-
-    return createModel<T>([holder, 'value'], write);
+    return derivedModel(read, write);
 }
 
 /**

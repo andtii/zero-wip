@@ -4,7 +4,7 @@ import { DemoRow } from '../demo/Section';
 import type { PageEntry } from './registry';
 
 const ToggleGroupDemos = component(() => {
-    const state = signal({ align: ['left'] as string[] });
+    const state = signal({ align: 'left' });
 
     return () => (
         <>

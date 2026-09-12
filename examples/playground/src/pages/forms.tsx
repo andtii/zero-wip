@@ -74,10 +74,13 @@ const FormsDemos = component(() => {
                 </Field.Root>
                 <Field.Root>
                     <Field.Label>Plan</Field.Label>
-                    <RadioGroup.Root name="form-plan" defaultValue="starter">
-                        <RadioGroup.Item value="starter">Starter</RadioGroup.Item>
-                        <RadioGroup.Item value="team">Team</RadioGroup.Item>
-                    </RadioGroup.Root>
+                    <RadioGroup.Root
+                        name="form-plan"
+                        defaultValue="starter"
+                        items={[{ id: 'starter', name: 'Starter' }, { id: 'team', name: 'Team' }]}
+                        itemKey={(p) => p.id}
+                        itemLabel={(p) => p.name}
+                    />
                 </Field.Root>
                 {/* Unnamed: the radios share a generated name for the platform's
                   * arrow-key roving, but an unnamed group must not post under it. */}

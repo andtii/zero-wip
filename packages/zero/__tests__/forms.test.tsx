@@ -139,6 +139,45 @@ describe('RadioGroup', () => {
         expect(container.querySelectorAll('[data-part="item"]')[1]!.getAttribute('data-state')).toBe('checked');
     });
 
+    it('items renders one radio per item — key, label, disabled, the item slot — and posts the key (#455)', () => {
+        interface Plan { id: string; name: string; off?: boolean }
+        const PLANS: Plan[] = [{ id: 'free', name: 'Free' }, { id: 'pro', name: 'Pro' }, { id: 'team', name: 'Team', off: true }];
+        const state = signal({ plan: 'pro' });
+        const form = document.createElement('form');
+        container.appendChild(form);
+        render(
+            <RadioGroup.Root items={PLANS} itemKey={(p) => p.id} itemLabel={(p) => p.name} itemDisabled={(p) => !!p.off} model={[state, 'plan']} name="plan" />,
+            form,
+        );
+        const items = form.querySelectorAll<HTMLElement>('[data-part="item"]');
+        expect([...form.querySelectorAll('[data-part="item-label"]')].map((l) => l.textContent)).toEqual(['Free', 'Pro', 'Team']);
+        expect(items[1]!.getAttribute('data-state')).toBe('checked');
+        expect(items[2]!.hasAttribute('data-disabled')).toBe(true);
+        expect(new FormData(form).get('plan')).toBe('pro');
+        const radios = form.querySelectorAll<HTMLInputElement>('input[type="radio"]');
+        radios[0]!.checked = true;
+        radios[0]!.dispatchEvent(new Event('change', { bubbles: true }));
+        expect(state.plan).toBe('free');
+    });
+
+    it('items: the item slot renders a custom label; explicit children win entirely; a "" key is refused', () => {
+        render(
+            <RadioGroup.Root items={['a', 'b']} slots={{ item: ({ item }) => <em>{String(item).toUpperCase()}</em> }} />,
+            container,
+        );
+        expect([...container.querySelectorAll('[data-part="item-label"] em')].map((l) => l.textContent)).toEqual(['A', 'B']);
+        const second = document.body.appendChild(document.createElement('div'));
+        render(
+            <RadioGroup.Root items={['a', 'b']}>
+                <RadioGroup.Item value="only">Only</RadioGroup.Item>
+            </RadioGroup.Root>,
+            second,
+        );
+        expect(second.querySelectorAll('[data-part="item"]').length).toBe(1);
+        const third = document.body.appendChild(document.createElement('div'));
+        expect(() => render(<RadioGroup.Root items={['', 'a']} />, third)).toThrow(/keyed ""/);
+    });
+
     it('press on an item row or its hidden input lands feedback on that item-control', () => {
         render(
             <RadioGroup.Root defaultValue="free">
@@ -183,6 +222,28 @@ describe('Slider', () => {
         input.dispatchEvent(new Event('input', { bubbles: true }));
         expect(state.volume).toBe(55);
         expect(container.querySelector('[data-part="value-text"]')!.textContent).toBe('55');
+    });
+
+    it('the native range binds the scalar with model= — the platform write is a number, quantized and clamped', () => {
+        const state = signal({ volume: 30 });
+        render(
+            <Slider.Root model={[state, 'volume']} min={0} max={100} step={5}>
+                <Slider.Control />
+            </Slider.Root>,
+            container,
+        );
+        const input = container.querySelector<HTMLInputElement>('input[type="range"]')!;
+        // What the processor hands the scalar model goes through setValueAt:
+        // a number (not the range's string), snapped to the step and clamped.
+        input.value = '57';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        expect(state.volume).toBe(55);
+        input.value = '140';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        expect(state.volume).toBe(100);
+        // And the model drives the control back.
+        state.volume = 20;
+        expect(input.value).toBe('20');
     });
 
     it('publishes held press feedback on the input, with no one-shot flag', () => {
