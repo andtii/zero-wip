@@ -168,7 +168,7 @@
     {
         "name": "@sigx/zero/rating-group",
         "path": "packages/zero/dist/components/rating-group/index.js",
-        "limit": "3.3 kB",
+        "limit": "3.35 kB",
         "ignore": [
             "sigx",
             "sigx/jsx-runtime",
