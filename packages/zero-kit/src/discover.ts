@@ -331,6 +331,11 @@ export function packFromModule(declaration: EcosystemDeclaration, mod: Record<st
     return { package: name, source, fragment: fragment as ManifestFragment, recipes: recipes as RecipeInput[] };
 }
 
+/** Whether this run has been switched off wholesale. */
+function ecosystemDisabled(): boolean {
+    return process.env[ECOSYSTEM_ENV] === '0';
+}
+
 /**
  * One dependency map's keys. A malformed map is named rather than left to
  * throw a bare `TypeError` out of an object spread: this walk reads other
@@ -355,7 +360,7 @@ export function selectDependencies(
     options: Pick<EcosystemOptions, 'include' | 'exclude'>,
     logger: EcosystemLogger,
 ): string[] {
-    if (process.env[ECOSYSTEM_ENV] === '0') {
+    if (ecosystemDisabled()) {
         logger.log(`[zero-kit] ecosystem discovery disabled by ${ECOSYSTEM_ENV}=0`);
         return [];
     }
@@ -464,6 +469,13 @@ export async function resolveEcosystem<M extends Pick<ZeroManifest, 'components'
 ): Promise<ResolvedEcosystem<M>> {
     const { manifest, designSystem, ecosystem, defaultCwd, logger } = input;
     if (!ecosystem) return { manifest, designSystem, packs: [] };
+    // Checked here rather than only inside the walk: `packs` supplies packs
+    // directly and never reaches it, and the switch is documented as turning
+    // adoption off whatever the build asks for.
+    if (ecosystemDisabled()) {
+        logger.log(`[zero-kit] ecosystem discovery disabled by ${ECOSYSTEM_ENV}=0`);
+        return { manifest, designSystem, packs: [] };
+    }
 
     const options: EcosystemOptions = ecosystem === true ? {} : ecosystem;
     const label = input.label ?? designSystem.name;

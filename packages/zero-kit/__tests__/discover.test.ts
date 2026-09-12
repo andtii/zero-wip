@@ -308,6 +308,21 @@ describe('resolveEcosystem', () => {
         expect(log.log).toHaveBeenCalledWith(expect.stringContaining('@acme/stepper — 1 scope(s)'));
     });
 
+    it(`${ECOSYSTEM_ENV}=0 stops adoption even for directly supplied packs`, async () => {
+        // `packs` never reaches the dependency walk, so the switch has to be
+        // checked here too — it is documented as absolute.
+        process.env[ECOSYSTEM_ENV] = '0';
+        const out = await resolveEcosystem({
+            manifest: baseManifest(),
+            designSystem: ds,
+            ecosystem: { packs: [pack('@acme/stepper')] },
+            defaultCwd: tree(),
+            logger: logger(),
+        });
+        expect(out.packs).toEqual([]);
+        expect(out.manifest.components.some((c) => c.scope === 'acme-stepper')).toBe(false);
+    });
+
     it('sorts supplied packs by name, so the emitted order does not depend on the caller', async () => {
         const out = await resolveEcosystem({
             manifest: baseManifest(),
