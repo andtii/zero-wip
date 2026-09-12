@@ -212,6 +212,15 @@ describe('report.schema.json', () => {
     });
 
 
+    it('rejects a lynx finding that attributes a package to no scope', () => {
+        const report = reportNamed('basic') as Record<string, unknown>;
+        const orphaned = {
+            ...report,
+            lynx: { translated: [], dropped: [{ where: 'w', what: 'x', detail: 'y', package: '@acme/stepper' }] },
+        };
+        expect(validateReport(asJson(orphaned))).toBe(false);
+    });
+
     it('rejects a lynx finding whose scope is not a kebab token', () => {
         const report = reportNamed('basic') as Record<string, unknown>;
         const withLynx = {
