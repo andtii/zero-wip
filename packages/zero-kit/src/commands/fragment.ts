@@ -150,10 +150,11 @@ export interface FragmentCheckInput {
 }
 
 export interface FragmentCheckResult {
-    pack: EcosystemPack;
+    /** Absent when the module's shape was too broken to read a pack out of. */
+    pack?: EcosystemPack;
     findings: FragmentFinding[];
-    /** The JSON form, ready to write. */
-    json: Record<string, unknown>;
+    /** The JSON form, ready to write. Absent when there is no pack. */
+    json?: Record<string, unknown>;
 }
 
 /** Every check that does not need to import anything. */
@@ -163,8 +164,16 @@ export function checkFragment(input: FragmentCheckInput): FragmentCheckResult {
     const error = (message: string) => findings.push({ level: 'error', message });
     const warn = (message: string) => findings.push({ level: 'warning', message });
 
-    // Shape first: everything below reads the pack.
-    const pack = packFromModule(declaration, module);
+    // `packFromModule` THROWS on a bad shape, which is right where discovery
+    // calls it — a broken dependency is skipped and named. Here the broken
+    // package is the one being checked, and its author needs a finding rather
+    // than a stack trace, so the throw is converted at the boundary.
+    let pack: EcosystemPack;
+    try {
+        pack = packFromModule(declaration, module);
+    } catch (err) {
+        return { findings: [{ level: 'error', message: err instanceof Error ? err.message : String(err) }] };
+    }
 
     // Read defensively. This command exists to REPORT a malformed fragment,
     // so it must not die reading one — a missing `components` should reach
@@ -327,19 +336,20 @@ export async function runFragment(env: CommandEnv, opts: FragmentCommandOptions)
     }
     const errors = findings.filter((f) => f.level === 'error').length;
     const warnings = findings.length - errors;
+    const name = pack?.package ?? declaration.package;
 
-    if (opts.emit !== false && errors === 0) {
+    if (opts.emit !== false && errors === 0 && json) {
         const out = join(dirname(declaration.source), 'fragment.json');
         await mkdir(dirname(out), { recursive: true });
         await writeFile(out, `${JSON.stringify(json, null, 4)}\n`, 'utf8');
-        env.logger.log(`[${pack.package}] wrote ${out}`);
+        env.logger.log(`[${name}] wrote ${out}`);
     }
 
     env.logger.log(
-        `[${pack.package}] ${pack.fragment.components?.length ?? 0} scope(s), ${pack.recipes.length} recipe(s)`
+        `[${name}] ${pack?.fragment.components?.length ?? 0} scope(s), ${pack?.recipes.length ?? 0} recipe(s)`
         + ` — ${errors} error(s), ${warnings} warning(s)`,
     );
     if (errors > 0 || (opts.strict && warnings > 0)) {
-        throw new Error(`"${pack.package}" FAILED the fragment check (${errors} errors, ${warnings} warnings)`);
+        throw new Error(`"${name}" FAILED the fragment check (${errors} errors, ${warnings} warnings)`);
     }
 }

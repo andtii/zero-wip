@@ -82,6 +82,19 @@ describe('checkFragment', () => {
         expect(errors(result).join('\n')).toMatch(/declares version 0 but this kit speaks/);
     });
 
+    it.each([
+        ['a module exporting no fragment', { recipes: [] }, /exports no "fragment" object/],
+        ['a fragment naming another package', { fragment: fragment({ package: '@other/pack' }) }, /declares package "@other\/pack"/],
+        ['a recipes export that is not an array', { fragment: fragment(), recipes: {} }, /"recipes" that is not an array/],
+    ])('reports %s as a finding, not a throw', (_what, module, expected) => {
+        // packFromModule throws by design where DISCOVERY calls it — a broken
+        // dependency is skipped and named. Here the broken package is the one
+        // being checked, and its author needs a finding.
+        const result = checkFragment(input({ module: module as Record<string, unknown> }));
+        expect(errors(result).join('\n')).toMatch(expected);
+        expect(result.pack).toBeUndefined();
+    });
+
     it('reports a malformed fragment instead of dying on it', () => {
         // The command's whole job is to describe a broken fragment, so reading
         // one must not throw before the schema can speak.
