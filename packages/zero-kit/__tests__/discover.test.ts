@@ -30,6 +30,7 @@ import {
     resolveEcosystem,
     satisfiesKitRange,
     selectDependencies,
+    zeroKitVersion,
 } from '@sigx/zero-kit';
 import { ecosystemOptionsFrom } from '../src/commands/shared.js';
 import type { DesignSystemInput, EcosystemDeclaration, EcosystemPack, ManifestComponent, ManifestFragment } from '@sigx/zero-kit';
@@ -473,6 +474,16 @@ describe('ecosystemOptionsFrom', () => {
         expect(ecosystemOptionsFrom(env, { ecosystem: true })).toEqual({ cwd: '/project' });
         expect(ecosystemOptionsFrom(env, { ecosystem: true, ecosystemExclude: ['a'] }))
             .toEqual({ cwd: '/project', exclude: ['a'] });
+    });
+});
+
+describe('zeroKitVersion', () => {
+    it('actually finds the kit version', () => {
+        // A silent `undefined` here disables every check built on it — the
+        // `requires` warning and zero:extend's zeroVersion skew guard both
+        // read as "nothing to compare" rather than as broken. A second copy
+        // of this reader one directory down did exactly that.
+        expect(zeroKitVersion()).toMatch(/^\d+\.\d+\.\d+/);
     });
 });
 

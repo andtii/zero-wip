@@ -179,8 +179,15 @@ export function satisfiesKitRange(version: string, range: string): boolean {
     return !want || compareVersions(v, want) === 0;
 }
 
-/** This kit's own version — lockstep with the zero contract it speaks. */
-function kitVersion(): string | undefined {
+/**
+ * This kit's own version — lockstep with the zero contract it speaks.
+ *
+ * Exported so nothing re-derives the relative path: this module sits at the
+ * package root, so `../package.json` is right HERE and wrong one directory
+ * down, where a second copy silently resolved nothing and quietly disabled
+ * the check it was written for.
+ */
+export function zeroKitVersion(): string | undefined {
     try {
         return (require('../package.json') as { version?: string }).version;
     } catch {
@@ -220,6 +227,49 @@ function findPackageDir(fromDir: string, name: string): string | undefined {
         if (parent === dir) return undefined;
         dir = parent;
     }
+}
+
+/**
+ * An installed package's directory, by name, from `fromDir`. The same walk
+ * discovery uses — exported because resolving a subpath of an installed
+ * package cannot go through `require.resolve`.
+ */
+export function installedPackageDir(fromDir: string, name: string): string | undefined {
+    return findPackageDir(fromDir, name);
+}
+
+/**
+ * The file an `exports` subpath points at, resolved by hand.
+ *
+ * `createRequire().resolve()` cannot be used for this: it asks for the
+ * `require` condition, and an ESM package's exports commonly declare only
+ * `types` and `import` — the same dead end `"sigx-zero".fragment` carries a
+ * path to avoid. Conditions are tried in Node's own order for an import.
+ *
+ * `undefined` means the subpath is not exported, which is a fact worth
+ * reporting rather than papering over: a consumer cannot reach it either.
+ */
+export function exportedSubpath(pkg: Record<string, unknown>, subpath: string): string | undefined {
+    const resolveCondition = (value: unknown): string | undefined => {
+        if (typeof value === 'string') return value;
+        if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+        const conditions = value as Record<string, unknown>;
+        for (const key of ['import', 'node', 'default']) {
+            const found = resolveCondition(conditions[key]);
+            if (found) return found;
+        }
+        return undefined;
+    };
+
+    const exports = pkg['exports'];
+    // A bare string, or a bare conditions object, IS the root and nothing else.
+    if (typeof exports === 'string') return subpath === '.' ? exports : undefined;
+    if (typeof exports !== 'object' || exports === null || Array.isArray(exports)) return undefined;
+
+    const map = exports as Record<string, unknown>;
+    const isSubpathMap = Object.keys(map).some((key) => key.startsWith('.'));
+    if (!isSubpathMap) return subpath === '.' ? resolveCondition(map) : undefined;
+    return resolveCondition(map[subpath]);
 }
 
 /** The nearest ancestor directory holding a package.json, `from` included. */
@@ -324,7 +374,7 @@ function declarationIn(pkgDir: string, name: string, logger: EcosystemLogger): E
     // Checked BEFORE the import: a pack built against a contract this kit no
     // longer speaks should be reported as such, not explode somewhere inside
     // its own module body.
-    const kit = kitVersion();
+    const kit = zeroKitVersion();
     if (field.requires && kit && !satisfiesKitRange(kit, field.requires)) {
         logger.warn(
             `[zero-kit] ${name} requires @sigx/zero-kit ${field.requires} but this build runs ${kit} — its component may not compile`,

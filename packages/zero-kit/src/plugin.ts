@@ -155,6 +155,27 @@ export default definePlugin({
                 });
             },
         },
+        // Also no bare alias — and `detect` reaches this one through the kit
+        // dependency an app extending a design system needs anyway.
+        'zero:extend': {
+            description: 'Compile an installed design system against this project\'s ecosystem packs',
+            args: {
+                ds: a.string().valueHint('package').describe('The installed design system to extend'),
+                out: a.string().valueHint('dir').default('./src/generated').describe('Where to write the artifacts'),
+                manifest: manifestArg,
+                ecosystemExclude: ecosystemExcludeArg,
+            },
+            async run(ctx) {
+                const { runExtend } = await import('./commands/extend.js');
+                if (!ctx.args.ds) throw new Error('--ds is required: the installed design system to extend');
+                await runExtend(ctx, {
+                    ds: ctx.args.ds,
+                    out: ctx.args.out,
+                    manifest: ctx.args.manifest,
+                    ecosystemExclude: ctx.args.ecosystemExclude,
+                });
+            },
+        },
         // No bare alias: `fragment` is a word other plugins may well want, and
         // the CLI resolves alias collisions last-plugin-wins.
         'zero:fragment': {
