@@ -55,6 +55,14 @@ Non-interactive by design: a missing argument is an exit code (2) and a usage
 line, never a prompt. Exit 1 is a failure the arguments could not have
 prevented (an unknown brief, a non-empty directory without `--force`).
 
+## Ecosystem components
+
+The generated `build.mjs` needs no wiring for them: `runStandardBuild`
+adopts every dependency declaring a `"sigx-zero"` field, so adding an
+ecosystem component package is `pnpm add -D @acme/zero-stepper` and nothing
+else. Its recipes are fitted to whatever vocabulary your brief gave you.
+`ecosystem: false`, or `ZERO_ECOSYSTEM=0` for one run, opts out.
+
 ## Why a `create-*` package
 
 A `sigx` CLI plugin only loads where `@sigx/zero-kit` is already installed, so

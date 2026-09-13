@@ -14,7 +14,7 @@
  * narrow every component's props (the leak the button axes tests canary).
  */
 import { describe, it, expect } from 'vitest';
-import { compileDesignSystem, compileRegisterDts, compileRegisterJs, mergeManifests } from '@sigx/zero-kit';
+import { compileDesignSystem, compileRegisterDts, compileRegisterJs, resolveEcosystem } from '@sigx/zero-kit';
 import type { DesignSystemInput, ManifestComponent, RecipeInput } from '@sigx/zero-kit';
 import { anatomies } from '@sigx/zero/anatomy';
 import { designSystem as basicDS } from '@sigx/zero-basic';
@@ -43,19 +43,33 @@ describe('register.d.ts goldens', () => {
     });
 
     it('basic + the adopted ecosystem pack matches its golden (the Exclude-form compile gate)', async () => {
-        // The same composition zero-basic's build.mjs performs — spread the
-        // pack, merge the fragment. Composed here rather than exported from
-        // zero-basic: the private ext-example package must stay out of the
-        // published package's module graph, so the adoption has no importable
-        // home. Like material's golden, the output lives in an isolated
+        // Driven through `resolveEcosystem`, the same path zero-basic's build
+        // takes — not a hand-rolled imitation of it. The composition used to
+        // be spelled out here, which meant the golden could stay green while
+        // the shipped build emitted something else; that is the failure this
+        // file's own docblock warns about.
+        //
+        // The pack is supplied rather than discovered: discovery reads
+        // node_modules, and the point of this test is the composition, not
+        // the walk. Like material's golden, the output lives in an isolated
         // type-tests project (`ecosystem/`) where `pnpm test:types` compiles
         // it against zero's real source — proving a register module carrying
         // an ecosystem scope typechecks with the scope excluded by name.
-        const ds = basicDS as DesignSystemInput;
-        const compiled = compileDesignSystem(
-            { ...ds, recipes: [...ds.recipes, ...extRecipes] },
-            mergeManifests(manifest, extFragment),
-        );
+        const resolved = await resolveEcosystem({
+            manifest,
+            designSystem: basicDS as DesignSystemInput,
+            ecosystem: {
+                packs: [{
+                    package: '@sigx/zero-ext-example',
+                    source: '@sigx/zero-ext-example/fragment',
+                    fragment: extFragment,
+                    recipes: extRecipes,
+                }],
+            },
+            defaultCwd: process.cwd(),
+            logger: { log() {}, warn() {}, error() {} },
+        });
+        const compiled = compileDesignSystem(resolved.designSystem, resolved.manifest);
         await expect(compileRegisterDts(compiled))
             .toMatchFileSnapshot('../../zero/type-tests/ecosystem/basic-ext.register.d.ts');
     });

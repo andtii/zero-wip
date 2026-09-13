@@ -455,10 +455,9 @@ the `"sigx-cli"` field this plugin is itself discovered through:
 "sigx-zero": { "fragment": "./dist/fragment.js", "requires": ">=0.2.0" }
 ```
 
-A design system then adopts every dependency that declares one, with
-`ecosystem: true` on `runStandardBuild` or `--ecosystem` on
-`zero:build`/`zero:validate`/`zero:audit` — off by default for now, and
-`ZERO_ECOSYSTEM=0` overrides any build. Narrowing is programmatic:
+A design system then adopts every dependency that declares one, **by
+default** — installing the package is the opt-in. `ecosystem: false` on
+`runStandardBuild` turns it off, and `ZERO_ECOSYSTEM=0` overrides any build. Narrowing is programmatic:
 `ecosystem: { exclude: [...] }` or `{ include: [...] }`, where `include`
 means *only* those; the CLI surfaces the exclusion half as
 `--ecosystem-exclude` and has no `include` flag. A pack that cannot be

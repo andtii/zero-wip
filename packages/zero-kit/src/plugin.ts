@@ -34,12 +34,12 @@ const extraManifestArg = a
     .multiple()
     .describe('Ecosystem manifest fragment ({ package, components }) merged into the base manifest — repeatable');
 
-// Discovery is opt-in while the mechanism settles, so the flag is positive.
-// `ZERO_ECOSYSTEM=0` is the off switch that survives the default flip.
+// On by default, matching `runStandardBuild`. `ZERO_ECOSYSTEM=0` is the off
+// switch — @sigx/args has no `--no-x` negation, so the env var carries it.
 const ecosystemArg = a
     .boolean()
-    .default(false)
-    .describe('Adopt every dependency declaring a "sigx-zero" field (its anatomy fragment)');
+    .default(true)
+    .describe('Adopt every dependency declaring a "sigx-zero" field (ZERO_ECOSYSTEM=0 turns it off)');
 
 const ecosystemExcludeArg = a
     .string()

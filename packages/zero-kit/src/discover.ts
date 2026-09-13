@@ -35,7 +35,7 @@ import { pathToFileURL } from 'node:url';
 import type { ZeroManifest } from './contract.js';
 import type { DesignSystemInput } from './design-system.js';
 import type { ManifestFragment } from './manifest.js';
-import { mergeManifests } from './manifest.js';
+import { mergeManifests, packagesByScope } from './manifest.js';
 import type { RecipeInput } from './recipes.js';
 import type { FitReport } from './fit.js';
 import { fitRecipes } from './fit.js';
@@ -584,9 +584,19 @@ export async function resolveEcosystem<M extends Pick<ZeroManifest, 'components'
     // Merged one at a time rather than in one variadic call: a single stale
     // pack must not take the whole design system's build with it, and the
     // error has to name which package failed.
+    // Packages already merged by hand. A design system that passes
+    // `fragments:` for a pack it also depends on is not in conflict with
+    // itself — it is mid-migration to discovery, and its own copy wins
+    // quietly. Only a DIFFERENT package claiming the same scope is a clash.
+    const alreadyMerged = new Set(Object.values(packagesByScope(manifest)));
+
     let merged = manifest;
     const adopted: EcosystemPack[] = [];
     for (const pack of packs) {
+        if (alreadyMerged.has(pack.package)) {
+            logger.log(`[${label}] ecosystem: ${pack.package} was already merged by hand — leaving that copy in place`);
+            continue;
+        }
         try {
             // Checked BEFORE the merge, so a refused pack contributes nothing
             // at all. Refusing only its recipes would leave its scopes in the

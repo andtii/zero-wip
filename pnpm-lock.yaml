@@ -277,6 +277,9 @@ importers:
       '@sigx/zero':
         specifier: workspace:^
         version: link:../zero
+      '@sigx/zero-ext-example':
+        specifier: workspace:*
+        version: link:../zero-ext-example
       '@sigx/zero-kit':
         specifier: workspace:^
         version: link:../zero-kit
