@@ -292,10 +292,10 @@
         "@sigx/runtime-dom": "catalog:",
         "@sigx/server-renderer": "catalog:",
         "@sigx/vite": "catalog:",
-        "happy-dom": "^20.0.11",
+        "happy-dom": "^20.14.3",
         "sigx": "catalog:",
         "typescript": "^6.0.3",
-        "vite": "^8.0.3",
+        "vite": "^8.2.2",
         "vitest": "^4.1.1"
     },
     "publishConfig": {
