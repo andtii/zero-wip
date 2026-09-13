@@ -116,6 +116,40 @@
   than quietly excluding packages from a discovery that never runs. (Narrowing
   is otherwise programmatic — the CLI surfaces only the exclusion half.)
 
+- **`sigx zero:fragment` — the authoring-side gate for a component package**
+  (#463). Everything else in the kit is the adopting side; the authoring side
+  had none, so every way a fragment can be wrong was discovered in a
+  stranger's build. Run in the package, it emits `dist/fragment.json` and
+  checks: the `version` literal against `FRAGMENT_VERSION` (which is what
+  makes hand-writing it safe — importing the constant would drag the kit into
+  the data entry's runtime graph); the JSON schema; `mergeManifests` against
+  the installed `@sigx/zero`; that the declared path is inside `"files"`
+  (present locally, missing for every consumer, is the failure an author
+  cannot see from their own checkout); that recipes style only parts and
+  scopes the fragment declares; that the package root exports
+  `componentExportName(scope)`, the convention an api-declaring adopter's
+  generated `./components` module depends on and which
+  `docs/architecture.md` records as having broken once unnoticed; and a
+  hostile-vocabulary probe — the pack fitted to a design system with no
+  colour roles and no size ramp still compiles, and still *paints*. That last
+  one needs a real check rather than a `trim()`: a recipe whose every rule was
+  fitted away still emits its `@layer zero.recipes { }` wrapper.
+
+  Warnings rather than errors for an unprefixed scope (what counts as a vendor
+  is not checkable, and zero itself promoted `steps` out of this pattern; the
+  collision it invites later IS an error) and for a pack that is not
+  lynx-clean (that costs adopters one target, not the build).
+
+  Registered with **no bare alias** — `fragment` is a word other plugins may
+  want, and the CLI resolves alias collisions last-plugin-wins. `detect`
+  widens to accept a package declaring `"sigx-zero"`, since a component
+  package may depend on `@sigx/zero` alone and never on the kit.
+
+  This replaces the ~15-line `emit-fragment.mjs` every author would otherwise
+  rewrite (`zero-ext-example`'s is deleted and its build now calls the
+  command), and accepts one cost worth stating: **`@sigx/zero-kit` becomes a
+  devDependency of every component package.**
+
 - **Diagnostics name the ecosystem package they are about, and the emitted
   manifest records who owns what** (#460). A design system that adopts a pack
   compiles its recipes as its own — including into its diagnostics. So a

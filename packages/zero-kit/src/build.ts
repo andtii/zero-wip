@@ -25,7 +25,7 @@ import { buildDsManifest, writeArtifacts } from './artifacts.js';
 import { auditDesignSystem } from './audit/index.js';
 import type { AuditResult } from './audit/index.js';
 export { AUDIT_SCHEMA_URL, auditDesignSystem, buildAuditArtifact, formatAudit } from './audit/index.js';
-export { ECOSYSTEM_ENV, ECOSYSTEM_FIELD, declarationFor, discoverEcosystem, nearestPackageDir, packFromModule, resolveEcosystem, satisfiesKitRange, selectDependencies } from './discover.js';
+export { ECOSYSTEM_ENV, ECOSYSTEM_FIELD, declarationFor, discoverEcosystem, nearestPackageDir, packFromModule, resolveEcosystem, satisfiesKitRange, selectDependencies, selfDeclaration } from './discover.js';
 export type { EcosystemDeclaration, EcosystemLogger, EcosystemOptions, EcosystemPack, ResolvedEcosystem, ResolveEcosystemInput } from './discover.js';
 export type { AuditArtifact, AuditFinding, AuditOptions, AuditResult, AuditRuleId } from './audit/index.js';
 import type { CompiledLynxTarget } from './targets/lynx/compile.js';

@@ -38,13 +38,17 @@ const pkg = (deps: Record<string, unknown>) => JSON.stringify({ name: 'x', ...de
 const shapeOf = (name: string): ArgsShape => plugin.commands[name]!.args as ArgsShape;
 
 describe('plugin registration', () => {
-    it('registers namespaced commands with bare aliases', () => {
+    it('registers namespaced commands, with bare aliases where they are safe', () => {
         // Namespaced so a project that is also a Lynx app doesn't get whichever
         // `build` loaded last; the bare alias still resolves when unclaimed.
-        expect(Object.keys(plugin.commands).sort()).toEqual(['zero:audit', 'zero:build', 'zero:validate']);
+        expect(Object.keys(plugin.commands).sort())
+            .toEqual(['zero:audit', 'zero:build', 'zero:fragment', 'zero:validate']);
         expect(plugin.commands['zero:build']!.aliases).toEqual(['build']);
         expect(plugin.commands['zero:validate']!.aliases).toEqual(['validate']);
         expect(plugin.commands['zero:audit']!.aliases).toEqual(['audit']);
+        // No bare alias: `fragment` is a word other plugins may want, and the
+        // CLI resolves alias collisions last-plugin-wins.
+        expect(plugin.commands['zero:fragment']!.aliases).toBeUndefined();
     });
 
     it('describes every command and flag', () => {
@@ -60,6 +64,26 @@ describe('detect', () => {
     it('claims a package that depends on the kit', () => {
         expect(plugin.detect(projectDir({ 'package.json': pkg({ devDependencies: { '@sigx/zero-kit': '^0.1.0' } }) }))).toBe(true);
         expect(plugin.detect(projectDir({ 'package.json': pkg({ dependencies: { '@sigx/zero-kit': '^0.1.0' } }) }))).toBe(true);
+    });
+
+    it('claims a component package that declares sigx-zero and never depends on the kit', () => {
+        // The kit dependency was the whole test; `zero:fragment` widened it,
+        // because a component package may depend on @sigx/zero alone.
+        const dir = projectDir({
+            'package.json': JSON.stringify({ name: '@acme/zero-stepper', 'sigx-zero': { fragment: './dist/fragment.js' } }),
+        });
+        expect(plugin.detect(dir)).toBe(true);
+    });
+
+    it('claims one whose sigx-zero field is malformed, so the command can say why', () => {
+        // Presence, not truthiness. Hiding the command from the author of a
+        // broken field is the least helpful possible response.
+        for (const field of ['null', '""', '{}']) {
+            const dir = projectDir({
+                'package.json': `{ "name": "@acme/zero-stepper", "sigx-zero": ${field} }`,
+            });
+            expect(plugin.detect(dir), `sigx-zero: ${field}`).toBe(true);
+        }
     });
 
     it('ignores unrelated projects', () => {

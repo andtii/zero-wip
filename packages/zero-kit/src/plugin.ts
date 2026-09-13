@@ -48,15 +48,20 @@ const ecosystemExcludeArg = a
     .describe('Package to leave out of --ecosystem adoption — repeatable');
 
 /**
- * A design-system package is one that pulls in the kit.
+ * A project this plugin has something to say about: one that pulls in the
+ * kit, or one that declares an ecosystem component.
  *
- * Nothing looser would earn its keep: the CLI only loads this plugin after
- * finding `@sigx/zero-kit` among the project's own dependencies, so by the
- * time `detect` runs that much is already established. A source-shape
- * heuristic on top of it could only ever produce false positives — the kit's
- * own `src/design-system.ts` is library code, not a design system.
+ * The kit dependency was the whole test, and nothing looser would have earned
+ * its keep for the build/validate/audit commands: the CLI only loads this
+ * plugin after finding `@sigx/zero-kit` among the project's own dependencies,
+ * so by the time `detect` runs that much is already established, and a
+ * source-shape heuristic on top could only produce false positives.
+ *
+ * `zero:fragment` widened it. A component package may depend on `@sigx/zero`
+ * alone and never on the kit, and the field it declares says plainly what it
+ * is — a stronger signal than any heuristic.
  */
-function isDesignSystemProject(cwd: string): boolean {
+function isZeroProject(cwd: string): boolean {
     const pkgPath = join(cwd, 'package.json');
     if (!existsSync(pkgPath)) return false;
     try {
@@ -64,8 +69,13 @@ function isDesignSystemProject(cwd: string): boolean {
             name?: string;
             dependencies?: Record<string, string>;
             devDependencies?: Record<string, string>;
+            'sigx-zero'?: unknown;
         };
         if (pkg.name === '@sigx/zero-kit') return false; // the kit itself, not a consumer
+        // Presence, not truthiness: a malformed field (`null`, a string) is
+        // exactly when the author needs `zero:fragment` to tell them why, and
+        // hiding the command is the least helpful possible response.
+        if ('sigx-zero' in pkg) return true;
         return Boolean(pkg.dependencies?.['@sigx/zero-kit'] || pkg.devDependencies?.['@sigx/zero-kit']);
     } catch {
         return false; // unparseable manifest — claim nothing
@@ -74,7 +84,7 @@ function isDesignSystemProject(cwd: string): boolean {
 
 export default definePlugin({
     name: 'zero',
-    detect: isDesignSystemProject,
+    detect: isZeroProject,
     commands: {
         'zero:build': {
             description: 'Compile a design system to CSS artifacts',
@@ -142,6 +152,24 @@ export default definePlugin({
                     reportJson: ctx.args.reportJson,
                     diff: ctx.args.diff,
                     log: ctx.args.log,
+                });
+            },
+        },
+        // No bare alias: `fragment` is a word other plugins may well want, and
+        // the CLI resolves alias collisions last-plugin-wins.
+        'zero:fragment': {
+            description: 'Check an ecosystem component package\'s fragment, and emit its JSON form',
+            args: {
+                manifest: manifestArg,
+                emit: a.boolean().default(true).describe('Write fragment.json beside the declared fragment module'),
+                strict: a.boolean().default(false).describe('Fail on warnings, not just errors'),
+            },
+            async run(ctx) {
+                const { runFragment } = await import('./commands/fragment.js');
+                await runFragment(ctx, {
+                    manifest: ctx.args.manifest,
+                    emit: ctx.args.emit,
+                    strict: ctx.args.strict,
                 });
             },
         },

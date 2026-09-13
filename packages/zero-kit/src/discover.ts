@@ -299,7 +299,24 @@ function readField(pkg: Record<string, unknown>, name: string): EcosystemField |
 export function declarationFor(cwd: string, name: string, logger: EcosystemLogger): EcosystemDeclaration | undefined {
     const pkgDir = findPackageDir(cwd, name);
     if (!pkgDir) return undefined;
+    return declarationIn(pkgDir, name, logger);
+}
 
+/**
+ * The declaration of the package rooted at `dir` — the same reading, applied
+ * to a package's own directory rather than to one of its dependencies. What
+ * `sigx zero:fragment` checks about the package it is run in.
+ */
+export function selfDeclaration(dir: string, logger: EcosystemLogger): EcosystemDeclaration | undefined {
+    const pkg = readJsonFile(join(dir, 'package.json'), 'package.json');
+    const name = pkg['name'];
+    if (typeof name !== 'string' || name.length === 0) {
+        throw new Error(`[zero-kit] ${join(dir, 'package.json')} declares no "name"`);
+    }
+    return declarationIn(dir, name, logger);
+}
+
+function declarationIn(pkgDir: string, name: string, logger: EcosystemLogger): EcosystemDeclaration | undefined {
     const pkg = readJsonFile(join(pkgDir, 'package.json'), `${name}'s package.json`);
     const field = readField(pkg, name);
     if (!field) return undefined;
