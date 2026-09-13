@@ -156,7 +156,7 @@ describe('checkFragment', () => {
 
         const raised = errors(result).filter((m) => m.includes('root'));
         expect(raised).toHaveLength(1);
-        expect(raised[0]).toMatch(/could not be read.*does not exist.*build the package first/s);
+        expect(raised[0]).toMatch(/could not be read.*does not exist.*export-name check was skipped/s);
         expect(errors(result).join('\n')).not.toMatch(/exports no/);
     });
 
@@ -275,17 +275,23 @@ describe('rootEntry', () => {
         // entirely; reading `main` alone sent the export-name check at a file
         // that does not exist, and reported the root as missing its export.
         expect(rootEntry({ exports: { '.': { import: './dist/index.js' } }, main: './legacy.cjs' }))
-            .toBe('./dist/index.js');
-        expect(rootEntry({ exports: { '.': { types: './d.ts', import: './esm.js' } } })).toBe('./esm.js');
-        expect(rootEntry({ exports: './single.js' })).toBe('./single.js');
-        expect(rootEntry({ exports: { import: './sugar.js' } })).toBe('./sugar.js');
+            .toEqual({ path: './dist/index.js' });
+        expect(rootEntry({ exports: { '.': { types: './d.ts', import: './esm.js' } } })).toEqual({ path: './esm.js' });
+        expect(rootEntry({ exports: './single.js' })).toEqual({ path: './single.js' });
+        // Sugar: a bare conditions object, no subpath keys, IS the root.
+        expect(rootEntry({ exports: { import: './sugar.js' } })).toEqual({ path: './sugar.js' });
     });
 
-    it('falls back to main, then to the conventional path', () => {
-        // A subpath-only exports map says nothing about the root.
-        expect(rootEntry({ exports: { './fragment': './dist/fragment.js' }, main: './dist/main.js' }))
-            .toBe('./dist/main.js');
-        expect(rootEntry({ main: './out/index.js' })).toBe('./out/index.js');
-        expect(rootEntry({})).toBe('./dist/index.js');
+    it('reports a subpath-only exports map as an unreachable root', () => {
+        // Node ignores `main` once a map exists, so `import "<pkg>"` fails
+        // here however inviting that `main` looks — and an api-mode adopter's
+        // generated ./components module does exactly that import.
+        const result = rootEntry({ exports: { './fragment': './dist/fragment.js' }, main: './dist/main.js' });
+        expect(result).toEqual({ unexported: expect.stringContaining('no "." entry') });
+    });
+
+    it('falls back to main, then to the conventional path, when there is no map', () => {
+        expect(rootEntry({ main: './out/index.js' })).toEqual({ path: './out/index.js' });
+        expect(rootEntry({})).toEqual({ path: './dist/index.js' });
     });
 });

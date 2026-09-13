@@ -169,15 +169,20 @@ function shippedIn(files: unknown, dir: string, source: string): boolean {
     });
 }
 
+/** Where the package's root entry is, or why a consumer cannot reach it. */
+export type RootEntry = { path: string } | { unexported: string };
+
 /**
  * The package's public root entry, the way a consumer reaches it.
  *
- * `exports["."]` first and `main` only as a fallback, because that is Node's
- * own precedence — and an ESM package commonly declares the map and omits
- * `main` entirely. Reading `main` alone reported "the root exports no
- * AcmeStepper" for a package whose root exports it perfectly well.
+ * `exports` wins outright when present, because that is Node's own rule:
+ * `main` is ignored for `import "<pkg>"` once a map exists. So a map that
+ * declares only subpaths means the root is **not importable at all** — and
+ * falling back to `main` there would let this gate pass a package whose
+ * api-mode adopter cannot write `import { AcmeStepper } from '@acme/…'`,
+ * which is the one thing the export-name check exists to prevent.
  */
-export function rootEntry(pkg: Record<string, unknown>): string {
+export function rootEntry(pkg: Record<string, unknown>): RootEntry {
     const resolveCondition = (value: unknown): string | undefined => {
         if (typeof value === 'string') return value;
         if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
@@ -190,14 +195,20 @@ export function rootEntry(pkg: Record<string, unknown>): string {
     };
 
     const exports = pkg['exports'];
-    if (typeof exports === 'string') return exports;
+    if (typeof exports === 'string') return { path: exports };
     if (typeof exports === 'object' && exports !== null && !Array.isArray(exports)) {
-        const dot = (exports as Record<string, unknown>)['.'];
-        // A map with no "." is a subpath-only package: `main` still answers.
-        const resolved = resolveCondition(dot ?? exports);
-        if (resolved) return resolved;
+        const map = exports as Record<string, unknown>;
+        // Sugar: a bare conditions object, with no subpath keys, IS the root.
+        const isSubpathMap = Object.keys(map).some((key) => key.startsWith('.'));
+        const resolved = resolveCondition(isSubpathMap ? map['.'] : map);
+        if (resolved) return { path: resolved };
+        return {
+            unexported: isSubpathMap && !('.' in map)
+                ? 'its "exports" map declares no "." entry, so `import "<package>"` fails for consumers'
+                : 'its "exports" map does not resolve a "." entry for an import',
+        };
     }
-    return typeof pkg['main'] === 'string' ? pkg['main'] : './dist/index.js';
+    return { path: typeof pkg['main'] === 'string' ? pkg['main'] : './dist/index.js' };
 }
 
 export interface FragmentCheckInput {
@@ -307,7 +318,7 @@ export function checkFragment(input: FragmentCheckInput): FragmentCheckResult {
     if (rootExports === undefined) {
         error(
             `the package root could not be read${rootError ? `: ${rootError}` : ''}`
-            + ' — build the package first; the export-name check was skipped',
+            + ' — the export-name check was skipped',
         );
     } else {
         for (const scope of scopes) {
@@ -439,16 +450,21 @@ export async function runFragment(env: CommandEnv, opts: FragmentCommandOptions)
     // The root entry, for the export-name convention. A root that cannot be
     // read is passed through as such rather than as an empty export list,
     // which would read as "every export is missing".
-    const rootPath = resolve(dir, rootEntry(pkg));
+    const entry = rootEntry(pkg);
     let rootExports: string[] | undefined;
     let rootError: string | undefined;
-    if (!existsSync(rootPath)) {
-        rootError = `${rootPath} does not exist`;
+    if ('unexported' in entry) {
+        rootError = entry.unexported;
     } else {
-        try {
-            rootExports = Object.keys((await import(pathToFileURL(rootPath).href)) as object);
-        } catch (err) {
-            rootError = `${rootPath} failed to load: ${err instanceof Error ? err.message : String(err)}`;
+        const rootPath = resolve(dir, entry.path);
+        if (!existsSync(rootPath)) {
+            rootError = `${rootPath} does not exist`;
+        } else {
+            try {
+                rootExports = Object.keys((await import(pathToFileURL(rootPath).href)) as object);
+            } catch (err) {
+                rootError = `${rootPath} failed to load: ${err instanceof Error ? err.message : String(err)}`;
+            }
         }
     }
 
