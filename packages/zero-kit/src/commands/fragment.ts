@@ -124,12 +124,14 @@ const HOSTILE_TOKENS: TokensInput = {
  * Not `trim()`: a recipe whose every rule was fitted away still emits its
  * `@layer zero.recipes { }` wrapper, which is not empty and paints nothing.
  *
- * A custom property counts: a recipe that emits only component tokens has
- * still emitted something. The pattern says so explicitly — an earlier one
- * happened to admit `--text-2xl` only by matching the `xl` before the colon,
- * and rejected `--2` outright. Both are pinned by tests.
+ * A custom property counts, and so does a vendor-prefixed one: a recipe that
+ * emits only component tokens, or only `-webkit-tap-highlight-color`, has
+ * still emitted something. Hence `-{0,2}` on the property — an earlier
+ * pattern happened to admit `--text-2xl` only by matching the `xl` before the
+ * colon, and rejected `--2` and every `-webkit-…` outright. All pinned by
+ * tests.
  */
-const DECLARATION = /(?:^|[{;])\s*(?:--)?[a-z0-9][a-z0-9-]*\s*:[^;{}]+;/i;
+const DECLARATION = /(?:^|[{;])\s*-{0,2}[a-z0-9][a-z0-9-]*\s*:[^;{}]+;/i;
 function paints(css: string | undefined): boolean {
     return css !== undefined && DECLARATION.test(css);
 }

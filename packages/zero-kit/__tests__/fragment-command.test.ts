@@ -186,6 +186,15 @@ describe('checkFragment', () => {
         expect(warnings(result).join('\n')).not.toMatch(/compiles to nothing/);
     });
 
+    it('counts a vendor-prefixed declaration as painting', () => {
+        const prefixed: RecipeInput = {
+            component: 'acme-stepper',
+            parts: { root: {}, item: { base: { '-webkit-tap-highlight-color': 'transparent' } } },
+        };
+        const result = checkFragment(input({ module: { fragment: fragment(), recipes: [prefixed] } }));
+        expect(warnings(result).join('\n')).not.toMatch(/compiles to nothing/);
+    });
+
     it('warns that a web-runtime property costs adopters the lynx target', () => {
         const pressy: RecipeInput = {
             component: 'acme-stepper',

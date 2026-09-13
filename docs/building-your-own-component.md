@@ -134,7 +134,9 @@ It warns rather than fails on an unprefixed scope (what counts as a vendor is
 not checkable; the collision it invites later is), and on a pack that is not
 lynx-clean (that costs adopters one target, not the build).
 
-This is the one place the kit becomes a devDependency of a component package.
+`sigx` is `@sigx/cli`, which discovers this command through the kit — so a
+component package running it needs both as devDependencies. That is the one
+place `@sigx/zero-kit` stops being purely a type-only import for you.
 
 ## 4b. The pack
 
