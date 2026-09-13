@@ -136,20 +136,34 @@ function paints(css: string | undefined): boolean {
     return css !== undefined && DECLARATION.test(css);
 }
 
-/** Whether `"files"` (if declared) ships the path. */
+/**
+ * Whether `"files"` (if declared) ships the path.
+ *
+ * Strict for the two spellings that carry a definite answer — an exact file,
+ * and a directory prefix with or without a trailing glob (`dist`, `dist/`,
+ * `dist/*`, `dist/**`). Anything else (`**`, `dist/*.mjs`) is assumed to ship:
+ * this exists to catch the forgotten `dist`, not to reimplement npm's packer,
+ * and a false accusation is worse than a missed one for a check the author
+ * cannot override.
+ */
 function shippedIn(files: unknown, dir: string, source: string): boolean {
     // No `files` field means npm ships everything not otherwise ignored.
     if (!Array.isArray(files)) return true;
     const rel = relative(dir, source).split(sep).join('/');
+    const under = (prefix: string) => rel === prefix || rel.startsWith(`${prefix}/`);
+
     return files.some((entry) => {
         if (typeof entry !== 'string') return false;
         const clean = entry.replace(/^\.\//, '').replace(/\/$/, '');
-        // Entries are patterns; the honest, checkable cases are an exact file
-        // and a directory prefix. A glob we cannot evaluate is not called a
-        // failure — this check exists to catch the forgotten `dist`, not to
-        // reimplement npm's packer.
-        if (clean.includes('*')) return true;
-        return rel === clean || rel.startsWith(`${clean}/`);
+        if (!clean.includes('*')) return under(clean);
+
+        // A directory prefix with a trailing glob: `dist/*`, `dist/**`,
+        // `dist/**/*`. Strip the glob tail and the prefix answers.
+        const prefix = clean.replace(/\/?\*{1,2}(?:\/\*{1,2})*$/, '');
+        if (prefix.length > 0 && !prefix.includes('*')) return under(prefix);
+
+        // A glob this does not model — `**`, or one carrying an extension.
+        return true;
     });
 }
 

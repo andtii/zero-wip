@@ -120,7 +120,10 @@ build:
   else claims;
 - the declared fragment path is inside your `"files"` — present locally and
   missing for every consumer is the failure you cannot see from your own
-  checkout;
+  checkout. Strict for an exact path and for a directory prefix (`dist`,
+  `dist/**`); a glob it cannot model (`**/*.js`) is assumed to ship, since
+  this is here to catch the forgotten `dist`, not to reimplement npm's
+  packer;
 - every part your recipes style is one your anatomy declares, and every scope
   they style is one your fragment declares;
 - your package root exports `componentExportName(scope)` — the name an

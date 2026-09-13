@@ -440,7 +440,9 @@ built against an older contract fails by name instead of merging silently.
 `dist/fragment.json` and checks what would otherwise fail in an adopter's
 build: the `version` literal against `FRAGMENT_VERSION`, the schema, the
 merge against the installed `@sigx/zero`, that the declared path is inside
-`"files"`, that recipes style only parts and scopes the fragment declares,
+`"files"` (strictly for an exact path or a directory prefix like `dist` or
+`dist/**`; a glob it cannot model is assumed to ship), that recipes style only
+parts and scopes the fragment declares,
 that the root exports `componentExportName(scope)`, and that the pack still
 compiles *and paints* when fitted to a vocabulary with no colour roles and no
 size ramp. An unprefixed scope and a pack that is not lynx-clean are warnings,

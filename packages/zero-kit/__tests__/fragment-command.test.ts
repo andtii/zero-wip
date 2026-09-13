@@ -112,6 +112,23 @@ describe('checkFragment', () => {
         expect(errors(result).join('\n')).toMatch(/not covered by "files"/);
     });
 
+    it.each([
+        ['a directory', ['dist'], true],
+        ['a trailing slash', ['dist/'], true],
+        ['a single-star glob', ['dist/*'], true],
+        ['a double-star glob', ['dist/**'], true],
+        ['a deep glob', ['dist/**/*'], true],
+        // The one this was written for: any `*` used to count as a match, so
+        // a package shipping only `src` passed while its fragment did not.
+        ['another directory\'s glob', ['src/**'], false],
+        ['an unrelated directory', ['src'], false],
+        // A glob this does not model — assumed to ship rather than accused.
+        ['an unmodelled glob', ['**/*.js'], true],
+    ])('reads %s in "files"', (_what, files, shipped) => {
+        const result = checkFragment(input({ pkg: { name: '@acme/zero-stepper', files } }));
+        expect(errors(result).some((m) => m.includes('"files"'))).toBe(!shipped);
+    });
+
     it('accepts a package that declares no files at all', () => {
         // No `files` means npm ships everything not otherwise ignored.
         expect(errors(checkFragment(input({ pkg: { name: '@acme/zero-stepper' } })))).toEqual([]);
