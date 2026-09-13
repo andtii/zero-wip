@@ -30,6 +30,7 @@ import { FRAGMENT_VERSION, mergeManifests } from '../manifest.js';
 import { fitRecipes } from '../fit.js';
 import { compileDesignSystem } from '../design-system.js';
 import { compileDesignSystemLynx } from '../targets/lynx/compile.js';
+import { LynxRuntimePropertyError } from '../targets/lynx/capabilities.js';
 import { componentExportName } from '../targets/web/components-dts.js';
 import type { DesignSystemInput } from '../design-system.js';
 import type { TokensInput } from '../tokens.js';
@@ -350,7 +351,22 @@ export function checkFragment(input: FragmentCheckInput): FragmentCheckResult {
             try {
                 compileDesignSystemLynx(probe, merged);
             } catch (err) {
-                warn(`the pack is not lynx-clean, so adopters lose these scopes on that target: ${err instanceof Error ? err.message : String(err)}`);
+                // The same distinction adoption makes. A runtime-property
+                // reference costs an adopter one target — their build drops
+                // the scope from lynx and carries on — so it is a warning.
+                // Every other lynx rejection propagates from their full
+                // compile and FAILS their build, which is an error here.
+                //
+                // Only the warning branch has a test, for the reason
+                // ecosystem-build.test.ts records: a lynx-only failure that
+                // survives validation and the web compile is not currently
+                // constructible.
+                const message = err instanceof Error ? err.message : String(err);
+                if (err instanceof LynxRuntimePropertyError) {
+                    warn(`the pack is not lynx-clean, so adopters lose these scopes on that target: ${message}`);
+                } else {
+                    error(`the pack fails the lynx target, which fails the build of every adopter emitting it: ${message}`);
+                }
             }
         }
     }
