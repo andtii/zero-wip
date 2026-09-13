@@ -400,7 +400,18 @@ export async function runFragment(env: CommandEnv, opts: FragmentCommandOptions)
             + `${err instanceof Error ? err.message : String(err)}`,
         );
     }
-    const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as Record<string, unknown>;
+    // `selfDeclaration` above read this file too and would have reported a
+    // parse failure first — but this command's contract is that nothing
+    // reaches the author as a raw exception, and that contract should not
+    // depend on the order two functions happen to run in.
+    let pkg: Record<string, unknown>;
+    try {
+        pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as Record<string, unknown>;
+    } catch (err) {
+        throw new Error(
+            `[zero-kit] cannot read ${join(dir, 'package.json')}: ${err instanceof Error ? err.message : String(err)}`,
+        );
+    }
     const manifest = await loadManifest(env.cwd, opts.manifest);
 
     // The root entry, for the export-name convention. A package whose root
@@ -434,7 +445,8 @@ export async function runFragment(env: CommandEnv, opts: FragmentCommandOptions)
     }
 
     env.logger.log(
-        `[${name}] ${pack?.fragment.components?.length ?? 0} scope(s), ${pack?.recipes.length ?? 0} recipe(s)`
+        `[${name}] ${Array.isArray(pack?.fragment.components) ? pack.fragment.components.length : 0} scope(s),`
+        + ` ${pack?.recipes.length ?? 0} recipe(s)`
         + ` — ${errors} error(s), ${warnings} warning(s)`,
     );
     if (errors > 0 || (opts.strict && warnings > 0)) {
