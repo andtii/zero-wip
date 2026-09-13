@@ -139,6 +139,27 @@ describe('checkFragment', () => {
         expect(errors(result).join('\n')).toMatch(/exports no "AcmeStepper"/);
     });
 
+    it('reports an unreadable root once, not once per scope', () => {
+        // An unbuilt package would otherwise bury "the root does not exist"
+        // under a missing-export error for every component it ships.
+        const two = fragment({
+            components: [
+                stepper.toJSON(),
+                defineAnatomy('acme-gauge', { root: { element: 'div' } }).toJSON(),
+            ] as ManifestComponent[],
+        });
+        const result = checkFragment(input({
+            module: { fragment: two, recipes: [] },
+            rootExports: undefined,
+            rootError: '/pkg/dist/index.js does not exist',
+        }));
+
+        const raised = errors(result).filter((m) => m.includes('root'));
+        expect(raised).toHaveLength(1);
+        expect(raised[0]).toMatch(/could not be read.*does not exist.*build the package first/s);
+        expect(errors(result).join('\n')).not.toMatch(/exports no/);
+    });
+
     it('catches a recipe for a part the anatomy does not declare', () => {
         const strayPart: RecipeInput = { component: 'acme-stepper', parts: { label: { base: { color: 'red' } } } };
         const result = checkFragment(input({ module: { fragment: fragment(), recipes: [strayPart] } }));

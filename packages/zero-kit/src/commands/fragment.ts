@@ -204,8 +204,14 @@ export interface FragmentCheckInput {
     declaration: EcosystemDeclaration;
     /** The fragment module's exports. */
     module: Record<string, unknown>;
-    /** The package root's export names, for the api-mode convention. */
-    rootExports: readonly string[];
+    /**
+     * The package root's export names, for the api-mode convention —
+     * `undefined` when the root could not be read at all, which is a
+     * different finding from a missing export.
+     */
+    rootExports: readonly string[] | undefined;
+    /** Why the root could not be read, when it could not. */
+    rootError?: string;
     /** The package.json of the package being checked. */
     pkg: Record<string, unknown>;
     manifest: ZeroManifest;
@@ -221,7 +227,7 @@ export interface FragmentCheckResult {
 
 /** Every check that does not need to import anything. */
 export function checkFragment(input: FragmentCheckInput): FragmentCheckResult {
-    const { declaration, module, rootExports, pkg, manifest } = input;
+    const { declaration, module, rootExports, rootError, pkg, manifest } = input;
     const findings: FragmentFinding[] = [];
     const error = (message: string) => findings.push({ level: 'error', message });
     const warn = (message: string) => findings.push({ level: 'warning', message });
@@ -293,13 +299,25 @@ export function checkFragment(input: FragmentCheckInput): FragmentCheckResult {
 
     // The api-mode convention: an api-declaring adopter's generated
     // ./components module imports exactly this name from exactly this package.
-    for (const scope of scopes) {
-        const expected = componentExportName(scope);
-        if (!rootExports.includes(expected)) {
-            error(
-                `the package root exports no "${expected}" — an api-declaring design system's generated`
-                + ` ./components module imports that name for scope "${scope}"`,
-            );
+    //
+    // A root that could not be read at all is ONE finding, not one per scope:
+    // an unbuilt package would otherwise bury "the root does not exist" under
+    // a missing-export error for every component it ships, each of which is a
+    // symptom of the first.
+    if (rootExports === undefined) {
+        error(
+            `the package root could not be read${rootError ? `: ${rootError}` : ''}`
+            + ' — build the package first; the export-name check was skipped',
+        );
+    } else {
+        for (const scope of scopes) {
+            const expected = componentExportName(scope);
+            if (!rootExports.includes(expected)) {
+                error(
+                    `the package root exports no "${expected}" — an api-declaring design system's generated`
+                    + ` ./components module imports that name for scope "${scope}"`,
+                );
+            }
         }
     }
 
@@ -414,21 +432,25 @@ export async function runFragment(env: CommandEnv, opts: FragmentCommandOptions)
     }
     const manifest = await loadManifest(env.cwd, opts.manifest);
 
-    // The root entry, for the export-name convention. A package whose root
-    // cannot be imported is reported as that, not as a missing export.
-    let rootExports: string[] = [];
+    // The root entry, for the export-name convention. A root that cannot be
+    // read is passed through as such rather than as an empty export list,
+    // which would read as "every export is missing".
     const rootPath = resolve(dir, rootEntry(pkg));
-    if (existsSync(rootPath)) {
+    let rootExports: string[] | undefined;
+    let rootError: string | undefined;
+    if (!existsSync(rootPath)) {
+        rootError = `${rootPath} does not exist`;
+    } else {
         try {
             rootExports = Object.keys((await import(pathToFileURL(rootPath).href)) as object);
         } catch (err) {
-            env.logger.error(`[zero-kit] the package root ${rootPath} failed to load: ${err instanceof Error ? err.message : String(err)}`);
+            rootError = `${rootPath} failed to load: ${err instanceof Error ? err.message : String(err)}`;
         }
-    } else {
-        env.logger.error(`[zero-kit] the package root ${rootPath} does not exist — build the package first`);
     }
 
-    const { pack, findings, json } = checkFragment({ declaration, module, rootExports, pkg, manifest });
+    const { pack, findings, json } = checkFragment({
+        declaration, module, rootExports, ...(rootError ? { rootError } : {}), pkg, manifest,
+    });
 
     for (const finding of findings) {
         env.logger[finding.level === 'error' ? 'error' : 'warn'](`[${finding.level}] ${finding.message}`);
