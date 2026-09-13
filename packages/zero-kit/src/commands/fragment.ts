@@ -110,6 +110,11 @@ const HOSTILE_TOKENS: TokensInput = {
  *
  * Not `trim()`: a recipe whose every rule was fitted away still emits its
  * `@layer zero.recipes { }` wrapper, which is not empty and paints nothing.
+ *
+ * A custom property counts — `--tabs-accent` is lowercase letters and
+ * hyphens, so the property pattern already admits it, and a recipe that emits
+ * only component tokens has still emitted something. Pinned by a test,
+ * because it reads like an omission.
  */
 function paints(css: string | undefined): boolean {
     return css !== undefined && /[a-z-]+\s*:[^;{}]+;/i.test(css);

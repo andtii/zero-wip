@@ -143,6 +143,18 @@ describe('checkFragment', () => {
         expect(warnings(result).join('\n')).toMatch(/compiles to nothing under a vocabulary/);
     });
 
+    it('counts a custom property as painting', () => {
+        // A recipe whose only output is a component token still emits a
+        // declaration, so the "compiles to nothing" warning must not fire.
+        const tokenOnly: RecipeInput = {
+            component: 'acme-stepper',
+            tokens: { accent: 'red' },
+            parts: { root: {}, item: {} },
+        };
+        const result = checkFragment(input({ module: { fragment: fragment(), recipes: [tokenOnly] } }));
+        expect(warnings(result).join('\n')).not.toMatch(/compiles to nothing/);
+    });
+
     it('warns that a web-runtime property costs adopters the lynx target', () => {
         const pressy: RecipeInput = {
             component: 'acme-stepper',
