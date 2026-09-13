@@ -884,16 +884,15 @@ the architecture facts, briefly:
 - **Discovery is a package.json field**, `"sigx-zero"`, shaped like the
   `"sigx-cli"` field the sigx CLI is itself discovered through: a
   package-relative path to that data entry, and an optional `requires`
-  range. A design system opts in per build (`ecosystem: true`, or
-  `--ecosystem`), and every dependency declaring the field contributes its
-  fragment. The field carries a *path* rather than an exports subpath
+  range. Every dependency declaring the field contributes its fragment and
+  its recipe pack, **by default** — installing such a package is the opt-in,
+  and `ecosystem: false` or `ZERO_ECOSYSTEM=0` is the way out. The field carries a *path* rather than an exports subpath
   because none of the resolver spellings work from the kit's position —
   `require.resolve('<pkg>/package.json')` is not exported,
   `require.resolve('<pkg>/fragment')` fails the `require` condition, and
   `import.meta.resolve` resolves against the kit rather than the consuming
   project (`packages/zero-kit/src/discover.ts` records the whole dead end).
-  Off by default while the mechanism settles; `ZERO_ECOSYSTEM=0` overrides
-  any build.
+  `ZERO_ECOSYSTEM=0` overrides any build.
 - Discovery is **loud and ordered**. The CLI's plugin walk ends in
   `catch {}`; this one does not — a dependency that declares the field and
   then cannot deliver (unbuilt fragment, stale contract version, a scope
@@ -924,6 +923,16 @@ the architecture facts, briefly:
   design system's author neither wrote that recipe nor can fix it, and a
   scope with no lynx CSS is the documented unstyled-but-accessible fallback
   while a failed build is nothing.
+- **api mode plus an adopted pack emits an import a consumer must resolve.**
+  `components.d.ts` imports each external scope's component from the package
+  that owns it, and that import ships. The build warns when the owning
+  package is not a `dependency` or `peerDependency` of the design system — a
+  warning rather than an error, because a monorepo building both
+  (zero-heroui and the private zero-ext-example, here) is a legitimate
+  instance of exactly that shape. zero-heroui is also where api mode and
+  fragment mode are composed in a real build for the first time; the
+  export-name convention they share broke once, unnoticed, precisely because
+  nothing shipped that pairing.
 - **The authoring side has a gate of its own.** `sigx zero:fragment`, run in
   a component package, emits `dist/fragment.json` and checks what would
   otherwise surface in an adopter's build: the `version` literal against

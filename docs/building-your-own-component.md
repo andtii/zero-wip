@@ -176,21 +176,16 @@ project's dependency graph. Point it at the built file, and keep that path
 inside your `"files"` list — otherwise the fragment is missing for consumers
 and present for you.
 
-A design system opts in per build:
+A design system that installs your package has already opted in — discovery
+is on by default:
 
 ```js
-await runStandardBuild({ designSystem, manifest, outDir, ecosystem: true });
+await runStandardBuild({ designSystem, manifest, outDir });   // adopts you
+await runStandardBuild({ designSystem, manifest, outDir, ecosystem: false });
 ```
 
-or on the CLI:
-
-```sh
-sigx zero:build --ecosystem
-sigx zero:validate --ecosystem --ecosystem-exclude @acme/zero-stepper
-```
-
-Discovery is off by default while the mechanism settles; `ZERO_ECOSYSTEM=0`
-turns it off for one run whatever the build asks for.
+`ZERO_ECOSYSTEM=0` turns it off for one run whatever the build asks for, and
+`--ecosystem-exclude` (repeatable) drops named packages on the CLI.
 
 Narrowing lives on the programmatic options — `ecosystem: { include: [...] }`
 or `{ exclude: [...] }` passed to `runStandardBuild`; the CLI surfaces the

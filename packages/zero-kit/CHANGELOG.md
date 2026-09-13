@@ -116,6 +116,46 @@
   than quietly excluding packages from a discovery that never runs. (Narrowing
   is otherwise programmatic — the CLI surfaces only the exclusion half.)
 
+- **Ecosystem discovery is on by default, and two skins now adopt through
+  it** (#464). Installing a package that declares `"sigx-zero"` is the opt-in;
+  `ecosystem: false` on `runStandardBuild` or `ZERO_ECOSYSTEM=0` for one run
+  is the way out.
+
+  **What changes for an existing design system.** A package devDepended for
+  tests now ships its scopes: new `dist/css/components/<scope>.css`, new
+  entries in `manifest.json`, `register.d.ts` and `report.json`, and its
+  findings folded into the audit — where the score is
+  `100 − 10·errors − 2·warnings`, so a third party's recipe can move your
+  grade, and a `zero:audit --strict` CI can start failing on a transitive
+  dependency. Every one of those findings names the package it came from
+  (#460).
+
+  `zero-basic` drops the two hand-edits it used to carry (spread the pack,
+  pass the fragment) — the devDependency now implies both, and its emitted
+  `register.d.ts` is byte-identical to the golden, which is what the append
+  decision in #457 was for. `zero-heroui` adopts the same pack, and is the
+  more interesting proof: it declares `roles: {}`, so the fit drops 8 colour
+  values and rewrites 6 role references, and it declares an `api`, so this is
+  the first real build composing api mode with fragment mode — the pairing
+  whose export-name convention broke once unnoticed because nothing shipped
+  it.
+
+  That pairing also surfaced a rule worth stating: an api-declaring design
+  system emits `import { … } from '<owning package>'` into its
+  `components.d.ts`, and that import ships. The build now warns when the
+  owning package is not a `dependency` or `peerDependency` — a warning, not
+  an error, because a monorepo building both (exactly what zero-heroui and
+  the private zero-ext-example are) is a legitimate instance of the shape.
+
+  And a pack a design system already merged by hand is now skipped quietly
+  rather than reported as a scope collision: mid-migration, a `fragments:`
+  entry for a package you also depend on is not a conflict with itself.
+
+  `register-dts.test.ts` builds its golden through `resolveEcosystem` instead
+  of re-performing the composition by hand — otherwise the golden could stay
+  green while the shipped build emitted something else, which is the failure
+  its own docblock warns about.
+
 - **`sigx zero:fragment` — the authoring-side gate for a component package**
   (#463). Everything else in the kit is the adopting side; the authoring side
   had none, so every way a fragment can be wrong was discovered in a

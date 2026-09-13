@@ -14,10 +14,13 @@
 import type { ZeroManifest } from './contract.js';
 import type { DesignSystemInput } from './design-system.js';
 import { compileDesignSystem } from './design-system.js';
+import type { CompiledDesignSystem } from './design-system.js';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { ManifestFragment } from './manifest.js';
 import { attributeFindings, mergeManifests, packagesByScope, whereWithOwner } from './manifest.js';
 import type { EcosystemOptions } from './discover.js';
-import { resolveEcosystem } from './discover.js';
+import { nearestPackageDir, resolveEcosystem } from './discover.js';
 import type { ValidationResult } from './resolve/validate.js';
 import { validateDesignSystem } from './resolve/validate.js';
 import { buildReport } from './resolve/report.js';
@@ -66,14 +69,15 @@ export interface StandardBuildOptions {
     fragments?: readonly ManifestFragment[];
     /**
      * Adopt ecosystem component packages automatically — every dependency
-     * declaring a `"sigx-zero"` field contributes its manifest fragment (see
-     * `discover.ts`). `true` takes the defaults; an object narrows the search
-     * or makes a failing pack fatal.
+     * declaring a `"sigx-zero"` field contributes its manifest fragment and
+     * its recipe pack (see `discover.ts`). An object narrows the search or
+     * makes a failing pack fatal; `false` turns it off, as does
+     * `ZERO_ECOSYSTEM=0` for a single run.
      *
-     * Default `false` while the mechanism settles: turning it on changes what
-     * an unchanged design system emits, because a package devDepended for
-     * tests would begin shipping its scopes. Explicit `fragments` above are
-     * merged first and always win a scope collision.
+     * **Default `true`.** A dependency that declares the field is saying it
+     * ships a zero component; a design system that installed it is the one
+     * asking for that. Explicit `fragments` above are merged first and always
+     * win a scope collision.
      */
     ecosystem?: boolean | EcosystemOptions;
     /** Absolute output directory (the package's `dist`). */
@@ -139,7 +143,7 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
     const { manifest, designSystem: ds, contributed } = await resolveEcosystem({
         manifest: explicit,
         designSystem: authored,
-        ecosystem: options.ecosystem,
+        ecosystem: options.ecosystem ?? true,
         defaultCwd: outDir,
         logger,
     });
@@ -177,6 +181,12 @@ export async function runStandardBuild(options: StandardBuildOptions): Promise<S
             }
         }
     }
+    // Under api mode the generated ./components module imports each external
+    // scope from its owning package by name. A package the design system does
+    // not itself depend on is one a CONSUMER cannot install: the import
+    // resolves here, where both are in the same workspace, and nowhere else.
+    if (compiled.componentApi) warnUninstallableApiImports(compiled, outDir, logger);
+
     // The coverage report is built here rather than inside writeArtifacts: it
     // needs the authoring input and the anatomy manifest, neither of which
     // survives into CompiledDesignSystem.
@@ -267,4 +277,46 @@ function lynxIncapable(
         }
     }
     return webOnly;
+}
+
+/**
+ * Warn when api mode would emit an import a consumer cannot resolve.
+ *
+ * `components.js` re-exports an ecosystem scope's component from the package
+ * that owns it, and `components.d.ts` imports its type. Both ship, so the
+ * owning package has to be one consumers get — a `dependency` or a
+ * `peerDependency` of the design system, not merely something present in the
+ * author's workspace.
+ *
+ * A warning rather than an error: it is a packaging fact this build cannot
+ * verify (a monorepo may well be building both), and the in-repo pairing of
+ * two private packages is a legitimate use of exactly this shape.
+ */
+function warnUninstallableApiImports(
+    compiled: CompiledDesignSystem,
+    outDir: string,
+    logger: StandardBuildLogger,
+): void {
+    const owners = new Set(Object.values(compiled.externalScopes ?? {}));
+    if (owners.size === 0) return;
+
+    let pkg: Record<string, unknown>;
+    try {
+        pkg = JSON.parse(readFileSync(join(nearestPackageDir(outDir), 'package.json'), 'utf8')) as Record<string, unknown>;
+    } catch {
+        return; // No package.json to check against — say nothing rather than guess.
+    }
+    const shipped = new Set([
+        ...Object.keys((pkg['dependencies'] as Record<string, string> | undefined) ?? {}),
+        ...Object.keys((pkg['peerDependencies'] as Record<string, string> | undefined) ?? {}),
+    ]);
+
+    for (const owner of [...owners].sort()) {
+        if (shipped.has(owner)) continue;
+        logger.warn(
+            `[${compiled.name}] api mode emits "export { … } from '${owner}'" into components.js and a matching`
+            + ` "import type" into components.d.ts, but ${owner} is not a dependency or peerDependency of this`
+            + ' design system — a consumer installing it resolves neither',
+        );
+    }
 }

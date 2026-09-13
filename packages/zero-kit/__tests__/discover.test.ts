@@ -391,6 +391,27 @@ describe('resolveEcosystem', () => {
         })).rejects.toThrow(/two anatomies cannot claim one scope|already/i);
     });
 
+    it('says nothing sharp when the same pack was already merged by hand', async () => {
+        // Mid-migration: build.mjs still passes `fragments:` for a pack the
+        // package also depends on. That is not a conflict with itself, and an
+        // error-level line saying "two anatomies cannot claim one scope"
+        // about ONE anatomy would be nonsense.
+        const hand = pack('@acme/stepper');
+        const explicit = mergeManifests(baseManifest(), hand.fragment);
+        const log = logger();
+        const out = await resolveEcosystem({
+            manifest: explicit,
+            designSystem: ds,
+            ecosystem: { packs: [hand] },
+            defaultCwd: tree(),
+            logger: log,
+        });
+
+        expect(log.error).not.toHaveBeenCalled();
+        expect(log.log).toHaveBeenCalledWith(expect.stringContaining('already merged by hand'));
+        expect(out.manifest.components.find((c) => c.scope === 'acme-stepper')?.package).toBe('@acme/stepper');
+    });
+
     it('leaves an explicitly merged fragment in place — a hand-passed one wins', async () => {
         // What runStandardBuild does: `fragments:` merge first, discovery after.
         const explicit = mergeManifests(baseManifest(), pack('@hand/wired').fragment);
