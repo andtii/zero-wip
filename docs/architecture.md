@@ -958,6 +958,20 @@ the architecture facts, briefly:
   `manifestVersion` bump; the lynx manifest carries it by construction, and
   the mechanical schema-parity gate requires the two descriptions to match
   exactly.
+- **The app-side path closes the cross-repo loop.** A published design
+  system ships prebuilt CSS and cannot depend on component packages that do
+  not exist yet, so `sigx zero:extend` inverts it: the app depends on both,
+  recompiles the installed design system's `./design-system` export against
+  its own discovered packs, and keeps the difference — an add-on stylesheet
+  of the added scopes only, and a **replacement** register module.
+  Replacement rather than addition because `ZeroVocabulary.components` is a
+  property declaration: two augmentations collide with TS2717. That module is
+  byte-identical to what the design system's own build would have emitted had
+  it adopted the pack, which is why the swap is safe — and it is the file
+  `type-tests/ecosystem/` already compiles. Resolving the design system's
+  entry reads its `exports` map by hand, because `require.resolve` asks for
+  the `require` condition an ESM package does not declare — the same dead end
+  the `"sigx-zero"` field's path spelling avoids.
 - **One resolve path, two callers.** `zero:build` reaches a design system
   through `runStandardBuild`, while `zero:validate` and `zero:audit` reach
   it through `commands/shared.ts`'s `loadInputs`. Both call

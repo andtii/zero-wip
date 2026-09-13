@@ -222,6 +222,49 @@ function findPackageDir(fromDir: string, name: string): string | undefined {
     }
 }
 
+/**
+ * An installed package's directory, by name, from `fromDir`. The same walk
+ * discovery uses — exported because resolving a subpath of an installed
+ * package cannot go through `require.resolve`.
+ */
+export function installedPackageDir(fromDir: string, name: string): string | undefined {
+    return findPackageDir(fromDir, name);
+}
+
+/**
+ * The file an `exports` subpath points at, resolved by hand.
+ *
+ * `createRequire().resolve()` cannot be used for this: it asks for the
+ * `require` condition, and an ESM package's exports commonly declare only
+ * `types` and `import` — the same dead end `"sigx-zero".fragment` carries a
+ * path to avoid. Conditions are tried in Node's own order for an import.
+ *
+ * `undefined` means the subpath is not exported, which is a fact worth
+ * reporting rather than papering over: a consumer cannot reach it either.
+ */
+export function exportedSubpath(pkg: Record<string, unknown>, subpath: string): string | undefined {
+    const resolveCondition = (value: unknown): string | undefined => {
+        if (typeof value === 'string') return value;
+        if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+        const conditions = value as Record<string, unknown>;
+        for (const key of ['import', 'node', 'default']) {
+            const found = resolveCondition(conditions[key]);
+            if (found) return found;
+        }
+        return undefined;
+    };
+
+    const exports = pkg['exports'];
+    // A bare string, or a bare conditions object, IS the root and nothing else.
+    if (typeof exports === 'string') return subpath === '.' ? exports : undefined;
+    if (typeof exports !== 'object' || exports === null || Array.isArray(exports)) return undefined;
+
+    const map = exports as Record<string, unknown>;
+    const isSubpathMap = Object.keys(map).some((key) => key.startsWith('.'));
+    if (!isSubpathMap) return subpath === '.' ? resolveCondition(map) : undefined;
+    return resolveCondition(map[subpath]);
+}
+
 /** The nearest ancestor directory holding a package.json, `from` included. */
 export function nearestPackageDir(from: string): string {
     let dir = resolve(from);

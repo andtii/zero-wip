@@ -481,6 +481,14 @@ recipe the lynx emitter refuses costs that scope the lynx target — recorded
 in `report.json` under `lynx.webOnly` — where a first-party recipe would fail
 the build.
 
+`sigx zero:extend --ds <package> --out <dir>`, run in an **app**, compiles an
+already-published design system against that app's own ecosystem packs. It
+writes `zero-extend.css` (the added scopes only) and `zero-extend.d.ts` (a
+replacement register the app imports instead of `<package>/register`, since
+`ZeroVocabulary.components` is a property and two augmentations collide). It
+refuses a `zeroVersion` mismatch between the installed design system and the
+app's kit.
+
 A design system can also merge the fragment by hand — `--extra-manifest` on
 the CLI, or `mergeManifests(base, fragment)` in a `build.mjs`-style script —
 and write (or import) a recipe for the scope like any other. Hand-passed

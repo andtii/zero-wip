@@ -42,13 +42,14 @@ describe('plugin registration', () => {
         // Namespaced so a project that is also a Lynx app doesn't get whichever
         // `build` loaded last; the bare alias still resolves when unclaimed.
         expect(Object.keys(plugin.commands).sort())
-            .toEqual(['zero:audit', 'zero:build', 'zero:fragment', 'zero:validate']);
+            .toEqual(['zero:audit', 'zero:build', 'zero:extend', 'zero:fragment', 'zero:validate']);
         expect(plugin.commands['zero:build']!.aliases).toEqual(['build']);
         expect(plugin.commands['zero:validate']!.aliases).toEqual(['validate']);
         expect(plugin.commands['zero:audit']!.aliases).toEqual(['audit']);
-        // No bare alias: `fragment` is a word other plugins may want, and the
-        // CLI resolves alias collisions last-plugin-wins.
+        // No bare alias for either: `fragment` and `extend` are words other
+        // plugins may want, and the CLI resolves collisions last-plugin-wins.
         expect(plugin.commands['zero:fragment']!.aliases).toBeUndefined();
+        expect(plugin.commands['zero:extend']!.aliases).toBeUndefined();
     });
 
     it('describes every command and flag', () => {

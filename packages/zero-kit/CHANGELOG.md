@@ -116,6 +116,39 @@
   than quietly excluding packages from a discovery that never runs. (Narrowing
   is otherwise programmatic — the CLI surfaces only the exclusion half.)
 
+- **`sigx zero:extend` — adopt ecosystem packs against an already-published
+  design system** (#465). The piece that makes the protocol work across
+  repositories. A design system ships as prebuilt CSS and can never devDepend
+  on every component package that might exist; the app depends on both, and
+  is the only place that knows which packs are present. So the app recompiles
+  the installed design system's new `./design-system` export against its own
+  discovered packs.
+
+  Two artifacts. `zero-extend.css` carries the added scopes and nothing else
+  — never the design system's own, and never a re-emitted `tokens.css`, which
+  would duplicate its `@property` registrations; each scope's rules are
+  self-layered, so import order does not matter. `zero-extend.d.ts` is a
+  **replacement** register module: `ZeroVocabulary.components` is a property
+  declaration, so two modules augmenting it collide with TS2717 and there is
+  no additive form. The app imports it instead of `<ds>/register`.
+
+  That replacement is safe for a reason worth recording: the emitted module
+  is byte-identical to what the design system's own build emits when it
+  adopts the same pack — verified against
+  `packages/zero/type-tests/ecosystem/basic-ext.register.d.ts`, which
+  `pnpm test:types` already compiles in an isolated project.
+
+  All six design systems gain a `"./design-system"` export (their barrels
+  always re-exported `designSystem`, but no exports map reached it, so it
+  worked only by accident through the root). Resolving that subpath reads the
+  exports map by hand: `createRequire().resolve()` asks for the `require`
+  condition an ESM package never declares — the same dead end that makes the
+  `"sigx-zero"` field carry a path, walked into once here before being fixed.
+
+  The command refuses a `zeroVersion` mismatch between the installed design
+  system and the app's kit, since recompiling across a contract version
+  produces CSS the design system's own artifacts disagree with.
+
 - **Ecosystem discovery is on by default, and two skins now adopt through
   it** (#464). Installing a package that declares `"sigx-zero"` is the opt-in;
   `ecosystem: false` on `runStandardBuild` or `ZERO_ECOSYSTEM=0` for one run

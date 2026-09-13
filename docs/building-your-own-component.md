@@ -203,6 +203,37 @@ turns those back into build failures). And packs are adopted in package-name
 order, so the emitted CSS, manifest key order and report do not depend on how
 your dependencies happen to be written down.
 
+### When the design system is already published
+
+Everything above assumes the design system is built from source with your
+package installed. Most are not: a design system ships as prebuilt CSS, and
+it can never devDepend on every component package that might exist — that is
+a release-order cycle across repositories, and it is the reason this protocol
+inverts the dependency.
+
+The **app** depends on both, and it is the only place that knows which packs
+are present. So it recompiles the installed design system against them:
+
+```sh
+sigx zero:extend --ds @sigx/zero-daisyui --out src/generated
+```
+
+which writes two files:
+
+- `zero-extend.css` — your scopes' CSS and nothing else. Never the design
+  system's own scopes, never a re-emitted `tokens.css` (that would duplicate
+  its `@property` registrations). Each scope's rules are self-layered, so it
+  imports in any order beside the design system's stylesheet.
+- `zero-extend.d.ts` — a **replacement** register module, carrying the design
+  system's whole vocabulary plus your scopes. The app imports it *instead of*
+  `@sigx/<ds>/register`, because `ZeroVocabulary` is an interface whose
+  `components` is a property: two modules augmenting it collide with TS2717,
+  so there is no additive form.
+
+The command refuses to run when the installed design system was built against
+a different `@sigx/zero` than the app's — recompiling across a contract
+version would produce CSS the design system's own artifacts disagree with.
+
 ### What happens to your recipe pack
 
 Four things, in this order.
