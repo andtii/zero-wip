@@ -127,14 +127,12 @@ export async function runExtend(env: CommandEnv, opts: ExtendCommandOptions): Pr
         label: designSystem.name,
     });
 
+    // No early return on an empty set. Writing the pass-through artifacts is
+    // what makes a REMOVED pack stop being declared: bailing out would leave
+    // the previous run's files in place, still carrying a scope the project
+    // no longer installs, and still importable by an app that has no reason
+    // to suspect them.
     const added = Object.keys(resolved.contributed).sort();
-    if (added.length === 0) {
-        env.logger.warn(
-            `[zero-kit] no dependency of ${env.cwd} declares a "sigx-zero" field, so there is nothing to add to`
-            + ` ${opts.ds}`,
-        );
-        return;
-    }
 
     const result = validateDesignSystem(resolved.designSystem, resolved.manifest);
     const owners = packagesByScope(resolved.manifest);
@@ -174,7 +172,12 @@ export async function runExtend(env: CommandEnv, opts: ExtendCommandOptions): Pr
     const jsPath = join(outDir, 'zero-extend.js');
     await writeFile(jsPath, compileRegisterJs(compiled), 'utf8');
 
-    env.logger.log(`[${designSystem.name}] extended with ${added.join(', ')}`);
+    env.logger.log(
+        added.length > 0
+            ? `[${designSystem.name}] extended with ${added.join(', ')}`
+            : `[${designSystem.name}] no dependency declares a "sigx-zero" field — wrote pass-through artifacts,`
+                + ' which is how a pack removed since the last run stops being declared here',
+    );
     env.logger.log(`[${designSystem.name}] wrote ${cssPath}, ${dtsPath} and ${jsPath}`);
     env.logger.log(
         `[${designSystem.name}] import the stylesheet, and import "${opts.out}/zero-extend.js"`

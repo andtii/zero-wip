@@ -44,6 +44,15 @@ describe('extendedCss', () => {
         expect(css).toMatch(/^\/\* daisyui \+ 1 ecosystem scope\(s\)/);
     });
 
+    it('writes an honest empty stylesheet when nothing was added', () => {
+        // The command does NOT bail out on an empty set: overwriting is how a
+        // pack removed since the last run stops being declared. The file has
+        // to be valid and carry no scopes.
+        const css = extendedCss(compiled, [], 'daisyui');
+        expect(css).not.toContain('data-scope');
+        expect(css).toMatch(/^\/\* daisyui \+ 0 ecosystem scope\(s\)/);
+    });
+
     it('keeps each scope self-layered, so import order does not matter', () => {
         expect(extendedCss(compiled, ['acme-stepper'], 'x')).toContain('@layer zero.recipes {');
     });
