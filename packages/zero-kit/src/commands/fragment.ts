@@ -125,16 +125,17 @@ const HOSTILE_TOKENS: TokensInput = {
  * Not `trim()`: a recipe whose every rule was fitted away still emits its
  * `@layer zero.recipes { }` wrapper, which is not empty and paints nothing.
  *
- * A custom property counts, and so does a vendor-prefixed one: a recipe that
- * emits only component tokens, or only `-webkit-tap-highlight-color`, has
- * still emitted something. Hence `-{0,2}` on the property — an earlier
- * pattern happened to admit `--text-2xl` only by matching the `xl` before the
- * colon, and rejected `--2` and every `-webkit-…` outright. All pinned by
- * tests.
+ * A terminating semicolon, rather than a property-name pattern. Three
+ * successive attempts at the latter each missed a spelling that is perfectly
+ * legal in emitted CSS — a key ending in a digit, a vendor prefix, an
+ * underscore through the raw `css` escape hatch — and each miss is a false
+ * "your component paints nothing" the author cannot override. Every
+ * declaration ends in `;`; an empty layer, an empty rule and a bare `@media`
+ * wrapper contain none. The one thing this over-counts is a raw `@import`,
+ * which is output too.
  */
-const DECLARATION = /(?:^|[{;])\s*-{0,2}[a-z0-9][a-z0-9-]*\s*:[^;{}]+;/i;
 function paints(css: string | undefined): boolean {
-    return css !== undefined && DECLARATION.test(css);
+    return css !== undefined && css.includes(';');
 }
 
 /**

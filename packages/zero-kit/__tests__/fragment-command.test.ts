@@ -203,10 +203,16 @@ describe('checkFragment', () => {
         expect(warnings(result).join('\n')).not.toMatch(/compiles to nothing/);
     });
 
-    it('counts a vendor-prefixed declaration as painting', () => {
+    it.each([
+        ['a vendor prefix', { '-webkit-tap-highlight-color': 'transparent' }],
+        // Through the raw escape hatch a property can be spelled anything at
+        // all; three property-name patterns each missed a legal one, and each
+        // miss was a false accusation the author could not override.
+        ['an underscored custom property', { '--Tabs_Accent': 'red' }],
+    ])('counts %s as painting', (_what, base) => {
         const prefixed: RecipeInput = {
             component: 'acme-stepper',
-            parts: { root: {}, item: { base: { '-webkit-tap-highlight-color': 'transparent' } } },
+            parts: { root: {}, item: { base: base as Record<string, string> } },
         };
         const result = checkFragment(input({ module: { fragment: fragment(), recipes: [prefixed] } }));
         expect(warnings(result).join('\n')).not.toMatch(/compiles to nothing/);
