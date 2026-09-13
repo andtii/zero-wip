@@ -239,6 +239,22 @@ describe('checkFragment', () => {
         expect(warnings(result).join('\n')).not.toMatch(/compiles to nothing/);
     });
 
+    it('says nothing about a declared scope the pack deliberately leaves unstyled', () => {
+        // Unstyled but accessible is the contract's own fallback, so a scope
+        // with no recipe is a choice, not a failure to compile.
+        const two = fragment({
+            components: [
+                stepper.toJSON(),
+                defineAnatomy('acme-gauge', { root: { element: 'div' } }).toJSON(),
+            ] as ManifestComponent[],
+        });
+        const result = checkFragment(input({
+            module: { fragment: two, recipes: [recipe] },
+            rootExports: ['AcmeStepper', 'AcmeGauge'],
+        }));
+        expect(warnings(result).join('\n')).not.toMatch(/compiles to nothing/);
+    });
+
     it('warns that a web-runtime property costs adopters the lynx target', () => {
         const pressy: RecipeInput = {
             component: 'acme-stepper',

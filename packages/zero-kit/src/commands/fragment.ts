@@ -359,7 +359,11 @@ export function checkFragment(input: FragmentCheckInput): FragmentCheckResult {
             const probe = { name: 'probe', tokens: HOSTILE_TOKENS, recipes } as DesignSystemInput;
             try {
                 const compiled = compileDesignSystem(probe, merged);
-                for (const scope of scopes) {
+                // Only the scopes the pack actually styles. A declared scope
+                // with no recipe is the documented unstyled-but-accessible
+                // fallback, not a fault — and it has no `componentCss` entry
+                // to read either way.
+                for (const scope of new Set(recipes.map((r) => r.component))) {
                     if (!paints(compiled.componentCss[scope])) {
                         warn(`"${scope}" compiles to nothing under a vocabulary with no colour roles or size ramp`);
                     }
