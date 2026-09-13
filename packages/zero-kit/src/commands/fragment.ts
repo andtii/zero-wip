@@ -66,14 +66,27 @@ function schemaFile(name: string): Record<string, unknown> {
     // compiled output), `../../schemas` when running from source — this module
     // sits one directory deeper than `artifacts.ts`, which is why its own
     // two-candidate version of this is not enough here.
+    //
+    // Resolution and reading are separate loops on purpose: catching around
+    // the read too would turn "this schema is corrupt" into "cannot find this
+    // schema", which sends the reader looking for the wrong thing.
+    let path: string | undefined;
     for (const base of ['./schemas', '../schemas', '../../schemas']) {
         try {
-            return JSON.parse(readFileSync(require.resolve(`${base}/${name}.schema.json`), 'utf8')) as Record<string, unknown>;
+            path = require.resolve(`${base}/${name}.schema.json`);
+            break;
         } catch {
             continue;
         }
     }
-    throw new Error(`[zero-kit] cannot find ${name}.schema.json beside this build`);
+    if (path === undefined) {
+        throw new Error(`[zero-kit] cannot find ${name}.schema.json beside this build`);
+    }
+    try {
+        return JSON.parse(readFileSync(path, 'utf8')) as Record<string, unknown>;
+    } catch (err) {
+        throw new Error(`[zero-kit] cannot read ${path}: ${err instanceof Error ? err.message : String(err)}`);
+    }
 }
 
 let validateFragment: ValidateFunction | null = null;

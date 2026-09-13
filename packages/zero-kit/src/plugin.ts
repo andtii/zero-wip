@@ -161,7 +161,7 @@ export default definePlugin({
             description: 'Check an ecosystem component package\'s fragment, and emit its JSON form',
             args: {
                 manifest: manifestArg,
-                emit: a.boolean().default(true).describe('Write dist/fragment.json beside the fragment module'),
+                emit: a.boolean().default(true).describe('Write fragment.json beside the declared fragment module'),
                 strict: a.boolean().default(false).describe('Fail on warnings, not just errors'),
             },
             async run(ctx) {
