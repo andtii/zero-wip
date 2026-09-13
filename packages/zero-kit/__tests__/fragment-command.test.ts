@@ -82,6 +82,18 @@ describe('checkFragment', () => {
         expect(errors(result).join('\n')).toMatch(/declares version 0 but this kit speaks/);
     });
 
+    it('reports a malformed fragment instead of dying on it', () => {
+        // The command's whole job is to describe a broken fragment, so reading
+        // one must not throw before the schema can speak.
+        const noComponents = { version: FRAGMENT_VERSION, package: '@acme/zero-stepper' } as unknown as ManifestFragment;
+        const result = checkFragment(input({ module: { fragment: noComponents, recipes: [] } }));
+        expect(errors(result).join('\n')).toMatch(/declares no "components" array/);
+
+        const noScope = fragment({ components: [{ parts: [] }] as unknown as ManifestComponent[] });
+        const scopeless = checkFragment(input({ module: { fragment: noScope, recipes: [] } }));
+        expect(errors(scopeless).join('\n')).toMatch(/needs a "scope"/);
+    });
+
     it('catches a fragment entry that will be missing for consumers', () => {
         const result = checkFragment(input({ pkg: { name: '@acme/zero-stepper', files: ['src'] } }));
         expect(errors(result).join('\n')).toMatch(/not covered by "files"/);

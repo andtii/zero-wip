@@ -165,7 +165,18 @@ export function checkFragment(input: FragmentCheckInput): FragmentCheckResult {
 
     // Shape first: everything below reads the pack.
     const pack = packFromModule(declaration, module);
-    const scopes = pack.fragment.components.map((c) => c.scope);
+
+    // Read defensively. This command exists to REPORT a malformed fragment,
+    // so it must not die reading one — a missing `components` should reach
+    // the author as the schema's own message, not as a TypeError.
+    const declared = Array.isArray(pack.fragment.components) ? pack.fragment.components : [];
+    if (!Array.isArray(pack.fragment.components)) {
+        error('fragment declares no "components" array');
+    }
+    const scopes = declared.map((c) => c?.scope).filter((s): s is string => typeof s === 'string' && s.length > 0);
+    if (scopes.length !== declared.length) {
+        error('every component in a fragment needs a "scope" — defineAnatomy().toJSON() emits one');
+    }
 
     // The version literal is hand-written on purpose — importing
     // FRAGMENT_VERSION would drag the kit into the data entry's runtime graph
@@ -325,7 +336,7 @@ export async function runFragment(env: CommandEnv, opts: FragmentCommandOptions)
     }
 
     env.logger.log(
-        `[${pack.package}] ${pack.fragment.components.length} scope(s), ${pack.recipes.length} recipe(s)`
+        `[${pack.package}] ${pack.fragment.components?.length ?? 0} scope(s), ${pack.recipes.length} recipe(s)`
         + ` — ${errors} error(s), ${warnings} warning(s)`,
     );
     if (errors > 0 || (opts.strict && warnings > 0)) {
