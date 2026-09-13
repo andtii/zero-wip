@@ -153,6 +153,37 @@ function shippedIn(files: unknown, dir: string, source: string): boolean {
     });
 }
 
+/**
+ * The package's public root entry, the way a consumer reaches it.
+ *
+ * `exports["."]` first and `main` only as a fallback, because that is Node's
+ * own precedence — and an ESM package commonly declares the map and omits
+ * `main` entirely. Reading `main` alone reported "the root exports no
+ * AcmeStepper" for a package whose root exports it perfectly well.
+ */
+export function rootEntry(pkg: Record<string, unknown>): string {
+    const resolveCondition = (value: unknown): string | undefined => {
+        if (typeof value === 'string') return value;
+        if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+        const conditions = value as Record<string, unknown>;
+        for (const key of ['import', 'node', 'default']) {
+            const found = resolveCondition(conditions[key]);
+            if (found) return found;
+        }
+        return undefined;
+    };
+
+    const exports = pkg['exports'];
+    if (typeof exports === 'string') return exports;
+    if (typeof exports === 'object' && exports !== null && !Array.isArray(exports)) {
+        const dot = (exports as Record<string, unknown>)['.'];
+        // A map with no "." is a subpath-only package: `main` still answers.
+        const resolved = resolveCondition(dot ?? exports);
+        if (resolved) return resolved;
+    }
+    return typeof pkg['main'] === 'string' ? pkg['main'] : './dist/index.js';
+}
+
 export interface FragmentCheckInput {
     declaration: EcosystemDeclaration;
     /** The fragment module's exports. */
@@ -344,8 +375,7 @@ export async function runFragment(env: CommandEnv, opts: FragmentCommandOptions)
     // The root entry, for the export-name convention. A package whose root
     // cannot be imported is reported as that, not as a missing export.
     let rootExports: string[] = [];
-    const main = typeof pkg['main'] === 'string' ? pkg['main'] : './dist/index.js';
-    const rootPath = resolve(dir, main);
+    const rootPath = resolve(dir, rootEntry(pkg));
     if (existsSync(rootPath)) {
         try {
             rootExports = Object.keys((await import(pathToFileURL(rootPath).href)) as object);

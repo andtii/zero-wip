@@ -38,7 +38,7 @@ const pkg = (deps: Record<string, unknown>) => JSON.stringify({ name: 'x', ...de
 const shapeOf = (name: string): ArgsShape => plugin.commands[name]!.args as ArgsShape;
 
 describe('plugin registration', () => {
-    it('registers namespaced commands with bare aliases', () => {
+    it('registers namespaced commands, with bare aliases where they are safe', () => {
         // Namespaced so a project that is also a Lynx app doesn't get whichever
         // `build` loaded last; the bare alias still resolves when unclaimed.
         expect(Object.keys(plugin.commands).sort())

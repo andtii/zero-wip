@@ -17,7 +17,7 @@ import { describe, expect, it } from 'vitest';
 import { anatomies, defineAnatomy } from '@sigx/zero/anatomy';
 import { FRAGMENT_VERSION } from '@sigx/zero-kit';
 import type { ManifestComponent, ManifestFragment, RecipeInput, ZeroManifest } from '@sigx/zero-kit';
-import { checkFragment } from '../src/commands/fragment.js';
+import { checkFragment, rootEntry } from '../src/commands/fragment.js';
 import type { FragmentCheckInput } from '../src/commands/fragment.js';
 
 const stepper = defineAnatomy('acme-stepper', {
@@ -206,5 +206,26 @@ describe('checkFragment', () => {
         const result = checkFragment(input({ module: { fragment: fragment(), recipes: [pressy] } }));
         expect(errors(result)).toEqual([]);
         expect(warnings(result).join('\n')).toMatch(/not lynx-clean/);
+    });
+});
+
+describe('rootEntry', () => {
+    it('prefers the exports map, the way Node does', () => {
+        // An ESM package commonly declares `exports` and omits `main`
+        // entirely; reading `main` alone sent the export-name check at a file
+        // that does not exist, and reported the root as missing its export.
+        expect(rootEntry({ exports: { '.': { import: './dist/index.js' } }, main: './legacy.cjs' }))
+            .toBe('./dist/index.js');
+        expect(rootEntry({ exports: { '.': { types: './d.ts', import: './esm.js' } } })).toBe('./esm.js');
+        expect(rootEntry({ exports: './single.js' })).toBe('./single.js');
+        expect(rootEntry({ exports: { import: './sugar.js' } })).toBe('./sugar.js');
+    });
+
+    it('falls back to main, then to the conventional path', () => {
+        // A subpath-only exports map says nothing about the root.
+        expect(rootEntry({ exports: { './fragment': './dist/fragment.js' }, main: './dist/main.js' }))
+            .toBe('./dist/main.js');
+        expect(rootEntry({ main: './out/index.js' })).toBe('./out/index.js');
+        expect(rootEntry({})).toBe('./dist/index.js');
     });
 });
