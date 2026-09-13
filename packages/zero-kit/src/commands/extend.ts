@@ -29,13 +29,12 @@
  */
 import { mkdir, writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { auditDesignSystem } from '../audit/index.js';
 import { compileDesignSystem } from '../design-system.js';
 import type { CompiledDesignSystem, DesignSystemInput } from '../design-system.js';
-import { exportedSubpath, installedPackageDir, resolveEcosystem } from '../discover.js';
+import { exportedSubpath, installedPackageDir, resolveEcosystem, zeroKitVersion } from '../discover.js';
 import { attributeFindings, packagesByScope, whereWithOwner } from '../manifest.js';
 import { compileRegisterDts } from '../targets/web/register-dts.js';
 import { validateDesignSystem } from '../resolve/validate.js';
@@ -51,15 +50,6 @@ export interface ExtendCommandOptions {
     manifest?: string;
     /** Packages to leave out of the adoption. */
     ecosystemExclude?: string[];
-}
-
-/** This kit's own version — lockstep with the zero contract it speaks. */
-function kitVersion(): string | undefined {
-    try {
-        return (createRequire(import.meta.url)('../package.json') as { version?: string }).version;
-    } catch {
-        return undefined;
-    }
 }
 
 /**
@@ -108,7 +98,7 @@ export async function runExtend(env: CommandEnv, opts: ExtendCommandOptions): Pr
     // A design system compiled by a different contract version would be
     // recompiled here by this one, silently producing CSS its own artifacts
     // disagree with.
-    const kit = kitVersion();
+    const kit = zeroKitVersion();
     try {
         const shippedManifest = exportedSubpath(dsPkg, './manifest.json') ?? './dist/manifest.json';
         const shipped = JSON.parse(readFileSync(resolve(dsDir, shippedManifest), 'utf8')) as { zeroVersion?: string };

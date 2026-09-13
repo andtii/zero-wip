@@ -200,7 +200,7 @@ export { runStandardBuild } from './build.js';
 export type { ManifestFragment } from './manifest.js';
 export { attributeFindings, mergeManifests, packagesByScope, whereWithOwner, FRAGMENT_VERSION } from './manifest.js';
 
-export { ECOSYSTEM_ENV, ECOSYSTEM_FIELD, declarationFor, discoverEcosystem, exportedSubpath, installedPackageDir, nearestPackageDir, packFromModule, resolveEcosystem, satisfiesKitRange, selectDependencies, selfDeclaration } from './discover.js';
+export { ECOSYSTEM_ENV, ECOSYSTEM_FIELD, declarationFor, discoverEcosystem, exportedSubpath, installedPackageDir, nearestPackageDir, packFromModule, resolveEcosystem, satisfiesKitRange, selectDependencies, selfDeclaration, zeroKitVersion } from './discover.js';
 export type { EcosystemDeclaration, EcosystemLogger, EcosystemOptions, EcosystemPack, ResolvedEcosystem, ResolveEcosystemInput } from './discover.js';
 
 export type {

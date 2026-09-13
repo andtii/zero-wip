@@ -179,8 +179,15 @@ export function satisfiesKitRange(version: string, range: string): boolean {
     return !want || compareVersions(v, want) === 0;
 }
 
-/** This kit's own version — lockstep with the zero contract it speaks. */
-function kitVersion(): string | undefined {
+/**
+ * This kit's own version — lockstep with the zero contract it speaks.
+ *
+ * Exported so nothing re-derives the relative path: this module sits at the
+ * package root, so `../package.json` is right HERE and wrong one directory
+ * down, where a second copy silently resolved nothing and quietly disabled
+ * the check it was written for.
+ */
+export function zeroKitVersion(): string | undefined {
     try {
         return (require('../package.json') as { version?: string }).version;
     } catch {
@@ -367,7 +374,7 @@ function declarationIn(pkgDir: string, name: string, logger: EcosystemLogger): E
     // Checked BEFORE the import: a pack built against a contract this kit no
     // longer speaks should be reported as such, not explode somewhere inside
     // its own module body.
-    const kit = kitVersion();
+    const kit = zeroKitVersion();
     if (field.requires && kit && !satisfiesKitRange(kit, field.requires)) {
         logger.warn(
             `[zero-kit] ${name} requires @sigx/zero-kit ${field.requires} but this build runs ${kit} — its component may not compile`,
