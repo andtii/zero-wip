@@ -310,7 +310,19 @@ export async function runFragment(env: CommandEnv, opts: FragmentCommandOptions)
         );
     }
 
-    const module = (await import(pathToFileURL(declaration.source).href)) as Record<string, unknown>;
+    // Guarded like the root entry below, and for the same reason as every
+    // other conversion in this command: an entry that throws on import is the
+    // author's problem to fix, and a raw stack from inside their own module
+    // does not say which file this gate was even looking at.
+    let module: Record<string, unknown>;
+    try {
+        module = (await import(pathToFileURL(declaration.source).href)) as Record<string, unknown>;
+    } catch (err) {
+        throw new Error(
+            `[zero-kit] ${declaration.package}'s fragment entry ${declaration.source} failed to load: `
+            + `${err instanceof Error ? err.message : String(err)}`,
+        );
+    }
     const pkg = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as Record<string, unknown>;
     const manifest = await loadManifest(env.cwd, opts.manifest);
 
