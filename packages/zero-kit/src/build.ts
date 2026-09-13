@@ -282,10 +282,11 @@ function lynxIncapable(
 /**
  * Warn when api mode would emit an import a consumer cannot resolve.
  *
- * `components.d.ts` imports an ecosystem scope's component from the package
- * that owns it. That import ships to consumers, so the owning package has to
- * be one they get — a `dependency` or a `peerDependency` of the design
- * system, not merely something present in the author's workspace.
+ * `components.js` re-exports an ecosystem scope's component from the package
+ * that owns it, and `components.d.ts` imports its type. Both ship, so the
+ * owning package has to be one consumers get — a `dependency` or a
+ * `peerDependency` of the design system, not merely something present in the
+ * author's workspace.
  *
  * A warning rather than an error: it is a packaging fact this build cannot
  * verify (a monorepo may well be building both), and the in-repo pairing of
@@ -313,8 +314,9 @@ function warnUninstallableApiImports(
     for (const owner of [...owners].sort()) {
         if (shipped.has(owner)) continue;
         logger.warn(
-            `[${compiled.name}] api mode emits "import { … } from '${owner}'", but ${owner} is not a dependency`
-            + ' or peerDependency of this design system — a consumer installing it cannot resolve that import',
+            `[${compiled.name}] api mode emits "export { … } from '${owner}'" into components.js and a matching`
+            + ` "import type" into components.d.ts, but ${owner} is not a dependency or peerDependency of this`
+            + ' design system — a consumer installing it resolves neither',
         );
     }
 }

@@ -185,7 +185,7 @@ await runStandardBuild({ designSystem, manifest, outDir, ecosystem: false });
 ```
 
 `ZERO_ECOSYSTEM=0` turns it off for one run whatever the build asks for, and
-`--ecosystem-exclude` drops a single package on the CLI.
+`--ecosystem-exclude` (repeatable) drops named packages on the CLI.
 
 Narrowing lives on the programmatic options — `ecosystem: { include: [...] }`
 or `{ exclude: [...] }` passed to `runStandardBuild`; the CLI surfaces the
