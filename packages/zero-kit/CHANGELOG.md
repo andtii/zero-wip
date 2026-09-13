@@ -127,10 +127,15 @@
   Two artifacts. `zero-extend.css` carries the added scopes and nothing else
   — never the design system's own, and never a re-emitted `tokens.css`, which
   would duplicate its `@property` registrations; each scope's rules are
-  self-layered, so import order does not matter. `zero-extend.d.ts` is a
-  **replacement** register module: `ZeroVocabulary.components` is a property
-  declaration, so two modules augmenting it collide with TS2717 and there is
-  no additive form. The app imports it instead of `<ds>/register`.
+  self-layered, so import order does not matter. `zero-extend.js` and its
+  `.d.ts` are a **replacement** register module — the same pair a design
+  system's own `/register` ships, the declaration doing the work and the
+  runtime file existing so the specifier resolves.
+  `ZeroVocabulary.components` is a property declaration, so two modules
+  augmenting it collide with TS2717 and there is no additive form: the app
+  imports this one and **removes** its `<ds>/register` import, since
+  augmentations accumulate across a program rather than replacing one
+  another.
 
   That replacement is safe for a reason worth recording: the emitted module
   is byte-identical to what the design system's own build emits when it

@@ -483,9 +483,12 @@ the build.
 
 `sigx zero:extend --ds <package> --out <dir>`, run in an **app**, compiles an
 already-published design system against that app's own ecosystem packs. It
-writes `zero-extend.css` (the added scopes only) and `zero-extend.d.ts` (a
-replacement register the app imports instead of `<package>/register`, since
-`ZeroVocabulary.components` is a property and two augmentations collide). It
+writes `zero-extend.css` (the added scopes only) and a `zero-extend.js` /
+`.d.ts` pair — a replacement register, shaped like a design system's own
+`/register`. The app imports the `.js` and **removes** its
+`<package>/register` import: `ZeroVocabulary.components` is a property, so two
+augmentations collide, and they accumulate across a program rather than
+replacing one another. It
 refuses a `zeroVersion` mismatch between the installed design system and the
 app's kit.
 

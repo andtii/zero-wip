@@ -8,6 +8,12 @@
  * scopes reach the stylesheet, and how the design system's entry is found at
  * all.
  *
+ * The register module is written as a `.js`/`.d.ts` PAIR, the same shape a
+ * design system's own `/register` ships — the declaration does the work and
+ * the runtime file exists so the specifier resolves. Emitting the
+ * declaration alone made the command's own advice ("import this instead")
+ * impossible to follow.
+ *
  * The third piece needs no test of its own. The register module it writes is
  * `compileRegisterDts` over the same composition zero-basic's own build
  * produces, and the emitted file is byte-identical to

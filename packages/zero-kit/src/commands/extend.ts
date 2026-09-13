@@ -36,7 +36,7 @@ import { compileDesignSystem } from '../design-system.js';
 import type { CompiledDesignSystem, DesignSystemInput } from '../design-system.js';
 import { exportedSubpath, installedPackageDir, resolveEcosystem, zeroKitVersion } from '../discover.js';
 import { attributeFindings, packagesByScope, whereWithOwner } from '../manifest.js';
-import { compileRegisterDts } from '../targets/web/register-dts.js';
+import { compileRegisterDts, compileRegisterJs } from '../targets/web/register-dts.js';
 import { validateDesignSystem } from '../resolve/validate.js';
 import type { CommandEnv } from './shared.js';
 import { loadManifest } from './shared.js';
@@ -164,14 +164,22 @@ export async function runExtend(env: CommandEnv, opts: ExtendCommandOptions): Pr
     const cssPath = join(outDir, 'zero-extend.css');
     await writeFile(cssPath, `${extendedCss(compiled, added, designSystem.name)}\n`, 'utf8');
 
+    // A `.d.ts` and its companion `.js`, exactly as a design system's own
+    // `/register` ships: the module is types-only, and the runtime file
+    // exists so the specifier resolves. Emitting the declaration alone would
+    // make the instruction below a lie — importing a `.d.ts` fails in Node
+    // and in every bundler.
     const dtsPath = join(outDir, 'zero-extend.d.ts');
     await writeFile(dtsPath, compileRegisterDts(compiled), 'utf8');
+    const jsPath = join(outDir, 'zero-extend.js');
+    await writeFile(jsPath, compileRegisterJs(compiled), 'utf8');
 
     env.logger.log(`[${designSystem.name}] extended with ${added.join(', ')}`);
-    env.logger.log(`[${designSystem.name}] wrote ${cssPath} and ${dtsPath}`);
+    env.logger.log(`[${designSystem.name}] wrote ${cssPath}, ${dtsPath} and ${jsPath}`);
     env.logger.log(
-        `[${designSystem.name}] import the stylesheet, and "${opts.out}/zero-extend.d.ts"`
-        + ` INSTEAD of "${opts.ds}/register" — a register module replaces, it cannot be added to`,
+        `[${designSystem.name}] import the stylesheet, and import "${opts.out}/zero-extend.js"`
+        + ` INSTEAD of "${opts.ds}/register" — remove that import, because augmentations accumulate`
+        + ' across a TypeScript program and keeping both declares the same vocabulary twice',
     );
     if (mine.length > 0) {
         env.logger.log(`[${designSystem.name}] ${mine.length} audit finding(s) on the added scope(s)`);

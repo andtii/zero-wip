@@ -224,11 +224,18 @@ which writes two files:
   system's own scopes, never a re-emitted `tokens.css` (that would duplicate
   its `@property` registrations). Each scope's rules are self-layered, so it
   imports in any order beside the design system's stylesheet.
-- `zero-extend.d.ts` — a **replacement** register module, carrying the design
-  system's whole vocabulary plus your scopes. The app imports it *instead of*
-  `@sigx/<ds>/register`, because `ZeroVocabulary` is an interface whose
-  `components` is a property: two modules augmenting it collide with TS2717,
-  so there is no additive form.
+- `zero-extend.js` and `zero-extend.d.ts` — a **replacement** register
+  module, carrying the design system's whole vocabulary plus your scopes. The
+  pair is shaped exactly like a design system's own `/register`: the
+  declaration does the work, and the `.js` (`export {}`) exists so the
+  specifier resolves at runtime.
+
+  The app imports `zero-extend.js` and **removes** its
+  `@sigx/<ds>/register` import. Both halves matter. `ZeroVocabulary` is an
+  interface whose `components` is a property, so two modules augmenting it
+  collide with TS2717 — and augmentations accumulate across a TypeScript
+  program, so leaving the old import in place declares the same vocabulary
+  twice and reintroduces exactly the collision the replacement avoids.
 
 The command refuses to run when the installed design system was built against
 a different `@sigx/zero` than the app's — recompiling across a contract
