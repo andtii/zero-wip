@@ -143,12 +143,18 @@ describe('checkFragment', () => {
         expect(warnings(result).join('\n')).toMatch(/compiles to nothing under a vocabulary/);
     });
 
-    it('counts a custom property as painting', () => {
+    it.each([
+        ['a plain token', { accent: 'red' }],
+        // A key ENDING in a digit. `--…-2xl` slipped past the first pattern
+        // only because `xl` sits before the colon; `--…-text-2` has nothing
+        // there but the digit, and was misread as painting nothing.
+        ['a token ending in a digit', { 'text-2': '1rem' }],
+    ])('counts %s as painting', (_what, tokens) => {
         // A recipe whose only output is a component token still emits a
         // declaration, so the "compiles to nothing" warning must not fire.
         const tokenOnly: RecipeInput = {
             component: 'acme-stepper',
-            tokens: { accent: 'red' },
+            tokens: tokens as Record<string, string>,
             parts: { root: {}, item: {} },
         };
         const result = checkFragment(input({ module: { fragment: fragment(), recipes: [tokenOnly] } }));

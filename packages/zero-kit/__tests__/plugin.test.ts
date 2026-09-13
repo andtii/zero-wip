@@ -66,6 +66,26 @@ describe('detect', () => {
         expect(plugin.detect(projectDir({ 'package.json': pkg({ dependencies: { '@sigx/zero-kit': '^0.1.0' } }) }))).toBe(true);
     });
 
+    it('claims a component package that declares sigx-zero and never depends on the kit', () => {
+        // The kit dependency was the whole test; `zero:fragment` widened it,
+        // because a component package may depend on @sigx/zero alone.
+        const dir = projectDir({
+            'package.json': JSON.stringify({ name: '@acme/zero-stepper', 'sigx-zero': { fragment: './dist/fragment.js' } }),
+        });
+        expect(plugin.detect(dir)).toBe(true);
+    });
+
+    it('claims one whose sigx-zero field is malformed, so the command can say why', () => {
+        // Presence, not truthiness. Hiding the command from the author of a
+        // broken field is the least helpful possible response.
+        for (const field of ['null', '""', '{}']) {
+            const dir = projectDir({
+                'package.json': `{ "name": "@acme/zero-stepper", "sigx-zero": ${field} }`,
+            });
+            expect(plugin.detect(dir), `sigx-zero: ${field}`).toBe(true);
+        }
+    });
+
     it('ignores unrelated projects', () => {
         expect(plugin.detect(projectDir({ 'package.json': pkg({ dependencies: { vite: '^8.0.0' } }) }))).toBe(false);
         expect(plugin.detect(projectDir({}))).toBe(false);

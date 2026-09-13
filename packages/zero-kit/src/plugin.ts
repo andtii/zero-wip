@@ -72,7 +72,10 @@ function isZeroProject(cwd: string): boolean {
             'sigx-zero'?: unknown;
         };
         if (pkg.name === '@sigx/zero-kit') return false; // the kit itself, not a consumer
-        if (pkg['sigx-zero']) return true;
+        // Presence, not truthiness: a malformed field (`null`, a string) is
+        // exactly when the author needs `zero:fragment` to tell them why, and
+        // hiding the command is the least helpful possible response.
+        if ('sigx-zero' in pkg) return true;
         return Boolean(pkg.dependencies?.['@sigx/zero-kit'] || pkg.devDependencies?.['@sigx/zero-kit']);
     } catch {
         return false; // unparseable manifest — claim nothing
