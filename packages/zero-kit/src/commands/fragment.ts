@@ -63,16 +63,16 @@ export const FRAGMENT_SCHEMA_URL = 'https://signalxjs.github.io/zero/schemas/fra
  * package, `../schemas` when running from source.
  */
 function schemaFile(name: string): Record<string, unknown> {
-    // `./schemas` in the published package (the build copies them beside the
-    // compiled output), `../../schemas` when running from source — this module
-    // sits one directory deeper than `artifacts.ts`, which is why its own
-    // two-candidate version of this is not enough here.
+    // The build copies the schemas to `dist/schemas/`, and this module lives
+    // one directory deeper than `artifacts.ts` — at `dist/commands/` when
+    // published and `src/commands/` from source — so the two candidates are
+    // `../schemas` and `../../schemas`, not that file's `./schemas` pair.
     //
     // Resolution and reading are separate loops on purpose: catching around
     // the read too would turn "this schema is corrupt" into "cannot find this
     // schema", which sends the reader looking for the wrong thing.
     let path: string | undefined;
-    for (const base of ['./schemas', '../schemas', '../../schemas']) {
+    for (const base of ['../schemas', '../../schemas']) {
         try {
             path = require.resolve(`${base}/${name}.schema.json`);
             break;
