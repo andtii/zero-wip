@@ -184,7 +184,9 @@
                             "reduced-motion/loop",
                             "contrast/text",
                             "contrast/indicator",
-                            "contrast/unmeasured"
+                            "contrast/unmeasured",
+                            "spacing/literal",
+                            "spacing/off-ramp"
                         ]
                     },
                     "additionalProperties": { "type": "integer", "minimum": 1 }

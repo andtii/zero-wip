@@ -228,6 +228,46 @@ Two mechanisms serve shapes the enumerated axes cannot:
 `defaultVariants` lives at **recipe** level: values applied when the axis
 attribute is absent, i.e. CSS-only defaults.
 
+### 3.1b Spacing is a ramp, and the ramp is a mechanism
+
+`--space-2xs` … `--space-2xl` is not a convenience scale. Because a recipe
+writes `var(--space-md)` rather than `0.5rem`, an app gets a **density mode**
+with no help from zero at all:
+
+```css
+[data-density="compact"] { --space-md: 0.375rem; --space-lg: 0.5rem; }
+```
+
+Custom properties inherit, so that scopes to any subtree; app CSS is
+unlayered, so it beats the `:where(:root)` a design system writes into
+`zero.tokens` ([§5](#5-the-compiler-and-css-architecture)); it needs no JS and
+survives a runtime design-system swap, because the swap replaces the `<link>`
+that defines the ramp and every reference re-resolves.
+
+Every literal is inert under that switch. So a hardcoded padding is not a
+style opinion, it is a hole in a mechanism — which is why the `spacing/*`
+audit rules exist and why `spacing/off-ramp` is an error rather than a
+warning. The leak they were written for was structural rather than careless:
+`size` variants were spelled as spacing literals (`padding: '0.25rem 0.5rem'`,
+where `0.25rem` IS `--space-xs`), so the size axis and the spacing ramp were
+two uncoordinated systems doing the same job.
+
+Three spellings are deliberately exempt, and each is exempt because the naive
+rule gets it wrong. `em` lengths are spacing that tracks TYPE rather than the
+ramp — a different, legitimate choice. Anything inside parentheses is
+arithmetic rather than a step, so `calc(var(--space-lg) - 2px)` already rides
+the ramp; only top-level components of a value are judged. And `0` needs no
+token.
+
+One authoring rule follows for **recipe packs** specifically, and was found by
+`zero:fragment`'s hostile-vocabulary probe rather than by reasoning:
+`system.spacing` is optional, and a design system that omits it emits no
+`--space-*` at all. On web `css/base.css` still resolves the reference from
+`@layer zero.fallback`; lynx has no such layer, so the declaration is dropped
+and the part paints nothing. A design system's own recipes may write
+`var(--space-md)`; a pack that may be adopted by any design system writes
+`var(--space-md, 0.5rem)`.
+
 ### 3.2 Build-time validation
 
 Two questions are asked at build time, by two different mechanisms.
@@ -1013,7 +1053,7 @@ checking a fraction of what it claimed.)
 | Unit suites | `packages/*/__tests__/`, vitest over **source** via aliases | Behaviors, SSR safety, per-component contracts, compiler semantics. |
 | CSS goldens | `zero-kit/__tests__/css-golden.test.ts` | Byte-for-byte compiled CSS per skin: ordering, layering, specificity are the product. |
 | Parity family (6) | `contract-parity`, `registry-parity`, `reserved-props-parity`, `schemas`, `llms-doc`, `type-test-paths` | Every deliberately duplicated surface (kit↔zero contract copies, manifest↔registry, api reserved props↔real Root props, schemas↔reality, llms.txt claims↔source, type-test paths↔package exports) is pinned from both sides. |
-| Audit rules (in-kit) | `zero-kit/src/audit/rules/` via `auditDesignSystem`; the six skins through the thin callers `state-legibility.test.ts`, `button-affordance.test.ts`, `axis-value-coverage.test.ts`, `axis-coverage.test.ts`; `audit-api.test.ts` + `reduced-motion-loop.test.ts` hold every rule's red fixture | Every declared state is visually distinct (component / indicator / in-flow disclosure, honoring `hiddenIn` and per-part `skipStates`); every real `<button>` part resets `appearance`; no declared axis step goes unhonored by the recipes that claim it, and at most one claims the base; no styled scope accepts a declared `color`/`size` axis and wires nothing (ledgered, [§3.8](#38-the-ledgers)); every infinite animation stops under `prefers-reduced-motion` on the same selector. All read from **compiled CSS**, and — since #403 — reachable by a design system built outside this repo. |
+| Audit rules (in-kit) | `zero-kit/src/audit/rules/` via `auditDesignSystem`; the six skins through the thin callers `state-legibility.test.ts`, `button-affordance.test.ts`, `axis-value-coverage.test.ts`, `axis-coverage.test.ts`; `audit-api.test.ts` + `reduced-motion-loop.test.ts` hold every rule's red fixture | Every declared state is visually distinct (component / indicator / in-flow disclosure, honoring `hiddenIn` and per-part `skipStates`); every real `<button>` part resets `appearance`; no declared axis step goes unhonored by the recipes that claim it, and at most one claims the base; no styled scope accepts a declared `color`/`size` axis and wires nothing (ledgered, [§3.8](#38-the-ledgers)); every infinite animation stops under `prefers-reduced-motion` on the same selector; every padding, margin and gap rides the declared `--space-*` ramp rather than restating a number (`spacing/literal` where the number IS a step, `spacing/off-ramp` where it is on none). All read from **compiled CSS**, and — since #403 — reachable by a design system built outside this repo. |
 | Audit command + artifact | `zero-kit/src/commands/audit.ts` (`sigx zero:audit`), `build.ts` → `dist/audit.json` + `report.audit`; `audit-cli.test.ts`, `audit-artifacts.test.ts`, `schemas.test.ts` (`audit.schema.json`, and the rule enum pinned to `AUDIT_RULES` in both schemas) | The exit-code contract (errors fail, `--strict` adds warnings, `info` never; `--json -` owns stdout; a non-compiling DS is refused in the validator's words); the build never fails on a finding but writes, summarises and scores every one; `zero:validate --report` and `dist/report.json` are the same document. |
 | Type tests (6 isolated projects) | `packages/zero/type-tests/` — `open`, `augmented`, `generated`, `components`, `registered-components`, `ecosystem` | Each proves one narrowing regime in its own program (augmentation leaks program-wide, so isolation is the point): the unaugmented open fallback; a hand-written augmentation (a `.ts`, so `skipLibCheck` cannot skip it); the real emitted material golden; the emitted `components.d.ts` goldens with the vocabulary untouched, two design systems coexisting; **all 50 scopes' real prop surfaces** under the emitted zero-basic golden; and the ecosystem `Exclude`-gate round trip. |
 | Register compile gate | `zero-kit/__tests__/register-dts-compile.test.ts` | Every skin's emitted `register.d.ts` compiles with `skipLibCheck: false` against a generated stub of `@sigx/zero`, so the artifact's self-assertions actually execute ([§3.5](#35-the-register-artifact)). |

@@ -9,7 +9,7 @@
         align-items: center;
         justify-content: center;
         min-inline-size: 1.75em;
-        padding: 0.0625rem 0.5rem;
+        padding: 0 var(--space-xs);
         background: var(--kbd-fill);
         color: var(--kbd-ink);
         border-radius: var(--radius-selector);

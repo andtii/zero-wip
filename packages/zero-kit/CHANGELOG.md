@@ -116,6 +116,47 @@
   than quietly excluding packages from a discovery that never runs. (Narrowing
   is otherwise programmatic — the CLI surfaces only the exclusion half.)
 
+- **`spacing/literal` and `spacing/off-ramp` — the ramp is the vocabulary,
+  and a number is not** (#469). Two audit rules, and every skin put on the
+  ramp in the same change so they land green.
+
+  The point is a mechanism, not tidiness. Because a recipe writes
+  `var(--space-md)` rather than `0.5rem`, an app gets a density mode with no
+  help from zero: `[data-density="compact"] { --space-md: 0.375rem }`
+  inherits, beats the design system's `:where(:root)` (app CSS is unlayered),
+  needs no JS, and survives a design-system swap. Every literal is inert
+  under that switch, so a hardcoded padding is a hole in a mechanism.
+
+  The leak was structural. `size` variants were spelled as spacing literals —
+  `padding: '0.25rem 0.5rem'`, where `0.25rem` IS `--space-xs` — so the size
+  axis and the spacing ramp were two uncoordinated systems doing the same
+  job. Elsewhere values sat on no step at all (`0.0625rem`, `0.875rem`):
+  numbers no reader could trace to a token.
+
+  `spacing/off-ramp` is an **error** (untraceable *and* inert);
+  `spacing/literal` is a **warning** (renders correctly, only costs density).
+  Three spellings are exempt because the naive rule gets them wrong: `em`
+  lengths are spacing that tracks TYPE rather than the ramp; anything inside
+  parentheses is arithmetic, so `calc(var(--space-lg) - 2px)` already rides
+  it, and only top-level components of a value are judged; `0` needs no
+  token.
+
+  All six skins are clean. 50 off-ramp errors and 60 literal warnings fixed —
+  the literal ones pixel-identical by construction, the off-ramp ones snapped
+  to a step and each rendered change recorded. zero-carbon's slider was the
+  interesting case: its off-ramp margins were not spacing at all but geometry
+  centring a thumb over a rail, so they became arithmetic over named
+  component tokens (`--slider-thumb-size`) instead of being snapped — the
+  same pixels, and honest about what they are.
+
+  One authoring rule fell out, found by `zero:fragment`'s hostile-vocabulary
+  probe rather than by reasoning: a **recipe pack** writes
+  `var(--space-md, 0.5rem)` where a design system's own recipes may write
+  `var(--space-md)`. `system.spacing` is optional; a design system that omits
+  it emits no `--space-*`, and while web resolves the reference from
+  `@layer zero.fallback`, lynx has no such layer and drops the declaration
+  entirely.
+
 - **`sigx zero:extend` — adopt ecosystem packs against an already-published
   design system** (#465). The piece that makes the protocol work across
   repositories. A design system ships as prebuilt CSS and can never devDepend

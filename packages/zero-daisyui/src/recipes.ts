@@ -956,7 +956,7 @@ export const dialog: RecipeInput = {
         },
         popup: withPresence(popupPresence('translateY(8px) scale(0.97)'), {
             base: {
-                padding: '1.5rem',
+                padding: 'var(--space-2xl)',
                 maxWidth: '32rem',
                 width: 'calc(100% - 2rem)',
                 background: 'var(--color-base-100)',
@@ -986,14 +986,15 @@ export const dialog: RecipeInput = {
         },
         // daisy's `modal-action`: the actions sit at the trailing edge, one
         // step of the button gap apart, pushed down by the modal's own
-        // padding value rather than by a scale step (daisy writes 1.5rem for
-        // both, as `popup` above does).
+        // padding — daisy writes 1.5rem for both, and both now read the top
+        // of the ramp (`--space-2xl`, 1.25rem) so a density override moves
+        // the popup's inset and the footer's push-down together.
         footer: {
             base: {
                 display: 'flex',
                 justifyContent: 'flex-end',
                 gap: 'var(--space-md)',
-                marginBlockStart: '1.5rem',
+                marginBlockStart: 'var(--space-2xl)',
             },
         },
         close: {
@@ -1026,7 +1027,7 @@ export const dialog: RecipeInput = {
                 trigger: { base: lynxBtnPad(4) },
                 close: { base: lynxBtnPad(4) },
                 cancel: { base: lynxBtnPad(4) },
-                footer: { base: { marginTop: '1.5rem' } },
+                footer: { base: { marginTop: 'var(--space-2xl)' } },
             },
             variants: { size: lynxBtnSizes('trigger') },
         },
@@ -1150,7 +1151,7 @@ export const menu: RecipeInput = {
             base: {
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.625rem',
+                gap: 'var(--space-md)',
                 padding: 'var(--space-md) var(--space-lg)',
                 fontSize: 'var(--text-sm)',
                 fontWeight: 'var(--weight-medium)',
@@ -1170,7 +1171,7 @@ export const menu: RecipeInput = {
             base: {
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.625rem',
+                gap: 'var(--space-md)',
                 padding: 'var(--space-md) var(--space-lg)',
                 fontSize: 'var(--text-sm)',
                 fontWeight: 'var(--weight-medium)',
@@ -1189,7 +1190,7 @@ export const menu: RecipeInput = {
             base: {
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.625rem',
+                gap: 'var(--space-md)',
                 padding: 'var(--space-md) var(--space-lg)',
                 fontSize: 'var(--text-sm)',
                 fontWeight: 'var(--weight-medium)',
@@ -1224,7 +1225,7 @@ export const menu: RecipeInput = {
             base: {
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.625rem',
+                gap: 'var(--space-md)',
                 padding: 'var(--space-md) var(--space-lg)',
                 fontSize: 'var(--text-sm)',
                 fontWeight: 'var(--weight-medium)',
@@ -1405,7 +1406,7 @@ export const checkbox: RecipeInput = {
     },
     parts: {
         root: {
-            base: { display: 'inline-flex', alignItems: 'center', gap: '0.625rem', cursor: 'pointer' },
+            base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-md)', cursor: 'pointer' },
             states: {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 checked: {}, unchecked: {}, indeterminate: {},
@@ -1604,7 +1605,7 @@ export const radioGroup: RecipeInput = {
     },
     parts: {
         root: {
-            base: { display: 'flex', flexDirection: 'column', gap: '0.625rem' },
+            base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' },
             states: { invalid: {}, required: {} },
             selectors: {
                 // `invalid` is a fact about the GROUP — `item-control` carries
@@ -1618,7 +1619,7 @@ export const radioGroup: RecipeInput = {
             states: { disabled: { opacity: 'var(--disabled-opacity)' } },
         },
         item: {
-            base: { display: 'inline-flex', alignItems: 'center', gap: '0.625rem', cursor: 'pointer' },
+            base: { display: 'inline-flex', alignItems: 'center', gap: 'var(--space-md)', cursor: 'pointer' },
             states: {
                 disabled: { opacity: 'var(--disabled-opacity)', cursor: 'not-allowed' },
                 checked: {}, unchecked: {},
@@ -2208,7 +2209,7 @@ export const select: RecipeInput = {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                gap: '0.625rem',
+                gap: 'var(--space-md)',
                 padding: 'var(--space-md) var(--space-lg)',
                 fontSize: 'var(--text-sm)',
                 fontWeight: 'var(--weight-medium)',
@@ -2840,7 +2841,7 @@ export const combobox: RecipeInput = {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                gap: '0.625rem',
+                gap: 'var(--space-md)',
                 padding: 'var(--space-md) var(--space-lg)',
                 fontSize: 'var(--text-sm)',
                 fontWeight: 'var(--weight-medium)',
@@ -3416,7 +3417,7 @@ export const ratingGroup: RecipeInput = {
 const treeRow: NonNullable<PartStyles['base']> = {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.625rem',
+    gap: 'var(--space-md)',
     padding: 'var(--space-sm) var(--space-md)',
     fontSize: 'var(--tree-text)',
     fontWeight: 'var(--weight-medium)',
@@ -3883,7 +3884,7 @@ export const badge: RecipeInput = {
                 // daisy badges are pills; a large radius rather than 9999px so
                 // a square-cornered theme can still say so through the token.
                 borderRadius: 'var(--radius-selector)',
-                padding: '0.125rem 0.625rem',
+                padding: 'var(--space-2xs) var(--space-lg)',
                 fontSize: 'var(--text-xs)',
                 fontWeight: 'var(--weight-semibold)',
                 lineHeight: 'var(--leading-normal)',
@@ -4038,7 +4039,11 @@ export const kbd: RecipeInput = {
                 alignItems: 'center',
                 justifyContent: 'center',
                 minInlineSize: '1.75em',
-                padding: '0.0625rem 0.4375rem',
+                // daisy's .0625rem/.4375rem, restated as the ramp steps they
+                // already are once the cap's own border is absorbed: the OUTER
+                // box lands on 2xs/md, so the cap rides the ramp under a density
+                // override while keeping daisy's painted size exactly at 1px.
+                padding: 'calc(var(--space-2xs) - var(--border)) calc(var(--space-md) - var(--border))',
                 background: 'var(--kbd-fill)',
                 color: 'var(--kbd-ink)',
                 border: 'var(--border) solid var(--color-base-300)',

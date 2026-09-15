@@ -8,7 +8,7 @@
     [data-scope="radio-group"][data-part="root"] {
         display: flex;
         flex-direction: column;
-        gap: 0.625rem;
+        gap: var(--space-md);
     }
 
     [data-scope="radio-group"][data-part="root"][data-invalid] [data-part="item-control"] {
@@ -27,7 +27,7 @@
     [data-scope="radio-group"][data-part="item"] {
         display: inline-flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-md);
         cursor: pointer;
     }
 

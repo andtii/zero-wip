@@ -417,6 +417,36 @@ CI.
 design system opts into covering a component some other package ships. See
 "Ecosystem components" below.
 
+## Spacing rides the ramp
+
+`sigx zero:audit` includes two `spacing/*` rules, and they are about a
+mechanism rather than tidiness. Because a recipe writes `var(--space-md)`
+rather than `0.5rem`, an app gets a density mode for free:
+
+```css
+[data-density="compact"] { --space-md: 0.375rem; --space-lg: 0.5rem; }
+```
+
+Custom properties inherit, app CSS is unlayered so it wins, no JS is
+involved, and it survives a design-system swap. Every literal is inert under
+that switch, so:
+
+- **`spacing/literal`** (warning) — the number IS a declared step, written
+  out. Replacing it with the token is pixel-identical.
+- **`spacing/off-ramp`** (error) — the number is on no declared step, so it
+  is both untraceable to a token and inert. Fixing it changes pixels.
+
+Exempt on purpose: `em` lengths (spacing that tracks type, not the ramp),
+anything inside parentheses (`calc(var(--space-lg) - 2px)` already rides it),
+and `0`.
+
+A **recipe pack** should give its ramp references a fallback —
+`var(--space-md, 0.5rem)`. `system.spacing` is optional, and a design system
+that omits it emits no `--space-*`; on web zero's base stylesheet still
+resolves the reference, but lynx has no fallback layer, so the declaration
+would be dropped and the part would paint nothing. `sigx zero:fragment`'s
+hostile-vocabulary probe refuses exactly that.
+
 ## Ecosystem components
 
 An ecosystem component package is a peer of `@sigx/zero`: it builds its

@@ -1412,6 +1412,24 @@ export const progress: RecipeInput = {
 // ── Slider ────────────────────────────────────────────────────────────────
 export const slider: RecipeInput = {
     component: 'slider',
+    /**
+     * Slider geometry, named once. Carbon's rail is 2px and its handle 14px
+     * at every size, and the resting row is the 40px control box — none of
+     * which is spacing, so none of it rides `--space-*`; what the three
+     * centring offsets below owe the ramp is only that they stop restating
+     * these numbers as bare margins. Each is now arithmetic over the metric
+     * it actually derives from (`spacing/off-ramp`, #469).
+     */
+    tokens: {
+        // 2px, Carbon's rail — the same literal `--progress-track-size` keeps
+        // and for the same reason: the ramp moves boxes, never hairlines.
+        '--slider-track-size': '0.125rem',
+        // 14px on the 4px mini-unit grid.
+        '--slider-thumb-size': 'calc(var(--size-selector) * 3.5)',
+        // The resting 40px row. `size` moves the control's own box (below)
+        // and deliberately leaves the composed rail's row where it is.
+        '--slider-control-size': 'calc(var(--size-selector) * 10)',
+    },
     parts: {
         root: {
             base: { display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)', width: '100%' },
@@ -1434,7 +1452,7 @@ export const slider: RecipeInput = {
             base: {
                 appearance: 'none',
                 width: '100%',
-                height: '2.5rem',
+                height: 'var(--slider-control-size)',
                 margin: '0',
                 background: 'transparent',
                 cursor: 'pointer',
@@ -1457,14 +1475,15 @@ export const slider: RecipeInput = {
             },
             selectors: {
                 '&::-webkit-slider-runnable-track': {
-                    height: '0.125rem',
+                    height: 'var(--slider-track-size)',
                     background: 'var(--slider-track)',
                 },
                 '&::-webkit-slider-thumb': {
                     appearance: 'none',
-                    width: '0.875rem',
-                    height: '0.875rem',
-                    marginTop: '-0.375rem',
+                    width: 'var(--slider-thumb-size)',
+                    height: 'var(--slider-thumb-size)',
+                    // Centre the handle on the rail it overhangs.
+                    marginTop: 'calc((var(--slider-track-size) - var(--slider-thumb-size)) / 2)',
                     border: 'none',
                     borderRadius: 'var(--radius-selector)',
                     background: 'var(--color-base-content)',
@@ -1472,12 +1491,12 @@ export const slider: RecipeInput = {
                     transition: 'box-shadow var(--duration-fast) var(--ease-standard)',
                 },
                 '&::-moz-range-track': {
-                    height: '0.125rem',
+                    height: 'var(--slider-track-size)',
                     background: 'var(--slider-track)',
                 },
                 '&::-moz-range-thumb': {
-                    width: '0.875rem',
-                    height: '0.875rem',
+                    width: 'var(--slider-thumb-size)',
+                    height: 'var(--slider-thumb-size)',
                     border: 'none',
                     borderRadius: 'var(--radius-selector)',
                     background: 'var(--color-base-content)',
@@ -1495,8 +1514,10 @@ export const slider: RecipeInput = {
         // square handle as real parts, same inks as the rebuilt control.
         track: {
             base: {
-                height: '0.125rem',
-                marginBlock: '1.1875rem',
+                height: 'var(--slider-track-size)',
+                // Pad the rail out to the control's resting box, so the
+                // composed projection occupies the same row as the native one.
+                marginBlock: 'calc((var(--slider-control-size) - var(--slider-track-size)) / 2)',
                 // Progress's rail, not `--carbon-line`: the audited
                 // `rangeFill` pair is fill-on-base-300 (3.64:1 on g100);
                 // on the lighter line grey it drops to 2.11:1.
@@ -1517,11 +1538,13 @@ export const slider: RecipeInput = {
         },
         thumb: {
             base: {
-                width: '0.875rem',
-                height: '0.875rem',
+                width: 'var(--slider-thumb-size)',
+                height: 'var(--slider-thumb-size)',
                 insetBlockStart: '50%',
                 translate: '0 -50%',
-                marginInlineStart: '-0.4375rem',
+                // Centre the handle on the position — a LOGICAL negative
+                // margin of half its own width, never a transform.
+                marginInlineStart: 'calc(var(--slider-thumb-size) / -2)',
                 borderRadius: 'var(--radius-selector)',
                 background: 'var(--color-base-content)',
                 cursor: 'pointer',

@@ -304,7 +304,7 @@ export const tabs: RecipeInput = {
                 border: 'none',
                 borderBottom: '2px solid transparent',
                 marginBottom: 'calc(-1 * var(--border))',
-                padding: '0.5rem 0.875rem',
+                padding: 'var(--space-md) var(--space-lg)',
                 fontSize: 'var(--text-sm)',
                 fontWeight: 'var(--weight-medium)',
                 fontVariantNumeric: 'tabular-nums',
@@ -331,15 +331,20 @@ export const tabs: RecipeInput = {
         },
     },
     variants: {
+        // The size axis IS the spacing ramp, read one step at a time: block
+        // padding walks xs→xl and inline padding sits one step above it, so
+        // `[data-density]` rescales the whole size axis along with everything
+        // else. Every control-shaped scope here uses the same two columns —
+        // which is also why a `md` tab and a `md` input now measure the same.
         size: {
-            xs: { tab: { base: { fontSize: 'var(--text-xs)', padding: '0.25rem 0.5rem' } } },
-            sm: { tab: { base: { fontSize: 'var(--text-xs)', padding: '0.375rem 0.75rem' } } },
+            xs: { tab: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-sm)' } } },
+            sm: { tab: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-sm) var(--space-md)' } } },
             // `md` is the un-attributed render: the base already IS the
             // middle step, so restating it here would be a second copy free
             // to drift. An empty entry emits no rule and keeps the base.
             md: {},
-            lg: { tab: { base: { fontSize: 'var(--text-md)', padding: '0.625rem 1.125rem' } } },
-            xl: { tab: { base: { fontSize: 'var(--text-lg)', padding: '0.75rem 1.375rem' } } },
+            lg: { tab: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-lg) var(--space-xl)' } } },
+            xl: { tab: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-xl) var(--space-2xl)' } } },
         },
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--tabs-accent': `var(--color-${c})`,
@@ -2544,7 +2549,7 @@ export const combobox: RecipeInput = {
                 font: 'inherit',
                 fontSize: 'var(--text-sm)',
                 fontVariantNumeric: 'tabular-nums',
-                padding: '0.5rem 0.75rem',
+                padding: 'var(--space-md) var(--space-lg)',
             },
             states: {
                 disabled: { cursor: 'not-allowed' },
@@ -2565,7 +2570,7 @@ export const combobox: RecipeInput = {
                 background: 'transparent',
                 color: 'inherit',
                 opacity: '0.55',
-                padding: '0 0.625rem',
+                padding: '0 var(--space-lg)',
                 cursor: 'pointer',
                 transition: 'transform var(--duration-fast) var(--ease-standard)',
             },
@@ -2655,11 +2660,11 @@ export const combobox: RecipeInput = {
             '--combobox-soft': `var(--color-${c}-soft)`,
         } } }])),
         size: {
-            xs: { input: { base: { padding: '0.25rem 0.5rem', fontSize: 'var(--text-xs)' } } },
-            sm: { input: { base: { padding: '0.375rem 0.625rem', fontSize: 'var(--text-sm)' } } },
-            md: { input: { base: { padding: '0.5rem 0.75rem', fontSize: 'var(--text-sm)' } } },
-            lg: { input: { base: { padding: '0.625rem 0.875rem', fontSize: 'var(--text-md)' } } },
-            xl: { input: { base: { padding: '0.75rem 1rem', fontSize: 'var(--text-lg)' } } },
+            xs: { input: { base: { padding: 'var(--space-xs) var(--space-sm)', fontSize: 'var(--text-xs)' } } },
+            sm: { input: { base: { padding: 'var(--space-sm) var(--space-md)', fontSize: 'var(--text-sm)' } } },
+            md: { input: { base: { padding: 'var(--space-md) var(--space-lg)', fontSize: 'var(--text-sm)' } } },
+            lg: { input: { base: { padding: 'var(--space-lg) var(--space-xl)', fontSize: 'var(--text-md)' } } },
+            xl: { input: { base: { padding: 'var(--space-xl) var(--space-2xl)', fontSize: 'var(--text-lg)' } } },
         },
     },
     // The visible ring lives on `control`; input and trigger delegate.
@@ -2961,7 +2966,7 @@ export const numberInput: RecipeInput = {
                 fontSize: 'var(--text-sm)',
                 fontVariantNumeric: 'tabular-nums',
                 textAlign: 'center',
-                padding: '0.5rem 0.5rem',
+                padding: 'var(--space-md)',
             },
             states: {
                 disabled: { cursor: 'not-allowed' },
@@ -2982,7 +2987,7 @@ export const numberInput: RecipeInput = {
                 border: 'none',
                 background: 'transparent',
                 color: 'inherit',
-                padding: '0 0.75rem',
+                padding: '0 var(--space-lg)',
                 cursor: 'pointer',
                 userSelect: 'none',
                 borderInlineStart: hairline,
@@ -3000,7 +3005,7 @@ export const numberInput: RecipeInput = {
                 border: 'none',
                 background: 'transparent',
                 color: 'inherit',
-                padding: '0 0.75rem',
+                padding: '0 var(--space-lg)',
                 cursor: 'pointer',
                 userSelect: 'none',
                 borderInlineEnd: hairline,
@@ -3023,16 +3028,18 @@ export const numberInput: RecipeInput = {
             '--number-input-accent': `var(--color-${c})`,
         } } }])),
         // The readout carries the ramp; the steppers follow it so the frame
-        // stays proportional.
+        // stays proportional. A centred readout in a fixed 5rem well wants no
+        // inline lead-in, so this one is square — one ramp step per size,
+        // rather than the fields' block/inline pair.
         size: {
-            xs: { input: { base: { fontSize: 'var(--text-xs)', padding: '0.25rem 0.375rem' } } },
-            sm: { input: { base: { fontSize: 'var(--text-xs)', padding: '0.375rem 0.4375rem' } } },
+            xs: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs)' } } },
+            sm: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-sm)' } } },
             // `md` is the un-attributed render: the base already IS the
             // middle step, so restating it here would be a second copy free
             // to drift. An empty entry emits no rule and keeps the base.
             md: {},
-            lg: { input: { base: { fontSize: 'var(--text-md)', padding: '0.625rem 0.625rem' } } },
-            xl: { input: { base: { fontSize: 'var(--text-lg)', padding: '0.75rem 0.75rem' } } },
+            lg: { input: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-lg)' } } },
+            xl: { input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-xl)' } } },
         },
     },
 };
@@ -3126,7 +3133,7 @@ export const ratingGroup: RecipeInput = {
             },
         },
         control: {
-            base: { display: 'inline-flex', gap: '0.125rem' },
+            base: { display: 'inline-flex', gap: 'var(--space-2xs)' },
             states: {
                 disabled: { opacity: 'var(--disabled-opacity)' },
                 readonly: {},
@@ -3273,12 +3280,12 @@ export const treeView: RecipeInput = {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 'var(--space-xs)',
-                padding: '0.25rem 0.5rem',
+                padding: 'var(--space-xs) var(--space-md)',
                 // The marker rail — see menu's `item`: logical, so the bar
                 // flips with the reading direction, padded back so the marker
                 // never reflows the row.
                 borderInlineStart: '2px solid transparent',
-                paddingInlineStart: 'calc(0.5rem - 2px)',
+                paddingInlineStart: 'calc(var(--space-md) - 2px)',
                 fontVariantNumeric: 'tabular-nums',
                 borderRadius: 'var(--radius-selector)',
                 cursor: 'pointer',
@@ -3313,10 +3320,10 @@ export const treeView: RecipeInput = {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 'var(--space-xs)',
-                padding: '0.25rem 0.5rem',
+                padding: 'var(--space-xs) var(--space-md)',
                 // The marker rail — see `item`.
                 borderInlineStart: '2px solid transparent',
-                paddingInlineStart: 'calc(0.5rem - 2px)',
+                paddingInlineStart: 'calc(var(--space-md) - 2px)',
                 fontVariantNumeric: 'tabular-nums',
                 borderRadius: 'var(--radius-selector)',
                 cursor: 'pointer',
@@ -3362,8 +3369,8 @@ export const treeView: RecipeInput = {
             base: {
                 display: 'flex',
                 flexDirection: 'column',
-                marginInlineStart: '0.5rem',
-                paddingInlineStart: '0.5rem',
+                marginInlineStart: 'var(--space-md)',
+                paddingInlineStart: 'var(--space-md)',
                 borderInlineStart: hairline,
             },
             states: { open: {}, closed: {} },
@@ -3394,9 +3401,9 @@ export const treeView: RecipeInput = {
     targets: {
         lynx: {
             parts: {
-                item: { base: { paddingLeft: 'calc(0.5rem - 2px)' } },
-                'branch-trigger': { base: { paddingLeft: 'calc(0.5rem - 2px)' } },
-                'branch-content': { base: { marginLeft: '0.5rem', paddingLeft: '0.5rem' } },
+                item: { base: { paddingLeft: 'calc(var(--space-md) - 2px)' } },
+                'branch-trigger': { base: { paddingLeft: 'calc(var(--space-md) - 2px)' } },
+                'branch-content': { base: { marginLeft: 'var(--space-md)', paddingLeft: 'var(--space-md)' } },
             },
         },
     },
@@ -3470,7 +3477,7 @@ export const input: RecipeInput = {
                 caretColor: 'var(--input-accent)',
                 font: 'inherit',
                 fontSize: 'var(--text-sm)',
-                padding: '0.5rem 0.625rem',
+                padding: 'var(--space-md) var(--space-lg)',
             },
             states: {
                 disabled: { cursor: 'not-allowed' },
@@ -3490,13 +3497,13 @@ export const input: RecipeInput = {
             '--input-accent': `var(--color-${c})`,
         } } }])),
         size: {
-            xs: { input: { base: { fontSize: 'var(--text-xs)', padding: '0.25rem 0.375rem' } } },
-            sm: { input: { base: { fontSize: 'var(--text-xs)', padding: '0.375rem 0.5rem' } } },
+            xs: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-sm)' } } },
+            sm: { input: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-sm) var(--space-md)' } } },
             // `md` is the un-attributed render: the base already IS the
             // middle step.
             md: {},
-            lg: { input: { base: { fontSize: 'var(--text-md)', padding: '0.625rem 0.75rem' } } },
-            xl: { input: { base: { fontSize: 'var(--text-lg)', padding: '0.75rem 0.875rem' } } },
+            lg: { input: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-lg) var(--space-xl)' } } },
+            xl: { input: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-xl) var(--space-2xl)' } } },
         },
     },
 };
@@ -3537,7 +3544,7 @@ export const textarea: RecipeInput = {
                 font: 'inherit',
                 fontSize: 'var(--text-sm)',
                 lineHeight: '1.5',
-                padding: '0.5rem 0.625rem',
+                padding: 'var(--space-md) var(--space-lg)',
                 resize: 'vertical',
                 transition: 'border-color var(--duration-fast) var(--ease-standard)',
             },
@@ -3567,11 +3574,11 @@ export const textarea: RecipeInput = {
             '--textarea-accent': `var(--color-${c})`,
         } } }])),
         size: {
-            xs: { textarea: { base: { fontSize: 'var(--text-xs)', padding: '0.25rem 0.375rem' } } },
-            sm: { textarea: { base: { fontSize: 'var(--text-xs)', padding: '0.375rem 0.5rem' } } },
+            xs: { textarea: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-xs) var(--space-sm)' } } },
+            sm: { textarea: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-sm) var(--space-md)' } } },
             md: {},
-            lg: { textarea: { base: { fontSize: 'var(--text-md)', padding: '0.625rem 0.75rem' } } },
-            xl: { textarea: { base: { fontSize: 'var(--text-lg)', padding: '0.75rem 0.875rem' } } },
+            lg: { textarea: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-lg) var(--space-xl)' } } },
+            xl: { textarea: { base: { fontSize: 'var(--text-lg)', padding: 'var(--space-xl) var(--space-2xl)' } } },
         },
     },
 };
@@ -3789,7 +3796,7 @@ export const badge: RecipeInput = {
                 gap: '0.375em',
                 border: 'var(--border) solid transparent',
                 borderRadius: 'var(--radius-field)',
-                padding: '0.125rem 0.5rem',
+                padding: 'var(--space-2xs) var(--space-md)',
                 fontSize: 'var(--text-xs)',
                 fontWeight: 'var(--weight-medium)',
                 lineHeight: 'var(--leading-normal)',
@@ -3823,12 +3830,17 @@ export const badge: RecipeInput = {
                 color: 'var(--badge-ink)',
             } } },
         },
+        // A chip is shorter than a control, so the inline column carries the
+        // gradation (xs→xl) and the block column trails two steps behind it.
+        // The ramp has nothing between `2xs` and `xs`, so block repeats where
+        // the old hand-tuned 1px increments used to sit — the inline step
+        // keeps every size distinct.
         size: {
-            xs: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 0.375rem' } } },
-            sm: { root: { base: { fontSize: 'var(--text-xs)', padding: '0.0625rem 0.4375rem' } } },
+            xs: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-xs)' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)', padding: 'var(--space-2xs) var(--space-sm)' } } },
             md: {},
-            lg: { root: { base: { fontSize: 'var(--text-sm)', padding: '0.1875rem 0.625rem' } } },
-            xl: { root: { base: { fontSize: 'var(--text-md)', padding: '0.25rem 0.75rem' } } },
+            lg: { root: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-xs) var(--space-lg)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-sm) var(--space-xl)' } } },
         },
     },
     defaultVariants: { variant: 'soft' },
@@ -4009,7 +4021,7 @@ export const kbd: RecipeInput = {
                 alignItems: 'center',
                 justifyContent: 'center',
                 minInlineSize: '1.75em',
-                padding: '0.0625rem 0.375rem',
+                padding: 'var(--space-2xs) var(--space-md)',
                 background: 'var(--color-base-100)',
                 color: 'var(--kbd-ink)',
                 border: hairline,
@@ -4028,12 +4040,15 @@ export const kbd: RecipeInput = {
         color: Object.fromEntries(ROLES.map((c) => [c, { root: { base: {
             '--kbd-ink': softInk(c),
         } } }])),
+        // A keycap is badge's ramp with the block column one notch tighter —
+        // the cap is a printed key, not a chip, and `minInlineSize` is what
+        // squares a single-character key anyway.
         size: {
-            xs: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 0.25rem', minInlineSize: '1.5em' } } },
-            sm: { root: { base: { fontSize: 'var(--text-xs)', padding: '0.03125rem 0.3125rem' } } },
+            xs: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-xs)', minInlineSize: '1.5em' } } },
+            sm: { root: { base: { fontSize: 'var(--text-xs)', padding: '0 var(--space-sm)' } } },
             md: {},
-            lg: { root: { base: { fontSize: 'var(--text-sm)', padding: '0.125rem 0.4375rem' } } },
-            xl: { root: { base: { fontSize: 'var(--text-md)', padding: '0.1875rem 0.5rem' } } },
+            lg: { root: { base: { fontSize: 'var(--text-sm)', padding: 'var(--space-2xs) var(--space-lg)' } } },
+            xl: { root: { base: { fontSize: 'var(--text-md)', padding: 'var(--space-xs) var(--space-xl)' } } },
         },
     },
 };
