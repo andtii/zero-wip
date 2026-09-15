@@ -9,7 +9,7 @@
     [data-scope="checkbox"][data-part="root"] {
         display: inline-flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-md);
         cursor: pointer;
     }
 

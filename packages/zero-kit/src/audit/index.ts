@@ -31,6 +31,7 @@ import * as axisValueCoverage from './rules/axis-value-coverage.js';
 import * as buttonAffordance from './rules/button-affordance.js';
 import * as contrastRules from './rules/contrast.js';
 import * as reducedMotion from './rules/reduced-motion.js';
+import * as spacing from './rules/spacing.js';
 import * as stateLegibility from './rules/state-legibility.js';
 import type { AuditFinding, AuditResult, AuditRuleId, AuditSeverity, AuditWaiver, RuleOutput } from './types.js';
 import { AUDIT_RULES } from './types.js';
@@ -158,6 +159,7 @@ const MODULES: readonly RuleModule[] = [
     },
     { ids: ['axis-coverage'], run: axisCoverage.run },
     { ids: ['reduced-motion/loop'], run: reducedMotion.run },
+    { ids: ['spacing/literal', 'spacing/off-ramp'], run: spacing.run },
 ];
 
 const CONTRAST_RULES: readonly AuditRuleId[] = ['contrast/text', 'contrast/indicator', 'contrast/unmeasured'];

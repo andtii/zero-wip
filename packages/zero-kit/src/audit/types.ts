@@ -29,7 +29,9 @@ export type AuditRuleId =
     | 'reduced-motion/loop'
     | 'contrast/text'
     | 'contrast/indicator'
-    | 'contrast/unmeasured';
+    | 'contrast/unmeasured'
+    | 'spacing/literal'
+    | 'spacing/off-ramp';
 
 /** Every rule the audit knows, in the order `formatAudit` groups them. */
 export const AUDIT_RULES: readonly AuditRuleId[] = [
@@ -45,6 +47,8 @@ export const AUDIT_RULES: readonly AuditRuleId[] = [
     'contrast/text',
     'contrast/indicator',
     'contrast/unmeasured',
+    'spacing/literal',
+    'spacing/off-ramp',
 ];
 
 export type AuditSeverity = 'error' | 'warning' | 'info';
@@ -62,6 +66,10 @@ export const RULE_SEVERITY: Readonly<Record<AuditRuleId, AuditSeverity>> = {
     'contrast/text': 'error',
     'contrast/indicator': 'error',
     'contrast/unmeasured': 'info',
+    // A literal that IS on the ramp renders correctly and only costs density;
+    // one that is on no step is also a value no reader can trace.
+    'spacing/literal': 'warning',
+    'spacing/off-ramp': 'error',
 };
 
 export interface AuditFinding {

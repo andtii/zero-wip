@@ -329,7 +329,7 @@ describe('the aggregate', () => {
         expect(() => auditDesignSystem(mixed, manifest, { rules: ['contrast/nope' as AuditRuleId] }))
             .toThrow(/unknown audit rule "contrast\/nope"/);
         // …and the default is every rule the registry knows.
-        expect(AUDIT_RULES.length).toBe(12);
+        expect(AUDIT_RULES.length).toBe(14);
     });
 
     it('takes a compile the caller already has and reaches the same verdict', () => {

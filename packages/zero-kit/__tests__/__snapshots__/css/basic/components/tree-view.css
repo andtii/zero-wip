@@ -34,9 +34,9 @@
         display: flex;
         align-items: center;
         gap: var(--space-xs);
-        padding: 0.25rem 0.5rem;
+        padding: var(--space-xs) var(--space-md);
         border-inline-start: 2px solid transparent;
-        padding-inline-start: calc(0.5rem - 2px);
+        padding-inline-start: calc(var(--space-md) - 2px);
         font-variant-numeric: tabular-nums;
         border-radius: var(--radius-selector);
         cursor: pointer;
@@ -77,9 +77,9 @@
         display: flex;
         align-items: center;
         gap: var(--space-xs);
-        padding: 0.25rem 0.5rem;
+        padding: var(--space-xs) var(--space-md);
         border-inline-start: 2px solid transparent;
-        padding-inline-start: calc(0.5rem - 2px);
+        padding-inline-start: calc(var(--space-md) - 2px);
         font-variant-numeric: tabular-nums;
         border-radius: var(--radius-selector);
         cursor: pointer;
@@ -128,8 +128,8 @@
     [data-scope="tree-view"][data-part="branch-content"] {
         display: flex;
         flex-direction: column;
-        margin-inline-start: 0.5rem;
-        padding-inline-start: 0.5rem;
+        margin-inline-start: var(--space-md);
+        padding-inline-start: var(--space-md);
         border-inline-start: var(--border) solid var(--color-base-300);
     }
 

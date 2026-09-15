@@ -57,7 +57,7 @@
     [data-scope="menu"][data-part="item"] {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-md);
         padding: var(--space-md) var(--space-lg);
         font-size: var(--text-sm);
         font-weight: var(--weight-medium);
@@ -79,7 +79,7 @@
     [data-scope="menu"][data-part="checkbox-item"] {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-md);
         padding: var(--space-md) var(--space-lg);
         font-size: var(--text-sm);
         font-weight: var(--weight-medium);
@@ -101,7 +101,7 @@
     [data-scope="menu"][data-part="radio-item"] {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-md);
         padding: var(--space-md) var(--space-lg);
         font-size: var(--text-sm);
         font-weight: var(--weight-medium);
@@ -134,7 +134,7 @@
     [data-scope="menu"][data-part="sub-trigger"] {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-md);
         padding: var(--space-md) var(--space-lg);
         font-size: var(--text-sm);
         font-weight: var(--weight-medium);

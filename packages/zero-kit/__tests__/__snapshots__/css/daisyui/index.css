@@ -898,7 +898,7 @@
         opacity: 0;
         transform: translateY(8px) scale(0.97);
         transition: opacity var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard), display var(--duration-fast) allow-discrete, overlay var(--duration-fast) allow-discrete;
-        padding: 1.5rem;
+        padding: var(--space-2xl);
         max-width: 32rem;
         width: calc(100% - 2rem);
         background: var(--color-base-100);
@@ -934,7 +934,7 @@
         display: flex;
         justify-content: flex-end;
         gap: var(--space-md);
-        margin-block-start: 1.5rem;
+        margin-block-start: var(--space-2xl);
     }
 
     [data-scope="dialog"][data-part="close"] {
@@ -1724,7 +1724,7 @@
     [data-scope="menu"][data-part="item"] {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-md);
         padding: var(--space-md) var(--space-lg);
         font-size: var(--text-sm);
         font-weight: var(--weight-medium);
@@ -1746,7 +1746,7 @@
     [data-scope="menu"][data-part="checkbox-item"] {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-md);
         padding: var(--space-md) var(--space-lg);
         font-size: var(--text-sm);
         font-weight: var(--weight-medium);
@@ -1768,7 +1768,7 @@
     [data-scope="menu"][data-part="radio-item"] {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-md);
         padding: var(--space-md) var(--space-lg);
         font-size: var(--text-sm);
         font-weight: var(--weight-medium);
@@ -1801,7 +1801,7 @@
     [data-scope="menu"][data-part="sub-trigger"] {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-md);
         padding: var(--space-md) var(--space-lg);
         font-size: var(--text-sm);
         font-weight: var(--weight-medium);
@@ -2171,7 +2171,7 @@
     [data-scope="checkbox"][data-part="root"] {
         display: inline-flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-md);
         cursor: pointer;
     }
 
@@ -2416,7 +2416,7 @@
     [data-scope="radio-group"][data-part="root"] {
         display: flex;
         flex-direction: column;
-        gap: 0.625rem;
+        gap: var(--space-md);
     }
 
     [data-scope="radio-group"][data-part="root"][data-invalid] [data-part="item-control"] {
@@ -2435,7 +2435,7 @@
     [data-scope="radio-group"][data-part="item"] {
         display: inline-flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-md);
         cursor: pointer;
     }
 
@@ -3155,7 +3155,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 0.625rem;
+        gap: var(--space-md);
         padding: var(--space-md) var(--space-lg);
         font-size: var(--text-sm);
         font-weight: var(--weight-medium);
@@ -3988,7 +3988,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 0.625rem;
+        gap: var(--space-md);
         padding: var(--space-md) var(--space-lg);
         font-size: var(--text-sm);
         font-weight: var(--weight-medium);
@@ -4818,7 +4818,7 @@
     [data-scope="tree-view"][data-part="item"] {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-md);
         padding: var(--space-sm) var(--space-md);
         font-size: var(--tree-text);
         font-weight: var(--weight-medium);
@@ -4864,7 +4864,7 @@
     [data-scope="tree-view"][data-part="branch-trigger"] {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-md);
         padding: var(--space-sm) var(--space-md);
         font-size: var(--tree-text);
         font-weight: var(--weight-medium);
@@ -5508,7 +5508,7 @@
         color: var(--badge-ink);
         border: var(--border) solid transparent;
         border-radius: var(--radius-selector);
-        padding: 0.125rem 0.625rem;
+        padding: var(--space-2xs) var(--space-lg);
         font-size: var(--text-xs);
         font-weight: var(--weight-semibold);
         line-height: var(--leading-normal);
@@ -5810,7 +5810,7 @@
         align-items: center;
         justify-content: center;
         min-inline-size: 1.75em;
-        padding: 0.0625rem 0.4375rem;
+        padding: calc(var(--space-2xs) - var(--border)) calc(var(--space-md) - var(--border));
         background: var(--kbd-fill);
         color: var(--kbd-ink);
         border: var(--border) solid var(--color-base-300);

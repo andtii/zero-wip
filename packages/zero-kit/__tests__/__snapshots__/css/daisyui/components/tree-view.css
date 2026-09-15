@@ -29,7 +29,7 @@
     [data-scope="tree-view"][data-part="item"] {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-md);
         padding: var(--space-sm) var(--space-md);
         font-size: var(--tree-text);
         font-weight: var(--weight-medium);
@@ -75,7 +75,7 @@
     [data-scope="tree-view"][data-part="branch-trigger"] {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
+        gap: var(--space-md);
         padding: var(--space-sm) var(--space-md);
         font-size: var(--tree-text);
         font-weight: var(--weight-medium);
