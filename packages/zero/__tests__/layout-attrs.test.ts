@@ -102,6 +102,31 @@ describe('parseLayoutAttr', () => {
         expect(parseLayoutAttr('data-l-gap-x')).toEqual({ attr: 'gap-x' });
     });
 
+    it('parses a breakpoint name containing a hyphen', () => {
+        // The kit holds breakpoint names to TOKEN_KEY_PATTERN, the same
+        // grammar that allows `gap-x`, so `tablet-lg` is legal. Splitting at
+        // the FIRST hyphen read this as breakpoint `tablet` + attribute
+        // `lg-gap` and rejected it — while `layoutAttrs` happily emitted it,
+        // so emit and parse disagreed about the same name.
+        expect(parseLayoutAttr('data-l-tablet-lg-gap')).toEqual({ attr: 'gap', breakpoint: 'tablet-lg' });
+        expect(layoutAttrs({ gap: { 'tablet-lg': 'xl' } } as never, ['gap']))
+            .toEqual({ 'data-l-tablet-lg-gap': 'xl' });
+    });
+
+    it('anchors on the LONGEST attribute suffix', () => {
+        // `md-gap-x` must resolve to the attribute `gap-x` and not stop at
+        // `gap`, which would leave a breakpoint of `md-gap`. `gap-x` is not
+        // responsive, so the honest answer here is "no interpretation".
+        expect(parseLayoutAttr('data-l-md-gap-x')).toBeUndefined();
+        expect(parseLayoutAttr('data-l-gap-x')).toEqual({ attr: 'gap-x' });
+    });
+
+    it('refuses a breakpoint the emitter would refuse to write', () => {
+        // Both halves of the round trip answer to one grammar, or a name
+        // exists that renders but cannot be read back.
+        expect(parseLayoutAttr('data-l-Md-gap')).toBeUndefined();
+    });
+
     it('accepts a breakpoint name that starts with a digit', () => {
         // Token keys may lead with a digit (`--text-2xl`), so a design system
         // may legitimately name a breakpoint `2xl`.

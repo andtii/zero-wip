@@ -118,31 +118,52 @@ export const LAYOUT_ATTR_NAMES: ReadonlySet<string> = new Set(Object.keys(LAYOUT
 export const layoutAttrSpec = (attr: LayoutAttrName): LayoutAttrSpec => LAYOUT_VOCABULARY[attr];
 
 /**
+ * Attribute names longest-first — the scan order {@link parseLayoutAttr}
+ * needs so `md-gap-x` resolves to the attribute `gap-x` rather than stopping
+ * at `gap` and leaving a breakpoint of `md-gap`.
+ */
+const ATTRS_LONGEST_FIRST: readonly LayoutAttrName[] =
+    (Object.keys(LAYOUT_VOCABULARY) as LayoutAttrName[]).sort((a, b) => b.length - a.length);
+
+/**
  * Split a rendered layout attribute back into its parts, or `undefined` when
  * the name is not one of ours.
  *
  * `data-l-gap` → `{ attr: 'gap' }`; `data-l-gap-x` → `{ attr: 'gap-x' }`;
  * `data-l-md-gap` → `{ attr: 'gap', breakpoint: 'md' }`.
  *
- * The base name is tried WHOLE before any split, which is what keeps
- * multi-word attributes (`gap-x`) unambiguous. A breakpoint named after a
- * layout attribute would still shadow one, which is why `@sigx/zero-kit`
- * rejects such a breakpoint at declaration time rather than leaving the
- * collision to be discovered in a stylesheet.
+ * The base name is tried WHOLE before any split, which is what keeps the
+ * multi-word attributes (`gap-x`) unambiguous. Failing that, the ATTRIBUTE is
+ * matched as a suffix, longest first — not the breakpoint as a prefix.
+ * Splitting at the first hyphen would read `data-l-tablet-lg-gap` as
+ * breakpoint `tablet` + attribute `lg-gap` and reject it, and a breakpoint
+ * name may legitimately contain a hyphen: the kit holds them to
+ * `TOKEN_KEY_PATTERN`, the same grammar that allows `gap-x`. Matching from
+ * the end works because the attribute vocabulary is closed and the
+ * breakpoint set is not — the known half is the half worth anchoring on.
+ *
+ * A breakpoint that is not kebab-case is refused here exactly as
+ * {@link layoutAttrs} refuses to emit one, so the two halves of the round
+ * trip cannot disagree about what is a legal name.
  */
 export function parseLayoutAttr(name: string): { attr: LayoutAttrName; breakpoint?: string } | undefined {
     if (!name.startsWith(LAYOUT_ATTR_PREFIX)) return undefined;
     const rest = name.slice(LAYOUT_ATTR_PREFIX.length);
     if (LAYOUT_ATTR_NAMES.has(rest)) return { attr: rest as LayoutAttrName };
-    const cut = rest.indexOf('-');
-    if (cut <= 0) return undefined;
-    const breakpoint = rest.slice(0, cut);
-    const attr = rest.slice(cut + 1);
-    if (!LAYOUT_ATTR_NAMES.has(attr)) return undefined;
-    if (!layoutAttrSpec(attr as LayoutAttrName).responsive) return undefined;
-    return { attr: attr as LayoutAttrName, breakpoint };
+    for (const attr of ATTRS_LONGEST_FIRST) {
+        const suffix = `-${attr}`;
+        if (!rest.endsWith(suffix)) continue;
+        const breakpoint = rest.slice(0, rest.length - suffix.length);
+        if (breakpoint.length === 0) return undefined;
+        // The longest attribute match is THE interpretation: falling back to
+        // a shorter one would let `md-gap-x` be re-read as a breakpoint of
+        // `md-gap` the moment `gap-x` turned out not to be responsive.
+        if (!layoutAttrSpec(attr).responsive) return undefined;
+        if (!TOKEN_KEY_PATTERN.test(breakpoint)) return undefined;
+        return { attr, breakpoint };
+    }
+    return undefined;
 }
-
 
 /**
  * A layout value, optionally varying per breakpoint.

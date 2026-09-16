@@ -107,9 +107,15 @@ describe('kit ↔ zero contract parity', () => {
         // component and its stylesheet stop describing the same attribute.
         // Swept over the real vocabulary rather than examples, including the
         // per-breakpoint spelling and the shapes that must be REFUSED.
-        const names: string[] = ['data-l-nope', 'data-color', 'data-l-', 'data-l-md-wrap'];
+        const names: string[] = [
+            'data-l-nope', 'data-color', 'data-l-', 'data-l-md-wrap',
+            // Shapes the suffix-matching parse has to agree on: a hyphenated
+            // breakpoint, the longest-suffix tie-break, and a name neither
+            // copy may accept because the emitter would not write it.
+            'data-l-tablet-lg-gap', 'data-l-md-gap-x', 'data-l-Md-gap', 'data-l-gap-gap',
+        ];
         for (const attr of Object.keys(zero.LAYOUT_VOCABULARY)) {
-            names.push(`data-l-${attr}`, `data-l-md-${attr}`, `data-l-2xl-${attr}`);
+            names.push(`data-l-${attr}`, `data-l-md-${attr}`, `data-l-2xl-${attr}`, `data-l-tablet-lg-${attr}`);
         }
         for (const name of names) {
             expect(kit.parseLayoutAttr(name), name).toEqual(zero.parseLayoutAttr(name));

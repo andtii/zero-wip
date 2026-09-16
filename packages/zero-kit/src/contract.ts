@@ -539,21 +539,35 @@ export const LAYOUT_ATTR_NAMES: ReadonlySet<string> = new Set(Object.keys(LAYOUT
 export const layoutAttrSpec = (attr: LayoutAttrName): LayoutAttrSpec => LAYOUT_VOCABULARY[attr];
 
 /**
+ * Attribute names longest-first — the scan order `parseLayoutAttr` needs so
+ * `md-gap-x` resolves to the attribute `gap-x` rather than stopping at `gap`.
+ */
+const ATTRS_LONGEST_FIRST: readonly LayoutAttrName[] =
+    (Object.keys(LAYOUT_VOCABULARY) as LayoutAttrName[]).sort((a, b) => b.length - a.length);
+
+/**
  * Split a rendered layout attribute into its parts, or `undefined` when the
- * name is not one of ours. Mirrors `parseLayoutAttr` in `@sigx/zero/contract`.
+ * name is not one of ours. Mirrors `parseLayoutAttr` in `@sigx/zero/contract`
+ * — including the suffix-matching rule: a breakpoint name may contain a
+ * hyphen (`tablet-lg`), so the closed ATTRIBUTE vocabulary is what gets
+ * anchored on, matched from the end, longest first.
  */
 export function parseLayoutAttr(name: string): { attr: LayoutAttrName; breakpoint?: string } | undefined {
     if (!name.startsWith(LAYOUT_ATTR_PREFIX)) return undefined;
     const rest = name.slice(LAYOUT_ATTR_PREFIX.length);
     if (LAYOUT_ATTR_NAMES.has(rest)) return { attr: rest as LayoutAttrName };
-    const cut = rest.indexOf('-');
-    if (cut <= 0) return undefined;
-    const breakpoint = rest.slice(0, cut);
-    const attr = rest.slice(cut + 1);
-    if (!LAYOUT_ATTR_NAMES.has(attr)) return undefined;
-    if (!layoutAttrSpec(attr as LayoutAttrName).responsive) return undefined;
-    return { attr: attr as LayoutAttrName, breakpoint };
+    for (const attr of ATTRS_LONGEST_FIRST) {
+        const suffix = `-${attr}`;
+        if (!rest.endsWith(suffix)) continue;
+        const breakpoint = rest.slice(0, rest.length - suffix.length);
+        if (breakpoint.length === 0) return undefined;
+        if (!layoutAttrSpec(attr).responsive) return undefined;
+        if (!TOKEN_KEY_PATTERN.test(breakpoint)) return undefined;
+        return { attr, breakpoint };
+    }
+    return undefined;
 }
+
 
 // ── Minimal structural mirror of @sigx/zero's AnatomyJSON/manifest types ──
 
