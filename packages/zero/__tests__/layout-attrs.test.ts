@@ -58,6 +58,12 @@ describe('layoutAttrs', () => {
     it('throws when a non-responsive attribute is given a record', () => {
         expect(() => layoutAttrs({ wrap: { md: 'wrap' } }, ['wrap']))
             .toThrow(/does not vary per breakpoint/);
+        // Including a record that names only `base`. It resolves to no
+        // breakpoint, so a per-key check let it through — and the message
+        // says "pass a single value rather than a record", which has to mean
+        // every record or it means nothing.
+        expect(() => layoutAttrs({ wrap: { base: 'wrap' } }, ['wrap']))
+            .toThrow(/does not vary per breakpoint/);
     });
 
     it('throws on a breakpoint key that is not kebab-case', () => {

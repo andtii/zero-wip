@@ -250,11 +250,6 @@ export function layoutAttrs(
                 );
             }
             if (breakpoint !== undefined) {
-                if (!vocabulary.responsive) {
-                    throw new Error(
-                        `[zero] layout: "${attr}" does not vary per breakpoint — pass a single value rather than a record`,
-                    );
-                }
                 // The key becomes part of an attribute NAME, so it answers to
                 // the same grammar `variantAttrs` holds axis names to.
                 // `data-*` names are case-sensitive and the lynx class
@@ -286,6 +281,16 @@ export function layoutAttrs(
         // `number` is deliberately accepted and stringified — `cols={4}` is
         // how every consumer will write it, and `cols="4"` reads as a typo.
         if (isRecord(value)) {
+            // Checked on the RECORD, not per key. Gating this on "a
+            // breakpoint was present" let `{ base: 'wrap' }` through on a
+            // non-responsive attribute, because `base` resolves to no
+            // breakpoint at all — so the one message that says "pass a single
+            // value rather than a record" was accepting a record.
+            if (!vocabulary.responsive) {
+                throw new Error(
+                    `[zero] layout: "${attr}" does not vary per breakpoint — pass a single value rather than a record`,
+                );
+            }
             for (const [key, inner] of Object.entries(value)) {
                 put(key === BASE_BREAKPOINT_KEY ? undefined : key, inner);
             }
