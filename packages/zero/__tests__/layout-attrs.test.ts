@@ -45,6 +45,16 @@ describe('layoutAttrs', () => {
     // Three throwing guards, all for `variantAttrs`' reason: the value comes
     // from application code, and a silently missing attribute is the exact
     // failure this mechanism exists to remove.
+    it('names an unknown attribute rather than dereferencing nothing', () => {
+        // Reachable through a typo'd anatomy: `defineAnatomy` carries no
+        // runtime guard, so `layout: ['gutter']` satisfies the declared check
+        // and used to fail with "cannot read properties of undefined".
+        expect(() => layoutAttrs({ gutter: 'md' } as never, ['gutter']))
+            .toThrow(/"gutter" is not a layout attribute/);
+        expect(() => layoutAttrs({ gutter: 'md' } as never, []))
+            .toThrow(/"gutter" is not a layout attribute/);
+    });
+
     it('throws on an attribute the part does not declare', () => {
         expect(() => layoutAttrs({ gap: 'md' }, ['pad']))
             .toThrow(/does not declare "gap"/);

@@ -235,6 +235,18 @@ export function layoutAttrs(
     for (const [name, value] of Object.entries(props)) {
         if (value === undefined) continue;
         const attr = name as LayoutAttrName;
+        // Vocabulary membership BEFORE the declared check, because it is the
+        // more fundamental error and because the declared list is not itself
+        // guaranteed sound: `defineAnatomy` carries no runtime guard (it is
+        // on every component's size budget), so a typo'd `layout: ['gutter']`
+        // would satisfy `declared.includes` and then dereference an undefined
+        // spec — a bare "cannot read properties of undefined" where every
+        // other path here names what went wrong.
+        if (!LAYOUT_ATTR_NAMES.has(attr)) {
+            throw new Error(
+                `[zero] layout: "${attr}" is not a layout attribute (known: ${[...LAYOUT_ATTR_NAMES].join(', ')})`,
+            );
+        }
         if (!declared.includes(attr)) {
             throw new Error(
                 `[zero] layout: this part does not declare "${attr}" — add it to the part's \`layout\` in its anatomy, or drop the prop`,
