@@ -11,6 +11,7 @@
  * component's bundle — measurably, three subpaths went over their size
  * budget. A table only the layout tier reads has no business on that path.
  */
+import { TOKEN_KEY_PATTERN } from './tokens.js';
 import type { ZeroBreakpointName } from './vocabulary.js';
 
 /**
@@ -165,8 +166,16 @@ export type Responsive<T> = T | ({ base?: T } & Partial<Record<ZeroBreakpointNam
 /** The layout props a part accepts, as a bag keyed by attribute name. */
 export type LayoutProps = Partial<Record<LayoutAttrName, Responsive<string | number> | undefined>>;
 
+/**
+ * The responsive form is a plain object. An ARRAY is not one, and the
+ * distinction has to be made explicitly: `typeof [] === 'object'`, so a
+ * permissive check turns `gap={['md']}` into `data-l-0-gap="md"` — an
+ * attribute named after an array index, which no stylesheet will ever match.
+ * `Responsive<T>` does not admit an array, so this only guards the untyped
+ * caller; it throws rather than drops, like every other guard here.
+ */
 const isRecord = (v: unknown): v is Record<string, unknown> =>
-    typeof v === 'object' && v !== null;
+    typeof v === 'object' && v !== null && !Array.isArray(v);
 
 /**
  * Build the `data-l-*` attributes for a part from its layout props.
@@ -205,13 +214,39 @@ export function layoutAttrs(
                     `[zero] layout: "${v}" is not a value of "${attr}" (expected one of: ${vocabulary.values.join(', ')})`,
                 );
             }
-            if (breakpoint !== undefined && !vocabulary.responsive) {
-                throw new Error(
-                    `[zero] layout: "${attr}" does not vary per breakpoint — pass a single value rather than a record`,
-                );
+            if (breakpoint !== undefined) {
+                if (!vocabulary.responsive) {
+                    throw new Error(
+                        `[zero] layout: "${attr}" does not vary per breakpoint — pass a single value rather than a record`,
+                    );
+                }
+                // The key becomes part of an attribute NAME, so it answers to
+                // the same grammar `variantAttrs` holds axis names to.
+                // `data-*` names are case-sensitive and the lynx class
+                // grammar carries them unescaped, so `Md` or `md!` would
+                // render something that matches nothing, silently — which is
+                // the failure this module exists to remove. Whether the
+                // breakpoint is one the design system DECLARED is a question
+                // only the design system can answer; the type does that under
+                // `/register`.
+                if (!TOKEN_KEY_PATTERN.test(breakpoint)) {
+                    throw new Error(
+                        `[zero] layout: "${breakpoint}" is not a kebab-case breakpoint name — it becomes the attribute name ${LAYOUT_ATTR_PREFIX}${breakpoint}-${attr}`,
+                    );
+                }
             }
             attrs[`${LAYOUT_ATTR_PREFIX}${breakpoint === undefined ? '' : `${breakpoint}-`}${attr}`] = v;
         };
+        // An array is neither form, and it cannot be left to fall through to
+        // the bare-value path: `String(['md'])` is `'md'`, so a one-element
+        // array passes the value check and emits a perfectly valid attribute
+        // by accident. Two elements would have failed. Rejected explicitly so
+        // the two cases behave the same way.
+        if (Array.isArray(value)) {
+            throw new Error(
+                `[zero] layout: "${attr}" takes a value or a breakpoint record, not an array`,
+            );
+        }
         // A record is the responsive form; anything else is the bare value.
         // `number` is deliberately accepted and stringified — `cols={4}` is
         // how every consumer will write it, and `cols="4"` reads as a typo.

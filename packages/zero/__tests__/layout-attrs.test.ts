@@ -59,6 +59,31 @@ describe('layoutAttrs', () => {
         expect(() => layoutAttrs({ wrap: { md: 'wrap' } }, ['wrap']))
             .toThrow(/does not vary per breakpoint/);
     });
+
+    it('throws on a breakpoint key that is not kebab-case', () => {
+        // The key becomes part of an attribute NAME. `data-*` names are
+        // case-sensitive and the lynx class grammar carries them unescaped,
+        // so `Md` would render an attribute nothing matches — silently,
+        // which is the whole failure mode this module removes.
+        expect(() => layoutAttrs({ gap: { Md: 'lg' } } as never, ['gap']))
+            .toThrow(/not a kebab-case breakpoint name/);
+        expect(() => layoutAttrs({ gap: { 'md!': 'lg' } } as never, ['gap']))
+            .toThrow(/not a kebab-case breakpoint name/);
+    });
+
+    it('rejects an array rather than reading it as a breakpoint record', () => {
+        // Two ways this goes wrong, which is why the rejection is explicit
+        // rather than a fallthrough. Read as a record, `gap={['md']}` becomes
+        // `data-l-0-gap="md"` — an attribute named after an array index.
+        // Read as a bare value it is worse: `String(['md'])` is `'md'`, so a
+        // ONE-element array quietly emits a valid attribute while a
+        // two-element one throws. `Responsive<T>` admits neither, so this
+        // guards the untyped caller only.
+        expect(() => layoutAttrs({ gap: ['md'] } as never, ['gap']))
+            .toThrow(/not an array/);
+        expect(() => layoutAttrs({ gap: ['md', 'lg'] } as never, ['gap']))
+            .toThrow(/not an array/);
+    });
 });
 
 describe('parseLayoutAttr', () => {
