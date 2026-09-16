@@ -4,7 +4,7 @@
 
 ### Added — the layout attribute family (#471)
 
-- **`LAYOUT_VOCABULARY`** (`contract/data-attrs.ts`) closes a fifteen-attribute
+- **`LAYOUT_VOCABULARY`** (`contract/layout-attrs.ts`) closes a fifteen-attribute
   set — `gap`/`gap-x`/`gap-y`, `pad`/`pad-x`/`pad-y`, `align`, `justify`,
   `wrap`, `cols`, `span`, `track`, `grow`, `axis`, `space` — each with its own
   closed value list and a flag for whether it varies per breakpoint. Spacing

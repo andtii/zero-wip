@@ -162,6 +162,19 @@ describe('compileLynxRecipeCss', () => {
         expect(report.dropped.some((f) => f.detail.includes('runtime JS on lynx'))).toBe(true);
     });
 
+    it('reports a digit-leading breakpoint as responsive, not as an unknown selector', () => {
+        // A design system may name a breakpoint `2xl` — token keys may lead
+        // with a digit (`--text-2xl`). The rule is dropped either way, but
+        // the author has to be told WHICH reason, or they go looking for a
+        // spelling mistake in a selector that was correct.
+        const { report } = compile({
+            component: 'button',
+            parts: { root: { selectors: { '&[data-l-2xl-gap="lg"]': { gap: '24px' } } } },
+        });
+        expect(report.dropped.some((f) => f.detail.includes('runtime JS on lynx'))).toBe(true);
+        expect(report.dropped.some((f) => f.detail.includes('not expressible'))).toBe(false);
+    });
+
     it('drops an unknown name under the layout prefix rather than minting a class', () => {
         const { css, report } = compile({
             component: 'button',

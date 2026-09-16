@@ -100,8 +100,16 @@ const CONTRACT_ATTR_PATTERN = /^&\[data-(orientation|placement)="([a-z-]+)"\]$/;
  * A per-breakpoint spelling has no class form and is dropped with the same
  * message the `at:` blocks get; it only reaches here if a recipe hand-wrote
  * one outside a condition, which would not have matched on the web either.
+ *
+ * The name may LEAD with a digit, which is why this is `[a-z0-9]` and not
+ * `[a-z]`: token keys may start with one (`--text-2xl`), so a design system
+ * may legitimately name a breakpoint `2xl` and spell the selector
+ * `&[data-l-2xl-gap="lg"]`. Requiring a letter made that fall through to the
+ * generic "not expressible" drop instead of the responsive one — the rule
+ * was dropped either way, but the report told the author the wrong thing
+ * about why.
  */
-const LAYOUT_ATTR_SELECTOR = /^&\[(data-l-[a-z][a-z0-9-]*)="([a-z0-9-]+)"\]$/;
+const LAYOUT_ATTR_SELECTOR = /^&\[(data-l-[a-z0-9][a-z0-9-]*)="([a-z0-9-]+)"\]$/;
 
 /** `flex: <number>` — the shorthand lynx expands RN-style (grow N shrink 1 basis auto). */
 const FLEX_NUMBER = /^\s*(\d+(?:\.\d+)?)\s*$/;
