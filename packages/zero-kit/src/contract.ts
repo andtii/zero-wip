@@ -504,6 +504,13 @@ export const RESERVED_AXES: ReadonlySet<string> = new Set([
  */
 export const LAYOUT_ATTR_PREFIX = 'data-l-';
 
+/**
+ * The key `Responsive` uses for the unqualified value, and therefore a name
+ * no breakpoint may take. Mirrors `BASE_BREAKPOINT_KEY` in
+ * `@sigx/zero/contract`; the validator rejects a breakpoint declared with it.
+ */
+export const BASE_BREAKPOINT_KEY = 'base';
+
 export interface LayoutAttrSpec {
     readonly values: readonly string[];
     readonly responsive?: true;
@@ -563,6 +570,7 @@ export function parseLayoutAttr(name: string): { attr: LayoutAttrName; breakpoin
         if (breakpoint.length === 0) return undefined;
         if (!layoutAttrSpec(attr).responsive) return undefined;
         if (!TOKEN_KEY_PATTERN.test(breakpoint)) return undefined;
+        if (breakpoint === BASE_BREAKPOINT_KEY) return undefined;
         return { attr, breakpoint };
     }
     return undefined;

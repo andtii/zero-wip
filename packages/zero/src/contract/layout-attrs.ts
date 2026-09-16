@@ -50,6 +50,16 @@ import type { ZeroBreakpointName } from './vocabulary.js';
  */
 export const LAYOUT_ATTR_PREFIX = 'data-l-';
 
+/**
+ * The key {@link Responsive} uses for the UNQUALIFIED value, and therefore a
+ * name no breakpoint may take: `{ base: 'md' }` renders `data-l-gap="md"`,
+ * not `data-l-base-gap="md"`. A design system that declared a breakpoint
+ * called `base` could never reach it — `@sigx/zero-kit` refuses the
+ * declaration for that reason, the way it already refuses one colliding with
+ * a built-in condition.
+ */
+export const BASE_BREAKPOINT_KEY = 'base';
+
 /** One layout attribute: its closed value set, and whether it varies per breakpoint. */
 export interface LayoutAttrSpec {
     readonly values: readonly string[];
@@ -160,6 +170,10 @@ export function parseLayoutAttr(name: string): { attr: LayoutAttrName; breakpoin
         // `md-gap` the moment `gap-x` turned out not to be responsive.
         if (!layoutAttrSpec(attr).responsive) return undefined;
         if (!TOKEN_KEY_PATTERN.test(breakpoint)) return undefined;
+        // `base` names the unqualified value, so `data-l-base-gap` is a name
+        // `layoutAttrs` can never write. Accepting it here would let
+        // `expectAnatomy` pass a render no stylesheet targets.
+        if (breakpoint === BASE_BREAKPOINT_KEY) return undefined;
         return { attr, breakpoint };
     }
     return undefined;
@@ -273,7 +287,7 @@ export function layoutAttrs(
         // how every consumer will write it, and `cols="4"` reads as a typo.
         if (isRecord(value)) {
             for (const [key, inner] of Object.entries(value)) {
-                put(key === 'base' ? undefined : key, inner);
+                put(key === BASE_BREAKPOINT_KEY ? undefined : key, inner);
             }
         } else {
             put(undefined, value);

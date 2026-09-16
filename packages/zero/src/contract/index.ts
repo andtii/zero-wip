@@ -66,6 +66,7 @@ export {
     LAYOUT_VOCABULARY,
     LAYOUT_ATTR_NAMES,
     LAYOUT_ATTR_PREFIX,
+    BASE_BREAKPOINT_KEY,
     SPACE_STEPS,
 } from './layout-attrs.js';
 

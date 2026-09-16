@@ -121,6 +121,14 @@ describe('parseLayoutAttr', () => {
         expect(parseLayoutAttr('data-l-gap-x')).toEqual({ attr: 'gap-x' });
     });
 
+    it('refuses `base` as a breakpoint, since that key means "unqualified"', () => {
+        // `{ base: 'md' }` renders `data-l-gap="md"`, so `data-l-base-gap` is
+        // a name layoutAttrs can never write. Parsing it would let
+        // expectAnatomy pass a render no stylesheet targets.
+        expect(parseLayoutAttr('data-l-base-gap')).toBeUndefined();
+        expect(layoutAttrs({ gap: { base: 'md' } }, ['gap'])).toEqual({ 'data-l-gap': 'md' });
+    });
+
     it('refuses a breakpoint the emitter would refuse to write', () => {
         // Both halves of the round trip answer to one grammar, or a name
         // exists that renders but cannot be read back.

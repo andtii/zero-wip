@@ -24,6 +24,7 @@ import type { ZeroManifest } from '../contract.js';
 import { badAxisValue } from './messages.js';
 import {
     BASE_SURFACE_TOKEN_LIST,
+    BASE_BREAKPOINT_KEY,
     RESERVED_AXES,
     RESERVED_ROLE_NAMES,
     TOKEN_CATEGORIES,
@@ -735,6 +736,14 @@ export function validateDesignSystem<R extends RolesDecl>(
             error(
                 'tokens.breakpoints',
                 `"${name}" collides with the built-in condition of the same name — rename the breakpoint`,
+            );
+        }
+        if (name === BASE_BREAKPOINT_KEY) {
+            error(
+                'tokens.breakpoints',
+                `"${name}" is the key a responsive layout prop uses for its unqualified value `
+                + `(gap={{ base: 'md' }} renders data-l-gap), so a breakpoint of this name could `
+                + 'never be reached — rename the breakpoint',
             );
         }
         const width = /^(\d*\.?\d+)(px|rem|em)$/.exec(String(value));

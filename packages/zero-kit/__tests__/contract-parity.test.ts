@@ -74,6 +74,10 @@ const SHARED: Record<string, [unknown, unknown]> = {
     // one lookup: a value in one copy and not the other is a rule that can
     // never match, or a prop that paints nothing.
     LAYOUT_ATTR_PREFIX: [zero.LAYOUT_ATTR_PREFIX, kit.LAYOUT_ATTR_PREFIX],
+    // The key `Responsive` reserves for the unqualified value. Both copies
+    // refuse it as a breakpoint, and the kit's validator refuses to let a
+    // design system declare one — three readers, one name.
+    BASE_BREAKPOINT_KEY: [zero.BASE_BREAKPOINT_KEY, kit.BASE_BREAKPOINT_KEY],
     LAYOUT_VOCABULARY: [zero.LAYOUT_VOCABULARY, kit.LAYOUT_VOCABULARY],
     LAYOUT_ATTR_NAMES: [[...zero.LAYOUT_ATTR_NAMES].sort(), [...kit.LAYOUT_ATTR_NAMES].sort()],
     SPACE_STEPS: [zero.SPACE_STEPS, kit.SPACE_STEPS],
@@ -113,6 +117,7 @@ describe('kit ↔ zero contract parity', () => {
             // breakpoint, the longest-suffix tie-break, and a name neither
             // copy may accept because the emitter would not write it.
             'data-l-tablet-lg-gap', 'data-l-md-gap-x', 'data-l-Md-gap', 'data-l-gap-gap',
+            'data-l-base-gap', 'data-l-base-cols',
         ];
         for (const attr of Object.keys(zero.LAYOUT_VOCABULARY)) {
             names.push(`data-l-${attr}`, `data-l-md-${attr}`, `data-l-2xl-${attr}`, `data-l-tablet-lg-${attr}`);
