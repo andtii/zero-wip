@@ -168,9 +168,20 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                         throw new Error(`[zero-kit] ${at(part.name)} declares placement "${placement}", which is not in the placement vocabulary [${PLACEMENT_VOCABULARY.join(', ')}]`);
                     }
                 }
-                for (const attr of part.layout ?? []) {
-                    if (!LAYOUT_ATTR_NAMES.has(attr)) {
-                        throw new Error(`[zero-kit] ${at(part.name)} declares layout attribute "${attr}", which is not in the layout vocabulary [${[...LAYOUT_ATTR_NAMES].join(', ')}]`);
+                if (part.layout !== undefined) {
+                    // Absent, never empty — the anatomy's rule for every
+                    // declared-subset key, and the schema says `minItems: 1`.
+                    // A JSON fragment is caught there; this is the
+                    // PROGRAMMATIC entrypoint, where a hand-built object
+                    // would otherwise slip an invalid shape through. `models`
+                    // above guards itself the same way.
+                    if (!Array.isArray(part.layout) || part.layout.length === 0) {
+                        throw new Error(`[zero-kit] ${at(part.name)} has a "layout" that is not a non-empty array — omit the key when the part takes none`);
+                    }
+                    for (const attr of part.layout) {
+                        if (!LAYOUT_ATTR_NAMES.has(attr)) {
+                            throw new Error(`[zero-kit] ${at(part.name)} declares layout attribute "${attr}", which is not in the layout vocabulary [${[...LAYOUT_ATTR_NAMES].join(', ')}]`);
+                        }
                     }
                 }
                 for (const state of part.hiddenIn ?? []) {

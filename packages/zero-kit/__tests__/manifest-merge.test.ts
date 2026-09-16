@@ -170,6 +170,14 @@ describe('mergeManifests', () => {
         expect(() => mergeManifests(baseManifest(), withPart({ layout: ['gap', 'pad-x'] }))).not.toThrow();
     });
 
+    it('rejects an explicitly empty layout, which claims a fact where there is none', () => {
+        // The schema says minItems: 1, but that only binds a JSON fragment.
+        // This is the programmatic entrypoint, so a hand-built object has to
+        // be held to the same "absent, never empty" rule `models` follows.
+        expect(() => mergeManifests(baseManifest(), withPart({ layout: [] })))
+            .toThrow(/"layout" that is not a non-empty array/);
+    });
+
     it('rejects a fragment layout attribute outside the layout vocabulary', () => {
         // The ecosystem surface is where the layout vocabulary finally binds:
         // zero's own anatomies are governed by its test suite, and
