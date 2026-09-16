@@ -29,6 +29,8 @@ import {
     STATE_VOCABULARY,
     STATE_SYNONYMS,
     PLACEMENT_VOCABULARY,
+    LAYOUT_ATTR_PREFIX,
+    LAYOUT_VOCABULARY,
 } from '@sigx/zero/contract';
 import { AUDIT_RULES, auditDesignSystem, buildAuditArtifact, buildDsManifest, buildReport, compileDesignSystem } from '@sigx/zero-kit';
 import type { DesignSystemInput, ManifestComponent } from '@sigx/zero-kit';
@@ -104,6 +106,13 @@ const manifest = {
         ),
         stateSynonyms: { ...STATE_SYNONYMS },
         placementVocabulary: [...PLACEMENT_VOCABULARY],
+        layoutPrefix: LAYOUT_ATTR_PREFIX,
+        layoutVocabulary: Object.fromEntries(
+            Object.entries(LAYOUT_VOCABULARY).map(([attr, spec]) => [
+                attr,
+                { values: [...spec.values], ...('responsive' in spec ? { responsive: true } : {}) },
+            ]),
+        ),
         variantAxes: {
             color: 'data-color',
             size: 'data-size',
@@ -619,11 +628,14 @@ describe('lynx-manifest.schema.json', () => {
             ...base,
             $schema: 'https://signalxjs.github.io/zero/schemas/lynx-manifest.schema.json',
             target: 'lynx',
-            classGrammarVersion: 1,
+            classGrammarVersion: 2,
             capabilities: { translated: 1, dropped: 2 },
         };
         expectValid(validateLynxManifest, asJson(lynxManifest), 'basic lynx manifest');
-        expect(validateLynxManifest(asJson({ ...lynxManifest, classGrammarVersion: 2 }))).toBe(false);
+        // The SUPERSEDED version is the one that must be refused: this is the
+        // check a runtime relies on to reject a stylesheet emitted under a
+        // grammar it no longer speaks.
+        expect(validateLynxManifest(asJson({ ...lynxManifest, classGrammarVersion: 1 }))).toBe(false);
         expect(validateLynxManifest(asJson({ ...lynxManifest, target: 'web' }))).toBe(false);
         const { capabilities: _dropped, ...withoutCaps } = lynxManifest;
         expect(validateLynxManifest(asJson(withoutCaps))).toBe(false);

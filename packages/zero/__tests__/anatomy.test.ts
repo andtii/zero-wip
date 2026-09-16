@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { anatomies, defineAnatomy } from '@sigx/zero/anatomy';
-import { FLAG_VOCABULARY, PLACEMENT_VOCABULARY, STATE_NAMES, STATE_SYNONYMS } from '@sigx/zero';
+import { FLAG_VOCABULARY, LAYOUT_ATTR_NAMES, PLACEMENT_VOCABULARY, STATE_NAMES, STATE_SYNONYMS } from '@sigx/zero';
 
 describe('defineAnatomy', () => {
     const a = defineAnatomy('demo', {
@@ -193,5 +193,23 @@ describe('anatomy registry', () => {
             'chat.root', 'combobox.popup', 'drawer.panel', 'indicator.item', 'menu.popup', 'menu.sub-popup',
             'popover.popup', 'select.popup', 'timeline.content', 'toast.root', 'toast.viewport', 'tooltip.popup',
         ]);
+    });
+
+    it('all declared layout attributes come from the layout vocabulary', () => {
+        // Governed exactly like placements. The registry currently declares
+        // none — the layout tier's own scopes land in the follow-ups — and
+        // this passing vacuously is the point: the guard is in place before
+        // the first part can declare one, so a typo'd attribute name can
+        // never reach a manifest.
+        for (const anatomy of Object.values(anatomies)) {
+            for (const [name, part] of Object.entries<{ layout?: readonly string[] }>(anatomy.parts)) {
+                if (!part.layout) continue;
+                // Absent, never empty — same reasoning as hiddenIn.
+                expect(part.layout.length, `${anatomy.scope}.${name}: empty layout — omit it`).toBeGreaterThan(0);
+                for (const attr of part.layout) {
+                    expect(LAYOUT_ATTR_NAMES.has(attr), `${anatomy.scope}.${name}: layout "${attr}"`).toBe(true);
+                }
+            }
+        }
     });
 });

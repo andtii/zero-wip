@@ -7,12 +7,12 @@
  * zero's copy, the emitter writes selectors with this one, and a drift
  * between them is CSS that matches nothing.
  *
- * Grammar version 1 — see zero's copy for the full table and the axis
+ * Grammar version 2 — see zero's copy for the full table and the axis
  * push-down rule (the runtime stamps axis/modifier classes on every part
  * from carrier context, so this target never emits a combinator for them).
  */
 
-export const CLASS_GRAMMAR_VERSION = 1;
+export const CLASS_GRAMMAR_VERSION = 2;
 
 /** The token host — the projection of `:root` (lynx has no `:root`). */
 export const HOST_CLASS = 'zx-root';
@@ -37,6 +37,9 @@ export const orientationClass = (value: string): string => `zx-o-${value}`;
 
 /** `zx-p-<value>` — declared placement (anchored popups, toast, rows). */
 export const placementClass = (value: string): string => `zx-p-${value}`;
+
+/** `zx-l-<attr>-<value>` — a layout attribute (`gap`, `cols`, `align`, …). */
+export const layoutClass = (attr: string, value: string): string => `zx-l-${attr}-${value}`;
 
 /** `zx-theme-<name>` — the theme block a token host switches between. */
 export const themeClass = (name: string): string => `zx-theme-${name}`;

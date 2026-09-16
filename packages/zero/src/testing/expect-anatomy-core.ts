@@ -9,6 +9,7 @@
 import type { Anatomy } from '../contract/anatomy.js';
 import { MOD_ATTR_PREFIX, RESERVED_AXES, VARIANT_AXES } from '../contract/variant-attrs.js';
 import { TOKEN_KEY_PATTERN as AXIS_NAME_PATTERN } from '../contract/tokens.js';
+import { LAYOUT_ATTR_NAMES, LAYOUT_ATTR_PREFIX, layoutAttrSpec, parseLayoutAttr } from '../contract/layout-attrs.js';
 
 /**
  * What the rules need from a rendered element — a three-member structural
@@ -159,6 +160,27 @@ export function expectAnatomyElements(
             // Checked against the part's declared subset above — here it must
             // only not fall through into the flag walk.
             if (attr === 'data-placement') continue;
+            // Layout attributes are declared contract data like placements,
+            // but namespaced, so they are recognised by prefix and then
+            // checked against the part's own `layout` list. A name under the
+            // prefix that the vocabulary does not know fails here rather than
+            // falling through to be reported as a baffling undeclared flag.
+            if (attr.startsWith(LAYOUT_ATTR_PREFIX)) {
+                const parsed = parseLayoutAttr(attr);
+                if (!parsed) {
+                    fail(anatomy, `part "${partName}" renders "${attr}", which is not a layout attribute (known: ${[...LAYOUT_ATTR_NAMES].join(', ')})`);
+                    continue;
+                }
+                if (!(spec.layout ?? []).includes(parsed.attr)) {
+                    fail(anatomy, `part "${partName}" renders "${attr}" but does not declare layout attribute "${parsed.attr}" (declares: [${(spec.layout ?? []).join(', ')}])`);
+                    continue;
+                }
+                const value = el.getAttribute(attr) ?? '';
+                if (!layoutAttrSpec(parsed.attr).values.includes(value)) {
+                    fail(anatomy, `part "${partName}" renders ${attr}="${value}", which is not a value of "${parsed.attr}" (expected one of: ${layoutAttrSpec(parsed.attr).values.join(', ')})`);
+                }
+                continue;
+            }
             // Modifiers are declared design-system vocabulary rendered through
             // `mods`, namespaced so they can never collide with flags — exempt
             // from declaration, but presence-only like every boolean attribute.

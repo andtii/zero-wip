@@ -4,6 +4,30 @@
 
 ### Added
 
+- **The layout attribute family, kit side** (#471). `contract.ts` mirrors
+  `LAYOUT_ATTR_PREFIX`, `LAYOUT_VOCABULARY`, `SPACE_STEPS`, `layoutAttrSpec`
+  and `parseLayoutAttr` from `@sigx/zero/contract`, held by
+  `contract-parity.test.ts` — by value for the vocabulary, and behaviorally
+  for the two functions, swept over every name both copies can render.
+  `ManifestPart.layout` carries a part's declared subset, the manifest schema
+  declares `attributeSpec.layoutPrefix` / `attributeSpec.layoutVocabulary`
+  and `part.layout`, and `mergeManifests` holds an ecosystem fragment's
+  layout attributes to the vocabulary the way it already does flags, states
+  and placements.
+- **Lynx: layout selectors project onto the class grammar.**
+  `&[data-l-gap="md"]` now emits `.zx-l-gap-md` instead of being dropped as
+  an inexpressible selector — without this branch the `zx-l-` grammar would
+  be dead code and the layout tier would render entirely unstyled on lynx. A
+  per-breakpoint selector is still dropped, but now says so ("responsive
+  styling is runtime JS on lynx") rather than reporting an unknown selector.
+
+### Changed
+
+- **Class grammar version 2** (`targets/lynx/class-names.ts`), adding
+  `layoutClass`. `lynx-manifest.schema.json` pins `classGrammarVersion` to
+  `2`, so a runtime refuses a stylesheet emitted under version 1 — an
+  external coordination item with `@sigx/lynx-zero`.
+
 - **The manifest's `models` block** (#451). `ManifestComponent.models` /
   `ManifestModel` type the entries zero's anatomies now emit; the manifest
   schema declares `$defs/model` (`concept`, `type`, `default`, `change`

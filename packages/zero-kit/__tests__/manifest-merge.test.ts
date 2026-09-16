@@ -166,6 +166,19 @@ describe('mergeManifests', () => {
             .toThrow(/placement "center"/);
     });
 
+    it('accepts a fragment part declaring layout attributes', () => {
+        expect(() => mergeManifests(baseManifest(), withPart({ layout: ['gap', 'pad-x'] }))).not.toThrow();
+    });
+
+    it('rejects a fragment layout attribute outside the layout vocabulary', () => {
+        // The ecosystem surface is where the layout vocabulary finally binds:
+        // zero's own anatomies are governed by its test suite, and
+        // `defineAnatomy` carries no runtime guard, so a published fragment
+        // inventing `gutter` has to be caught here or it reaches a manifest.
+        expect(() => mergeManifests(baseManifest(), withPart({ layout: ['gutter'] })))
+            .toThrow(/layout attribute "gutter"/);
+    });
+
     it('rejects hiddenIn naming a state the part does not declare', () => {
         expect(() => mergeManifests(baseManifest(), withPart({ states: ['open', 'closed'], hiddenIn: ['inactive'] })))
             .toThrow(/hiddenIn "inactive"/);

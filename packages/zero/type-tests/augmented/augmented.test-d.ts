@@ -18,6 +18,8 @@ import type {
     VariantValueFor,
     ZeroScope,
     ZeroVocabulary,
+    ZeroBreakpointName,
+    Responsive,
 } from '@sigx/zero';
 import type { Equal, MustBeTrue } from '../assert.js';
 
@@ -80,3 +82,24 @@ export type _badScopesCaught = MustBeTrue<keyof BadRegister extends ZeroScope ? 
 
 export { color, size, variant, noAxes, toggleColor, density };
 export { typo, unwired, badVariant, mintedAxis, toggleVariant, badDensity, badAxis, checkboxColor };
+
+// ── responsive layout values: the breakpoint record narrows ──
+//
+// The whole reason `Responsive` keys on `ZeroBreakpointName` (the CLOSED
+// twin) rather than the published `ZeroBreakpoint` (open, `| (string & {})`).
+// Open, every one of the negative cases below would type-check, render an
+// attribute and match nothing — the silent miss `variantAttrs` throws over.
+
+const bare: Responsive<'sm' | 'md'> = 'md';
+const withBase: Responsive<'sm' | 'md'> = { base: 'sm', md: 'md' };
+const noBase: Responsive<'sm' | 'md'> = { lg: 'md' };
+const everyBreakpoint: Responsive<'sm' | 'md'> = { base: 'sm', sm: 'md', md: 'sm', lg: 'md' };
+
+// @ts-expect-error — `xl` is not a breakpoint this design system declares
+const unknownBreakpoint: Responsive<'sm' | 'md'> = { xl: 'md' };
+// @ts-expect-error — a near-miss typo is the case this exists to catch
+const typoBreakpoint: Responsive<'sm' | 'md'> = { mdd: 'md' };
+// @ts-expect-error — the VALUE is still checked inside the record
+const badValue: Responsive<'sm' | 'md'> = { md: 'enormous' };
+
+type BreakpointsAreClosed = MustBeTrue<Equal<ZeroBreakpointName, 'sm' | 'md' | 'lg'>>;

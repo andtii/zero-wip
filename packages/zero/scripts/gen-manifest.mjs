@@ -19,6 +19,7 @@ const {
     RECOMMENDED_ROLE_LIST, BASE_SURFACE_TOKEN_LIST,
     TOKEN_CATEGORIES, SIZE_SCALE_LIST, FLAG_VOCABULARY, VARIANT_AXES,
     STATE_VOCABULARY, STATE_SYNONYMS, PLACEMENT_VOCABULARY,
+    LAYOUT_ATTR_PREFIX, LAYOUT_VOCABULARY,
 } = await import(distContract);
 
 const manifest = {
@@ -39,6 +40,17 @@ const manifest = {
         // The closed data-placement vocabulary; each part declares its subset
         // as `placements`.
         placementVocabulary: [...PLACEMENT_VOCABULARY],
+        // The layout family: a namespaced, closed vocabulary of attribute →
+        // permitted values. Namespaced precisely so none of these very
+        // ordinary words (gap, align, track…) has to be reserved against the
+        // open `axes` set below. Each part declares its subset as `layout`.
+        layoutPrefix: LAYOUT_ATTR_PREFIX,
+        layoutVocabulary: Object.fromEntries(
+            Object.entries(LAYOUT_VOCABULARY).map(([attr, spec]) => [
+                attr,
+                { values: [...spec.values], ...(spec.responsive ? { responsive: true } : {}) },
+            ]),
+        ),
         // The axes with named props. NOT a closed set — a design system may
         // declare others (density, emphasis, tone) and reach them through the
         // `axes` prop, which spells them by the same rule.

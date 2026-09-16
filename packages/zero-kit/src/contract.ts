@@ -491,6 +491,70 @@ export const RESERVED_AXES: ReadonlySet<string> = new Set([
     'scope', 'part', 'state', 'orientation', ...FLAG_VOCABULARY,
 ]);
 
+/**
+ * The layout attribute family. Mirrors `LAYOUT_ATTR_PREFIX`,
+ * `LAYOUT_VOCABULARY` and `SPACE_STEPS` in `@sigx/zero/contract`
+ * (parity-tested).
+ *
+ * Note what the prefix buys on THIS side: because every layout attribute is
+ * namespaced, none of these names appears in `RESERVED_AXES`, so a design
+ * system remains free to declare an axis called `align` or `track`. An
+ * unprefixed family would have had to seize all fifteen words permanently
+ * from every design system in the ecosystem.
+ */
+export const LAYOUT_ATTR_PREFIX = 'data-l-';
+
+export interface LayoutAttrSpec {
+    readonly values: readonly string[];
+    readonly responsive?: true;
+}
+
+export const SPACE_STEPS = ['none', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl'] as const;
+
+const TRACK_COUNTS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'] as const;
+
+export const LAYOUT_VOCABULARY = {
+    gap: { values: SPACE_STEPS, responsive: true },
+    'gap-x': { values: SPACE_STEPS },
+    'gap-y': { values: SPACE_STEPS },
+    pad: { values: SPACE_STEPS, responsive: true },
+    'pad-x': { values: SPACE_STEPS },
+    'pad-y': { values: SPACE_STEPS },
+    align: { values: ['start', 'center', 'end', 'stretch', 'baseline'], responsive: true },
+    justify: { values: ['start', 'center', 'end', 'between', 'around', 'evenly'], responsive: true },
+    wrap: { values: ['wrap', 'nowrap', 'wrap-reverse'] },
+    cols: { values: [...TRACK_COUNTS, 'auto'], responsive: true },
+    span: { values: [...TRACK_COUNTS, 'full'], responsive: true },
+    track: { values: ['xs', 'sm', 'md', 'lg', 'xl'] },
+    grow: { values: ['0', '1'] },
+    axis: { values: ['both', 'inline', 'block'] },
+    space: { values: SPACE_STEPS },
+} as const satisfies Record<string, LayoutAttrSpec>;
+
+export type LayoutAttrName = keyof typeof LAYOUT_VOCABULARY;
+
+export const LAYOUT_ATTR_NAMES: ReadonlySet<string> = new Set(Object.keys(LAYOUT_VOCABULARY));
+
+/** One attribute's spec, widened — see the zero copy for why the union needs it. */
+export const layoutAttrSpec = (attr: LayoutAttrName): LayoutAttrSpec => LAYOUT_VOCABULARY[attr];
+
+/**
+ * Split a rendered layout attribute into its parts, or `undefined` when the
+ * name is not one of ours. Mirrors `parseLayoutAttr` in `@sigx/zero/contract`.
+ */
+export function parseLayoutAttr(name: string): { attr: LayoutAttrName; breakpoint?: string } | undefined {
+    if (!name.startsWith(LAYOUT_ATTR_PREFIX)) return undefined;
+    const rest = name.slice(LAYOUT_ATTR_PREFIX.length);
+    if (LAYOUT_ATTR_NAMES.has(rest)) return { attr: rest as LayoutAttrName };
+    const cut = rest.indexOf('-');
+    if (cut <= 0) return undefined;
+    const breakpoint = rest.slice(0, cut);
+    const attr = rest.slice(cut + 1);
+    if (!LAYOUT_ATTR_NAMES.has(attr)) return undefined;
+    if (!layoutAttrSpec(attr as LayoutAttrName).responsive) return undefined;
+    return { attr: attr as LayoutAttrName, breakpoint };
+}
+
 // ── Minimal structural mirror of @sigx/zero's AnatomyJSON/manifest types ──
 
 export interface ManifestPart {
@@ -513,6 +577,12 @@ export interface ManifestPart {
      * never stamps.
      */
     placements?: readonly string[];
+    /**
+     * The layout attributes this part can carry — declared contract data, a
+     * subset of `LAYOUT_VOCABULARY`'s keys, rendered under the `data-l-`
+     * prefix. Absent for parts that take none.
+     */
+    layout?: readonly string[];
     /**
      * States in which zero's runtime sets `hidden` on this part, so it paints
      * nothing while it is in them (avatar's `image` while `error`). Styling

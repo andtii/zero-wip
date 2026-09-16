@@ -2,6 +2,42 @@
 
 ## [Unreleased]
 
+### Added — the layout attribute family (#471)
+
+- **`LAYOUT_VOCABULARY`** (`contract/data-attrs.ts`) closes a fifteen-attribute
+  set — `gap`/`gap-x`/`gap-y`, `pad`/`pad-x`/`pad-y`, `align`, `justify`,
+  `wrap`, `cols`, `span`, `track`, `grow`, `axis`, `space` — each with its own
+  closed value list and a flag for whether it varies per breakpoint. Spacing
+  values are the `--space-*` ramp plus `none`, so a layout prop cannot spell a
+  gap the design system has no token for.
+- **`PartSpec.layout`** declares which attributes a part may carry, governed
+  and checked exactly like `placements`. `expectAnatomy` now accepts declared
+  layout attributes (it previously rejected every undeclared `data-*`) and
+  fails an undeclared one, an unknown value, or a name under the prefix the
+  vocabulary does not know — the last of which used to surface as a baffling
+  "undeclared flag \"l-gap\"".
+- **`layoutAttrs(props, spec)`** (`contract/layout-attrs.ts`, `lib.dom`-free
+  like `variant-attrs.ts`) renders the attributes, expanding the responsive
+  record form. It throws rather than drops on an undeclared attribute, an
+  out-of-set value, or a record given to a non-responsive attribute — a
+  silently missing attribute being the failure this whole mechanism removes.
+- **`Responsive<T>`** and **`ZeroBreakpointName`**, the CLOSED breakpoint
+  union — the authoring twin of the open `ZeroBreakpoint`, standing in the
+  same relation to it as `ZeroThemeName` does to `ZeroThemeNameOrCustom`.
+  With a design system's `/register` imported, `gap={{ mdd: 'lg' }}` is a
+  compile error instead of an attribute that matches nothing.
+- **`data-l-` prefix, breakpoint in prefix position** (`data-l-md-gap="lg"`).
+  The prefix keeps fifteen ordinary words out of `RESERVED_AXES`, so a design
+  system may still declare an axis called `align` or `track`; prefix position
+  is what keeps the multi-word attributes (`data-l-gap-x`) unambiguous against
+  an open set of breakpoint names.
+- **Class grammar version 2**: `layoutClass(attr, value)` → `zx-l-<attr>-<value>`.
+- The manifest's `attributeSpec` gains `layoutPrefix` and `layoutVocabulary`,
+  and each part its `layout`.
+
+No components carry layout attributes yet — the layout tier's own scopes land
+in follow-ups. This is the contract they need.
+
 ### Changed — the remaining value shapes, and the last two bound controls (#455, part of #438)
 
 - **Breaking: ToggleGroup's model follows `multiple`.** Single mode holds

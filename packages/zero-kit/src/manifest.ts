@@ -20,6 +20,7 @@ import type { ManifestComponent, ZeroManifest } from './contract.js';
 import {
     FLAG_VOCABULARY,
     PLACEMENT_VOCABULARY,
+    LAYOUT_ATTR_NAMES,
     STATE_NAMES,
     STATE_SYNONYMS,
     TOKEN_KEY_PATTERN,
@@ -142,7 +143,8 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
             // Zero's own anatomies are governed by zero's test suite and
             // `defineAnatomy` carries no runtime guard (it is on every
             // component's size budget) — so a published fragment's flags,
-            // states, placements and part tree are checked HERE, where the
+            // states, placements, layout attributes and part tree are
+            // checked HERE, where the
             // fragment joins the pipeline. The "no synonyms" rule finally
             // binds for third-party scopes.
             const flagSet = new Set<string>(FLAG_VOCABULARY);
@@ -164,6 +166,11 @@ export function mergeManifests<M extends Pick<ZeroManifest, 'components'>>(
                 for (const placement of part.placements ?? []) {
                     if (!placementSet.has(placement)) {
                         throw new Error(`[zero-kit] ${at(part.name)} declares placement "${placement}", which is not in the placement vocabulary [${PLACEMENT_VOCABULARY.join(', ')}]`);
+                    }
+                }
+                for (const attr of part.layout ?? []) {
+                    if (!LAYOUT_ATTR_NAMES.has(attr)) {
+                        throw new Error(`[zero-kit] ${at(part.name)} declares layout attribute "${attr}", which is not in the layout vocabulary [${[...LAYOUT_ATTR_NAMES].join(', ')}]`);
                     }
                 }
                 for (const state of part.hiddenIn ?? []) {

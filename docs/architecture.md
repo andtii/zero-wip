@@ -117,6 +117,33 @@ are after flipping, and Toast stamps its viewport and roots. This replaced an
 earlier blanket exemption: `expectAnatomy` now fails an undeclared
 `data-placement` exactly as it fails an undeclared state.
 
+**Layout attributes are a namespaced family.** `LAYOUT_VOCABULARY` closes a
+fifteen-attribute set (`gap`, `pad`, `align`, `justify`, `cols`, `span`, …)
+rendered under a `data-l-` prefix, and a part that can carry one declares
+which subset in its anatomy (`PartSpec.layout`) — governed and checked
+exactly like `placements`.
+
+It is deliberately *not* a design-system axis. An axis answers "which one"
+out of a vocabulary the skin invents and zero passes through uninterpreted; a
+layout attribute answers "how much" out of a ramp the token contract already
+fixes, so `gap="md"` has to mean the `md` rung of `--space-*` in every design
+system or a page laid out against one skin falls apart under the next. The
+skin chooses what `--space-md` *is*; it does not choose what `md` *means*.
+Because the value set is closed to the ramp, an app cannot spell a gap its
+design system has no token for — which is what makes a density mode possible
+at all, since redefining `--space-*` under a selector re-spaces every layout
+at once.
+
+Two details of the spelling carry weight. Per-breakpoint values put the
+breakpoint in PREFIX position (`data-l-gap="sm"` alongside
+`data-l-md-gap="lg"`), because breakpoint names are open kebab-case and a
+suffix spelling would make `data-l-gap-x` ambiguous between "the x-axis gap"
+and "gap at a breakpoint named `x`". And the prefix itself is what keeps
+fifteen very ordinary words (`gap`, `align`, `track`…) *out* of
+`RESERVED_AXES`: unprefixed, each would have to be seized permanently from
+every design system in the ecosystem, and a skin that legitimately wanted an
+axis called `align` would start failing validation.
+
 **`hiddenIn` is a styling fact.** A part the runtime hides with the `hidden`
 attribute in some state declares those states (`hiddenIn: ['error']` on
 avatar's `image`). It belongs in the anatomy because it changes what a recipe
@@ -576,10 +603,12 @@ Two different artifacts share the filename `manifest.json`, and they share
 published as the `./manifest.json` subpath, governed by
 `packages/zero-kit/schemas/manifest.schema.json`. It carries `$schema`,
 `zeroVersion`, the `attributeSpec` (attribute names, flag form, the flag /
-state / placement vocabularies, the synonym table, the variant axes), the
+state / placement vocabularies, the synonym table, the variant axes, and the
+layout family as `layoutPrefix` plus a `layoutVocabulary` of attribute →
+permitted values and whether it varies per breakpoint), the
 token grammar (`colors`, `categories`, recommended ramps), and `components`
 — an **array** of `anatomy.toJSON()` snapshots, each part with its
-`parent`, `states`, `flags`, `placements`, `hiddenIn`, `pseudo`, hints, and
+`parent`, `states`, `flags`, `placements`, `layout`, `hiddenIn`, `pseudo`, hints, and
 ready-made per-state selector fragments (what the recipe compiler
 consumes), and — for a component whose API carries state — `models`: one
 entry per model with what it binds (`name`, absent for the unnamed `model`

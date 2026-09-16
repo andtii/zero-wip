@@ -20,7 +20,7 @@
             "description": "How the anatomy contract is spelled in the DOM: the attribute names, the presence-only flag form, the closed flag vocabulary, and the variant axes.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["scope", "part", "state", "flagForm", "flagVocabulary", "stateVocabulary", "stateSynonyms", "placementVocabulary", "variantAxes", "extraAxisForm"],
+            "required": ["scope", "part", "state", "flagForm", "flagVocabulary", "stateVocabulary", "stateSynonyms", "placementVocabulary", "layoutPrefix", "layoutVocabulary", "variantAxes", "extraAxisForm"],
             "properties": {
                 "scope": { "const": "data-scope" },
                 "part": { "const": "data-part" },
@@ -56,6 +56,28 @@
                     "type": "array",
                     "items": { "$ref": "#/$defs/kebabToken" },
                     "minItems": 1
+                },
+                "layoutPrefix": {
+                    "description": "The namespace every layout attribute renders under. A per-breakpoint value puts the breakpoint in prefix position: data-l-gap=\"md\" and data-l-md-gap=\"lg\".",
+                    "const": "data-l-"
+                },
+                "layoutVocabulary": {
+                    "description": "The closed layout attribute vocabulary: attribute name to its permitted values, and whether it may also be written per breakpoint. A part that can carry an attribute declares it in `layout`.",
+                    "type": "object",
+                    "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+                    "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["values"],
+                        "properties": {
+                            "values": {
+                                "type": "array",
+                                "items": { "$ref": "#/$defs/kebabToken" },
+                                "minItems": 1
+                            },
+                            "responsive": { "const": true }
+                        }
+                    }
                 },
                 "variantAxes": {
                     "description": "The variant axes with named props on every zero component. The three contract axes are always present; the axis SET is open by design (a design system may declare others, reached through the `axes` prop), so additional data-<axis> entries are allowed.",
@@ -272,6 +294,12 @@
                 },
                 "placements": {
                     "description": "The data-placement values this part can carry, drawn from attributeSpec.placementVocabulary — the anchored-position behavior writes the attribute on open floats, and Toast stamps its viewport and roots. Omitted entirely for parts the runtime never stamps; never empty.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/kebabToken" },
+                    "minItems": 1
+                },
+                "layout": {
+                    "description": "The layout attributes this part can carry, drawn from attributeSpec.layoutVocabulary. Rendered under the data-l- prefix (data-l-gap=\"md\", and per breakpoint data-l-md-gap=\"lg\"). Omitted entirely for parts that take none; never empty.",
                     "type": "array",
                     "items": { "$ref": "#/$defs/kebabToken" },
                     "minItems": 1

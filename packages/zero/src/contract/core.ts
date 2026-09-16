@@ -48,6 +48,7 @@ export type {
     ZeroThemeNameOrCustom,
     ZeroProperty,
     ZeroBreakpoint,
+    ZeroBreakpointName,
     ZeroTokenCategory,
     TokenKeyFor,
 } from './vocabulary.js';
@@ -65,6 +66,17 @@ export {
 } from './data-attrs.js';
 
 export type { JsxProps, FactoryBrands } from './generic.js';
+export type { Responsive, LayoutProps, LayoutAttrName, LayoutAttrSpec } from './layout-attrs.js';
+export {
+    layoutAttrs,
+    layoutAttrSpec,
+    parseLayoutAttr,
+    LAYOUT_VOCABULARY,
+    LAYOUT_ATTR_NAMES,
+    LAYOUT_ATTR_PREFIX,
+    SPACE_STEPS,
+} from './layout-attrs.js';
+
 export type { Anatomy, AnatomyJSON, PartSpec, PartJSON, PartPseudo, TokenHint, ModelSpec, ModelJSON } from './anatomy.js';
 export { defineAnatomy, defaultPropOf, changeEventOf } from './anatomy.js';
 
@@ -80,5 +92,6 @@ export {
     modClass,
     orientationClass,
     placementClass,
+    layoutClass,
     themeClass,
 } from './class-names.js';

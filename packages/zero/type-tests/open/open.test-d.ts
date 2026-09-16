@@ -15,6 +15,8 @@ import type {
     SizeScaleFor,
     VariantValueFor,
     ZeroScope,
+    ZeroBreakpointName,
+    Responsive,
 } from '@sigx/zero';
 import type { Equal, MustBeTrue } from '../assert.js';
 
@@ -43,4 +45,17 @@ const treeView: ZeroScope = 'tree-view';
 // @ts-expect-error — a scope the registry lacks is not a ZeroScope
 const nope: ZeroScope = 'no-such-scope';
 
-export { typo, recommended, anyAxis, button, treeView, nope };
+// ── responsive layout values, unaugmented ──
+//
+// The guard-first shape of `ZeroBreakpointName` has to fall back to `string`
+// here. Written the other way round (testing the result against `never`) an
+// app with no `/register` import could not write a breakpoint at ALL, which
+// would make the layout tier unusable for exactly the consumers the open
+// fallback exists to serve.
+export type _breakpointsOpenUnaugmented = MustBeTrue<Equal<ZeroBreakpointName, string>>;
+
+const anyBreakpoint: Responsive<'sm' | 'md'> = { base: 'sm', md: 'md', whatever: 'sm' };
+// @ts-expect-error — the VALUE stays closed even when the key is open
+const stillCheckedValue: Responsive<'sm' | 'md'> = { md: 'enormous' };
+
+export { typo, recommended, anyAxis, button, treeView, nope, anyBreakpoint, stillCheckedValue };

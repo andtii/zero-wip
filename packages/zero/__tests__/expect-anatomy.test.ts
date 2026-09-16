@@ -223,3 +223,88 @@ describe('synthesizesClickFrom (public asChild helper)', () => {
         expect(synthesizesClickFrom(null, 'Enter')).toBe(false);
     });
 });
+
+// ── the layout attribute family ──
+//
+// Declared contract data like `placements`, so the helper owes it the same
+// three answers: a declared attribute passes, an undeclared one fails, and a
+// value outside the closed set fails. The per-breakpoint spelling is checked
+// here too, because that is the half a design system's media queries key on
+// and a typo in it is otherwise silent.
+
+const layoutAnatomy = defineAnatomy('demo-layout', {
+    'root': { element: 'div', layout: ['gap', 'gap-x', 'align', 'wrap'] },
+    'cell': { element: 'div', parent: 'root', layout: ['span'] },
+    'plain': { element: 'div', parent: 'root' },
+});
+
+function lPart(name: string, attrs: Record<string, string> = {}): HTMLElement {
+    const el = document.createElement('div');
+    el.setAttribute('data-scope', 'demo-layout');
+    el.setAttribute('data-part', name);
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+    return el;
+}
+
+function mountLayout(...els: HTMLElement[]): HTMLElement {
+    const root = lPart('root');
+    for (const el of els) root.append(el);
+    const container = document.createElement('div');
+    container.append(root);
+    return container;
+}
+
+describe('expectAnatomy — layout attributes', () => {
+    it('passes declared attributes, including the per-breakpoint spelling', () => {
+        const root = lPart('root', {
+            'data-l-gap': 'md',
+            'data-l-md-gap': '2xl',
+            'data-l-gap-x': 'none',
+            'data-l-align': 'center',
+            'data-l-wrap': 'wrap-reverse',
+        });
+        const container = document.createElement('div');
+        container.append(root);
+        root.append(lPart('cell', { 'data-l-span': 'full' }));
+        expect(() => expectAnatomy(container, layoutAnatomy)).not.toThrow();
+    });
+
+    it('rejects an attribute the part never declared', () => {
+        const container = mountLayout(lPart('plain', { 'data-l-gap': 'md' }));
+        expect(() => expectAnatomy(container, layoutAnatomy))
+            .toThrow(/does not declare layout attribute "gap"/);
+    });
+
+    it('rejects a value outside the attribute\'s closed set', () => {
+        const container = mountLayout();
+        container.firstElementChild!.setAttribute('data-l-gap', 'roomy');
+        expect(() => expectAnatomy(container, layoutAnatomy))
+            .toThrow(/not a value of "gap"/);
+    });
+
+    it('rejects a name under the prefix that the vocabulary does not know', () => {
+        const container = mountLayout();
+        container.firstElementChild!.setAttribute('data-l-gutter', 'md');
+        expect(() => expectAnatomy(container, layoutAnatomy))
+            .toThrow(/not a layout attribute/);
+    });
+
+    it('rejects a per-breakpoint spelling of an attribute that does not vary', () => {
+        // `wrap` is declared on the part but is not responsive, so
+        // `data-l-md-wrap` parses as nothing at all — the failure names the
+        // prefix rather than the part, which is the honest diagnosis.
+        const container = mountLayout();
+        container.firstElementChild!.setAttribute('data-l-md-wrap', 'wrap');
+        expect(() => expectAnatomy(container, layoutAnatomy))
+            .toThrow(/not a layout attribute/);
+    });
+
+    it('does not mistake a layout attribute for an undeclared flag', () => {
+        // The regression this guards: before the prefix branch, every
+        // `data-l-*` fell through to the flag walk and reported
+        // `undeclared flag "l-gap"`, which sends the reader hunting in
+        // FLAG_VOCABULARY for something that was never a flag.
+        const container = mountLayout(lPart('plain', { 'data-l-gap': 'md' }));
+        expect(() => expectAnatomy(container, layoutAnatomy)).not.toThrow(/undeclared flag/);
+    });
+});
