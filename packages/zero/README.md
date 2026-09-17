@@ -32,7 +32,7 @@ Field · Avatar · Toast · Combobox · Toggle · ToggleGroup · NumberInput ·
 RatingGroup · TreeView · Input · Textarea · Card · Alert · Badge · Divider ·
 Skeleton · Spinner · Kbd · Status · Indicator · Stats · Timeline · Chat · RadialProgress · Join ·
 Navbar · Breadcrumbs · Pagination · Steps · Drawer · Table · FileUpload · Carousel · Swap · Countdown · Diff
-Stack (Row/Col) · Spacer
+Stack (Row/Col) · Spacer · Grid · Center
 
 All state is one two-way `model` prop (sigx `Define.Model`) — bind a signal
 property with `model={() => state.open}`, or leave it uncontrolled with

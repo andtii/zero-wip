@@ -4,6 +4,17 @@
 
 ### Added
 
+- **The layout pack covers Grid and Center** (#478). Two more recipes and
+  four more attributes on the step table (`cols`, `span`, `track`, `axis`).
+  `cols` and `span` are computed rather than tabled — `repeat(N, minmax(0,
+  1fr))` and `span N` — since a count has no token to resolve through.
+
+  The table went from 154 rules to 266. Worth recording precisely, because
+  the amortisation claim is about vocabulary rather than scope count: Center
+  cost three rules, Grid cost 109, because `cols` and `span` are
+  thirteen-value responsive attributes and so are 52 rows each. A scope that
+  reuses attributes already tabled costs nothing.
+
 - **The layout pack** (#473): `layoutRecipes`, `layoutCss`, `layoutScopes`
   and `LAYOUT_SCOPES`, exported from the barrel and from
   `@sigx/zero-kit/define`. Every design system gets the layout tier generated

@@ -92,6 +92,29 @@ describe('layoutCss', () => {
         expect(css).toContain('data-l-gap="none"');
     });
 
+    it('computes the counted attributes rather than tabling them', () => {
+        const css = table(basicDS);
+        // `minmax(0, 1fr)` rather than a bare `1fr`: a track's implicit
+        // minimum is `auto`, which refuses to shrink below its content —
+        // the usual reason a grid with long content overflows.
+        expect(css).toContain('--l-cols: repeat(3, minmax(0, 1fr));');
+        expect(css).toContain('--l-span: span 4;');
+        expect(css).toContain('--l-span: 1 / -1;');
+        // `min(100%, …)` so a track wider than the viewport does not
+        // overflow it — auto-fit would otherwise honour the minimum.
+        expect(css).toContain('--l-cols: repeat(auto-fit, minmax(min(100%, var(--l-track)), 1fr));');
+    });
+
+    it('centres one axis without collapsing the other', () => {
+        // `place-items` takes block then inline, so a Center told to centre
+        // inline must pin the block axis to `stretch` rather than leave it
+        // centred — otherwise `axis="inline"` would also shrink the child.
+        const css = table(basicDS);
+        expect(css).toContain('--l-axis: center;');
+        expect(css).toContain('--l-axis: stretch center;');
+        expect(css).toContain('--l-axis: center stretch;');
+    });
+
     it('emits one media block per declared breakpoint, in ascending order', () => {
         const css = table(basicDS);
         const widths = [...css.matchAll(/@media \(min-width: ([^)]+)\)/g)].map((m) => m[1]!);

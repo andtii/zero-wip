@@ -43,6 +43,28 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
+            /** grid — no axis wired by brutalist; every axis errors under this register module. */
+            'grid': {
+                /** Accepts `color` at runtime, but brutalist declares no color axis for grid — the attribute would match nothing. */
+                color: never;
+                /** Accepts `size` at runtime, but brutalist declares no size axis for grid — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but brutalist declares no variant axis for grid — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
+            /** center — no axis wired by brutalist; every axis errors under this register module. */
+            'center': {
+                /** Accepts `color` at runtime, but brutalist declares no color axis for center — the attribute would match nothing. */
+                color: never;
+                /** Accepts `size` at runtime, but brutalist declares no size axis for center — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but brutalist declares no variant axis for center — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
             /** button — color, size, variant wired. */
             'button': {
                 color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';

@@ -176,6 +176,14 @@
             "types": "./dist/components/spacer/index.d.ts",
             "import": "./dist/components/spacer/index.js"
         },
+        "./grid": {
+            "types": "./dist/components/grid/index.d.ts",
+            "import": "./dist/components/grid/index.js"
+        },
+        "./center": {
+            "types": "./dist/components/center/index.d.ts",
+            "import": "./dist/components/center/index.js"
+        },
         "./spinner": {
             "types": "./dist/components/spinner/index.d.ts",
             "import": "./dist/components/spinner/index.js"

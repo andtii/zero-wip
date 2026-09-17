@@ -222,6 +222,10 @@ export { Stack, Row, Col, stackAnatomy } from './components/stack/index.js';
 export type { StackRootProps, StackItemProps } from './components/stack/index.js';
 export { Spacer, spacerAnatomy } from './components/spacer/index.js';
 export type { SpacerRootProps } from './components/spacer/index.js';
+export { Grid, gridAnatomy } from './components/grid/index.js';
+export type { GridRootProps, GridCellProps } from './components/grid/index.js';
+export { Center, centerAnatomy } from './components/center/index.js';
+export type { CenterRootProps } from './components/center/index.js';
 
 export { Spinner, spinnerAnatomy } from './components/spinner/index.js';
 export type { SpinnerRootProps } from './components/spinner/index.js';

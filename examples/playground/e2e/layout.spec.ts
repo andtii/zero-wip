@@ -122,6 +122,54 @@ test.describe('the layout tier resolves through the design system', () => {
         expect(narrow).toBeLessThan(wide);
     });
 
+    test('Grid lays out real columns, and a cell spans them', async ({ page }) => {
+        // Measured as BOXES rather than declarations: `grid-template-columns`
+        // computes to used pixel values, so this also proves the count
+        // actually took effect rather than resolving to the `none` default.
+        await bootPage(page, 'layout', TIGHT);
+        await page.setViewportSize({ width: 1280, height: 900 });
+
+        const grid = page.locator('[data-scope="grid"][data-part="root"][data-l-md-cols="3"]').first();
+        await expect(grid).toBeVisible();
+        const tracks = await grid.evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(' ').length);
+        expect(tracks).toBe(3);
+
+        // The spanning cell is as wide as the whole grid, which is what
+        // `span="full"` means and what a per-cell attribute has to achieve.
+        const [gridBox, cellBox] = await Promise.all([
+            grid.boundingBox(),
+            grid.locator('[data-part="cell"][data-l-span="full"]').first().boundingBox(),
+        ]);
+        expect(cellBox!.width).toBeCloseTo(gridBox!.width, 0);
+    });
+
+    test('cols="auto" reflows on width alone, with no breakpoint named', async ({ page }) => {
+        // The mode worth having: the track count changes with the viewport
+        // even though nothing in the markup mentions a breakpoint.
+        await bootPage(page, 'layout', TIGHT);
+        const auto = page.locator('[data-scope="grid"][data-part="root"][data-l-cols="auto"]').first();
+        await expect(auto).toBeVisible();
+        const trackCount = () => auto.evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(' ').length);
+
+        await page.setViewportSize({ width: 1280, height: 900 });
+        const wide = await trackCount();
+        await page.setViewportSize({ width: 420, height: 900 });
+        const narrow = await trackCount();
+
+        expect(wide).toBeGreaterThan(narrow);
+        // …and it never overflows: that is what `min(100%, …)` buys, since
+        // auto-fit would otherwise honour a track wider than the viewport.
+        const box = await auto.boundingBox();
+        expect(box!.width).toBeLessThanOrEqual(420);
+    });
+
+    test('Center centres on both axes, and on one when asked', async ({ page }) => {
+        await bootPage(page, 'layout', TIGHT);
+        const centre = page.locator('[data-scope="center"][data-part="root"]').first();
+        await expect(centre).toBeVisible();
+        expect(await centre.evaluate((el) => getComputedStyle(el).placeItems)).toContain('center');
+    });
+
     test('Spacer flexes by default and is fixed when given a step', async ({ page }) => {
         await bootPage(page, 'layout', TIGHT);
         const widthOf = (sel: string) => page.locator(sel).first()

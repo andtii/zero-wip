@@ -13,7 +13,7 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import type { PartProps } from '@sigx/zero';
-import { Col, Row, Spacer, Stack, spacerAnatomy, stackAnatomy } from '@sigx/zero';
+import { Center, Col, Grid, Row, Spacer, Stack, centerAnatomy, gridAnatomy, spacerAnatomy, stackAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 let container: HTMLElement;
@@ -123,5 +123,76 @@ describe('Spacer', () => {
         render(<Spacer space="xl" />, container);
         expect(part('spacer', 'root').getAttribute('data-l-space')).toBe('xl');
         expectAnatomy(container, spacerAnatomy);
+    });
+});
+
+describe('Grid', () => {
+    it('renders a valid anatomy and passes its layout attributes through', () => {
+        render((
+            <Grid cols={3} gap="lg" align="center">
+                <Grid.Cell span={2}>a</Grid.Cell>
+            </Grid>
+        ), container);
+        expectAnatomy(container, gridAnatomy);
+
+        const root = part('grid', 'root');
+        // A number is stringified — `cols={3}` is how this gets written.
+        expect(root.getAttribute('data-l-cols')).toBe('3');
+        expect(root.getAttribute('data-l-gap')).toBe('lg');
+        expect(root.getAttribute('data-l-align')).toBe('center');
+        expect(part('grid', 'cell').getAttribute('data-l-span')).toBe('2');
+    });
+
+    it('takes the auto mode and its track', () => {
+        render(<Grid cols="auto" track="lg" />, container);
+        const root = part('grid', 'root');
+        expect(root.getAttribute('data-l-cols')).toBe('auto');
+        expect(root.getAttribute('data-l-track')).toBe('lg');
+        expectAnatomy(container, gridAnatomy);
+    });
+
+    it('spans the whole row, and varies by breakpoint', () => {
+        render((
+            <Grid cols={{ base: 1, md: 2 }}>
+                <Grid.Cell span="full">a</Grid.Cell>
+            </Grid>
+        ), container);
+        const root = part('grid', 'root');
+        expect(root.getAttribute('data-l-cols')).toBe('1');
+        expect(root.getAttribute('data-l-md-cols')).toBe('2');
+        expect(part('grid', 'cell').getAttribute('data-l-span')).toBe('full');
+        expectAnatomy(container, gridAnatomy);
+    });
+
+    it('refuses a count outside the twelve-column grid', () => {
+        expect(() => render(<Grid cols={13 as never} />, container))
+            .toThrow(/not a value of "cols"/);
+    });
+
+    it('asChild hands the cell bag to the caller\'s element', () => {
+        render((
+            <Grid>
+                <Grid.Cell span="full" asChild>{(p: PartProps) => <section {...p}>wide</section>}</Grid.Cell>
+            </Grid>
+        ), container);
+        expect(part('grid', 'cell').tagName).toBe('SECTION');
+        expectAnatomy(container, gridAnatomy);
+    });
+});
+
+describe('Center', () => {
+    it('renders a valid anatomy and defaults to both axes', () => {
+        render(<Center pad="xl">x</Center>, container);
+        expectAnatomy(container, centerAnatomy);
+        const root = part('center', 'root');
+        expect(root.getAttribute('data-l-pad')).toBe('xl');
+        // Absent `axis` is `both` — the default, so no attribute.
+        expect(root.hasAttribute('data-l-axis')).toBe(false);
+    });
+
+    it('centres on one axis when asked', () => {
+        render(<Center axis="inline">x</Center>, container);
+        expect(part('center', 'root').getAttribute('data-l-axis')).toBe('inline');
+        expectAnatomy(container, centerAnatomy);
     });
 });

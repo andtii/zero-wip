@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### Added — the layout tier: Grid and Center (#478)
+
+- **`Grid`**, with **`Grid.Cell`**. `cols` is a twelve-column count or
+  `auto`; `auto` reflows by available width with no breakpoint named at all,
+  which is what a collection of cards wants, and `track` sets how narrow a
+  column may get first. `Cell` carries `span` (a count, or `full`) and
+  supports `asChild`, because `grid-column` is a property of the grid ITEM —
+  a wrapper cannot make the child span.
+- **`Center`** — `place-items` on a single-child grid, the one construction
+  that centres on both axes without caring what the child is. `axis` is
+  `both` / `inline` / `block`, logical, and the one-axis values pin the other
+  to `stretch` so `axis="inline"` does not also collapse the child.
+
+Neither carries `color`, `size` or `variant`, so both take the uniform
+`layoutScopes` waiver and neither touches the axis-coverage ledgers. This
+phase adds no new mechanism — only vocabulary on the table #473 built.
+
 ### Added — the layout tier begins: Stack and Spacer (#473)
 
 - **`Stack`**, with **`Row`** and **`Col`** presets. One scope, one recipe,

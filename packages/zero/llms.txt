@@ -124,7 +124,7 @@ sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
 model. Transforms apply once at the component boundary, timing on the
 element.
 
-52 components ship today. Every part each renders is listed below, in
+54 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -349,6 +349,23 @@ component renders; the root is called out separately where it carries props.
   so a child can opt into growing, and supports asChild for Join's reason:
   flex-grow applies to the flex ITEM, so a wrapper cannot grow the control
   inside it. No role — a stack is visual grouping.
+- Grid: Root(cols, track, gap/gapX/gapY, pad/padX/padY, align, justify)/
+  Cell(asChild, span) — two-dimensional layout where Stack is
+  one-dimensional. cols is a twelve-column count or `auto`; `auto` is
+  repeat(auto-fit, minmax(min(100%, track), 1fr)), which reflows by available
+  width with NO breakpoint named, and is what a collection of cards wants.
+  track sets how narrow a column may get first. Counts compile to
+  minmax(0, 1fr), not a bare 1fr: a track's implicit minimum is `auto`, which
+  refuses to shrink below its content and is the usual reason a grid
+  overflows. Cell exists because grid-column is a property of the grid ITEM,
+  so a wrapper cannot make the child span; span="full" is 1 / -1. No role — a
+  CSS grid is visual arrangement, and zero ships a Table for the other thing.
+- Center: Root only(axis, pad/padX/padY, gap) — place-items on a
+  single-child grid, the one construction that centres on both axes without
+  caring what the child is. axis is both|inline|block, LOGICAL; the one-axis
+  values pin the other to stretch, so axis="inline" does not also collapse
+  the child vertically. Distinct from <Row justify="center" align="center">,
+  which centres a row's CONTENT along its own axes.
 - Spacer: Root only(space) — flexible room by default, a fixed rung of the
   spacing ramp when given `space`. aria-hidden: it holds room, never
   content. Earns its place next to `gap` because the two answer different

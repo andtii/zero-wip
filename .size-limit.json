@@ -322,6 +322,30 @@
         ]
     },
     {
+        "name": "@sigx/zero/center",
+        "path": "packages/zero/dist/components/center/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
+        "name": "@sigx/zero/grid",
+        "path": "packages/zero/dist/components/grid/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
         "name": "@sigx/zero/status",
         "path": "packages/zero/dist/components/status/index.js",
         "limit": "2 kB",
