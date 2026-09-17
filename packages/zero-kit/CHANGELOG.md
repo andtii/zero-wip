@@ -4,6 +4,32 @@
 
 ### Added
 
+- **The layout pack** (#473): `layoutRecipes`, `layoutCss`, `layoutScopes`
+  and `LAYOUT_SCOPES`, exported from the barrel and from
+  `@sigx/zero-kit/define`. Every design system gets the layout tier generated
+  from its OWN spacing ramp and breakpoints rather than authoring it, because
+  `gap="md"` has to mean the same rung in all of them — the skin chooses what
+  `--space-md` IS, not what `md` MEANS.
+
+  Emitted as two layers. `layoutCss` is a scope-agnostic **step table**
+  (`[data-l-gap="md"] { --l-gap: var(--space-md) }`) emitted once per design
+  system through `DesignSystemInput.css`; the recipes declare each property's
+  default on the carrier and consume it. Putting the table in the recipes
+  instead would multiply one design-system-wide fact by the number of layout
+  scopes and again by the breakpoint tiers — measured at ~900 rules per skin
+  against ~155 for the table, and it would have grown with every scope added.
+
+  Declaring the defaults ON the carrier rather than as `var()` fallbacks is
+  what stops a nested layout part inheriting its parent's spacing, and what
+  keeps the lynx target free of dangling vars (the table is not emitted
+  there, so those references resolve to the declared default and lynx renders
+  a flex row with no gap rather than nothing). It also means the table has to
+  out-specify the carrier, hence the `[data-scope][data-part]` prefix.
+
+  `layoutScopes` is the second half of adoption: `axis-coverage` walks every
+  scope that has a recipe, so a layout scope raises a `color` and a `size`
+  finding per skin until it declares them out of existence.
+
 - **The layout attribute family, kit side** (#471). `contract.ts` mirrors
   `LAYOUT_ATTR_PREFIX`, `LAYOUT_VOCABULARY`, `SPACE_STEPS`, `layoutAttrSpec`
   and `parseLayoutAttr` from `@sigx/zero/contract`, held by

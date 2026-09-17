@@ -5,10 +5,13 @@
  * blue-black protagonist at hue 205. Structure is drawn with 1px hairlines;
  * shadows exist only to separate transient layers from the page.
  *
- * Type-only import from the kit: this module is pure data and ships in the
- * runtime bundle (installThemes derives registry metadata from it), so it
- * must not pull the Node-only kit at runtime.
+ * Type-only import from the kit's Node-only barrel: this module is pure
+ * data and ships in the runtime bundle (installThemes derives registry
+ * metadata from it), so it must not pull that in at runtime. `/define` is
+ * the exception by contract — its module graph is `node:`-free, which is
+ * what lets `layoutScopes` be a value import here.
  */
+import { layoutScopes } from '@sigx/zero-kit/define';
 import type { RoleDecl, SystemTokens, ThemeSystem, TokensInput } from '@sigx/zero-kit';
 
 /**
@@ -131,6 +134,10 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
      * only those. Button keeps the full set.
      */
     scopes: {
+        // The layout tier wires neither colour nor size — a Stack is
+        // geometry, and `data-color` on it would paint nothing. Declared out
+        // of existence rather than left to the axis-coverage audit to report.
+        ...layoutScopes,
         badge: { variants: ['solid', 'soft', 'outline'] },
         table: { modifiers: ['zebra', 'hover'] },
         /**

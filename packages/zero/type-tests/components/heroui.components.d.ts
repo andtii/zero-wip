@@ -6,6 +6,8 @@
 // import is needed or consulted. The rendered attributes are unchanged:
 // a routed vendor value renders the zero-spelled data-* attribute.
 import type { Adapted, AdaptedStatics } from '@sigx/zero/adapt';
+import type { Stack as ZStack } from '@sigx/zero/stack';
+import type { Spacer as ZSpacer } from '@sigx/zero/spacer';
 import type { Tabs as ZTabs } from '@sigx/zero/tabs';
 import type { Collapsible as ZCollapsible } from '@sigx/zero/collapsible';
 import type { Switch as ZSwitch } from '@sigx/zero/switch';
@@ -58,6 +60,16 @@ import type { Countdown as ZCountdown } from '@sigx/zero/countdown';
 import type { Diff as ZDiff } from '@sigx/zero/diff';
 
 type ZeroAxisProp = 'color' | 'size' | 'variant' | 'axes' | 'mods';
+
+/** stack — no vendor route; the wired surface keeps zero's names. */
+type StackProps = Record<never, never>;
+type StackAdapted = Adapted<typeof ZStack, ZeroAxisProp, StackProps>;
+export declare const Stack: StackAdapted & AdaptedStatics<typeof ZStack> & { Root: StackAdapted };
+
+/** spacer — no vendor route; the wired surface keeps zero's names. */
+type SpacerProps = Record<never, never>;
+type SpacerAdapted = Adapted<typeof ZSpacer, ZeroAxisProp, SpacerProps>;
+export declare const Spacer: SpacerAdapted & { Root: SpacerAdapted };
 
 /** tabs — no vendor route; the wired surface keeps zero's names. */
 type TabsProps = {

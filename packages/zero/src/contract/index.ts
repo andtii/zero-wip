@@ -58,7 +58,7 @@ export {
     stateAttr,
 } from './data-attrs.js';
 
-export type { Responsive, LayoutProps, LayoutAttrName, LayoutAttrSpec } from './layout-attrs.js';
+export type { Responsive, LayoutProps, LayoutAttrName, LayoutAttrSpec, LayoutValue } from './layout-attrs.js';
 export {
     layoutAttrs,
     layoutAttrSpec,

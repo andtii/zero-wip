@@ -1,6 +1,7 @@
 import type { DesignSystemInput } from '@sigx/zero-kit';
 import { defineApi } from '@sigx/zero-kit/define';
 import { modifiers, roles, system, tokens, variants } from './tokens.js';
+import { layoutCss, layoutRecipes } from '@sigx/zero-kit/define';
 import { recipes } from './recipes.js';
 
 /**
@@ -35,7 +36,11 @@ const api = defineApi(
 export const designSystem: DesignSystemInput<typeof roles, typeof system> = {
     name: 'heroui',
     tokens,
-    recipes,
+    // The layout tier, generated from this design system's own spacing ramp
+    // and breakpoints. Composed HERE rather than in `recipes.ts`, which
+    // `@sigx/create-zero-ds` copies verbatim as a scaffold's frozen baseline.
+    recipes: [...layoutRecipes(tokens), ...recipes],
+    css: [layoutCss(tokens)],
     api,
 };
 

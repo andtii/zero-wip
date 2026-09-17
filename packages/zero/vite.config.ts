@@ -45,6 +45,8 @@ export default defineLibConfig({
         'components/badge/index': 'src/components/badge/index.ts',
         'components/divider/index': 'src/components/divider/index.ts',
         'components/skeleton/index': 'src/components/skeleton/index.ts',
+        'components/stack/index': 'src/components/stack/index.ts',
+        'components/spacer/index': 'src/components/spacer/index.ts',
         'components/spinner/index': 'src/components/spinner/index.ts',
         'components/kbd/index': 'src/components/kbd/index.ts',
         'components/status/index': 'src/components/status/index.ts',

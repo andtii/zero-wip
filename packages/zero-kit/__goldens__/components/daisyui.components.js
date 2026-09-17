@@ -25,6 +25,8 @@ export const Table = /* @__PURE__ */ adapt(ZTable, {
     },
 });
 
+export { Stack } from '@sigx/zero/stack';
+export { Spacer } from '@sigx/zero/spacer';
 export { Tabs } from '@sigx/zero/tabs';
 export { Collapsible } from '@sigx/zero/collapsible';
 export { Switch } from '@sigx/zero/switch';

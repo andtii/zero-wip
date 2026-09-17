@@ -218,6 +218,10 @@ export type { DividerRootProps } from './components/divider/index.js';
 
 export { Skeleton, skeletonAnatomy } from './components/skeleton/index.js';
 export type { SkeletonRootProps } from './components/skeleton/index.js';
+export { Stack, Row, Col, stackAnatomy } from './components/stack/index.js';
+export type { StackRootProps, StackItemProps } from './components/stack/index.js';
+export { Spacer, spacerAnatomy } from './components/spacer/index.js';
+export type { SpacerRootProps } from './components/spacer/index.js';
 
 export { Spinner, spinnerAnatomy } from './components/spinner/index.js';
 export type { SpinnerRootProps } from './components/spinner/index.js';

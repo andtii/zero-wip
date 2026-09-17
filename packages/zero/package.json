@@ -168,6 +168,14 @@
             "types": "./dist/components/skeleton/index.d.ts",
             "import": "./dist/components/skeleton/index.js"
         },
+        "./stack": {
+            "types": "./dist/components/stack/index.d.ts",
+            "import": "./dist/components/stack/index.js"
+        },
+        "./spacer": {
+            "types": "./dist/components/spacer/index.d.ts",
+            "import": "./dist/components/spacer/index.js"
+        },
         "./spinner": {
             "types": "./dist/components/spinner/index.d.ts",
             "import": "./dist/components/spinner/index.js"

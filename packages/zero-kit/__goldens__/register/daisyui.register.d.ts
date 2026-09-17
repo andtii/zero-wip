@@ -5,7 +5,7 @@
 declare module '@sigx/zero' {
     interface ZeroVocabulary {
         theme: 'light' | 'dark' | 'dim' | 'nord' | 'sunset';
-        breakpoint: never;
+        breakpoint: 'sm' | 'md' | 'lg';
         property: '--border' | '--color-accent' | '--color-accent-content' | '--color-accent-soft' | '--color-base-100' | '--color-base-200' | '--color-base-300' | '--color-base-content' | '--color-error' | '--color-error-content' | '--color-error-soft' | '--color-info' | '--color-info-content' | '--color-info-soft' | '--color-neutral' | '--color-neutral-content' | '--color-neutral-soft' | '--color-primary' | '--color-primary-content' | '--color-primary-soft' | '--color-secondary' | '--color-secondary-content' | '--color-secondary-soft' | '--color-success' | '--color-success-content' | '--color-success-soft' | '--color-warning' | '--color-warning-content' | '--color-warning-soft' | '--depth' | '--depth-shade' | '--depth-sheen' | '--disabled-opacity' | '--duration-fast' | '--duration-instant' | '--duration-normal' | '--duration-slow' | '--ease-standard' | '--font-mono' | '--font-sans' | '--fx-noise' | '--leading-none' | '--leading-normal' | '--leading-tight' | '--noise' | '--radius-box' | '--radius-field' | '--radius-selector' | '--shadow-lg' | '--shadow-md' | '--shadow-sm' | '--shadow-xl' | '--shadow-xs' | '--size-field' | '--size-selector' | '--space-2xl' | '--space-2xs' | '--space-lg' | '--space-md' | '--space-sm' | '--space-xl' | '--space-xs' | '--tracking-normal' | '--tracking-wide' | '--weight-bold' | '--weight-medium' | '--weight-normal' | '--weight-semibold';
         tokens: {
             radius: 'selector' | 'field' | 'box';
@@ -21,6 +21,28 @@ declare module '@sigx/zero' {
             ease: 'linear' | 'standard' | 'emphasized';
         };
         components: {
+            /** stack — no axis wired by daisyui; every axis errors under this register module. */
+            'stack': {
+                /** Accepts `color` at runtime, but daisyui declares no color axis for stack — the attribute would match nothing. */
+                color: never;
+                /** Accepts `size` at runtime, but daisyui declares no size axis for stack — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but daisyui declares no variant axis for stack — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
+            /** spacer — no axis wired by daisyui; every axis errors under this register module. */
+            'spacer': {
+                /** Accepts `color` at runtime, but daisyui declares no color axis for spacer — the attribute would match nothing. */
+                color: never;
+                /** Accepts `size` at runtime, but daisyui declares no size axis for spacer — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but daisyui declares no variant axis for spacer — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
             /** tabs — color, size, variant wired. */
             'tabs': {
                 color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';

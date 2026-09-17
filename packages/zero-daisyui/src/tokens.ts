@@ -3,6 +3,7 @@
  * zero contract. Values match the daisy presets `@sigx/daisyui` ships, so a
  * zero app skinned with this package sits visually next to a daisy app.
  */
+import { layoutScopes } from '@sigx/zero-kit/define';
 import type { CustomTokenDecl, RoleDecl, SystemTokens, TokensInput } from '@sigx/zero-kit';
 
 /** daisyUI's color vocabulary — the recommended eight roles, declared explicitly. */
@@ -166,6 +167,17 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
     variants,
     modifiers: [...modifiers, ...tableModifiers],
     /**
+     * daisyUI's own ramp — Tailwind's, which daisy is authored against.
+     *
+     * Declared because of the layout tier: the other five skins already had
+     * breakpoints, and without one here a responsive layout prop
+     * (`gap={{ md: 'lg' }}`) would render an attribute that matches nothing
+     * on this skin alone — a zero-level prop silently working in five design
+     * systems and not the sixth. `resolveCondition` also throws on an
+     * unknown condition key, so a recipe could not reference one either.
+     */
+    breakpoints: { sm: '40rem', md: '48rem', lg: '64rem' },
+    /**
      * Per-scope vocabulary claims (#294). Button wires `variant` and the
      * `btn-*` modifier set (#175); restating its union is the explicit
      * claim "yes, button carries all of it", the same grammar zero-basic's
@@ -174,6 +186,10 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
      * and tabs (#377) carries the three flavors and nothing of button's.
      */
     scopes: {
+        // The layout tier wires neither colour nor size — a Stack is
+        // geometry, and `data-color` on it would paint nothing. Declared out
+        // of existence rather than left to the axis-coverage audit to report.
+        ...layoutScopes,
         button: {
             variants: [...buttonVariants],
             modifiers: [...modifiers],

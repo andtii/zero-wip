@@ -124,7 +124,7 @@ sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
 model. Transforms apply once at the component boundary, timing on the
 element.
 
-50 components ship today. Every part each renders is listed below, in
+52 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -337,6 +337,24 @@ component renders; the root is called out separately where it carries props.
   directional CSS). asChild is the honest joint: a wrapper cannot collapse
   the radius of the control inside it, so put the item attributes ON the
   control.
+- Stack: Root(orientation, gap/gapX/gapY, pad/padX/padY, align, justify,
+  wrap)/Item(asChild, grow) — the flex row or column an application layout
+  is made of. Row and Col are the SAME scope with a different default
+  orientation, exported as presets: two scopes would mean two recipes and
+  two chances for a skin to paint them differently. Prefer them over
+  `<Stack orientation=…>`; Stack itself defaults to horizontal, matching
+  data-orientation everywhere else in zero rather than the vertical default
+  some other libraries give this name. Spacing props take a rung of the
+  --space-* ramp (or a breakpoint record), never a length. Item exists only
+  so a child can opt into growing, and supports asChild for Join's reason:
+  flex-grow applies to the flex ITEM, so a wrapper cannot grow the control
+  inside it. No role — a stack is visual grouping.
+- Spacer: Root only(space) — flexible room by default, a fixed rung of the
+  spacing ramp when given `space`. aria-hidden: it holds room, never
+  content. Earns its place next to `gap` because the two answer different
+  questions: gap spaces EVERY child equally, a spacer pushes ONE boundary
+  apart (the toolbar whose actions sit at the far end), which otherwise
+  needs the row split into nested stacks.
 - Carousel: Root(label REQUIRED — the root is a region, and a nameless
   region is an axe violation)/Viewport/Item/PrevTrigger/NextTrigger/
   IndicatorGroup/Indicator(index). A scroll-snap viewport whose MODEL IS

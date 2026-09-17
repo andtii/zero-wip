@@ -64,11 +64,34 @@ describe('a design system with no colour axis', () => {
 
         const colourReasons = reasonFor('color');
         expect(colourReasons.length).toBeGreaterThan(0);
-        for (const doc of colourReasons) expect(doc).toContain('declares no color axis at all');
+        // Two honest spellings, and the diagnostic is that NEITHER is the
+        // recipe-gap one. Most scopes get "at all", because heroui declares
+        // `roles: {}`; the layout scopes get the narrower "for <scope>",
+        // because they additionally declare `colors: []` — a Stack is
+        // geometry, so its colour would be `never` even on a skin that has
+        // a colour axis. Asserting only the DS-wide spelling would force the
+        // less precise message on them.
+        for (const doc of colourReasons) {
+            expect(doc).not.toContain('no heroui recipe wires it');
+            expect(doc).toMatch(/declares no color axis (at all|for [\w-]+)/);
+        }
+        expect(colourReasons.some((d) => d.includes('declares no color axis at all'))).toBe(true);
+        expect(colourReasons.some((d) => d.includes('declares no color axis for stack'))).toBe(true);
 
-        const variantReasons = reasonFor('variant');
-        expect(variantReasons.length).toBeGreaterThan(0);
-        for (const doc of variantReasons) expect(doc).toContain('no heroui recipe wires it');
+        // `variant` IS declared by this design system, so an unwired one on a
+        // scope that could carry it genuinely is a recipe gap and must still
+        // say so. Asserted on a named scope rather than over all of them,
+        // because the layout scopes declare `variants: []` and so answer the
+        // per-scope way — which is the correct answer for them, not a
+        // regression in this diagnostic.
+        const reasonLineFor = (axis: string, scope: string) => {
+            const at = lines.findIndex((l) => l.includes(`${scope} —`));
+            expect(at, `${scope} block`).toBeGreaterThan(-1);
+            const idx = lines.findIndex((l, i) => i > at && new RegExp(`^\\s*${axis}: never;$`).test(l));
+            return idx === -1 ? '' : lines[idx - 1]!;
+        };
+        expect(reasonLineFor('variant', 'tabs')).toContain('no heroui recipe wires it');
+        expect(reasonLineFor('variant', 'stack')).toContain('declares no variant axis for stack');
     });
 
     it('degrades the theme swatch to the base pair rather than failing', () => {

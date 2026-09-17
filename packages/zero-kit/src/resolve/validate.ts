@@ -634,7 +634,14 @@ export function validateDesignSystem<R extends RolesDecl>(
                 if (values === undefined) return;
                 narrows = true;
                 const axis = key === 'colors' ? 'color' : key === 'sizes' ? 'size' : key === 'variants' ? 'variant' : key;
-                note(axis, scope);
+                // An EMPTY declaration is not a narrowing for the
+                // half-adoption warning below. `[]` says "this scope has no
+                // such axis at all" — it declares no values, so no sibling
+                // can be silently offering values that were added for it.
+                // Layout scopes are the case that made this visible: a Stack
+                // is geometry and wires neither colour nor size, and saying
+                // so must not make all fifty siblings look under-declared.
+                if (values.length > 0) note(axis, scope);
                 if (key === 'modifiers') checkAxisNames(`${where}.${key}`, values, { empty: 'means-none' });
                 else checkAxisValues(`${where}.${key}`, values, { empty: 'means-none' });
                 const union = unions[key];

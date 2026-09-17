@@ -113,6 +113,19 @@ export const LAYOUT_VOCABULARY = {
 
 export type LayoutAttrName = keyof typeof LAYOUT_VOCABULARY;
 
+/**
+ * The literal value union of one layout attribute — what a component's prop
+ * should be typed as.
+ *
+ * `LAYOUT_VOCABULARY` is `as const satisfies`, so each `values` is a literal
+ * tuple rather than `string[]`, and indexing it gives real autocomplete:
+ * `LayoutValue<'gap'>` is `'none' | '2xs' | … | '2xl'`. Closed on purpose —
+ * unlike an axis, whose vocabulary belongs to the design system, a layout
+ * value is contract data zero owns, so a typo should be a compile error
+ * rather than an attribute that matches nothing.
+ */
+export type LayoutValue<A extends LayoutAttrName> = typeof LAYOUT_VOCABULARY[A]['values'][number];
+
 /** Every layout attribute name, flat — the membership check's set. */
 export const LAYOUT_ATTR_NAMES: ReadonlySet<string> = new Set(Object.keys(LAYOUT_VOCABULARY));
 

@@ -21,6 +21,28 @@ declare module '@sigx/zero' {
             ease: 'linear' | 'standard' | 'emphasized';
         };
         components: {
+            /** stack — no axis wired by brutalist; every axis errors under this register module. */
+            'stack': {
+                /** Accepts `color` at runtime, but brutalist declares no color axis for stack — the attribute would match nothing. */
+                color: never;
+                /** Accepts `size` at runtime, but brutalist declares no size axis for stack — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but brutalist declares no variant axis for stack — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
+            /** spacer — no axis wired by brutalist; every axis errors under this register module. */
+            'spacer': {
+                /** Accepts `color` at runtime, but brutalist declares no color axis for spacer — the attribute would match nothing. */
+                color: never;
+                /** Accepts `size` at runtime, but brutalist declares no size axis for spacer — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but brutalist declares no variant axis for spacer — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
             /** button — color, size, variant wired. */
             'button': {
                 color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
