@@ -24,7 +24,7 @@ import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { renderAsChild } from '../../contract/as-child.js';
 import { layoutAttrs } from '../../contract/layout-attrs.js';
-import type { LayoutValue, Responsive } from '../../contract/layout-attrs.js';
+import type { LayoutProp } from '../../contract/layout-attrs.js';
 import type { PartProps, WithAsChild, WithClass, WithOrientation } from '../../contract/props.js';
 import type { Orientation } from '../../contract/data-attrs.js';
 import { stackAnatomy } from './anatomy.js';
@@ -39,15 +39,15 @@ const SCOPE = stackAnatomy.scope;
 export type StackRootProps =
     & WithOrientation
     & WithClass
-    & Define.Prop<'gap', Responsive<LayoutValue<'gap'>>, false>
-    & Define.Prop<'gapX', Responsive<LayoutValue<'gap-x'>>, false>
-    & Define.Prop<'gapY', Responsive<LayoutValue<'gap-y'>>, false>
-    & Define.Prop<'pad', Responsive<LayoutValue<'pad'>>, false>
-    & Define.Prop<'padX', Responsive<LayoutValue<'pad-x'>>, false>
-    & Define.Prop<'padY', Responsive<LayoutValue<'pad-y'>>, false>
-    & Define.Prop<'align', Responsive<LayoutValue<'align'>>, false>
-    & Define.Prop<'justify', Responsive<LayoutValue<'justify'>>, false>
-    & Define.Prop<'wrap', LayoutValue<'wrap'>, false>
+    & Define.Prop<'gap', LayoutProp<'gap'>, false>
+    & Define.Prop<'gapX', LayoutProp<'gap-x'>, false>
+    & Define.Prop<'gapY', LayoutProp<'gap-y'>, false>
+    & Define.Prop<'pad', LayoutProp<'pad'>, false>
+    & Define.Prop<'padX', LayoutProp<'pad-x'>, false>
+    & Define.Prop<'padY', LayoutProp<'pad-y'>, false>
+    & Define.Prop<'align', LayoutProp<'align'>, false>
+    & Define.Prop<'justify', LayoutProp<'justify'>, false>
+    & Define.Prop<'wrap', LayoutProp<'wrap'>, false>
     & Define.Slot<'default'>;
 
 /**

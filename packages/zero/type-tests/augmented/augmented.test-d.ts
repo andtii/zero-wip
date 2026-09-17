@@ -20,6 +20,7 @@ import type {
     ZeroVocabulary,
     ZeroBreakpointName,
     Responsive,
+    LayoutProp,
 } from '@sigx/zero';
 import type { Equal, MustBeTrue } from '../assert.js';
 
@@ -103,3 +104,28 @@ const typoBreakpoint: Responsive<'sm' | 'md'> = { mdd: 'md' };
 const badValue: Responsive<'sm' | 'md'> = { md: 'enormous' };
 
 type BreakpointsAreClosed = MustBeTrue<Equal<ZeroBreakpointName, 'sm' | 'md' | 'lg'>>;
+
+// ── layout props follow the vocabulary's own `responsive` flag ──
+//
+// Derived rather than hand-written per prop, so the type cannot disagree
+// with the runtime guard. Typing a non-responsive attribute as Responsive
+// would let `gapX={{ md: 'lg' }}` compile and then throw.
+
+const gapBare: LayoutProp<'gap'> = 'md';
+const gapResponsive: LayoutProp<'gap'> = { base: 'sm', md: 'lg' };
+const padResponsive: LayoutProp<'pad'> = { lg: 'xl' };
+const alignResponsive: LayoutProp<'align'> = { md: 'center' };
+
+const gapXBare: LayoutProp<'gap-x'> = 'lg';
+// @ts-expect-error — `gap-x` does not vary per breakpoint; a record throws at runtime
+const gapXResponsive: LayoutProp<'gap-x'> = { md: 'lg' };
+// @ts-expect-error — nor does `pad-y`
+const padYResponsive: LayoutProp<'pad-y'> = { md: 'lg' };
+// @ts-expect-error — nor `wrap`, which describes what a box IS
+const wrapResponsive: LayoutProp<'wrap'> = { md: 'wrap' };
+
+// The value union stays closed in both shapes.
+// @ts-expect-error — not a rung of the ramp
+const gapTypo: LayoutProp<'gap'> = 'roomy';
+// @ts-expect-error — and not inside the record either
+const gapTypoResponsive: LayoutProp<'gap'> = { md: 'roomy' };

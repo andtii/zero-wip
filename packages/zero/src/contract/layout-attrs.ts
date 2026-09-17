@@ -211,6 +211,21 @@ export function parseLayoutAttr(name: string): { attr: LayoutAttrName; breakpoin
  */
 export type Responsive<T> = T | ({ base?: T } & Partial<Record<ZeroBreakpointName, T>>);
 
+/**
+ * The prop type of one layout attribute — its value union, wrapped in
+ * {@link Responsive} only when the vocabulary says it varies per breakpoint.
+ *
+ * DERIVED from `LAYOUT_VOCABULARY` rather than written per prop, because the
+ * two can otherwise disagree: typing a non-responsive attribute as
+ * `Responsive<…>` lets `gapX={{ md: 'lg' }}` compile and then throw at
+ * runtime, which is the opposite of what the closed vocabulary is for. The
+ * conditional makes that shape unrepresentable.
+ */
+export type LayoutProp<A extends LayoutAttrName> =
+    typeof LAYOUT_VOCABULARY[A] extends { responsive: true }
+        ? Responsive<LayoutValue<A>>
+        : LayoutValue<A>;
+
 /** The layout props a part accepts, as a bag keyed by attribute name. */
 export type LayoutProps = Partial<Record<LayoutAttrName, Responsive<string | number> | undefined>>;
 

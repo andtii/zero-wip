@@ -14,7 +14,7 @@
 import { component, compound } from 'sigx';
 import type { Define } from 'sigx';
 import { layoutAttrs } from '../../contract/layout-attrs.js';
-import type { LayoutValue } from '../../contract/layout-attrs.js';
+import type { LayoutProp } from '../../contract/layout-attrs.js';
 import type { WithClass } from '../../contract/props.js';
 import { spacerAnatomy } from './anatomy.js';
 
@@ -23,7 +23,7 @@ const SCOPE = spacerAnatomy.scope;
 export type SpacerRootProps =
     & WithClass
     /** A fixed size instead of flexing. Absent means "take what is left". */
-    & Define.Prop<'space', LayoutValue<'space'>, false>;
+    & Define.Prop<'space', LayoutProp<'space'>, false>;
 
 const SpacerRoot = component<SpacerRootProps>(({ props }) => {
     return () => (
