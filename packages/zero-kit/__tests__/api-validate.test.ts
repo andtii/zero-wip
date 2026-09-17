@@ -231,6 +231,31 @@ describe('validateApi — RESERVED_PROPS_BY_SCOPE (#318)', () => {
     it('allows the same rename scoped to one component — deliberate vendor shadowing', () => {
         expect(validate({ components: { select: { variant: { as: 'name' } } } })).toEqual([]);
     });
+
+    it('refuses a contract-owned name at BOTH tiers, which is why the table need not carry it (#475)', () => {
+        // Recorded because the table's asymmetry invites a wrong conclusion:
+        // `divider` lists `orientation` (it declares the prop as a literal,
+        // which the parity scraper sees) while the eight scopes that spell it
+        // through `WithOrientation` do not. That looks like a hole — a
+        // DS-wide rename shadowing `orientation` on eight scopes — and is
+        // not one.
+        //
+        // `checkAs` rejects any `as` in RESERVED_AXES, which contains
+        // `orientation` alongside `scope`, `part`, `state` and every flag,
+        // and it runs BEFORE the per-scope table check and at both tiers. So
+        // the protection never depended on the table, and adding the eight
+        // entries would only have duplicated an error that already fires.
+        //
+        // The same reasoning is why `WithDisabled` is absent from the
+        // scraper's FRAGMENTS table.
+        for (const api of [
+            { variant: { as: 'orientation' } },
+            { components: { tabs: { variant: { as: 'orientation' } } } },
+        ]) {
+            const messages = errors(api as never).map((i) => i.message);
+            expect(messages.some((m) => m.includes('part of the anatomy contract')), JSON.stringify(api)).toBe(true);
+        }
+    });
 });
 
 describe('validateApi — declaration shape', () => {

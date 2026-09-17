@@ -41,7 +41,18 @@ function rootPropsOf(scope: string): string[] {
     for (const match of block.matchAll(/Define\.Prop<'([^']+)'/g)) props.add(match[1]!);
     // The form vocabulary is spelled through contract/props.ts fragments
     // (one spelling per prop, #441); each expands to the props it carries.
-    // `WithDisabled` is contract-owned and deliberately absent.
+    // `WithDisabled` is contract-owned and deliberately absent — and so, for
+    // the same reason, is `WithOrientation` (#475).
+    //
+    // The absence looks like a hole and is not one, so it is worth naming:
+    // `divider` DOES list `orientation`, because it declares the prop as a
+    // literal `Define.Prop` that the scrape below can see, while the eight
+    // scopes spelling it through the fragment do not. Nothing depends on
+    // that difference. `checkAs` refuses any `as` in RESERVED_AXES — which
+    // holds `orientation`, `scope`, `part`, `state` and every flag — at both
+    // tiers and before the per-scope check runs, so expanding the fragment
+    // here would only duplicate an error that already fires. Pinned by
+    // "refuses a contract-owned name at BOTH tiers" in api-validate.test.ts.
     const FRAGMENTS: Record<string, readonly string[]> = {
         WithName: ['name'],
         WithForm: ['form'],
