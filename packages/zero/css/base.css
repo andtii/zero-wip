@@ -108,6 +108,17 @@
         --space-xl: 1rem;
         --space-2xl: 1.5rem;
 
+        /* Page-scale widths a Container is bounded by. Last-resort values
+           only: a design system that cares how wide its pages run declares
+           its own, and most should — this is identity, not geometry.
+           `prose` is in `ch` so the reading measure tracks the type. */
+        --measure-xs: 20rem;
+        --measure-sm: 30rem;
+        --measure-md: 48rem;
+        --measure-lg: 64rem;
+        --measure-xl: 80rem;
+        --measure-prose: 65ch;
+
         /* Achromatic so they read on any hue; a design system that cares
            about shadow tint overrides them, and dark themes usually want
            heavier ones via `systemDark.shadow`. */

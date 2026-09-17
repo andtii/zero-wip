@@ -75,6 +75,12 @@ exports[`compileLynxTokensCss > pins the emitted shape (golden) 1`] = `
     --space-lg: 0.75rem;
     --space-xl: 1rem;
     --space-2xl: 1.5rem;
+    --measure-xs: 20rem;
+    --measure-sm: 30rem;
+    --measure-md: 44rem;
+    --measure-lg: 60rem;
+    --measure-xl: 75rem;
+    --measure-prose: 62ch;
     --shadow-xs: 0 1px 2px #1c222b0d;
     --shadow-sm: 0 1px 3px #1c222b12;
     --shadow-md: 0 2px 8px -2px #1c222b17;
@@ -155,6 +161,12 @@ exports[`compileLynxTokensCss > pins the emitted shape (golden) 1`] = `
     --space-lg: 0.75rem;
     --space-xl: 1rem;
     --space-2xl: 1.5rem;
+    --measure-xs: 20rem;
+    --measure-sm: 30rem;
+    --measure-md: 44rem;
+    --measure-lg: 60rem;
+    --measure-xl: 75rem;
+    --measure-prose: 62ch;
     --shadow-xs: 0 1px 2px #1c222b0d;
     --shadow-sm: 0 1px 3px #1c222b12;
     --shadow-md: 0 2px 8px -2px #1c222b17;
@@ -235,6 +247,12 @@ exports[`compileLynxTokensCss > pins the emitted shape (golden) 1`] = `
     --space-lg: 0.75rem;
     --space-xl: 1rem;
     --space-2xl: 1.5rem;
+    --measure-xs: 20rem;
+    --measure-sm: 30rem;
+    --measure-md: 44rem;
+    --measure-lg: 60rem;
+    --measure-xl: 75rem;
+    --measure-prose: 62ch;
     --shadow-xs: 0 1px 2px #00000040;
     --shadow-sm: 0 1px 3px #0000004d;
     --shadow-md: inset 0 1px 0 #ffffff0f, 0 2px 8px -2px #00000059;

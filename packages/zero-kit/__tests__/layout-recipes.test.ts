@@ -205,6 +205,42 @@ describe('the box recipe', () => {
     });
 });
 
+describe('the measure ramp', () => {
+    it('resolves each rung through the design system\'s own --measure-* token', () => {
+        const css = layoutCss(basicDS.tokens as TokensInput);
+        expect(css).toContain('[data-scope][data-part][data-l-measure="lg"] {\n    --l-measure: var(--measure-lg);\n}');
+        expect(css).toContain('--l-measure: var(--measure-prose);');
+    });
+
+    it('spells `full` as `none`, not 100%', () => {
+        // A container told not to bound its width should have NO maximum;
+        // `100%` would still bound it to the parent.
+        expect(layoutCss(basicDS.tokens as TokensInput))
+            .toContain('[data-scope][data-part][data-l-measure="full"] {\n    --l-measure: none;\n}');
+    });
+
+    it('every shipped design system declares its own page widths', () => {
+        // The whole reason `measure` is a token category rather than a pack
+        // default: how wide a page runs is identity, and six skins should
+        // disagree about it. A shared default would have made every skin's
+        // pages the same width — the leak the layout tier exists to close.
+        const md = SKINS.map(([name, ds]) => [name, (ds.tokens as TokensInput).system?.measure?.['md']] as const);
+        for (const [name, value] of md) expect(value, name).toBeTruthy();
+        expect(new Set(md.map(([, v]) => v)).size).toBeGreaterThan(1);
+    });
+
+    it('falls back to the recommended rungs when a skin declares none', () => {
+        // Absence is never an error for a category — `css/base.css` ships
+        // fallbacks, so a design system that declares no measures still gets
+        // a working Container rather than an unbounded one.
+        const bare = {
+            ...(basicDS.tokens as TokensInput),
+            system: { ...(basicDS.tokens as TokensInput).system, measure: undefined },
+        } as TokensInput;
+        expect(layoutCss(bare)).toContain('--l-measure: var(--measure-lg);');
+    });
+});
+
 describe('layoutScopes', () => {
     it('declares the geometry scopes out of every axis, and Box out of all but colour', () => {
         // Not decoration: `axis-coverage` walks every scope that HAS a

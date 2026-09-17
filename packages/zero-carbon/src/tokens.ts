@@ -72,6 +72,18 @@ export const system = {
     disabledOpacity: '0.25',
 
     // The 8 px mini-unit grid.
+    // Page-scale widths a Container is bounded by. The density ramp cannot
+    // reach these — it tops out at a rung you would not notice.
+    // Carbon's 2x grid: its wide breakpoints, in rem.
+    measure: {
+        xs: '20rem',
+        sm: '42rem',
+        md: '66rem',
+        lg: '82rem',
+        xl: '99rem',
+        prose: '66ch',
+    },
+
     spacing: {
         '2xs': '0.125rem',
         xs: '0.25rem',

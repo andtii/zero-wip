@@ -87,6 +87,12 @@
         --space-lg: 1.5rem;
         --space-xl: 2rem;
         --space-2xl: 3rem;
+        --measure-xs: 20rem;
+        --measure-sm: 37.5rem;
+        --measure-md: 52.5rem;
+        --measure-lg: 60rem;
+        --measure-xl: 75rem;
+        --measure-prose: 70ch;
         --shadow-level1: 0 1px 2px 0 oklch(0% 0 0 / 0.3), 0 1px 3px 1px oklch(0% 0 0 / 0.15);
         --shadow-level2: 0 1px 2px 0 oklch(0% 0 0 / 0.3), 0 2px 6px 2px oklch(0% 0 0 / 0.15);
         --shadow-level3: 0 4px 8px 3px oklch(0% 0 0 / 0.15), 0 1px 3px 0 oklch(0% 0 0 / 0.3);

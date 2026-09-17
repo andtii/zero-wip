@@ -152,6 +152,17 @@ one of them is geometry and `data-color` on geometry would paint nothing.
 PAINTS, so it wires `color` like any content component, and declares `size`
 out of existence because a Box's size IS its padding and `pad` already says
 that.
+
+`Container` is why the token contract gained a category. Bounding a page needs
+a page-scale length, and nothing in `TOKEN_CATEGORIES` reached one:
+`--space-*` is a density ramp that tops out around 1.5rem and `--size-*` is
+the base unit control sizing multiplies. `--measure-*` is that family, and it
+is a category rather than a pack default precisely because how wide a page
+runs is IDENTITY — a single baked-in number would have made every skin's pages
+the same width, which is the leak this tier exists to close. The width is a
+layout attribute rather than the `size` axis for the same reason the two are
+different questions: `size="lg"` means a chunkier button and would mean a
+wider page, and `prose` — a reading measure in `ch` — is not a size at all.
 They are one scope per behaviour rather than one per spelling: `Row` and
 `Col` are the same `stack` with a different default `data-orientation`, so
 there is one recipe and one manifest entry for a skin to paint.
@@ -200,7 +211,7 @@ would render it as an element.
 
 **The registry is typed closed.** `anatomies` in
 `packages/zero/src/anatomy.ts` is declared `as const satisfies
-Record<string, Anatomy>` — 55 components — so `ZeroScope` is a closed literal
+Record<string, Anatomy>` — 56 components — so `ZeroScope` is a closed literal
 union. That closure is load-bearing: the generated register artifact asserts
 its scope keys against it at compile time ([§3.5](#35-the-register-artifact)),
 which is what makes a typo'd or version-skewed scope a compile error instead
@@ -1166,7 +1177,7 @@ Honesty section. These are the edges the tree knows about today:
 - **The dual-controller theme desync** ([§6](#6-the-theme-model)) is known
   and deliberately unfixed; consumers that swap design systems at runtime
   carry the playground's capture/re-apply pattern.
-- **The component surface is finite.** Fifty-five components, skewed to
+- **The component surface is finite.** Fifty-six components, skewed to
   primitives plus the content, navigation, layout and behavior tiers; there
   is no DatePicker and no data grid (Table ships the semantic anatomy, not
   sorting or virtualization). The ecosystem path

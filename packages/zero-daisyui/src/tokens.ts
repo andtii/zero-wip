@@ -43,6 +43,18 @@ export const system = {
     },
     // daisy runs a slightly roomier ramp than basic — the `xl`/`2xl` steps
     // are where its cards and modals get their air.
+    // Page-scale widths a Container is bounded by. The density ramp cannot
+    // reach these — it tops out at a rung you would not notice.
+    // Tailwind's container ramp, which is what daisy is authored against.
+    measure: {
+        xs: '20rem',
+        sm: '24rem',
+        md: '28rem',
+        lg: '32rem',
+        xl: '36rem',
+        prose: '65ch',
+    },
+
     spacing: {
         '2xs': '0.125rem',
         xs: '0.25rem',

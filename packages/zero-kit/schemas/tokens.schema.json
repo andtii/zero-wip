@@ -338,6 +338,9 @@
                 "spacing": {
                     "$ref": "#/$defs/scale"
                 },
+                "measure": {
+                    "$ref": "#/$defs/scale"
+                },
                 "shadow": {
                     "$ref": "#/$defs/scale"
                 },
@@ -367,6 +370,9 @@
                     "$ref": "#/$defs/typographyOverride"
                 },
                 "spacing": {
+                    "$ref": "#/$defs/scale"
+                },
+                "measure": {
                     "$ref": "#/$defs/scale"
                 },
                 "shadow": {

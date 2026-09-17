@@ -6,7 +6,7 @@ declare module '@sigx/zero' {
     interface ZeroVocabulary {
         theme: 'brutalist' | 'brutalist-dark';
         breakpoint: 'sm' | 'md' | 'lg';
-        property: '--border' | '--color-accent' | '--color-accent-content' | '--color-accent-soft' | '--color-base-100' | '--color-base-200' | '--color-base-300' | '--color-base-content' | '--color-error' | '--color-error-content' | '--color-error-soft' | '--color-info' | '--color-info-content' | '--color-info-soft' | '--color-neutral' | '--color-neutral-content' | '--color-neutral-soft' | '--color-primary' | '--color-primary-content' | '--color-primary-soft' | '--color-secondary' | '--color-secondary-content' | '--color-secondary-soft' | '--color-success' | '--color-success-content' | '--color-success-soft' | '--color-warning' | '--color-warning-content' | '--color-warning-soft' | '--disabled-opacity' | '--duration-fast' | '--duration-instant' | '--duration-normal' | '--duration-slow' | '--ease-emphasized' | '--ease-linear' | '--ease-standard' | '--font-mono' | '--font-sans' | '--leading-none' | '--leading-normal' | '--leading-relaxed' | '--leading-tight' | '--radius-box' | '--radius-field' | '--radius-selector' | '--shadow-lg' | '--shadow-md' | '--shadow-sm' | '--shadow-xl' | '--shadow-xs' | '--size-field' | '--size-selector' | '--space-2xl' | '--space-2xs' | '--space-lg' | '--space-md' | '--space-sm' | '--space-xl' | '--space-xs' | '--text-2xl' | '--text-3xl' | '--text-fixed-2xl' | '--text-fixed-3xl' | '--text-fixed-lg' | '--text-fixed-md' | '--text-fixed-sm' | '--text-fixed-xl' | '--text-fixed-xs' | '--text-lg' | '--text-md' | '--text-sm' | '--text-xl' | '--text-xs' | '--tracking-normal' | '--tracking-tight' | '--tracking-wide' | '--weight-bold' | '--weight-medium' | '--weight-normal' | '--weight-semibold';
+        property: '--border' | '--color-accent' | '--color-accent-content' | '--color-accent-soft' | '--color-base-100' | '--color-base-200' | '--color-base-300' | '--color-base-content' | '--color-error' | '--color-error-content' | '--color-error-soft' | '--color-info' | '--color-info-content' | '--color-info-soft' | '--color-neutral' | '--color-neutral-content' | '--color-neutral-soft' | '--color-primary' | '--color-primary-content' | '--color-primary-soft' | '--color-secondary' | '--color-secondary-content' | '--color-secondary-soft' | '--color-success' | '--color-success-content' | '--color-success-soft' | '--color-warning' | '--color-warning-content' | '--color-warning-soft' | '--disabled-opacity' | '--duration-fast' | '--duration-instant' | '--duration-normal' | '--duration-slow' | '--ease-emphasized' | '--ease-linear' | '--ease-standard' | '--font-mono' | '--font-sans' | '--leading-none' | '--leading-normal' | '--leading-relaxed' | '--leading-tight' | '--measure-lg' | '--measure-md' | '--measure-prose' | '--measure-sm' | '--measure-xl' | '--measure-xs' | '--radius-box' | '--radius-field' | '--radius-selector' | '--shadow-lg' | '--shadow-md' | '--shadow-sm' | '--shadow-xl' | '--shadow-xs' | '--size-field' | '--size-selector' | '--space-2xl' | '--space-2xs' | '--space-lg' | '--space-md' | '--space-sm' | '--space-xl' | '--space-xs' | '--text-2xl' | '--text-3xl' | '--text-fixed-2xl' | '--text-fixed-3xl' | '--text-fixed-lg' | '--text-fixed-md' | '--text-fixed-sm' | '--text-fixed-xl' | '--text-fixed-xs' | '--text-lg' | '--text-md' | '--text-sm' | '--text-xl' | '--text-xs' | '--tracking-normal' | '--tracking-tight' | '--tracking-wide' | '--weight-bold' | '--weight-medium' | '--weight-normal' | '--weight-semibold';
         tokens: {
             radius: 'selector' | 'field' | 'box';
             size: 'selector' | 'field';
@@ -16,6 +16,7 @@ declare module '@sigx/zero' {
             leading: 'none' | 'tight' | 'normal' | 'relaxed';
             tracking: 'tight' | 'normal' | 'wide';
             space: '2xs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+            measure: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'prose';
             shadow: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
             duration: 'instant' | 'fast' | 'normal' | 'slow';
             ease: 'linear' | 'standard' | 'emphasized';
@@ -71,6 +72,17 @@ declare module '@sigx/zero' {
                 /** Accepts `size` at runtime, but brutalist declares no size axis for box — the attribute would match nothing. */
                 size: never;
                 /** Accepts `variant` at runtime, but brutalist declares no variant axis for box — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
+            /** container — no axis wired by brutalist; every axis errors under this register module. */
+            'container': {
+                /** Accepts `color` at runtime, but brutalist declares no color axis for container — the attribute would match nothing. */
+                color: never;
+                /** Accepts `size` at runtime, but brutalist declares no size axis for container — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but brutalist declares no variant axis for container — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
                 mods: Record<string, never>;

@@ -6,7 +6,7 @@ declare module '@sigx/zero' {
     interface ZeroVocabulary {
         theme: 'white' | 'g100';
         breakpoint: 'sm' | 'md' | 'lg';
-        property: '--border' | '--carbon-border-strong' | '--carbon-danger' | '--carbon-danger-ink' | '--carbon-field-hover' | '--carbon-focus' | '--carbon-interactive' | '--carbon-interactive-ink' | '--carbon-line' | '--carbon-secondary' | '--carbon-secondary-ink' | '--carbon-toggle-on' | '--color-base-100' | '--color-base-200' | '--color-base-300' | '--color-base-content' | '--disabled-opacity' | '--duration-fast' | '--duration-instant' | '--duration-normal' | '--duration-slow' | '--ease-accelerate' | '--ease-decelerate' | '--ease-linear' | '--ease-standard' | '--font-mono' | '--font-sans' | '--leading-none' | '--leading-normal' | '--leading-tight' | '--radius-box' | '--radius-field' | '--radius-selector' | '--shadow-lg' | '--shadow-md' | '--shadow-sm' | '--shadow-xl' | '--shadow-xs' | '--size-field' | '--size-selector' | '--space-2xl' | '--space-2xs' | '--space-lg' | '--space-md' | '--space-sm' | '--space-xl' | '--space-xs' | '--text-2xl' | '--text-3xl' | '--text-fixed-2xl' | '--text-fixed-3xl' | '--text-fixed-lg' | '--text-fixed-md' | '--text-fixed-sm' | '--text-fixed-xl' | '--text-fixed-xs' | '--text-lg' | '--text-md' | '--text-sm' | '--text-xl' | '--text-xs' | '--tracking-normal' | '--tracking-tight' | '--tracking-wide' | '--weight-bold' | '--weight-medium' | '--weight-normal' | '--weight-semibold';
+        property: '--border' | '--carbon-border-strong' | '--carbon-danger' | '--carbon-danger-ink' | '--carbon-field-hover' | '--carbon-focus' | '--carbon-interactive' | '--carbon-interactive-ink' | '--carbon-line' | '--carbon-secondary' | '--carbon-secondary-ink' | '--carbon-toggle-on' | '--color-base-100' | '--color-base-200' | '--color-base-300' | '--color-base-content' | '--disabled-opacity' | '--duration-fast' | '--duration-instant' | '--duration-normal' | '--duration-slow' | '--ease-accelerate' | '--ease-decelerate' | '--ease-linear' | '--ease-standard' | '--font-mono' | '--font-sans' | '--leading-none' | '--leading-normal' | '--leading-tight' | '--measure-lg' | '--measure-md' | '--measure-prose' | '--measure-sm' | '--measure-xl' | '--measure-xs' | '--radius-box' | '--radius-field' | '--radius-selector' | '--shadow-lg' | '--shadow-md' | '--shadow-sm' | '--shadow-xl' | '--shadow-xs' | '--size-field' | '--size-selector' | '--space-2xl' | '--space-2xs' | '--space-lg' | '--space-md' | '--space-sm' | '--space-xl' | '--space-xs' | '--text-2xl' | '--text-3xl' | '--text-fixed-2xl' | '--text-fixed-3xl' | '--text-fixed-lg' | '--text-fixed-md' | '--text-fixed-sm' | '--text-fixed-xl' | '--text-fixed-xs' | '--text-lg' | '--text-md' | '--text-sm' | '--text-xl' | '--text-xs' | '--tracking-normal' | '--tracking-tight' | '--tracking-wide' | '--weight-bold' | '--weight-medium' | '--weight-normal' | '--weight-semibold';
         tokens: {
             radius: 'selector' | 'field' | 'box';
             size: 'selector' | 'field';
@@ -16,6 +16,7 @@ declare module '@sigx/zero' {
             leading: 'none' | 'tight' | 'normal' | 'relaxed';
             tracking: 'tight' | 'normal' | 'wide';
             space: '2xs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+            measure: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'prose';
             shadow: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
             duration: 'instant' | 'fast' | 'normal' | 'slow';
             ease: 'linear' | 'standard' | 'emphasized' | 'accelerate' | 'decelerate';
@@ -72,6 +73,17 @@ declare module '@sigx/zero' {
                 /** Accepts `size` at runtime, but carbon declares no size axis for box — the attribute would match nothing. */
                 size: never;
                 /** Accepts `variant` at runtime, but carbon declares no variant axis for box — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
+            /** container — no axis wired by carbon; every axis errors under this register module. */
+            'container': {
+                /** Accepts `color` at runtime, but carbon declares no color axis for container — the attribute would match nothing. */
+                color: never;
+                /** Accepts `size` at runtime, but carbon declares no size axis for container — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but carbon declares no variant axis for container — the attribute would match nothing. */
                 variant: never;
                 axes: Record<string, never>;
                 mods: Record<string, never>;

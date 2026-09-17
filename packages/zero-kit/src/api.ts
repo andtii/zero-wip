@@ -263,6 +263,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     chat: ['placement'],
     checkbox: ['defaultChecked', 'form', 'indeterminate', 'invalid', 'name', 'required', 'value'],
     collapsible: ['defaultOpen', 'value'],
+    container: ['measure', 'pad', 'padX', 'padY'],
     combobox: ['defaultInputValue', 'defaultOpen', 'defaultValue', 'emptyText', 'filter', 'form', 'invalid', 'itemDisabled', 'itemGroup', 'itemKey', 'itemLabel', 'itemValue', 'items', 'multiple', 'name', 'placeholder', 'placement', 'positionStrategy', 'readonly', 'required', 'value'],
     countdown: ['label'],
     dialog: ['defaultOpen', 'dismissible', 'modal', 'role', 'value'],

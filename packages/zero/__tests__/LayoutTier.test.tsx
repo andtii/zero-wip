@@ -13,7 +13,7 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import type { PartProps } from '@sigx/zero';
-import { Box, Center, Col, Grid, Row, Spacer, Stack, boxAnatomy, centerAnatomy, gridAnatomy, spacerAnatomy, stackAnatomy } from '@sigx/zero';
+import { Box, Center, Col, Container, Grid, Row, Spacer, Stack, boxAnatomy, centerAnatomy, containerAnatomy, gridAnatomy, spacerAnatomy, stackAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 let container: HTMLElement;
@@ -221,5 +221,39 @@ describe('Box', () => {
         const root = part('box', 'root');
         expect(root.hasAttribute('data-color')).toBe(false);
         expect(root.getAttributeNames().filter((n) => n.startsWith('data-l-'))).toEqual([]);
+    });
+});
+
+describe('Container', () => {
+    it('renders a valid anatomy and takes a measure', () => {
+        render(<Container measure="lg" padX="xl">page</Container>, container);
+        expectAnatomy(container, containerAnatomy);
+        const root = part('container', 'root');
+        expect(root.getAttribute('data-l-measure')).toBe('lg');
+        expect(root.getAttribute('data-l-pad-x')).toBe('xl');
+    });
+
+    it('takes the reading measure and the unbounded one', () => {
+        render(<Container measure="prose" />, container);
+        expect(part('container', 'root').getAttribute('data-l-measure')).toBe('prose');
+
+        const host = document.createElement('div');
+        document.body.append(host);
+        render(<Container measure="full" />, host);
+        expect(host.querySelector('[data-part="root"]')!.getAttribute('data-l-measure')).toBe('full');
+    });
+
+    it('carries no colour axis — a container is a constraint, not a surface', () => {
+        render(<Container />, container);
+        const root = part('container', 'root');
+        expect(root.hasAttribute('data-color')).toBe(false);
+        // Unbounded by default: a page that wants no maximum should not have
+        // to say `measure="full"`.
+        expect(root.hasAttribute('data-l-measure')).toBe(false);
+    });
+
+    it('refuses a measure outside the ramp', () => {
+        expect(() => render(<Container measure={'2xl' as never} />, container))
+            .toThrow(/not a value of "measure"/);
     });
 });

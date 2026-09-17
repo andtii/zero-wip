@@ -43,6 +43,7 @@ import { spacerAnatomy } from './components/spacer/anatomy.js';
 import { gridAnatomy } from './components/grid/anatomy.js';
 import { centerAnatomy } from './components/center/anatomy.js';
 import { boxAnatomy } from './components/box/anatomy.js';
+import { containerAnatomy } from './components/container/anatomy.js';
 import { spinnerAnatomy } from './components/spinner/anatomy.js';
 import { kbdAnatomy } from './components/kbd/anatomy.js';
 import { statusAnatomy } from './components/status/anatomy.js';
@@ -71,7 +72,7 @@ export {
     avatarAnatomy, toastAnatomy, comboboxAnatomy, toggleAnatomy, toggleGroupAnatomy, numberInputAnatomy,
     ratingGroupAnatomy, treeViewAnatomy, inputAnatomy, textareaAnatomy,
     cardAnatomy, alertAnatomy, badgeAnatomy, dividerAnatomy, skeletonAnatomy, spinnerAnatomy,
-    stackAnatomy, spacerAnatomy, gridAnatomy, centerAnatomy, boxAnatomy,
+    stackAnatomy, spacerAnatomy, gridAnatomy, centerAnatomy, boxAnatomy, containerAnatomy,
     kbdAnatomy, statusAnatomy, indicatorAnatomy, statsAnatomy, timelineAnatomy, chatAnatomy,
     radialProgressAnatomy, joinAnatomy,
     navbarAnatomy, breadcrumbsAnatomy, paginationAnatomy, stepsAnatomy, drawerAnatomy,
@@ -114,6 +115,7 @@ export const anatomies = {
     grid: gridAnatomy,
     center: centerAnatomy,
     box: boxAnatomy,
+    container: containerAnatomy,
     spinner: spinnerAnatomy,
     kbd: kbdAnatomy,
     status: statusAnatomy,

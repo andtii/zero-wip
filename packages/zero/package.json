@@ -188,6 +188,10 @@
             "types": "./dist/components/box/index.d.ts",
             "import": "./dist/components/box/index.js"
         },
+        "./container": {
+            "types": "./dist/components/container/index.d.ts",
+            "import": "./dist/components/container/index.js"
+        },
         "./spinner": {
             "types": "./dist/components/spinner/index.d.ts",
             "import": "./dist/components/spinner/index.js"

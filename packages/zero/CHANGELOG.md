@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+### Added — a `measure` token category, and Container (#484)
+
+- **`--measure-*`** joins `TOKEN_CATEGORIES`: page-scale widths, recommended
+  keys `xs`…`xl` plus `prose`, with fallbacks in `css/base.css`. The density
+  ramp could not reach these — `--space-*` tops out around `1.5rem` and
+  `--size-*` is the base unit control sizing multiplies — so a Container had
+  nothing to resolve against.
+
+  A category rather than a default baked into the layout pack, because how
+  wide a page runs is IDENTITY. One shared number would have made every
+  skin's pages the same width, which is the leak the layout tier exists to
+  close. All six skins declare their own, and they disagree.
+
+- **`Container`** — bounds the page width and keeps content off the edges.
+  `measure` is a layout attribute, not the `size` axis: `size="lg"` means a
+  chunkier Button and would mean a wider page, and those ramps have no reason
+  to move together; `prose` is not a size at all. `full` compiles to `none`
+  rather than `100%`, since a container told not to bound itself should have
+  no maximum. Unbounded by default, and carries no colour — a container is a
+  constraint, not a surface.
+
 ### Added — the layout tier: Box (#485)
 
 - **`Box`** — a padded surface tinted by meaning, and the tier's one scope

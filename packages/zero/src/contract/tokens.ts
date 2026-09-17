@@ -211,6 +211,11 @@ export const TOKEN_CATEGORIES = [
         description: 'Density ramp for padding, gap and margin — how tightly the system is packed.',
     },
     {
+        id: 'measure', shape: 'scale', prefix: '--measure-', path: ['measure'],
+        recommended: ['xs', 'sm', 'md', 'lg', 'xl', 'prose'], syntax: '<length>',
+        description: 'Page-scale widths a container is bounded by — how wide the design system lets content run, as distinct from the --space-* density ramp.',
+    },
+    {
         id: 'shadow', shape: 'scale', prefix: '--shadow-', path: ['shadow'],
         recommended: ['xs', 'sm', 'md', 'lg', 'xl'], syntax: '*',
         description: 'Elevation ramp. Commonly differs per color scheme — dark surfaces need heavier shadows to read.',

@@ -28,6 +28,19 @@ export const system = {
     border: '3px',
     disabledOpacity: '0.45',
 
+    // Page-scale widths a Container is bounded by. The density ramp cannot
+    // reach these — it tops out at a rung you would not notice.
+    // Brutalism fills the viewport: the ramp is wide, and `prose` is the
+    // only rung that admits a reading measure at all.
+    measure: {
+        xs: '24rem',
+        sm: '40rem',
+        md: '60rem',
+        lg: '80rem',
+        xl: '100rem',
+        prose: '80ch',
+    },
+
     spacing: {
         '2xs': '0.125rem',
         xs: '0.25rem',

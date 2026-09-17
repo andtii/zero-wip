@@ -55,6 +55,19 @@ export const system = {
         sizes: { xs: '0.75rem', sm: '0.875rem', '3xl': '2rem' },
     },
     // Density ramp — compactness is on-identity for a reading tool.
+    // Page-scale widths a Container is bounded by. The density ramp cannot
+    // reach these — it tops out at a rung you would not notice.
+    // Documentation-grade: a narrow reading column, because this skin's
+    // whole posture is text you are meant to read rather than scan.
+    measure: {
+        xs: '20rem',
+        sm: '30rem',
+        md: '44rem',
+        lg: '60rem',
+        xl: '75rem',
+        prose: '62ch',
+    },
+
     spacing: {
         '2xs': '0.125rem',
         xs: '0.25rem',

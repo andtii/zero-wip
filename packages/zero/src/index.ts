@@ -228,6 +228,8 @@ export { Center, centerAnatomy } from './components/center/index.js';
 export type { CenterRootProps } from './components/center/index.js';
 export { Box, boxAnatomy } from './components/box/index.js';
 export type { BoxRootProps } from './components/box/index.js';
+export { Container, containerAnatomy } from './components/container/index.js';
+export type { ContainerRootProps } from './components/container/index.js';
 
 export { Spinner, spinnerAnatomy } from './components/spinner/index.js';
 export type { SpinnerRootProps } from './components/spinner/index.js';

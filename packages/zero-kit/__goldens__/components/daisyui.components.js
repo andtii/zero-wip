@@ -30,6 +30,7 @@ export { Spacer } from '@sigx/zero/spacer';
 export { Grid } from '@sigx/zero/grid';
 export { Center } from '@sigx/zero/center';
 export { Box } from '@sigx/zero/box';
+export { Container } from '@sigx/zero/container';
 export { Tabs } from '@sigx/zero/tabs';
 export { Collapsible } from '@sigx/zero/collapsible';
 export { Switch } from '@sigx/zero/switch';

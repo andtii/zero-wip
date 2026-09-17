@@ -50,6 +50,7 @@ export default defineLibConfig({
         'components/grid/index': 'src/components/grid/index.ts',
         'components/center/index': 'src/components/center/index.ts',
         'components/box/index': 'src/components/box/index.ts',
+        'components/container/index': 'src/components/container/index.ts',
         'components/spinner/index': 'src/components/spinner/index.ts',
         'components/kbd/index': 'src/components/kbd/index.ts',
         'components/status/index': 'src/components/status/index.ts',
