@@ -67,6 +67,20 @@ const SHARED: Record<string, [unknown, unknown]> = {
     // rules that can never match — silently, since a presence-only selector
     // has nothing to compare against.
     MOD_ATTR_PREFIX: [zero.MOD_ATTR_PREFIX, kit.MOD_ATTR_PREFIX],
+    // The layout family. The prefix is load-bearing on both sides — it is
+    // what keeps fifteen ordinary words out of RESERVED_AXES — and the
+    // vocabulary itself must not drift, because a design system's compiled
+    // step table and the attributes the runtime renders are two halves of
+    // one lookup: a value in one copy and not the other is a rule that can
+    // never match, or a prop that paints nothing.
+    LAYOUT_ATTR_PREFIX: [zero.LAYOUT_ATTR_PREFIX, kit.LAYOUT_ATTR_PREFIX],
+    // The key `Responsive` reserves for the unqualified value. Both copies
+    // refuse it as a breakpoint, and the kit's validator refuses to let a
+    // design system declare one — three readers, one name.
+    BASE_BREAKPOINT_KEY: [zero.BASE_BREAKPOINT_KEY, kit.BASE_BREAKPOINT_KEY],
+    LAYOUT_VOCABULARY: [zero.LAYOUT_VOCABULARY, kit.LAYOUT_VOCABULARY],
+    LAYOUT_ATTR_NAMES: [[...zero.LAYOUT_ATTR_NAMES].sort(), [...kit.LAYOUT_ATTR_NAMES].sort()],
+    SPACE_STEPS: [zero.SPACE_STEPS, kit.SPACE_STEPS],
 };
 
 /**
@@ -79,6 +93,8 @@ const KNOWN_UNSHARED: Record<string, string> = {
     // behaviorally in the semantic layer below instead.
     tokenProperty: 'function — compared by behavior, not by value',
     defaultSwatch: 'function — compared by behavior, not by value',
+    layoutAttrSpec: 'function — compared by behavior, not by value',
+    parseLayoutAttr: 'function — compared by behavior, not by value',
 };
 
 describe('kit ↔ zero contract parity', () => {
@@ -86,6 +102,32 @@ describe('kit ↔ zero contract parity', () => {
     it.each(Object.keys(SHARED))('%s is identical in both contract copies', (name) => {
         const [fromZero, fromKit] = SHARED[name]!;
         expect(fromKit).toEqual(fromZero);
+    });
+
+    it('the layout attribute parse agrees on every name both copies can render', () => {
+        // The two parsers are read by different halves of one loop — zero's
+        // `expectAnatomy` validates what the runtime rendered, the kit's lynx
+        // emitter turns a selector into a class — so a disagreement means a
+        // component and its stylesheet stop describing the same attribute.
+        // Swept over the real vocabulary rather than examples, including the
+        // per-breakpoint spelling and the shapes that must be REFUSED.
+        const names: string[] = [
+            'data-l-nope', 'data-color', 'data-l-', 'data-l-md-wrap',
+            // Shapes the suffix-matching parse has to agree on: a hyphenated
+            // breakpoint, the longest-suffix tie-break, and a name neither
+            // copy may accept because the emitter would not write it.
+            'data-l-tablet-lg-gap', 'data-l-md-gap-x', 'data-l-Md-gap', 'data-l-gap-gap',
+            'data-l-base-gap', 'data-l-base-cols',
+        ];
+        for (const attr of Object.keys(zero.LAYOUT_VOCABULARY)) {
+            names.push(`data-l-${attr}`, `data-l-md-${attr}`, `data-l-2xl-${attr}`, `data-l-tablet-lg-${attr}`);
+        }
+        for (const name of names) {
+            expect(kit.parseLayoutAttr(name), name).toEqual(zero.parseLayoutAttr(name));
+        }
+        for (const attr of Object.keys(zero.LAYOUT_VOCABULARY) as Array<keyof typeof zero.LAYOUT_VOCABULARY>) {
+            expect(kit.layoutAttrSpec(attr), attr).toEqual(zero.layoutAttrSpec(attr));
+        }
     });
 
     it('the reserved-name sets agree (named differently on each side)', () => {

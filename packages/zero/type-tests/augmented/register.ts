@@ -13,6 +13,7 @@
 declare module '@sigx/zero' {
     interface ZeroVocabulary {
         theme: 'light' | 'dark' | 'dim';
+        breakpoint: 'sm' | 'md' | 'lg';
         components: {
             /** button — colour, size and variant all wired. */
             button: {

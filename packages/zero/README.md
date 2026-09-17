@@ -238,12 +238,14 @@ same behaviors, held to the same conformance assertion:
 - `defineAnatomy` (from `@sigx/zero/anatomy` or the root) declares the scope,
   parts, closed `data-state` sets, flags, `hiddenIn`, the part tree
   (`parent` — which same-scope part each part renders inside) and, for parts
-  that carry `data-placement`, the `placements` subset — and `toJSON()`
+  that carry `data-placement`, the `placements` subset; parts that take
+  layout attributes name theirs as `layout` — and `toJSON()`
   emits exactly the shape zero's own `manifest.json` carries per component.
   States are governed: every value must be a member of `STATE_VOCABULARY`
   (with `STATE_SYNONYMS` naming the member for a rejected spelling), flags of
-  `FLAG_VOCABULARY`, placements of `PLACEMENT_VOCABULARY` — and
-  `mergeManifests` enforces all three on published fragments, so an ecosystem
+  `FLAG_VOCABULARY`, placements of `PLACEMENT_VOCABULARY`, layout attributes
+  of `LAYOUT_VOCABULARY` — and
+  `mergeManifests` enforces all four on published fragments, so an ecosystem
   scope cannot invent synonyms either.
 - `@sigx/zero/behaviors` — controllable state, SSR-safe ids, roving tabindex,
   dismissal, focus management (`createFocusRestore`, `focusFirst`,

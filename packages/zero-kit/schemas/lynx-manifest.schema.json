@@ -187,7 +187,7 @@
         },
         "classGrammarVersion": {
             "description": "The class grammar version the emitted selectors speak (zx-<scope>__<part> et al). A runtime checks it before trusting the stylesheet.",
-            "const": 1
+            "const": 2
         },
         "capabilities": {
             "description": "Counts of capability findings \u2014 what the lynx emitters translated or dropped. The findings themselves live in report.json under 'lynx'.",

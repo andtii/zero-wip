@@ -127,6 +127,63 @@ describe('compileLynxRecipeCss', () => {
         expect(report.dropped.some((f) => f.what.includes(':first-child'))).toBe(true);
     });
 
+    it('projects layout attribute selectors onto the class grammar', () => {
+        // The branch exists so the `zx-l-` grammar is not dead code: without
+        // it every layout rule would be dropped and the layout tier would
+        // render completely unstyled on this target.
+        const { css, report } = compile({
+            component: 'button',
+            parts: {
+                root: {
+                    selectors: {
+                        '&[data-l-gap="md"]': { gap: '8px' },
+                        '&[data-l-cols="12"]': { width: '100%' },
+                        '&[data-l-gap-x="2xs"]': { columnGap: '2px' },
+                    },
+                },
+            },
+        });
+        expect(css).toContain('.zx-button__root.zx-l-gap-md {');
+        expect(css).toContain('.zx-button__root.zx-l-cols-12 {');
+        expect(css).toContain('.zx-button__root.zx-l-gap-x-2xs {');
+        expect(report.dropped).toHaveLength(0);
+        expectFlatCompounds(css);
+    });
+
+    it('drops a per-breakpoint layout selector, saying why', () => {
+        // A responsive value has no class form on a target with no media
+        // queries. It should read as "responsive is runtime JS here", not as
+        // "unknown selector" — the reader has to know which of the two it is.
+        const { css, report } = compile({
+            component: 'button',
+            parts: { root: { selectors: { '&[data-l-md-gap="lg"]': { gap: '12px' } } } },
+        });
+        expect(css).not.toContain('zx-l-');
+        expect(report.dropped.some((f) => f.detail.includes('runtime JS on lynx'))).toBe(true);
+    });
+
+    it('reports a digit-leading breakpoint as responsive, not as an unknown selector', () => {
+        // A design system may name a breakpoint `2xl` — token keys may lead
+        // with a digit (`--text-2xl`). The rule is dropped either way, but
+        // the author has to be told WHICH reason, or they go looking for a
+        // spelling mistake in a selector that was correct.
+        const { report } = compile({
+            component: 'button',
+            parts: { root: { selectors: { '&[data-l-2xl-gap="lg"]': { gap: '24px' } } } },
+        });
+        expect(report.dropped.some((f) => f.detail.includes('runtime JS on lynx'))).toBe(true);
+        expect(report.dropped.some((f) => f.detail.includes('not expressible'))).toBe(false);
+    });
+
+    it('drops an unknown name under the layout prefix rather than minting a class', () => {
+        const { css, report } = compile({
+            component: 'button',
+            parts: { root: { selectors: { '&[data-l-gutter="md"]': { gap: '8px' } } } },
+        });
+        expect(css).not.toContain('zx-l-gutter');
+        expect(report.dropped.some((f) => f.detail.includes('not a declared layout attribute'))).toBe(true);
+    });
+
     it('drops conditions with a report entry', () => {
         const { css, report } = compile({
             component: 'button',

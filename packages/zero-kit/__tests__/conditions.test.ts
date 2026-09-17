@@ -261,6 +261,16 @@ describe('breakpoint declarations', () => {
         );
     });
 
+    it('rejects a breakpoint named `base`', () => {
+        // `base` is the key a responsive layout prop uses for its unqualified
+        // value — `gap={{ base: 'md' }}` renders `data-l-gap`, never
+        // `data-l-base-gap` — so a breakpoint of this name could never be
+        // reached. Same class of collision as the built-in conditions above.
+        expect(errors({ base: '640px' })).toContainEqual(
+            expect.stringContaining('could never be reached'),
+        );
+    });
+
     it('rejects a value that is not a length', () => {
         expect(errors({ sm: 'wide' })).toContainEqual(
             expect.stringContaining('is not a px/rem/em length'),

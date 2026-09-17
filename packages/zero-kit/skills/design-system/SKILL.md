@@ -223,6 +223,15 @@ component's anatomy). No component code is ever written or changed.
    `var(--radius-*)` — never hardcode palette colors in recipes.
    Cover every declared state (empty `{}` marks intentional no-styling).
    Always style `focus-visible` visibly.
+   A part may also declare **layout attributes** (`layout` in the manifest),
+   rendered under the `data-l-` prefix from a vocabulary zero owns and closes
+   — `gap`, `pad`, `align`, `justify`, `cols`, `span`, … Style them through
+   `selectors` (`'&[data-l-gap="md"]': { gap: 'var(--space-md)' }`). Unlike a
+   variant axis, this vocabulary is identical in every design system: you
+   choose what `--space-md` *is*, not what `md` *means*, so a page laid out
+   against one skin still holds under yours. The per-breakpoint spelling puts
+   the breakpoint first (`&[data-l-md-gap="lg"]`) and belongs inside the
+   matching `at` block.
    **Conditional styles go in `at`** — the same shape, recursively:
    ```ts
    popup: {
@@ -813,7 +822,8 @@ component's anatomy). No component code is ever written or changed.
      ```
      An axis name must be kebab-case and may NOT be one the anatomy contract
      owns (`scope`, `part`, `state`, `orientation`, or any flag such as
-     `disabled` / `selected`) — the validator errors and zero refuses to render
+     `disabled` / `selected`; the layout family is namespaced `data-l-`, so
+     `gap`, `align`, `track` and the rest stay AVAILABLE as axis names) — the validator errors and zero refuses to render
      it, because shadowing `data-state` would silently repoint every
      `[data-state="open"]` rule you wrote. An axis **value** takes a wider
      grammar than a name: lowercase letters, digits and hyphens, repeated

@@ -13,7 +13,7 @@
  * module — the kit never depends on zero at runtime) emits selectors from the
  * same grammar. One definition, two readers, no drift.
  *
- * ## The grammar (version 1)
+ * ## The grammar (version 2)
  *
  * | concept     | web selector                            | class            |
  * |-------------|------------------------------------------|------------------|
@@ -24,6 +24,7 @@
  * | modifier    | `[data-mod-block]`                       | `zx-m-block`     |
  * | orientation | `[data-orientation="vertical"]`          | `zx-o-vertical`  |
  * | placement   | `[data-placement="top"]`                 | `zx-p-top`       |
+ * | layout      | `[data-l-gap="md"]`                      | `zx-l-gap-md`    |
  * | theme       | `[data-theme="dark"]`                    | `zx-theme-dark`  |
  * | token host  | `:root`                                  | `zx-root`        |
  *
@@ -55,7 +56,7 @@
  * (`dist/lynx/manifest.json`) so a runtime can refuse CSS emitted under a
  * grammar it does not speak. Bump on any change to the class shapes above.
  */
-export const CLASS_GRAMMAR_VERSION = 1;
+export const CLASS_GRAMMAR_VERSION = 2;
 
 /**
  * The class every token host carries — the projection of `:root` onto a
@@ -84,6 +85,18 @@ export const orientationClass = (value: string): string => `zx-o-${value}`;
 
 /** `zx-p-<value>` — declared placement (anchored popups, toast, rows). */
 export const placementClass = (value: string): string => `zx-p-${value}`;
+
+/**
+ * `zx-l-<attr>-<value>` — a layout attribute (`gap`, `cols`, `align`, …).
+ *
+ * Scope-agnostic like the state, flag and axis classes, and for the same
+ * reason: semantics attach through the compound with the part class. The
+ * RESPONSIVE spelling has no class form — a target on this grammar has no
+ * media queries, so a per-breakpoint value is runtime work there rather than
+ * a selector (see the lynx recipe compiler, which drops conditional blocks
+ * with a report entry).
+ */
+export const layoutClass = (attr: string, value: string): string => `zx-l-${attr}-${value}`;
 
 /** `zx-theme-<name>` — the theme block a token host switches between. */
 export const themeClass = (name: string): string => `zx-theme-${name}`;

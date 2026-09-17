@@ -120,7 +120,7 @@ describe('runStandardBuild targets', () => {
             target: string; classGrammarVersion: number; name: string; themes: unknown[];
         };
         expect(lynxManifest.target).toBe('lynx');
-        expect(lynxManifest.classGrammarVersion).toBe(1);
+        expect(lynxManifest.classGrammarVersion).toBe(2);
         expect(lynxManifest.name).toBe('lynx-probe');
         expect(lynxManifest.themes.length).toBeGreaterThan(0);
     });

@@ -110,6 +110,25 @@ export type ZeroProperty = Wide<'property'> | (string & {});
 export type ZeroBreakpoint = Wide<'breakpoint'> | (string & {});
 
 /**
+ * Breakpoint names on the AUTHORING surface — the closed twin of
+ * {@link ZeroBreakpoint}, standing in the same relation to it as
+ * {@link ZeroThemeName} does to {@link ZeroThemeNameOrCustom}.
+ *
+ * The open union is right where a value can arrive from outside the design
+ * system (an app's own `cssVar('--x')` call); it is wrong as a RECORD KEY,
+ * where `(string & {})` collapses the union and a misspelled breakpoint in
+ * `gap={{ mdd: 'lg' }}` type-checks, renders an attribute and matches
+ * nothing. That is exactly the silent-miss `variantAttrs` throws to prevent.
+ *
+ * The `[…] extends [never]` guard must come FIRST, for the reason `AxisOf`
+ * documents above: testing the result against `never` cannot tell "no design
+ * system registered" from "this one declared none", and a guard-last
+ * formulation hands the open fallback to precisely the apps that did import
+ * a `/register` module.
+ */
+export type ZeroBreakpointName = [Wide<'breakpoint'>] extends [never] ? string : Wide<'breakpoint'>;
+
+/**
  * The scale-shaped token categories — `border` and `disabled-opacity` are
  * scalar (keyless) and excluded. Closed even unaugmented: declaring a new
  * category root is a hard kit error, so there is no open case to preserve.

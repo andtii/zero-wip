@@ -110,6 +110,18 @@ export interface PartSpec {
      * `data-placement` rather than blanket-exempting the attribute.
      */
     placements?: readonly string[];
+    /**
+     * The layout attributes this part may carry, if any — a closed subset of
+     * `LAYOUT_VOCABULARY`'s keys. Declared contract data exactly like
+     * `states` and `placements`: the part renders them under the `data-l-`
+     * prefix, `expectAnatomy` rejects one it never declared, and the recipe
+     * pack reads them to know which rules are worth emitting for the scope.
+     *
+     * A part that takes no layout attributes OMITS the key rather than
+     * declaring `[]`, on the `hiddenIn` reasoning — a key claiming nothing
+     * reads as a fact where there is none.
+     */
+    layout?: readonly string[];
     /** Contract token groups that typically style this part. */
     tokens?: readonly TokenHint[];
     /** True when the part supports `asChild`. */

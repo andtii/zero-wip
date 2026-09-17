@@ -9,6 +9,7 @@ import {
     HOST_CLASS,
     axisClass,
     flagClass,
+    layoutClass,
     modClass,
     orientationClass,
     partClass,
@@ -17,11 +18,12 @@ import {
     themeClass,
 } from '../src/contract/class-names.js';
 import { FLAG_VOCABULARY, STATE_NAMES } from '../src/contract/data-attrs.js';
+import { LAYOUT_VOCABULARY, layoutAttrSpec } from '../src/contract/layout-attrs.js';
 import { anatomies } from '../src/anatomy.js';
 
-describe('class grammar (version 1)', () => {
+describe('class grammar (version 2)', () => {
     it('pins the literal shapes', () => {
-        expect(CLASS_GRAMMAR_VERSION).toBe(1);
+        expect(CLASS_GRAMMAR_VERSION).toBe(2);
         expect(HOST_CLASS).toBe('zx-root');
         expect(partClass('tabs', 'tab')).toBe('zx-tabs__tab');
         expect(stateClass('open')).toBe('zx-s-open');
@@ -30,6 +32,8 @@ describe('class grammar (version 1)', () => {
         expect(modClass('block')).toBe('zx-m-block');
         expect(orientationClass('vertical')).toBe('zx-o-vertical');
         expect(placementClass('top-start')).toBe('zx-p-top-start');
+        expect(layoutClass('gap', 'md')).toBe('zx-l-gap-md');
+        expect(layoutClass('gap-x', '2xs')).toBe('zx-l-gap-x-2xs');
         expect(themeClass('dark')).toBe('zx-theme-dark');
     });
 
@@ -46,6 +50,12 @@ describe('class grammar (version 1)', () => {
         }
         for (const state of STATE_NAMES) expect(stateClass(state)).toMatch(CSS_CLASS);
         for (const flag of FLAG_VOCABULARY) expect(flagClass(flag)).toMatch(CSS_CLASS);
+        // The layout family is the one whose VALUES carry digits (`cols`,
+        // `grow`, and the `2xs` rung), so it is the one that could produce a
+        // class starting with a digit if an attribute name ever went away.
+        for (const attr of Object.keys(LAYOUT_VOCABULARY) as Array<keyof typeof LAYOUT_VOCABULARY>) {
+            for (const value of layoutAttrSpec(attr).values) expect(layoutClass(attr, value)).toMatch(CSS_CLASS);
+        }
     });
 
     it('part classes never collide across the real anatomy registry', () => {
@@ -70,7 +80,8 @@ describe('class grammar (version 1)', () => {
             }
         }
         for (const cls of [stateClass('open'), flagClass('disabled'), axisClass('size', 'xs'),
-            modClass('block'), orientationClass('vertical'), placementClass('top'), themeClass('dark'), HOST_CLASS]) {
+            modClass('block'), orientationClass('vertical'), placementClass('top'), themeClass('dark'),
+            layoutClass('gap', 'md'), HOST_CLASS]) {
             expect(cls).not.toContain('__');
         }
     });

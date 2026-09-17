@@ -37,6 +37,17 @@
   (values: color = any DS-declared role — recommended vocabulary
   primary|secondary|accent|neutral|info|success|warning|error,
   size = xs|sm|md|lg|xl, variant = design-system-defined).
+- Layout attributes render under the data-l- prefix from a CLOSED
+  vocabulary zero owns (gap, gap-x, gap-y, pad, pad-x, pad-y, align,
+  justify, wrap, cols, span, track, grow, axis, space). A part declares
+  which ones it may carry as `layout` in its anatomy, exactly as it
+  declares `placements`. Spacing values are the --space-* ramp plus `none`
+  (none|2xs|xs|sm|md|lg|xl|2xl), so a layout prop cannot spell a gap the
+  design system has no token for. Per-breakpoint values put the breakpoint
+  in PREFIX position — data-l-gap="sm" with data-l-md-gap="lg" — which is
+  what keeps the multi-word attributes (data-l-gap-x) unambiguous.
+  Unlike a variant axis, this vocabulary is the same in every design
+  system: the skin chooses what --space-md IS, not what "md" means.
 - The full machine-readable registry ships as `@sigx/zero/manifest.json`:
   every component, part, state (as a ready-made CSS selector), flag and
   token hint — and per component a `models` block: what its API binds

@@ -20,6 +20,12 @@
  *   directional CSS.
  * - Contract variant axes pass through as `data-color` / `data-size` /
  *   `data-variant` — zero attaches no styling to them.
+ * - Layout attributes render under the `data-l-` prefix
+ *   (`data-l-gap="md"`, and per breakpoint `data-l-md-gap="lg"`), from the
+ *   closed `LAYOUT_VOCABULARY` in `layout-attrs.ts` — kept out of THIS
+ *   module because every component imports it, and a table only the layout
+ *   tier reads has no business on that path. A part declares which ones it
+ *   may carry as `PartSpec.layout`, exactly as it declares `placements`.
  *
  * The split is machine-checkable: a part has at most one `data-state` value
  * from a closed set, plus any subset of its declared flags.

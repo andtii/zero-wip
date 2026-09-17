@@ -43,7 +43,7 @@
  *   See `emitChecked`.
  */
 import type { ManifestComponent, ManifestPart } from '../../contract.js';
-import { carrierPart } from '../../contract.js';
+import { carrierPart, parseLayoutAttr } from '../../contract.js';
 import type { CssProps, PartStyles, RecipeInput } from '../../recipes.js';
 import { assertAxisToken, assertKeyframesName, declBlock, findPart, kebab } from '../shared.js';
 import type { ChainVocabulary } from './calc-chains.js';
@@ -57,7 +57,7 @@ import {
     LynxRuntimePropertyError,
     runtimePropertyIn,
 } from './capabilities.js';
-import { HOST_CLASS, axisClass, flagClass, modClass, orientationClass, partClass, placementClass, stateClass, themeClass } from './class-names.js';
+import { HOST_CLASS, axisClass, flagClass, layoutClass, modClass, orientationClass, partClass, placementClass, stateClass, themeClass } from './class-names.js';
 
 /**
  * One state key resolved to the class that narrows it, `null` for a state
@@ -85,11 +85,31 @@ function stateClassFor(component: ManifestComponent, part: ManifestPart, state: 
 }
 
 /**
- * The two `selectors:` patterns the contract itself owns and the grammar can
+ * The `selectors:` patterns the contract itself owns and the grammar can
  * therefore express: `&[data-orientation="…"]` and `&[data-placement="…"]`.
  * Everything else in the escape hatch is web spelling by definition.
  */
 const CONTRACT_ATTR_PATTERN = /^&\[data-(orientation|placement)="([a-z-]+)"\]$/;
+
+/**
+ * The layout family's equivalent: `&[data-l-gap="md"]` → `.zx-l-gap-md`.
+ *
+ * Separate from `CONTRACT_ATTR_PATTERN` because the value alphabet differs —
+ * layout values carry digits (`cols="12"`, `grow="0"`, and the `2xs` end of
+ * the spacing ramp), which the orientation/placement vocabularies never do.
+ * A per-breakpoint spelling has no class form and is dropped with the same
+ * message the `at:` blocks get; it only reaches here if a recipe hand-wrote
+ * one outside a condition, which would not have matched on the web either.
+ *
+ * The name may LEAD with a digit, which is why this is `[a-z0-9]` and not
+ * `[a-z]`: token keys may start with one (`--text-2xl`), so a design system
+ * may legitimately name a breakpoint `2xl` and spell the selector
+ * `&[data-l-2xl-gap="lg"]`. Requiring a letter made that fall through to the
+ * generic "not expressible" drop instead of the responsive one — the rule
+ * was dropped either way, but the report told the author the wrong thing
+ * about why.
+ */
+const LAYOUT_ATTR_SELECTOR = /^&\[(data-l-[a-z0-9][a-z0-9-]*)="([a-z0-9-]+)"\]$/;
 
 /** `flex: <number>` — the shorthand lynx expands RN-style (grow N shrink 1 basis auto). */
 const FLEX_NUMBER = /^\s*(\d+(?:\.\d+)?)\s*$/;
@@ -396,6 +416,22 @@ function emitPartStyles(
                 ? orientationClass(contractAttr[2]!)
                 : placementClass(contractAttr[2]!);
             rule(`${base}.${cls}`, props);
+            continue;
+        }
+        const layoutAttr = LAYOUT_ATTR_SELECTOR.exec(nested);
+        if (layoutAttr) {
+            const parsed = parseLayoutAttr(layoutAttr[1]!);
+            if (parsed && parsed.breakpoint === undefined) {
+                rule(`${base}.${layoutClass(parsed.attr, layoutAttr[2]!)}`, props);
+                continue;
+            }
+            report.dropped.push({
+                where,
+                what: `selectors["${nested}"]`,
+                detail: parsed
+                    ? 'a per-breakpoint layout value has no class form — responsive styling is runtime JS on lynx'
+                    : 'not a declared layout attribute — dropped',
+            });
             continue;
         }
         report.dropped.push({
