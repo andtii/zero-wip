@@ -51,7 +51,7 @@
  */
 import type { RecipeInput } from './recipes.js';
 import type { ScopeVocabulary, TokensInput } from './tokens.js';
-import { LAYOUT_ATTR_PREFIX, axisRoles, layoutAttrSpec } from './contract.js';
+import { LAYOUT_ATTR_PREFIX, axisRoles, layoutAttrSpec, resolveRoles } from './contract.js';
 import type { LayoutAttrName } from './contract.js';
 
 /** The scopes this pack paints. Grows as the layout tier does. */
@@ -454,7 +454,12 @@ function centerRecipe(): RecipeInput {
  * role's own colour, not `-content`, which is the ink for the SOLID fill.
  */
 function boxRecipe(tokens: TokensInput): RecipeInput {
-    const roles = axisRoles(tokens.roles ?? {});
+    // `resolveRoles`, not `?? {}`: the declaration grammar distinguishes
+    // ABSENCE from EMPTY — an omitted `roles` means "I didn't say", and the
+    // contract answers with the recommended eight, where `{}` means "there
+    // isn't one". Collapsing the two would silently give a design system
+    // that relies on the default vocabulary a colourless Box.
+    const roles = axisRoles(resolveRoles(tokens.roles));
     return {
         component: 'box',
         tokens: {

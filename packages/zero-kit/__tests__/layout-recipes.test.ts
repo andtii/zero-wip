@@ -8,7 +8,7 @@
  * differs — the ramp a skin declares, and the breakpoints it names.
  */
 import { describe, expect, it } from 'vitest';
-import { LAYOUT_SCOPES, axisRoles, layoutCss, layoutRecipes, layoutScopes } from '@sigx/zero-kit';
+import { LAYOUT_SCOPES, axisRoles, layoutCss, layoutRecipes, layoutScopes, resolveRoles } from '@sigx/zero-kit';
 import type { TokensInput } from '@sigx/zero-kit';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
@@ -182,6 +182,18 @@ describe('the box recipe', () => {
         // `flow-root`, so a child's margin cannot collapse out through the
         // padding — the classic reason a padded box loses its top padding.
         expect(base['display']).toBe('flow-root');
+    });
+
+    it('treats an OMITTED roles declaration as the recommended eight', () => {
+        // The declaration grammar distinguishes absence from empty: omitted
+        // means "I didn't say" and resolves to the recommended vocabulary,
+        // where `{}` means "there isn't one". Collapsing them would hand a
+        // design system that relies on the default a colourless Box, and
+        // nothing else would have complained.
+        const omitted = { ...(basicDS.tokens as TokensInput), roles: undefined } as TokensInput;
+        const colors = layoutRecipes(omitted).find((r) => r.component === 'box')!.variants?.['color'];
+        expect(Object.keys(colors ?? {})).toEqual(axisRoles(resolveRoles(undefined)));
+        expect(Object.keys(colors ?? {}).length).toBeGreaterThan(0);
     });
 
     it('wires no colour at all for a design system that declares no roles', () => {
