@@ -146,7 +146,8 @@ axis called `align` would start failing validation.
 
 **The layout tier is where the attribute family earns its keep.** `Stack`
 (with its `Row`/`Col` presets), `Spacer`, `Grid` and `Center` carry layout
-attributes and nothing else — no colour, no size, no variant, because a Stack is geometry.
+attributes and nothing else — no colour, no size, no variant, because every
+one of them is geometry and `data-color` on geometry would paint nothing.
 They are one scope per behaviour rather than one per spelling: `Row` and
 `Col` are the same `stack` with a different default `data-orientation`, so
 there is one recipe and one manifest entry for a skin to paint.

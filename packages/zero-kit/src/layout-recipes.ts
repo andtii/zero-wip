@@ -220,8 +220,8 @@ export function layoutCss(tokens: Pick<TokensInput, 'breakpoints' | 'system'>): 
  * `axis-coverage` audit rule walks every manifest component that HAS a recipe
  * — not only the ones carrying `WithVariantAxes` — so a styled scope wiring no
  * `color` and no `size` raises two findings per skin. Layout scopes wire
- * neither by design: a Stack is geometry, and `data-color` on it would paint
- * nothing.
+ * neither by design: every one of them is geometry, and `data-color` on
+ * geometry would paint nothing.
  *
  * `[]` is the declared grammar for "there isn't one", as distinct from an
  * absent key meaning "I didn't say". Spread this into a skin's
