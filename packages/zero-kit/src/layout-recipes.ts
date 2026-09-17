@@ -190,7 +190,18 @@ export function layoutCss(tokens: Pick<TokensInput, 'breakpoints' | 'system'>): 
  * `tokens.scopes` so the waiver is recorded rather than the finding tolerated.
  */
 export const layoutScopes: Readonly<Record<string, ScopeVocabulary>> = Object.freeze(
-    Object.fromEntries(LAYOUT_SCOPES.map((scope) => [scope, { colors: [], sizes: [], variants: [] }])),
+    // Null prototype, like every other scope-keyed map in the kit
+    // (`packagesByScope`, `externalScopes`). Scope names take the kebab
+    // grammar, which is lowercase — so not `toString`, but `constructor`
+    // passes it, and on a plain object a lookup for that one returns
+    // something inherited and truthy.
+    LAYOUT_SCOPES.reduce<Record<string, ScopeVocabulary>>(
+        (acc, scope) => {
+            acc[scope] = { colors: [], sizes: [], variants: [] };
+            return acc;
+        },
+        Object.create(null) as Record<string, ScopeVocabulary>,
+    ),
 );
 
 /**

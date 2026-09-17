@@ -131,6 +131,14 @@ describe('layoutScopes', () => {
         }
     });
 
+    it('has a null prototype, like every scope-keyed map in the kit', () => {
+        // A scope name is kebab-case and lowercase, so `toString` cannot
+        // collide — but `constructor` can, and on a plain object that lookup
+        // returns something inherited and truthy.
+        expect(Object.getPrototypeOf(layoutScopes)).toBeNull();
+        expect((layoutScopes as Record<string, unknown>)['constructor']).toBeUndefined();
+    });
+
     it('is adopted by every shipped design system', () => {
         for (const [name, ds] of SKINS) {
             for (const scope of LAYOUT_SCOPES) {
