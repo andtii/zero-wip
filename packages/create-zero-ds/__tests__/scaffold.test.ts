@@ -199,7 +199,11 @@ describe('options', () => {
         writePlan(dir, plan);
         expect(plan.map((f) => f.path)).not.toContain('src/baseline.ts');
         const { designSystem } = await import(generated(dir)) as { designSystem: DesignSystemInput };
-        expect(designSystem.recipes).toHaveLength(1);
+        // Button alone OF THE AUTHORED recipes. The layout tier rides along
+        // whatever the baseline choice, because it is generated from the
+        // tokens rather than copied — `--baseline none` means "none of
+        // zero-basic's fifty", not "no Stack".
+        expect(designSystem.recipes.map((r) => r.component).sort()).toEqual(['button', 'spacer', 'stack']);
         const result = validateDesignSystem(designSystem, manifest);
         expect(result.errors).toEqual([]);
         expect(result.warnings.filter((w) => !w.message.includes('have no recipe'))).toEqual([]);

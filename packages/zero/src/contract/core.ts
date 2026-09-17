@@ -66,7 +66,7 @@ export {
 } from './data-attrs.js';
 
 export type { JsxProps, FactoryBrands } from './generic.js';
-export type { Responsive, LayoutProps, LayoutAttrName, LayoutAttrSpec } from './layout-attrs.js';
+export type { Responsive, LayoutProps, LayoutAttrName, LayoutAttrSpec, LayoutValue, LayoutProp } from './layout-attrs.js';
 export {
     layoutAttrs,
     layoutAttrSpec,

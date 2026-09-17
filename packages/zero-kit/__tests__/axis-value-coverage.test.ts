@@ -86,8 +86,16 @@ describe('every declared axis value is honoured or claimed', () => {
         // it scope by scope — re-derived from the compiled scope count so
         // every carbon recipe keeps owing a full size ramp without a hand
         // bump per scope.
+        // …minus the scopes that declared the axis out of existence. The
+        // layout tier is geometry: a Stack has no size ramp to owe, and
+        // `sizes: []` is how it says so. Named rather than subtracted
+        // silently, so a scope that opts out by accident still shows up here.
+        const optedOutOfSize = Object.keys(carbon.componentCss)
+            .filter((scope) => carbon.components[scope]?.offered?.size?.length === 0)
+            .sort();
+        expect(optedOutOfSize).toEqual(['spacer', 'stack']);
         expect(participatingCells(carbon).filter((c) => c.axis === 'size').length)
-            .toBe(Object.keys(carbon.componentCss).length);
+            .toBe(Object.keys(carbon.componentCss).length - optedOutOfSize.length);
     });
 
     it.each(SYSTEMS.map((s) => s.name))(

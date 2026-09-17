@@ -21,6 +21,28 @@ declare module '@sigx/zero' {
             ease: 'linear' | 'standard' | 'emphasized' | 'emphasized-decelerate' | 'emphasized-accelerate';
         };
         components: {
+            /** stack — no axis wired by material; every axis errors under this register module. */
+            'stack': {
+                /** Accepts `color` at runtime, but material declares no color axis for stack — the attribute would match nothing. */
+                color: never;
+                /** Accepts `size` at runtime, but material declares no size axis for stack — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but material declares no variant axis for stack — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
+            /** spacer — no axis wired by material; every axis errors under this register module. */
+            'spacer': {
+                /** Accepts `color` at runtime, but material declares no color axis for spacer — the attribute would match nothing. */
+                color: never;
+                /** Accepts `size` at runtime, but material declares no size axis for spacer — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but material declares no variant axis for spacer — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
             /** button — color, size, variant wired. */
             'button': {
                 color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';

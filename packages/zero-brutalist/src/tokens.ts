@@ -8,6 +8,7 @@
  * Everything below is that brief expressed as declarations — no component
  * code, and no escape hatches.
  */
+import { layoutScopes } from '@sigx/zero-kit/define';
 import type { RoleDecl, SystemTokens, ThemeSystem, TokensInput } from '@sigx/zero-kit';
 
 /**
@@ -106,6 +107,10 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
     /** Table's zebra striping and hover-highlight (#340) — presence-only, table-scoped. */
     modifiers: ['zebra', 'hover'],
     scopes: {
+        // The layout tier wires neither colour nor size — a Stack is
+        // geometry, and `data-color` on it would paint nothing. Declared out
+        // of existence rather than left to the axis-coverage audit to report.
+        ...layoutScopes,
         table: { modifiers: ['zebra', 'hover'] },
     },
     system,

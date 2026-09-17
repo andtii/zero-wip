@@ -20,6 +20,8 @@ import type {
     ZeroVocabulary,
     ZeroBreakpointName,
     Responsive,
+    LayoutProp,
+    LayoutProps,
 } from '@sigx/zero';
 import type { Equal, MustBeTrue } from '../assert.js';
 
@@ -103,3 +105,49 @@ const typoBreakpoint: Responsive<'sm' | 'md'> = { mdd: 'md' };
 const badValue: Responsive<'sm' | 'md'> = { md: 'enormous' };
 
 type BreakpointsAreClosed = MustBeTrue<Equal<ZeroBreakpointName, 'sm' | 'md' | 'lg'>>;
+
+// ── layout props follow the vocabulary's own `responsive` flag ──
+//
+// Derived rather than hand-written per prop, so the type cannot disagree
+// with the runtime guard. Typing a non-responsive attribute as Responsive
+// would let `gapX={{ md: 'lg' }}` compile and then throw.
+
+const gapBare: LayoutProp<'gap'> = 'md';
+const gapResponsive: LayoutProp<'gap'> = { base: 'sm', md: 'lg' };
+const padResponsive: LayoutProp<'pad'> = { lg: 'xl' };
+const alignResponsive: LayoutProp<'align'> = { md: 'center' };
+
+const gapXBare: LayoutProp<'gap-x'> = 'lg';
+// @ts-expect-error — `gap-x` does not vary per breakpoint; a record throws at runtime
+const gapXResponsive: LayoutProp<'gap-x'> = { md: 'lg' };
+// @ts-expect-error — nor does `pad-y`
+const padYResponsive: LayoutProp<'pad-y'> = { md: 'lg' };
+// @ts-expect-error — nor `wrap`, which describes what a box IS
+const wrapResponsive: LayoutProp<'wrap'> = { md: 'wrap' };
+
+// The value union stays closed in both shapes.
+// @ts-expect-error — not a rung of the ramp
+const gapTypo: LayoutProp<'gap'> = 'roomy';
+// @ts-expect-error — and not inside the record either
+const gapTypoResponsive: LayoutProp<'gap'> = { md: 'roomy' };
+
+// The numeric twin: `cols={4}` is how a consumer writes it, and layoutAttrs
+// stringifies. The twin lives on the PROP, not on LayoutValue — the rendered
+// attribute is always a string.
+const colsNumber: LayoutProp<'cols'> = 4;
+const colsString: LayoutProp<'cols'> = '4';
+const colsAuto: LayoutProp<'cols'> = 'auto';
+const colsResponsiveNumber: LayoutProp<'cols'> = { base: 1, md: 2, lg: 4 };
+// @ts-expect-error — `xl` is not a breakpoint THIS design system declares,
+// so the numeric twin does not loosen the key narrowing either
+const colsUnknownBreakpoint: LayoutProp<'cols'> = { xl: 4 };
+// @ts-expect-error — still closed: a twelve-column grid stops at 12
+const colsOver: LayoutProp<'cols'> = 13;
+// @ts-expect-error — and a spacing rung has no numeric twin to offer
+const gapNumber: LayoutProp<'gap'> = 4;
+
+// The bag derives from LayoutProp, so it cannot represent a shape the
+// runtime would reject.
+const bag: LayoutProps = { gap: { md: 'lg' }, 'gap-x': 'sm', cols: 3 };
+// @ts-expect-error — `gap-x` does not vary per breakpoint
+const badBag: LayoutProps = { 'gap-x': { md: 'sm' } };

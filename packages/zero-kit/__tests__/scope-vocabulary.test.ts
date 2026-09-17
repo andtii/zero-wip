@@ -210,6 +210,23 @@ describe('declaring a per-scope vocabulary', () => {
         expect(has(warnings, 'narrow the `variant` vocabulary but "button" do not')).toBe(true);
     });
 
+    it('does not call an OPTING-OUT scope a narrowing one', () => {
+        // `[]` says "this scope has no such axis at all" — it declares no
+        // values, so no sibling can be silently offering values that were
+        // added for it, which is the entire subject of the warning above.
+        //
+        // The layout tier is the case that made this visible: a Stack is
+        // geometry and wires neither colour nor size, and saying so must not
+        // make all fifty siblings look under-declared. Before this, adopting
+        // the layout pack produced a warning in every skin naming every
+        // other scope.
+        const { warnings } = issues(ds(
+            { variants: ['solid', 'classic'], scopes: { select: { variants: [] } } },
+            [button(['solid']), select(['classic'])],
+        ));
+        expect(has(warnings, 'narrow the `variant` vocabulary')).toBe(false);
+    });
+
     it('warns about a union value that belongs to no scope', () => {
         const { warnings } = issues(ds(
             {

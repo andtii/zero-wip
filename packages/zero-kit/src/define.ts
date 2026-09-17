@@ -39,6 +39,8 @@ export { axisRoles, isFillRole } from './contract.js';
 export type { CssProps, PartStyles, RecipeContext, RecipeInput } from './recipes.js';
 export { defineRecipe } from './recipes.js';
 
+export { LAYOUT_SCOPES, layoutCss, layoutRecipes, layoutScopes } from './layout-recipes.js';
+
 export type { FitReport } from './fit.js';
 export { explainFit, fitRecipes, fitRecipesToVocabulary } from './fit.js';
 

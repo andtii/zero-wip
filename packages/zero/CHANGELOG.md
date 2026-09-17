@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+### Added — the layout tier begins: Stack and Spacer (#473)
+
+- **`Stack`**, with **`Row`** and **`Col`** presets. One scope, one recipe,
+  one manifest entry: the presets are the same `stack` with a different
+  default `data-orientation`, not separate components. Spacing props take a
+  rung of the design system's `--space-*` ramp — `gap`, `gapX`, `gapY`,
+  `pad`, `padX`, `padY` — alongside `align`, `justify` and `wrap`. `gap`,
+  `pad`, `align` and `justify` also accept a breakpoint record
+  (`gap={{ base: 'sm', md: 'lg' }}`).
+- **`Stack.Item`** with `grow`, and `asChild` for Join's reason: `flex-grow`
+  applies to the flex ITEM, so a wrapper cannot grow the control inside it.
+- **`Spacer`** — flexible room by default, a fixed rung when given `space`.
+  `aria-hidden`, because it holds room rather than content.
+
+Neither carries `color`, `size` or `variant`: a Stack is geometry, and
+`data-color` on it would paint nothing.
+
+The spacing values are closed to the ramp on purpose — an app cannot write
+`gap: 13px`, which is what lets a `[data-density="compact"]` redefinition of
+`--space-*` re-space every layout at once (#470).
+
 ### Added — the layout attribute family (#471)
 
 - **`LAYOUT_VOCABULARY`** (`contract/layout-attrs.ts`) closes a fifteen-attribute

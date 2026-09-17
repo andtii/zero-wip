@@ -113,6 +113,19 @@ export const LAYOUT_VOCABULARY = {
 
 export type LayoutAttrName = keyof typeof LAYOUT_VOCABULARY;
 
+/**
+ * The literal value union of one layout attribute — what a component's prop
+ * should be typed as.
+ *
+ * `LAYOUT_VOCABULARY` is `as const satisfies`, so each `values` is a literal
+ * tuple rather than `string[]`, and indexing it gives real autocomplete:
+ * `LayoutValue<'gap'>` is `'none' | '2xs' | … | '2xl'`. Closed on purpose —
+ * unlike an axis, whose vocabulary belongs to the design system, a layout
+ * value is contract data zero owns, so a typo should be a compile error
+ * rather than an attribute that matches nothing.
+ */
+export type LayoutValue<A extends LayoutAttrName> = typeof LAYOUT_VOCABULARY[A]['values'][number];
+
 /** Every layout attribute name, flat — the membership check's set. */
 export const LAYOUT_ATTR_NAMES: ReadonlySet<string> = new Set(Object.keys(LAYOUT_VOCABULARY));
 
@@ -198,8 +211,38 @@ export function parseLayoutAttr(name: string): { attr: LayoutAttrName; breakpoin
  */
 export type Responsive<T> = T | ({ base?: T } & Partial<Record<ZeroBreakpointName, T>>);
 
+/**
+ * The number a fully numeric attribute value also accepts.
+ *
+ * `cols={4}` is how every consumer will write it — `cols="4"` reads as a
+ * typo — and {@link layoutAttrs} stringifies accordingly. The twin belongs on
+ * the PROP rather than on {@link LayoutValue}: the rendered attribute is
+ * always a string, so the value union stays the set of values, and this is
+ * the boundary where a number is allowed in. `'2xs'` is not fully numeric
+ * and therefore contributes nothing.
+ */
+type NumericTwin<V> = V extends `${infer N extends number}` ? N : never;
+
+/** One attribute's accepted values at the prop boundary: its union, plus the numeric twin. */
+type LayoutPropValue<A extends LayoutAttrName> = LayoutValue<A> | NumericTwin<LayoutValue<A>>;
+
+/**
+ * The prop type of one layout attribute — its accepted values, wrapped in
+ * {@link Responsive} only when the vocabulary says it varies per breakpoint.
+ *
+ * DERIVED from `LAYOUT_VOCABULARY` rather than written per prop, because the
+ * two can otherwise disagree: typing a non-responsive attribute as
+ * `Responsive<…>` lets `gapX={{ md: 'lg' }}` compile and then throw at
+ * runtime, which is the opposite of what the closed vocabulary is for. The
+ * conditional makes that shape unrepresentable.
+ */
+export type LayoutProp<A extends LayoutAttrName> =
+    typeof LAYOUT_VOCABULARY[A] extends { responsive: true }
+        ? Responsive<LayoutPropValue<A>>
+        : LayoutPropValue<A>;
+
 /** The layout props a part accepts, as a bag keyed by attribute name. */
-export type LayoutProps = Partial<Record<LayoutAttrName, Responsive<string | number> | undefined>>;
+export type LayoutProps = { [A in LayoutAttrName]?: LayoutProp<A> | undefined };
 
 /**
  * The responsive form is a plain object. An ARRAY is not one, and the

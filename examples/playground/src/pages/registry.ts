@@ -60,6 +60,7 @@ import { sizeRampPage } from './size-ramp';
 import { extensibleRolesPage } from './extensible-roles';
 import { extensibleAxesPage } from './extensible-axes';
 import { aboutPage } from './about';
+import { layoutPage } from './layout';
 
 export type Category =
     | 'Actions'
@@ -67,6 +68,7 @@ export type Category =
     | 'Overlays'
     | 'Navigation & structure'
     | 'Display & feedback'
+    | 'Layout'
     | 'Concepts';
 
 export interface PageEntry {
@@ -84,11 +86,13 @@ export const categories: Category[] = [
     'Forms & inputs',
     'Overlays',
     'Navigation & structure',
+    'Layout',
     'Display & feedback',
     'Concepts',
 ];
 
 export const pages: PageEntry[] = [
+    layoutPage,
     buttonPage,
     togglePage,
     toggleGroupPage,
