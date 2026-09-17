@@ -4,6 +4,12 @@
 
 ### Added
 
+- **The `measure` token category, and the Container recipe** (#484).
+  `SystemTokens.measure`, the `tokens.schema.json` entry (in both the system
+  and the per-theme override blocks), and the `--measure-*` emission that
+  follows from the category table. The brutalist brief is re-synced, since it
+  excerpts the package's `system` and a test holds the two honest.
+
 - **The layout pack covers Box** (#485). Its colour blocks are generated
   from the design system's own `axisRoles`, so a skin with no colour axis
   (heroui, carbon) gets no `variants` key at all rather than an empty block —

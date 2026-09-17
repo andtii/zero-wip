@@ -11,6 +11,7 @@ import type { Spacer as ZSpacer } from '@sigx/zero/spacer';
 import type { Grid as ZGrid } from '@sigx/zero/grid';
 import type { Center as ZCenter } from '@sigx/zero/center';
 import type { Box as ZBox } from '@sigx/zero/box';
+import type { Container as ZContainer } from '@sigx/zero/container';
 import type { Tabs as ZTabs } from '@sigx/zero/tabs';
 import type { Collapsible as ZCollapsible } from '@sigx/zero/collapsible';
 import type { Switch as ZSwitch } from '@sigx/zero/switch';
@@ -90,6 +91,11 @@ type BoxProps = {
 };
 type BoxAdapted = Adapted<typeof ZBox, ZeroAxisProp, BoxProps>;
 export declare const Box: BoxAdapted & { Root: BoxAdapted };
+
+/** container — no vendor route; the wired surface keeps zero's names. */
+type ContainerProps = Record<never, never>;
+type ContainerAdapted = Adapted<typeof ZContainer, ZeroAxisProp, ContainerProps>;
+export declare const Container: ContainerAdapted & { Root: ContainerAdapted };
 
 /** tabs — variant ← variant. Attributes stay zero-spelled. */
 type TabsProps = {

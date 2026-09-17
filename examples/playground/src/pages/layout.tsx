@@ -1,5 +1,5 @@
 import { component } from 'sigx';
-import { Badge, Box, Button, Card, Center, Col, Grid, Row, Spacer, Stack } from '@sigx/zero';
+import { Badge, Box, Button, Card, Center, Col, Container, Grid, Row, Spacer, Stack } from '@sigx/zero';
 import { DemoRow } from '../demo/Section';
 import { pickRole, pickScopeVariant } from '../design-systems';
 import type { PageEntry } from './registry';
@@ -156,6 +156,31 @@ const LayoutDemos = component(() => () => (
         <DemoRow>
             <Center pad="xl"><Cell>middle</Cell></Center>
         </DemoRow>
+
+        <h3>Container</h3>
+        <p>
+            The element that stops a page running the full width of a large
+            monitor. The width is a rung of this design system's own{' '}
+            <code>--measure-*</code> ramp — a token family of its own, because
+            the density ramp cannot reach page scale. Switch the toolbar and
+            these change width.
+        </p>
+        <Col gap="sm">
+            <Container measure="xs" padY="xs"><Box pad="sm">measure="xs"</Box></Container>
+            <Container measure="sm" padY="xs"><Box pad="sm">measure="sm"</Box></Container>
+            <Container measure="md" padY="xs"><Box pad="sm">measure="md"</Box></Container>
+        </Col>
+        <p>
+            <code>measure="prose"</code> is the reading measure, in{' '}
+            <code>ch</code>, so it tracks the type rather than the page.
+        </p>
+        <Container measure="prose" padY="xs">
+            <Box pad="md">
+                A paragraph bounded by the reading measure rather than by the
+                window. Line length is a typographic decision, which is why
+                this rung is expressed in characters and not in rem.
+            </Box>
+        </Container>
 
         <h3>Box</h3>
         <p>

@@ -43,6 +43,8 @@ export type LeadingKey = 'none' | 'tight' | 'normal' | 'relaxed';
 export type TrackingKey = 'tight' | 'normal' | 'wide';
 export type SpaceKey = '2xs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 export type ShadowKey = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+/** Page-scale widths; `prose` is the reading measure, in `ch`. */
+export type MeasureKey = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'prose';
 export type DurationKey = 'instant' | 'fast' | 'normal' | 'slow';
 export type EaseKey = 'linear' | 'standard' | 'emphasized';
 
@@ -93,6 +95,7 @@ export interface SystemTokens {
     size?: Scale<SizeKey>;
     typography?: TypographyDecl;
     spacing?: Scale<SpaceKey>;
+    measure?: Scale<MeasureKey>;
     shadow?: Scale<ShadowKey>;
     motion?: MotionDecl;
     border?: TokenValue;
@@ -140,6 +143,7 @@ export interface ThemeSystem<T extends SystemTokens> {
         sizes?: Partial<Record<TextKeysOf<T>, TokenValue>>;
     };
     spacing?: OverrideOf<Sub<T, 'spacing'>>;
+    measure?: OverrideOf<Sub<T, 'measure'>>;
     shadow?: OverrideOf<Sub<T, 'shadow'>>;
     motion?: {
         durations?: OverrideOf<Sub<Sub<T, 'motion'>, 'durations'>>;

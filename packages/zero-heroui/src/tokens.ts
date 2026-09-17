@@ -66,6 +66,18 @@ export const system = {
     border: '1px',
     disabledOpacity: '0.5',
 
+    // Page-scale widths a Container is bounded by. The density ramp cannot
+    // reach these — it tops out at a rung you would not notice.
+    // HeroUI's app-shell widths — product chrome rather than prose.
+    measure: {
+        xs: '20rem',
+        sm: '30rem',
+        md: '48rem',
+        lg: '64rem',
+        xl: '80rem',
+        prose: '65ch',
+    },
+
     spacing: {
         '2xs': '0.125rem',
         xs: '0.25rem',

@@ -72,6 +72,12 @@
         --space-lg: 1rem;
         --space-xl: 1.5rem;
         --space-2xl: 2.5rem;
+        --measure-xs: 24rem;
+        --measure-sm: 40rem;
+        --measure-md: 60rem;
+        --measure-lg: 80rem;
+        --measure-xl: 100rem;
+        --measure-prose: 80ch;
         --shadow-xs: 2px 2px 0 0 var(--color-base-content);
         --shadow-sm: 3px 3px 0 0 var(--color-base-content);
         --shadow-md: 5px 5px 0 0 var(--color-base-content);

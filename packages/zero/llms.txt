@@ -124,7 +124,7 @@ sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
 model. Transforms apply once at the component boundary, timing on the
 element.
 
-55 components ship today. Every part each renders is listed below, in
+56 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -349,6 +349,16 @@ component renders; the root is called out separately where it carries props.
   so a child can opt into growing, and supports asChild for Join's reason:
   flex-grow applies to the flex ITEM, so a wrapper cannot grow the control
   inside it. No role — a stack is visual grouping.
+- Container: Root only(measure, pad/padX/padY) — bounds the page width and
+  keeps content off the edges. `measure` is xs|sm|md|lg|xl|prose|full from
+  the design system's own --measure-* ramp, a token category of its own
+  because the density ramp cannot reach page scale (--space-* tops out around
+  1.5rem). Deliberately NOT the `size` axis: size="lg" on a Button means a
+  chunkier button and on a Container would mean a wider page, and those ramps
+  have no reason to move together; `prose` (a reading measure in ch) is not a
+  size at all. `full` is `none`, not 100% — a container told not to bound
+  itself should have no maximum. Unbounded by default. No colour: a container
+  is a constraint, not a surface — wrap it around a Box.
 - Box: Root only(color, pad/padX/padY) — the layout tier's one scope that
   PAINTS: a padded surface tinted by meaning. Card is the structured sibling
   (header/body/footer); Box is the unstructured one — a callout, a well, a

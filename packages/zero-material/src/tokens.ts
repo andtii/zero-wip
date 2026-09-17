@@ -53,6 +53,19 @@ export const system = {
     border: '1px',
     disabledOpacity: '0.38',
 
+    // Page-scale widths a Container is bounded by. The density ramp cannot
+    // reach these — it tops out at a rung you would not notice.
+    // Material's breakpoint-derived content widths: the spec bounds a
+    // page at its large-tablet width and lets margins take the rest.
+    measure: {
+        xs: '20rem',
+        sm: '37.5rem',
+        md: '52.5rem',
+        lg: '60rem',
+        xl: '75rem',
+        prose: '70ch',
+    },
+
     spacing: {
         '2xs': '0.25rem',
         xs: '0.5rem',

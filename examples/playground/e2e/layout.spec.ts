@@ -191,6 +191,44 @@ test.describe('the layout tier resolves through the design system', () => {
         expect(await centre.evaluate((el) => getComputedStyle(el).placeItems)).toContain('center');
     });
 
+    test('Container bounds the page, and the bound is the skin\'s own', async ({ page }) => {
+        // The measure category's whole justification: how wide a page runs is
+        // identity, so two skins should disagree. Measured as boxes, at a
+        // viewport far wider than any rung, so the bound is what is being
+        // read rather than the window.
+        const widthUnder = async (ds: string): Promise<number> => {
+            const fresh = await page.context().newPage();
+            await bootPage(fresh, 'layout', ds);
+            await fresh.setViewportSize({ width: 1600, height: 900 });
+            const box = await fresh.locator('[data-scope="container"][data-part="root"][data-l-measure="md"]')
+                .boundingBox();
+            await fresh.close();
+            return box!.width;
+        };
+        const tight = await widthUnder(TIGHT);
+        const coarse = await widthUnder(COARSE);
+
+        // Bounded well below the viewport…
+        expect(tight).toBeLessThan(1600);
+        // …and the two skins bound it differently.
+        expect(coarse).not.toBe(tight);
+    });
+
+    test('`prose` tracks the type, not the page', async ({ page }) => {
+        // In `ch`, so it is a typographic measure. Asserting it is narrower
+        // than `md` is what proves the rung resolved at all rather than
+        // falling through to the unbounded default.
+        await bootPage(page, 'layout', TIGHT);
+        await page.setViewportSize({ width: 1600, height: 900 });
+        const widthOfMeasure = async (value: string) => {
+            const box = await page.locator(`[data-scope="container"][data-part="root"][data-l-measure="${value}"]`)
+                .boundingBox();
+            return box!.width;
+        };
+        expect(await widthOfMeasure('prose')).toBeLessThan(1600);
+        expect(await widthOfMeasure('xs')).toBeLessThan(await widthOfMeasure('md'));
+    });
+
     test('Spacer flexes by default and is fixed when given a step', async ({ page }) => {
         await bootPage(page, 'layout', TIGHT);
         const widthOf = (sel: string) => page.locator(sel)

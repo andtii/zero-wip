@@ -41,6 +41,17 @@ export const system = {
     },
 
     /**
+     * Page-scale widths a Container is bounded by — a category of its own
+     * because the density ramp cannot reach them. Brutalism fills the
+     * viewport, so this ramp is wide and `prose` is the only rung that
+     * admits a reading measure at all.
+     */
+    measure: {
+        xs: '24rem', sm: '40rem', md: '60rem', lg: '80rem',
+        xl: '100rem', prose: '80ch',
+    },
+
+    /**
      * Hard offset shadows with no blur. They read as a second, displaced copy
      * of the element rather than as light, so they are drawn in the
      * foreground colour. The compiler restates a colour-referencing token

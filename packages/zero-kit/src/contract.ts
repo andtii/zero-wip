@@ -110,6 +110,11 @@ export const TOKEN_CATEGORIES = [
         description: 'Density ramp for padding, gap and margin — how tightly the system is packed.',
     },
     {
+        id: 'measure', shape: 'scale', prefix: '--measure-', path: ['measure'],
+        recommended: ['xs', 'sm', 'md', 'lg', 'xl', 'prose'], syntax: '<length>',
+        description: 'Page-scale widths a container is bounded by — how wide the design system lets content run, as distinct from the --space-* density ramp.',
+    },
+    {
         id: 'shadow', shape: 'scale', prefix: '--shadow-', path: ['shadow'],
         recommended: ['xs', 'sm', 'md', 'lg', 'xl'], syntax: '*',
         description: 'Elevation ramp. Commonly differs per color scheme — dark surfaces need heavier shadows to read.',
@@ -536,6 +541,17 @@ export const LAYOUT_VOCABULARY = {
     grow: { values: ['0', '1'] },
     axis: { values: ['both', 'inline', 'block'] },
     space: { values: SPACE_STEPS },
+    /**
+     * A Container's maximum width — a rung of the `--measure-*` ramp, or
+     * `full` for no bound at all.
+     *
+     * Deliberately NOT the `size` axis. A container's width is a different
+     * question from a control's size: `size="lg"` on a Button means a
+     * chunkier button, and on a Container it would mean a wider page. Those
+     * ramps have no reason to move together, and `prose` — a reading measure
+     * in `ch` — is not a size at all.
+     */
+    measure: { values: ['xs', 'sm', 'md', 'lg', 'xl', 'prose', 'full'] },
 } as const satisfies Record<string, LayoutAttrSpec>;
 
 export type LayoutAttrName = keyof typeof LAYOUT_VOCABULARY;
