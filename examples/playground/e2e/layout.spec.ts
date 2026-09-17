@@ -16,7 +16,7 @@
  */
 import { expect, test } from '@playwright/test';
 import { bootPage } from './nav';
-import { rootLabelled } from './demo';
+import { rootLabelled, settledBox } from './demo';
 
 /**
  * How many tracks a grid computes to.
@@ -158,11 +158,11 @@ test.describe('the layout tier resolves through the design system', () => {
 
         // The spanning cell is as wide as the whole grid, which is what
         // `span="full"` means and what a per-cell attribute has to achieve.
-        const [gridBox, cellBox] = await Promise.all([
-            grid.boundingBox(),
-            grid.locator('[data-part="cell"][data-l-span="full"]').boundingBox(),
-        ]);
-        expect(cellBox!.width).toBeCloseTo(gridBox!.width, 0);
+        const gridBox = await settledBox(grid, 'the counted grid');
+        const cellBox = await settledBox(
+            grid.locator('[data-part="cell"][data-l-span="full"]'), 'the spanning cell',
+        );
+        expect(cellBox.width).toBeCloseTo(gridBox.width, 0);
     });
 
     test('cols="auto" reflows on width alone, with no breakpoint named', async ({ page }) => {
@@ -180,8 +180,8 @@ test.describe('the layout tier resolves through the design system', () => {
         expect(wide).toBeGreaterThan(narrow);
         // …and it never overflows: that is what `min(100%, …)` buys, since
         // auto-fit would otherwise honour a track wider than the viewport.
-        const box = await auto.boundingBox();
-        expect(box!.width).toBeLessThanOrEqual(420);
+        const box = await settledBox(auto, 'the auto grid');
+        expect(box.width).toBeLessThanOrEqual(420);
     });
 
     test('Center centres on both axes, and on one when asked', async ({ page }) => {
@@ -200,10 +200,15 @@ test.describe('the layout tier resolves through the design system', () => {
             const fresh = await page.context().newPage();
             await bootPage(fresh, 'layout', ds);
             await fresh.setViewportSize({ width: 1600, height: 900 });
-            const box = await fresh.locator('[data-scope="container"][data-part="root"][data-l-measure="md"]')
-                .boundingBox();
+            // Named by the label the demo renders inside it, per the
+            // convention in demo.ts, rather than a page-wide attribute
+            // selector that would couple this to document order.
+            const box = await settledBox(
+                rootLabelled(fresh, 'container', 'measure="md"'),
+                `the md container under ${ds}`,
+            );
             await fresh.close();
-            return box!.width;
+            return box.width;
         };
         const tight = await widthUnder(TIGHT);
         const coarse = await widthUnder(COARSE);
@@ -220,24 +225,23 @@ test.describe('the layout tier resolves through the design system', () => {
         // falling through to the unbounded default.
         await bootPage(page, 'layout', TIGHT);
         await page.setViewportSize({ width: 1600, height: 900 });
-        const widthOfMeasure = async (value: string) => {
-            const box = await page.locator(`[data-scope="container"][data-part="root"][data-l-measure="${value}"]`)
-                .boundingBox();
-            return box!.width;
-        };
+        const widthOfMeasure = async (value: string) => (await settledBox(
+            rootLabelled(page, 'container', `measure="${value}"`),
+            `the ${value} container`,
+        )).width;
         expect(await widthOfMeasure('prose')).toBeLessThan(1600);
         expect(await widthOfMeasure('xs')).toBeLessThan(await widthOfMeasure('md'));
     });
 
     test('Spacer flexes by default and is fixed when given a step', async ({ page }) => {
         await bootPage(page, 'layout', TIGHT);
-        const widthOf = (sel: string) => page.locator(sel)
-            .evaluate((el) => el.getBoundingClientRect().width);
+        const widthOf = async (sel: string, what: string) =>
+            (await settledBox(page.locator(sel), what)).width;
 
         // The toolbar spacer takes the leftover room…
-        const flexible = await widthOf('[data-scope="spacer"][data-part="root"]:not([data-l-space])');
+        const flexible = await widthOf('[data-scope="spacer"][data-part="root"]:not([data-l-space])', 'the flexible spacer');
         // …while the one given a rung is that rung wide, and much smaller.
-        const fixed = await widthOf('[data-scope="spacer"][data-part="root"][data-l-space="2xl"]');
+        const fixed = await widthOf('[data-scope="spacer"][data-part="root"][data-l-space="2xl"]', 'the fixed spacer');
         expect(fixed).toBeGreaterThan(0);
         expect(flexible).toBeGreaterThan(fixed);
     });

@@ -176,9 +176,10 @@ const LayoutDemos = component(() => () => (
         </p>
         <Container measure="prose" padY="xs">
             <Box pad="md">
-                A paragraph bounded by the reading measure rather than by the
-                window. Line length is a typographic decision, which is why
-                this rung is expressed in characters and not in rem.
+                <code>measure="prose"</code> — a paragraph bounded by the
+                reading measure rather than by the window. Line length is a
+                typographic decision, which is why this rung is expressed in
+                characters and not in rem.
             </Box>
         </Container>
 
