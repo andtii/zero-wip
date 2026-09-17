@@ -124,7 +124,7 @@ sigx's array mode; a RadioGroup.Item is a real radio bound to the group's
 model. Transforms apply once at the component boundary, timing on the
 element.
 
-54 components ship today. Every part each renders is listed below, in
+55 components ship today. Every part each renders is listed below, in
 anatomy order; the authoritative machine-readable list (parts × states × flags
 × token hints) is `@sigx/zero/manifest.json` — generate design systems against
 that, not this summary.
@@ -349,6 +349,17 @@ component renders; the root is called out separately where it carries props.
   so a child can opt into growing, and supports asChild for Join's reason:
   flex-grow applies to the flex ITEM, so a wrapper cannot grow the control
   inside it. No role — a stack is visual grouping.
+- Box: Root only(color, pad/padX/padY) — the layout tier's one scope that
+  PAINTS: a padded surface tinted by meaning. Card is the structured sibling
+  (header/body/footer); Box is the unstructured one — a callout, a well, a
+  panel. Follows Card's axis answer rather than inventing a second: color
+  wired, variant NOT (no surveyed system varies a plain surface's chrome; the
+  ones that do call it a Card). SIZE is declared out of existence, which is
+  the one departure from Card: a Box's size IS its padding and `pad` already
+  says that. The tint is the role's `-soft` derivation and the ink is the
+  role itself — a large area of `--color-error` is a warning label, not a
+  container. display:flow-root, so a child's margin cannot collapse out
+  through the padding.
 - Grid: Root(cols, track, gap/gapX/gapY, pad/padX/padY, align, justify)/
   Cell(asChild, span) — two-dimensional layout where Stack is
   one-dimensional. cols is a twelve-column count or `auto`; `auto` is
@@ -618,7 +629,7 @@ named model bound as `model:<stateName>` in JSX (sigx
 value, `model:inputValue` = text, `model:open` = open.
 
 Variant axes (`color`/`size`/`variant`) are accepted by Accordion, Alert,
-Avatar, Badge, Breadcrumbs, Button, Drawer, Card, Chat, Checkbox, Collapsible, Combobox, Dialog,
+Avatar, Badge, Box, Breadcrumbs, Button, Drawer, Card, Chat, Checkbox, Collapsible, Combobox, Dialog,
 Divider, Field, Indicator, Input, Join, Kbd, Menu, NumberInput,
 Navbar, Pagination, Popover, Progress, RadialProgress, RadioGroup,
 RatingGroup, Select, Skeleton, Slider, Spinner, Stats, Status, Steps,

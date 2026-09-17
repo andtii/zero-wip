@@ -1,5 +1,5 @@
 import { component } from 'sigx';
-import { Badge, Button, Card, Center, Col, Grid, Row, Spacer, Stack } from '@sigx/zero';
+import { Badge, Box, Button, Card, Center, Col, Grid, Row, Spacer, Stack } from '@sigx/zero';
 import { DemoRow } from '../demo/Section';
 import { pickRole, pickScopeVariant } from '../design-systems';
 import type { PageEntry } from './registry';
@@ -156,6 +156,31 @@ const LayoutDemos = component(() => () => (
         <DemoRow>
             <Center pad="xl"><Cell>middle</Cell></Center>
         </DemoRow>
+
+        <h3>Box</h3>
+        <p>
+            The tier's one scope that paints: a padded surface that takes a
+            semantic colour. The tint is the role's <code>-soft</code>
+            derivation, because a panel is a large area of colour and a large
+            area of <code>--color-error</code> is a warning label rather than
+            a container.
+        </p>
+        <Col gap="md">
+            <Box pad="lg">Plain — the base surface.</Box>
+            <Box pad="lg" color={pickRole('primary')}>Tinted by role.</Box>
+            <Box pad="lg" color={pickRole('warning', 'secondary')}>
+                Another role, same component.
+            </Box>
+        </Col>
+        <p>
+            Padding is the layout attribute, not a <code>size</code> axis —
+            a Box's size <em>is</em> its padding, and one fact gets one
+            spelling.
+        </p>
+        <Row gap="md" wrap="wrap">
+            <Box padX="2xl" padY="2xs" color={pickRole('info', 'primary')}>wide, short</Box>
+            <Box pad="2xs" color={pickRole('success', 'primary')}>tight</Box>
+        </Row>
 
         <h3>Nesting</h3>
         <p>

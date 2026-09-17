@@ -4,6 +4,16 @@
 
 ### Added
 
+- **The layout pack covers Box** (#485). Its colour blocks are generated
+  from the design system's own `axisRoles`, so a skin with no colour axis
+  (heroui, carbon) gets no `variants` key at all rather than an empty block —
+  dead CSS and an axis the register would type `never` for a reason nobody
+  could read.
+
+  `layoutScopes` is per-scope rather than uniform as a result: the four
+  geometry scopes declare all three axes out of existence, Box declares only
+  `sizes` and `variants`, because its colour is real.
+
 - **The layout pack covers Grid and Center** (#478). Two more recipes and
   four more attributes on the step table (`cols`, `span`, `track`, `axis`).
   `cols` and `span` are computed rather than tabled — `repeat(N, minmax(0,

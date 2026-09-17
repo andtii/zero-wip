@@ -254,6 +254,7 @@ export const RESERVED_PROPS_BY_SCOPE: Readonly<Record<string, readonly string[]>
     alert: ['defaultOpen', 'value'],
     avatar: [],
     badge: [],
+    box: ['pad', 'padX', 'padY'],
     breadcrumbs: ['label'],
     button: ['onBlur', 'onClick', 'onFocus', 'onKeydown', 'type'],
     card: [],

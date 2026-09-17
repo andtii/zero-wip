@@ -65,6 +65,16 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
+            /** box — color wired. */
+            'box': {
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                /** Accepts `size` at runtime, but brutalist declares no size axis for box — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but brutalist declares no variant axis for box — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
             /** button — color, size, variant wired. */
             'button': {
                 color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';

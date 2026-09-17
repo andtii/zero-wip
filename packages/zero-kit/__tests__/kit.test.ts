@@ -324,7 +324,7 @@ describe('the shipped design systems', () => {
         expect(result.errors).toEqual([]);
         const compiled = compileDesignSystem(ds, manifest);
         expect(Object.keys(compiled.componentCss).sort()).toEqual([
-            'accordion', 'alert', 'avatar', 'badge', 'breadcrumbs', 'button', 'card', 'carousel', 'center', 'chat', 'checkbox', 'collapsible',
+            'accordion', 'alert', 'avatar', 'badge', 'box', 'breadcrumbs', 'button', 'card', 'carousel', 'center', 'chat', 'checkbox', 'collapsible',
             'combobox', 'countdown', 'dialog', 'diff', 'divider', 'drawer', 'field', 'file-upload', 'grid', 'indicator', 'input', 'join', 'kbd', 'menu',
             'navbar', 'number-input', 'pagination', 'popover', 'progress', 'radial-progress', 'radio-group',
             'rating-group', 'select', 'skeleton', 'slider', 'spacer',

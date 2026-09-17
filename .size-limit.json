@@ -322,6 +322,18 @@
         ]
     },
     {
+        "name": "@sigx/zero/box",
+        "path": "packages/zero/dist/components/box/index.js",
+        "limit": "2 kB",
+        "ignore": [
+            "sigx",
+            "sigx/jsx-runtime",
+            "sigx/jsx-dev-runtime",
+            "@sigx/runtime-core",
+            "@sigx/runtime-core/internals"
+        ]
+    },
+    {
         "name": "@sigx/zero/center",
         "path": "packages/zero/dist/components/center/index.js",
         "limit": "2 kB",

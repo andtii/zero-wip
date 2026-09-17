@@ -10,6 +10,7 @@ import type { Stack as ZStack } from '@sigx/zero/stack';
 import type { Spacer as ZSpacer } from '@sigx/zero/spacer';
 import type { Grid as ZGrid } from '@sigx/zero/grid';
 import type { Center as ZCenter } from '@sigx/zero/center';
+import type { Box as ZBox } from '@sigx/zero/box';
 import type { Tabs as ZTabs } from '@sigx/zero/tabs';
 import type { Collapsible as ZCollapsible } from '@sigx/zero/collapsible';
 import type { Switch as ZSwitch } from '@sigx/zero/switch';
@@ -82,6 +83,11 @@ export declare const Grid: GridAdapted & AdaptedStatics<typeof ZGrid> & { Root: 
 type CenterProps = Record<never, never>;
 type CenterAdapted = Adapted<typeof ZCenter, ZeroAxisProp, CenterProps>;
 export declare const Center: CenterAdapted & { Root: CenterAdapted };
+
+/** box — no vendor route; the wired surface keeps zero's names. */
+type BoxProps = Record<never, never>;
+type BoxAdapted = Adapted<typeof ZBox, ZeroAxisProp, BoxProps>;
+export declare const Box: BoxAdapted & { Root: BoxAdapted };
 
 /** tabs — no vendor route; the wired surface keeps zero's names. */
 type TabsProps = {
