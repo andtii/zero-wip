@@ -16,6 +16,21 @@
  */
 import { expect, test } from '@playwright/test';
 import { bootPage } from './nav';
+import { rootLabelled } from './demo';
+
+/**
+ * How many tracks a grid computes to.
+ *
+ * Split on whitespace OUTSIDE parentheses: a computed
+ * `grid-template-columns` is usually a list of pixel lengths, but it does
+ * not have to be, and `minmax(0, 1fr)` would otherwise count as two.
+ */
+const trackCountOf = (locator: import('@playwright/test').Locator): Promise<number> =>
+    locator.evaluate((el) => {
+        const value = getComputedStyle(el).gridTemplateColumns.trim();
+        if (value === '' || value === 'none') return 0;
+        return value.split(/\s+(?![^(]*\))/).length;
+    });
 
 /** The two skins whose spacing ramps differ most, so a real change is visible. */
 const TIGHT = 'basic';
@@ -29,9 +44,12 @@ const COARSE = 'brutalist';
  * a dozen stacks and `.first()` would couple this to document order.
  */
 async function gapOf(page: import('@playwright/test').Page, step: string): Promise<number> {
+    // Named by the label the demo renders beside it, and NOT `.first()`:
+    // the filter already yields exactly one, so leaving the positional call
+    // off means Playwright's strictness fails loudly if a second demo ever
+    // carries the same label, instead of silently picking one.
     const row = page.locator('[data-scope="stack"][data-part="root"]')
-        .filter({ has: page.locator(`xpath=preceding-sibling::code[text()="${step}"]`) })
-        .first();
+        .filter({ has: page.locator(`xpath=preceding-sibling::code[text()="${step}"]`) });
     await expect(row).toBeVisible();
     return row.evaluate((el) => parseFloat(getComputedStyle(el).columnGap));
 }
@@ -92,12 +110,15 @@ test.describe('the layout tier resolves through the design system', () => {
         // anti-inheritance rule: without a re-declared default on each
         // carrier, the inner rows would both take the outer Col's gap.
         await bootPage(page, 'layout', TIGHT);
-        const outer = page.locator('[data-scope="stack"][data-part="root"][data-l-gap="lg"]').first();
+        // Attribute-named rather than positional, and strict: if a second
+        // demo ever renders a `lg`-gapped stack this fails loudly instead of
+        // quietly measuring the wrong one.
+        const outer = page.locator('[data-scope="stack"][data-part="root"][data-l-gap="lg"]');
         await expect(outer).toBeVisible();
         const inner = outer.locator('[data-scope="stack"][data-part="root"]');
-        const tightGap = await inner.filter({ has: page.locator('text=tight') }).first()
+        const tightGap = await inner.filter({ has: page.locator('text=tight') })
             .evaluate((el) => parseFloat(getComputedStyle(el).columnGap));
-        const looseGap = await inner.filter({ has: page.locator('text=loose') }).first()
+        const looseGap = await inner.filter({ has: page.locator('text=loose') })
             .evaluate((el) => parseFloat(getComputedStyle(el).columnGap));
         const outerGap = await outer.evaluate((el) => parseFloat(getComputedStyle(el).columnGap));
 
@@ -110,7 +131,7 @@ test.describe('the layout tier resolves through the design system', () => {
         // contract, and the half a static stylesheet cannot express. Measured
         // either side of this design system's own `md`.
         await bootPage(page, 'layout', TIGHT);
-        const responsive = page.locator('[data-scope="stack"][data-part="root"][data-l-md-gap="xl"]').first();
+        const responsive = page.locator('[data-scope="stack"][data-part="root"][data-l-md-gap="xl"]');
         await expect(responsive).toBeVisible();
         const gap = () => responsive.evaluate((el) => parseFloat(getComputedStyle(el).columnGap));
 
@@ -129,16 +150,17 @@ test.describe('the layout tier resolves through the design system', () => {
         await bootPage(page, 'layout', TIGHT);
         await page.setViewportSize({ width: 1280, height: 900 });
 
-        const grid = page.locator('[data-scope="grid"][data-part="root"][data-l-md-cols="3"]').first();
+        // Named by the text this demo alone renders, per the convention in
+        // demo.ts — a page-wide `.first()` couples the spec to document order.
+        const grid = rootLabelled(page, 'grid', 'full width');
         await expect(grid).toBeVisible();
-        const tracks = await grid.evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(' ').length);
-        expect(tracks).toBe(3);
+        expect(await trackCountOf(grid)).toBe(3);
 
         // The spanning cell is as wide as the whole grid, which is what
         // `span="full"` means and what a per-cell attribute has to achieve.
         const [gridBox, cellBox] = await Promise.all([
             grid.boundingBox(),
-            grid.locator('[data-part="cell"][data-l-span="full"]').first().boundingBox(),
+            grid.locator('[data-part="cell"][data-l-span="full"]').boundingBox(),
         ]);
         expect(cellBox!.width).toBeCloseTo(gridBox!.width, 0);
     });
@@ -147,14 +169,13 @@ test.describe('the layout tier resolves through the design system', () => {
         // The mode worth having: the track count changes with the viewport
         // even though nothing in the markup mentions a breakpoint.
         await bootPage(page, 'layout', TIGHT);
-        const auto = page.locator('[data-scope="grid"][data-part="root"][data-l-cols="auto"]').first();
+        const auto = rootLabelled(page, 'grid', 'epsilon');
         await expect(auto).toBeVisible();
-        const trackCount = () => auto.evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(' ').length);
 
         await page.setViewportSize({ width: 1280, height: 900 });
-        const wide = await trackCount();
+        const wide = await trackCountOf(auto);
         await page.setViewportSize({ width: 420, height: 900 });
-        const narrow = await trackCount();
+        const narrow = await trackCountOf(auto);
 
         expect(wide).toBeGreaterThan(narrow);
         // …and it never overflows: that is what `min(100%, …)` buys, since
@@ -165,14 +186,14 @@ test.describe('the layout tier resolves through the design system', () => {
 
     test('Center centres on both axes, and on one when asked', async ({ page }) => {
         await bootPage(page, 'layout', TIGHT);
-        const centre = page.locator('[data-scope="center"][data-part="root"]').first();
+        const centre = rootLabelled(page, 'center', 'middle');
         await expect(centre).toBeVisible();
         expect(await centre.evaluate((el) => getComputedStyle(el).placeItems)).toContain('center');
     });
 
     test('Spacer flexes by default and is fixed when given a step', async ({ page }) => {
         await bootPage(page, 'layout', TIGHT);
-        const widthOf = (sel: string) => page.locator(sel).first()
+        const widthOf = (sel: string) => page.locator(sel)
             .evaluate((el) => el.getBoundingClientRect().width);
 
         // The toolbar spacer takes the leftover room…
