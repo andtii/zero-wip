@@ -37,6 +37,18 @@ async function gapOf(page: import('@playwright/test').Page, step: string): Promi
 }
 
 test.describe('the layout tier resolves through the design system', () => {
+    // The header's claim, enforced. Without this the spec runs in every
+    // project (chromium/firefox/webkit, plus reduced-motion and
+    // forced-colors) — it passes there, but it is six page loads per engine
+    // to re-confirm that `column-gap` and custom properties work, which is
+    // not where engines differ.
+    test.beforeEach(({}, testInfo) => {
+        test.skip(
+            testInfo.project.name !== 'chromium',
+            'custom-property resolution and column-gap are not engine-specific — one engine is enough',
+        );
+    });
+
     test('a gap step is a real length, not the unset default', async ({ page }) => {
         // The failure this catches: the table losing to the component's own
         // `--l-gap: 0` default. Every attribute assertion elsewhere would
