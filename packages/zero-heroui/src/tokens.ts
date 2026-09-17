@@ -155,9 +155,10 @@ export const tokens: TokensInput<typeof roles, typeof system> = {
      * all three (#340 review catch).
      */
     scopes: {
-        // The layout tier wires neither colour nor size — a Stack is
-        // geometry, and `data-color` on it would paint nothing. Declared out
-        // of existence rather than left to the axis-coverage audit to report.
+        // The layout tier wires neither colour nor size — every one of its
+        // scopes is geometry, and `data-color` on geometry would paint
+        // nothing. Declared out of existence rather than left to the
+        // axis-coverage audit to report.
         ...layoutScopes,
         button: { modifiers: ['icon-only', 'pending'] },
         table: { modifiers: ['striped'] },

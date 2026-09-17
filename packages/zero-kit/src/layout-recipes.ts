@@ -55,7 +55,7 @@ import { LAYOUT_ATTR_PREFIX, layoutAttrSpec } from './contract.js';
 import type { LayoutAttrName } from './contract.js';
 
 /** The scopes this pack paints. Grows as the layout tier does. */
-export const LAYOUT_SCOPES = ['stack', 'spacer'] as const;
+export const LAYOUT_SCOPES = ['stack', 'spacer', 'grid', 'center'] as const;
 
 /**
  * The layout attributes the emitted scopes actually consume.
@@ -68,6 +68,7 @@ const USED_ATTRS: readonly LayoutAttrName[] = [
     'gap', 'gap-x', 'gap-y',
     'pad', 'pad-x', 'pad-y',
     'align', 'justify', 'wrap', 'grow', 'space',
+    'cols', 'span', 'track', 'axis',
 ];
 
 /** Attributes whose values name a rung of the `--space-*` ramp. */
@@ -88,6 +89,41 @@ const KEYWORD_VALUES: Partial<Record<LayoutAttrName, Readonly<Record<string, str
     },
     wrap: { wrap: 'wrap', nowrap: 'nowrap', 'wrap-reverse': 'wrap-reverse' },
     grow: { 0: '0', 1: '1' },
+    /**
+     * Which axis a Center centres on. `place-items` takes block then inline,
+     * so the one-axis values pin the other to `stretch` — a Center told to
+     * centre inline should not also collapse its child vertically.
+     */
+    axis: { both: 'center', inline: 'stretch center', block: 'center stretch' },
+    /**
+     * The minimum column width `cols="auto"` reflows against.
+     *
+     * Lengths rather than tokens, because the spacing ramp cannot express a
+     * page-scale measure — it tops out around 1.5rem. These are the pack's
+     * geometry defaults and a design system may override the rule; the
+     * distinction against a Container's max-width (which is identity, and so
+     * belongs to the skin) is that this answers "how narrow may a column get
+     * before wrapping", which is a legibility question.
+     */
+    track: { xs: '8rem', sm: '12rem', md: '16rem', lg: '20rem', xl: '24rem' },
+};
+
+/**
+ * `cols` and `span` are counts, so their declarations are computed rather
+ * than tabled: `repeat(N, minmax(0, 1fr))` and `span N`.
+ *
+ * `minmax(0, 1fr)` rather than a bare `1fr`: a grid track's implicit minimum
+ * is `auto`, which refuses to shrink below its content — the same trap
+ * `min-inline-size: 0` fixes for flex items, and the usual reason a grid
+ * with long content overflows its container.
+ */
+const COUNTED: Partial<Record<LayoutAttrName, (value: string) => string | undefined>> = {
+    cols: (v) => (v === 'auto'
+        // `min(100%, …)` so a track wider than the viewport does not
+        // overflow it — auto-fit would otherwise honour the minimum.
+        ? 'repeat(auto-fit, minmax(min(100%, var(--l-track)), 1fr))'
+        : `repeat(${v}, minmax(0, 1fr))`),
+    span: (v) => (v === 'full' ? '1 / -1' : `span ${v}`),
 };
 
 /** The custom property an attribute resolves through. */
@@ -118,6 +154,8 @@ function declarationsFor(
         const token = `var(--space-${value})`;
         return attr === 'space' ? { [property]: token, '--l-space-grow': '0' } : { [property]: token };
     }
+    const counted = COUNTED[attr]?.(value);
+    if (counted !== undefined) return { [property]: counted };
     const keyword = KEYWORD_VALUES[attr]?.[value];
     return keyword === undefined ? undefined : { [property]: keyword };
 }
@@ -182,8 +220,8 @@ export function layoutCss(tokens: Pick<TokensInput, 'breakpoints' | 'system'>): 
  * `axis-coverage` audit rule walks every manifest component that HAS a recipe
  * — not only the ones carrying `WithVariantAxes` — so a styled scope wiring no
  * `color` and no `size` raises two findings per skin. Layout scopes wire
- * neither by design: a Stack is geometry, and `data-color` on it would paint
- * nothing.
+ * neither by design: every one of them is geometry, and `data-color` on
+ * geometry would paint nothing.
  *
  * `[]` is the declared grammar for "there isn't one", as distinct from an
  * absent key meaning "I didn't say". Spread this into a skin's
@@ -211,7 +249,7 @@ export const layoutScopes: Readonly<Record<string, ScopeVocabulary>> = Object.fr
  * does not change as the pack learns to read more of it.
  */
 export function layoutRecipes(_tokens: TokensInput): RecipeInput[] {
-    return [stackRecipe(), spacerRecipe()];
+    return [stackRecipe(), spacerRecipe(), gridRecipe(), centerRecipe()];
 }
 
 /**
@@ -303,6 +341,93 @@ function spacerRecipe(): RecipeInput {
                     flexShrink: '0',
                     flexBasis: 'var(--l-space)',
                     alignSelf: 'stretch',
+                },
+            },
+        },
+    };
+}
+
+/**
+ * Grid — two-dimensional layout.
+ *
+ * `--l-track` carries a default on the carrier so `cols="auto"` works without
+ * a `track` prop; the table overrides it per step. Same anti-inheritance
+ * reasoning as the spacing properties.
+ */
+function gridRecipe(): RecipeInput {
+    return {
+        component: 'grid',
+        tokens: {
+            '--l-cols': 'none',
+            '--l-track': '16rem',
+            '--l-gap': '0',
+            '--l-gap-x': 'var(--l-gap)',
+            '--l-gap-y': 'var(--l-gap)',
+            '--l-pad': '0',
+            '--l-pad-x': 'var(--l-pad)',
+            '--l-pad-y': 'var(--l-pad)',
+            '--l-align': 'stretch',
+            '--l-justify': 'stretch',
+        },
+        parts: {
+            root: {
+                base: {
+                    display: 'grid',
+                    minInlineSize: '0',
+                    gridTemplateColumns: 'var(--l-cols)',
+                    columnGap: 'var(--l-gap-x)',
+                    rowGap: 'var(--l-gap-y)',
+                    paddingInline: 'var(--l-pad-x)',
+                    paddingBlock: 'var(--l-pad-y)',
+                    alignItems: 'var(--l-align)',
+                    // `justify-content` distributes the TRACKS; `justify-items`
+                    // places each item inside its own track. A grid told to
+                    // `justify="center"` means the latter — the tracks already
+                    // fill the row.
+                    justifyItems: 'var(--l-justify)',
+                },
+            },
+            cell: {
+                base: {
+                    // Not a carrier, so the default is declared on the part.
+                    // `auto` is grid's own initial value: a cell that spans
+                    // nothing in particular takes one track.
+                    '--l-span': 'auto',
+                    gridColumn: 'var(--l-span)',
+                    minInlineSize: '0',
+                },
+            },
+        },
+    };
+}
+
+/**
+ * Center — `place-items` on a grid, which is the one construction that
+ * centres on both axes without caring what the child is.
+ *
+ * A grid rather than a flex box: `place-items: center` on a single-child
+ * grid centres the child in both directions with no `height: 100%` on
+ * anything, where the flex equivalent needs `align-items` plus
+ * `justify-content` and still leaves the child stretched unless told not to.
+ */
+function centerRecipe(): RecipeInput {
+    return {
+        component: 'center',
+        tokens: {
+            '--l-axis': 'center',
+            '--l-gap': '0',
+            '--l-pad': '0',
+            '--l-pad-x': 'var(--l-pad)',
+            '--l-pad-y': 'var(--l-pad)',
+        },
+        parts: {
+            root: {
+                base: {
+                    display: 'grid',
+                    placeItems: 'var(--l-axis)',
+                    gap: 'var(--l-gap)',
+                    paddingInline: 'var(--l-pad-x)',
+                    paddingBlock: 'var(--l-pad-y)',
                 },
             },
         },

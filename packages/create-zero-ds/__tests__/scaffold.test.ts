@@ -23,6 +23,7 @@ import { collectTemplates } from '../src/collect.js';
 import { designSystemName, planScaffold, writePlan } from '../src/scaffold.js';
 import { loadTemplates } from '../src/templates.js';
 import type { Templates } from '../src/templates.js';
+import { LAYOUT_SCOPES } from '@sigx/zero-kit';
 
 const workspaceRoot = resolve(import.meta.dirname, '../../..');
 const manifest = { components: Object.values(anatomies).map((a) => a.toJSON()) as ManifestComponent[] };
@@ -203,7 +204,10 @@ describe('options', () => {
         // whatever the baseline choice, because it is generated from the
         // tokens rather than copied — `--baseline none` means "none of
         // zero-basic's fifty", not "no Stack".
-        expect(designSystem.recipes.map((r) => r.component).sort()).toEqual(['button', 'spacer', 'stack']);
+        // Derived from LAYOUT_SCOPES rather than listed, so the layout tier
+        // can grow without a hand bump here.
+        expect(designSystem.recipes.map((r) => r.component).sort())
+            .toEqual(['button', ...LAYOUT_SCOPES].sort());
         const result = validateDesignSystem(designSystem, manifest);
         expect(result.errors).toEqual([]);
         expect(result.warnings.filter((w) => !w.message.includes('have no recipe'))).toEqual([]);

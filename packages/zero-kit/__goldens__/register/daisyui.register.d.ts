@@ -43,6 +43,28 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
+            /** grid — no axis wired by daisyui; every axis errors under this register module. */
+            'grid': {
+                /** Accepts `color` at runtime, but daisyui declares no color axis for grid — the attribute would match nothing. */
+                color: never;
+                /** Accepts `size` at runtime, but daisyui declares no size axis for grid — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but daisyui declares no variant axis for grid — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
+            /** center — no axis wired by daisyui; every axis errors under this register module. */
+            'center': {
+                /** Accepts `color` at runtime, but daisyui declares no color axis for center — the attribute would match nothing. */
+                color: never;
+                /** Accepts `size` at runtime, but daisyui declares no size axis for center — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but daisyui declares no variant axis for center — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
             /** tabs — color, size, variant wired. */
             'tabs': {
                 color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';

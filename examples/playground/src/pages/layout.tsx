@@ -1,5 +1,5 @@
 import { component } from 'sigx';
-import { Badge, Button, Card, Col, Row, Spacer, Stack } from '@sigx/zero';
+import { Badge, Button, Card, Center, Col, Grid, Row, Spacer, Stack } from '@sigx/zero';
 import { DemoRow } from '../demo/Section';
 import { pickRole, pickScopeVariant } from '../design-systems';
 import type { PageEntry } from './registry';
@@ -118,6 +118,43 @@ const LayoutDemos = component(() => () => (
                 <Cell>two</Cell>
                 <Cell>three</Cell>
             </Row>
+        </DemoRow>
+
+        <h3>Grid</h3>
+        <p>
+            Counted columns, and cells that span. <code>cols</code> takes a
+            breakpoint record like everything else, so this is three across on
+            a wide window and one on a narrow one.
+        </p>
+        <Grid cols={{ base: 1, md: 3 }} gap="md">
+            <Cell>one</Cell>
+            <Cell>two</Cell>
+            <Cell>three</Cell>
+            <Grid.Cell span="full"><Cell>full width</Cell></Grid.Cell>
+        </Grid>
+
+        <p>
+            <code>cols="auto"</code> is the mode that needs no breakpoint at
+            all: tracks reflow by available width, and <code>track</code> sets
+            how narrow a column may get first.
+        </p>
+        <Grid cols="auto" track="xs" gap="md">
+            <Cell>alpha</Cell>
+            <Cell>beta</Cell>
+            <Cell>gamma</Cell>
+            <Cell>delta</Cell>
+            <Cell>epsilon</Cell>
+        </Grid>
+
+        <h3>Center</h3>
+        <p>
+            Both axes by default. <code>axis="inline"</code> centres
+            horizontally and leaves the block axis alone — the distinction
+            that makes this a component rather than a reminder about{' '}
+            <code>place-items</code>.
+        </p>
+        <DemoRow>
+            <Center pad="xl"><Cell>middle</Cell></Center>
         </DemoRow>
 
         <h3>Nesting</h3>

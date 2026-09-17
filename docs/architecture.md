@@ -145,8 +145,9 @@ every design system in the ecosystem, and a skin that legitimately wanted an
 axis called `align` would start failing validation.
 
 **The layout tier is where the attribute family earns its keep.** `Stack`
-(with its `Row`/`Col` presets) and `Spacer` carry layout attributes and
-nothing else — no colour, no size, no variant, because a Stack is geometry.
+(with its `Row`/`Col` presets), `Spacer`, `Grid` and `Center` carry layout
+attributes and nothing else — no colour, no size, no variant, because every
+one of them is geometry and `data-color` on geometry would paint nothing.
 They are one scope per behaviour rather than one per spelling: `Row` and
 `Col` are the same `stack` with a different default `data-orientation`, so
 there is one recipe and one manifest entry for a skin to paint.
@@ -160,8 +161,15 @@ defaults as component tokens and consumes them (`column-gap: var(--l-gap-x)`).
 
 Both halves of that shape are load-bearing. Putting the table in the recipes
 instead would emit one design-system-wide fact once per layout scope and
-again per breakpoint tier — measured at ~900 rules per skin against ~155 —
-and would have grown with every scope added rather than staying amortised.
+again per breakpoint tier — measured at ~900 rules per skin against 266 for
+the four scopes shipped so far.
+
+The saving is real but worth stating precisely: the table grows with the
+VOCABULARY a scope uses, not with the number of scopes. `Center` cost three
+rules, because `axis` has three values and does not vary by breakpoint;
+`Grid` cost 109, because `cols` and `span` are thirteen-value responsive
+attributes and so are 52 rows each. A scope that reuses the spacing
+attributes already tabled costs nothing at all.
 And declaring the defaults ON the carrier rather than as `var()` fallbacks is
 what stops a `Grid` nested in a gapped `Row` inheriting that Row's spacing,
 since a custom property that is set — just not by this element — never
@@ -188,7 +196,7 @@ would render it as an element.
 
 **The registry is typed closed.** `anatomies` in
 `packages/zero/src/anatomy.ts` is declared `as const satisfies
-Record<string, Anatomy>` — 52 components — so `ZeroScope` is a closed literal
+Record<string, Anatomy>` — 54 components — so `ZeroScope` is a closed literal
 union. That closure is load-bearing: the generated register artifact asserts
 its scope keys against it at compile time ([§3.5](#35-the-register-artifact)),
 which is what makes a typo'd or version-skewed scope a compile error instead
@@ -1154,7 +1162,7 @@ Honesty section. These are the edges the tree knows about today:
 - **The dual-controller theme desync** ([§6](#6-the-theme-model)) is known
   and deliberately unfixed; consumers that swap design systems at runtime
   carry the playground's capture/re-apply pattern.
-- **The component surface is finite.** Fifty-two components, skewed to
+- **The component surface is finite.** Fifty-four components, skewed to
   primitives plus the content, navigation, layout and behavior tiers; there
   is no DatePicker and no data grid (Table ships the semantic anatomy, not
   sorting or virtualization). The ecosystem path
