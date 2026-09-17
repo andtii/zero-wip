@@ -212,7 +212,22 @@ export function parseLayoutAttr(name: string): { attr: LayoutAttrName; breakpoin
 export type Responsive<T> = T | ({ base?: T } & Partial<Record<ZeroBreakpointName, T>>);
 
 /**
- * The prop type of one layout attribute — its value union, wrapped in
+ * The number a fully numeric attribute value also accepts.
+ *
+ * `cols={4}` is how every consumer will write it — `cols="4"` reads as a
+ * typo — and {@link layoutAttrs} stringifies accordingly. The twin belongs on
+ * the PROP rather than on {@link LayoutValue}: the rendered attribute is
+ * always a string, so the value union stays the set of values, and this is
+ * the boundary where a number is allowed in. `'2xs'` is not fully numeric
+ * and therefore contributes nothing.
+ */
+type NumericTwin<V> = V extends `${infer N extends number}` ? N : never;
+
+/** One attribute's accepted values at the prop boundary: its union, plus the numeric twin. */
+type LayoutPropValue<A extends LayoutAttrName> = LayoutValue<A> | NumericTwin<LayoutValue<A>>;
+
+/**
+ * The prop type of one layout attribute — its accepted values, wrapped in
  * {@link Responsive} only when the vocabulary says it varies per breakpoint.
  *
  * DERIVED from `LAYOUT_VOCABULARY` rather than written per prop, because the
@@ -223,11 +238,11 @@ export type Responsive<T> = T | ({ base?: T } & Partial<Record<ZeroBreakpointNam
  */
 export type LayoutProp<A extends LayoutAttrName> =
     typeof LAYOUT_VOCABULARY[A] extends { responsive: true }
-        ? Responsive<LayoutValue<A>>
-        : LayoutValue<A>;
+        ? Responsive<LayoutPropValue<A>>
+        : LayoutPropValue<A>;
 
 /** The layout props a part accepts, as a bag keyed by attribute name. */
-export type LayoutProps = Partial<Record<LayoutAttrName, Responsive<string | number> | undefined>>;
+export type LayoutProps = { [A in LayoutAttrName]?: LayoutProp<A> | undefined };
 
 /**
  * The responsive form is a plain object. An ARRAY is not one, and the

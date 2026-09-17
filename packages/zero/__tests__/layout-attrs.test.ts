@@ -61,18 +61,21 @@ describe('layoutAttrs', () => {
     });
 
     it('throws on a value outside the closed set', () => {
-        expect(() => layoutAttrs({ gap: 'roomy' }, ['gap']))
+        // `as never` throughout this block: the prop types now make these
+        // shapes uncompilable, which is the better half of the contract —
+        // but the runtime guard still has to hold for an untyped caller.
+        expect(() => layoutAttrs({ gap: 'roomy' } as never, ['gap']))
             .toThrow(/"roomy" is not a value of "gap"/);
     });
 
     it('throws when a non-responsive attribute is given a record', () => {
-        expect(() => layoutAttrs({ wrap: { md: 'wrap' } }, ['wrap']))
+        expect(() => layoutAttrs({ wrap: { md: 'wrap' } } as never, ['wrap']))
             .toThrow(/does not vary per breakpoint/);
         // Including a record that names only `base`. It resolves to no
         // breakpoint, so a per-key check let it through — and the message
         // says "pass a single value rather than a record", which has to mean
         // every record or it means nothing.
-        expect(() => layoutAttrs({ wrap: { base: 'wrap' } }, ['wrap']))
+        expect(() => layoutAttrs({ wrap: { base: 'wrap' } } as never, ['wrap']))
             .toThrow(/does not vary per breakpoint/);
     });
 
