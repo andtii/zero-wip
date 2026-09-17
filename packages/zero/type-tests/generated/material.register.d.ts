@@ -65,6 +65,16 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
+            /** box — color wired. */
+            'box': {
+                color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';
+                /** Accepts `size` at runtime, but material declares no size axis for box — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but material declares no variant axis for box — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
             /** button — color, size, variant wired. */
             'button': {
                 color: 'primary' | 'secondary' | 'tertiary' | 'error' | 'neutral' | 'info' | 'success' | 'warning' | 'accent';

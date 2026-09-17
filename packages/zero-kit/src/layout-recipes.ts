@@ -51,11 +51,11 @@
  */
 import type { RecipeInput } from './recipes.js';
 import type { ScopeVocabulary, TokensInput } from './tokens.js';
-import { LAYOUT_ATTR_PREFIX, layoutAttrSpec } from './contract.js';
+import { LAYOUT_ATTR_PREFIX, axisRoles, layoutAttrSpec, resolveRoles } from './contract.js';
 import type { LayoutAttrName } from './contract.js';
 
 /** The scopes this pack paints. Grows as the layout tier does. */
-export const LAYOUT_SCOPES = ['stack', 'spacer', 'grid', 'center'] as const;
+export const LAYOUT_SCOPES = ['stack', 'spacer', 'grid', 'center', 'box'] as const;
 
 /**
  * The layout attributes the emitted scopes actually consume.
@@ -235,7 +235,13 @@ export const layoutScopes: Readonly<Record<string, ScopeVocabulary>> = Object.fr
     // something inherited and truthy.
     LAYOUT_SCOPES.reduce<Record<string, ScopeVocabulary>>(
         (acc, scope) => {
-            acc[scope] = { colors: [], sizes: [], variants: [] };
+            // Box is the one scope that PAINTS, so its colour is real and
+            // must not be declared away. Its `size`, though, is its padding,
+            // and `pad` already says that — wiring the axis too would give
+            // one fact two spellings.
+            acc[scope] = scope === 'box'
+                ? { sizes: [], variants: [] }
+                : { colors: [], sizes: [], variants: [] };
             return acc;
         },
         Object.create(null) as Record<string, ScopeVocabulary>,
@@ -248,8 +254,8 @@ export const layoutScopes: Readonly<Record<string, ScopeVocabulary>> = Object.fr
  * Takes the whole `TokensInput` rather than a narrowed bag so the signature
  * does not change as the pack learns to read more of it.
  */
-export function layoutRecipes(_tokens: TokensInput): RecipeInput[] {
-    return [stackRecipe(), spacerRecipe(), gridRecipe(), centerRecipe()];
+export function layoutRecipes(tokens: TokensInput): RecipeInput[] {
+    return [stackRecipe(), spacerRecipe(), gridRecipe(), centerRecipe(), boxRecipe(tokens)];
 }
 
 /**
@@ -431,5 +437,68 @@ function centerRecipe(): RecipeInput {
                 },
             },
         },
+    };
+}
+
+/**
+ * Box — the layout tier's one scope that paints.
+ *
+ * Two component tokens and the colour axis rebinds them, which is zero-basic
+ * Button's "axes meet rather than multiply" shape: N roles cost N rules
+ * rather than N × (every property the surface sets).
+ *
+ * `--box-surface` is the role's SOFT tint rather than the role itself. A
+ * panel is a large area of colour, and a large area of `--color-error` is a
+ * warning label, not a container; `-soft` is the tint the token contract
+ * derives against `base-100` for exactly this. Its readable ink is then the
+ * role's own colour, not `-content`, which is the ink for the SOLID fill.
+ */
+function boxRecipe(tokens: TokensInput): RecipeInput {
+    // `resolveRoles`, not `?? {}`: the declaration grammar distinguishes
+    // ABSENCE from EMPTY — an omitted `roles` means "I didn't say", and the
+    // contract answers with the recommended eight, where `{}` means "there
+    // isn't one". Collapsing the two would silently give a design system
+    // that relies on the default vocabulary a colourless Box.
+    const roles = axisRoles(resolveRoles(tokens.roles));
+    return {
+        component: 'box',
+        tokens: {
+            '--box-surface': 'var(--color-base-100)',
+            '--box-ink': 'var(--color-base-content)',
+            '--l-pad': '0',
+            '--l-pad-x': 'var(--l-pad)',
+            '--l-pad-y': 'var(--l-pad)',
+        },
+        parts: {
+            root: {
+                base: {
+                    // `flow-root` rather than `block`: it establishes a block
+                    // formatting context, so a child's margin cannot escape
+                    // through the padding and collapse outside the surface —
+                    // the classic reason a padded box appears to lose its top
+                    // padding.
+                    display: 'flow-root',
+                    background: 'var(--box-surface)',
+                    color: 'var(--box-ink)',
+                    borderRadius: 'var(--radius-box)',
+                    paddingInline: 'var(--l-pad-x)',
+                    paddingBlock: 'var(--l-pad-y)',
+                },
+            },
+        },
+        ...(roles.length > 0
+            ? {
+                variants: {
+                    color: Object.fromEntries(roles.map((role) => [role, {
+                        root: {
+                            base: {
+                                '--box-surface': `var(--color-${role}-soft)`,
+                                '--box-ink': `var(--color-${role})`,
+                            },
+                        },
+                    }])),
+                },
+            }
+            : {}),
     };
 }

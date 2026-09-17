@@ -8,7 +8,7 @@
  * differs — the ramp a skin declares, and the breakpoints it names.
  */
 import { describe, expect, it } from 'vitest';
-import { LAYOUT_SCOPES, layoutCss, layoutRecipes, layoutScopes } from '@sigx/zero-kit';
+import { LAYOUT_SCOPES, axisRoles, layoutCss, layoutRecipes, layoutScopes, resolveRoles } from '@sigx/zero-kit';
 import type { TokensInput } from '@sigx/zero-kit';
 import { designSystem as basicDS } from '@sigx/zero-basic';
 import { designSystem as daisyDS } from '@sigx/zero-daisyui';
@@ -28,14 +28,26 @@ describe('layoutRecipes', () => {
             .toEqual([...LAYOUT_SCOPES].sort());
     });
 
-    it('is identical for every design system', () => {
-        // The recipes read nothing from the tokens — only the TABLE does.
-        // That is what keeps `gap="md"` meaning the same thing everywhere;
-        // if a skin could change the rules, the tier would be six tiers.
-        const [, first] = SKINS[0]!;
-        const reference = JSON.stringify(layoutRecipes(first.tokens as TokensInput));
+    it('is identical for every design system, except where colour is', () => {
+        // The GEOMETRY recipes read nothing from the tokens — only the table
+        // does. That is what keeps `gap="md"` meaning the same thing
+        // everywhere; if a skin could change those rules, the tier would be
+        // six tiers.
+        //
+        // Box is the exception and has to be: it paints, so its colour blocks
+        // come from the skin's own declared roles. Asserted as an exception
+        // rather than by loosening the invariant, so a geometry recipe that
+        // started varying would still fail here.
+        const geometry = (ds: (typeof SKINS)[number][1]) =>
+            JSON.stringify(layoutRecipes(ds.tokens as TokensInput).filter((r) => r.component !== 'box'));
+        const reference = geometry(SKINS[0]![1]);
+        for (const [name, ds] of SKINS) expect(geometry(ds), name).toBe(reference);
+
+        // And box varies exactly with the roles, never otherwise.
         for (const [name, ds] of SKINS) {
-            expect(JSON.stringify(layoutRecipes(ds.tokens as TokensInput)), name).toBe(reference);
+            const box = layoutRecipes(ds.tokens as TokensInput).find((r) => r.component === 'box')!;
+            expect(Object.keys(box.variants?.color ?? {}), name)
+                .toEqual(axisRoles((ds.tokens as TokensInput).roles ?? {}));
         }
     });
 
@@ -144,14 +156,68 @@ describe('layoutCss', () => {
     });
 });
 
+describe('the box recipe', () => {
+    const box = (ds: (typeof SKINS)[number][1]) =>
+        layoutRecipes(ds.tokens as TokensInput).find((r) => r.component === 'box')!;
+
+    it('tints with the SOFT role, and inks with the role itself', () => {
+        // A panel is a large area of colour, and a large area of
+        // `--color-error` is a warning label rather than a container. `-soft`
+        // is the tint the token contract derives against base-100 for exactly
+        // this; its readable ink is then the role, not `-content`, which is
+        // the ink for the solid fill.
+        const colors = box(basicDS).variants!['color']!;
+        expect(colors['error']!['root']!.base).toEqual({
+            '--box-surface': 'var(--color-error-soft)',
+            '--box-ink': 'var(--color-error)',
+        });
+    });
+
+    it('rebinds two tokens rather than restating the surface per role', () => {
+        // zero-basic Button's shape: N roles cost N rules, not N x every
+        // property the surface sets.
+        const base = box(basicDS).parts['root']!.base!;
+        expect(base['background']).toBe('var(--box-surface)');
+        expect(base['color']).toBe('var(--box-ink)');
+        // `flow-root`, so a child's margin cannot collapse out through the
+        // padding — the classic reason a padded box loses its top padding.
+        expect(base['display']).toBe('flow-root');
+    });
+
+    it('treats an OMITTED roles declaration as the recommended eight', () => {
+        // The declaration grammar distinguishes absence from empty: omitted
+        // means "I didn't say" and resolves to the recommended vocabulary,
+        // where `{}` means "there isn't one". Collapsing them would hand a
+        // design system that relies on the default a colourless Box, and
+        // nothing else would have complained.
+        const omitted = { ...(basicDS.tokens as TokensInput), roles: undefined } as TokensInput;
+        const colors = layoutRecipes(omitted).find((r) => r.component === 'box')!.variants?.['color'];
+        expect(Object.keys(colors ?? {})).toEqual(axisRoles(resolveRoles(undefined)));
+        expect(Object.keys(colors ?? {}).length).toBeGreaterThan(0);
+    });
+
+    it('wires no colour at all for a design system that declares no roles', () => {
+        // heroui and carbon have `roles: {}`. An empty `variants.color` block
+        // would be dead CSS and an axis the register types as `never` for a
+        // reason nobody could read; omitting it is the honest shape.
+        expect(box(herouiDS).variants).toBeUndefined();
+        expect(box(carbonDS).variants).toBeUndefined();
+    });
+});
+
 describe('layoutScopes', () => {
-    it('declares every layout scope out of the colour and size axes', () => {
+    it('declares the geometry scopes out of every axis, and Box out of all but colour', () => {
         // Not decoration: `axis-coverage` walks every scope that HAS a
-        // recipe, so without this each layout scope raises two findings per
-        // skin. A Stack is geometry — `data-color` on it would paint nothing.
+        // recipe, so without this each layout scope raises findings per skin.
+        // The geometry scopes wire nothing — `data-color` on them would paint
+        // nothing. Box paints, so its colour is real; its SIZE is its padding
+        // and `pad` already says that.
         for (const scope of LAYOUT_SCOPES) {
-            expect(layoutScopes[scope]).toEqual({ colors: [], sizes: [], variants: [] });
+            expect(layoutScopes[scope], scope).toEqual(scope === 'box'
+                ? { sizes: [], variants: [] }
+                : { colors: [], sizes: [], variants: [] });
         }
+        expect(layoutScopes['box']).not.toHaveProperty('colors');
     });
 
     it('has a null prototype, like every scope-keyed map in the kit', () => {
@@ -166,7 +232,7 @@ describe('layoutScopes', () => {
         for (const [name, ds] of SKINS) {
             for (const scope of LAYOUT_SCOPES) {
                 expect((ds.tokens as TokensInput).scopes?.[scope], `${name}.${scope}`)
-                    .toEqual({ colors: [], sizes: [], variants: [] });
+                    .toEqual(layoutScopes[scope]);
             }
         }
     });

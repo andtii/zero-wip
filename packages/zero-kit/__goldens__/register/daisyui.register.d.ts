@@ -65,6 +65,16 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
+            /** box — color wired. */
+            'box': {
+                color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';
+                /** Accepts `size` at runtime, but daisyui declares no size axis for box — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but daisyui declares no variant axis for box — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
             /** tabs — color, size, variant wired. */
             'tabs': {
                 color: 'primary' | 'secondary' | 'accent' | 'neutral' | 'info' | 'success' | 'warning' | 'error';

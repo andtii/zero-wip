@@ -13,7 +13,7 @@
 import { describe, expect, it, beforeEach } from 'vitest';
 import { render } from '@sigx/runtime-dom';
 import type { PartProps } from '@sigx/zero';
-import { Center, Col, Grid, Row, Spacer, Stack, centerAnatomy, gridAnatomy, spacerAnatomy, stackAnatomy } from '@sigx/zero';
+import { Box, Center, Col, Grid, Row, Spacer, Stack, boxAnatomy, centerAnatomy, gridAnatomy, spacerAnatomy, stackAnatomy } from '@sigx/zero';
 import { expectAnatomy } from './helpers';
 
 let container: HTMLElement;
@@ -194,5 +194,32 @@ describe('Center', () => {
         render(<Center axis="inline">x</Center>, container);
         expect(part('center', 'root').getAttribute('data-l-axis')).toBe('inline');
         expectAnatomy(container, centerAnatomy);
+    });
+});
+
+describe('Box', () => {
+    it('carries a colour axis and layout padding together', () => {
+        render(<Box color="warning" pad="lg">careful</Box>, container);
+        expectAnatomy(container, boxAnatomy);
+        const root = part('box', 'root');
+        // The two families coexist on one element: `data-color` is the
+        // design system's vocabulary, `data-l-pad` is zero's.
+        expect(root.getAttribute('data-color')).toBe('warning');
+        expect(root.getAttribute('data-l-pad')).toBe('lg');
+    });
+
+    it('takes the axis-split padding like the rest of the tier', () => {
+        render(<Box padX="xl" padY="sm" />, container);
+        const root = part('box', 'root');
+        expect(root.getAttribute('data-l-pad-x')).toBe('xl');
+        expect(root.getAttribute('data-l-pad-y')).toBe('sm');
+        expectAnatomy(container, boxAnatomy);
+    });
+
+    it('renders no axis attribute when unset', () => {
+        render(<Box />, container);
+        const root = part('box', 'root');
+        expect(root.hasAttribute('data-color')).toBe(false);
+        expect(root.getAttributeNames().filter((n) => n.startsWith('data-l-'))).toEqual([]);
     });
 });

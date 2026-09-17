@@ -65,6 +65,17 @@ declare module '@sigx/zero' {
                 axes: Record<string, never>;
                 mods: Record<string, never>;
             };
+            /** box — no axis wired by heroui; every axis errors under this register module. */
+            'box': {
+                /** Accepts `color` at runtime, but heroui declares no color axis at all — the attribute would match nothing. */
+                color: never;
+                /** Accepts `size` at runtime, but heroui declares no size axis for box — the attribute would match nothing. */
+                size: never;
+                /** Accepts `variant` at runtime, but heroui declares no variant axis for box — the attribute would match nothing. */
+                variant: never;
+                axes: Record<string, never>;
+                mods: Record<string, never>;
+            };
             /** tabs — size wired. */
             'tabs': {
                 /** Accepts `color` at runtime, but heroui declares no color axis at all — the attribute would match nothing. */

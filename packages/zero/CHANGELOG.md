@@ -2,6 +2,25 @@
 
 ## [Unreleased]
 
+### Added — the layout tier: Box (#485)
+
+- **`Box`** — a padded surface tinted by meaning, and the tier's one scope
+  that paints. Card is the structured sibling; Box is the unstructured one.
+  It follows Card's axis answer rather than inventing a second: `color` is
+  wired, `variant` is not (recorded in the `NO_VARIANT` ledger — no surveyed
+  system varies a plain surface's chrome, and the ones that do call it a
+  Card).
+- `size` is declared out of existence, the one place Box departs from Card:
+  a Box's size IS its padding, and `pad` already says that. One fact, one
+  spelling.
+- The tint is the role's `-soft` derivation and the ink is the role itself,
+  not `-content`: a panel is a large area of colour, and a large area of
+  `--color-error` is a warning label rather than a container. `-content` is
+  the ink for the solid fill.
+
+`Container` is deliberately NOT here — it needs a page-scale length the token
+contract has no category for, which is #484.
+
 ### Added — the layout tier: Grid and Center (#478)
 
 - **`Grid`**, with **`Grid.Cell`**. `cols` is a twelve-column count or

@@ -172,6 +172,13 @@ const NO_VARIANT: Record<string, string> = {
     //    system and cannot wire it yet: their text sits BELOW a non-text
     //    carrier, which the contrast audit's `axis coverage` guard rejects
     //    until #297 lands the ancestor chains. Divider is bucket B's third.
+    // Box is the layout tier's surface, and the surveyed systems agree it is
+    // not the varied one: Radix Themes' Box is a layout primitive with no
+    // chrome at all, and Chakra's and MUI's are style-prop escape hatches
+    // (`sx`). Every system that DOES vary a surface calls that component a
+    // Card — which is the entry above, and why zero ships both.
+    box: 'Radix Themes Box is an unvaried layout primitive; the varied surface in every '
+        + 'surveyed system is its Card, recorded separately above.',
     card: 'Radix Themes Card varies as surface | classic | ghost.',
     alert: 'Radix Themes Callout varies as soft | surface | outline.',
     divider: 'Ant Design Divider varies as solid | dashed | dotted — a stroke '

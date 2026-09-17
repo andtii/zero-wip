@@ -184,6 +184,10 @@
             "types": "./dist/components/center/index.d.ts",
             "import": "./dist/components/center/index.js"
         },
+        "./box": {
+            "types": "./dist/components/box/index.d.ts",
+            "import": "./dist/components/box/index.js"
+        },
         "./spinner": {
             "types": "./dist/components/spinner/index.d.ts",
             "import": "./dist/components/spinner/index.js"
