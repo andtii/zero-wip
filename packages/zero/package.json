@@ -319,7 +319,7 @@
         "happy-dom": "^20.0.11",
         "sigx": "catalog:",
         "typescript": "^6.0.3",
-        "vite": "^8.0.3",
+        "vite": "^8.3.4",
         "vitest": "^4.1.1"
     },
     "publishConfig": {
